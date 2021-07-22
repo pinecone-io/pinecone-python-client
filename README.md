@@ -1,0 +1,1 @@
+# pinecone-python-client-internal
