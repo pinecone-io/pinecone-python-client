@@ -1,0 +1,372 @@
+Controller API
+======================
+
+
+
+Service
+`````````````````````
+
+.. http:post:: /services
+
+   Create a new service.
+
+   :reqheader Api-Key: for user authentication
+   :statuscode 200: no error
+   :statuscode 401: user not authenticated
+   :statuscode 503: user authenticated but action not allowed
+
+   .. http:example:: curl wget python-requests
+
+        POST /services HTTP/1.1
+        Host: controller.beta.pinecone.io
+        Accept: application/json
+        Content-Type: application/json
+        Api-Key: XXXX-XXXX-XXXX-XXXX
+
+        {
+            "service": {
+                "version": "pinecone/v1alpha1",
+                "kind": "Service",
+                "metadata": {
+                    "name": "movie-recommender-service"
+                },
+                "spec": {
+                    "functions": [
+                        {
+                            "name": "engine",
+                            "class": "pinecone.functions.engine.namespaced.NamespacedEngine",
+                            "args": [
+                                "--config",
+                                "{\"metric\":\"cosine\",\"engine_type\":\"approximated\"}",
+                                "--replicas",
+                                "1",
+                                "--shards",
+                                "1",
+                                "--name",
+                                "engine"
+                            ]
+                        },
+                        {
+                            "name": "aggregator",
+                            "class": "pinecone.functions.ranker.aggregator.Aggregator",
+                            "args": [
+                                "--config",
+                                "{\"num_shards\":1}",
+                                "--replicas",
+                                "1",
+                                "--shards",
+                                "1",
+                                "--name",
+                                "aggregator"
+                            ]
+                        }
+                    ],
+                    "paths": [
+                        {
+                            "name": "read",
+                            "steps": [
+                                "engine",
+                                "aggregator"
+                            ]
+                        },
+                        {
+                            "name": "write",
+                            "steps": [
+                                "engine",
+                                "aggregator"
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        {
+            "success": true
+        }
+
+
+.. http:get:: /services
+
+   List a user's services. 
+
+   :reqheader Api-Key: for user authentication
+   :statuscode 200: no error
+   :statuscode 401: user not authenticated
+   :statuscode 503: user authenticated but action not allowed
+
+   .. http:example:: curl wget python-requests
+
+            GET /services HTTP/1.1
+            Host: controller.beta.pinecone.io
+            Api-Key: XXXX-XXXX-XXXX-XXXX
+
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            [
+                "movie-recommender-service-1",
+                "movie-recommender-service-2"
+            ]
+
+
+
+.. http:get:: /services/(service_name)
+
+   Get the configuration of a service.
+
+   :param service_name: name of the service
+   :reqheader Api-Key: for user authentication
+   :statuscode 200: no error
+   :statuscode 401: user not authenticated
+   :statuscode 404: resource not found
+   :statuscode 503: user authenticated but action not allowed
+
+   .. http:example:: curl wget python-requests
+
+        GET /services/(service_name) HTTP/1.1
+        Host: controller.beta.pinecone.io
+        Api-Key: XXXX-XXXX-XXXX-XXXX
+
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        {
+                "version": "pinecone/v1alpha1",
+                "kind": "Service",
+                "metadata": {
+                    "name": "movie-recommender-service"
+                },
+                "spec": {
+                    "functions": [
+                        {
+                            "name": "engine",
+                            "class": "pinecone.functions.engine.namespaced.NamespacedEngine",
+                            "args": [
+                                "--config",
+                                "{\"metric\":\"cosine\",\"engine_type\":\"approximated\"}",
+                                "--replicas",
+                                "1",
+                                "--shards",
+                                "1",
+                                "--name",
+                                "engine"
+                            ]
+                        },
+                        {
+                            "name": "aggregator",
+                            "class": "pinecone.functions.ranker.aggregator.Aggregator",
+                            "args": [
+                                "--config",
+                                "{\"num_shards\":1}",
+                                "--replicas",
+                                "1",
+                                "--shards",
+                                "1",
+                                "--name",
+                                "aggregator"
+                            ]
+                        }
+                    ],
+                    "paths": [
+                        {
+                            "name": "read",
+                            "steps": [
+                                "engine",
+                                "aggregator"
+                            ]
+                        },
+                        {
+                            "name": "write",
+                            "steps": [
+                                "engine",
+                                "aggregator"
+                            ]
+                        }
+                    ]
+                }
+        }
+
+
+.. http:delete:: /services/(service_name)
+
+   Delete a service.
+
+   :param service_name: name of the service
+   :reqheader Api-Key: for user authentication
+   :statuscode 200: no error
+   :statuscode 401: user not authenticated
+   :statuscode 404: service not found
+   :statuscode 503: user authenticated but action not allowed
+
+   .. http:example:: curl wget python-requests
+
+        DELETE /services/(service_name) HTTP/1.1
+        Host: controller.pinecone.io
+        Api-Key: XXXX-XXXX-XXXX-XXXX
+
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        {
+            "success": true
+        }
+
+
+.. http:get:: /services/(service_name)/status
+
+   Get the status of a service.
+
+   :param service_name: name of the service
+   :reqheader Api-Key: for user authentication
+   :statuscode 200: no error
+   :statuscode 401: user not authenticated
+   :statuscode 404: resource not found
+   :statuscode 503: user authenticated but action not allowed
+
+   .. http:example:: curl wget python-requests
+
+        GET /services/(service_name)/status HTTP/1.1
+        Host: controller.beta.pinecone.io
+        Api-Key: XXXX-XXXX-XXXX-XXXX
+
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        {
+            "ready": false,
+            "waiting": ["engine-0", "transformer-0"],
+            "crashed": [],
+            "host": null,
+            "port": null
+        }
+
+
+
+Router
+`````````````````````
+
+The APIs for traffic routers work in the same way as
+the APIs for services. You only need to replace
+:code:`/services` with :code:`/routers`
+and :code:`service_name` with :code:`router_name`.
+
+.. http:post:: /routers
+    
+    Create a new traffic router or update an existing traffic router.
+    Note that JSON data structure for traffic routers requests differs from that of services'.
+    Also see :http:post:`/services` for more details.
+
+    .. http:example:: curl wget python-requests
+
+        POST /routers HTTP/1.1
+        Host: controller.beta.pinecone.io
+        Accept: application/json
+        Content-Type: application/json
+        Api-Key: XXXX-XXXX-XXXX-XXXX
+
+        {
+            "router": {
+                "version": "pinecone/v1alpha1",
+                "kind": "TrafficRouter",
+                "metadata": {
+                    "name": "movie-recommender-router"
+                },
+                "spec": {
+                    "active": "movie-recommender-service-v1",
+                    "services": [
+                        "movie-recommender-service-v1",
+                        "movie-recommender-service-v2"
+                    ]
+                }
+            }
+        }
+
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        {
+            "success": true
+        }
+
+.. http:get:: /routers
+
+    List a user's routers. 
+    See :http:get:`/services` for details.
+
+.. http:get:: /routers/(router_name)
+    
+    Get the configuration of a router.
+    See :http:get:`/services/(service_name)` for details.
+
+.. http:delete:: /routers/(router_name)
+    
+    Delete a router.
+    See :http:delete:`/services/(service_name)` for details.
+
+.. http:get:: /routers/(router_name)/status
+    
+    Get the status of a router.
+    See :http:get:`/services/(service_name)/status` for details.
+
+
+
+Action
+`````````````````````
+
+.. http:get:: /actions/whoami
+
+   Get user information.
+
+   :reqheader Api-Key: for user authentication
+   :statuscode 200: no error
+   :statuscode 401: user not authenticated
+   :statuscode 503: user authenticated but action not allowed
+
+   .. http:example:: curl wget python-requests
+
+        GET /actions/whoami HTTP/1.1
+        Host: controller.beta.pinecone.io
+        Api-Key: XXXX-XXXX-XXXX-XXXX
+
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        {
+            "user_label": "user_label", 
+            "user_name": "user_name", 
+            "project_name": "user_name"
+        }
+
+.. http:get:: /actions/version
+
+   Get the Pinecone controller version.
+
+   :reqheader Api-Key: for user authentication
+   :statuscode 200: no error
+   :statuscode 401: user not authenticated
+   :statuscode 503: user authenticated but action not allowed
+
+   .. http:example:: curl wget python-requests
+
+        GET /actions/version HTTP/1.1
+        Host: controller.beta.pinecone.io
+        Api-Key: XXXX-XXXX-XXXX-XXXX
+
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        {
+            "version": "version"
+        }

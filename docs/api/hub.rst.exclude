@@ -1,0 +1,134 @@
+Model Hub API
+`````````````````````
+
+.. http:post:: /login
+
+   Return temporary credential for logging into Pinecone Model Hub.
+
+   :reqheader Api-Key: for user authentication
+   :statuscode 200: no error
+   :statuscode 401: user not authenticated
+   :statuscode 503: user authenticated but action not allowed
+
+   .. http:example:: curl wget python-requests
+
+        POST /login HTTP/1.1
+        Host: hub-api.beta.pinecone.io
+        Api-Key: XXXX-XXXX-XXXX-XXXX
+
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        {
+            "username": "HUB_USERNAME",
+            "password": "HUB_PASSWORD",
+            "server": "SERVER_URL"
+        }
+
+
+.. http:get:: /repositories
+
+   List a user's unarchived repositories.
+
+   :reqheader Api-Key: for user authentication
+   :statuscode 200: no error
+   :statuscode 401: user not authenticated
+   :statuscode 503: user authenticated but action not allowed
+
+   .. http:example:: curl wget python-requests
+
+        GET /repositories HTTP/1.1
+        Host: hub-api.beta.pinecone.io
+        Api-Key: XXXX-XXXX-XXXX-XXXX
+
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        [
+            "movie-embedding-model", 
+            "user-embedding-model"
+        ]
+
+
+
+.. http:post:: /repositories
+
+   Create or unarchive a repository.
+   Update the repository if it already exists.
+
+   :reqheader Api-Key: for user authentication
+   :statuscode 200: no error
+   :statuscode 400: bad request (e.g. invalid repository name)
+   :statuscode 401: user not authenticated
+   :statuscode 503: user authenticated but action not allowed
+
+.. http:example:: curl wget python-requests
+
+      POST /repositories HTTP/1.1
+      Host: hub-api.beta.pinecone.io
+      Accept: application/json
+      Content-Type: application/json
+      Api-Key: XXXX-XXXX-XXXX-XXXX
+      
+      {
+          "repository_name": "REPOSITORY_NAME"
+      }
+
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      {
+          "success": true
+      }
+
+
+
+.. http:delete:: /repositories/(repository_name)
+
+   Archive a repository.
+
+   :reqheader Api-Key: for user authentication
+   :statuscode 200: no error
+   :statuscode 401: user not authenticated
+   :statuscode 404: repository not found
+   :statuscode 503: user authenticated but action not allowed
+
+.. http:example:: curl wget python-requests
+
+      DELETE /repositories/(repository_name) HTTP/1.1
+      Host: hub-api.beta.pinecone.io
+      Api-Key: XXXX-XXXX-XXXX-XXXX
+
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      {
+          "success": true
+      }
+
+
+.. http:get:: /repositories/(repository_name)/tags
+
+   List tags of a repository.
+
+   :reqheader Api-Key: for user authentication
+   :statuscode 200: no error
+   :statuscode 404: repository not found
+   :statuscode 401: user not authenticated
+   :statuscode 503: user authenticated but action not allowed
+
+.. http:example:: curl wget python-requests
+
+      GET /repositories/(repository_name)/tags HTTP/1.1
+      Host: hub-api.beta.pinecone.io
+      Api-Key: XXXX-XXXX-XXXX-XXXX
+
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      ["V1", "V2"]

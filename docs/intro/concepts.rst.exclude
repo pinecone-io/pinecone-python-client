@@ -1,0 +1,108 @@
+Core Concepts
+=======================
+
+The core concepts of Pinecone include: **Service**, **Graph**, **Function**, **Model Hub**, and **Traffic Router**.
+The figure below describes the relationships among the core concepts.
+
+
+.. image:: /_static/img/figure_service.svg
+    :alt: Pinecone service
+    :width: 600
+
+
+.. _Concept Service:
+
+Service
+----------------------
+
+A Pinecone service is a live instance of Pinecone’s vector database.
+A service consists of the following compnents:
+
+* :ref:`Concept Graph`
+    The graph of a service describes how the service handles requests
+    and how functions in the service should be deployed.  
+    When setting up a service, you will construct a graph from scratch
+    or modify an existing service's graph, then deploy the graph
+    to Pinecone.
+* :ref:`Concept Function`
+    A function is a self-contained functional unit within a service.
+    Functions in a service handle requests (e.g. upsert, query, delete, or fetch) 
+    per the network graph.
+    A service pulls custom function docker images from the :ref:`Concept Hub`.
+* Management
+    Pinecone manages the orchestration (e.g. scaling, sharding, and recovery)
+    of the docker containers, 
+    as well as the networking, storage, and logging layers.
+* Connection
+    A client establishes a connection to a service, then it can
+    interact with the service to upsert, delete, query, or fetch.
+    Multiple connections can be established with a service. 
+
+
+.. _Concept Graph:
+
+Graph
+----------------------
+
+
+A Pinecone graph is a serialization of a Pinecone **service**.
+Analogous to a network graph, a Pinecone graph describes
+how a request (e.g. upsert, delete, query, or fetch) is handled by a service
+by specifying the sequence of nodes (i.e., the path) that the request would go through within a service's network.
+The "write" path supports upsert and delete requests, 
+and the "read" path supports query and fetch requests.
+Each node in a graph manifests itself in a service as a Pinecone **function**.
+
+The figure below is an example of the topology of a user-movie recommender service.
+The "Pinecone engine" and "Pinecone aggregator" functions are the workhorses of Pinecone's vector database.
+The figure shows that you can add a movie preprocessor and a user perprocessor to 
+transform movie ids and user ids into embeddings before sending time to the vector database.
+
+.. image:: /_static/img/figure_graph.svg
+   :alt: Pinecone service
+   :width: 600
+
+
+.. _Concept Function:
+
+Function
+----------------------
+
+A Pinecone function is a self-contained functional unit within a Pinecone **service**.
+A function is analogous to a node in a network graph, 
+and each function has its own replication and sharding factors.
+Currently, Pinecone supports two types of custom functions: preprocessor and postprocessor.
+A preprocessor modifies the items or the queries before they are sent to Pinecone's vector database,
+and a postprocessor modifies the results from the vector database.
+Furthurmore, multiple preprocessors can be concatenated, and so can the postprocessors.
+Note that custom functions are optional when you use Pinecone.
+
+A function is deployed by pulling docker images from the **model hub**.
+To deploy custom functions, you will build your custom model and upload the docker images to the model hub.
+
+
+.. _Concept Hub:
+
+Model Hub
+----------------------
+
+Pinecone's model hub is a registry where custom models are stored as docker images.
+These custom models can be used by Pinecone **functions**.
+
+Custom models will need to use Pinecone's base docker image but they are flexible otherwise--you may write
+them in any framework (e.g. scikit-learn, Tensorflow, Pytorch) with a Python interface.
+
+
+.. _Concept Traffic Router:
+
+Traffic Router
+----------------------
+
+When a client creates a connection to a **service**, 
+all the traffic is sent to that particular service.
+With a Pinecone traffic router, the client maintains the same connection,
+but you can change, with zero downtime, the active service that handles the client's requests.
+This is particular helpful for updating inference models already in production.
+Currently, Pinecone traffic routers support
+`blue-green deployment <https://en.wikipedia.org/wiki/Blue-green_deployment>`_.
+We are planning to add support for Canary, A/B testing, and champion/challenger deployment strategies.

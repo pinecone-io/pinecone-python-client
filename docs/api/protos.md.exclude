@@ -1,0 +1,328 @@
+# Protocol Buffer (protobuf)
+
+## core.proto
+
+
+
+<a name="core.Ack"></a>
+
+### Ack
+An acknowledgement from a replica to the leader that it has caught up to that point in the log.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| replica | [uint32](#uint32) |  | Ordinal of replica the request comes from |
+| replay | [bool](#bool) |  | Whether the replica is requesting a replay starting from acked offset |
+
+
+
+
+
+
+<a name="core.DeleteRequest"></a>
+
+### DeleteRequest
+Represents a delete request
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| ids | [string](#string) | repeated | Ids of items to delete |
+
+
+
+
+
+
+<a name="core.FetchRequest"></a>
+
+### FetchRequest
+Represents a fetch request
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| ids | [string](#string) | repeated | Ids of vectors to fetch |
+| vectors | [NdArray](#core.NdArray) | repeated | Result vectors corresponding to ids |
+
+
+
+
+
+
+<a name="core.IndexRequest"></a>
+
+### IndexRequest
+Represents an index request
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| ids | [string](#string) | repeated | ids of items to be inserted |
+| data | [NdArray](#core.NdArray) |  | vectors of items to be inserted |
+
+
+
+
+
+
+<a name="core.InfoRequest"></a>
+
+### InfoRequest
+Represents an info request
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| index_size | [uint64](#uint64) |  | Size of a stateful function (Index) |
+
+
+
+
+
+
+<a name="core.LogEntry"></a>
+
+### LogEntry
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| offset | [uint64](#uint64) |  | WAL offset of this entry |
+| entry | [Request](#core.Request) |  | The request itself as it was received |
+| ack | [Ack](#core.Ack) |  | Or an acknowledgement from a follower of receiving this entry |
+
+
+
+
+
+
+<a name="core.NdArray"></a>
+
+### NdArray
+Represents the a numpy ndarray
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| buffer | [bytes](#bytes) |  | the actual array data, in bytes |
+| shape | [uint32](#uint32) | repeated | the shape (dimensions) of the array |
+| dtype | [string](#string) |  | the data type of the array |
+| compressed | [bool](#bool) |  | whether lz4 compression is used on buffer |
+
+
+
+
+
+
+<a name="core.QueryRequest"></a>
+
+### QueryRequest
+Represents a query request
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| top_k | [uint32](#uint32) |  | Number of results to return for each query |
+| include_data | [bool](#bool) |  | Whether to include the vectors and raw data in response as well as ids |
+| data | [NdArray](#core.NdArray) |  | The batch of vectors to query |
+| matches | [ScoredResults](#core.ScoredResults) | repeated | The corresponding matches returned for each query in the batch |
+
+
+
+
+
+
+<a name="core.Request"></a>
+
+### Request
+Represents an execution plane Request
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| request_id | [uint64](#uint64) |  | unique id of the request |
+| timeout | [uint32](#uint32) |  | timeout in second until this message is dropped |
+| path | [string](#string) |  | path in DAG (defined ahead of time) to follow |
+| version | [string](#string) |  | request schema version |
+| routes | [Request.Route](#core.Request.Route) | repeated | a list of routes this message goes through |
+| status | [Status](#core.Status) |  | status info, e.g. error |
+| query | [QueryRequest](#core.QueryRequest) |  | A query request object |
+| index | [IndexRequest](#core.IndexRequest) |  | An upsert items request object |
+| delete | [DeleteRequest](#core.DeleteRequest) |  | A delete items request object |
+| info | [InfoRequest](#core.InfoRequest) |  | An object for a get info request |
+| fetch | [FetchRequest](#core.FetchRequest) |  | Payload for a request to fetch vectors by id |
+| namespace | [string](#string) |  | Namespace to perform operation in (if data is divided by namespace, default &#34;&#34;) |
+| client_id | [uint32](#uint32) |  | Integer ID that represents the client connection. Assigned by gateway. |
+| client_offset | [uint32](#uint32) |  | Offset of request within client connection. Assigned by gateway. |
+| shard_num | [uint32](#uint32) |  | Ordinal of the last shard visited of a stateful function (or 0). |
+
+
+
+
+
+
+<a name="core.Request.Route"></a>
+
+### Request.Route
+Represents the route paths of this message
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| function | [string](#string) |  | the name of the Service |
+| function_id | [int32](#int32) |  | the id of the Service |
+| start_time | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | receiving time |
+| end_time | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | sending (out) time |
+
+
+
+
+
+
+<a name="core.ScoredResults"></a>
+
+### ScoredResults
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| ids | [string](#string) | repeated | String ids of the item results of a query |
+| scores | [float](#float) | repeated | Corresponding pairwise scores between the query to each item |
+| data | [NdArray](#core.NdArray) |  | Corresponding data for all of these items, if requested |
+
+
+
+
+
+
+<a name="core.ServiceControlRequest"></a>
+
+### ServiceControlRequest
+Request from the controller to individual service for monitoring, updating, and terminating running services.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| function | [string](#string) |  | Name of the function. |
+| function_id | [uint64](#uint64) |  | Unique id of the function (if any). |
+| status | [Status](#core.Status) |  | Status of the function. |
+| service | [string](#string) |  | Name of the service the function belongs to. |
+
+
+
+
+
+
+<a name="core.Status"></a>
+
+### Status
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| code | [Status.StatusCode](#core.Status.StatusCode) |  | status code |
+| description | [string](#string) |  | error description of the very first exception |
+| details | [Status.Details](#core.Status.Details) | repeated | the details of the error |
+| msg_sent | [uint64](#uint64) |  | number of messages sent by the function |
+| msg_recv | [uint64](#uint64) |  | number of messages received by the function |
+| avg_time | [Status.AvgTimeEntry](#core.Status.AvgTimeEntry) | repeated | average time spent by messages in function |
+| size | [uint64](#uint64) |  | size of a function&#39;s dataset if stateful |
+
+
+
+
+
+
+<a name="core.Status.AvgTimeEntry"></a>
+
+### Status.AvgTimeEntry
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| key | [string](#string) |  |  |
+| value | [uint32](#uint32) |  |  |
+
+
+
+
+
+
+<a name="core.Status.Details"></a>
+
+### Status.Details
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| function | [string](#string) |  | the name of that problematic service |
+| function_id | [string](#string) |  | the id of that problematic service |
+| exception | [string](#string) |  | the class name of the exception |
+| traceback | [string](#string) |  | the reason of the exception |
+| time | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | the timestamp when error occurs |
+
+
+
+
+
+ 
+
+
+<a name="core.Status.StatusCode"></a>
+
+### Status.StatusCode
+
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| SUCCESS | 0 | success |
+| READY | 1 | ready to use |
+| ERROR | 2 | error |
+| ERROR_DUPLICATE | 3 | already a existing service |
+
+
+ 
+
+ 
+
+
+<a name="core.RPCClient"></a>
+
+### RPCClient
+core gRPC service.
+
+| Method Name | Request Type | Response Type | Description |
+| ----------- | ------------ | ------------- | ------------|
+| Call | [Request](#core.Request) stream | [Request](#core.Request) stream | Pass in a Request stream and completed Requests will be returned |
+
+ 
+
+
+
+## Scalar Value Types
+
+| .proto Type | Notes | C++ | Java | Python | Go | C# | PHP | Ruby |
+| ----------- | ----- | --- | ---- | ------ | -- | -- | --- | ---- |
+| <a name="double" /> double |  | double | double | float | float64 | double | float | Float |
+| <a name="float" /> float |  | float | float | float | float32 | float | float | Float |
+| <a name="int32" /> int32 | Uses variable-length encoding. Inefficient for encoding negative numbers – if your field is likely to have negative values, use sint32 instead. | int32 | int | int | int32 | int | integer | Bignum or Fixnum (as required) |
+| <a name="int64" /> int64 | Uses variable-length encoding. Inefficient for encoding negative numbers – if your field is likely to have negative values, use sint64 instead. | int64 | long | int/long | int64 | long | integer/string | Bignum |
+| <a name="uint32" /> uint32 | Uses variable-length encoding. | uint32 | int | int/long | uint32 | uint | integer | Bignum or Fixnum (as required) |
+| <a name="uint64" /> uint64 | Uses variable-length encoding. | uint64 | long | int/long | uint64 | ulong | integer/string | Bignum or Fixnum (as required) |
+| <a name="sint32" /> sint32 | Uses variable-length encoding. Signed int value. These more efficiently encode negative numbers than regular int32s. | int32 | int | int | int32 | int | integer | Bignum or Fixnum (as required) |
+| <a name="sint64" /> sint64 | Uses variable-length encoding. Signed int value. These more efficiently encode negative numbers than regular int64s. | int64 | long | int/long | int64 | long | integer/string | Bignum |
+| <a name="fixed32" /> fixed32 | Always four bytes. More efficient than uint32 if values are often greater than 2^28. | uint32 | int | int | uint32 | uint | integer | Bignum or Fixnum (as required) |
+| <a name="fixed64" /> fixed64 | Always eight bytes. More efficient than uint64 if values are often greater than 2^56. | uint64 | long | int/long | uint64 | ulong | integer/string | Bignum |
+| <a name="sfixed32" /> sfixed32 | Always four bytes. | int32 | int | int | int32 | int | integer | Bignum or Fixnum (as required) |
+| <a name="sfixed64" /> sfixed64 | Always eight bytes. | int64 | long | int/long | int64 | long | integer/string | Bignum |
+| <a name="bool" /> bool |  | bool | boolean | boolean | bool | bool | boolean | TrueClass/FalseClass |
+| <a name="string" /> string | A string must always contain UTF-8 encoded or 7-bit ASCII text. | string | String | str/unicode | string | string | string | String (UTF-8) |
+| <a name="bytes" /> bytes | May contain any arbitrary sequence of bytes. | string | ByteString | str | []byte | ByteString | string | String (ASCII-8BIT) |
+
