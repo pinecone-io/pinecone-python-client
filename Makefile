@@ -12,9 +12,6 @@ tests:
 	# skipping flake8 for now
 	pip3 install --upgrade --quiet tox && tox -e py38
 
-tag-and-push:
-	MODULE=pinecone ../scripts/tag_push.sh $(REGISTRY) ./ pinecone/functions/model/transformer/noop pinecone/functions/model/scorer/dot
-
 docs:
 	pip3 install --upgrade --quiet tox && tox -e docs
 
