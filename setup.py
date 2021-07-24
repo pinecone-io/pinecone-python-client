@@ -18,7 +18,7 @@ setuptools.setup(
     version=read("pinecone/__version__").strip(),
     description="Pinecone client and SDK",
     license="Proprietary License",
-    long_description=read("README.md"),
+    long_description=read("README.pypi.md"),
     long_description_content_type="text/markdown",
     url="https://www.pinecone.io/",
     project_urls={
