@@ -10,7 +10,7 @@ from typing import Dict, Optional
 
 from pinecone import logger
 from pinecone.protos import core_pb2
-from pinecone.utils import module_name, get_hostname
+from pinecone.v0.utils import module_name, get_hostname
 from pinecone.utils.constants import PERSISTENT_VOLUME_MOUNT, NodeType, STATS_KEY_NS_PREFIX
 from pinecone.utils.pc_metrics import ITEM_COUNT
 
