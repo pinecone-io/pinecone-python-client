@@ -12,7 +12,7 @@ from pinecone import logger
 from pinecone.v0.functions.index import Index
 from pinecone.protos import core_pb2
 from pinecone.utils import dump_strings, dump_numpy, load_numpy
-from pinecone.utils.constants import STATS_KEY_NS_PREFIX
+from pinecone.v0.utils.constants import STATS_KEY_NS_PREFIX
 
 class NamespacedIndex(Index):
     """

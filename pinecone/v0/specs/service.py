@@ -4,7 +4,7 @@
 
 from pinecone.v0.functions import Function
 from pinecone.v0.specs import Spec
-from pinecone.utils import validate_dns_name, constants
+from pinecone.v0.utils import validate_dns_name, constants
 
 from collections import defaultdict
 from pydoc import locate
