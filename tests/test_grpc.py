@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from pinecone import grpc
+from pinecone.legacy import grpc
 from pinecone import utils
 
 
