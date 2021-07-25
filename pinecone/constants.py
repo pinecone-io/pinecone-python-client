@@ -25,6 +25,7 @@ def _set_sentry_tags(config: dict):
 class ConfigBase(NamedTuple):
     environment: str = ""
     api_key: str = ""
+    project_name: str = ""
     controller_host: str = ""
     hub_host: str = ""
     hub_registry: str = ""
@@ -74,6 +75,7 @@ class _CONFIG:
 
         # Set environment config
         env_config = ConfigBase(
+            project_name=os.getenv("PINECONE_PROJECT_NAME"),
             api_key=os.getenv("PINECONE_API_KEY"),
             controller_host=os.getenv("PINECONE_CONTROLLER_HOST"),
             hub_host=os.getenv("PINECONE_HUB_HOST"),
@@ -129,6 +131,11 @@ class _CONFIG:
     @property
     def API_KEY(self):
         return self._config.api_key
+
+    @property
+    def PROJECT_NAME(self):
+        return self._config.project_name
+
 
     @property
     def CONTROLLER_HOST(self):
