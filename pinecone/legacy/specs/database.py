@@ -1,5 +1,5 @@
-from pinecone.v0.specs import Spec
-from pinecone.v0.functions.index.namespaced import NamespacedIndex
+from pinecone.legacy.specs import Spec
+from pinecone.legacy.functions.index.namespaced import NamespacedIndex
 
 import argparse
 

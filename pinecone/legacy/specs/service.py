@@ -2,9 +2,9 @@
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
 
-from pinecone.v0.functions import Function
-from pinecone.v0.specs import Spec
-from pinecone.v0.utils import validate_dns_name, constants
+from pinecone.legacy.functions import Function
+from pinecone.legacy.specs import Spec
+from pinecone.legacy.utils import validate_dns_name, constants
 
 from collections import defaultdict
 from pydoc import locate

@@ -3,9 +3,9 @@
 #
 
 import json
-from pinecone.v0.specs.service import Service
-from pinecone.v0.specs.traffic_router import TrafficRouter
-from pinecone.v0.specs.database import DatabaseSpec
+from pinecone.legacy.specs.service import Service
+from pinecone.legacy.specs.traffic_router import TrafficRouter
+from pinecone.legacy.specs.database import DatabaseSpec
 from typing import Union
 mapping = {
     'Service': Service,

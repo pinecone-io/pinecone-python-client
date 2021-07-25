@@ -9,10 +9,10 @@ import pickle
 from pydoc import locate
 import numpy as np
 from pinecone import logger
-from pinecone.v0.functions.index import Index
+from pinecone.legacy.functions.index import Index
 from pinecone.protos import core_pb2
 from pinecone.utils import dump_strings, dump_numpy, load_numpy
-from pinecone.v0.utils.constants import STATS_KEY_NS_PREFIX
+from pinecone.legacy.utils.constants import STATS_KEY_NS_PREFIX
 
 class NamespacedIndex(Index):
     """

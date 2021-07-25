@@ -4,11 +4,11 @@
 import os
 from loguru import logger
 import sys
-from pinecone.v0.specs.service import Service  # noqa
-from pinecone.v0.specs.traffic_router import TrafficRouter  # noqa
+from pinecone.legacy.specs.service import Service  # noqa
+from pinecone.legacy.specs.traffic_router import TrafficRouter  # noqa
 from pinecone.utils.sentry import sentry_decorator as sentry
 from .constants import Config
-from pinecone.v0.manage import create_index, delete_index, describe_index, list_indexes, ResourceDescription
+from pinecone.legacy.manage import create_index, delete_index, describe_index, list_indexes, ResourceDescription
 
 __all__ = [
     "init",

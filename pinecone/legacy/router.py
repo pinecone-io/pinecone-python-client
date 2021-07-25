@@ -3,7 +3,7 @@
 #
 
 from typing import List, NamedTuple
-from pinecone.v0.specs import traffic_router as traffic_router_spec
+from pinecone.legacy.specs import traffic_router as traffic_router_spec
 
 from pinecone.utils.sentry import sentry_decorator as sentry
 from .api_router import RouterAPI

@@ -6,7 +6,7 @@ from pathlib import Path
 import inspect
 
 from pinecone.protos import core_pb2, vector_column_service_pb2
-from pinecone.v0.utils import constants
+from pinecone.legacy.utils import constants
 import numpy as np
 import hashlib
 import os

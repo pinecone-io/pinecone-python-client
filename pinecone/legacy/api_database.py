@@ -4,38 +4,31 @@
 
 from typing import List
 from pinecone import logger
-from pinecone.v0.api_base import BaseAPI
+from pinecone.legacy.api_base import BaseAPI
 
 
-__all__ = ["ControllerAPI"]
-
-
-class ControllerAPI(BaseAPI):
+class DatabaseAPI(BaseAPI):
     """API calls to the controller."""
-
-    def get_service(self, service_name: str) -> str:
-        """Returns service specs."""
-        return self.get("/services/{}".format(service_name))["service"]
 
     def list_services(self) -> List[str]:
         """Returns the names of all of the services."""
         return self.get("/services")
 
-    def get_status(self, service_name: str) -> dict:
+    def get_status(self, db_name: str) -> dict:
         """Returns service status"""
         # TODO: service status should be an enum
-        return self.get("/services/{}/status".format(service_name))
+        return self.get("/services/{}/status".format(db_name))
 
-    def stop(self, service_name: str):
+    def stop(self, db_name: str):
         """Stops an service."""
-        response = self.delete("/services/{}".format(service_name))
+        response = self.delete("/databases/{}".format(db_name))
         if not response["success"]:
-            logger.error("Failed to stop the service '{}'. It probably wasn't running!".format(service_name))
+            logger.error("Failed to stop the service '{}'. It probably wasn't running!".format(db_name))
         return response
 
-    def deploy(self, service_json: str):
+    def deploy(self, db_json: str):
         """Deploys an service."""
-        response = self.post("/services", json={'service': service_json})
+        response = self.post("/databases", json={'database': db_json})
         if response["success"]:
             logger.success("Successfully deployed {}".format(self.host))
         else:

@@ -4,7 +4,7 @@
 
 from typing import Optional, List
 
-from pinecone.v0.specs import Spec
+from pinecone.legacy.specs import Spec
 from pinecone import Service
 from pinecone.utils import validate_dns_name
 
