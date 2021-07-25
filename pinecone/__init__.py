@@ -9,6 +9,7 @@ from pinecone.legacy.specs.traffic_router import TrafficRouter  # noqa
 from pinecone.utils.sentry import sentry_decorator as sentry
 from .constants import Config
 from pinecone.legacy.manage import create_index, delete_index, describe_index, list_indexes, ResourceDescription
+from pinecone.legacy.index import Index, UpsertResult, DeleteResult, QueryResult, FetchResult, InfoResult
 
 __all__ = [
     "init",
