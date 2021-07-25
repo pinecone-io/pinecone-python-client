@@ -3,12 +3,12 @@
 #
 
 from typing import List, NamedTuple
-from pinecone.specs import traffic_router as traffic_router_spec
+from pinecone.v0.specs import traffic_router as traffic_router_spec
 
 from pinecone.utils.sentry import sentry_decorator as sentry
 from .api_router import RouterAPI
 from .api_controller import ControllerAPI
-from .constants import Config
+from pinecone.constants import Config
 
 __all__ = ["describe", "deploy", "stop", "ls", "update_active_service", "update_services", "RouterMeta"]
 

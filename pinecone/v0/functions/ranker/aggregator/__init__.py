@@ -6,7 +6,7 @@ from typing import Optional
 
 import numpy as np
 
-from pinecone.functions.ranker import Ranker
+from pinecone.v0.functions.ranker import Ranker
 
 
 class Aggregator(Ranker):

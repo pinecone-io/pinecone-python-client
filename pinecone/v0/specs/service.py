@@ -2,8 +2,8 @@
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
 
-from pinecone.functions import Function
-from pinecone.specs import Spec
+from pinecone.v0.functions import Function
+from pinecone.v0.specs import Spec
 from pinecone.utils import validate_dns_name, constants
 
 from collections import defaultdict

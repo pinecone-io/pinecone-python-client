@@ -5,7 +5,7 @@ from pinecone.protos import core_pb2
 from pinecone.utils import load_numpy, load_strings
 from pinecone.utils.sentry import sentry_decorator as sentry
 from .api_controller import ControllerAPI
-from .constants import Config
+from pinecone.constants import Config
 from .grpc import GRPCClient, GRPCClientConfig, Cursor
 
 __all__ = ["UpsertResult", "DeleteResult", "QueryResult", "FetchResult", "InfoResult", "Index"]

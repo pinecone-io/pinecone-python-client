@@ -4,7 +4,7 @@
 
 from pinecone.utils.sentry import sentry_decorator as sentry
 from .api_action import ActionAPI
-from .constants import Config
+from pinecone.constants import Config
 
 import time
 import requests

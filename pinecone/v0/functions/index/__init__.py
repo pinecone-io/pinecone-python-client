@@ -3,7 +3,7 @@
 #
 from pathlib import Path
 
-from pinecone.functions import Function
+from pinecone.v0.functions import Function
 from pinecone.utils.constants import NODE_TYPE_RESOURCES
 from abc import abstractmethod
 from typing import Dict, Optional

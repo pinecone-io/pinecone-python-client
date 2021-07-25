@@ -4,7 +4,7 @@
 
 from typing import NamedTuple
 from pinecone import __version__
-from pinecone.api_base import BaseAPI
+from pinecone.v0.api_base import BaseAPI
 
 __all__ = ["ActionAPI"]
 

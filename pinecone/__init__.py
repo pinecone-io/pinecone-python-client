@@ -2,15 +2,13 @@
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
 import os
-import configparser
 from loguru import logger
 import sys
-from pinecone.specs.service import Service  # noqa
-from pinecone.specs.traffic_router import TrafficRouter  # noqa
+from pinecone.v0.specs.service import Service  # noqa
+from pinecone.v0.specs.traffic_router import TrafficRouter  # noqa
 from pinecone.utils.sentry import sentry_decorator as sentry
 from .constants import Config
-from .manage import create_index, delete_index, describe_index, list_indexes, ResourceDescription
-from .index import Index, UpsertResult, DeleteResult, QueryResult, FetchResult, InfoResult
+from pinecone.v0.manage import create_index, delete_index, describe_index, list_indexes, ResourceDescription
 
 __all__ = [
     "init",

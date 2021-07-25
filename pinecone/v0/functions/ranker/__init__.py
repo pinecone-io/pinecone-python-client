@@ -7,7 +7,7 @@ from collections import defaultdict
 from typing import Iterable
 
 import numpy as np
-from pinecone.functions import Function
+from pinecone.v0.functions import Function
 from pinecone.protos import core_pb2
 from pinecone.utils import load_numpy, dump_numpy
 

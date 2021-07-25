@@ -11,7 +11,7 @@ from pinecone.utils.sentry import sentry_decorator as sentry
 from pinecone.utils.progressbar import ProgressBar
 from .api_controller import ControllerAPI
 from .api_router import RouterAPI
-from .constants import Config
+from pinecone.constants import Config
 from .grpc import GRPCClient
 
 __all__ = ["connect", "Connection", "Cursor", "IndexResult", "DeleteResult", "QueryResult", "InfoResult", "FetchResult"]

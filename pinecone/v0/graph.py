@@ -7,12 +7,12 @@ import graphviz
 import networkx as nx
 
 import pinecone
-from pinecone.specs import service as service_specs
-from pinecone.functions.index import namespaced
-from pinecone.functions.ranker import aggregator
+from pinecone.v0.specs import service as service_specs
+from pinecone.v0.functions.index import namespaced
+from pinecone.v0.functions.ranker import aggregator
 from pinecone.utils.sentry import sentry_decorator as sentry
 from pinecone.utils.constants import NodeType
-from typing import Dict, NamedTuple, Optional
+from typing import NamedTuple, Optional
 
 __all__ = ["Graph", "IndexGraph"]
 
