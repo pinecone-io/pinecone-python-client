@@ -3,8 +3,8 @@
 #
 
 from collections import defaultdict
-import graphviz
-import networkx as nx
+# import graphviz
+# import networkx as nx
 
 import pinecone
 from pinecone.legacy.specs import service as service_specs
