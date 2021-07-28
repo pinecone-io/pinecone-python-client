@@ -7,6 +7,10 @@ import os
 
 import setuptools
 
+long_desc = """# Pinecone
+
+Pinecone is the vector database for machine learning applications. Build vector-based personalization, ranking, and search systems that are accurate, fast, and scalable. Use simple APIs with zero maintenance.
+"""
 
 def read(fname):
     with open(os.path.join(os.path.dirname(__file__), fname), "r", encoding="utf-8") as fh:
@@ -18,7 +22,7 @@ setuptools.setup(
     version=read("pinecone/__version__").strip(),
     description="Pinecone client and SDK",
     license="Proprietary License",
-    long_description=read("README.pypi.md"),
+    long_description=long_desc,
     long_description_content_type="text/markdown",
     url="https://www.pinecone.io/",
     project_urls={
