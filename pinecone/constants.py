@@ -12,7 +12,7 @@ __all__ = ["CLIENT_VERSION", "Config", "PACKAGE_ENVIRONMENT", "SENTRY_DSN_TXT_RE
 
 PACKAGE_VERSION = get_version()
 PACKAGE_ENVIRONMENT = get_environment() or "development"
-CLIENT_VERSION = "0.1"
+CLIENT_VERSION = PACKAGE_VERSION
 SENTRY_DSN_TXT_RECORD = "pinecone-client.sentry.pinecone.io"
 
 
@@ -104,12 +104,12 @@ class _CONFIG:
         result.pop('environment', None)
         # validate api key
         api_key = result.get('api_key')
-        if api_key:
-            try:
-                uuid.UUID(api_key)
-            except ValueError as e:
-                raise ValueError(f"Pinecone API key \"{api_key}\" appears invalid. "
-                                 f"Did you specify it correctly?") from e
+        # if api_key:
+        #     try:
+        #         uuid.UUID(api_key)
+        #     except ValueError as e:
+        #         raise ValueError(f"Pinecone API key \"{api_key}\" appears invalid. "
+        #                          f"Did you specify it correctly?") from e
         return result
 
     def _load_config_file(self, config_file: str) -> dict:
