@@ -48,7 +48,7 @@ def init(project_name: str = None, api_key: str = None, host: str = None, enviro
                  config_file=config, **kwargs)
     if not bool(Config.API_KEY):
         logger.warning("API key is required.")
-    if not bool(Config.API_KEY):
+    if not bool(Config.PROJECT_NAME):
         logger.warning("Project name is required.")
 
 
