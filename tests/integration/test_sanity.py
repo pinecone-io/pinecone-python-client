@@ -1,11 +1,10 @@
 import logging
 import os
-import sys
 
 import pinecone
 
 # use: export PINECONE_API_KEY=foobar; export PINECONE_PROJECT_NAME=beni; export PINECONE_ENVIROMENT=alpha; python test_sanity.py
-from pinecone.index import Index
+from pinecone.experimental.index_grpc import Index
 from pinecone.protos.vector_service_pb2 import UpsertRequest, QueryRequest, DenseVector, AnonymousVector
 
 
@@ -40,8 +39,8 @@ def test_openapi():
     env = 'dev-benjaminran'
     api_key = os.getenv('API_KEY')
 
-    import pinecone.openapi
-    from pinecone.openapi.api import vector_service_api
+    import pinecone.experimental.openapi
+    from pinecone.experimental.openapi.api import vector_service_api
     from pprint import pprint
     configuration = pinecone.openapi.Configuration(
         host=f"https://{index_name}-{project_name}.{env}.svc.pinecone.io"
