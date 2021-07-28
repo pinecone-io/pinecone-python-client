@@ -8,10 +8,6 @@ from requests.exceptions import HTTPError
 
 class BaseAPI:
     """Base class for HTTP API calls."""
-    __extra_kwargs = {
-        'proxies': {'https': 'http://localhost:8081'},
-        'verify': False
-    }
 
     def __init__(self, host: str, api_key: str = None):
         self.host = host
@@ -31,14 +27,14 @@ class BaseAPI:
         return response.json()
 
     def get(self, url: str, params: dict = None):
-        return self._send_request(requests.get, url, params=params, **self.__extra_kwargs)
+        return self._send_request(requests.get, url, params=params)
 
     def post(self, url: str, json: dict = None):
-        return self._send_request(requests.post, url, json=json, **self.__extra_kwargs)
+        return self._send_request(requests.post, url, json=json)
 
     def patch(self, url: str, json: dict = None):
-        return self._send_request(requests.patch, url, json=json, **self.__extra_kwargs)
+        return self._send_request(requests.patch, url, json=json)
 
     def delete(self, url: str):
-        return self._send_request(requests.delete, url, **self.__extra_kwargs)
+        return self._send_request(requests.delete, url)
 
