@@ -1,4 +1,3 @@
-// this .proto file is here for reference but unused in this repo's build
 syntax = "proto3";
 import "google/protobuf/timestamp.proto";
 
@@ -173,6 +172,9 @@ message IndexRequest {
 
     // vectors of items to be inserted
     NdArray data = 2;
+    
+    // metadata of items to be inserted
+    repeated string metadata = 3;
 }
 
 /**
@@ -185,6 +187,8 @@ message QueryRequest {
     repeated ScoredResults matches = 4; // The corresponding matches returned for each query in the batch
     repeated uint32 top_k_overrides = 5;
     repeated string namespace_overrides = 6;
+    string filter = 7;
+    repeated string filter_overrides = 8;
 }
 
 /**

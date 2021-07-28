@@ -1,4 +1,3 @@
-// this .proto file is here for reference but unused in this repo's build
 syntax = "proto3";
 
 package pinecone_columnar;
@@ -99,6 +98,9 @@ message UpsertRequest {
 
   // vectors of items to be inserted
   NdArray         data       = 4;
+
+  // metadata of items to be inserted
+  repeated string metadata   = 5;
 }
 
 // Response model for the Upsert operation
@@ -183,6 +185,10 @@ message QueryRequest {
   // Number of results to return for each query
   uint32          top_k               = 3;
   repeated uint32 top_k_overrides     = 6;
+
+  // Metadata filter
+  string          filter               = 8;
+  repeated string filter_overrides     = 9;
 
   // Whether to include the vectors and raw data in response as well as ids
   bool            include_data        = 4;

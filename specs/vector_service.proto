@@ -1,4 +1,3 @@
-// this .proto file is here for reference but unused in this repo's build
 syntax = "proto3";
 
 package pinecone;
@@ -50,6 +49,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 message DenseVector {
   string         id     = 1;
   repeated float values = 2;
+  string  metadata      = 3;
   // TODO: other data types, numpy NdArray alternative for performance
 }
 
@@ -164,6 +164,7 @@ message QueryRequest {
     AnonymousVector vector    = 1;
     uint32          top_k     = 2;
     string          namespace = 3;
+    string          filter = 4;
   }
 
   // Unique id of the request
@@ -175,11 +176,14 @@ message QueryRequest {
   // Number of results to return for each query
   uint32               request_default_top_k                     = 3;
 
+  // Default filter to apply if no filter specified in QueryVector (default value "")
+  string               request_default_filter                     = 4;
+
   // Whether to include the vectors and raw data in response as well as ids
-  bool                 include_data              = 4;
+  bool                 include_data              = 5;
 
   // Query vectors
-  repeated QueryVector queries                   = 5;
+  repeated QueryVector queries                   = 6;
 }
 
 // Response model for the Query operation
