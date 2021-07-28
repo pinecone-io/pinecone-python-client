@@ -8,7 +8,7 @@ from pinecone.experimental.index_grpc import Index
 from pinecone.protos.vector_service_pb2 import UpsertRequest, QueryRequest, DenseVector, AnonymousVector
 
 
-def test_grpc():
+def manual_test_grpc():
     index = Index('test-1')
     logging.info('got grpc upsert response: %s', index.Upsert(
         UpsertRequest(vectors=[
@@ -33,7 +33,7 @@ def test_grpc():
     ))
 
 
-def test_openapi():
+def manual_test_openapi():
     index_name = 'test-1'
     project_name = 'beni'
     env = 'dev-benjaminran'
@@ -66,7 +66,7 @@ def test_openapi():
             print("Exception when calling VectorServiceApi->vector_service_delete: %s\n" % e)
 
 
-def test_all_legacy():
+def manual_test_all_legacy():
     # Create an index
     logging.info('create_index result: %s', pinecone.create_index("hello-pinecone-index", metric="euclidean"))
 
