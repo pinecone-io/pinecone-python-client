@@ -19,3 +19,7 @@ tqdm~=4.60.0
 dnspython==2.1.0
 prometheus-client==0.9.0
 dynaconf==3.1.4
+# openapi generated client:
+python_dateutil >= 2.5.3
+setuptools >= 21.0.0
+urllib3 >= 1.25.3

@@ -42,3 +42,8 @@ set-production:
 
 set-development:
 	echo "" > pinecone/__environment__
+
+gen-openapi:
+	docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli:v5.2.0 generate --input-spec /local/specs/vector_service.openapi-v3.json --config /local/specs/openapi-generator-args.python.json --generator-name python --output /local/openapi-gen
+	cp -r openapi-gen/pinecone/openapi/ pinecone/openapi/
+	#rm -r openapi-gen
