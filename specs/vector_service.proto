@@ -1,0 +1,317 @@
+// this .proto file is here for reference but unused in this repo's build
+syntax = "proto3";
+
+package pinecone;
+
+option go_package = "github.com/pinecone-io/new-go-pinecone/pinecone";
+option java_package = "io.pinecone.proto";
+option java_multiple_files = true;
+
+import "google/api/annotations.proto";
+import "google/rpc/error_details.proto"; // for convertGrpcStatus
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "Pinecone JSON API";
+    //		version: "1.0";
+    contact: {
+      name: "Pinecone.io Ops";
+      url: "https://pinecone.io";
+      email: "support@pinecone.io";
+    };
+  };
+  host: "example-service.beta.svc.pinecone.io";
+  external_docs: {
+    url: "https://www.pinecone.io/docs";
+    description: "More Pinecone.io API docs";
+  }
+  schemes: HTTPS;
+  consumes: "application/json";
+  produces: "application/json";
+  security_definitions: {
+    security: {
+      key: "ApiKeyAuth";
+      value: {
+        type: TYPE_API_KEY;
+        in: IN_HEADER;
+        name: "api-key";
+      }
+    }
+  }
+  security: {
+    security_requirement: {
+      key: "ApiKeyAuth";
+      value: {};
+    }
+  }
+};
+
+message DenseVector {
+  string         id     = 1;
+  repeated float values = 2;
+  // TODO: other data types, numpy NdArray alternative for performance
+}
+
+message AnonymousVector {
+  repeated float values = 1;
+}
+
+message ScoredVector {
+  string         id     = 1;
+  float          score  = 2;
+  repeated float values = 3; // vector data, if requested
+}
+
+// Request model for the Upsert operation
+message UpsertRequest {
+  // Unique id of the request
+  uint64               request_id = 1;
+
+  // The actual array data
+  repeated DenseVector vectors    = 2;
+
+  // The namespace name to upsert vectors into
+  string               namespace  = 3;
+}
+
+// Response model for the Upsert operation
+message UpsertResponse {
+  // Unique id of the request
+  uint64 request_id = 1;
+}
+
+// Request model for the Delete operation
+message DeleteRequest {
+  // Unique id of the request
+  uint64          request_id = 1;
+
+  // Vectors to delete
+  repeated string ids        = 2;
+
+  // Indicates that all vectors in the index namespace should be deleted
+  bool                 delete_all              = 4;
+
+  // Namespace to delete vectors from applicable
+  string          namespace  = 3;
+}
+
+// Response model for the Delete operation
+message DeleteResponse {
+  // Unique id of the request
+  uint64 request_id = 1;
+}
+
+// Request model for the DeleteNamespace operation
+/*message DeleteNamespacesRequest {
+  // Unique id of the request
+  uint64          request_id = 1;
+
+  // Namespaces to be deleted
+  repeated string namespaces = 2;
+}
+
+// Response model for the DeleteNamespace operation
+message DeleteNamespacesResponse {
+  // Unique id of the request
+  uint64 request_id = 1;
+}*/
+
+// Request stream item model for the StreamWrites operation
+message AnyWriteRequest {
+  oneof request {
+    UpsertRequest    upsert_request           = 1;
+    DeleteRequest    delete_request   = 2;
+//    DeleteNamespacesRequest delete_namespaces_request = 3;
+  }
+}
+
+// Response stream item model for the StreamWrites operation
+message AnyWriteResponse {
+  oneof response {
+    UpsertResponse    upsert_response           = 1;
+    DeleteResponse    delete_response           = 2;
+//    DeleteNamespacesResponse delete_namespaces_response = 3;
+  }
+}
+
+// Request model for the Fetch operation
+message FetchRequest {
+  // Unique id of the request
+  uint64          request_id = 1;
+
+  // Vector ids to fetch
+  repeated string ids        = 2;
+
+  string          namespace  = 3;
+}
+
+// Response model for the Fetch operation
+message FetchResponse {
+  // Unique id of the request
+  uint64               request_id = 1;
+
+  // Fetched vectors
+  repeated DenseVector vectors    = 2;
+
+  // The namespace of the vectors
+  string               namespace  = 3;
+}
+
+// Request model for the Query operation
+message QueryRequest {
+  message QueryVector {
+    AnonymousVector vector    = 1;
+    uint32          top_k     = 2;
+    string          namespace = 3;
+  }
+
+  // Unique id of the request
+  uint64               request_id                = 1;
+
+  // Default namespace to query if no namespace specified in QueryVector (default value "")
+  string               request_default_namespace = 2;
+
+  // Number of results to return for each query
+  uint32               request_default_top_k                     = 3;
+
+  // Whether to include the vectors and raw data in response as well as ids
+  bool                 include_data              = 4;
+
+  // Query vectors
+  repeated QueryVector queries                   = 5;
+}
+
+// Response model for the Query operation
+message QueryResponse {
+  message SingleQueryResults {
+    repeated ScoredVector matches   = 1;
+    string                namespace = 2;
+  }
+
+  // Unique id of the request
+  uint64                      request_id = 1;
+
+  // Results of each query
+  repeated SingleQueryResults results    = 2;
+}
+
+// Request model for the List operation
+message ListRequest {
+  // Unique id of the request
+  uint64 request_id = 1;
+
+  // Namespace to list vectors of
+  string namespace  = 2;
+}
+
+// Response module for the List operation
+message ListResponse {
+  // Unique id of the request
+  uint64          request_id = 1;
+
+  repeated string ids        = 2;
+
+  string          namespace  = 3;
+}
+
+// Request model for the ListNamespaces operation
+message ListNamespacesRequest {
+  // Unique id of the request
+  uint64 request_id = 1;
+}
+
+// Request model for the ListNamespaces operation
+message ListNamespacesResponse {
+  // Unique id of the request
+  uint64          request_id = 1;
+
+  // Namespaces that exist in the database
+  repeated string namespaces = 2;
+}
+
+// Request model for the Summarize operation
+message SummarizeRequest {
+  // Unique id of the request
+  uint64 request_id = 1;
+}
+
+// Response model for the Summarize operation
+message SummarizeResponse {
+  // Unique id of the request
+  uint64 request_id = 1;
+
+  // Size of a stateful function (Index)
+  uint64 index_size = 2;
+
+  // Dimension of the indexed vectors
+  uint32 dimension = 3;
+}
+
+// The VectorService interface is exposed by Pinecone vector database services
+service VectorService {
+  // The Upsert operation is for uploading data (vector ids and values) to be indexed.
+  // Note: Most users are recommended to submit upserts via the StreamWrites operation instead.
+  // If a new value is upserted for an existing vector id, it overwrites the previous value.
+  rpc Upsert(UpsertRequest) returns (UpsertResponse) {
+    option (google.api.http) = {
+      post: "/vectors/upsert"
+    };
+  }
+
+  // The Delete operation deletes a vector by id.
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {
+    option (google.api.http) = {
+      delete: "/vectors/delete"
+    };
+  }
+
+  // The DeleteNamespace operation deletes one or more namespaces and all their
+  // corresponding vectors from the database.
+  /*rpc DeleteNamespace(DeleteNamespacesRequest) returns (DeleteNamespacesResponse) {
+    option (google.api.http) = {
+      delete: "/namespaces/delete"
+    };
+  }*/
+
+  // The StreamWrites operation is for uploading data (vector ids and values) to be indexed.
+  // If a new value is upserted for an existing vector id, it overwrites the previous value.
+  rpc StreamWrites(stream AnyWriteRequest) returns (stream AnyWriteResponse) {}
+
+  // The FetchVectors operation returns a vector value by id.
+  rpc Fetch(FetchRequest) returns (FetchResponse) {
+    option (google.api.http) = {
+      get: "/vectors/fetch"
+    };
+  }
+
+  // The Query operation queries the database for the nearest stored vectors to one
+  // or more query vectors and returns their ids and/or values.
+  rpc Query(QueryRequest) returns (QueryResponse) {
+    option (google.api.http) = {
+      get: "/query"
+    };
+  }
+
+  // The List operation returns the vector IDs in this database.
+  rpc List(ListRequest) returns (ListResponse) {
+    option (google.api.http) = {
+      get: "/vectors/list"
+    };
+  }
+
+  // The ListNamespaces operation returns the namespaces for which data exists in this
+  // database.
+  rpc ListNamespaces(ListNamespacesRequest) returns (ListNamespacesResponse) {
+    option (google.api.http) = {
+      get: "/namespaces/list"
+    };
+  }
+
+  // The Summarize operation returns summary statistics about the database contents.
+  rpc Summarize(SummarizeRequest) returns (SummarizeResponse) {
+    option (google.api.http) = {
+      get: "/summarize"
+    };
+  }
+}
