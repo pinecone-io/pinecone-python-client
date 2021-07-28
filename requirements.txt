@@ -2,7 +2,7 @@ requests==2.25.1
 pyyaml==5.4
 grpcio==1.37.1
 #grpcio-tools==1.37.1
-#grpc-gateway-protoc-gen-openapiv2==0.1.0
+grpc-gateway-protoc-gen-openapiv2==0.1.0
 googleapis-common-protos==1.53.0
 numpy>=1.18.5,<1.20.0
 loguru==0.5.3
