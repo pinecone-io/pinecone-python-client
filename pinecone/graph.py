@@ -40,35 +40,35 @@ class Graph(service_specs.Service):
         else:
             raise NotImplementedError("Format {format} not supported.".format(format=format))
 
-    @sentry
-    def to_graph(self) -> nx.MultiDiGraph:
-        """Exports to a `networkx <https://networkx.org/>`_ graph.
-
-        Construct a multi directed graph.
-        Add incoming traffic and outgoing traffic nodes to signify the traffic flow.
-
-        :return: [description]
-        :rtype: nx.MultiDiGraph
-        """
-
-        def _get_node_name(fn: "pinecone.function.Function"):
-            return fn.name
-
-        def _get_edge_name(path_name: str):
-            return "[{}]".format(path_name)
-
-        graph = nx.MultiDiGraph()
-
-        for path_name, steps in self.paths.items():
-            node_names = [_get_node_name(self.functions[ss]) for ss in steps]
-            for start_node, end_node in zip(["incoming traffic", *node_names], [*node_names, "outgoing traffic"]):
-                graph.add_edge(
-                    start_node,
-                    end_node,
-                    label=_get_edge_name(path_name),
-                    key=_get_edge_name(path_name),
-                )
-        return graph
+    # @sentry
+    # def to_graph(self) -> nx.MultiDiGraph:
+    #     """Exports to a `networkx <https://networkx.org/>`_ graph.
+    #
+    #     Construct a multi directed graph.
+    #     Add incoming traffic and outgoing traffic nodes to signify the traffic flow.
+    #
+    #     :return: [description]
+    #     :rtype: nx.MultiDiGraph
+    #     """
+    #
+    #     def _get_node_name(fn: "pinecone.function.Function"):
+    #         return fn.name
+    #
+    #     def _get_edge_name(path_name: str):
+    #         return "[{}]".format(path_name)
+    #
+    #     graph = nx.MultiDiGraph()
+    #
+    #     for path_name, steps in self.paths.items():
+    #         node_names = [_get_node_name(self.functions[ss]) for ss in steps]
+    #         for start_node, end_node in zip(["incoming traffic", *node_names], [*node_names, "outgoing traffic"]):
+    #             graph.add_edge(
+    #                 start_node,
+    #                 end_node,
+    #                 label=_get_edge_name(path_name),
+    #                 key=_get_edge_name(path_name),
+    #             )
+    #     return graph
 
     @sentry
     def view(self):
@@ -78,18 +78,19 @@ class Graph(service_specs.Service):
             This method requires the `graphviz <https://graphviz.org/download/>`_ package
             installed on your operating system.
         """
-        multigraph = self.to_graph()
-        union_labels = defaultdict(list)
-        for start_node, end_node, label in multigraph.edges.data("label"):
-            if label:
-                union_labels[(start_node, end_node)].append(label)
-
-        graph = nx.DiGraph()
-        for start_node, end_node, path in multigraph.edges:
-            labels = union_labels.get((start_node, end_node)) or []
-            graph.add_edge(start_node, end_node, label="".join(labels))
-
-        return graphviz.Source(nx.nx_pydot.to_pydot(graph))
+        raise NotImplementedError("this method has been removed")
+        # multigraph = self.to_graph()
+        # union_labels = defaultdict(list)
+        # for start_node, end_node, label in multigraph.edges.data("label"):
+        #     if label:
+        #         union_labels[(start_node, end_node)].append(label)
+        #
+        # graph = nx.DiGraph()
+        # for start_node, end_node, path in multigraph.edges:
+        #     labels = union_labels.get((start_node, end_node)) or []
+        #     graph.add_edge(start_node, end_node, label="".join(labels))
+        #
+        # return graphviz.Source(nx.nx_pydot.to_pydot(graph))
 
 
 class IndexConfig(NamedTuple):

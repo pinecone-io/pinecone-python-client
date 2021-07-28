@@ -1,4 +1,4 @@
-from prometheus_client import Counter, Gauge, Histogram
+# from prometheus_client import Counter, Gauge, Histogram
 
 from pinecone.protos import core_pb2
 

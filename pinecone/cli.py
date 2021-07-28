@@ -2,7 +2,7 @@
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
 
-import fire
+# import fire
 import configparser
 import pathlib
 
@@ -33,10 +33,11 @@ class CLI:
 
 
 def main():
-    try:
-        fire.Fire(CLI)
-    except KeyboardInterrupt:
-        pass
+    raise NotImplementedError("this method has been removed")
+    # try:
+    #     fire.Fire(CLI)
+    # except KeyboardInterrupt:
+    #     pass
 
 
 if __name__ == "__main__":
