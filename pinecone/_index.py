@@ -1,12 +1,12 @@
-from typing import NamedTuple, Iterable, Tuple, Iterator, List
+from typing import NamedTuple, Iterable, Tuple, List
 import numpy as np
 
 from pinecone.protos import core_pb2
 from pinecone.utils import load_numpy, load_strings
 from pinecone.utils.sentry import sentry_decorator as sentry
-from .api_controller import ControllerAPI
+from pinecone.api_controller import ControllerAPI
 from pinecone.constants import Config
-from .grpc import GRPCClient, GRPCClientConfig, Cursor
+from pinecone.grpc import GRPCClient, GRPCClientConfig, Cursor
 
 __all__ = ["UpsertResult", "DeleteResult", "QueryResult", "FetchResult", "InfoResult", "Index"]
 

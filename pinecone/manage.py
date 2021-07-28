@@ -1,10 +1,10 @@
-from typing import NamedTuple, Optional, Tuple, List
+from typing import NamedTuple, Optional, List
 import enum
 from pinecone import logger
 
 from pinecone.utils.sentry import sentry_decorator as sentry
-from .service import deploy as service_deploy, stop as service_stop, ls as service_ls, describe as service_describe
-from .graph import IndexGraph, IndexConfig
+from pinecone.service import deploy as service_deploy, stop as service_stop, ls as service_ls, describe as service_describe
+from pinecone.graph import IndexGraph, IndexConfig
 
 __all__ = [
     "create",

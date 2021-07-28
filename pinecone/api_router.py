@@ -4,7 +4,7 @@
 
 from typing import List
 from pinecone import logger
-from pinecone.legacy.api_base import BaseAPI
+from pinecone.api_base import BaseAPI
 
 __all__ = ["RouterAPI"]
 

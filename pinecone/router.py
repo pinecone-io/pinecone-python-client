@@ -6,8 +6,8 @@ from typing import List, NamedTuple
 from pinecone.legacy.specs import traffic_router as traffic_router_spec
 
 from pinecone.utils.sentry import sentry_decorator as sentry
-from .api_router import RouterAPI
-from .api_controller import ControllerAPI
+from pinecone.api_router import RouterAPI
+from pinecone.api_controller import ControllerAPI
 from pinecone.constants import Config
 
 __all__ = ["describe", "deploy", "stop", "ls", "update_active_service", "update_services", "RouterMeta"]

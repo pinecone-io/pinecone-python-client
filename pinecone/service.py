@@ -3,13 +3,12 @@
 #
 
 from typing import List, NamedTuple, Tuple
-import time
 
 from pinecone import logger
 
-from .api_controller import ControllerAPI
+from pinecone.api_controller import ControllerAPI
 from pinecone.constants import Config
-from .graph import Graph
+from pinecone.graph import Graph
 from pinecone.utils.sentry import sentry_decorator as sentry
 from pinecone.utils.progressbar import ProgressBar
 

@@ -4,13 +4,15 @@
 
 from typing import NamedTuple
 from pinecone import __version__
-from pinecone.legacy.api_base import BaseAPI
+from pinecone.api_base import BaseAPI
 
 __all__ = ["ActionAPI"]
 
 
 class WhoAmIResponse(NamedTuple):
     username: str
+    user_label: str
+    projectname: str
 
 
 class VersionResponse(NamedTuple):
@@ -24,7 +26,11 @@ class ActionAPI(BaseAPI):
     def whoami(self) -> WhoAmIResponse:
         """Returns user information."""
         response = self.get("/actions/whoami")
-        return WhoAmIResponse(username=response.get("user_name", "UNDEFINED"))
+        return WhoAmIResponse(
+            username=response.get("user_name", "UNDEFINED"),
+            projectname=response.get("project_name", "UNDEFINED"),
+            user_label=response.get("user_label", "UNDEFINED"),
+        )
 
     def version(self) -> VersionResponse:
         """Returns version information."""

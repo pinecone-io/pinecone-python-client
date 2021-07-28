@@ -1,4 +1,4 @@
-from pinecone.legacy.graph import IndexGraph
+from pinecone.graph import IndexGraph
 
 
 def test_validate_replicas():

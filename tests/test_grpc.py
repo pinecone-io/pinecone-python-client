@@ -2,8 +2,7 @@ import unittest
 
 import numpy as np
 
-from pinecone.legacy import grpc
-from pinecone import utils
+from pinecone import utils, grpc
 
 
 class TestGRPC(unittest.TestCase):
