@@ -12,18 +12,22 @@ class DatabaseAPI(BaseAPI):
 
     def list_services(self) -> List[str]:
         """Returns the names of all of the services."""
-        return self.get("/services")
+        return self.get("/databases")
+
+    def get_database(self,db_name: str):
+        """Returns the database spec"""
+        return self.get("/databases/{}".format(db_name))["database"]
 
     def get_status(self, db_name: str) -> dict:
         """Returns service status"""
         # TODO: service status should be an enum
-        return self.get("/services/{}/status".format(db_name))
+        return self.get("/databases/{}/status".format(db_name))
 
     def stop(self, db_name: str):
         """Stops an service."""
         response = self.delete("/databases/{}".format(db_name))
         if not response["success"]:
-            logger.error("Failed to stop the service '{}'. It probably wasn't running!".format(db_name))
+            logger.error("Failed to stop the index '{}'. It probably wasn't running!".format(db_name))
         return response
 
     def deploy(self, db_json: str):
@@ -37,3 +41,11 @@ class DatabaseAPI(BaseAPI):
             else:
                 raise RuntimeError("Failed to deploy: {}".format(response["msg"]))
         return response
+
+    def update(self,db_json:str):
+        """Updates an index"""
+        response = self.update("/databases", json={'database':db_json})
+        if response["success"]:
+            logger.success("Succesfully updated {}".format(self.host))
+        else:
+            raise RuntimeError("Failed to update: {}".format(response["msg"]))

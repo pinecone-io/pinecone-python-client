@@ -1,119 +1,119 @@
-from typing import NamedTuple, Optional, List
+from typing import NamedTuple, Optional, Tuple, List
 import enum
 from pinecone import logger
 
 from pinecone.utils.sentry import sentry_decorator as sentry
-from pinecone.service import deploy as service_deploy, stop as service_stop, ls as service_ls, describe as service_describe
-from pinecone.graph import IndexGraph, IndexConfig
+from .database import deploy as index_deploy, stop as index_stop, ls as index_ls, describe as get_index, update as update_index
+from .database_spec import Database
 
 __all__ = [
     "create",
     "delete",
     "ls",
-    "describe",
     "create_index",
     "delete_index",
     "describe_index",
     "list_indexes",
     "ResourceType",
-    "ResourceDescription",
+    "IndexDescription",
 ]
 
 
 class ResourceType(enum.Enum):
-    INDEX = "index"
+    DATABASE = "database"
 
 
-class ResourceDescription(NamedTuple):
-    """Description of a resource."""
+class IndexDescription(NamedTuple):
+    """Description of an index."""
 
     name: str
-    kind: str
+    index_type: str
+    metric : str
+    dimension: int
+    replicas: int
     status: dict
-    config: dict
+    engine_config: dict
 
 
 @sentry
-def create(name: str, kind: str = "index", wait: bool = True, **kwargs) -> Optional[dict]:
-    """Creates a Pinecone resource.
-
-    :param name: the name of the resource.
+def create(name: str, dimension: int, wait: bool = True, index_type: str='approximated',metric: str='cosine',replicas: int= 1,shards: int= 1, engine_config: {}=None) -> Optional[dict]:
+    """Creates a Pinecone index.
+        name=name,
+        dimension=dimension,
+        wait=wait,
+        index_type=index_type,
+        metric=metric,
+        replicas=replicas,
+        index_args=index_args,
+    :param name: the name of the index.
     :type name: str
-    :param kind: what kind of resource. Defaults to ``index``.
-    :type kind: str
-    :param wait: wait for the resource to deploy. Defaults to ``True``
+    :param wait: wait for the index to deploy. Defaults to ``True``
     :type wait: bool
     :param `**kwargs`: see resource-specific configurations.
         For example, you can refer to :class:`IndexConfig` for
         configuration options for a Pinecone index.
     """
-    if kind == ResourceType.INDEX.value:
-        response, _ = service_deploy(service_name=name, graph=IndexGraph(**kwargs), wait=wait)
-        return response
-    logger.warning("Unrecognized resource type '{}'.".format(kind))
+    response, _ = index_deploy(name=name, dimension=dimension, wait=wait, index_type=index_type, metric=metric, replicas=replicas, shards=shards, engine_config=engine_config)
+    return response
+    # logger.warning("Unrecognized resource type '{}'.".format(kind))
 
 
 @sentry
-def delete(name: str, kind: str = "index", wait: bool = True) -> Optional[dict]:
-    """Deletes a Pinecone resource.
+def delete(name: str, wait: bool = True) -> Optional[dict]:
+    """Deletes a Pinecone index.
 
-    :param name: the name of the resource.
+    :param name: the name of the index.
     :type name: str
-    :param kind: what kind of resource. Defaults to ``index``.
-    :type kind: str
-    :param wait: wait for the resource to deploy. Defaults to ``True``
+    :param wait: wait for the index to deploy. Defaults to ``True``
     :type wait: bool
     """
-    if kind == ResourceType.INDEX.value:
-        response, _ = service_stop(service_name=name, wait=wait)
-        return response
-    logger.warning("Unrecognized resource type '{}'.".format(kind))
+
+    response, _ = index_stop(index_name=name, wait=wait)
+    return response
+    # logger.warning("Unrecognized resource type '{}'.".format(kind))
 
 
 @sentry
-def ls(kind: str = "index") -> Optional[List[str]]:
-    """Lists all resources of a certain kind.
-
-    :param kind: what kind of resource. Defaults to ``index``.
-    :type kind: str
+def ls() -> Optional[List[str]]:
+    """Lists all indexes.
     """
-    if kind == ResourceType.INDEX.value:
-        return service_ls()
+
+    return index_ls()
     logger.warning("Unrecognized resource type '{}'.".format(kind))
 
 
 @sentry
-def describe(name: str, kind: str = "index") -> Optional[ResourceDescription]:
-    """Describes the resource.
+def describe(name: str) -> Optional[IndexDescription]:
+    """Describes the index.
 
-    :param name: the name of the resource.
+    :param name: the name of the index.
     :type name: str
-    :param kind: what kind of resource. Defaults to ``index``.
-    :type kind: str
     """
-    if kind == ResourceType.INDEX.value:
-        desc = service_describe(service_name=name)
-        graph = desc.graph
-        config = IndexConfig._from_graph(graph)._asdict()
-        return ResourceDescription(name=desc.name, kind=kind, status=desc.status, config=config)
-    logger.warning("Unrecognized resource type '{}'.".format(kind))
+    response = get_index(name)
+    return response
 
+@sentry
+def update(name: str,replicas: int)->Optional[dict]:
+    """Updates the number of replicas for an index
+    """
+    return update_index(name,replicas)
 
 @sentry
 def create_index(
     name: str,
+    dimension: int,
     wait: bool = True,
     index_type: str = "approximated",
     metric: str = "cosine",
-    shards: int = 1,
     replicas: int = 1,
-    gateway_replicas: int = 1,
-    index_args: dict = None,
+    shards: int = 1,
+    engine_config: dict = None
 ) -> Optional[dict]:
     """Creates a Pinecone index.
 
     :param name: the name of the index.
     :type name: str
+    :param dimension: the dimension of vectors that would be inserted in the index
     :param wait: wait for the index to deploy. Defaults to ``True``
     :type wait: bool
     :param index_type: type of index, one of {"approximated", "exact"}, defaults to "approximated".
@@ -126,28 +126,23 @@ def create_index(
         "dotproduct" for dot-product,
         and "euclidean" for euclidean distance.
     :type metric: str, optional
-    :param shards: the number of shards for the index, defaults to 1.
-        As a general guideline, use 1 shard per 1 GB of data.
-    :type shards: int, optional
     :param replicas: the number of replicas, defaults to 1.
         Use at least 2 replicas if you need high availability (99.99% uptime) for querying.
         For additional throughput (QPS) your service needs to support, provision additional replicas.
     :type replicas: int, optional
-    :param gateway_replicas: number of replicas of both the gateway and the aggregator.
-    :type gateway_replicas: int
-    :param index_args: advanced arguments for the index instance in the graph.
-    :type index_args: dict
+    :param shards: the number of shards per index, defaults to 1.
+        Use 1 shard per 1GB of vectors
+    :type shards: int,optional
     """
     return create(
         name=name,
-        kind=ResourceType.INDEX.value,
+        dimension=dimension,
         wait=wait,
         index_type=index_type,
         metric=metric,
-        shards=shards,
         replicas=replicas,
-        gateway_replicas=gateway_replicas,
-        index_args=index_args,
+        shards=shards,
+        engine_config=engine_config
     )
 
 
@@ -166,14 +161,27 @@ def delete_index(name: str, wait: bool = True) -> Optional[dict]:
 @sentry
 def list_indexes() -> Optional[List[str]]:
     """Lists all indexes."""
-    return ls(kind=ResourceType.INDEX.value)
+    return ls()
 
 
 @sentry
-def describe_index(name: str) -> Optional[ResourceDescription]:
+def describe_index(name: str) -> Optional[IndexDescription]:
     """Describes an index.
 
     :param name: the name of the index.
     :type name: str
+    :returns ResourceDescription containing DatabaseSpec
     """
-    return describe(name=name, kind=ResourceType.INDEX.value)
+    return describe(name=name)
+
+
+@sentry
+def scale_index(name:str,replicas:int) -> Optional[IndexDescription]:
+    """Increases number of replicas for the index.
+
+    :param name: the name of the Index
+    :type name: str
+    :param replicas: the number of replicas in the index now, lowest value is 0.
+    :type replicas: int
+    """
+    return update()
