@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\021io.pinecone.protoZ+github.com/pinecone-io/go-pinecone/pinecone',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\ncore.proto\x12\x04\x63ore\x1a\x1fgoogle/protobuf/timestamp.proto\"m\n\x15ServiceControlRequest\x12\x10\n\x08\x66unction\x18\x01 \x01(\t\x12\x13\n\x0b\x66unction_id\x18\x02 \x01(\x04\x12\x1c\n\x06status\x18\x03 \x01(\x0b\x32\x0c.core.Status\x12\x0f\n\x07service\x18\x04 \x01(\t\"K\n\x07NdArray\x12\x0e\n\x06\x62uffer\x18\x01 \x01(\x0c\x12\r\n\x05shape\x18\x02 \x03(\r\x12\r\n\x05\x64type\x18\x03 \x01(\t\x12\x12\n\ncompressed\x18\x04 \x01(\x08\"\x8c\x01\n\x05Route\x12\x10\n\x08\x66unction\x18\x01 \x01(\t\x12\x13\n\x0b\x66unction_id\x18\x02 \x01(\x05\x12.\n\nstart_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12,\n\x08\x65nd_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\xc8\x04\n\x07Request\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\x12\x0f\n\x07timeout\x18\x02 \x01(\r\x12\x0c\n\x04path\x18\x03 \x01(\t\x12\x0f\n\x07version\x18\x04 \x01(\t\x12\x1b\n\x06routes\x18\x05 \x03(\x0b\x32\x0b.core.Route\x12\x1c\n\x06status\x18\x06 \x01(\x0b\x32\x0c.core.Status\x12#\n\x05query\x18\x07 \x01(\x0b\x32\x12.core.QueryRequestH\x00\x12#\n\x05index\x18\x08 \x01(\x0b\x32\x12.core.IndexRequestH\x00\x12%\n\x06\x64\x65lete\x18\t \x01(\x0b\x32\x13.core.DeleteRequestH\x00\x12!\n\x04info\x18\n \x01(\x0b\x32\x11.core.InfoRequestH\x00\x12#\n\x05\x66\x65tch\x18\x0b \x01(\x0b\x32\x12.core.FetchRequestH\x00\x12!\n\x04list\x18\x0c \x01(\x0b\x32\x11.core.ListRequestH\x00\x12\x11\n\tnamespace\x18\r \x01(\t\x12\x11\n\tclient_id\x18\x0e \x01(\r\x12\x15\n\rclient_offset\x18\x0f \x01(\r\x12\x11\n\tshard_num\x18\x10 \x01(\r\x12\x13\n\x0bgateway_num\x18\x11 \x01(\r\x12\x1a\n\x12telemetry_trace_id\x18\x12 \x01(\x04\x12\x1b\n\x13telemetry_parent_id\x18\x13 \x01(\x04\x12\x14\n\x0cservice_name\x18\x14 \x01(\t\x12\x12\n\ntraceroute\x18\x15 \x01(\x08\x12\x12\n\nnum_shards\x18\x16 \x01(\rB\x06\n\x04\x62ody\"\xc3\x03\n\x06Status\x12%\n\x04\x63ode\x18\x01 \x01(\x0e\x32\x17.core.Status.StatusCode\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x12%\n\x07\x64\x65tails\x18\x03 \x03(\x0b\x32\x14.core.Status.Details\x12\x10\n\x08msg_sent\x18\x04 \x01(\x04\x12\x10\n\x08msg_recv\x18\x05 \x01(\x04\x12+\n\x08\x61vg_time\x18\x06 \x03(\x0b\x32\x19.core.Status.AvgTimeEntry\x12\x0c\n\x04size\x18\x07 \x01(\x04\x1a\x80\x01\n\x07\x44\x65tails\x12\x10\n\x08\x66unction\x18\x01 \x01(\t\x12\x13\n\x0b\x66unction_id\x18\x02 \x01(\t\x12\x11\n\texception\x18\x03 \x01(\t\x12\x11\n\ttraceback\x18\x04 \x01(\t\x12(\n\x04time\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x1a.\n\x0c\x41vgTimeEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\r:\x02\x38\x01\"D\n\nStatusCode\x12\x0b\n\x07SUCCESS\x10\x00\x12\t\n\x05READY\x10\x01\x12\t\n\x05\x45RROR\x10\x02\x12\x13\n\x0f\x45RROR_DUPLICATE\x10\x03\"g\n\rScoredResults\x12\x1a\n\x03ids\x18\x01 \x01(\x0b\x32\r.core.NdArray\x12\x1d\n\x06scores\x18\x02 \x01(\x0b\x32\r.core.NdArray\x12\x1b\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\r.core.NdArray\"J\n\x0cIndexRequest\x12\x0b\n\x03ids\x18\x01 \x03(\t\x12\x1b\n\x04\x64\x61ta\x18\x02 \x01(\x0b\x32\r.core.NdArray\x12\x10\n\x08metadata\x18\x03 \x03(\t\"\xd6\x01\n\x0cQueryRequest\x12\r\n\x05top_k\x18\x01 \x01(\r\x12\x14\n\x0cinclude_data\x18\x02 \x01(\x08\x12\x1b\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\r.core.NdArray\x12$\n\x07matches\x18\x04 \x03(\x0b\x32\x13.core.ScoredResults\x12\x17\n\x0ftop_k_overrides\x18\x05 \x03(\r\x12\x1b\n\x13namespace_overrides\x18\x06 \x03(\t\x12\x0e\n\x06\x66ilter\x18\x07 \x01(\t\x12\x18\n\x10\x66ilter_overrides\x18\x08 \x03(\t\"0\n\rDeleteRequest\x12\x0b\n\x03ids\x18\x01 \x03(\t\x12\x12\n\ndelete_all\x18\x02 \x01(\x08\"4\n\x0bInfoRequest\x12\x12\n\nindex_size\x18\x01 \x01(\x04\x12\x11\n\tdimension\x18\x02 \x01(\r\";\n\x0c\x46\x65tchRequest\x12\x0b\n\x03ids\x18\x01 \x03(\t\x12\x1e\n\x07vectors\x18\x02 \x03(\x0b\x32\r.core.NdArray\"B\n\x0bListRequest\x12\x15\n\rresource_type\x18\x01 \x01(\t\x12\x1c\n\x05items\x18\x02 \x01(\x0b\x32\r.core.NdArray\"&\n\x03\x41\x63k\x12\x0f\n\x07replica\x18\x01 \x01(\r\x12\x0e\n\x06replay\x18\x02 \x01(\x08\"u\n\x08LogEntry\x12\x0e\n\x06offset\x18\x01 \x01(\x03\x12\x1e\n\x05\x65ntry\x18\x02 \x01(\x0b\x32\r.core.RequestH\x00\x12\x18\n\x03\x61\x63k\x18\x03 \x01(\x0b\x32\t.core.AckH\x00\x12\x17\n\x0fprevious_offset\x18\x04 \x01(\x03\x42\x06\n\x04\x64\x61ta\"N\n\x12WriteAheadLogEntry\x12,\n\x04\x64\x61ta\x18\x01 \x01(\x0b\x32\x1c.core.WriteAheadLogDataEntryH\x00\x42\n\n\x08\x63ontents\"C\n\x16WriteAheadLogDataEntry\x12 \n\x07request\x18\x01 \x01(\x0b\x32\r.core.RequestH\x00\x42\x07\n\x05\x65ntry\"g\n\nTraceRoute\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\x12\x11\n\tclient_id\x18\x02 \x01(\r\x12\x15\n\rclient_offset\x18\x03 \x01(\r\x12\x1b\n\x06routes\x18\x04 \x03(\x0b\x32\x0b.core.Route\"I\n\x0fSnapshotRequest\x12(\n\x04time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x0c\n\x04name\x18\x02 \x01(\t\"<\n\x10SnapshotResponse\x12(\n\x04time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp2I\n\x0eSnapshotClient\x12\x37\n\x04\x43\x61ll\x12\x15.core.SnapshotRequest\x1a\x16.core.SnapshotResponse\"\x00\x32\x64\n\tRPCClient\x12*\n\x04\x43\x61ll\x12\r.core.Request\x1a\r.core.Request\"\x00(\x01\x30\x01\x12+\n\tCallUnary\x12\r.core.Request\x1a\r.core.Request\"\x00\x42@\n\x11io.pinecone.protoZ+github.com/pinecone-io/go-pinecone/pineconeb\x06proto3'
+  serialized_pb=b'\n\ncore.proto\x12\x04\x63ore\x1a\x1fgoogle/protobuf/timestamp.proto\"m\n\x15ServiceControlRequest\x12\x10\n\x08\x66unction\x18\x01 \x01(\t\x12\x13\n\x0b\x66unction_id\x18\x02 \x01(\x04\x12\x1c\n\x06status\x18\x03 \x01(\x0b\x32\x0c.core.Status\x12\x0f\n\x07service\x18\x04 \x01(\t\"K\n\x07NdArray\x12\x0e\n\x06\x62uffer\x18\x01 \x01(\x0c\x12\r\n\x05shape\x18\x02 \x03(\r\x12\r\n\x05\x64type\x18\x03 \x01(\t\x12\x12\n\ncompressed\x18\x04 \x01(\x08\"\x8c\x01\n\x05Route\x12\x10\n\x08\x66unction\x18\x01 \x01(\t\x12\x13\n\x0b\x66unction_id\x18\x02 \x01(\x05\x12.\n\nstart_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12,\n\x08\x65nd_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\xc8\x04\n\x07Request\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\x12\x0f\n\x07timeout\x18\x02 \x01(\r\x12\x0c\n\x04path\x18\x03 \x01(\t\x12\x0f\n\x07version\x18\x04 \x01(\t\x12\x1b\n\x06routes\x18\x05 \x03(\x0b\x32\x0b.core.Route\x12\x1c\n\x06status\x18\x06 \x01(\x0b\x32\x0c.core.Status\x12#\n\x05query\x18\x07 \x01(\x0b\x32\x12.core.QueryRequestH\x00\x12#\n\x05index\x18\x08 \x01(\x0b\x32\x12.core.IndexRequestH\x00\x12%\n\x06\x64\x65lete\x18\t \x01(\x0b\x32\x13.core.DeleteRequestH\x00\x12!\n\x04info\x18\n \x01(\x0b\x32\x11.core.InfoRequestH\x00\x12#\n\x05\x66\x65tch\x18\x0b \x01(\x0b\x32\x12.core.FetchRequestH\x00\x12!\n\x04list\x18\x0c \x01(\x0b\x32\x11.core.ListRequestH\x00\x12\x11\n\tnamespace\x18\r \x01(\t\x12\x11\n\tclient_id\x18\x0e \x01(\r\x12\x15\n\rclient_offset\x18\x0f \x01(\r\x12\x11\n\tshard_num\x18\x10 \x01(\r\x12\x13\n\x0bgateway_num\x18\x11 \x01(\r\x12\x1a\n\x12telemetry_trace_id\x18\x12 \x01(\x04\x12\x1b\n\x13telemetry_parent_id\x18\x13 \x01(\x04\x12\x14\n\x0cservice_name\x18\x14 \x01(\t\x12\x12\n\ntraceroute\x18\x15 \x01(\x08\x12\x12\n\nnum_shards\x18\x16 \x01(\rB\x06\n\x04\x62ody\"\xc3\x03\n\x06Status\x12%\n\x04\x63ode\x18\x01 \x01(\x0e\x32\x17.core.Status.StatusCode\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x12%\n\x07\x64\x65tails\x18\x03 \x03(\x0b\x32\x14.core.Status.Details\x12\x10\n\x08msg_sent\x18\x04 \x01(\x04\x12\x10\n\x08msg_recv\x18\x05 \x01(\x04\x12+\n\x08\x61vg_time\x18\x06 \x03(\x0b\x32\x19.core.Status.AvgTimeEntry\x12\x0c\n\x04size\x18\x07 \x01(\x04\x1a\x80\x01\n\x07\x44\x65tails\x12\x10\n\x08\x66unction\x18\x01 \x01(\t\x12\x13\n\x0b\x66unction_id\x18\x02 \x01(\t\x12\x11\n\texception\x18\x03 \x01(\t\x12\x11\n\ttraceback\x18\x04 \x01(\t\x12(\n\x04time\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x1a.\n\x0c\x41vgTimeEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\r:\x02\x38\x01\"D\n\nStatusCode\x12\x0b\n\x07SUCCESS\x10\x00\x12\t\n\x05READY\x10\x01\x12\t\n\x05\x45RROR\x10\x02\x12\x13\n\x0f\x45RROR_DUPLICATE\x10\x03\"\x88\x01\n\rScoredResults\x12\x1a\n\x03ids\x18\x01 \x01(\x0b\x32\r.core.NdArray\x12\x1d\n\x06scores\x18\x02 \x01(\x0b\x32\r.core.NdArray\x12\x1b\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\r.core.NdArray\x12\x1f\n\x08metadata\x18\x04 \x01(\x0b\x32\r.core.NdArray\"J\n\x0cIndexRequest\x12\x0b\n\x03ids\x18\x01 \x03(\t\x12\x1b\n\x04\x64\x61ta\x18\x02 \x01(\x0b\x32\r.core.NdArray\x12\x10\n\x08metadata\x18\x03 \x03(\t\"\xf0\x01\n\x0cQueryRequest\x12\r\n\x05top_k\x18\x01 \x01(\r\x12\x14\n\x0cinclude_data\x18\x02 \x01(\x08\x12\x1b\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\r.core.NdArray\x12$\n\x07matches\x18\x04 \x03(\x0b\x32\x13.core.ScoredResults\x12\x17\n\x0ftop_k_overrides\x18\x05 \x03(\r\x12\x1b\n\x13namespace_overrides\x18\x06 \x03(\t\x12\x0e\n\x06\x66ilter\x18\x07 \x01(\t\x12\x18\n\x10\x66ilter_overrides\x18\x08 \x03(\t\x12\x18\n\x10include_metadata\x18\t \x01(\x08\"0\n\rDeleteRequest\x12\x0b\n\x03ids\x18\x01 \x03(\t\x12\x12\n\ndelete_all\x18\x02 \x01(\x08\"4\n\x0bInfoRequest\x12\x12\n\nindex_size\x18\x01 \x01(\x04\x12\x11\n\tdimension\x18\x02 \x01(\r\"M\n\x0c\x46\x65tchRequest\x12\x0b\n\x03ids\x18\x01 \x03(\t\x12\x1e\n\x07vectors\x18\x02 \x03(\x0b\x32\r.core.NdArray\x12\x10\n\x08metadata\x18\x03 \x03(\t\"B\n\x0bListRequest\x12\x15\n\rresource_type\x18\x01 \x01(\t\x12\x1c\n\x05items\x18\x02 \x01(\x0b\x32\r.core.NdArray\"&\n\x03\x41\x63k\x12\x0f\n\x07replica\x18\x01 \x01(\r\x12\x0e\n\x06replay\x18\x02 \x01(\x08\"u\n\x08LogEntry\x12\x0e\n\x06offset\x18\x01 \x01(\x03\x12\x1e\n\x05\x65ntry\x18\x02 \x01(\x0b\x32\r.core.RequestH\x00\x12\x18\n\x03\x61\x63k\x18\x03 \x01(\x0b\x32\t.core.AckH\x00\x12\x17\n\x0fprevious_offset\x18\x04 \x01(\x03\x42\x06\n\x04\x64\x61ta\"N\n\x12WriteAheadLogEntry\x12,\n\x04\x64\x61ta\x18\x01 \x01(\x0b\x32\x1c.core.WriteAheadLogDataEntryH\x00\x42\n\n\x08\x63ontents\"C\n\x16WriteAheadLogDataEntry\x12 \n\x07request\x18\x01 \x01(\x0b\x32\r.core.RequestH\x00\x42\x07\n\x05\x65ntry\"g\n\nTraceRoute\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\x12\x11\n\tclient_id\x18\x02 \x01(\r\x12\x15\n\rclient_offset\x18\x03 \x01(\r\x12\x1b\n\x06routes\x18\x04 \x03(\x0b\x32\x0b.core.Route\"I\n\x0fSnapshotRequest\x12(\n\x04time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x0c\n\x04name\x18\x02 \x01(\t\"<\n\x10SnapshotResponse\x12(\n\x04time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp2I\n\x0eSnapshotClient\x12\x37\n\x04\x43\x61ll\x12\x15.core.SnapshotRequest\x1a\x16.core.SnapshotResponse\"\x00\x32\x64\n\tRPCClient\x12*\n\x04\x43\x61ll\x12\r.core.Request\x1a\r.core.Request\"\x00(\x01\x30\x01\x12+\n\tCallUnary\x12\r.core.Request\x1a\r.core.Request\"\x00\x42@\n\x11io.pinecone.protoZ+github.com/pinecone-io/go-pinecone/pineconeb\x06proto3'
   ,
   dependencies=[google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
@@ -606,6 +606,13 @@ _SCOREDRESULTS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='metadata', full_name='core.ScoredResults.metadata', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -618,8 +625,8 @@ _SCOREDRESULTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1425,
-  serialized_end=1528,
+  serialized_start=1426,
+  serialized_end=1562,
 )
 
 
@@ -664,8 +671,8 @@ _INDEXREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1530,
-  serialized_end=1604,
+  serialized_start=1564,
+  serialized_end=1638,
 )
 
 
@@ -733,6 +740,13 @@ _QUERYREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='include_metadata', full_name='core.QueryRequest.include_metadata', index=8,
+      number=9, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -745,8 +759,8 @@ _QUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1607,
-  serialized_end=1821,
+  serialized_start=1641,
+  serialized_end=1881,
 )
 
 
@@ -784,8 +798,8 @@ _DELETEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1823,
-  serialized_end=1871,
+  serialized_start=1883,
+  serialized_end=1931,
 )
 
 
@@ -823,8 +837,8 @@ _INFOREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1873,
-  serialized_end=1925,
+  serialized_start=1933,
+  serialized_end=1985,
 )
 
 
@@ -850,6 +864,13 @@ _FETCHREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='metadata', full_name='core.FetchRequest.metadata', index=2,
+      number=3, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -862,8 +883,8 @@ _FETCHREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1927,
-  serialized_end=1986,
+  serialized_start=1987,
+  serialized_end=2064,
 )
 
 
@@ -901,8 +922,8 @@ _LISTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1988,
-  serialized_end=2054,
+  serialized_start=2066,
+  serialized_end=2132,
 )
 
 
@@ -940,8 +961,8 @@ _ACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2056,
-  serialized_end=2094,
+  serialized_start=2134,
+  serialized_end=2172,
 )
 
 
@@ -998,8 +1019,8 @@ _LOGENTRY = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=2096,
-  serialized_end=2213,
+  serialized_start=2174,
+  serialized_end=2291,
 )
 
 
@@ -1035,8 +1056,8 @@ _WRITEAHEADLOGENTRY = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=2215,
-  serialized_end=2293,
+  serialized_start=2293,
+  serialized_end=2371,
 )
 
 
@@ -1072,8 +1093,8 @@ _WRITEAHEADLOGDATAENTRY = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=2295,
-  serialized_end=2362,
+  serialized_start=2373,
+  serialized_end=2440,
 )
 
 
@@ -1125,8 +1146,8 @@ _TRACEROUTE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2364,
-  serialized_end=2467,
+  serialized_start=2442,
+  serialized_end=2545,
 )
 
 
@@ -1164,8 +1185,8 @@ _SNAPSHOTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2469,
-  serialized_end=2542,
+  serialized_start=2547,
+  serialized_end=2620,
 )
 
 
@@ -1196,8 +1217,8 @@ _SNAPSHOTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2544,
-  serialized_end=2604,
+  serialized_start=2622,
+  serialized_end=2682,
 )
 
 _SERVICECONTROLREQUEST.fields_by_name['status'].message_type = _STATUS
@@ -1239,6 +1260,7 @@ _STATUS_STATUSCODE.containing_type = _STATUS
 _SCOREDRESULTS.fields_by_name['ids'].message_type = _NDARRAY
 _SCOREDRESULTS.fields_by_name['scores'].message_type = _NDARRAY
 _SCOREDRESULTS.fields_by_name['data'].message_type = _NDARRAY
+_SCOREDRESULTS.fields_by_name['metadata'].message_type = _NDARRAY
 _INDEXREQUEST.fields_by_name['data'].message_type = _NDARRAY
 _QUERYREQUEST.fields_by_name['data'].message_type = _NDARRAY
 _QUERYREQUEST.fields_by_name['matches'].message_type = _SCOREDRESULTS
@@ -1444,8 +1466,8 @@ _SNAPSHOTCLIENT = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=2606,
-  serialized_end=2679,
+  serialized_start=2684,
+  serialized_end=2757,
   methods=[
   _descriptor.MethodDescriptor(
     name='Call',
@@ -1470,8 +1492,8 @@ _RPCCLIENT = _descriptor.ServiceDescriptor(
   index=1,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=2681,
-  serialized_end=2781,
+  serialized_start=2759,
+  serialized_end=2859,
   methods=[
   _descriptor.MethodDescriptor(
     name='Call',
