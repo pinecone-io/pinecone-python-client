@@ -91,6 +91,7 @@ class QueryRequestQueryVector(ModelNormal):
             'vector': (PineconeAnonymousVector,),  # noqa: E501
             'top_k': (int,),  # noqa: E501
             'namespace': (str,),  # noqa: E501
+            'filter': (str,),  # noqa: E501
         }
 
     @cached_property
@@ -102,6 +103,7 @@ class QueryRequestQueryVector(ModelNormal):
         'vector': 'vector',  # noqa: E501
         'top_k': 'topK',  # noqa: E501
         'namespace': 'namespace',  # noqa: E501
+        'filter': 'filter',  # noqa: E501
     }
 
     read_only_vars = {
@@ -148,6 +150,7 @@ class QueryRequestQueryVector(ModelNormal):
             vector (PineconeAnonymousVector): [optional]  # noqa: E501
             top_k (int): [optional]  # noqa: E501
             namespace (str): [optional]  # noqa: E501
+            filter (str): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -232,6 +235,7 @@ class QueryRequestQueryVector(ModelNormal):
             vector (PineconeAnonymousVector): [optional]  # noqa: E501
             top_k (int): [optional]  # noqa: E501
             namespace (str): [optional]  # noqa: E501
+            filter (str): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
