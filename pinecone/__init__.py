@@ -9,7 +9,7 @@ from pinecone.specs.service import Service  # noqa
 from pinecone.specs.traffic_router import TrafficRouter  # noqa
 from pinecone.utils.sentry import sentry_decorator as sentry
 from .constants import Config
-from .manage import create_index, delete_index, describe_index, list_indexes, IndexDescription
+from .manage import create_index, delete_index, describe_index, list_indexes, IndexDescription, scale_index
 from .index import Index, UpsertResult, DeleteResult, QueryResult, FetchResult, InfoResult
 
 __all__ = [
@@ -18,6 +18,7 @@ __all__ = [
     "delete_index",
     "describe_index",
     "list_indexes",
+    "scale_index",
     "IndexDescription",
     "Index",
     "UpsertResult",

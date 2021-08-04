@@ -4,15 +4,16 @@ from pinecone import logger
 
 from pinecone.utils.sentry import sentry_decorator as sentry
 from .database import deploy as index_deploy, stop as index_stop, ls as index_ls, describe as get_index, update as update_index
-from .database_spec import Database
 
 __all__ = [
     "create",
     "delete",
     "ls",
+    "update",
     "create_index",
     "delete_index",
     "describe_index",
+    "scale_index",
     "list_indexes",
     "ResourceType",
     "IndexDescription",
@@ -32,11 +33,11 @@ class IndexDescription(NamedTuple):
     dimension: int
     replicas: int
     status: dict
-    engine_config: dict
+    index_config: dict
 
 
 @sentry
-def create(name: str, dimension: int, wait: bool = True, index_type: str='approximated',metric: str='cosine',replicas: int= 1,shards: int= 1, engine_config: {}=None) -> Optional[dict]:
+def create(name: str, dimension: int, wait: bool = True, index_type: str='approximated', metric: str='cosine', replicas: int= 1, shards: int= 1, index_config: {}=None) -> Optional[dict]:
     """Creates a Pinecone index.
         name=name,
         dimension=dimension,
@@ -44,18 +45,26 @@ def create(name: str, dimension: int, wait: bool = True, index_type: str='approx
         index_type=index_type,
         metric=metric,
         replicas=replicas,
-        index_args=index_args,
+        index_config=index_config,
     :param name: the name of the index.
     :type name: str
     :param wait: wait for the index to deploy. Defaults to ``True``
     :type wait: bool
-    :param `**kwargs`: see resource-specific configurations.
-        For example, you can refer to :class:`IndexConfig` for
-        configuration options for a Pinecone index.
     """
-    response, _ = index_deploy(name=name, dimension=dimension, wait=wait, index_type=index_type, metric=metric, replicas=replicas, shards=shards, engine_config=engine_config)
+    #Input Validation
+    if(index_type not in supported_index_types):
+        raise ValueError("Index type '{}' is not supported.".format(index_type))
+    if(dimension<=0):
+        raise ValueError("Vector dimensions must be greater than 0")
+    if(replicas<=0):
+        raise ValueError("Number of replicas must be greater than 0")
+    if(shards<=0):
+        raise ValueError("Number of shards must be greater than 0")
+    validate_index_config(index_type,index_config)
+
+    response= index_deploy(name=name, dimension=dimension, wait=wait, index_type=index_type, metric=metric, replicas=replicas, shards=shards, index_config=index_config)
     return response
-    # logger.warning("Unrecognized resource type '{}'.".format(kind))
+    logger.warning("Unrecognized resource type '{}'.".format(kind))
 
 
 @sentry
@@ -68,9 +77,8 @@ def delete(name: str, wait: bool = True) -> Optional[dict]:
     :type wait: bool
     """
 
-    response, _ = index_stop(index_name=name, wait=wait)
+    response, _ = index_stop(db_name=name, wait=wait)
     return response
-    # logger.warning("Unrecognized resource type '{}'.".format(kind))
 
 
 @sentry
@@ -107,7 +115,7 @@ def create_index(
     metric: str = "cosine",
     replicas: int = 1,
     shards: int = 1,
-    engine_config: dict = None
+    index_config: dict = None
 ) -> Optional[dict]:
     """Creates a Pinecone index.
 
@@ -142,7 +150,7 @@ def create_index(
         metric=metric,
         replicas=replicas,
         shards=shards,
-        engine_config=engine_config
+        index_config=index_config
     )
 
 
@@ -155,7 +163,7 @@ def delete_index(name: str, wait: bool = True) -> Optional[dict]:
     :param wait: wait for the index to deploy. Defaults to ``True``
     :type wait: bool
     """
-    return delete(name=name, kind=ResourceType.INDEX.value, wait=wait)
+    return delete(name=name, wait=wait)
 
 
 @sentry
@@ -184,4 +192,4 @@ def scale_index(name:str,replicas:int) -> Optional[IndexDescription]:
     :param replicas: the number of replicas in the index now, lowest value is 0.
     :type replicas: int
     """
-    return update()
+    return update(name,replicas)

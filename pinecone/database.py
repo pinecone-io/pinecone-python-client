@@ -10,24 +10,33 @@ from .api_database import DatabaseAPI
 from .constants import Config
 from pinecone.utils.sentry import sentry_decorator as sentry
 from pinecone.utils.progressbar import ProgressBar
-from .database_spec import Database
+# from .database_spec import Database
+from pinecone.specs import database as db_specs
 
-__all__ = ["deploy", "stop", "ls"]
+__all__ = ["deploy", "stop", "ls","describe","update"]
 
 def _get_database_api():
     return DatabaseAPI(host=Config.CONTROLLER_HOST, api_key=Config.API_KEY)
 
-class DatabaseMeta:
+class DatabaseMeta(NamedTuple):
     name : str
     index_type : str
     metric : str
     replicas : int
     dimension : int
-    engine_config : None
+    shards : int
+    index_config : None
+
+class Database(db_specs.DatabaseSpec):
+    """The index as a database."""
+
+    def __init__(self, name: str, dimension: int, index_type: str='approximated', metric: str='cosine', replicas: int=1, shards: int=1, index_config: {}=None):
+        """"""
+        super().__init__(name, dimension, index_type, metric, replicas, shards, index_config)
 
 
 @sentry
-def deploy(name: str, dimension: int, wait: bool = True, index_type: str='approximated', metric: str='cosine', replicas: int=1, shards: int=1, engine_config: {}=None)-> Tuple[dict, ProgressBar]:
+def deploy(name: str, dimension: int, wait: bool = True, index_type: str='approximated', metric: str='cosine', replicas: int=1, shards: int=1, index_config: {}=None)-> Tuple[dict, ProgressBar]:
     """Create a new Pinecone index from the database spec
     :param db_name : name of the index
     :type db_name : str
@@ -48,8 +57,10 @@ def deploy(name: str, dimension: int, wait: bool = True, index_type: str='approx
     :param shards: the number of shards per index, defaults to 1.
         Use 1 shard per 1GB of vectors
     :type shards: int,optional
+    :param index_config: configurations for specific index types
+    :type index_config: dict,optional
     """
-    db_ = Database(name,dimension,index_type,metric,replicas,shards,engine_config)
+    db_ = Database(name, dimension, index_type, metric, replicas, shards, index_config)
 
     api = _get_database_api()
 
@@ -64,20 +75,12 @@ def deploy(name: str, dimension: int, wait: bool = True, index_type: str='approx
 
     #Wait for index to deploy
     status = api.get_status(name)
-    total_deployments = len(status.get("waiting") or []) + len(status.get("crashed") or [])
+    logger.info("Deployment status: {}".format(status))
 
-    def get_remaining():
-        """Get the number of pods that still need to be deployed."""
-        #TODO: The deployment status is bool now instead of list of pods,chekc what the response looks like
-        status = api.get_status(name)
-        logger.info("Deployment status: waiting={}, crashed={}".format(status.get("waiting"), status.get("crashed")))
-        remaining_deployments = len(status.get("waiting") or []) + len(status.get("crashed") or [])
-        return remaining_deployments
-
-    pbar = ProgressBar(total=total_deployments, get_remaining_fn=get_remaining)
+    pbar = ProgressBar(total=1, get_remaining_fn=1)
     if wait:
         pbar.watch()
-    return response, pbar
+    return response
 
 @sentry
 def stop(db_name:str, wait:bool=True,**kwargs)-> Tuple[dict, ProgressBar]:
@@ -117,7 +120,7 @@ def describe(name: str) -> DatabaseMeta:
     api = _get_database_api()
     db_json = api.get_database(name)
     db = Database.from_json(db_json) if db_json else None
-    return DatabaseMeta(name=name, index_type=db.index_type,metric=db.metric,replicas=db.replicas,dimension=db.dimension,engine_config=db.engine_config) or {}
+    return DatabaseMeta(name=name, index_type=db.index_type,metric=db.metric,replicas=db.replicas,dimension=db.dimension,shards= db.shards,index_config=db.index_config) or {}
 
 
 def update(name:str,replicas:int):
@@ -129,11 +132,7 @@ def update(name:str,replicas:int):
     :param type: int
     """
     api = _get_database_api()
-    db_json = api.get_database(name)
-    db = Database.from_json(db_json)
-    db.replicas = replicas
-    db_json = db.to_json()
-    response = api.update(db_json)
+    response = api.update(name,replicas)
 
     return response
 

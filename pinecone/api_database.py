@@ -20,7 +20,6 @@ class DatabaseAPI(BaseAPI):
 
     def get_status(self, db_name: str) -> dict:
         """Returns service status"""
-        # TODO: service status should be an enum
         return self.get("/databases/{}/status".format(db_name))
 
     def stop(self, db_name: str):
@@ -42,9 +41,9 @@ class DatabaseAPI(BaseAPI):
                 raise RuntimeError("Failed to deploy: {}".format(response["msg"]))
         return response
 
-    def update(self,db_json:str):
+    def update(self,db_name: str,replicas: int):
         """Updates an index"""
-        response = self.update("/databases", json={'database':db_json})
+        response = self.patch("/databases/{}".format(db_name), json={'replicas':replicas})
         if response["success"]:
             logger.success("Succesfully updated {}".format(self.host))
         else:
