@@ -30,13 +30,13 @@ class DatabaseMeta(NamedTuple):
 class Database(db_specs.DatabaseSpec):
     """The index as a database."""
 
-    def __init__(self, name: str, dimension: int, index_type: str='approximated', metric: str='cosine', replicas: int=1, shards: int=1, index_config: {}=None):
+    def __init__(self, name: str, dimension: int, index_type: str = 'approximated', metric: str = 'cosine', replicas: int = 1, shards: int = 1, index_config: {} = None):
         """"""
         super().__init__(name, dimension, index_type, metric, replicas, shards, index_config)
 
 
 @sentry
-def deploy(name: str, dimension: int, wait: bool = True, index_type: str='approximated', metric: str='cosine', replicas: int=1, shards: int=1, index_config: {}=None)-> Tuple[dict, ProgressBar]:
+def deploy(name: str, dimension: int, wait: bool = True, index_type: str = 'approximated', metric: str = 'cosine', replicas: int = 1, shards: int = 1, index_config: {} = None)-> Tuple[dict, ProgressBar]:
     """Create a new Pinecone index from the database spec
     :param db_name : name of the index
     :type db_name : str
@@ -83,7 +83,7 @@ def deploy(name: str, dimension: int, wait: bool = True, index_type: str='approx
     return response
 
 @sentry
-def stop(db_name:str, wait:bool=True,**kwargs)-> Tuple[dict, ProgressBar]:
+def stop(db_name:str, wait:bool = True,**kwargs)-> Tuple[dict, ProgressBar]:
     """
     Stops a database
     :param db_name: name of the index
