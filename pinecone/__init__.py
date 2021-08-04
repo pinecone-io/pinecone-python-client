@@ -28,7 +28,7 @@ __all__ = [
 
 logging_level = os.environ.get("PINECONE_LOGGING", default="ERROR")
 logger.remove()
-logger.add(sys.stdout, level=logging_level)
+logger.add(sys.stdout, enqueue=True, level=logging_level)
 
 __version__ = open(os.path.join(os.path.dirname(__file__), "__version__")).read().strip()
 
