@@ -1,4 +1,5 @@
 import atexit
+from functools import wraps
 from typing import NamedTuple, Optional
 
 import grpc
@@ -40,130 +41,67 @@ class GRPCClientConfig(NamedTuple):
 class Index(VectorServiceStub):
 
     def __init__(self, name: str, channel=None, batch_size=100, disable_progress_bar=False, grpc_config: GRPCClientConfig = None):
-        super().__init__(channel)
         self.name = name
         self.batch_size = batch_size
         self.disable_progress_bar = disable_progress_bar
 
-        self.grpc_client_config = grpc_config
+        self.grpc_client_config = grpc_config or GRPCClientConfig()
         self.retry_config = self.grpc_client_config.retry_config or RetryConfig()
         self.metadata = (("api-key", Config.API_KEY),
                          ("service-name", name),
                          ("client-version", CLIENT_VERSION))
-        self._channel = channel
+        self._channel = channel or self._gen_channel()
         # self._check_readiness(grpc_config)
         atexit.register(self.close)
+        super().__init__(self._channel)
+        self.Upsert = self._wrap_callable(self.Upsert)
+        self.Delete = self._wrap_callable(self.Delete)
+        self.Fetch = self._wrap_callable(self.Fetch)
+        self.Query = self._wrap_callable(self.Query)
+        self.List = self._wrap_callable(self.List)
+        self.ListNamespaces = self._wrap_callable(self.ListNamespaces)
+        self.Summarize = self._wrap_callable(self.Summarize)
 
-    @sentry
-    def Upsert(self,
-               request,
-               timeout,
-               metadata=None,
-               with_call=False):
-        """
-        TODO: docstring
-        """
-        _metadata = self.metadata + metadata
-        super().Upsert(request, timeout, _metadata, with_call)
-
-    @sentry
-    def Delete(self,
-               request,
-               timeout,
-               metadata=None,
-               with_call=False):
-        """
-        TODO: docstring
-        """
-        _metadata = self.metadata + metadata
-        super().Delete(request, timeout, _metadata, with_call)
-
-    @sentry
-    def Fetch(self,
-              request,
-              timeout,
-              metadata=None,
-              with_call=False):
-        """
-        TODO: docstring
-        """
-        _metadata = self.metadata + metadata
-        super().Fetch(request, timeout, _metadata, with_call)
-
-    @sentry
-    def Query(self,
-              request,
-              timeout,
-              metadata=None,
-              with_call=False):
-        """
-        TODO: docstring
-        """
-        _metadata = self.metadata + metadata
-        super().Query(request, timeout, _metadata, with_call)
-
-    @sentry
-    def List(self,
-             request,
-             timeout,
-             metadata=None,
-             with_call=False):
-        """
-        TODO: docstring
-        """
-        _metadata = self.metadata + metadata
-        super().List(request, timeout, _metadata, with_call)
-
-    @sentry
-    def ListNamespaces(self,
-                       request,
-                       timeout,
-                       metadata=None,
-                       with_call=False):
-        """
-        TODO: docstring
-        """
-        _metadata = self.metadata + metadata
-        super().ListNamespaces(request, timeout, _metadata, with_call)
-
-    @sentry
-    def Summarize(self,
-                  request,
-                  timeout,
-                  metadata=None,
-                  with_call=False):
-        """
-        TODO: docstring
-        """
-        _metadata = self.metadata + metadata
-        super().Summarize(request, timeout, _metadata, with_call)
+    def _wrap_callable(self, func):
+        @sentry
+        @wraps(func)
+        def wrapped(request,
+                    timeout=None,
+                    metadata=None,
+                    credentials=None,
+                    wait_for_ready=None,
+                    compression=None):
+            _metadata = self.metadata + (metadata or ())
+            return func(request, timeout=timeout, metadata=_metadata, credentials=credentials,
+                        wait_for_ready=wait_for_ready, compression=compression)
+        return wrapped
 
     def _endpoint(self):
         return f"{self.name}-{Config.PROJECT_NAME}.svc.{Config.ENVIRONMENT}.pinecone.io"
 
+    def _gen_channel(self):
+        target = self._endpoint() + ':443'
+        options = (
+            ("grpc.max_send_message_length", MAX_MSG_SIZE),
+            ("grpc.max_receive_message_length", MAX_MSG_SIZE),
+        )
+        if not self.grpc_client_config.secure:
+            channel = grpc.insecure_channel(target, options=options)
+        else:
+            tls = grpc.ssl_channel_credentials()
+            channel = grpc.secure_channel(
+                target, tls, options=(("grpc.ssl_target_name_override", self._endpoint()),) + options
+            )
+        # return channel
+        interceptor = RetryOnRpcErrorClientInterceptor(self.retry_config)
+        return grpc.intercept_channel(channel, interceptor)
+
     @property
     def channel(self):
         """Creates GRPC channel."""
-
-        def _gen():
-            target = self._endpoint() + ':443'
-            options = (
-                ("grpc.max_send_message_length", MAX_MSG_SIZE),
-                ("grpc.max_receive_message_length", MAX_MSG_SIZE),
-            )
-            if not self.grpc_client_config.secure:
-                channel = grpc.insecure_channel(target, options=options)
-            else:
-                tls = grpc.ssl_channel_credentials()
-                channel = grpc.secure_channel(
-                    target, tls, options=(("grpc.ssl_target_name_override", self._endpoint()),) + options
-                )
-            interceptor = RetryOnRpcErrorClientInterceptor(self.retry_config)
-            return grpc.intercept_channel(channel, interceptor)
-
         if self.grpc_client_config.reuse_channel and self._channel and self.grpc_server_on():
             return self._channel
-        self._channel = _gen()
+        self._channel = self._gen_channel()
         return self._channel
 
     def grpc_server_on(self) -> bool:
