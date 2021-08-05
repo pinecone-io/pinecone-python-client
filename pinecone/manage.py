@@ -171,7 +171,7 @@ def list_indexes() -> Optional[List[str]]:
 
 @sentry
 def describe_index(name: str) -> Optional[IndexDescription]:
-    """Describes an index.
+    """Describes a Pinecone index.
 
     :param name: the name of the index.
     :type name: str
