@@ -1,5 +1,4 @@
 from pinecone.legacy.specs import Spec
-from pinecone.legacy.functions.index.namespaced import NamespacedIndex
 
 import argparse
 
@@ -10,28 +9,32 @@ class DatabaseSpec(Spec):
     def name(self) -> str:
         return self._name
 
-    def __init__(self, name: str, dimension: int, index_type: str = 'approximate',  replicas: int = 1, **config):
+    def __init__(self, name: str, dimension: int, index_type: str = 'approximated', metric: str = 'cosine',
+                 replicas: int = 1, shards: int = 1, index_config:dict = None):
         self._name = name
-        self.index = NamespacedIndex(index_type, **config)
-        self.replicas = replicas
+        self.index_type = index_type
+        self.metric = metric
         self.dimension = dimension
+        self.shards = shards
+        self.replicas = replicas
+        self.index_config = index_config
 
     @classmethod
     def from_obj(cls, obj: dict) -> "Spec":
         spec = obj['spec']
         metadata = obj['metadata']
-        new_index = cls(metadata['name'], spec['dimension'], replicas=spec['replicas'])
-        parser = argparse.ArgumentParser()
-        NamespacedIndex.add_args(parser)
-
-        new_index.index = NamespacedIndex.from_args(parser.parse_args(spec.get('index', spec.get('engine'))))
+        new_index = cls(metadata['name'], index_type=spec['index_type'], dimension=spec['dimension'],
+                        replicas=spec['replicas'], shards=spec['shards'], index_config=spec['index_config'])
         return new_index
 
     def to_obj(self) -> dict:
         spec = {
-            "index": self.index.to_args(),
+            "index_type": self.index_type,
+            "metric": self.metric,
+            "dimension": self.dimension,
+            "shards": self.shards,
             "replicas": self.replicas,
-            "dimension": self.dimension
+            "index_config": self.index_config
         }
         return {
             'version': 'pinecone/beta',

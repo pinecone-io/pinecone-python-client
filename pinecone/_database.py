@@ -1,6 +1,7 @@
 #
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
+"""Protected API . For internal use only."""
 from typing import List, NamedTuple, Tuple
 import json
 
@@ -8,18 +9,16 @@ from pinecone import logger
 
 from .api_database import DatabaseAPI
 from .constants import Config
-from pinecone.utils.sentry import sentry_decorator as sentry
 from pinecone.utils.progressbar import ProgressBar
-# from .database_spec import Database
-from pinecone.specs import database as db_specs
+from pinecone.legacy.specs import database as db_specs
 
 __all__ = ["deploy", "stop", "ls","describe","update"]
 
 def _get_database_api():
     return DatabaseAPI(host=Config.CONTROLLER_HOST, api_key=Config.API_KEY)
 
-class DatabaseMeta(NamedTuple):
-    name : str
+class IndexMeta(NamedTuple):
+    name : str  
     index_type : str
     metric : str
     replicas : int
@@ -30,18 +29,18 @@ class DatabaseMeta(NamedTuple):
 class Database(db_specs.DatabaseSpec):
     """The index as a database."""
 
-    def __init__(self, name: str, dimension: int, index_type: str = 'approximated', metric: str = 'cosine', replicas: int = 1, shards: int = 1, index_config: {} = None):
+    def __init__(self, name: str, dimension: int, index_type: str = 'approximated', metric: str = 'cosine', replicas: int = 1, shards: int = 1, index_config: dict = None):
         """"""
         super().__init__(name, dimension, index_type, metric, replicas, shards, index_config)
 
 
-@sentry
-def deploy(name: str, dimension: int, wait: bool = True, index_type: str = 'approximated', metric: str = 'cosine', replicas: int = 1, shards: int = 1, index_config: {} = None)-> Tuple[dict, ProgressBar]:
+
+def deploy(name: str, dimension: int, wait: bool = True, index_type: str = 'approximated', metric: str = 'cosine', replicas: int = 1, shards: int = 1, index_config: dict = None)-> Tuple[dict, ProgressBar]:
     """Create a new Pinecone index from the database spec
-    :param db_name : name of the index
-    :type db_name : str
-    :param db : database spec that defines the index
-    :type database: class:'pinecone.specs.database'
+    :param name : name of the index
+    :type name : str
+    :param dimension : Dimension of vectors to be inserted in the index
+    :type database: int
     :param wait: wait for the index to deploy. Defaults to ``True``
     :type wait: bool
     :param index_type: type of index, one of {"approximated", "exact"}, defaults to "approximated".
@@ -77,12 +76,9 @@ def deploy(name: str, dimension: int, wait: bool = True, index_type: str = 'appr
     status = api.get_status(name)
     logger.info("Deployment status: {}".format(status))
 
-    pbar = ProgressBar(total=1, get_remaining_fn=1)
-    if wait:
-        pbar.watch()
     return response
 
-@sentry
+
 def stop(db_name:str, wait:bool = True,**kwargs)-> Tuple[dict, ProgressBar]:
     """
     Stops a database
@@ -103,14 +99,14 @@ def stop(db_name:str, wait:bool = True,**kwargs)-> Tuple[dict, ProgressBar]:
         pbar.watch()
     return response, pbar
 
-@sentry
+
 def ls() -> List[str]:
     """Returns all index names."""
     api = _get_database_api()
     return api.list_services()
 
-@sentry
-def describe(name: str) -> DatabaseMeta:
+
+def describe(name: str) -> IndexMeta:
     """Returns the metadata of a service.
 
     :param service_name: name of the service
@@ -120,7 +116,7 @@ def describe(name: str) -> DatabaseMeta:
     api = _get_database_api()
     db_json = api.get_database(name)
     db = Database.from_json(db_json) if db_json else None
-    return DatabaseMeta(name=name, index_type=db.index_type,metric=db.metric,replicas=db.replicas,dimension=db.dimension,shards= db.shards,index_config=db.index_config) or {}
+    return IndexMeta(name = name, index_type = db.index_type, metric = db.metric, replicas = db.replicas, dimension = db.dimension, shards = db.shards, index_config = db.index_config) or {}
 
 
 def update(name:str,replicas:int):

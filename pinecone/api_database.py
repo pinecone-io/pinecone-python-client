@@ -11,7 +11,7 @@ class DatabaseAPI(BaseAPI):
     """API calls to the controller."""
 
     def list_services(self) -> List[str]:
-        """Returns the names of all of the services."""
+        """Returns the names of all of the indexes."""
         return self.get("/databases")
 
     def get_database(self,db_name: str):
@@ -19,24 +19,24 @@ class DatabaseAPI(BaseAPI):
         return self.get("/databases/{}".format(db_name))["database"]
 
     def get_status(self, db_name: str) -> dict:
-        """Returns service status"""
+        """Returns index status"""
         return self.get("/databases/{}/status".format(db_name))
 
     def stop(self, db_name: str):
-        """Stops an service."""
+        """Stops an index."""
         response = self.delete("/databases/{}".format(db_name))
         if not response["success"]:
             logger.error("Failed to stop the index '{}'. It probably wasn't running!".format(db_name))
         return response
 
     def deploy(self, db_json: str):
-        """Deploys an service."""
+        """Deploys an index."""
         response = self.post("/databases", json={'database': db_json})
         if response["success"]:
             logger.success("Successfully deployed {}".format(self.host))
         else:
             if "already exists" in response["msg"]:
-                raise RuntimeError("Service already exists.")
+                raise RuntimeError("Index already exists.")
             else:
                 raise RuntimeError("Failed to deploy: {}".format(response["msg"]))
         return response
