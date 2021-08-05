@@ -10,7 +10,7 @@ from pinecone import logger
 from .api_database import DatabaseAPI
 from .constants import Config
 from pinecone.utils.progressbar import ProgressBar
-from pinecone.legacy.specs import database as db_specs
+from pinecone.specs import database as db_specs
 
 __all__ = ["deploy", "stop", "ls","describe","update"]
 
@@ -120,7 +120,7 @@ def describe(name: str) -> IndexMeta:
 
 
 def update(name:str,replicas:int):
-    """Returns the new spec for the updated index
+    """Returns the status for the updated index
 
     :param name: name of the index
     :type name: str

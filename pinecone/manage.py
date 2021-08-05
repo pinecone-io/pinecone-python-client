@@ -3,12 +3,7 @@ import enum
 from pinecone import logger
 
 from pinecone.utils.sentry import sentry_decorator as sentry
-from typing import List, NamedTuple, Tuple
-from .api_database import DatabaseAPI
-from .constants import Config
-from pinecone.utils.progressbar import ProgressBar
-from pinecone.legacy.specs import database as db_specs
-
+from ._database import deploy as index_deploy, stop as index_stop, ls as index_ls, describe as get_index, update as update_index
 
 __all__ = [
     "create",
@@ -25,21 +20,6 @@ __all__ = [
     "IndexDescription",
 ]
 
-class IndexMeta(NamedTuple):
-    name : str  
-    index_type : str
-    metric : str
-    replicas : int
-    dimension : int
-    shards : int
-    index_config : None
-
-class Database(db_specs.DatabaseSpec):
-    """The index as a database."""
-
-    def __init__(self, name: str, dimension: int, index_type: str = 'approximated', metric: str = 'cosine', replicas: int = 1, shards: int = 1, index_config: dict = None):
-        """"""
-        super().__init__(name, dimension, index_type, metric, replicas, shards, index_config)
 
 class ResourceType(enum.Enum):
     INDEX = "index"
@@ -55,67 +35,6 @@ class IndexDescription(NamedTuple):
     replicas: int
     status: dict
     index_config: dict
-
-
-def _get_database_api():
-    return DatabaseAPI(host=Config.CONTROLLER_HOST, api_key=Config.API_KEY)
-
-def index_deploy(name: str, dimension: int, wait: bool = True, index_type: str = 'approximated', metric: str = 'cosine', replicas: int = 1, shards: int = 1, index_config: dict = None)-> Tuple[dict, ProgressBar]:
-
-    db_ = Database(name, dimension, index_type, metric, replicas, shards, index_config)
-
-    api = _get_database_api()
-
-    if name in api.list_services():
-        raise RuntimeError(
-            "An index with the name '{}' already exists. Please deploy your index with a different name.".format(
-                name
-            )
-        )
-    else:
-        response = api.deploy(db_.to_json())
-
-    #Wait for index to deploy
-    status = api.get_status(name)
-    logger.info("Deployment status: {}".format(status))
-
-    return response
-
-def index_stop(db_name:str, wait:bool = True,**kwargs)-> Tuple[dict, ProgressBar]:
-
-    api = _get_database_api()
-    response = api.stop(db_name)
-
-    # Wait for the index to stop
-    def get_remaining():
-        return 1*(db_name in api.list_services())
-
-    pbar = ProgressBar(total=1, get_remaining_fn=get_remaining)
-    if wait:
-        pbar.watch()
-    return response, pbar
-
-
-def index_ls() -> List[str]:
-
-    api = _get_database_api()
-    return api.list_services()
-
-
-def get_index(name: str) -> IndexMeta:
-
-    api = _get_database_api()
-    db_json = api.get_database(name)
-    db = Database.from_json(db_json) if db_json else None
-    return IndexMeta(name = name, index_type = db.index_type, metric = db.metric, replicas = db.replicas, dimension = db.dimension, shards = db.shards, index_config = db.index_config) or {}
-
-
-def update_index(name:str,replicas:int):
-
-    api = _get_database_api()
-    response = api.update(name,replicas)
-
-    return response
 
 
 @sentry
@@ -136,6 +55,7 @@ def create(name: str, dimension: int, wait: bool = True, index_type: str = 'appr
     if kind == ResourceType.INDEX.value:
         response= index_deploy(name=name, dimension=dimension, wait=wait, index_type=index_type, metric=metric, replicas=replicas, shards=shards, index_config=index_config)
         return response
+    logger.warning("Unrecognized resource type '{}'.".format(kind))
 
 
 @sentry
@@ -150,6 +70,7 @@ def delete(name: str, wait: bool = True, kind:str = "index") -> Optional[dict]:
     if kind == ResourceType.INDEX.value:
         response, _ = index_stop(db_name=name, wait=wait)
         return response
+    logger.warning("Unrecognized resource type '{}'.".format(kind))
 
 
 @sentry
@@ -158,10 +79,11 @@ def ls(kind:str = "index") -> Optional[List[str]]:
     """
     if kind == ResourceType.INDEX.value:
         return index_ls()
+    logger.warning("Unrecognized resource type '{}'.".format(kind))
 
 
 @sentry
-def describe(name: str,kind:str = "index") -> Optional[IndexDescription]:
+def describe(name: str, kind:str = "index") -> Optional[IndexDescription]:
     """Describes the index.
 
     :param name: the name of the index.
@@ -170,13 +92,15 @@ def describe(name: str,kind:str = "index") -> Optional[IndexDescription]:
     if kind == ResourceType.INDEX.value:
         response = get_index(name)
         return response
+    logger.warning("Unrecognized resource type '{}'.".format(kind))
 
 @sentry
-def update(name: str, replicas: int, kind:str = "index")->Optional[dict]:
+def update(name: str, replicas: int, kind:str="index")->Optional[dict]:
     """Updates the number of replicas for an index
     """
     if kind == ResourceType.INDEX.value:
         return update_index(name,replicas)
+    logger.warning("Unrecognized resource type '{}'.".format(kind))
 
 @sentry
 def create_index(

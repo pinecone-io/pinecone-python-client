@@ -42,7 +42,7 @@ def init(project_name: str = None, api_key: str = None, host: str = None, enviro
     :param environment: Optional. Deployment environment.
     :param config: Optional. An INI configuration file.
     """
-    Config.reset(api_key=api_key, controller_host=host, environment=environment, config_file=config, **kwargs)
+    Config.reset(project_name=project_name, api_key=api_key, controller_host=host, environment=environment, config_file=config, **kwargs)
     if not bool(Config.API_KEY):
         logger.warning("API key is required.")
 
