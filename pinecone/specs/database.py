@@ -1,7 +1,4 @@
-from pinecone.legacy.specs import Spec
-
-import argparse
-
+from pinecone.specs import Spec
 
 class DatabaseSpec(Spec):
 
