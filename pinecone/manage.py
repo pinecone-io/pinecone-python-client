@@ -175,6 +175,7 @@ def describe_index(name: str) -> Optional[IndexDescription]:
 
     :param name: the name of the index.
     :type name: str
+
     :returns IndexDescription 
     """
     return describe(name=name, kind=ResourceType.INDEX.value)
