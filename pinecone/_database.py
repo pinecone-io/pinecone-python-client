@@ -12,30 +12,34 @@ from .constants import Config
 from pinecone.utils.progressbar import ProgressBar
 from pinecone.specs import database as db_specs
 
-__all__ = ["deploy", "stop", "ls","describe","update"]
+__all__ = ["deploy", "stop", "ls", "describe", "update"]
+
 
 def _get_database_api():
     return DatabaseAPI(host=Config.CONTROLLER_HOST, api_key=Config.API_KEY)
 
+
 class IndexMeta(NamedTuple):
-    name : str  
-    index_type : str
-    metric : str
-    replicas : int
-    dimension : int
-    shards : int
-    index_config : None
+    name: str
+    index_type: str
+    metric: str
+    replicas: int
+    dimension: int
+    shards: int
+    index_config: None
+
 
 class Database(db_specs.DatabaseSpec):
     """The index as a database."""
 
-    def __init__(self, name: str, dimension: int, index_type: str = 'approximated', metric: str = 'cosine', replicas: int = 1, shards: int = 1, index_config: dict = None):
+    def __init__(self, name: str, dimension: int, index_type: str = 'approximated', metric: str = 'cosine',
+                 replicas: int = 1, shards: int = 1, index_config: dict = None):
         """"""
         super().__init__(name, dimension, index_type, metric, replicas, shards, index_config)
 
 
-
-def deploy(name: str, dimension: int, wait: bool = True, index_type: str = 'approximated', metric: str = 'cosine', replicas: int = 1, shards: int = 1, index_config: dict = None)-> Tuple[dict, ProgressBar]:
+def deploy(name: str, dimension: int, wait: bool = True, index_type: str = 'approximated', metric: str = 'cosine',
+           replicas: int = 1, shards: int = 1, index_config: dict = None) -> Tuple[dict, ProgressBar]:
     """Create a new Pinecone index from the database spec
     :param name : name of the index
     :type name : str
@@ -72,14 +76,14 @@ def deploy(name: str, dimension: int, wait: bool = True, index_type: str = 'appr
     else:
         response = api.deploy(db_.to_json())
 
-    #Wait for index to deploy
+    # Wait for index to deploy
     status = api.get_status(name)
     logger.info("Deployment status: {}".format(status))
 
     return response
 
 
-def stop(db_name:str, wait:bool = True,**kwargs)-> Tuple[dict, ProgressBar]:
+def stop(db_name: str, wait: bool = True) -> Tuple[dict, ProgressBar]:
     """
     Stops a database
     :param db_name: name of the index
@@ -92,7 +96,7 @@ def stop(db_name:str, wait:bool = True,**kwargs)-> Tuple[dict, ProgressBar]:
 
     # Wait for the index to stop
     def get_remaining():
-        return 1*(db_name in api.list_services())
+        return 1 * (db_name in api.list_services())
 
     pbar = ProgressBar(total=1, get_remaining_fn=get_remaining)
     if wait:
@@ -109,17 +113,18 @@ def ls() -> List[str]:
 def describe(name: str) -> IndexMeta:
     """Returns the metadata of a service.
 
-    :param service_name: name of the service
-    :type service_name: str
-    :return: :class:`ServiceMeta`
+    :param name: name of the service
+    :type name: str
+    :return: :class:`IndexMeta`
     """
     api = _get_database_api()
     db_json = api.get_database(name)
     db = Database.from_json(db_json) if db_json else None
-    return IndexMeta(name = name, index_type = db.index_type, metric = db.metric, replicas = db.replicas, dimension = db.dimension, shards = db.shards, index_config = db.index_config) or {}
+    return IndexMeta(name=name, index_type=db.index_type, metric=db.metric, replicas=db.replicas,
+                     dimension=db.dimension, shards=db.shards, index_config=db.index_config) or {}
 
 
-def update(name:str,replicas:int):
+def update(name: str, replicas: int):
     """Returns the status for the updated index
 
     :param name: name of the index
@@ -128,8 +133,6 @@ def update(name:str,replicas:int):
     :param type: int
     """
     api = _get_database_api()
-    response = api.update(name,replicas)
+    response = api.update(name, replicas)
 
     return response
-
-
