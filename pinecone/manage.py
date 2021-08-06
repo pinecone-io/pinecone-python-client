@@ -182,7 +182,7 @@ def list_indexes() -> Optional[List[str]]:
 def describe_index(name: str) -> Optional[IndexDescription]:
     """Describes a Pinecone index.
 
-    :param name: the name of the index.
+    :param: the name of the index
     :return: IndexDescription
     """
     return describe(name=name, kind=ResourceType.INDEX.value)
