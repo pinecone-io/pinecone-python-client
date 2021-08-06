@@ -17,7 +17,7 @@ class DatabaseSpec(Spec):
         self.index_config = index_config
 
     @classmethod
-    def from_obj(cls, obj: dict) -> "Spec":
+    def from_obj(cls, obj: dict) -> "DatabaseSpec":
         spec = obj['spec']
         metadata = obj['metadata']
         new_index = cls(metadata['name'], index_type=spec['index_type'], dimension=spec['dimension'],
