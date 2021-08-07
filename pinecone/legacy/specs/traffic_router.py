@@ -5,7 +5,7 @@
 from typing import Optional, List
 
 from pinecone.legacy.specs import Spec
-from pinecone import Service
+from pinecone.legacy.specs.service import Service
 from pinecone.utils import validate_dns_name
 
 from pinecone import logger
