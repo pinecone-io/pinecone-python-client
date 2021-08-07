@@ -8,6 +8,6 @@ Pinecone Resource Management
 .. automethod:: pinecone.list_indexes
 .. automethod:: pinecone.describe_index
 
-.. autoclass:: pinecone.ResourceDescription
+.. autoclass:: pinecone.IndexDescription
     :members:
     :undoc-members:
