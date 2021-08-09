@@ -85,6 +85,7 @@ class PineconeScoredVector(ModelNormal):
             'id': (str,),  # noqa: E501
             'score': (float,),  # noqa: E501
             'values': ([float],),  # noqa: E501
+            'metadata': (str,),  # noqa: E501
         }
 
     @cached_property
@@ -96,6 +97,7 @@ class PineconeScoredVector(ModelNormal):
         'id': 'id',  # noqa: E501
         'score': 'score',  # noqa: E501
         'values': 'values',  # noqa: E501
+        'metadata': 'metadata',  # noqa: E501
     }
 
     read_only_vars = {
@@ -142,6 +144,7 @@ class PineconeScoredVector(ModelNormal):
             id (str): [optional]  # noqa: E501
             score (float): [optional]  # noqa: E501
             values ([float]): [optional]  # noqa: E501
+            metadata (str): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -226,6 +229,7 @@ class PineconeScoredVector(ModelNormal):
             id (str): [optional]  # noqa: E501
             score (float): [optional]  # noqa: E501
             values ([float]): [optional]  # noqa: E501
+            metadata (str): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)

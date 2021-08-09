@@ -90,7 +90,7 @@ class Configuration(object):
 
     You can programmatically set the cookie:
 
-conf = pinecone.openapi.Configuration(
+conf = pinecone.experimental.openapi.Configuration(
     api_key={'cookieAuth': 'abc123'}
     api_key_prefix={'cookieAuth': 'JSESSIONID'}
 )
@@ -153,7 +153,7 @@ conf = pinecone.openapi.Configuration(
         self.logger = {}
         """Logging Settings
         """
-        self.logger["package_logger"] = logging.getLogger("pinecone.openapi")
+        self.logger["package_logger"] = logging.getLogger("pinecone.experimental.openapi")
         self.logger["urllib3_logger"] = logging.getLogger("urllib3")
         self.logger_format = '%(asctime)s %(levelname)s %(message)s'
         """Log format

@@ -84,6 +84,7 @@ class PineconeSummarizeResponse(ModelNormal):
         return {
             'request_id': (str,),  # noqa: E501
             'index_size': (str,),  # noqa: E501
+            'dimension': (int,),  # noqa: E501
         }
 
     @cached_property
@@ -94,6 +95,7 @@ class PineconeSummarizeResponse(ModelNormal):
     attribute_map = {
         'request_id': 'requestId',  # noqa: E501
         'index_size': 'indexSize',  # noqa: E501
+        'dimension': 'dimension',  # noqa: E501
     }
 
     read_only_vars = {
@@ -139,6 +141,7 @@ class PineconeSummarizeResponse(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             request_id (str): [optional]  # noqa: E501
             index_size (str): [optional]  # noqa: E501
+            dimension (int): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -222,6 +225,7 @@ class PineconeSummarizeResponse(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             request_id (str): [optional]  # noqa: E501
             index_size (str): [optional]  # noqa: E501
+            dimension (int): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)

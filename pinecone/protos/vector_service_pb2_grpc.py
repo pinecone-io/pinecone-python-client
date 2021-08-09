@@ -24,11 +24,6 @@ class VectorServiceStub(object):
                 request_serializer=vector__service__pb2.DeleteRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.DeleteResponse.FromString,
                 )
-        self.StreamWrites = channel.stream_stream(
-                '/pinecone.VectorService/StreamWrites',
-                request_serializer=vector__service__pb2.AnyWriteRequest.SerializeToString,
-                response_deserializer=vector__service__pb2.AnyWriteResponse.FromString,
-                )
         self.Fetch = channel.unary_unary(
                 '/pinecone.VectorService/Fetch',
                 request_serializer=vector__service__pb2.FetchRequest.SerializeToString,
@@ -71,23 +66,6 @@ class VectorServiceServicer(object):
 
     def Delete(self, request, context):
         """The Delete operation deletes a vector by id.
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def StreamWrites(self, request_iterator, context):
-        """The DeleteNamespace operation deletes one or more namespaces and all their
-        corresponding vectors from the database.
-
-        rpc DeleteNamespace(DeleteNamespacesRequest) returns (DeleteNamespacesResponse) {
-        option (google.api.http) = {
-        delete: "/namespaces/delete"
-        };
-        }
-
-        The StreamWrites operation is for uploading data (vector ids and values) to be indexed.
-        If a new value is upserted for an existing vector id, it overwrites the previous value.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -142,11 +120,6 @@ def add_VectorServiceServicer_to_server(servicer, server):
                     servicer.Delete,
                     request_deserializer=vector__service__pb2.DeleteRequest.FromString,
                     response_serializer=vector__service__pb2.DeleteResponse.SerializeToString,
-            ),
-            'StreamWrites': grpc.stream_stream_rpc_method_handler(
-                    servicer.StreamWrites,
-                    request_deserializer=vector__service__pb2.AnyWriteRequest.FromString,
-                    response_serializer=vector__service__pb2.AnyWriteResponse.SerializeToString,
             ),
             'Fetch': grpc.unary_unary_rpc_method_handler(
                     servicer.Fetch,
@@ -215,23 +188,6 @@ class VectorService(object):
         return grpc.experimental.unary_unary(request, target, '/pinecone.VectorService/Delete',
             vector__service__pb2.DeleteRequest.SerializeToString,
             vector__service__pb2.DeleteResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def StreamWrites(request_iterator,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.stream_stream(request_iterator, target, '/pinecone.VectorService/StreamWrites',
-            vector__service__pb2.AnyWriteRequest.SerializeToString,
-            vector__service__pb2.AnyWriteResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

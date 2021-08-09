@@ -22,7 +22,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\021io.pinecone.protoP\001Z/github.com/pinecone-io/new-go-pinecone/pinecone\222A\213\002\022P\n\021Pinecone JSON API\";\n\017Pinecone.io Ops\022\023https://pinecone.io\032\023support@pinecone.io\032$example-service.beta.svc.pinecone.io*\001\0022\020application/json:\020application/jsonZ\035\n\033\n\nApiKeyAuth\022\r\010\002\032\007api-key \002b\020\n\016\n\nApiKeyAuth\022\000r9\n\031More Pinecone.io API docs\022\034https://www.pinecone.io/docs',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x14vector_service.proto\x12\x08pinecone\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/rpc/error_details.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\";\n\x0b\x44\x65nseVector\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06values\x18\x02 \x03(\x02\x12\x10\n\x08metadata\x18\x03 \x01(\t\"!\n\x0f\x41nonymousVector\x12\x0e\n\x06values\x18\x01 \x03(\x02\"K\n\x0cScoredVector\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05score\x18\x02 \x01(\x02\x12\x0e\n\x06values\x18\x03 \x03(\x02\x12\x10\n\x08metadata\x18\x04 \x01(\t\"^\n\rUpsertRequest\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\x12&\n\x07vectors\x18\x02 \x03(\x0b\x32\x15.pinecone.DenseVector\x12\x11\n\tnamespace\x18\x03 \x01(\t\"$\n\x0eUpsertResponse\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\"W\n\rDeleteRequest\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12\x12\n\ndelete_all\x18\x04 \x01(\x08\x12\x11\n\tnamespace\x18\x03 \x01(\t\"$\n\x0e\x44\x65leteResponse\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\"\x82\x01\n\x0f\x41nyWriteRequest\x12\x31\n\x0eupsert_request\x18\x01 \x01(\x0b\x32\x17.pinecone.UpsertRequestH\x00\x12\x31\n\x0e\x64\x65lete_request\x18\x02 \x01(\x0b\x32\x17.pinecone.DeleteRequestH\x00\x42\t\n\x07request\"\x88\x01\n\x10\x41nyWriteResponse\x12\x33\n\x0fupsert_response\x18\x01 \x01(\x0b\x32\x18.pinecone.UpsertResponseH\x00\x12\x33\n\x0f\x64\x65lete_response\x18\x02 \x01(\x0b\x32\x18.pinecone.DeleteResponseH\x00\x42\n\n\x08response\"B\n\x0c\x46\x65tchRequest\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12\x11\n\tnamespace\x18\x03 \x01(\t\"^\n\rFetchResponse\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\x12&\n\x07vectors\x18\x02 \x03(\x0b\x32\x15.pinecone.DenseVector\x12\x11\n\tnamespace\x18\x03 \x01(\t\"\xd5\x02\n\x0cQueryRequest\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\x12!\n\x19request_default_namespace\x18\x02 \x01(\t\x12\x1d\n\x15request_default_top_k\x18\x03 \x01(\r\x12\x1e\n\x16request_default_filter\x18\x04 \x01(\t\x12\x14\n\x0cinclude_data\x18\x05 \x01(\x08\x12\x18\n\x10include_metadata\x18\x06 \x01(\x08\x12\x33\n\x07queries\x18\x07 \x03(\x0b\x32\".pinecone.QueryRequest.QueryVector\x1aj\n\x0bQueryVector\x12)\n\x06vector\x18\x01 \x01(\x0b\x32\x19.pinecone.AnonymousVector\x12\r\n\x05top_k\x18\x02 \x01(\r\x12\x11\n\tnamespace\x18\x03 \x01(\t\x12\x0e\n\x06\x66ilter\x18\x04 \x01(\t\"\xb2\x01\n\rQueryResponse\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\x12;\n\x07results\x18\x02 \x03(\x0b\x32*.pinecone.QueryResponse.SingleQueryResults\x1aP\n\x12SingleQueryResults\x12\'\n\x07matches\x18\x01 \x03(\x0b\x32\x16.pinecone.ScoredVector\x12\x11\n\tnamespace\x18\x02 \x01(\t\"4\n\x0bListRequest\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\x12\x11\n\tnamespace\x18\x02 \x01(\t\"B\n\x0cListResponse\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12\x11\n\tnamespace\x18\x03 \x01(\t\"+\n\x15ListNamespacesRequest\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\"@\n\x16ListNamespacesResponse\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\x12\x12\n\nnamespaces\x18\x02 \x03(\t\"&\n\x10SummarizeRequest\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\"N\n\x11SummarizeResponse\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\x12\x12\n\nindex_size\x18\x02 \x01(\x04\x12\x11\n\tdimension\x18\x03 \x01(\r2\xbb\x05\n\rVectorService\x12T\n\x06Upsert\x12\x17.pinecone.UpsertRequest\x1a\x18.pinecone.UpsertResponse\"\x17\x82\xd3\xe4\x93\x02\x11\"\x0f/vectors/upsert\x12T\n\x06\x44\x65lete\x12\x17.pinecone.DeleteRequest\x1a\x18.pinecone.DeleteResponse\"\x17\x82\xd3\xe4\x93\x02\x11*\x0f/vectors/delete\x12K\n\x0cStreamWrites\x12\x19.pinecone.AnyWriteRequest\x1a\x1a.pinecone.AnyWriteResponse\"\x00(\x01\x30\x01\x12P\n\x05\x46\x65tch\x12\x16.pinecone.FetchRequest\x1a\x17.pinecone.FetchResponse\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/vectors/fetch\x12H\n\x05Query\x12\x16.pinecone.QueryRequest\x1a\x17.pinecone.QueryResponse\"\x0e\x82\xd3\xe4\x93\x02\x08\x12\x06/query\x12L\n\x04List\x12\x15.pinecone.ListRequest\x1a\x16.pinecone.ListResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/vectors/list\x12m\n\x0eListNamespaces\x12\x1f.pinecone.ListNamespacesRequest\x1a .pinecone.ListNamespacesResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/namespaces/list\x12X\n\tSummarize\x12\x1a.pinecone.SummarizeRequest\x1a\x1b.pinecone.SummarizeResponse\"\x12\x82\xd3\xe4\x93\x02\x0c\x12\n/summarizeB\xd5\x02\n\x11io.pinecone.protoP\x01Z/github.com/pinecone-io/new-go-pinecone/pinecone\x92\x41\x8b\x02\x12P\n\x11Pinecone JSON API\";\n\x0fPinecone.io Ops\x12\x13https://pinecone.io\x1a\x13support@pinecone.io\x1a$example-service.beta.svc.pinecone.io*\x01\x02\x32\x10\x61pplication/json:\x10\x61pplication/jsonZ\x1d\n\x1b\n\nApiKeyAuth\x12\r\x08\x02\x1a\x07\x61pi-key \x02\x62\x10\n\x0e\n\nApiKeyAuth\x12\x00r9\n\x19More Pinecone.io API docs\x12\x1chttps://www.pinecone.io/docsb\x06proto3'
+  serialized_pb=b'\n\x14vector_service.proto\x12\x08pinecone\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/rpc/error_details.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\";\n\x0b\x44\x65nseVector\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06values\x18\x02 \x03(\x02\x12\x10\n\x08metadata\x18\x03 \x01(\t\"!\n\x0f\x41nonymousVector\x12\x0e\n\x06values\x18\x01 \x03(\x02\"K\n\x0cScoredVector\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05score\x18\x02 \x01(\x02\x12\x0e\n\x06values\x18\x03 \x03(\x02\x12\x10\n\x08metadata\x18\x04 \x01(\t\"J\n\rUpsertRequest\x12&\n\x07vectors\x18\x01 \x03(\x0b\x32\x15.pinecone.DenseVector\x12\x11\n\tnamespace\x18\x02 \x01(\t\"\x10\n\x0eUpsertResponse\"C\n\rDeleteRequest\x12\x0b\n\x03ids\x18\x01 \x03(\t\x12\x12\n\ndelete_all\x18\x02 \x01(\x08\x12\x11\n\tnamespace\x18\x03 \x01(\t\"\x10\n\x0e\x44\x65leteResponse\".\n\x0c\x46\x65tchRequest\x12\x0b\n\x03ids\x18\x01 \x03(\t\x12\x11\n\tnamespace\x18\x02 \x01(\t\"J\n\rFetchResponse\x12&\n\x07vectors\x18\x01 \x03(\x0b\x32\x15.pinecone.DenseVector\x12\x11\n\tnamespace\x18\x02 \x01(\t\"\xc1\x02\n\x0cQueryRequest\x12!\n\x19request_default_namespace\x18\x01 \x01(\t\x12\x1d\n\x15request_default_top_k\x18\x02 \x01(\r\x12\x1e\n\x16request_default_filter\x18\x03 \x01(\t\x12\x14\n\x0cinclude_data\x18\x04 \x01(\x08\x12\x18\n\x10include_metadata\x18\x05 \x01(\x08\x12\x33\n\x07queries\x18\x06 \x03(\x0b\x32\".pinecone.QueryRequest.QueryVector\x1aj\n\x0bQueryVector\x12)\n\x06vector\x18\x01 \x01(\x0b\x32\x19.pinecone.AnonymousVector\x12\r\n\x05top_k\x18\x02 \x01(\r\x12\x11\n\tnamespace\x18\x03 \x01(\t\x12\x0e\n\x06\x66ilter\x18\x04 \x01(\t\"\x9e\x01\n\rQueryResponse\x12;\n\x07results\x18\x01 \x03(\x0b\x32*.pinecone.QueryResponse.SingleQueryResults\x1aP\n\x12SingleQueryResults\x12\'\n\x07matches\x18\x01 \x03(\x0b\x32\x16.pinecone.ScoredVector\x12\x11\n\tnamespace\x18\x02 \x01(\t\" \n\x0bListRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\".\n\x0cListResponse\x12\x0b\n\x03ids\x18\x01 \x03(\t\x12\x11\n\tnamespace\x18\x02 \x01(\t\"\x17\n\x15ListNamespacesRequest\",\n\x16ListNamespacesResponse\x12\x12\n\nnamespaces\x18\x01 \x03(\t\"\x12\n\x10SummarizeRequest\":\n\x11SummarizeResponse\x12\x12\n\nindex_size\x18\x01 \x01(\x04\x12\x11\n\tdimension\x18\x02 \x01(\r2\xee\x04\n\rVectorService\x12T\n\x06Upsert\x12\x17.pinecone.UpsertRequest\x1a\x18.pinecone.UpsertResponse\"\x17\x82\xd3\xe4\x93\x02\x11\"\x0f/vectors/upsert\x12T\n\x06\x44\x65lete\x12\x17.pinecone.DeleteRequest\x1a\x18.pinecone.DeleteResponse\"\x17\x82\xd3\xe4\x93\x02\x11*\x0f/vectors/delete\x12P\n\x05\x46\x65tch\x12\x16.pinecone.FetchRequest\x1a\x17.pinecone.FetchResponse\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/vectors/fetch\x12H\n\x05Query\x12\x16.pinecone.QueryRequest\x1a\x17.pinecone.QueryResponse\"\x0e\x82\xd3\xe4\x93\x02\x08\x12\x06/query\x12L\n\x04List\x12\x15.pinecone.ListRequest\x1a\x16.pinecone.ListResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/vectors/list\x12m\n\x0eListNamespaces\x12\x1f.pinecone.ListNamespacesRequest\x1a .pinecone.ListNamespacesResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/namespaces/list\x12X\n\tSummarize\x12\x1a.pinecone.SummarizeRequest\x1a\x1b.pinecone.SummarizeResponse\"\x12\x82\xd3\xe4\x93\x02\x0c\x12\n/summarizeB\xd5\x02\n\x11io.pinecone.protoP\x01Z/github.com/pinecone-io/new-go-pinecone/pinecone\x92\x41\x8b\x02\x12P\n\x11Pinecone JSON API\";\n\x0fPinecone.io Ops\x12\x13https://pinecone.io\x1a\x13support@pinecone.io\x1a$example-service.beta.svc.pinecone.io*\x01\x02\x32\x10\x61pplication/json:\x10\x61pplication/jsonZ\x1d\n\x1b\n\nApiKeyAuth\x12\r\x08\x02\x1a\x07\x61pi-key \x02\x62\x10\n\x0e\n\nApiKeyAuth\x12\x00r9\n\x19More Pinecone.io API docs\x12\x1chttps://www.pinecone.io/docsb\x06proto3'
   ,
   dependencies=[google_dot_api_dot_annotations__pb2.DESCRIPTOR,google_dot_rpc_dot_error__details__pb2.DESCRIPTOR,protoc__gen__openapiv2_dot_options_dot_annotations__pb2.DESCRIPTOR,])
 
@@ -169,22 +169,15 @@ _UPSERTREQUEST = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='request_id', full_name='pinecone.UpsertRequest.request_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='vectors', full_name='pinecone.UpsertRequest.vectors', index=1,
-      number=2, type=11, cpp_type=10, label=3,
+      name='vectors', full_name='pinecone.UpsertRequest.vectors', index=0,
+      number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='namespace', full_name='pinecone.UpsertRequest.namespace', index=2,
-      number=3, type=9, cpp_type=9, label=1,
+      name='namespace', full_name='pinecone.UpsertRequest.namespace', index=1,
+      number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -202,7 +195,7 @@ _UPSERTREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=317,
-  serialized_end=411,
+  serialized_end=391,
 )
 
 
@@ -214,13 +207,6 @@ _UPSERTRESPONSE = _descriptor.Descriptor(
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
-    _descriptor.FieldDescriptor(
-      name='request_id', full_name='pinecone.UpsertResponse.request_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -233,8 +219,8 @@ _UPSERTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=413,
-  serialized_end=449,
+  serialized_start=393,
+  serialized_end=409,
 )
 
 
@@ -247,28 +233,21 @@ _DELETEREQUEST = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='request_id', full_name='pinecone.DeleteRequest.request_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='ids', full_name='pinecone.DeleteRequest.ids', index=1,
-      number=2, type=9, cpp_type=9, label=3,
+      name='ids', full_name='pinecone.DeleteRequest.ids', index=0,
+      number=1, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='delete_all', full_name='pinecone.DeleteRequest.delete_all', index=2,
-      number=4, type=8, cpp_type=7, label=1,
+      name='delete_all', full_name='pinecone.DeleteRequest.delete_all', index=1,
+      number=2, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='namespace', full_name='pinecone.DeleteRequest.namespace', index=3,
+      name='namespace', full_name='pinecone.DeleteRequest.namespace', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -286,8 +265,8 @@ _DELETEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=451,
-  serialized_end=538,
+  serialized_start=411,
+  serialized_end=478,
 )
 
 
@@ -299,13 +278,6 @@ _DELETERESPONSE = _descriptor.Descriptor(
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
-    _descriptor.FieldDescriptor(
-      name='request_id', full_name='pinecone.DeleteResponse.request_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -318,96 +290,8 @@ _DELETERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=540,
-  serialized_end=576,
-)
-
-
-_ANYWRITEREQUEST = _descriptor.Descriptor(
-  name='AnyWriteRequest',
-  full_name='pinecone.AnyWriteRequest',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='upsert_request', full_name='pinecone.AnyWriteRequest.upsert_request', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='delete_request', full_name='pinecone.AnyWriteRequest.delete_request', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-    _descriptor.OneofDescriptor(
-      name='request', full_name='pinecone.AnyWriteRequest.request',
-      index=0, containing_type=None,
-      create_key=_descriptor._internal_create_key,
-    fields=[]),
-  ],
-  serialized_start=579,
-  serialized_end=709,
-)
-
-
-_ANYWRITERESPONSE = _descriptor.Descriptor(
-  name='AnyWriteResponse',
-  full_name='pinecone.AnyWriteResponse',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='upsert_response', full_name='pinecone.AnyWriteResponse.upsert_response', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='delete_response', full_name='pinecone.AnyWriteResponse.delete_response', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-    _descriptor.OneofDescriptor(
-      name='response', full_name='pinecone.AnyWriteResponse.response',
-      index=0, containing_type=None,
-      create_key=_descriptor._internal_create_key,
-    fields=[]),
-  ],
-  serialized_start=712,
-  serialized_end=848,
+  serialized_start=480,
+  serialized_end=496,
 )
 
 
@@ -420,22 +304,15 @@ _FETCHREQUEST = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='request_id', full_name='pinecone.FetchRequest.request_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='ids', full_name='pinecone.FetchRequest.ids', index=1,
-      number=2, type=9, cpp_type=9, label=3,
+      name='ids', full_name='pinecone.FetchRequest.ids', index=0,
+      number=1, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='namespace', full_name='pinecone.FetchRequest.namespace', index=2,
-      number=3, type=9, cpp_type=9, label=1,
+      name='namespace', full_name='pinecone.FetchRequest.namespace', index=1,
+      number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -452,8 +329,8 @@ _FETCHREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=850,
-  serialized_end=916,
+  serialized_start=498,
+  serialized_end=544,
 )
 
 
@@ -466,22 +343,15 @@ _FETCHRESPONSE = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='request_id', full_name='pinecone.FetchResponse.request_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='vectors', full_name='pinecone.FetchResponse.vectors', index=1,
-      number=2, type=11, cpp_type=10, label=3,
+      name='vectors', full_name='pinecone.FetchResponse.vectors', index=0,
+      number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='namespace', full_name='pinecone.FetchResponse.namespace', index=2,
-      number=3, type=9, cpp_type=9, label=1,
+      name='namespace', full_name='pinecone.FetchResponse.namespace', index=1,
+      number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -498,8 +368,8 @@ _FETCHRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=918,
-  serialized_end=1012,
+  serialized_start=546,
+  serialized_end=620,
 )
 
 
@@ -551,8 +421,8 @@ _QUERYREQUEST_QUERYVECTOR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1250,
-  serialized_end=1356,
+  serialized_start=838,
+  serialized_end=944,
 )
 
 _QUERYREQUEST = _descriptor.Descriptor(
@@ -564,50 +434,43 @@ _QUERYREQUEST = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='request_id', full_name='pinecone.QueryRequest.request_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='request_default_namespace', full_name='pinecone.QueryRequest.request_default_namespace', index=1,
-      number=2, type=9, cpp_type=9, label=1,
+      name='request_default_namespace', full_name='pinecone.QueryRequest.request_default_namespace', index=0,
+      number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='request_default_top_k', full_name='pinecone.QueryRequest.request_default_top_k', index=2,
-      number=3, type=13, cpp_type=3, label=1,
+      name='request_default_top_k', full_name='pinecone.QueryRequest.request_default_top_k', index=1,
+      number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='request_default_filter', full_name='pinecone.QueryRequest.request_default_filter', index=3,
-      number=4, type=9, cpp_type=9, label=1,
+      name='request_default_filter', full_name='pinecone.QueryRequest.request_default_filter', index=2,
+      number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='include_data', full_name='pinecone.QueryRequest.include_data', index=4,
+      name='include_data', full_name='pinecone.QueryRequest.include_data', index=3,
+      number=4, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='include_metadata', full_name='pinecone.QueryRequest.include_metadata', index=4,
       number=5, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='include_metadata', full_name='pinecone.QueryRequest.include_metadata', index=5,
-      number=6, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='queries', full_name='pinecone.QueryRequest.queries', index=6,
-      number=7, type=11, cpp_type=10, label=3,
+      name='queries', full_name='pinecone.QueryRequest.queries', index=5,
+      number=6, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -624,8 +487,8 @@ _QUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1015,
-  serialized_end=1356,
+  serialized_start=623,
+  serialized_end=944,
 )
 
 
@@ -663,8 +526,8 @@ _QUERYRESPONSE_SINGLEQUERYRESULTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1457,
-  serialized_end=1537,
+  serialized_start=1025,
+  serialized_end=1105,
 )
 
 _QUERYRESPONSE = _descriptor.Descriptor(
@@ -676,15 +539,8 @@ _QUERYRESPONSE = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='request_id', full_name='pinecone.QueryResponse.request_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='results', full_name='pinecone.QueryResponse.results', index=1,
-      number=2, type=11, cpp_type=10, label=3,
+      name='results', full_name='pinecone.QueryResponse.results', index=0,
+      number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -701,8 +557,8 @@ _QUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1359,
-  serialized_end=1537,
+  serialized_start=947,
+  serialized_end=1105,
 )
 
 
@@ -715,14 +571,46 @@ _LISTREQUEST = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='request_id', full_name='pinecone.ListRequest.request_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      name='namespace', full_name='pinecone.ListRequest.namespace', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1107,
+  serialized_end=1139,
+)
+
+
+_LISTRESPONSE = _descriptor.Descriptor(
+  name='ListResponse',
+  full_name='pinecone.ListResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='ids', full_name='pinecone.ListResponse.ids', index=0,
+      number=1, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='namespace', full_name='pinecone.ListRequest.namespace', index=1,
+      name='namespace', full_name='pinecone.ListResponse.namespace', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -740,54 +628,8 @@ _LISTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1539,
-  serialized_end=1591,
-)
-
-
-_LISTRESPONSE = _descriptor.Descriptor(
-  name='ListResponse',
-  full_name='pinecone.ListResponse',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='request_id', full_name='pinecone.ListResponse.request_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='ids', full_name='pinecone.ListResponse.ids', index=1,
-      number=2, type=9, cpp_type=9, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='namespace', full_name='pinecone.ListResponse.namespace', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1593,
-  serialized_end=1659,
+  serialized_start=1141,
+  serialized_end=1187,
 )
 
 
@@ -799,13 +641,6 @@ _LISTNAMESPACESREQUEST = _descriptor.Descriptor(
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
-    _descriptor.FieldDescriptor(
-      name='request_id', full_name='pinecone.ListNamespacesRequest.request_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -818,8 +653,8 @@ _LISTNAMESPACESREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1661,
-  serialized_end=1704,
+  serialized_start=1189,
+  serialized_end=1212,
 )
 
 
@@ -832,15 +667,8 @@ _LISTNAMESPACESRESPONSE = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='request_id', full_name='pinecone.ListNamespacesResponse.request_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='namespaces', full_name='pinecone.ListNamespacesResponse.namespaces', index=1,
-      number=2, type=9, cpp_type=9, label=3,
+      name='namespaces', full_name='pinecone.ListNamespacesResponse.namespaces', index=0,
+      number=1, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -857,8 +685,8 @@ _LISTNAMESPACESRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1706,
-  serialized_end=1770,
+  serialized_start=1214,
+  serialized_end=1258,
 )
 
 
@@ -870,13 +698,6 @@ _SUMMARIZEREQUEST = _descriptor.Descriptor(
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
-    _descriptor.FieldDescriptor(
-      name='request_id', full_name='pinecone.SummarizeRequest.request_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -889,8 +710,8 @@ _SUMMARIZEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1772,
-  serialized_end=1810,
+  serialized_start=1260,
+  serialized_end=1278,
 )
 
 
@@ -903,22 +724,15 @@ _SUMMARIZERESPONSE = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='request_id', full_name='pinecone.SummarizeResponse.request_id', index=0,
+      name='index_size', full_name='pinecone.SummarizeResponse.index_size', index=0,
       number=1, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='index_size', full_name='pinecone.SummarizeResponse.index_size', index=1,
-      number=2, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='dimension', full_name='pinecone.SummarizeResponse.dimension', index=2,
-      number=3, type=13, cpp_type=3, label=1,
+      name='dimension', full_name='pinecone.SummarizeResponse.dimension', index=1,
+      number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -935,27 +749,11 @@ _SUMMARIZERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1812,
-  serialized_end=1890,
+  serialized_start=1280,
+  serialized_end=1338,
 )
 
 _UPSERTREQUEST.fields_by_name['vectors'].message_type = _DENSEVECTOR
-_ANYWRITEREQUEST.fields_by_name['upsert_request'].message_type = _UPSERTREQUEST
-_ANYWRITEREQUEST.fields_by_name['delete_request'].message_type = _DELETEREQUEST
-_ANYWRITEREQUEST.oneofs_by_name['request'].fields.append(
-  _ANYWRITEREQUEST.fields_by_name['upsert_request'])
-_ANYWRITEREQUEST.fields_by_name['upsert_request'].containing_oneof = _ANYWRITEREQUEST.oneofs_by_name['request']
-_ANYWRITEREQUEST.oneofs_by_name['request'].fields.append(
-  _ANYWRITEREQUEST.fields_by_name['delete_request'])
-_ANYWRITEREQUEST.fields_by_name['delete_request'].containing_oneof = _ANYWRITEREQUEST.oneofs_by_name['request']
-_ANYWRITERESPONSE.fields_by_name['upsert_response'].message_type = _UPSERTRESPONSE
-_ANYWRITERESPONSE.fields_by_name['delete_response'].message_type = _DELETERESPONSE
-_ANYWRITERESPONSE.oneofs_by_name['response'].fields.append(
-  _ANYWRITERESPONSE.fields_by_name['upsert_response'])
-_ANYWRITERESPONSE.fields_by_name['upsert_response'].containing_oneof = _ANYWRITERESPONSE.oneofs_by_name['response']
-_ANYWRITERESPONSE.oneofs_by_name['response'].fields.append(
-  _ANYWRITERESPONSE.fields_by_name['delete_response'])
-_ANYWRITERESPONSE.fields_by_name['delete_response'].containing_oneof = _ANYWRITERESPONSE.oneofs_by_name['response']
 _FETCHRESPONSE.fields_by_name['vectors'].message_type = _DENSEVECTOR
 _QUERYREQUEST_QUERYVECTOR.fields_by_name['vector'].message_type = _ANONYMOUSVECTOR
 _QUERYREQUEST_QUERYVECTOR.containing_type = _QUERYREQUEST
@@ -970,8 +768,6 @@ DESCRIPTOR.message_types_by_name['UpsertRequest'] = _UPSERTREQUEST
 DESCRIPTOR.message_types_by_name['UpsertResponse'] = _UPSERTRESPONSE
 DESCRIPTOR.message_types_by_name['DeleteRequest'] = _DELETEREQUEST
 DESCRIPTOR.message_types_by_name['DeleteResponse'] = _DELETERESPONSE
-DESCRIPTOR.message_types_by_name['AnyWriteRequest'] = _ANYWRITEREQUEST
-DESCRIPTOR.message_types_by_name['AnyWriteResponse'] = _ANYWRITERESPONSE
 DESCRIPTOR.message_types_by_name['FetchRequest'] = _FETCHREQUEST
 DESCRIPTOR.message_types_by_name['FetchResponse'] = _FETCHRESPONSE
 DESCRIPTOR.message_types_by_name['QueryRequest'] = _QUERYREQUEST
@@ -1032,20 +828,6 @@ DeleteResponse = _reflection.GeneratedProtocolMessageType('DeleteResponse', (_me
   # @@protoc_insertion_point(class_scope:pinecone.DeleteResponse)
   })
 _sym_db.RegisterMessage(DeleteResponse)
-
-AnyWriteRequest = _reflection.GeneratedProtocolMessageType('AnyWriteRequest', (_message.Message,), {
-  'DESCRIPTOR' : _ANYWRITEREQUEST,
-  '__module__' : 'vector_service_pb2'
-  # @@protoc_insertion_point(class_scope:pinecone.AnyWriteRequest)
-  })
-_sym_db.RegisterMessage(AnyWriteRequest)
-
-AnyWriteResponse = _reflection.GeneratedProtocolMessageType('AnyWriteResponse', (_message.Message,), {
-  'DESCRIPTOR' : _ANYWRITERESPONSE,
-  '__module__' : 'vector_service_pb2'
-  # @@protoc_insertion_point(class_scope:pinecone.AnyWriteResponse)
-  })
-_sym_db.RegisterMessage(AnyWriteResponse)
 
 FetchRequest = _reflection.GeneratedProtocolMessageType('FetchRequest', (_message.Message,), {
   'DESCRIPTOR' : _FETCHREQUEST,
@@ -1143,8 +925,8 @@ _VECTORSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=1893,
-  serialized_end=2592,
+  serialized_start=1341,
+  serialized_end=1963,
   methods=[
   _descriptor.MethodDescriptor(
     name='Upsert',
@@ -1167,19 +949,9 @@ _VECTORSERVICE = _descriptor.ServiceDescriptor(
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
-    name='StreamWrites',
-    full_name='pinecone.VectorService.StreamWrites',
-    index=2,
-    containing_service=None,
-    input_type=_ANYWRITEREQUEST,
-    output_type=_ANYWRITERESPONSE,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
     name='Fetch',
     full_name='pinecone.VectorService.Fetch',
-    index=3,
+    index=2,
     containing_service=None,
     input_type=_FETCHREQUEST,
     output_type=_FETCHRESPONSE,
@@ -1189,7 +961,7 @@ _VECTORSERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='Query',
     full_name='pinecone.VectorService.Query',
-    index=4,
+    index=3,
     containing_service=None,
     input_type=_QUERYREQUEST,
     output_type=_QUERYRESPONSE,
@@ -1199,7 +971,7 @@ _VECTORSERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='List',
     full_name='pinecone.VectorService.List',
-    index=5,
+    index=4,
     containing_service=None,
     input_type=_LISTREQUEST,
     output_type=_LISTRESPONSE,
@@ -1209,7 +981,7 @@ _VECTORSERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='ListNamespaces',
     full_name='pinecone.VectorService.ListNamespaces',
-    index=6,
+    index=5,
     containing_service=None,
     input_type=_LISTNAMESPACESREQUEST,
     output_type=_LISTNAMESPACESRESPONSE,
@@ -1219,7 +991,7 @@ _VECTORSERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='Summarize',
     full_name='pinecone.VectorService.Summarize',
-    index=7,
+    index=6,
     containing_service=None,
     input_type=_SUMMARIZEREQUEST,
     output_type=_SUMMARIZERESPONSE,

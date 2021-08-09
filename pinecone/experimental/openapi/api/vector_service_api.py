@@ -22,7 +22,7 @@ from pinecone.experimental.openapi.model_utils import (  # noqa: F401
     none_type,
     validate_and_convert_types
 )
-from pinecone.experimental.openapi.model.pinecone_any_write_request import PineconeAnyWriteRequest
+from pinecone.experimental.openapi.model.googlerpc_status import GooglerpcStatus
 from pinecone.experimental.openapi.model.pinecone_delete_response import PineconeDeleteResponse
 from pinecone.experimental.openapi.model.pinecone_fetch_response import PineconeFetchResponse
 from pinecone.experimental.openapi.model.pinecone_list_namespaces_response import PineconeListNamespacesResponse
@@ -30,7 +30,6 @@ from pinecone.experimental.openapi.model.pinecone_list_response import PineconeL
 from pinecone.experimental.openapi.model.pinecone_query_response import PineconeQueryResponse
 from pinecone.experimental.openapi.model.pinecone_summarize_response import PineconeSummarizeResponse
 from pinecone.experimental.openapi.model.pinecone_upsert_response import PineconeUpsertResponse
-from pinecone.experimental.openapi.model.stream_result_of_pinecone_any_write_response import StreamResultOfPineconeAnyWriteResponse
 
 
 class VectorServiceApi(object):
@@ -548,7 +547,9 @@ class VectorServiceApi(object):
                 request_id (str): Unique id of the request.. [optional]
                 request_default_namespace (str): Default namespace to query if no namespace specified in QueryVector (default value \"\").. [optional]
                 request_default_top_k (int): Number of results to return for each query.. [optional]
-                include_data (bool): Whether to include the vectors and raw data in response as well as ids.. [optional]
+                request_default_filter (str): Default filter to apply if no filter specified in QueryVector (default value \"\").. [optional]
+                include_data (bool): Whether to include the vectors in response as well as ids.. [optional]
+                include_metadata (bool): Whether to include the metadata in response as well as ids.. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -611,7 +612,9 @@ class VectorServiceApi(object):
                     'request_id',
                     'request_default_namespace',
                     'request_default_top_k',
+                    'request_default_filter',
                     'include_data',
+                    'include_metadata',
                 ],
                 'required': [],
                 'nullable': [
@@ -633,20 +636,28 @@ class VectorServiceApi(object):
                         (str,),
                     'request_default_top_k':
                         (int,),
+                    'request_default_filter':
+                        (str,),
                     'include_data':
+                        (bool,),
+                    'include_metadata':
                         (bool,),
                 },
                 'attribute_map': {
                     'request_id': 'requestId',
                     'request_default_namespace': 'requestDefaultNamespace',
                     'request_default_top_k': 'requestDefaultTopK',
+                    'request_default_filter': 'requestDefaultFilter',
                     'include_data': 'includeData',
+                    'include_metadata': 'includeMetadata',
                 },
                 'location_map': {
                     'request_id': 'query',
                     'request_default_namespace': 'query',
                     'request_default_top_k': 'query',
+                    'request_default_filter': 'query',
                     'include_data': 'query',
+                    'include_metadata': 'query',
                 },
                 'collection_format_map': {
                 }
@@ -659,125 +670,6 @@ class VectorServiceApi(object):
             },
             api_client=api_client,
             callable=__vector_service_query
-        )
-
-        def __vector_service_stream_writes(
-            self,
-            pinecone_any_write_request,
-            **kwargs
-        ):
-            """The StreamWrites operation is for uploading data (vector ids and values) to be indexed. If a new value is upserted for an existing vector id, it overwrites the previous value.  # noqa: E501
-
-            This method makes a synchronous HTTP request by default. To make an
-            asynchronous HTTP request, please pass async_req=True
-
-            >>> thread = api.vector_service_stream_writes(pinecone_any_write_request, async_req=True)
-            >>> result = thread.get()
-
-            Args:
-                pinecone_any_write_request (PineconeAnyWriteRequest):  (streaming inputs)
-
-            Keyword Args:
-                _return_http_data_only (bool): response data without head status
-                    code and headers. Default is True.
-                _preload_content (bool): if False, the urllib3.HTTPResponse object
-                    will be returned without reading/decoding response data.
-                    Default is True.
-                _request_timeout (int/float/tuple): timeout setting for this request. If
-                    one number provided, it will be total request timeout. It can also
-                    be a pair (tuple) of (connection, read) timeouts.
-                    Default is None.
-                _check_input_type (bool): specifies if type checking
-                    should be done one the data sent to the server.
-                    Default is True.
-                _check_return_type (bool): specifies if type checking
-                    should be done one the data received from the server.
-                    Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
-                async_req (bool): execute request asynchronously
-
-            Returns:
-                StreamResultOfPineconeAnyWriteResponse
-                    If the method is called asynchronously, returns the request
-                    thread.
-            """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
-            kwargs['pinecone_any_write_request'] = \
-                pinecone_any_write_request
-            return self.call_with_http_info(**kwargs)
-
-        self.vector_service_stream_writes = _Endpoint(
-            settings={
-                'response_type': (StreamResultOfPineconeAnyWriteResponse,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/pinecone.VectorService/StreamWrites',
-                'operation_id': 'vector_service_stream_writes',
-                'http_method': 'POST',
-                'servers': None,
-            },
-            params_map={
-                'all': [
-                    'pinecone_any_write_request',
-                ],
-                'required': [
-                    'pinecone_any_write_request',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
-            },
-            root_map={
-                'validations': {
-                },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'pinecone_any_write_request':
-                        (PineconeAnyWriteRequest,),
-                },
-                'attribute_map': {
-                },
-                'location_map': {
-                    'pinecone_any_write_request': 'body',
-                },
-                'collection_format_map': {
-                }
-            },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
-            api_client=api_client,
-            callable=__vector_service_stream_writes
         )
 
         def __vector_service_summarize(

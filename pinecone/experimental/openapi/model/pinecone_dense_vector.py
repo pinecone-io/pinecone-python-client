@@ -84,6 +84,7 @@ class PineconeDenseVector(ModelNormal):
         return {
             'id': (str,),  # noqa: E501
             'values': ([float],),  # noqa: E501
+            'metadata': (str,),  # noqa: E501
         }
 
     @cached_property
@@ -94,6 +95,7 @@ class PineconeDenseVector(ModelNormal):
     attribute_map = {
         'id': 'id',  # noqa: E501
         'values': 'values',  # noqa: E501
+        'metadata': 'metadata',  # noqa: E501
     }
 
     read_only_vars = {
@@ -139,6 +141,7 @@ class PineconeDenseVector(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             id (str): [optional]  # noqa: E501
             values ([float]): [optional]  # noqa: E501
+            metadata (str): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -222,6 +225,7 @@ class PineconeDenseVector(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             id (str): [optional]  # noqa: E501
             values ([float]): [optional]  # noqa: E501
+            metadata (str): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)

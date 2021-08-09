@@ -1,6 +1,7 @@
 #
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
+import uuid
 from pathlib import Path
 
 from pinecone.protos import core_pb2, vector_column_service_pb2
@@ -78,3 +79,7 @@ def validate_dns_name(name):
         raise ValueError("{} is invalid - service names and node names must consist of lower case "
                          "alphanumeric characters or '-', start with an alphabetic character, and end with an "
                          "alphanumeric character (e.g. 'my-name', or 'abc-123')".format(name))
+
+
+def _generate_request_id() -> str:
+    return str(uuid.uuid4())

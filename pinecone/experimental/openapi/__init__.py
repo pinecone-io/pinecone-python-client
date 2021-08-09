@@ -17,5 +17,12 @@ __version__ = "1.0.0"
 from pinecone.experimental.openapi.api_client import ApiClient
 
 # import Configuration
+from pinecone.experimental.openapi.configuration import Configuration
 
 # import exceptions
+from pinecone.experimental.openapi.exceptions import OpenApiException
+from pinecone.experimental.openapi.exceptions import ApiAttributeError
+from pinecone.experimental.openapi.exceptions import ApiTypeError
+from pinecone.experimental.openapi.exceptions import ApiValueError
+from pinecone.experimental.openapi.exceptions import ApiKeyError
+from pinecone.experimental.openapi.exceptions import ApiException

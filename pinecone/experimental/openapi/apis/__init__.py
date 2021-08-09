@@ -14,3 +14,4 @@
 #   sys.setrecursionlimit(n)
 
 # Import APIs into API package:
+from pinecone.experimental.openapi.api.vector_service_api import VectorServiceApi

@@ -59,6 +59,11 @@ class ProtobufAny(ModelNormal):
     }
 
     validations = {
+        ('value',): {
+            'regex': {
+                'pattern': r'^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$',  # noqa: E501
+            },
+        },
     }
 
     @cached_property
