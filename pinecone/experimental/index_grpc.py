@@ -1,14 +1,16 @@
 import atexit
+import random
 from functools import wraps
-from typing import NamedTuple, Optional
+from typing import NamedTuple, Optional, Tuple
 
 import grpc
 
 from pinecone.constants import Config, CLIENT_VERSION
+from pinecone.utils import _generate_request_id
 from pinecone.utils.sentry import sentry_decorator as sentry
 from pinecone.protos.vector_service_pb2_grpc import VectorServiceStub
 from pinecone.retry import RetryOnRpcErrorClientInterceptor, RetryConfig
-from pinecone.utils.constants import MAX_MSG_SIZE
+from pinecone.utils.constants import MAX_MSG_SIZE, REQUEST_ID
 
 
 class GRPCClientConfig(NamedTuple):
@@ -47,9 +49,9 @@ class Index(VectorServiceStub):
 
         self.grpc_client_config = grpc_config or GRPCClientConfig()
         self.retry_config = self.grpc_client_config.retry_config or RetryConfig()
-        self.metadata = (("api-key", Config.API_KEY),
-                         ("service-name", name),
-                         ("client-version", CLIENT_VERSION))
+        self.fixed_metadata = (("api-key", Config.API_KEY),
+                               ("service-name", name),
+                               ("client-version", CLIENT_VERSION))
         self._channel = channel or self._gen_channel()
         # self._check_readiness(grpc_config)
         atexit.register(self.close)
@@ -71,10 +73,13 @@ class Index(VectorServiceStub):
                     credentials=None,
                     wait_for_ready=None,
                     compression=None):
-            _metadata = self.metadata + (metadata or ())
+            _metadata = self.fixed_metadata + self._request_metadata() #+ (metadata or ())
             return func(request, timeout=timeout, metadata=_metadata, credentials=credentials,
                         wait_for_ready=wait_for_ready, compression=compression)
         return wrapped
+
+    def _request_metadata(self) -> Tuple[Tuple[str, str]]:
+        return (REQUEST_ID, _generate_request_id()),
 
     def _endpoint(self):
         return f"{self.name}-{Config.PROJECT_NAME}.svc.{Config.ENVIRONMENT}.pinecone.io"
