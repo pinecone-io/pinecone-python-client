@@ -7,14 +7,14 @@ class DatabaseSpec(Spec):
         return self._name
 
     def __init__(self, name: str, dimension: int, index_type: str = 'approximated', metric: str = 'cosine',
-                 replicas: int = 1, shards: int = 1, index_config:dict = None):
+                 replicas: int = 1, shards: int = 1, index_config: dict = None):
         self._name = name
         self.index_type = index_type
         self.metric = metric
         self.dimension = dimension
         self.shards = shards
         self.replicas = replicas
-        self.index_config = index_config
+        self.index_config = index_config if index_config else {}
 
     @classmethod
     def from_obj(cls, obj: dict) -> "DatabaseSpec":
