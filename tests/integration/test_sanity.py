@@ -13,9 +13,9 @@ def test_grpc_upsert_ok(index):
     upsert_resp = index.Upsert(
         UpsertRequest(
             vectors=[
-                DenseVector(id='A', values=[0.1] * 35, metadata='{}'),
-                DenseVector(id='B', values=[0.2] * 35, metadata='{}'),
-                DenseVector(id='C', values=[0.3] * 35, metadata='{}'),
+                DenseVector(id='A', values=[0.1] * 35, metadata='{"genre":"action"}'),
+                DenseVector(id='B', values=[0.2] * 35, metadata='{"genre":"documentary"}'),
+                DenseVector(id='C', values=[0.3] * 35, metadata='{"genre":"documentary"}'),
             ]
         )
     )
