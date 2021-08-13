@@ -1,49 +1,89 @@
 import argparse
 import logging
-import os
 
 from google.protobuf import json_format
 
 import pinecone
-
-# use: export PINECONE_API_KEY=foobar; export PINECONE_PROJECT_NAME=beni; export PINECONE_ENVIROMENT=alpha; python test_sanity.py
 from pinecone.experimental.index_grpc import Index
 from pinecone.protos.vector_service_pb2 import UpsertRequest, QueryRequest, DenseVector, AnonymousVector, DeleteRequest, \
-    SummarizeRequest, SummarizeResponse, FetchRequest
+    SummarizeRequest, FetchRequest
 
 
-def manual_test_grpc(args):
-    index = Index(args.index_name)
-
+def test_grpc_upsert_ok(index):
     upsert_resp = index.Upsert(
         UpsertRequest(
             vectors=[
-                DenseVector(id='A', values=[0.1]*35, metadata='{}'),
-                DenseVector(id='B', values=[0.2]*35, metadata='{}'),
-                DenseVector(id='C', values=[0.3]*35, metadata='{}'),
+                DenseVector(id='A', values=[0.1] * 35, metadata='{"genre":"action"}'),
+                DenseVector(id='B', values=[0.2] * 35, metadata='{"genre":"documentary"}'),
+                DenseVector(id='C', values=[0.3] * 35, metadata='{"genre":"documentary"}'),
             ]
         )
     )
     logging.info('got grpc upsert response: %s', json_format.MessageToJson(upsert_resp))
 
+
+def test_grpc_upsert_bad_dimension(index):
+    logging.info('sending upsert with wrong dimension vector expecting exception...')
+    try:
+        index.Upsert(
+            UpsertRequest(
+                vectors=[
+                    DenseVector(id='D', values=[0.4] * 35, metadata='{}'),
+                    DenseVector(id='E', values=[0.5] * 10, metadata='{}'),
+                ]
+            )
+        )
+    except:
+        logging.exception("got exception")
+
+
+def test_grpc_fetch_ok(index):
     fetch_resp = index.Fetch(FetchRequest(ids=['A', 'B']))
     logging.info('got grpc fetch response: %s', json_format.MessageToJson(fetch_resp))
 
+
+def test_grpc_fetch_bad_id(index):
+    try:
+        logging.info('sending fetch request with nonexistent id expecting exception...')
+        fetch_resp = index.Fetch(FetchRequest(ids=['A', 'bad_id']))
+        logging.info('got grpc fetch response: %s', json_format.MessageToJson(fetch_resp))
+    except:
+        logging.exception("got exception")
+
+
+def test_grpc_summarize_ok(index):
     summarize_resp = index.Summarize(SummarizeRequest())
     logging.info('got grpc summarize response: %s', json_format.MessageToJson(summarize_resp))
 
-    logging.info('delete temporarily expected to fail...')
+
+def test_grpc_delete_ok(index):
     delete_resp = index.Delete(DeleteRequest(ids=['A', 'B']))
     logging.info('got grpc delete response: %s', json_format.MessageToJson(delete_resp))
 
+
+def test_grpc_delete_all_ok(index):
+    delete_resp = index.Delete(DeleteRequest(delete_all=True))
+    logging.info('got grpc delete all response: %s', json_format.MessageToJson(delete_resp))
+
+
+def test_grpc_delete_bad_id(index):
+    try:
+        logging.info('sending delete request with nonexistent id expecting exception...')
+        delete_resp = index.Delete(DeleteRequest(ids=['A', 'bad_id']))
+        logging.info('got grpc delete response: %s', json_format.MessageToJson(delete_resp))
+    except:
+        logging.exception('got exception')
+
+
+def test_grpc_query_ok(index):
     query_resp = index.Query(
         QueryRequest(
             queries=[
                 QueryRequest.QueryVector(
-                    vector=AnonymousVector(values=[0.1]*35)
+                    vector=AnonymousVector(values=[0.1] * 35)
                 ),
                 QueryRequest.QueryVector(
-                    vector=AnonymousVector(values=[0.1]*35)
+                    vector=AnonymousVector(values=[0.1] * 35)
                 )
             ],
             request_default_top_k=2,
@@ -51,6 +91,25 @@ def manual_test_grpc(args):
         )
     )
     logging.info('got grpc query response: %s', json_format.MessageToJson(query_resp))
+
+
+def manual_test_grpc(args):
+    index = Index(args.index_name)
+
+    test_grpc_upsert_ok(index)
+    test_grpc_upsert_bad_dimension(index)
+
+    test_grpc_fetch_ok(index)
+    test_grpc_fetch_bad_id(index)
+
+    test_grpc_summarize_ok(index)
+
+    test_grpc_delete_ok(index)
+    test_grpc_delete_bad_id(index)
+
+    test_grpc_query_ok(index)
+
+    test_grpc_delete_all_ok(index)
 
 
 def manual_test_openapi(args):
@@ -64,8 +123,8 @@ def manual_test_openapi(args):
         host=f"https://{args.index_name}-{args.project_name}.svc.{args.pinecone_env}.pinecone.io",
         api_key={'ApiKeyAuth': args.api_key}
     )
-    configuration.verify_ssl = False
-    configuration.proxy = 'http://localhost:8111'
+    # configuration.verify_ssl = False
+    # configuration.proxy = 'http://localhost:8111'
 
     with pinecone.experimental.openapi.ApiClient(configuration) as api_client:
         api_instance = vector_service_api.VectorServiceApi(api_client)
