@@ -74,13 +74,18 @@ def deploy(name: str, dimension: int, wait: bool = True, index_type: str = 'appr
             )
         )
     else:
-        response = api.deploy(db_.to_json())
+        response = api.deploy(db_.to_obj())
 
     # Wait for index to deploy
-    status = api.get_status(name)
-    logger.info("Deployment status: {}".format(status))
+    def get_status():
+        status = api.get_status(name)
+        ready = status.get('ready')
+        return 1 * ready
 
-    return response
+    pbar = ProgressBar(total=1, get_remaining_fn=get_status)
+    if wait:
+        pbar.watch()
+    return response, pbar
 
 
 def stop(db_name: str, wait: bool = True) -> Tuple[dict, ProgressBar]:
