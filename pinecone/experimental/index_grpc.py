@@ -42,7 +42,7 @@ class GRPCClientConfig(NamedTuple):
 
 class Index(VectorServiceStub):
 
-    def __init__(self, name: str, channel=None, batch_size=100, disable_progress_bar=False, grpc_config: GRPCClientConfig = None):
+    def __init__(self, name: str, channel=None, batch_size=100, disable_progress_bar=False, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
         self.name = name
         self.batch_size = batch_size
         self.disable_progress_bar = disable_progress_bar
@@ -52,6 +52,7 @@ class Index(VectorServiceStub):
         self.fixed_metadata = (("api-key", Config.API_KEY),
                                ("service-name", name),
                                ("client-version", CLIENT_VERSION))
+        self._endpoint_override = _endpoint_override
         self._channel = channel or self._gen_channel()
         # self._check_readiness(grpc_config)
         atexit.register(self.close)
@@ -82,10 +83,11 @@ class Index(VectorServiceStub):
         return (REQUEST_ID, _generate_request_id()),
 
     def _endpoint(self):
-        return f"{self.name}-{Config.PROJECT_NAME}.svc.{Config.ENVIRONMENT}.pinecone.io"
+        return self._endpoint_override if self._endpoint_override \
+            else f"{self.name}-{Config.PROJECT_NAME}.svc.{Config.ENVIRONMENT}.pinecone.io:443"
 
     def _gen_channel(self):
-        target = self._endpoint() + ':443'
+        target = self._endpoint()
         options = (
             ("grpc.max_send_message_length", MAX_MSG_SIZE),
             ("grpc.max_receive_message_length", MAX_MSG_SIZE),
@@ -94,10 +96,7 @@ class Index(VectorServiceStub):
             channel = grpc.insecure_channel(target, options=options)
         else:
             tls = grpc.ssl_channel_credentials()
-            channel = grpc.secure_channel(
-                target, tls, options=(("grpc.ssl_target_name_override", self._endpoint()),) + options
-            )
-        # return channel
+            channel = grpc.secure_channel(target, tls, options=options)
         interceptor = RetryOnRpcErrorClientInterceptor(self.retry_config)
         return grpc.intercept_channel(channel, interceptor)
 
