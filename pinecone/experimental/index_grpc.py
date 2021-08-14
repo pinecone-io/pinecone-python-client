@@ -6,6 +6,7 @@ from typing import NamedTuple, Optional, Tuple, Dict
 import grpc
 
 from pinecone.constants import Config, CLIENT_VERSION
+from pinecone.protos.vector_column_service_pb2_grpc import VectorColumnServiceStub
 from pinecone.utils import _generate_request_id
 from pinecone.utils.sentry import sentry_decorator as sentry
 from pinecone.protos.vector_service_pb2_grpc import VectorServiceStub
@@ -43,12 +44,16 @@ class GRPCClientConfig(NamedTuple):
         return cls(**cls_kwargs)
 
 
-class Index:
+class GRPCIndex:
+    """
+    Base class for grpc-based interaction with Pinecone indexes
+    """
 
-    def __init__(self, name: str, channel=None, batch_size=100, disable_progress_bar=False, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
+    def __init__(self, name: str, channel=None, batch_size=100, disable_progress_bar=False,
+                 grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
         self.name = name
-        self.batch_size = batch_size
-        self.disable_progress_bar = disable_progress_bar
+        # self.batch_size = batch_size
+        # self.disable_progress_bar = disable_progress_bar
 
         self.grpc_client_config = grpc_config or GRPCClientConfig()
         self.retry_config = self.grpc_client_config.retry_config or RetryConfig()
@@ -60,51 +65,6 @@ class Index:
         # self._check_readiness(grpc_config)
         # atexit.register(self.close)
         self.stub = VectorServiceStub(self._channel)
-
-    def upsert(self, *args):
-        c = self._wrap_callable(self.stub.Upsert)
-        return c(*args)
-
-    def delete(self, *args):
-        c = self._wrap_callable(self.stub.Delete)
-        return c(*args)
-
-    def fetch(self, *args):
-        c = self._wrap_callable(self.stub.Fetch)
-        return c(*args)
-
-    def query(self, *args):
-        c = self._wrap_callable(self.stub.Query)
-        return c(*args)
-
-    def list(self, *args):
-        c = self._wrap_callable(self.stub.List)
-        return c(*args)
-
-    def list_namespaces(self, *args):
-        c = self._wrap_callable(self.stub.ListNamespaces)
-        return c(*args)
-
-    def summarize(self, *args):
-        c = self._wrap_callable(self.stub.Summarize)
-        return c(*args)
-
-    def _wrap_callable(self, func):
-        @sentry
-        @wraps(func)
-        def wrapped(request,
-                    timeout=None,
-                    metadata=None,
-                    credentials=None,
-                    wait_for_ready=None,
-                    compression=None):
-            _metadata = self.fixed_metadata + self._request_metadata() #+ (metadata or ())
-            return func(request, timeout=timeout, metadata=_metadata, credentials=credentials,
-                        wait_for_ready=wait_for_ready, compression=compression)
-        return wrapped
-
-    def _request_metadata(self) -> Tuple[Tuple[str, str]]:
-        return (REQUEST_ID, _generate_request_id()),
 
     def _endpoint(self):
         return self._endpoint_override if self._endpoint_override \
@@ -159,3 +119,95 @@ class Index:
             self._channel.close()
         except TypeError:
             pass
+
+    def _wrap_grpc_call(self, func):
+        @sentry
+        @wraps(func)
+        def wrapped(request,
+                    timeout=None,
+                    metadata=None,
+                    credentials=None,
+                    wait_for_ready=None,
+                    compression=None):
+            _metadata = self.fixed_metadata + self._request_metadata()  # + (metadata or ())
+            return func(request, timeout=timeout, metadata=_metadata, credentials=credentials,
+                        wait_for_ready=wait_for_ready, compression=compression)
+
+        return wrapped
+
+    def _request_metadata(self) -> Tuple[Tuple[str, str]]:
+        return (REQUEST_ID, _generate_request_id()),
+
+
+class Index(GRPCIndex):
+
+    def __init__(self, name: str, channel=None, batch_size=100, disable_progress_bar=False,
+                 grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
+        super().__init__(name, channel, batch_size, disable_progress_bar, grpc_config, _endpoint_override)
+        self.stub = VectorServiceStub(self.channel)
+
+    def upsert(self, *args):
+        c = self._wrap_grpc_call(self.stub.Upsert)
+        return c(*args)
+
+    def delete(self, *args):
+        c = self._wrap_grpc_call(self.stub.Delete)
+        return c(*args)
+
+    def fetch(self, *args):
+        c = self._wrap_grpc_call(self.stub.Fetch)
+        return c(*args)
+
+    def query(self, *args):
+        c = self._wrap_grpc_call(self.stub.Query)
+        return c(*args)
+
+    def list(self, *args):
+        c = self._wrap_grpc_call(self.stub.List)
+        return c(*args)
+
+    def list_namespaces(self, *args):
+        c = self._wrap_grpc_call(self.stub.ListNamespaces)
+        return c(*args)
+
+    def summarize(self, *args):
+        c = self._wrap_grpc_call(self.stub.Summarize)
+        return c(*args)
+
+
+class CIndex(GRPCIndex):
+
+    def __init__(self, name: str, channel=None, batch_size=100, disable_progress_bar=False,
+                 grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
+        super().__init__(name, channel, batch_size, disable_progress_bar, grpc_config, _endpoint_override)
+        self.stub = VectorColumnServiceStub(self.channel)
+
+    def upsert(self, *args):
+        c = self._wrap_grpc_call(self.stub.Upsert)
+        return c(*args)
+
+    def delete(self, *args):
+        c = self._wrap_grpc_call(self.stub.Delete)
+        return c(*args)
+
+    def fetch(self, *args):
+        c = self._wrap_grpc_call(self.stub.Fetch)
+        return c(*args)
+
+    def query(self, *args):
+        c = self._wrap_grpc_call(self.stub.Query)
+        return c(*args)
+
+    def list(self, *args):
+        c = self._wrap_grpc_call(self.stub.List)
+        return c(*args)
+
+    def list_namespaces(self, *args):
+        c = self._wrap_grpc_call(self.stub.ListNamespaces)
+        return c(*args)
+
+    def summarize(self, *args):
+        c = self._wrap_grpc_call(self.stub.Summarize)
+        return c(*args)
+
+
