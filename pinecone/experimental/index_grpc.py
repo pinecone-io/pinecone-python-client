@@ -49,8 +49,7 @@ class GRPCIndex:
     Base class for grpc-based interaction with Pinecone indexes
     """
 
-    def __init__(self, name: str, channel=None, batch_size=100, disable_progress_bar=False,
-                 grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
+    def __init__(self, name: str, channel=None, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
         self.name = name
         # self.batch_size = batch_size
         # self.disable_progress_bar = disable_progress_bar
@@ -141,9 +140,8 @@ class GRPCIndex:
 
 class Index(GRPCIndex):
 
-    def __init__(self, name: str, channel=None, batch_size=100, disable_progress_bar=False,
-                 grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
-        super().__init__(name, channel, batch_size, disable_progress_bar, grpc_config, _endpoint_override)
+    def __init__(self, name: str, channel=None, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
+        super().__init__(name, channel, grpc_config, _endpoint_override)
         self.stub = VectorServiceStub(self.channel)
 
     def upsert(self, *args):
@@ -177,9 +175,8 @@ class Index(GRPCIndex):
 
 class CIndex(GRPCIndex):
 
-    def __init__(self, name: str, channel=None, batch_size=100, disable_progress_bar=False,
-                 grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
-        super().__init__(name, channel, batch_size, disable_progress_bar, grpc_config, _endpoint_override)
+    def __init__(self, name: str, channel=None, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
+        super().__init__(name, channel, grpc_config, _endpoint_override)
         self.stub = VectorColumnServiceStub(self.channel)
 
     def upsert(self, *args):
