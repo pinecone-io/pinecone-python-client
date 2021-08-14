@@ -1,7 +1,7 @@
 import atexit
 import random
 from functools import wraps
-from typing import NamedTuple, Optional, Tuple
+from typing import NamedTuple, Optional, Tuple, Dict
 
 import grpc
 
@@ -26,13 +26,16 @@ class GRPCClientConfig(NamedTuple):
     :param reuse_channel: Whether to reuse the same grpc channel for multiple requests
     :type reuse_channel: bool, optional
     :param retry_config: RetryConfig indicating how requests should be retried
-    :type reuse_channel: RetryConfig, optional
+    :type retry_config: RetryConfig, optional
+    :param grpc_channel_options: A dict of gRPC channel arguments
+    :type grpc_channel_options: Dict[str, str]
     """
     secure: bool = True
     timeout: int = 20
     conn_timeout: int = 1
     reuse_channel: bool = True
     retry_config: Optional[RetryConfig] = None
+    grpc_channel_options: Dict[str, str] = None
 
     @classmethod
     def _from_dict(cls, kwargs: dict):
@@ -40,7 +43,7 @@ class GRPCClientConfig(NamedTuple):
         return cls(**cls_kwargs)
 
 
-class Index(VectorServiceStub):
+class Index:
 
     def __init__(self, name: str, channel=None, batch_size=100, disable_progress_bar=False, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
         self.name = name
@@ -55,15 +58,36 @@ class Index(VectorServiceStub):
         self._endpoint_override = _endpoint_override
         self._channel = channel or self._gen_channel()
         # self._check_readiness(grpc_config)
-        atexit.register(self.close)
-        super().__init__(self._channel)
-        self.Upsert = self._wrap_callable(self.Upsert)
-        self.Delete = self._wrap_callable(self.Delete)
-        self.Fetch = self._wrap_callable(self.Fetch)
-        self.Query = self._wrap_callable(self.Query)
-        self.List = self._wrap_callable(self.List)
-        self.ListNamespaces = self._wrap_callable(self.ListNamespaces)
-        self.Summarize = self._wrap_callable(self.Summarize)
+        # atexit.register(self.close)
+        self.stub = VectorServiceStub(self._channel)
+
+    def upsert(self, *args):
+        c = self._wrap_callable(self.stub.Upsert)
+        return c(*args)
+
+    def delete(self, *args):
+        c = self._wrap_callable(self.stub.Delete)
+        return c(*args)
+
+    def fetch(self, *args):
+        c = self._wrap_callable(self.stub.Fetch)
+        return c(*args)
+
+    def query(self, *args):
+        c = self._wrap_callable(self.stub.Query)
+        return c(*args)
+
+    def list(self, *args):
+        c = self._wrap_callable(self.stub.List)
+        return c(*args)
+
+    def list_namespaces(self, *args):
+        c = self._wrap_callable(self.stub.ListNamespaces)
+        return c(*args)
+
+    def summarize(self, *args):
+        c = self._wrap_callable(self.stub.Summarize)
+        return c(*args)
 
     def _wrap_callable(self, func):
         @sentry
@@ -86,12 +110,14 @@ class Index(VectorServiceStub):
         return self._endpoint_override if self._endpoint_override \
             else f"{self.name}-{Config.PROJECT_NAME}.svc.{Config.ENVIRONMENT}.pinecone.io:443"
 
-    def _gen_channel(self):
+    def _gen_channel(self, options=None):
         target = self._endpoint()
-        options = (
-            ("grpc.max_send_message_length", MAX_MSG_SIZE),
-            ("grpc.max_receive_message_length", MAX_MSG_SIZE),
-        )
+        default_options = {
+            "grpc.max_send_message_length": MAX_MSG_SIZE,
+            "grpc.max_receive_message_length": MAX_MSG_SIZE
+        }
+        user_provided_options = options or {}
+        options = tuple((k, v) for k, v in {**default_options, **user_provided_options}.items())
         if not self.grpc_client_config.secure:
             channel = grpc.insecure_channel(target, options=options)
         else:
