@@ -14,7 +14,7 @@ class DatabaseAPI(BaseAPI):
         """Returns the names of all of the indexes."""
         return self.get("/databases")
 
-    def get_database(self,db_name: str):
+    def get_database(self, db_name: str):
         """Returns the database spec"""
         return self.get("/databases/{}".format(db_name))["database"]
 
@@ -29,7 +29,7 @@ class DatabaseAPI(BaseAPI):
             logger.error("Failed to stop the index '{}'. It probably wasn't running!".format(db_name))
         return response
 
-    def deploy(self, db_json: str):
+    def deploy(self, db_json: dict):
         """Deploys an index."""
         response = self.post("/databases", json={'database': db_json})
         if response["success"]:
@@ -41,10 +41,11 @@ class DatabaseAPI(BaseAPI):
                 raise RuntimeError("Failed to deploy: {}".format(response["msg"]))
         return response
 
-    def update(self,db_name: str,replicas: int):
+    def update(self, db_name: str, replicas: int):
         """Updates an index"""
-        response = self.patch("/databases/{}".format(db_name), json={'replicas':replicas})
+        response = self.patch("/databases/{}".format(db_name), json={'replicas': replicas})
         if response["success"]:
             logger.success("Succesfully updated {}".format(self.host))
         else:
             raise RuntimeError("Failed to update: {}".format(response["msg"]))
+        return response
