@@ -1,5 +1,6 @@
 import atexit
 import random
+from abc import ABC, abstractmethod
 from functools import wraps
 from typing import NamedTuple, Optional, Tuple, Dict
 
@@ -7,6 +8,7 @@ import grpc
 
 from pinecone.constants import Config, CLIENT_VERSION
 from pinecone.protos.vector_column_service_pb2_grpc import VectorColumnServiceStub
+from pinecone.protos import vector_service_pb2, vector_column_service_pb2
 from pinecone.utils import _generate_request_id
 from pinecone.utils.sentry import sentry_decorator as sentry
 from pinecone.protos.vector_service_pb2_grpc import VectorServiceStub
@@ -44,7 +46,7 @@ class GRPCClientConfig(NamedTuple):
         return cls(**cls_kwargs)
 
 
-class GRPCIndex:
+class GRPCIndex(ABC):
     """
     Base class for grpc-based interaction with Pinecone indexes
     """
@@ -56,14 +58,21 @@ class GRPCIndex:
 
         self.grpc_client_config = grpc_config or GRPCClientConfig()
         self.retry_config = self.grpc_client_config.retry_config or RetryConfig()
-        self.fixed_metadata = (("api-key", Config.API_KEY),
-                               ("service-name", name),
-                               ("client-version", CLIENT_VERSION))
+        self.fixed_metadata = {
+            "api-key": Config.API_KEY,
+            "service-name": name,
+            "client-version": CLIENT_VERSION
+        }
         self._endpoint_override = _endpoint_override
         self._channel = channel or self._gen_channel()
         # self._check_readiness(grpc_config)
         # atexit.register(self.close)
-        self.stub = VectorServiceStub(self._channel)
+        self.stub = self.stub_class(self._channel)
+
+    @property
+    @abstractmethod
+    def stub_class(self):
+        pass
 
     def _endpoint(self):
         return self._endpoint_override if self._endpoint_override \
@@ -119,92 +128,118 @@ class GRPCIndex:
         except TypeError:
             pass
 
-    def _wrap_grpc_call(self, func):
+    def _wrap_grpc_call(self, func, request, timeout=None, metadata=None, credentials=None, wait_for_ready=None, compression=None):
         @sentry
         @wraps(func)
-        def wrapped(request,
-                    timeout=None,
-                    metadata=None,
-                    credentials=None,
-                    wait_for_ready=None,
-                    compression=None):
-            _metadata = self.fixed_metadata + self._request_metadata()  # + (metadata or ())
+        def wrapped():
+            user_provided_metadata = metadata or {}
+            _metadata = tuple((k, v) for k, v in {
+                **self.fixed_metadata, **self._request_metadata(), **user_provided_metadata
+            }.items())
             return func(request, timeout=timeout, metadata=_metadata, credentials=credentials,
                         wait_for_ready=wait_for_ready, compression=compression)
 
-        return wrapped
+        return wrapped()
 
-    def _request_metadata(self) -> Tuple[Tuple[str, str]]:
-        return (REQUEST_ID, _generate_request_id()),
+    def _request_metadata(self) -> Dict[str, str]:
+        return {REQUEST_ID: _generate_request_id()}
 
 
 class Index(GRPCIndex):
 
-    def __init__(self, name: str, channel=None, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
-        super().__init__(name, channel, grpc_config, _endpoint_override)
-        self.stub = VectorServiceStub(self.channel)
+    @property
+    def stub_class(self):
+        return VectorServiceStub
 
-    def upsert(self, *args):
-        c = self._wrap_grpc_call(self.stub.Upsert)
-        return c(*args)
+    def upsert(self,
+               request: 'vector_service_pb2.UpsertRequest',
+               timeout: int = None,
+               metadata: Dict[str, str] = None):
+        return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout, metadata=metadata)
 
-    def delete(self, *args):
-        c = self._wrap_grpc_call(self.stub.Delete)
-        return c(*args)
+    def delete(self,
+               request: 'vector_service_pb2.DeleteRequest',
+               timeout: int = None,
+               metadata: Dict[str, str] = None):
+        return self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout, metadata=metadata)
 
-    def fetch(self, *args):
-        c = self._wrap_grpc_call(self.stub.Fetch)
-        return c(*args)
+    def fetch(self,
+              request: 'vector_service_pb2.FetchRequest',
+              timeout: int = None,
+              metadata: Dict[str, str] = None):
+        return self._wrap_grpc_call(self.stub.Fetch, request, timeout=timeout, metadata=metadata)
 
-    def query(self, *args):
-        c = self._wrap_grpc_call(self.stub.Query)
-        return c(*args)
+    def query(self,
+              request: 'vector_service_pb2.QueryRequest',
+              timeout: int = None,
+              metadata: Dict[str, str] = None):
+        return self._wrap_grpc_call(self.stub.Query, request, timeout=timeout, metadata=metadata)
 
-    def list(self, *args):
-        c = self._wrap_grpc_call(self.stub.List)
-        return c(*args)
+    def list(self,
+             request: 'vector_service_pb2.ListRequest',
+             timeout: int = None,
+             metadata: Dict[str, str] = None):
+        return self._wrap_grpc_call(self.stub.List, request, timeout=timeout, metadata=metadata)
 
-    def list_namespaces(self, *args):
-        c = self._wrap_grpc_call(self.stub.ListNamespaces)
-        return c(*args)
+    def list_namespaces(self,
+                        request: 'vector_service_pb2.ListNamespacesRequest',
+                        timeout: int = None,
+                        metadata: Dict[str, str] = None):
+        return self._wrap_grpc_call(self.stub.ListNamespaces, request, timeout=timeout, metadata=metadata)
 
-    def summarize(self, *args):
-        c = self._wrap_grpc_call(self.stub.Summarize)
-        return c(*args)
+    def summarize(self,
+                  request: 'vector_service_pb2.SummarizeRequest',
+                  timeout: int = None,
+                  metadata: Dict[str, str] = None):
+        return self._wrap_grpc_call(self.stub.Summarize, request, timeout=timeout, metadata=metadata)
 
 
 class CIndex(GRPCIndex):
 
-    def __init__(self, name: str, channel=None, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
-        super().__init__(name, channel, grpc_config, _endpoint_override)
-        self.stub = VectorColumnServiceStub(self.channel)
+    @property
+    def stub_class(self):
+        return VectorColumnServiceStub
 
-    def upsert(self, *args):
-        c = self._wrap_grpc_call(self.stub.Upsert)
-        return c(*args)
+    def upsert(self,
+               request: 'vector_column_service_pb2.UpsertRequest',
+               timeout: int = None,
+               metadata: Dict[str, str] = None):
+        return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout, metadata=metadata)
 
-    def delete(self, *args):
-        c = self._wrap_grpc_call(self.stub.Delete)
-        return c(*args)
+    def delete(self,
+               request: 'vector_column_service_pb2.DeleteRequest',
+               timeout: int = None,
+               metadata: Dict[str, str] = None):
+        return self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout, metadata=metadata)
 
-    def fetch(self, *args):
-        c = self._wrap_grpc_call(self.stub.Fetch)
-        return c(*args)
+    def fetch(self,
+              request: 'vector_column_service_pb2.FetchRequest',
+              timeout: int = None,
+              metadata: Dict[str, str] = None):
+        return self._wrap_grpc_call(self.stub.Fetch, request, timeout=timeout, metadata=metadata)
 
-    def query(self, *args):
-        c = self._wrap_grpc_call(self.stub.Query)
-        return c(*args)
+    def query(self,
+              request: 'vector_column_service_pb2.QueryRequest',
+              timeout: int = None,
+              metadata: Dict[str, str] = None):
+        return self._wrap_grpc_call(self.stub.Query, request, timeout=timeout, metadata=metadata)
 
-    def list(self, *args):
-        c = self._wrap_grpc_call(self.stub.List)
-        return c(*args)
+    def list(self,
+             request: 'vector_column_service_pb2.ListRequest',
+             timeout: int = None,
+             metadata: Dict[str, str] = None):
+        return self._wrap_grpc_call(self.stub.List, request, timeout=timeout, metadata=metadata)
 
-    def list_namespaces(self, *args):
-        c = self._wrap_grpc_call(self.stub.ListNamespaces)
-        return c(*args)
+    def list_namespaces(self,
+                        request: 'vector_column_service_pb2.ListNamespacesRequest',
+                        timeout: int = None,
+                        metadata: Dict[str, str] = None):
+        return self._wrap_grpc_call(self.stub.ListNamespaces, request, timeout=timeout, metadata=metadata)
 
-    def summarize(self, *args):
-        c = self._wrap_grpc_call(self.stub.Summarize)
-        return c(*args)
+    def summarize(self,
+                  request: 'vector_column_service_pb2.SummarizeRequest',
+                  timeout: int = None,
+                  metadata: Dict[str, str] = None):
+        return self._wrap_grpc_call(self.stub.Summarize, request, timeout=timeout, metadata=metadata)
 
 
