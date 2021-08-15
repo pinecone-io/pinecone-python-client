@@ -6,6 +6,7 @@ from typing import NamedTuple, Optional, Tuple, Dict
 
 import grpc
 
+from pinecone import logger
 from pinecone.constants import Config, CLIENT_VERSION
 from pinecone.protos.vector_column_service_pb2_grpc import VectorColumnServiceStub
 from pinecone.protos import vector_service_pb2, vector_column_service_pb2
@@ -84,13 +85,17 @@ class GRPCIndex(ABC):
             "grpc.max_send_message_length": MAX_MSG_SIZE,
             "grpc.max_receive_message_length": MAX_MSG_SIZE
         }
+        if self.grpc_client_config.secure:
+            default_options['grpc.ssl_target_name_override'] = target.split(':')[0]
         user_provided_options = options or {}
-        options = tuple((k, v) for k, v in {**default_options, **user_provided_options}.items())
+        _options = tuple((k, v) for k, v in {**default_options, **user_provided_options}.items())
+        logger.debug('creating new channel with endpoint {} options {} and config {}',
+                     target, _options, self.grpc_client_config)
         if not self.grpc_client_config.secure:
-            channel = grpc.insecure_channel(target, options=options)
+            channel = grpc.insecure_channel(target, options=_options)
         else:
             tls = grpc.ssl_channel_credentials()
-            channel = grpc.secure_channel(target, tls, options=options)
+            channel = grpc.secure_channel(target, tls, options=_options)
         interceptor = RetryOnRpcErrorClientInterceptor(self.retry_config)
         return grpc.intercept_channel(channel, interceptor)
 
