@@ -31,9 +31,6 @@ class ConfigBase(NamedTuple):
     api_key: str = ""
     project_name: str = ""
     controller_host: str = ""
-    hub_host: str = ""
-    hub_registry: str = ""
-    base_image: str = ""
 
 
 class _CONFIG:
@@ -68,9 +65,6 @@ class _CONFIG:
         # Set default config
         default_config = ConfigBase(
             controller_host="https://controller.{0}.pinecone.io".format(config.environment),
-            hub_host="https://hub-api.{0}.pinecone.io".format(config.environment),
-            hub_registry="https://hub.{0}.pinecone.io".format(config.environment),
-            base_image="hub.{0}.pinecone.io/pinecone/base:{1}".format(config.environment, CLIENT_VERSION),
         )
         config = config._replace(**self._preprocess_and_validate_config(default_config._asdict()))
 
@@ -82,9 +76,6 @@ class _CONFIG:
             project_name=os.getenv("PINECONE_PROJECT_NAME"),
             api_key=os.getenv("PINECONE_API_KEY"),
             controller_host=os.getenv("PINECONE_CONTROLLER_HOST"),
-            hub_host=os.getenv("PINECONE_HUB_HOST"),
-            hub_registry=os.getenv("PINECONE_HUB_REGISTRY"),
-            base_image=os.getenv("PINECONE_BASE_IMAGE"),
         )
         config = config._replace(**self._preprocess_and_validate_config(env_config._asdict()))
 
@@ -157,18 +148,6 @@ class _CONFIG:
     @property
     def CONTROLLER_HOST(self):
         return self._config.controller_host
-
-    @property
-    def HUB_HOST(self):
-        return self._config.hub_host
-
-    @property
-    def HUB_REGISTRY(self):
-        return self._config.hub_registry
-
-    @property
-    def BASE_IMAGE(self):
-        return self._config.base_image
 
 
 Config = _CONFIG()
