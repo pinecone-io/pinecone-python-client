@@ -6,7 +6,7 @@ import configparser
 from loguru import logger
 import sys
 from pinecone.utils.sentry import sentry_decorator as sentry
-from .constants import Config
+from .constants import Config, CLIENT_VERSION as __version__
 from .manage import create_index, delete_index, describe_index, list_indexes, IndexDescription, scale_index
 from .index import Index, UpsertResult, DeleteResult, QueryResult, FetchResult, InfoResult
 
@@ -29,8 +29,6 @@ __all__ = [
 logging_level = os.environ.get("PINECONE_LOGGING", default="ERROR")
 logger.remove()
 logger.add(sys.stdout, enqueue=True, level=logging_level)
-
-__version__ = open(os.path.join(os.path.dirname(__file__), "__version__")).read().strip()
 
 
 @sentry
