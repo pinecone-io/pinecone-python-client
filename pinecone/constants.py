@@ -1,25 +1,29 @@
 #
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
-import uuid
 from typing import NamedTuple
 import os
+
+import requests
 import sentry_sdk
 import configparser
+
+from pinecone.api_action import ActionAPI, WhoAmIResponse
 from pinecone.utils import get_version, get_environment
 
 __all__ = ["CLIENT_VERSION", "Config", "PACKAGE_ENVIRONMENT", "SENTRY_DSN_TXT_RECORD"]
 
-PACKAGE_VERSION = get_version()
+CLIENT_VERSION = get_version()
 PACKAGE_ENVIRONMENT = get_environment() or "development"
-CLIENT_VERSION = PACKAGE_VERSION
 SENTRY_DSN_TXT_RECORD = "pinecone-client.sentry.pinecone.io"
 
 
 def _set_sentry_tags(config: dict):
-    sentry_sdk.set_tag("package_version", PACKAGE_VERSION)
+    sentry_sdk.set_tag("package_version", CLIENT_VERSION)
+    sentry_tag_names = ('environment', 'project_name', 'controller_host', 'username', 'user_label')
     for key, val in config.items():
-        sentry_sdk.set_tag(key, val)
+        if key in sentry_tag_names:
+            sentry_sdk.set_tag(key, val)
 
 
 class ConfigBase(NamedTuple):
@@ -27,9 +31,6 @@ class ConfigBase(NamedTuple):
     api_key: str = ""
     project_name: str = ""
     controller_host: str = ""
-    hub_host: str = ""
-    hub_registry: str = ""
-    base_image: str = ""
 
 
 class _CONFIG:
@@ -64,9 +65,6 @@ class _CONFIG:
         # Set default config
         default_config = ConfigBase(
             controller_host="https://controller.{0}.pinecone.io".format(config.environment),
-            hub_host="https://hub-api.{0}.pinecone.io".format(config.environment),
-            hub_registry="https://hub.{0}.pinecone.io".format(config.environment),
-            base_image="hub.{0}.pinecone.io/pinecone/base:{1}".format(config.environment, PACKAGE_VERSION),
         )
         config = config._replace(**self._preprocess_and_validate_config(default_config._asdict()))
 
@@ -78,9 +76,6 @@ class _CONFIG:
             project_name=os.getenv("PINECONE_PROJECT_NAME"),
             api_key=os.getenv("PINECONE_API_KEY"),
             controller_host=os.getenv("PINECONE_CONTROLLER_HOST"),
-            hub_host=os.getenv("PINECONE_HUB_HOST"),
-            hub_registry=os.getenv("PINECONE_HUB_REGISTRY"),
-            base_image=os.getenv("PINECONE_BASE_IMAGE"),
         )
         config = config._replace(**self._preprocess_and_validate_config(env_config._asdict()))
 
@@ -89,8 +84,21 @@ class _CONFIG:
 
         self._config = config
 
+        # load project_name etc. from whoami api
+        action_api = ActionAPI(host=config.controller_host, api_key=config.api_key)
+        try:
+            whoami_response = action_api.whoami()
+        except requests.exceptions.RequestException:
+            # proceed with default values; reset() may be called later w/ correct values
+            whoami_response = WhoAmIResponse()
+
+        if not self._config.project_name:
+            config = config._replace(**self._preprocess_and_validate_config({'project_name': whoami_response.projectname}))
+
+        self._config = config
+
         # Sentry
-        _set_sentry_tags(self._config._asdict())
+        _set_sentry_tags({**whoami_response._asdict(), **self._config._asdict()})
 
     def _preprocess_and_validate_config(self, config: dict) -> dict:
         """Normalize, filter, and validate config keys/values.
@@ -140,18 +148,6 @@ class _CONFIG:
     @property
     def CONTROLLER_HOST(self):
         return self._config.controller_host
-
-    @property
-    def HUB_HOST(self):
-        return self._config.hub_host
-
-    @property
-    def HUB_REGISTRY(self):
-        return self._config.hub_registry
-
-    @property
-    def BASE_IMAGE(self):
-        return self._config.base_image
 
 
 Config = _CONFIG()

@@ -56,7 +56,7 @@ def create(name: str, dimension: int, wait: bool = True, index_type: str = 'appr
     :param kind: resource kind
     """
     if kind == ResourceType.INDEX.value:
-        response = index_deploy(name=name, dimension=dimension, wait=wait, index_type=index_type, metric=metric,
+        response, _ = index_deploy(name=name, dimension=dimension, wait=wait, index_type=index_type, metric=metric,
                                 replicas=replicas, shards=shards, index_config=index_config)
         return response
     logger.warning("Unrecognized resource type '{}'.".format(kind))
