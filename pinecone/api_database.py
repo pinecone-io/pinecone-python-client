@@ -29,7 +29,7 @@ class DatabaseAPI(BaseAPI):
             logger.error("Failed to stop the index '{}'. It probably wasn't running!".format(db_name))
         return response
 
-    def deploy(self, db_json: dict):
+    def deploy(self, db_json: str):
         """Deploys an index."""
         response = self.post("/databases", json={'database': db_json})
         if response["success"]:

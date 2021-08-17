@@ -14,7 +14,26 @@ class DatabaseSpec(Spec):
         self.dimension = dimension
         self.shards = shards
         self.replicas = replicas
-        self.index_config = index_config if index_config else {}
+        self.index_config = self.get_config(index_config, index_type) if index_config else {}
+
+    def get_config(self, index_config: dict, index_type: str):
+        if index_type == 'approximated':
+            kbits = index_config['kbits'] if 'kbits' in index_config else 512
+            hybrid = index_config['hybrid'] if 'hybrid' in index_config else False
+            return {
+                'kbits': kbits, 'hybrid': hybrid
+            }
+        if index_type == 'hnsw':
+            ef_construction = index_config['ef_construction'] if 'ef_construction'  in index_config else 500
+            ef = index_config['ef'] if 'ef' in index_config else 250
+            M = index_config['M'] if 'M' in index_config else 12
+            max_elements = index_config['max_elements'] if 'max_elements' in index_config else 5000000
+            return {
+                'ef_construction': ef_construction,
+                'ef': ef,
+                'M': M,
+                'max_elements': max_elements
+            }
 
     @classmethod
     def from_obj(cls, obj: dict) -> "DatabaseSpec":

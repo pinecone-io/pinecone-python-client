@@ -74,7 +74,7 @@ def deploy(name: str, dimension: int, wait: bool = True, index_type: str = 'appr
             )
         )
     else:
-        response = api.deploy(db_.to_obj())
+        response = api.deploy(db_.to_json())
 
     # Wait for index to deploy
     def get_status():
