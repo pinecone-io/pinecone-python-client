@@ -82,7 +82,6 @@ class PineconeSummarizeResponse(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            'request_id': (str,),  # noqa: E501
             'index_size': (str,),  # noqa: E501
             'dimension': (int,),  # noqa: E501
         }
@@ -93,7 +92,6 @@ class PineconeSummarizeResponse(ModelNormal):
 
 
     attribute_map = {
-        'request_id': 'requestId',  # noqa: E501
         'index_size': 'indexSize',  # noqa: E501
         'dimension': 'dimension',  # noqa: E501
     }
@@ -139,7 +137,6 @@ class PineconeSummarizeResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            request_id (str): [optional]  # noqa: E501
             index_size (str): [optional]  # noqa: E501
             dimension (int): [optional]  # noqa: E501
         """
@@ -223,7 +220,6 @@ class PineconeSummarizeResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            request_id (str): [optional]  # noqa: E501
             index_size (str): [optional]  # noqa: E501
             dimension (int): [optional]  # noqa: E501
         """

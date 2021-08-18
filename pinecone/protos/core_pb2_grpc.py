@@ -6,7 +6,7 @@ import pinecone.protos.core_pb2 as core__pb2
 
 class SnapshotClientStub(object):
     """*
-    Snapshot client
+    The snapshot client.
     """
 
     def __init__(self, channel):
@@ -24,7 +24,7 @@ class SnapshotClientStub(object):
 
 class SnapshotClientServicer(object):
     """*
-    Snapshot client
+    The snapshot client.
     """
 
     def Call(self, request, context):
@@ -50,7 +50,7 @@ def add_SnapshotClientServicer_to_server(servicer, server):
  # This class is part of an EXPERIMENTAL API.
 class SnapshotClient(object):
     """*
-    Snapshot client
+    The snapshot client.
     """
 
     @staticmethod
@@ -73,7 +73,7 @@ class SnapshotClient(object):
 
 class RPCClientStub(object):
     """*
-    core gRPC service.
+    The core `gRPC` service.
     """
 
     def __init__(self, channel):
@@ -96,18 +96,18 @@ class RPCClientStub(object):
 
 class RPCClientServicer(object):
     """*
-    core gRPC service.
+    The core `gRPC` service.
     """
 
     def Call(self, request_iterator, context):
-        """Pass in a Request stream and completed Requests will be returned
+        """If you pass in a request, completed requests will be returned.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def CallUnary(self, request, context):
-        """Pass in a single request, and a completed request will be returned
+        """If you pass in a single request, a completed request will be returned.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -135,7 +135,7 @@ def add_RPCClientServicer_to_server(servicer, server):
  # This class is part of an EXPERIMENTAL API.
 class RPCClient(object):
     """*
-    core gRPC service.
+    The core `gRPC` service.
     """
 
     @staticmethod

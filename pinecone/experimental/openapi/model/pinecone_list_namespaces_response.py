@@ -82,7 +82,6 @@ class PineconeListNamespacesResponse(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            'request_id': (str,),  # noqa: E501
             'namespaces': ([str],),  # noqa: E501
         }
 
@@ -92,7 +91,6 @@ class PineconeListNamespacesResponse(ModelNormal):
 
 
     attribute_map = {
-        'request_id': 'requestId',  # noqa: E501
         'namespaces': 'namespaces',  # noqa: E501
     }
 
@@ -137,7 +135,6 @@ class PineconeListNamespacesResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            request_id (str): [optional]  # noqa: E501
             namespaces ([str]): [optional]  # noqa: E501
         """
 
@@ -220,7 +217,6 @@ class PineconeListNamespacesResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            request_id (str): [optional]  # noqa: E501
             namespaces ([str]): [optional]  # noqa: E501
         """
 

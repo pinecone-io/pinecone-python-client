@@ -43,23 +43,13 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "requestId",
-            "description": "Unique id of the request.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          }
-        ],
         "tags": [
           "VectorService"
         ]
       }
     },
     "/query": {
-      "get": {
+      "post": {
         "summary": "The Query operation queries the database for the nearest stored vectors to one\nor more query vectors and returns their ids and/or values.",
         "operationId": "VectorService_Query",
         "responses": {
@@ -76,52 +66,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "requestId",
-            "description": "Unique id of the request.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          },
-          {
-            "name": "requestDefaultNamespace",
-            "description": "Default namespace to query if no namespace specified in QueryVector (default value \"\").",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "requestDefaultTopK",
-            "description": "Number of results to return for each query.",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int64"
-          },
-          {
-            "name": "requestDefaultFilter",
-            "description": "Default filter to apply if no filter specified in QueryVector (default value \"\").",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "includeData",
-            "description": "Whether to include the vectors in response as well as ids.",
-            "in": "query",
-            "required": false,
-            "type": "boolean"
-          },
-          {
-            "name": "includeMetadata",
-            "description": "Whether to include the metadata in response as well as ids.",
-            "in": "query",
-            "required": false,
-            "type": "boolean"
-          }
-        ],
         "tags": [
           "VectorService"
         ]
@@ -145,16 +89,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "requestId",
-            "description": "Unique id of the request.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          }
-        ],
         "tags": [
           "VectorService"
         ]
@@ -179,14 +113,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "requestId",
-            "description": "Unique id of the request.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          },
           {
             "name": "ids",
             "description": "Vectors to delete.",
@@ -238,14 +164,6 @@
         },
         "parameters": [
           {
-            "name": "requestId",
-            "description": "Unique id of the request.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          },
-          {
             "name": "ids",
             "description": "Vector ids to fetch.",
             "in": "query",
@@ -287,14 +205,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "requestId",
-            "description": "Unique id of the request.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          },
           {
             "name": "namespace",
             "description": "Namespace to list vectors of.",
@@ -397,13 +307,6 @@
     },
     "pineconeDeleteResponse": {
       "type": "object",
-      "properties": {
-        "requestId": {
-          "type": "string",
-          "format": "uint64",
-          "title": "Unique id of the request"
-        }
-      },
       "title": "Response model for the Delete operation"
     },
     "pineconeDenseVector": {
@@ -427,11 +330,6 @@
     "pineconeFetchResponse": {
       "type": "object",
       "properties": {
-        "requestId": {
-          "type": "string",
-          "format": "uint64",
-          "title": "Unique id of the request"
-        },
         "vectors": {
           "type": "array",
           "items": {
@@ -449,11 +347,6 @@
     "pineconeListNamespacesResponse": {
       "type": "object",
       "properties": {
-        "requestId": {
-          "type": "string",
-          "format": "uint64",
-          "title": "Unique id of the request"
-        },
         "namespaces": {
           "type": "array",
           "items": {
@@ -467,11 +360,6 @@
     "pineconeListResponse": {
       "type": "object",
       "properties": {
-        "requestId": {
-          "type": "string",
-          "format": "uint64",
-          "title": "Unique id of the request"
-        },
         "ids": {
           "type": "array",
           "items": {
@@ -487,11 +375,6 @@
     "pineconeQueryResponse": {
       "type": "object",
       "properties": {
-        "requestId": {
-          "type": "string",
-          "format": "uint64",
-          "title": "Unique id of the request"
-        },
         "results": {
           "type": "array",
           "items": {
@@ -527,11 +410,6 @@
     "pineconeSummarizeResponse": {
       "type": "object",
       "properties": {
-        "requestId": {
-          "type": "string",
-          "format": "uint64",
-          "title": "Unique id of the request"
-        },
         "indexSize": {
           "type": "string",
           "format": "uint64",
@@ -547,13 +425,6 @@
     },
     "pineconeUpsertResponse": {
       "type": "object",
-      "properties": {
-        "requestId": {
-          "type": "string",
-          "format": "uint64",
-          "title": "Unique id of the request"
-        }
-      },
       "title": "Response model for the Upsert operation"
     },
     "protobufAny": {

@@ -88,7 +88,6 @@ class PineconeQueryResponse(ModelNormal):
         """
         lazy_import()
         return {
-            'request_id': (str,),  # noqa: E501
             'results': ([QueryResponseSingleQueryResults],),  # noqa: E501
         }
 
@@ -98,7 +97,6 @@ class PineconeQueryResponse(ModelNormal):
 
 
     attribute_map = {
-        'request_id': 'requestId',  # noqa: E501
         'results': 'results',  # noqa: E501
     }
 
@@ -143,7 +141,6 @@ class PineconeQueryResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            request_id (str): [optional]  # noqa: E501
             results ([QueryResponseSingleQueryResults]): [optional]  # noqa: E501
         """
 
@@ -226,7 +223,6 @@ class PineconeQueryResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            request_id (str): [optional]  # noqa: E501
             results ([QueryResponseSingleQueryResults]): [optional]  # noqa: E501
         """
 

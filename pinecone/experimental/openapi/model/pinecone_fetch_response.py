@@ -88,7 +88,6 @@ class PineconeFetchResponse(ModelNormal):
         """
         lazy_import()
         return {
-            'request_id': (str,),  # noqa: E501
             'vectors': ([PineconeDenseVector],),  # noqa: E501
             'namespace': (str,),  # noqa: E501
         }
@@ -99,7 +98,6 @@ class PineconeFetchResponse(ModelNormal):
 
 
     attribute_map = {
-        'request_id': 'requestId',  # noqa: E501
         'vectors': 'vectors',  # noqa: E501
         'namespace': 'namespace',  # noqa: E501
     }
@@ -145,7 +143,6 @@ class PineconeFetchResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            request_id (str): [optional]  # noqa: E501
             vectors ([PineconeDenseVector]): [optional]  # noqa: E501
             namespace (str): [optional]  # noqa: E501
         """
@@ -229,7 +226,6 @@ class PineconeFetchResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            request_id (str): [optional]  # noqa: E501
             vectors ([PineconeDenseVector]): [optional]  # noqa: E501
             namespace (str): [optional]  # noqa: E501
         """
