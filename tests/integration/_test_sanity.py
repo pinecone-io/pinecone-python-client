@@ -9,6 +9,10 @@ from tqdm import trange
 
 import pinecone
 from pinecone.experimental.index_grpc import Index, CIndex
+from pinecone.experimental.openapi.model.pinecone_anonymous_vector import PineconeAnonymousVector
+from pinecone.experimental.openapi.model.pinecone_dense_vector import PineconeDenseVector
+from pinecone.experimental.openapi.model.pinecone_query_request import PineconeQueryRequest
+from pinecone.experimental.openapi.model.pinecone_upsert_request import PineconeUpsertRequest
 from pinecone.grpc import GRPCClient
 from pinecone.protos import vector_service_pb2, vector_column_service_pb2
 from pinecone.utils import dump_numpy, dump_numpy_public, dump_strings_public
@@ -244,12 +248,36 @@ def manual_test_openapi(args):
     with pinecone.experimental.openapi.ApiClient(configuration) as api_client:
         api_instance = vector_service_api.VectorServiceApi(api_client)
         try:
-            api_response = api_instance.vector_service_summarize(
-                request_id='1234', )
+            # upsert
+            api_response = api_instance.vector_service_upsert(
+                PineconeUpsertRequest(
+                    vectors=[
+                        PineconeDenseVector(id='vec1', values=[0.1] * 35, metadata='{}'),
+                        PineconeDenseVector(id='vec2', values=[0.2] * 35, metadata='{}'),
+                    ],
+                    namespace='ns1',
+                )
+            )
             pprint(api_response)
-            api_response = api_instance.vector_service_delete(
-                request_id='1234', ids=['A', 'B'], delete_all=False,
-                namespace='ns1')
+            # summarize
+            api_response = api_instance.vector_service_summarize()
+            pprint(api_response)
+            # query
+            api_response = api_instance.vector_service_query(
+                PineconeQueryRequest(
+                    queries=[
+                        PineconeAnonymousVector(values=[0.1] * 35, metadata='{}'),
+                        PineconeAnonymousVector(id='vec2', values=[0.2] * 35, metadata='{}'),
+                    ],
+                    request_default_namespace='ns1',
+                    request_default_top_k=10,
+                    include_data=True,
+                    include_metadata=True
+                )
+            )
+            pprint(api_response)
+            # delete
+            api_response = api_instance.vector_service_delete(ids=['A', 'B'], delete_all=False, namespace='ns1')
             pprint(api_response)
         except pinecone.experimental.openapi.OpenApiException:
             logging.exception("Exception when calling VectorServiceApi->vector_service_delete")
@@ -295,9 +323,9 @@ def manual_test_misc(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--api-key', default='701868b2-2f96-442e-97fd-4430dafe728d')
-    parser.add_argument('--project-name', default='sharechat')
-    parser.add_argument('--pinecone-env', default='sharechat-production')
+    parser.add_argument('--api-key')
+    parser.add_argument('--project-name')
+    parser.add_argument('--pinecone-env')
     parser.add_argument('--index-name')
     parser.add_argument('--use-existing', action='store_true')
     args = parser.parse_args()
@@ -305,7 +333,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     logging.info('invoked with args: %s', args)
     pinecone.init(project_name=args.project_name, api_key=args.api_key, environment=args.pinecone_env)
-    # logging.info('config: %s', pinecone.Config._config._asdict())
+    logging.info('config: %s', pinecone.Config._config._asdict())
 
     index_name = args.index_name or f'test-index-{random.randint(0, 1000)}'
     if not args.use_existing:
@@ -323,6 +351,7 @@ if __name__ == '__main__':
         logging.info('done sleeping')
 
     try:
+        pass
         manual_test_grpc(index_name)
         # manual_test_grpc_vcs(index_name)
         # manual_test_misc(args)
