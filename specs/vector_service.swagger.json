@@ -66,6 +66,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pineconeQueryRequest"
+            }
+          }
+        ],
         "tags": [
           "VectorService"
         ]
@@ -236,6 +246,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pineconeUpsertRequest"
+            }
+          }
+        ],
         "tags": [
           "VectorService"
         ]
@@ -372,6 +392,40 @@
       },
       "title": "Response module for the List operation"
     },
+    "pineconeQueryRequest": {
+      "type": "object",
+      "properties": {
+        "requestDefaultNamespace": {
+          "type": "string",
+          "title": "Default namespace to query if no namespace specified in QueryVector (default value \"\")"
+        },
+        "requestDefaultTopK": {
+          "type": "integer",
+          "format": "int64",
+          "title": "Number of results to return for each query"
+        },
+        "requestDefaultFilter": {
+          "type": "string",
+          "title": "Default filter to apply if no filter specified in QueryVector (default value \"\")"
+        },
+        "includeData": {
+          "type": "boolean",
+          "title": "Whether to include the vectors in response as well as ids"
+        },
+        "includeMetadata": {
+          "type": "boolean",
+          "title": "Whether to include the metadata in response as well as ids"
+        },
+        "queries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/QueryRequestQueryVector"
+          },
+          "title": "Query vectors"
+        }
+      },
+      "title": "Request model for the Query operation"
+    },
     "pineconeQueryResponse": {
       "type": "object",
       "properties": {
@@ -422,6 +476,23 @@
         }
       },
       "title": "Response model for the Summarize operation"
+    },
+    "pineconeUpsertRequest": {
+      "type": "object",
+      "properties": {
+        "vectors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/pineconeDenseVector"
+          },
+          "title": "The actual array data"
+        },
+        "namespace": {
+          "type": "string",
+          "title": "The namespace name to upsert vectors into"
+        }
+      },
+      "title": "Request model for the Upsert operation"
     },
     "pineconeUpsertResponse": {
       "type": "object",
