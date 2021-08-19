@@ -14,7 +14,7 @@
       "name": "VectorService"
     }
   ],
-  "host": "example-service.beta.svc.pinecone.io",
+  "host": "{index-name}-{project-name}.{environment}.svc.pinecone.io",
   "schemes": [
     "https"
   ],
