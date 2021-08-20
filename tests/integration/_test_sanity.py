@@ -9,9 +9,15 @@ from tqdm import trange
 
 import pinecone
 from pinecone.experimental.index_grpc import Index, CIndex
+from pinecone.experimental.index_openapi import PineconeApiClient
+from pinecone.experimental.openapi.model.pinecone_anonymous_vector import PineconeAnonymousVector
+from pinecone.experimental.openapi.model.pinecone_dense_vector import PineconeDenseVector
+from pinecone.experimental.openapi.model.pinecone_query_request import PineconeQueryRequest
+from pinecone.experimental.openapi.model.pinecone_upsert_request import PineconeUpsertRequest
+from pinecone.experimental.openapi.model.query_request_query_vector import QueryRequestQueryVector
 from pinecone.grpc import GRPCClient
 from pinecone.protos import vector_service_pb2, vector_column_service_pb2
-from pinecone.utils import dump_numpy, dump_numpy_public, dump_strings_public
+from pinecone.utils import dump_numpy_public, dump_strings_public
 
 
 def test_grpc_upsert_ok(index):
@@ -230,29 +236,66 @@ def manual_test_grpc_vcs(index_name):
 def manual_test_openapi(args):
     import pinecone.experimental.openapi
     from pinecone.experimental.openapi.api import vector_service_api
-    # import pinecone.experimental.openapi.exceptions
-    # import pinecone.experimental.openapi.configuration
     from pprint import pprint
 
-    configuration = pinecone.experimental.openapi.Configuration(
-        host=f"https://{args.index_name}-{args.project_name}.svc.{args.pinecone_env}.pinecone.io",
-        api_key={'ApiKeyAuth': args.api_key}
-    )
-    # configuration.verify_ssl = False
-    # configuration.proxy = 'http://localhost:8111'
-
-    with pinecone.experimental.openapi.ApiClient(configuration) as api_client:
+    pinecone.init(api_key=args.api_key, environment=args.pinecone_env)
+    with PineconeApiClient(args.index_name) as api_client:
         api_instance = vector_service_api.VectorServiceApi(api_client)
         try:
-            api_response = api_instance.vector_service_summarize(
-                request_id='1234', )
-            pprint(api_response)
-            api_response = api_instance.vector_service_delete(
-                request_id='1234', ids=['A', 'B'], delete_all=False,
-                namespace='ns1')
+            api_response = api_instance.vector_service_upsert(
+                PineconeUpsertRequest(
+                    vectors=[
+                        PineconeDenseVector(id="vec1", values=[0.1] * 35, metadata="{}"),
+                        PineconeDenseVector(id="vec2", values=[0.2] * 35, metadata="{}"),
+                    ],
+                    namespace="ns1",
+                )
+            )
             pprint(api_response)
         except pinecone.experimental.openapi.OpenApiException:
-            logging.exception("Exception when calling VectorServiceApi->vector_service_delete")
+            logging.exception("got exception")
+
+        try:
+            api_response = api_instance.vector_service_summarize()
+            pprint(api_response)
+        except pinecone.experimental.openapi.OpenApiException:
+            logging.exception("got exception")
+
+        try:
+            api_response = api_instance.vector_service_list_namespaces()
+            pprint(api_response)
+        except pinecone.experimental.openapi.OpenApiException:
+            logging.exception("got exception")
+
+        try:
+            api_response = api_instance.vector_service_list(namespace="example-namespace")
+            pprint(api_response)
+        except pinecone.experimental.openapi.OpenApiException:
+            logging.exception("got exception")
+
+        try:
+            api_response = api_instance.vector_service_query(
+                PineconeQueryRequest(
+                    queries=[
+                        QueryRequestQueryVector(vector=PineconeAnonymousVector(values=[0.1] * 35), filter='{}',
+                                                top_k=5),
+                        QueryRequestQueryVector(vector=PineconeAnonymousVector(values=[0.2] * 35), filter='{}'),
+                    ],
+                    request_default_namespace="example-namespace",
+                    request_default_top_k=10,
+                    include_data=True,
+                    include_metadata=True
+                )
+            )
+            pprint(api_response)
+        except pinecone.experimental.openapi.OpenApiException:
+            logging.exception("got exception")
+
+        try:
+            api_response = api_instance.vector_service_delete(ids=["vec1", "vec2"], namespace="example-namespace")
+            pprint(api_response)
+        except pinecone.experimental.openapi.OpenApiException:
+            logging.exception("got exception")
 
 
 def manual_test_all_legacy():
@@ -295,9 +338,9 @@ def manual_test_misc(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--api-key', default='701868b2-2f96-442e-97fd-4430dafe728d')
-    parser.add_argument('--project-name', default='sharechat')
-    parser.add_argument('--pinecone-env', default='sharechat-production')
+    parser.add_argument('--api-key')
+    parser.add_argument('--project-name')
+    parser.add_argument('--pinecone-env')
     parser.add_argument('--index-name')
     parser.add_argument('--use-existing', action='store_true')
     args = parser.parse_args()
@@ -305,7 +348,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     logging.info('invoked with args: %s', args)
     pinecone.init(project_name=args.project_name, api_key=args.api_key, environment=args.pinecone_env)
-    # logging.info('config: %s', pinecone.Config._config._asdict())
+    logging.info('config: %s', pinecone.Config._config._asdict())
 
     index_name = args.index_name or f'test-index-{random.randint(0, 1000)}'
     if not args.use_existing:
@@ -323,10 +366,11 @@ if __name__ == '__main__':
         logging.info('done sleeping')
 
     try:
-        manual_test_grpc(index_name)
+        pass
+        # manual_test_grpc(index_name)
         # manual_test_grpc_vcs(index_name)
         # manual_test_misc(args)
-        # manual_test_openapi(args)
+        manual_test_openapi(args)
         # manual_test_all_legacy()
     finally:
         if not args.use_existing and False:

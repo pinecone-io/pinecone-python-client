@@ -23,13 +23,13 @@ from pinecone.experimental.openapi.model_utils import (  # noqa: F401
     validate_and_convert_types
 )
 from pinecone.experimental.openapi.model.googlerpc_status import GooglerpcStatus
-from pinecone.experimental.openapi.model.pinecone_delete_response import PineconeDeleteResponse
 from pinecone.experimental.openapi.model.pinecone_fetch_response import PineconeFetchResponse
 from pinecone.experimental.openapi.model.pinecone_list_namespaces_response import PineconeListNamespacesResponse
 from pinecone.experimental.openapi.model.pinecone_list_response import PineconeListResponse
+from pinecone.experimental.openapi.model.pinecone_query_request import PineconeQueryRequest
 from pinecone.experimental.openapi.model.pinecone_query_response import PineconeQueryResponse
 from pinecone.experimental.openapi.model.pinecone_summarize_response import PineconeSummarizeResponse
-from pinecone.experimental.openapi.model.pinecone_upsert_response import PineconeUpsertResponse
+from pinecone.experimental.openapi.model.pinecone_upsert_request import PineconeUpsertRequest
 
 
 class VectorServiceApi(object):
@@ -58,7 +58,6 @@ class VectorServiceApi(object):
 
 
             Keyword Args:
-                request_id (str): Unique id of the request.. [optional]
                 ids ([str]): Vectors to delete.. [optional]
                 delete_all (bool): Indicates that all vectors in the index namespace should be deleted.. [optional]
                 namespace (str): Namespace to delete vectors from applicable.. [optional]
@@ -83,7 +82,7 @@ class VectorServiceApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                PineconeDeleteResponse
+                bool, date, datetime, dict, float, int, list, str, none_type
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -110,7 +109,7 @@ class VectorServiceApi(object):
 
         self.vector_service_delete = _Endpoint(
             settings={
-                'response_type': (PineconeDeleteResponse,),
+                'response_type': (bool, date, datetime, dict, float, int, list, str, none_type,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
@@ -121,7 +120,6 @@ class VectorServiceApi(object):
             },
             params_map={
                 'all': [
-                    'request_id',
                     'ids',
                     'delete_all',
                     'namespace',
@@ -140,8 +138,6 @@ class VectorServiceApi(object):
                 'allowed_values': {
                 },
                 'openapi_types': {
-                    'request_id':
-                        (str,),
                     'ids':
                         ([str],),
                     'delete_all':
@@ -150,13 +146,11 @@ class VectorServiceApi(object):
                         (str,),
                 },
                 'attribute_map': {
-                    'request_id': 'requestId',
                     'ids': 'ids',
                     'delete_all': 'deleteAll',
                     'namespace': 'namespace',
                 },
                 'location_map': {
-                    'request_id': 'query',
                     'ids': 'query',
                     'delete_all': 'query',
                     'namespace': 'query',
@@ -189,7 +183,6 @@ class VectorServiceApi(object):
 
 
             Keyword Args:
-                request_id (str): Unique id of the request.. [optional]
                 ids ([str]): Vector ids to fetch.. [optional]
                 namespace (str): [optional]
                 _return_http_data_only (bool): response data without head status
@@ -251,7 +244,6 @@ class VectorServiceApi(object):
             },
             params_map={
                 'all': [
-                    'request_id',
                     'ids',
                     'namespace',
                 ],
@@ -269,20 +261,16 @@ class VectorServiceApi(object):
                 'allowed_values': {
                 },
                 'openapi_types': {
-                    'request_id':
-                        (str,),
                     'ids':
                         ([str],),
                     'namespace':
                         (str,),
                 },
                 'attribute_map': {
-                    'request_id': 'requestId',
                     'ids': 'ids',
                     'namespace': 'namespace',
                 },
                 'location_map': {
-                    'request_id': 'query',
                     'ids': 'query',
                     'namespace': 'query',
                 },
@@ -314,7 +302,6 @@ class VectorServiceApi(object):
 
 
             Keyword Args:
-                request_id (str): Unique id of the request.. [optional]
                 namespace (str): Namespace to list vectors of.. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
@@ -375,7 +362,6 @@ class VectorServiceApi(object):
             },
             params_map={
                 'all': [
-                    'request_id',
                     'namespace',
                 ],
                 'required': [],
@@ -392,17 +378,13 @@ class VectorServiceApi(object):
                 'allowed_values': {
                 },
                 'openapi_types': {
-                    'request_id':
-                        (str,),
                     'namespace':
                         (str,),
                 },
                 'attribute_map': {
-                    'request_id': 'requestId',
                     'namespace': 'namespace',
                 },
                 'location_map': {
-                    'request_id': 'query',
                     'namespace': 'query',
                 },
                 'collection_format_map': {
@@ -432,7 +414,6 @@ class VectorServiceApi(object):
 
 
             Keyword Args:
-                request_id (str): Unique id of the request.. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -492,7 +473,6 @@ class VectorServiceApi(object):
             },
             params_map={
                 'all': [
-                    'request_id',
                 ],
                 'required': [],
                 'nullable': [
@@ -508,14 +488,10 @@ class VectorServiceApi(object):
                 'allowed_values': {
                 },
                 'openapi_types': {
-                    'request_id':
-                        (str,),
                 },
                 'attribute_map': {
-                    'request_id': 'requestId',
                 },
                 'location_map': {
-                    'request_id': 'query',
                 },
                 'collection_format_map': {
                 }
@@ -532,6 +508,7 @@ class VectorServiceApi(object):
 
         def __vector_service_query(
             self,
+            body,
             **kwargs
         ):
             """The Query operation queries the database for the nearest stored vectors to one or more query vectors and returns their ids and/or values.  # noqa: E501
@@ -539,17 +516,13 @@ class VectorServiceApi(object):
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.vector_service_query(async_req=True)
+            >>> thread = api.vector_service_query(body, async_req=True)
             >>> result = thread.get()
 
+            Args:
+                body (PineconeQueryRequest):
 
             Keyword Args:
-                request_id (str): Unique id of the request.. [optional]
-                request_default_namespace (str): Default namespace to query if no namespace specified in QueryVector (default value \"\").. [optional]
-                request_default_top_k (int): Number of results to return for each query.. [optional]
-                request_default_filter (str): Default filter to apply if no filter specified in QueryVector (default value \"\").. [optional]
-                include_data (bool): Whether to include the vectors in response as well as ids.. [optional]
-                include_metadata (bool): Whether to include the metadata in response as well as ids.. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -594,6 +567,8 @@ class VectorServiceApi(object):
                 '_check_return_type', True
             )
             kwargs['_host_index'] = kwargs.get('_host_index')
+            kwargs['body'] = \
+                body
             return self.call_with_http_info(**kwargs)
 
         self.vector_service_query = _Endpoint(
@@ -604,19 +579,16 @@ class VectorServiceApi(object):
                 ],
                 'endpoint_path': '/query',
                 'operation_id': 'vector_service_query',
-                'http_method': 'GET',
+                'http_method': 'POST',
                 'servers': None,
             },
             params_map={
                 'all': [
-                    'request_id',
-                    'request_default_namespace',
-                    'request_default_top_k',
-                    'request_default_filter',
-                    'include_data',
-                    'include_metadata',
+                    'body',
                 ],
-                'required': [],
+                'required': [
+                    'body',
+                ],
                 'nullable': [
                 ],
                 'enum': [
@@ -630,34 +602,13 @@ class VectorServiceApi(object):
                 'allowed_values': {
                 },
                 'openapi_types': {
-                    'request_id':
-                        (str,),
-                    'request_default_namespace':
-                        (str,),
-                    'request_default_top_k':
-                        (int,),
-                    'request_default_filter':
-                        (str,),
-                    'include_data':
-                        (bool,),
-                    'include_metadata':
-                        (bool,),
+                    'body':
+                        (PineconeQueryRequest,),
                 },
                 'attribute_map': {
-                    'request_id': 'requestId',
-                    'request_default_namespace': 'requestDefaultNamespace',
-                    'request_default_top_k': 'requestDefaultTopK',
-                    'request_default_filter': 'requestDefaultFilter',
-                    'include_data': 'includeData',
-                    'include_metadata': 'includeMetadata',
                 },
                 'location_map': {
-                    'request_id': 'query',
-                    'request_default_namespace': 'query',
-                    'request_default_top_k': 'query',
-                    'request_default_filter': 'query',
-                    'include_data': 'query',
-                    'include_metadata': 'query',
+                    'body': 'body',
                 },
                 'collection_format_map': {
                 }
@@ -666,7 +617,9 @@ class VectorServiceApi(object):
                 'accept': [
                     'application/json'
                 ],
-                'content_type': [],
+                'content_type': [
+                    'application/json'
+                ]
             },
             api_client=api_client,
             callable=__vector_service_query
@@ -686,7 +639,6 @@ class VectorServiceApi(object):
 
 
             Keyword Args:
-                request_id (str): Unique id of the request.. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -746,7 +698,6 @@ class VectorServiceApi(object):
             },
             params_map={
                 'all': [
-                    'request_id',
                 ],
                 'required': [],
                 'nullable': [
@@ -762,14 +713,10 @@ class VectorServiceApi(object):
                 'allowed_values': {
                 },
                 'openapi_types': {
-                    'request_id':
-                        (str,),
                 },
                 'attribute_map': {
-                    'request_id': 'requestId',
                 },
                 'location_map': {
-                    'request_id': 'query',
                 },
                 'collection_format_map': {
                 }
@@ -786,6 +733,7 @@ class VectorServiceApi(object):
 
         def __vector_service_upsert(
             self,
+            body,
             **kwargs
         ):
             """The Upsert operation is for uploading data (vector ids and values) to be indexed. Note: Most users are recommended to submit upserts via the StreamWrites operation instead. If a new value is upserted for an existing vector id, it overwrites the previous value.  # noqa: E501
@@ -793,9 +741,11 @@ class VectorServiceApi(object):
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.vector_service_upsert(async_req=True)
+            >>> thread = api.vector_service_upsert(body, async_req=True)
             >>> result = thread.get()
 
+            Args:
+                body (PineconeUpsertRequest):
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -819,7 +769,7 @@ class VectorServiceApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                PineconeUpsertResponse
+                bool, date, datetime, dict, float, int, list, str, none_type
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -842,11 +792,13 @@ class VectorServiceApi(object):
                 '_check_return_type', True
             )
             kwargs['_host_index'] = kwargs.get('_host_index')
+            kwargs['body'] = \
+                body
             return self.call_with_http_info(**kwargs)
 
         self.vector_service_upsert = _Endpoint(
             settings={
-                'response_type': (PineconeUpsertResponse,),
+                'response_type': (bool, date, datetime, dict, float, int, list, str, none_type,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
@@ -857,8 +809,11 @@ class VectorServiceApi(object):
             },
             params_map={
                 'all': [
+                    'body',
                 ],
-                'required': [],
+                'required': [
+                    'body',
+                ],
                 'nullable': [
                 ],
                 'enum': [
@@ -872,10 +827,13 @@ class VectorServiceApi(object):
                 'allowed_values': {
                 },
                 'openapi_types': {
+                    'body':
+                        (PineconeUpsertRequest,),
                 },
                 'attribute_map': {
                 },
                 'location_map': {
+                    'body': 'body',
                 },
                 'collection_format_map': {
                 }
@@ -884,7 +842,9 @@ class VectorServiceApi(object):
                 'accept': [
                     'application/json'
                 ],
-                'content_type': [],
+                'content_type': [
+                    'application/json'
+                ]
             },
             api_client=api_client,
             callable=__vector_service_upsert

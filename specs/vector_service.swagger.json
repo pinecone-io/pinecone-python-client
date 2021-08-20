@@ -14,7 +14,7 @@
       "name": "VectorService"
     }
   ],
-  "host": "example-service.beta.svc.pinecone.io",
+  "host": "{index-name}-{project-name}.{environment}.svc.pinecone.io",
   "schemes": [
     "https"
   ],
@@ -43,23 +43,13 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "requestId",
-            "description": "Unique id of the request.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          }
-        ],
         "tags": [
           "VectorService"
         ]
       }
     },
     "/query": {
-      "get": {
+      "post": {
         "summary": "The Query operation queries the database for the nearest stored vectors to one\nor more query vectors and returns their ids and/or values.",
         "operationId": "VectorService_Query",
         "responses": {
@@ -78,48 +68,12 @@
         },
         "parameters": [
           {
-            "name": "requestId",
-            "description": "Unique id of the request.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          },
-          {
-            "name": "requestDefaultNamespace",
-            "description": "Default namespace to query if no namespace specified in QueryVector (default value \"\").",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "requestDefaultTopK",
-            "description": "Number of results to return for each query.",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int64"
-          },
-          {
-            "name": "requestDefaultFilter",
-            "description": "Default filter to apply if no filter specified in QueryVector (default value \"\").",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "includeData",
-            "description": "Whether to include the vectors in response as well as ids.",
-            "in": "query",
-            "required": false,
-            "type": "boolean"
-          },
-          {
-            "name": "includeMetadata",
-            "description": "Whether to include the metadata in response as well as ids.",
-            "in": "query",
-            "required": false,
-            "type": "boolean"
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pineconeQueryRequest"
+            }
           }
         ],
         "tags": [
@@ -145,16 +99,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "requestId",
-            "description": "Unique id of the request.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          }
-        ],
         "tags": [
           "VectorService"
         ]
@@ -179,14 +123,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "requestId",
-            "description": "Unique id of the request.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          },
           {
             "name": "ids",
             "description": "Vectors to delete.",
@@ -238,14 +174,6 @@
         },
         "parameters": [
           {
-            "name": "requestId",
-            "description": "Unique id of the request.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          },
-          {
             "name": "ids",
             "description": "Vector ids to fetch.",
             "in": "query",
@@ -288,14 +216,6 @@
         },
         "parameters": [
           {
-            "name": "requestId",
-            "description": "Unique id of the request.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          },
-          {
             "name": "namespace",
             "description": "Namespace to list vectors of.",
             "in": "query",
@@ -326,6 +246,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pineconeUpsertRequest"
+            }
+          }
+        ],
         "tags": [
           "VectorService"
         ]
@@ -397,13 +327,6 @@
     },
     "pineconeDeleteResponse": {
       "type": "object",
-      "properties": {
-        "requestId": {
-          "type": "string",
-          "format": "uint64",
-          "title": "Unique id of the request"
-        }
-      },
       "title": "Response model for the Delete operation"
     },
     "pineconeDenseVector": {
@@ -427,11 +350,6 @@
     "pineconeFetchResponse": {
       "type": "object",
       "properties": {
-        "requestId": {
-          "type": "string",
-          "format": "uint64",
-          "title": "Unique id of the request"
-        },
         "vectors": {
           "type": "array",
           "items": {
@@ -449,11 +367,6 @@
     "pineconeListNamespacesResponse": {
       "type": "object",
       "properties": {
-        "requestId": {
-          "type": "string",
-          "format": "uint64",
-          "title": "Unique id of the request"
-        },
         "namespaces": {
           "type": "array",
           "items": {
@@ -467,11 +380,6 @@
     "pineconeListResponse": {
       "type": "object",
       "properties": {
-        "requestId": {
-          "type": "string",
-          "format": "uint64",
-          "title": "Unique id of the request"
-        },
         "ids": {
           "type": "array",
           "items": {
@@ -484,14 +392,43 @@
       },
       "title": "Response module for the List operation"
     },
+    "pineconeQueryRequest": {
+      "type": "object",
+      "properties": {
+        "requestDefaultNamespace": {
+          "type": "string",
+          "title": "Default namespace to query if no namespace specified in QueryVector (default value \"\")"
+        },
+        "requestDefaultTopK": {
+          "type": "integer",
+          "format": "int64",
+          "title": "Number of results to return for each query"
+        },
+        "requestDefaultFilter": {
+          "type": "string",
+          "title": "Default filter to apply if no filter specified in QueryVector (default value \"\")"
+        },
+        "includeData": {
+          "type": "boolean",
+          "title": "Whether to include the vectors in response as well as ids"
+        },
+        "includeMetadata": {
+          "type": "boolean",
+          "title": "Whether to include the metadata in response as well as ids"
+        },
+        "queries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/QueryRequestQueryVector"
+          },
+          "title": "Query vectors"
+        }
+      },
+      "title": "Request model for the Query operation"
+    },
     "pineconeQueryResponse": {
       "type": "object",
       "properties": {
-        "requestId": {
-          "type": "string",
-          "format": "uint64",
-          "title": "Unique id of the request"
-        },
         "results": {
           "type": "array",
           "items": {
@@ -527,11 +464,6 @@
     "pineconeSummarizeResponse": {
       "type": "object",
       "properties": {
-        "requestId": {
-          "type": "string",
-          "format": "uint64",
-          "title": "Unique id of the request"
-        },
         "indexSize": {
           "type": "string",
           "format": "uint64",
@@ -545,15 +477,25 @@
       },
       "title": "Response model for the Summarize operation"
     },
-    "pineconeUpsertResponse": {
+    "pineconeUpsertRequest": {
       "type": "object",
       "properties": {
-        "requestId": {
+        "vectors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/pineconeDenseVector"
+          },
+          "title": "The actual array data"
+        },
+        "namespace": {
           "type": "string",
-          "format": "uint64",
-          "title": "Unique id of the request"
+          "title": "The namespace name to upsert vectors into"
         }
       },
+      "title": "Request model for the Upsert operation"
+    },
+    "pineconeUpsertResponse": {
+      "type": "object",
       "title": "Response model for the Upsert operation"
     },
     "protobufAny": {

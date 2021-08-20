@@ -113,7 +113,7 @@ conf = pinecone.experimental.openapi.Configuration(
                  ):
         """Constructor
         """
-        self._base_path = "https://example-service.beta.svc.pinecone.io" if host is None else host
+        self._base_path = "https://-..svc.pinecone.io" if host is None else host
         """Default Base url
         """
         self.server_index = 0 if server_index is None and host is None else server_index
@@ -417,7 +417,7 @@ conf = pinecone.experimental.openapi.Configuration(
         """
         return [
             {
-                'url': "https://example-service.beta.svc.pinecone.io",
+                'url': "https://{index-name}-{project-name}.{environment}.svc.pinecone.io",
                 'description': "No description provided",
             }
         ]
