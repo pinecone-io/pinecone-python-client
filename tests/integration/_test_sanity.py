@@ -10,6 +10,7 @@ from tqdm import trange
 import pinecone
 from pinecone.experimental.index_grpc import Index, CIndex
 from pinecone.experimental.index_openapi import PineconeApiClient
+from pinecone.experimental.openapi import Configuration
 from pinecone.experimental.openapi.model.pinecone_anonymous_vector import PineconeAnonymousVector
 from pinecone.experimental.openapi.model.pinecone_dense_vector import PineconeDenseVector
 from pinecone.experimental.openapi.model.pinecone_query_request import PineconeQueryRequest
@@ -236,9 +237,13 @@ def manual_test_grpc_vcs(index_name):
 def manual_test_openapi(args):
     import pinecone.experimental.openapi
     from pinecone.experimental.openapi.api import vector_service_api
-    from pprint import pprint
+
+    # openapi_client_config = Configuration.get_default_copy()
+    # openapi_client_config.verify_ssl = False
+    # openapi_client_config.proxy = "http://localhost:8081"
 
     pinecone.init(api_key=args.api_key, environment=args.pinecone_env)
+    # with PineconeApiClient(args.index_name, openapi_client_config=openapi_client_config) as api_client:
     with PineconeApiClient(args.index_name) as api_client:
         api_instance = vector_service_api.VectorServiceApi(api_client)
         try:
@@ -251,25 +256,25 @@ def manual_test_openapi(args):
                     namespace="ns1",
                 )
             )
-            pprint(api_response)
+            logging.info('got openapi upsert response: %s', api_response)
         except pinecone.experimental.openapi.OpenApiException:
             logging.exception("got exception")
 
         try:
             api_response = api_instance.vector_service_summarize()
-            pprint(api_response)
+            logging.info('got openapi summarize response: %s', api_response)
         except pinecone.experimental.openapi.OpenApiException:
             logging.exception("got exception")
 
         try:
             api_response = api_instance.vector_service_list_namespaces()
-            pprint(api_response)
+            logging.info('got openapi list_namespaces response: %s', api_response)
         except pinecone.experimental.openapi.OpenApiException:
             logging.exception("got exception")
 
         try:
             api_response = api_instance.vector_service_list(namespace="example-namespace")
-            pprint(api_response)
+            logging.info('got openapi list response: %s', api_response)
         except pinecone.experimental.openapi.OpenApiException:
             logging.exception("got exception")
 
@@ -287,13 +292,13 @@ def manual_test_openapi(args):
                     include_metadata=True
                 )
             )
-            pprint(api_response)
+            logging.info('got openapi query response: %s', api_response)
         except pinecone.experimental.openapi.OpenApiException:
             logging.exception("got exception")
 
         try:
             api_response = api_instance.vector_service_delete(ids=["vec1", "vec2"], namespace="example-namespace")
-            pprint(api_response)
+            logging.info('got openapi delete response: %s', api_response)
         except pinecone.experimental.openapi.OpenApiException:
             logging.exception("got exception")
 
@@ -356,9 +361,9 @@ if __name__ == '__main__':
         indexes = pinecone.list_indexes()
         logging.info('current indexes: %s', indexes)
         if index_name in indexes:
-            logging.info('stopping index %s...', index_name)
+            logging.info('stopping index %s ...', index_name)
             pinecone.delete_index(index_name)
-        logging.info('creating index %s...', index_name)
+        logging.info('creating index %s ...', index_name)
         pinecone.create_index(index_name, dimension=35)  #, shards=2)
         logging.info('sleeping while index gets ready...')
         for _ in trange(300):

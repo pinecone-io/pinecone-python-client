@@ -6,16 +6,14 @@ class PineconeApiClient(ApiClient):
 
     def __init__(self, index_name: str, openapi_client_config: Configuration = None, pool_threads=1):
         openapi_client_config = openapi_client_config or Configuration.get_default_copy()
-        # openapi_client_config.host = openapi_client_config.host or \
-        #                              f'https://{index_name}-{Config.PROJECT_NAME}.svc.{Config.ENVIRONMENT}.pinecone.io'
+        # openapi_client_config._base_path = f'https://{index_name}-{Config.PROJECT_NAME}.svc.{Config.ENVIRONMENT}.pinecone.io'
         openapi_client_config.api_key = openapi_client_config.api_key or {}
-        openapi_client_config.api_key['ApiKeyAuth'] = openapi_client_config.api_key['ApiKeyAuth'] or Config.API_KEY
+        openapi_client_config.api_key['ApiKeyAuth'] = openapi_client_config.api_key.get('ApiKeyAuth', Config.API_KEY)
         openapi_client_config.server_variables = openapi_client_config.server_variables or {}
         openapi_client_config.server_variables = {
             **{
                 'environment': Config.ENVIRONMENT,
-                'index-name': index_name,
-                'project-name': Config.PROJECT_NAME
+                'service_prefix': f'{index_name}-{Config.PROJECT_NAME}'
             },
             **openapi_client_config.server_variables
         }
