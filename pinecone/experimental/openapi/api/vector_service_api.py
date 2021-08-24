@@ -22,14 +22,14 @@ from pinecone.experimental.openapi.model_utils import (  # noqa: F401
     none_type,
     validate_and_convert_types
 )
-from pinecone.experimental.openapi.model.pinecone_fetch_response import PineconeFetchResponse
-from pinecone.experimental.openapi.model.pinecone_list_namespaces_response import PineconeListNamespacesResponse
-from pinecone.experimental.openapi.model.pinecone_list_response import PineconeListResponse
-from pinecone.experimental.openapi.model.pinecone_query_request import PineconeQueryRequest
-from pinecone.experimental.openapi.model.pinecone_query_response import PineconeQueryResponse
-from pinecone.experimental.openapi.model.pinecone_summarize_response import PineconeSummarizeResponse
-from pinecone.experimental.openapi.model.pinecone_upsert_request import PineconeUpsertRequest
+from pinecone.experimental.openapi.model.fetch_response import FetchResponse
+from pinecone.experimental.openapi.model.list_namespaces_response import ListNamespacesResponse
+from pinecone.experimental.openapi.model.list_response import ListResponse
+from pinecone.experimental.openapi.model.query_request import QueryRequest
+from pinecone.experimental.openapi.model.query_response import QueryResponse
 from pinecone.experimental.openapi.model.rpc_status import RpcStatus
+from pinecone.experimental.openapi.model.summarize_response import SummarizeResponse
+from pinecone.experimental.openapi.model.upsert_request import UpsertRequest
 
 
 class VectorServiceApi(object):
@@ -206,7 +206,7 @@ class VectorServiceApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                PineconeFetchResponse
+                FetchResponse
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -233,7 +233,7 @@ class VectorServiceApi(object):
 
         self.vector_service_fetch = _Endpoint(
             settings={
-                'response_type': (PineconeFetchResponse,),
+                'response_type': (FetchResponse,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
@@ -324,7 +324,7 @@ class VectorServiceApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                PineconeListResponse
+                ListResponse
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -351,7 +351,7 @@ class VectorServiceApi(object):
 
         self.vector_service_list = _Endpoint(
             settings={
-                'response_type': (PineconeListResponse,),
+                'response_type': (ListResponse,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
@@ -435,7 +435,7 @@ class VectorServiceApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                PineconeListNamespacesResponse
+                ListNamespacesResponse
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -462,7 +462,7 @@ class VectorServiceApi(object):
 
         self.vector_service_list_namespaces = _Endpoint(
             settings={
-                'response_type': (PineconeListNamespacesResponse,),
+                'response_type': (ListNamespacesResponse,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
@@ -508,7 +508,7 @@ class VectorServiceApi(object):
 
         def __vector_service_query(
             self,
-            pinecone_query_request,
+            query_request,
             **kwargs
         ):
             """The `Query` operation queries the index for the nearest stored vectors for one or more query vectors, and returns their ids and/or values.  # noqa: E501
@@ -516,11 +516,11 @@ class VectorServiceApi(object):
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.vector_service_query(pinecone_query_request, async_req=True)
+            >>> thread = api.vector_service_query(query_request, async_req=True)
             >>> result = thread.get()
 
             Args:
-                pinecone_query_request (PineconeQueryRequest):
+                query_request (QueryRequest):
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -544,7 +544,7 @@ class VectorServiceApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                PineconeQueryResponse
+                QueryResponse
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -567,13 +567,13 @@ class VectorServiceApi(object):
                 '_check_return_type', True
             )
             kwargs['_host_index'] = kwargs.get('_host_index')
-            kwargs['pinecone_query_request'] = \
-                pinecone_query_request
+            kwargs['query_request'] = \
+                query_request
             return self.call_with_http_info(**kwargs)
 
         self.vector_service_query = _Endpoint(
             settings={
-                'response_type': (PineconeQueryResponse,),
+                'response_type': (QueryResponse,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
@@ -584,10 +584,10 @@ class VectorServiceApi(object):
             },
             params_map={
                 'all': [
-                    'pinecone_query_request',
+                    'query_request',
                 ],
                 'required': [
-                    'pinecone_query_request',
+                    'query_request',
                 ],
                 'nullable': [
                 ],
@@ -602,13 +602,13 @@ class VectorServiceApi(object):
                 'allowed_values': {
                 },
                 'openapi_types': {
-                    'pinecone_query_request':
-                        (PineconeQueryRequest,),
+                    'query_request':
+                        (QueryRequest,),
                 },
                 'attribute_map': {
                 },
                 'location_map': {
-                    'pinecone_query_request': 'body',
+                    'query_request': 'body',
                 },
                 'collection_format_map': {
                 }
@@ -660,7 +660,7 @@ class VectorServiceApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                PineconeSummarizeResponse
+                SummarizeResponse
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -687,7 +687,7 @@ class VectorServiceApi(object):
 
         self.vector_service_summarize = _Endpoint(
             settings={
-                'response_type': (PineconeSummarizeResponse,),
+                'response_type': (SummarizeResponse,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
@@ -733,7 +733,7 @@ class VectorServiceApi(object):
 
         def __vector_service_upsert(
             self,
-            pinecone_upsert_request,
+            upsert_request,
             **kwargs
         ):
             """Use the `Upsert` operation to upload data (vector ids, values, and metadata) for indexing. If a new value is upserted for an existing vector id, it will overwrite the previous value.  # noqa: E501
@@ -741,11 +741,11 @@ class VectorServiceApi(object):
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.vector_service_upsert(pinecone_upsert_request, async_req=True)
+            >>> thread = api.vector_service_upsert(upsert_request, async_req=True)
             >>> result = thread.get()
 
             Args:
-                pinecone_upsert_request (PineconeUpsertRequest):
+                upsert_request (UpsertRequest):
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -792,8 +792,8 @@ class VectorServiceApi(object):
                 '_check_return_type', True
             )
             kwargs['_host_index'] = kwargs.get('_host_index')
-            kwargs['pinecone_upsert_request'] = \
-                pinecone_upsert_request
+            kwargs['upsert_request'] = \
+                upsert_request
             return self.call_with_http_info(**kwargs)
 
         self.vector_service_upsert = _Endpoint(
@@ -809,10 +809,10 @@ class VectorServiceApi(object):
             },
             params_map={
                 'all': [
-                    'pinecone_upsert_request',
+                    'upsert_request',
                 ],
                 'required': [
-                    'pinecone_upsert_request',
+                    'upsert_request',
                 ],
                 'nullable': [
                 ],
@@ -827,13 +827,13 @@ class VectorServiceApi(object):
                 'allowed_values': {
                 },
                 'openapi_types': {
-                    'pinecone_upsert_request':
-                        (PineconeUpsertRequest,),
+                    'upsert_request':
+                        (UpsertRequest,),
                 },
                 'attribute_map': {
                 },
                 'location_map': {
-                    'pinecone_upsert_request': 'body',
+                    'upsert_request': 'body',
                 },
                 'collection_format_map': {
                 }

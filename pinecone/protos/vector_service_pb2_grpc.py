@@ -16,37 +16,37 @@ class VectorServiceStub(object):
             channel: A grpc.Channel.
         """
         self.Upsert = channel.unary_unary(
-                '/pinecone.VectorService/Upsert',
+                '/VectorService/Upsert',
                 request_serializer=vector__service__pb2.UpsertRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.UpsertResponse.FromString,
                 )
         self.Delete = channel.unary_unary(
-                '/pinecone.VectorService/Delete',
+                '/VectorService/Delete',
                 request_serializer=vector__service__pb2.DeleteRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.DeleteResponse.FromString,
                 )
         self.Fetch = channel.unary_unary(
-                '/pinecone.VectorService/Fetch',
+                '/VectorService/Fetch',
                 request_serializer=vector__service__pb2.FetchRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.FetchResponse.FromString,
                 )
         self.Query = channel.unary_unary(
-                '/pinecone.VectorService/Query',
+                '/VectorService/Query',
                 request_serializer=vector__service__pb2.QueryRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.QueryResponse.FromString,
                 )
         self.List = channel.unary_unary(
-                '/pinecone.VectorService/List',
+                '/VectorService/List',
                 request_serializer=vector__service__pb2.ListRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.ListResponse.FromString,
                 )
         self.ListNamespaces = channel.unary_unary(
-                '/pinecone.VectorService/ListNamespaces',
+                '/VectorService/ListNamespaces',
                 request_serializer=vector__service__pb2.ListNamespacesRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.ListNamespacesResponse.FromString,
                 )
         self.Summarize = channel.unary_unary(
-                '/pinecone.VectorService/Summarize',
+                '/VectorService/Summarize',
                 request_serializer=vector__service__pb2.SummarizeRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.SummarizeResponse.FromString,
                 )
@@ -149,7 +149,7 @@ def add_VectorServiceServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'pinecone.VectorService', rpc_method_handlers)
+            'VectorService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
@@ -170,7 +170,7 @@ class VectorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone.VectorService/Upsert',
+        return grpc.experimental.unary_unary(request, target, '/VectorService/Upsert',
             vector__service__pb2.UpsertRequest.SerializeToString,
             vector__service__pb2.UpsertResponse.FromString,
             options, channel_credentials,
@@ -187,7 +187,7 @@ class VectorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone.VectorService/Delete',
+        return grpc.experimental.unary_unary(request, target, '/VectorService/Delete',
             vector__service__pb2.DeleteRequest.SerializeToString,
             vector__service__pb2.DeleteResponse.FromString,
             options, channel_credentials,
@@ -204,7 +204,7 @@ class VectorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone.VectorService/Fetch',
+        return grpc.experimental.unary_unary(request, target, '/VectorService/Fetch',
             vector__service__pb2.FetchRequest.SerializeToString,
             vector__service__pb2.FetchResponse.FromString,
             options, channel_credentials,
@@ -221,7 +221,7 @@ class VectorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone.VectorService/Query',
+        return grpc.experimental.unary_unary(request, target, '/VectorService/Query',
             vector__service__pb2.QueryRequest.SerializeToString,
             vector__service__pb2.QueryResponse.FromString,
             options, channel_credentials,
@@ -238,7 +238,7 @@ class VectorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone.VectorService/List',
+        return grpc.experimental.unary_unary(request, target, '/VectorService/List',
             vector__service__pb2.ListRequest.SerializeToString,
             vector__service__pb2.ListResponse.FromString,
             options, channel_credentials,
@@ -255,7 +255,7 @@ class VectorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone.VectorService/ListNamespaces',
+        return grpc.experimental.unary_unary(request, target, '/VectorService/ListNamespaces',
             vector__service__pb2.ListNamespacesRequest.SerializeToString,
             vector__service__pb2.ListNamespacesResponse.FromString,
             options, channel_credentials,
@@ -272,7 +272,7 @@ class VectorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone.VectorService/Summarize',
+        return grpc.experimental.unary_unary(request, target, '/VectorService/Summarize',
             vector__service__pb2.SummarizeRequest.SerializeToString,
             vector__service__pb2.SummarizeResponse.FromString,
             options, channel_credentials,
