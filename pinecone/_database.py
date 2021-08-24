@@ -125,6 +125,8 @@ def describe(name: str) -> IndexMeta:
     api = _get_database_api()
     db_json = api.get_database(name)
     db = Database.from_json(db_json) if db_json else None
+    if db and db.index_type=='approximated':
+        db.index_config.pop('deduplication',None)
     return IndexMeta(name=name, index_type=db.index_type, metric=db.metric, replicas=db.replicas,
                      dimension=db.dimension, shards=db.shards, index_config=db.index_config) or {}
 
