@@ -359,13 +359,18 @@
                     },
                     "topK": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "example": {
+                            "top_k": 106
+                        }
                     },
                     "namespace": {
-                        "type": "string"
+                        "type": "string",
+                        "example": "namespace_a"
                     },
                     "filter": {
-                        "type": "string"
+                        "type": "string",
+                        "example": "filter_to_use"
                     }
                 }
             },
@@ -379,7 +384,8 @@
                         }
                     },
                     "namespace": {
-                        "type": "string"
+                        "type": "string",
+                        "example": "namespace_a"
                     }
                 }
             },
@@ -388,6 +394,11 @@
                 "properties": {
                     "values": {
                         "type": "array",
+                        "example": [
+                            1.524,
+                            2.23432,
+                            3.664
+                        ],
                         "items": {
                             "type": "number",
                             "format": "float"
@@ -401,6 +412,15 @@
             },
             "pineconeDenseVector": {
                 "type": "object",
+                "example": {
+                    "id": "id-0",
+                    "values": [
+                        1.22,
+                        2.234,
+                        3.73
+                    ],
+                    "metadata": "{mykey : myvalue}"
+                },
                 "properties": {
                     "id": {
                         "type": "string"
@@ -422,6 +442,26 @@
                 "properties": {
                     "vectors": {
                         "type": "array",
+                        "example": [
+                            {
+                                "id": "id-0",
+                                "values": [
+                                    17.222,
+                                    7.234,
+                                    8.73
+                                ],
+                                "metadata": "{mykey:myvalue}"
+                            },
+                            {
+                                "id": "id-0",
+                                "values": [
+                                    15.222,
+                                    2.234,
+                                    4.73
+                                ],
+                                "metadata": "{mykey:myvalue}"
+                            }
+                        ],
                         "items": {
                             "$ref": "#/components/schemas/pineconeDenseVector"
                         },
@@ -439,6 +479,10 @@
                 "properties": {
                     "namespaces": {
                         "type": "array",
+                        "example": [
+                            "namespace_a",
+                            "namespace_a"
+                        ],
                         "items": {
                             "type": "string"
                         },
@@ -452,12 +496,18 @@
                 "properties": {
                     "ids": {
                         "type": "array",
+                        "example": [
+                            "id-0",
+                            "id-1",
+                            "id-2"
+                        ],
                         "items": {
                             "type": "string"
                         }
                     },
                     "namespace": {
-                        "type": "string"
+                        "type": "string",
+                        "example": "namespace_a"
                     }
                 },
                 "description": "The response module for the list operation."
@@ -467,27 +517,66 @@
                 "properties": {
                     "requestDefaultNamespace": {
                         "type": "string",
+                        "example": "namespace_a",
                         "description": "The default namespace to query if no namespace is specified in `QueryVector`. The default value is `\"\"`."
                     },
                     "requestDefaultTopK": {
                         "type": "integer",
                         "format": "int64",
+                        "example": {
+                            "request_default_top_k": 102
+                        },
                         "description": "The number of results to return for each query."
                     },
                     "requestDefaultFilter": {
                         "type": "string",
+                        "example": "filter_a",
                         "description": "The default filter to apply if no filter is specified in `QueryVector`. The default value is `\"\"`."
                     },
                     "includeData": {
                         "type": "boolean",
+                        "example": {
+                            "include_data": true
+                        },
                         "description": "Indicates whether vectors are included in the response as well as the ids."
                     },
                     "includeMetadata": {
                         "type": "boolean",
+                        "example": {
+                            "include_data": true
+                        },
                         "description": "Indicates whether metadata is included in the response as well as the ids."
                     },
                     "queries": {
                         "type": "array",
+                        "example": {
+                            "queries": [
+                                {
+                                    "vector": {
+                                        "values": [
+                                            1.524,
+                                            2.23432,
+                                            3.664
+                                        ]
+                                    },
+                                    "top_k": 106,
+                                    "namespace": "namespace_a",
+                                    "filter": "filter_to_use"
+                                },
+                                {
+                                    "vector": {
+                                        "values": [
+                                            2.4,
+                                            3.22,
+                                            7.664
+                                        ]
+                                    },
+                                    "top_k": 90,
+                                    "namespace": "namespace_a",
+                                    "filter": "another_filter_to_use"
+                                }
+                            ]
+                        },
                         "items": {
                             "$ref": "#/components/schemas/QueryRequestQueryVector"
                         },
@@ -511,6 +600,16 @@
             },
             "pineconeScoredVector": {
                 "type": "object",
+                "example": {
+                    "id": "id-0",
+                    "score": 5.4,
+                    "values": [
+                        1.22,
+                        2.234,
+                        3.73
+                    ],
+                    "metadata": "{mykey : myvalue}"
+                },
                 "properties": {
                     "id": {
                         "type": "string"
@@ -536,12 +635,18 @@
                 "properties": {
                     "indexSize": {
                         "type": "integer",
-                        "format": "uint64",
+                        "format": "int64",
+                        "example": {
+                            "index_size": 106
+                        },
                         "description": "The size of a stateful function `Index`."
                     },
                     "dimension": {
                         "type": "integer",
                         "format": "int64",
+                        "example": {
+                            "dimension": 2
+                        },
                         "description": "The dimension of the indexed vectors."
                     }
                 },
@@ -552,6 +657,17 @@
                 "properties": {
                     "vectors": {
                         "type": "array",
+                        "example": [
+                            {
+                                "id": "id-0",
+                                "values": [
+                                    1.22,
+                                    2.234,
+                                    3.73
+                                ],
+                                "metadata": "{mykey : myvalue}"
+                            }
+                        ],
                         "items": {
                             "$ref": "#/components/schemas/pineconeDenseVector"
                         },
