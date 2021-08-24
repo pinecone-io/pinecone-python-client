@@ -20,8 +20,9 @@ class DatabaseSpec(Spec):
         if index_type == 'approximated':
             kbits = index_config['kbits'] if 'kbits' in index_config else 512
             hybrid = index_config['hybrid'] if 'hybrid' in index_config else False
+            deduplication = index_config['deduplication'] if 'deduplication' in index_config else False
             return {
-                'kbits': kbits, 'hybrid': hybrid
+                'kbits': kbits, 'hybrid': hybrid, 'deduplication': deduplication
             }
         if index_type == 'hnsw':
             ef_construction = index_config['ef_construction'] if 'ef_construction'  in index_config else 500
