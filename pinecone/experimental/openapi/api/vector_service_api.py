@@ -48,7 +48,7 @@ class VectorServiceApi(object):
             self,
             **kwargs
         ):
-            """The Delete operation deletes a vector by id.  # noqa: E501
+            """The `Delete` operation deletes one or more vectors by id from a single namespace.  # noqa: E501
 
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
@@ -59,8 +59,8 @@ class VectorServiceApi(object):
 
             Keyword Args:
                 ids ([str]): Vectors to delete.. [optional]
-                delete_all (bool): Indicates that all vectors in the index namespace should be deleted.. [optional]
-                namespace (str): Namespace to delete vectors from applicable.. [optional]
+                delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional]
+                namespace (str): The namespace to delete vectors from, if applicable.. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -173,7 +173,7 @@ class VectorServiceApi(object):
             self,
             **kwargs
         ):
-            """The FetchVectors operation returns a vector value by id.  # noqa: E501
+            """The `FetchVectors` operation returns vectors by id. The returned vectors include vector data and/or metadata.  # noqa: E501
 
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
@@ -183,7 +183,7 @@ class VectorServiceApi(object):
 
 
             Keyword Args:
-                ids ([str]): Vector ids to fetch.. [optional]
+                ids ([str]): The vector ids to fetch.. [optional]
                 namespace (str): [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
@@ -292,7 +292,7 @@ class VectorServiceApi(object):
             self,
             **kwargs
         ):
-            """The List operation returns the vector IDs in this database.  # noqa: E501
+            """The `List` operation returns the vector ids in a single namespace.  # noqa: E501
 
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
@@ -302,7 +302,7 @@ class VectorServiceApi(object):
 
 
             Keyword Args:
-                namespace (str): Namespace to list vectors of.. [optional]
+                namespace (str): The namespace whose vectors will be returned.. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -404,7 +404,7 @@ class VectorServiceApi(object):
             self,
             **kwargs
         ):
-            """The ListNamespaces operation returns the namespaces for which data exists in this database.  # noqa: E501
+            """The `ListNamespaces` operation returns the namespaces with existing data in this index.  # noqa: E501
 
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
@@ -511,7 +511,7 @@ class VectorServiceApi(object):
             pinecone_query_request,
             **kwargs
         ):
-            """The Query operation queries the database for the nearest stored vectors to one or more query vectors and returns their ids and/or values.  # noqa: E501
+            """The `Query` operation queries the index for the nearest stored vectors for one or more query vectors, and returns their ids and/or values.  # noqa: E501
 
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
@@ -629,7 +629,7 @@ class VectorServiceApi(object):
             self,
             **kwargs
         ):
-            """The Summarize operation returns summary statistics about the database contents.  # noqa: E501
+            """The `Summarize` operation returns summary statistics about the index contents.  # noqa: E501
 
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
@@ -736,7 +736,7 @@ class VectorServiceApi(object):
             pinecone_upsert_request,
             **kwargs
         ):
-            """The Upsert operation is for uploading data (vector ids and values) to be indexed. Note: Most users are recommended to submit upserts via the StreamWrites operation instead. If a new value is upserted for an existing vector id, it overwrites the previous value.  # noqa: E501
+            """Use the `Upsert` operation to upload data (vector ids, values, and metadata) for indexing. If a new value is upserted for an existing vector id, it will overwrite the previous value.  # noqa: E501
 
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True

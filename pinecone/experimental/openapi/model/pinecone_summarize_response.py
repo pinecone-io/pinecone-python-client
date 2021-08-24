@@ -82,7 +82,7 @@ class PineconeSummarizeResponse(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            'index_size': (str,),  # noqa: E501
+            'index_size': (int,),  # noqa: E501
             'dimension': (int,),  # noqa: E501
         }
 
@@ -137,8 +137,8 @@ class PineconeSummarizeResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            index_size (str): [optional]  # noqa: E501
-            dimension (int): [optional]  # noqa: E501
+            index_size (int): The size of a stateful function `Index`.. [optional]  # noqa: E501
+            dimension (int): The dimension of the indexed vectors.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -220,8 +220,8 @@ class PineconeSummarizeResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            index_size (str): [optional]  # noqa: E501
-            dimension (int): [optional]  # noqa: E501
+            index_size (int): The size of a stateful function `Index`.. [optional]  # noqa: E501
+            dimension (int): The dimension of the indexed vectors.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)

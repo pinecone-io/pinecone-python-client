@@ -141,7 +141,7 @@ class PineconeQueryResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            results ([QueryResponseSingleQueryResults]): [optional]  # noqa: E501
+            results ([QueryResponseSingleQueryResults]): The results of each query. The order is the same as `QueryRequest.queries`.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -223,7 +223,7 @@ class PineconeQueryResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            results ([QueryResponseSingleQueryResults]): [optional]  # noqa: E501
+            results ([QueryResponseSingleQueryResults]): The results of each query. The order is the same as `QueryRequest.queries`.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)

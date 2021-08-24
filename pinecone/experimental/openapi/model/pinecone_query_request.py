@@ -151,12 +151,12 @@ class PineconeQueryRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            request_default_namespace (str): [optional]  # noqa: E501
-            request_default_top_k (int): [optional]  # noqa: E501
-            request_default_filter (str): [optional]  # noqa: E501
-            include_data (bool): [optional]  # noqa: E501
-            include_metadata (bool): [optional]  # noqa: E501
-            queries ([QueryRequestQueryVector]): [optional]  # noqa: E501
+            request_default_namespace (str): The default namespace to query if no namespace is specified in `QueryVector`. The default value is `\"\"`.. [optional]  # noqa: E501
+            request_default_top_k (int): The number of results to return for each query.. [optional]  # noqa: E501
+            request_default_filter (str): The default filter to apply if no filter is specified in `QueryVector`. The default value is `\"\"`.. [optional]  # noqa: E501
+            include_data (bool): Indicates whether vectors are included in the response as well as the ids.. [optional]  # noqa: E501
+            include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional]  # noqa: E501
+            queries ([QueryRequestQueryVector]): The query vectors.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -238,12 +238,12 @@ class PineconeQueryRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            request_default_namespace (str): [optional]  # noqa: E501
-            request_default_top_k (int): [optional]  # noqa: E501
-            request_default_filter (str): [optional]  # noqa: E501
-            include_data (bool): [optional]  # noqa: E501
-            include_metadata (bool): [optional]  # noqa: E501
-            queries ([QueryRequestQueryVector]): [optional]  # noqa: E501
+            request_default_namespace (str): The default namespace to query if no namespace is specified in `QueryVector`. The default value is `\"\"`.. [optional]  # noqa: E501
+            request_default_top_k (int): The number of results to return for each query.. [optional]  # noqa: E501
+            request_default_filter (str): The default filter to apply if no filter is specified in `QueryVector`. The default value is `\"\"`.. [optional]  # noqa: E501
+            include_data (bool): Indicates whether vectors are included in the response as well as the ids.. [optional]  # noqa: E501
+            include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional]  # noqa: E501
+            queries ([QueryRequestQueryVector]): The query vectors.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)

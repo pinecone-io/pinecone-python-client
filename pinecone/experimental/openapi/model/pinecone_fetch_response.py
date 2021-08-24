@@ -143,8 +143,8 @@ class PineconeFetchResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            vectors ([PineconeDenseVector]): [optional]  # noqa: E501
-            namespace (str): [optional]  # noqa: E501
+            vectors ([PineconeDenseVector]): The fetched vectors. These follow the same order as `FetchRequest.ids`.. [optional]  # noqa: E501
+            namespace (str): The namespace of the vectors.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -226,8 +226,8 @@ class PineconeFetchResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            vectors ([PineconeDenseVector]): [optional]  # noqa: E501
-            namespace (str): [optional]  # noqa: E501
+            vectors ([PineconeDenseVector]): The fetched vectors. These follow the same order as `FetchRequest.ids`.. [optional]  # noqa: E501
+            namespace (str): The namespace of the vectors.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
