@@ -2,34 +2,42 @@
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
 import os
-import configparser
 from loguru import logger
 import sys
-from pinecone.utils.sentry import sentry_decorator as sentry
+from .utils.sentry import sentry_decorator as sentry
 from .constants import Config, CLIENT_VERSION as __version__
 from .manage import create_index, delete_index, describe_index, list_indexes, IndexDescription, scale_index
-from .index import Index, UpsertResult, DeleteResult, QueryResult, FetchResult, InfoResult
+from .index import Index
+from .experimental.openapi.models import FetchResponse, ListNamespacesResponse, ListResponse, ProtobufAny, \
+    QueryRequest, QueryResponse, QueryVector, RpcStatus, ScoredVector, SingleQueryResults, SummarizeResponse, \
+    UpsertRequest, Vector
+from .experimental.openapi.exceptions import OpenApiException, ApiAttributeError, ApiTypeError, ApiValueError, \
+    ApiKeyError, ApiException
 
 __all__ = [
     "init",
-    "create_index",
-    "delete_index",
-    "describe_index",
-    "list_indexes",
-    "scale_index",
-    "IndexDescription",
+    # Control plane names
+    "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "IndexDescription",
+    # Data plane
     "Index",
-    "UpsertResult",
-    "DeleteResult",
-    "QueryResult",
-    "FetchResult",
-    "InfoResult",
+    # Data plane OpenAPI models
+    "FetchResponse", "ListNamespacesResponse", "ListResponse", "ProtobufAny", "QueryRequest", "QueryResponse",
+    "QueryVector", "RpcStatus", "ScoredVector", "SingleQueryResults", "SummarizeResponse", "UpsertRequest", "Vector",
+    # Data plane OpenAPI exceptions
+    "OpenApiException", "ApiAttributeError", "ApiTypeError", "ApiValueError", "ApiKeyError", "ApiException",
+    # Kept for backwards-compatibility
+    "UpsertResult", "DeleteResult", "QueryResult", "FetchResult", "InfoResult",
 ]
 
 logging_level = os.environ.get("PINECONE_LOGGING", default="ERROR")
 logger.remove()
 logger.add(sys.stdout, enqueue=True, level=logging_level)
 
+UpsertResult = None
+DeleteResult = None
+QueryResult = None
+FetchResult = None
+InfoResult = None
 
 @sentry
 def init(project_name: str = None, api_key: str = None, host: str = None, environment: str = None, config: str = "~/.pinecone", **kwargs):
