@@ -29,9 +29,8 @@ __all__ = [
     "UpsertResult", "DeleteResult", "QueryResult", "FetchResult", "InfoResult",
 ]
 
-logging_level = os.environ.get("PINECONE_LOGGING", default="ERROR")
 logger.remove()
-logger.add(sys.stdout, enqueue=True, level=logging_level)
+logger.add(sys.stdout, enqueue=True, level=(os.getenv("PINECONE_LOGGING") or "ERROR"))
 
 UpsertResult = None
 DeleteResult = None
