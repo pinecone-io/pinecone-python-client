@@ -1,6 +1,7 @@
 from pinecone import Config
 from pinecone.experimental.openapi import ApiClient, Configuration
 from pinecone.utils.sentry import sentry_decorator as sentry
+from .experimental.openapi.models import QueryRequest, UpsertRequest
 
 __all__ = [
     "Index",
@@ -28,7 +29,7 @@ class Index(ApiClient):
 
     @sentry
     def upsert(self, *args, **kwargs):
-        return self._vector_api.vector_service_upsert(*args, **kwargs)
+        return self._vector_api.vector_service_upsert(UpsertRequest(*args, **kwargs))
 
     @sentry
     def delete(self, *args, **kwargs):
@@ -40,7 +41,7 @@ class Index(ApiClient):
 
     @sentry
     def query(self, *args, **kwargs):
-        return self._vector_api.vector_service_query(*args, **kwargs)
+        return self._vector_api.vector_service_query(QueryRequest(*args, **kwargs))
 
     @sentry
     def list(self, *args, **kwargs):
