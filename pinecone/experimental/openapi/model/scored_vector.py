@@ -85,7 +85,7 @@ class ScoredVector(ModelNormal):
             'id': (str,),  # noqa: E501
             'score': (float,),  # noqa: E501
             'values': ([float],),  # noqa: E501
-            'metadata': (str,),  # noqa: E501
+            'metadata': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
         }
 
     @cached_property
@@ -144,7 +144,7 @@ class ScoredVector(ModelNormal):
             id (str): [optional]  # noqa: E501
             score (float): [optional]  # noqa: E501
             values ([float]): [optional]  # noqa: E501
-            metadata (str): [optional]  # noqa: E501
+            metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -229,7 +229,7 @@ class ScoredVector(ModelNormal):
             id (str): [optional]  # noqa: E501
             score (float): [optional]  # noqa: E501
             values ([float]): [optional]  # noqa: E501
-            metadata (str): [optional]  # noqa: E501
+            metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)

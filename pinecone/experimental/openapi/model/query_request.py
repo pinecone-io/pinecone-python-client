@@ -88,9 +88,9 @@ class QueryRequest(ModelNormal):
         """
         lazy_import()
         return {
-            'request_default_namespace': (str,),  # noqa: E501
-            'request_default_top_k': (int,),  # noqa: E501
-            'request_default_filter': (str,),  # noqa: E501
+            'namespace': (str,),  # noqa: E501
+            'top_k': (int,),  # noqa: E501
+            'filter': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
             'include_data': (bool,),  # noqa: E501
             'include_metadata': (bool,),  # noqa: E501
             'queries': ([QueryVector],),  # noqa: E501
@@ -102,9 +102,9 @@ class QueryRequest(ModelNormal):
 
 
     attribute_map = {
-        'request_default_namespace': 'requestDefaultNamespace',  # noqa: E501
-        'request_default_top_k': 'requestDefaultTopK',  # noqa: E501
-        'request_default_filter': 'requestDefaultFilter',  # noqa: E501
+        'namespace': 'namespace',  # noqa: E501
+        'top_k': 'topK',  # noqa: E501
+        'filter': 'filter',  # noqa: E501
         'include_data': 'includeData',  # noqa: E501
         'include_metadata': 'includeMetadata',  # noqa: E501
         'queries': 'queries',  # noqa: E501
@@ -151,9 +151,9 @@ class QueryRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            request_default_namespace (str): The default namespace to query if no namespace is specified in `QueryVector`. The default value is `\"\"`.. [optional]  # noqa: E501
-            request_default_top_k (int): The default number of results to return for each query.. [optional]  # noqa: E501
-            request_default_filter (str): The default filter to apply if no filter is specified in `QueryVector`. The default value is `\"\"`.. [optional]  # noqa: E501
+            namespace (str): The default namespace to query if no namespace is specified in `QueryVector`. The default value is `\"\"`.. [optional]  # noqa: E501
+            top_k (int): The default number of results to return for each query.. [optional]  # noqa: E501
+            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): The default filter to apply if no filter is specified in `QueryVector`. The default value is empty ({}).. [optional]  # noqa: E501
             include_data (bool): Indicates whether vectors are included in the response as well as the ids.. [optional]  # noqa: E501
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional]  # noqa: E501
             queries ([QueryVector]): The query vectors.. [optional]  # noqa: E501
@@ -238,9 +238,9 @@ class QueryRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            request_default_namespace (str): The default namespace to query if no namespace is specified in `QueryVector`. The default value is `\"\"`.. [optional]  # noqa: E501
-            request_default_top_k (int): The default number of results to return for each query.. [optional]  # noqa: E501
-            request_default_filter (str): The default filter to apply if no filter is specified in `QueryVector`. The default value is `\"\"`.. [optional]  # noqa: E501
+            namespace (str): The default namespace to query if no namespace is specified in `QueryVector`. The default value is `\"\"`.. [optional]  # noqa: E501
+            top_k (int): The default number of results to return for each query.. [optional]  # noqa: E501
+            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): The default filter to apply if no filter is specified in `QueryVector`. The default value is empty ({}).. [optional]  # noqa: E501
             include_data (bool): Indicates whether vectors are included in the response as well as the ids.. [optional]  # noqa: E501
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional]  # noqa: E501
             queries ([QueryVector]): The query vectors.. [optional]  # noqa: E501

@@ -13,6 +13,7 @@ from pinecone.experimental.openapi.model.fetch_response import FetchResponse
 from pinecone.experimental.openapi.model.list_namespaces_response import ListNamespacesResponse
 from pinecone.experimental.openapi.model.list_response import ListResponse
 from pinecone.experimental.openapi.model.protobuf_any import ProtobufAny
+from pinecone.experimental.openapi.model.protobuf_null_value import ProtobufNullValue
 from pinecone.experimental.openapi.model.query_request import QueryRequest
 from pinecone.experimental.openapi.model.query_response import QueryResponse
 from pinecone.experimental.openapi.model.query_vector import QueryVector

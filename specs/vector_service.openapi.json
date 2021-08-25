@@ -433,23 +433,23 @@
             "QueryRequest": {
                 "type": "object",
                 "properties": {
-                    "requestDefaultNamespace": {
+                    "namespace": {
                         "type": "string",
                         "example": "namespace_a",
                         "description": "The default namespace to query if no namespace is specified in `QueryVector`. The default value is `\"\"`."
                     },
-                    "requestDefaultTopK": {
+                    "topK": {
                         "type": "integer",
                         "format": "int64",
                         "example": {
-                            "request_default_top_k": 102
+                            "top_k": 102
                         },
                         "description": "The default number of results to return for each query."
                     },
-                    "requestDefaultFilter": {
-                        "type": "string",
+                    "filter": {
+                        "type": "object",
                         "example": "filter_a",
-                        "description": "The default filter to apply if no filter is specified in `QueryVector`. The default value is `\"\"`."
+                        "description": "The default filter to apply if no filter is specified in `QueryVector`. The default value is empty ({})."
                     },
                     "includeData": {
                         "type": "boolean",
@@ -545,7 +545,7 @@
                         "description": "The namespace to search."
                     },
                     "filter": {
-                        "type": "string",
+                        "type": "object",
                         "example": "filter_to_use",
                         "description": "The metadata filter to apply."
                     }
@@ -580,7 +580,7 @@
                         }
                     },
                     "metadata": {
-                        "type": "string"
+                        "type": "object"
                     }
                 }
             },
@@ -677,7 +677,7 @@
                         }
                     },
                     "metadata": {
-                        "type": "string"
+                        "type": "object"
                     }
                 }
             },
@@ -692,6 +692,14 @@
                         "format": "byte"
                     }
                 }
+            },
+            "protobufNullValue": {
+                "type": "string",
+                "enum": [
+                    "NULL_VALUE"
+                ],
+                "default": "NULL_VALUE",
+                "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\n The JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
             },
             "rpcStatus": {
                 "type": "object",
