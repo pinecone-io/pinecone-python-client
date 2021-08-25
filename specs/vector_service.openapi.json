@@ -25,7 +25,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/pineconeListNamespacesResponse"
+                                    "$ref": "#/components/schemas/ListNamespacesResponse"
                                 }
                             }
                         }
@@ -56,7 +56,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/pineconeQueryResponse"
+                                    "$ref": "#/components/schemas/QueryResponse"
                                 }
                             }
                         }
@@ -76,7 +76,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/pineconeQueryRequest"
+                                "$ref": "#/components/schemas/QueryRequest"
                             }
                         }
                     },
@@ -97,7 +97,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/pineconeSummarizeResponse"
+                                    "$ref": "#/components/schemas/SummarizeResponse"
                                 }
                             }
                         }
@@ -128,7 +128,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/pineconeDeleteResponse"
+                                    "$ref": "#/components/schemas/DeleteResponse"
                                 }
                             }
                         }
@@ -192,7 +192,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/pineconeFetchResponse"
+                                    "$ref": "#/components/schemas/FetchResponse"
                                 }
                             }
                         }
@@ -246,7 +246,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/pineconeListResponse"
+                                    "$ref": "#/components/schemas/ListResponse"
                                 }
                             }
                         }
@@ -288,7 +288,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/pineconeUpsertResponse"
+                                    "$ref": "#/components/schemas/UpsertResponse"
                                 }
                             }
                         }
@@ -308,7 +308,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/pineconeUpsertRequest"
+                                "$ref": "#/components/schemas/UpsertRequest"
                             }
                         }
                     },
@@ -351,93 +351,11 @@
             }
         },
         "schemas": {
-            "QueryRequestQueryVector": {
-                "type": "object",
-                "properties": {
-                    "vector": {
-                        "$ref": "#/components/schemas/pineconeAnonymousVector"
-                    },
-                    "topK": {
-                        "type": "integer",
-                        "format": "int64",
-                        "example": {
-                            "top_k": 106
-                        }
-                    },
-                    "namespace": {
-                        "type": "string",
-                        "example": "namespace_a"
-                    },
-                    "filter": {
-                        "type": "string",
-                        "example": "filter_to_use"
-                    }
-                }
-            },
-            "QueryResponseSingleQueryResults": {
-                "type": "object",
-                "properties": {
-                    "matches": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/pineconeScoredVector"
-                        }
-                    },
-                    "namespace": {
-                        "type": "string",
-                        "example": "namespace_a"
-                    }
-                }
-            },
-            "pineconeAnonymousVector": {
-                "type": "object",
-                "properties": {
-                    "values": {
-                        "type": "array",
-                        "example": [
-                            1.524,
-                            2.23432,
-                            3.664
-                        ],
-                        "items": {
-                            "type": "number",
-                            "format": "float"
-                        }
-                    }
-                }
-            },
-            "pineconeDeleteResponse": {
+            "DeleteResponse": {
                 "type": "object",
                 "description": "The response for the `Delete` operation."
             },
-            "pineconeDenseVector": {
-                "type": "object",
-                "example": {
-                    "id": "id-0",
-                    "values": [
-                        1.22,
-                        2.234,
-                        3.73
-                    ],
-                    "metadata": "{mykey : myvalue}"
-                },
-                "properties": {
-                    "id": {
-                        "type": "string"
-                    },
-                    "values": {
-                        "type": "array",
-                        "items": {
-                            "type": "number",
-                            "format": "float"
-                        }
-                    },
-                    "metadata": {
-                        "type": "string"
-                    }
-                }
-            },
-            "pineconeFetchResponse": {
+            "FetchResponse": {
                 "type": "object",
                 "properties": {
                     "vectors": {
@@ -463,7 +381,7 @@
                             }
                         ],
                         "items": {
-                            "$ref": "#/components/schemas/pineconeDenseVector"
+                            "$ref": "#/components/schemas/Vector"
                         },
                         "description": "The fetched vectors. These follow the same order as `FetchRequest.ids`."
                     },
@@ -474,7 +392,7 @@
                 },
                 "description": "The response for the `Fetch` operation."
             },
-            "pineconeListNamespacesResponse": {
+            "ListNamespacesResponse": {
                 "type": "object",
                 "properties": {
                     "namespaces": {
@@ -491,7 +409,7 @@
                 },
                 "description": "The request for the `ListNamespaces` operation."
             },
-            "pineconeListResponse": {
+            "ListResponse": {
                 "type": "object",
                 "properties": {
                     "ids": {
@@ -512,26 +430,26 @@
                 },
                 "description": "The response module for the list operation."
             },
-            "pineconeQueryRequest": {
+            "QueryRequest": {
                 "type": "object",
                 "properties": {
-                    "requestDefaultNamespace": {
+                    "namespace": {
                         "type": "string",
                         "example": "namespace_a",
                         "description": "The default namespace to query if no namespace is specified in `QueryVector`. The default value is `\"\"`."
                     },
-                    "requestDefaultTopK": {
+                    "topK": {
                         "type": "integer",
                         "format": "int64",
                         "example": {
-                            "request_default_top_k": 102
+                            "top_k": 102
                         },
-                        "description": "The number of results to return for each query."
+                        "description": "The default number of results to return for each query."
                     },
-                    "requestDefaultFilter": {
-                        "type": "string",
+                    "filter": {
+                        "type": "object",
                         "example": "filter_a",
-                        "description": "The default filter to apply if no filter is specified in `QueryVector`. The default value is `\"\"`."
+                        "description": "The default filter to apply if no filter is specified in `QueryVector`. The default value is empty ({})."
                     },
                     "includeData": {
                         "type": "boolean",
@@ -578,27 +496,63 @@
                             ]
                         },
                         "items": {
-                            "$ref": "#/components/schemas/QueryRequestQueryVector"
+                            "$ref": "#/components/schemas/QueryVector"
                         },
                         "description": "The query vectors."
                     }
                 },
                 "description": "The request for the `Query` operation."
             },
-            "pineconeQueryResponse": {
+            "QueryResponse": {
                 "type": "object",
                 "properties": {
                     "results": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/QueryResponseSingleQueryResults"
+                            "$ref": "#/components/schemas/SingleQueryResults"
                         },
                         "description": "The results of each query. The order is the same as `QueryRequest.queries`."
                     }
                 },
                 "description": "The response for the `Query` operation. These are the matches found for a particular query vector. The matches are ordered from most similar to least similar."
             },
-            "pineconeScoredVector": {
+            "QueryVector": {
+                "type": "object",
+                "properties": {
+                    "values": {
+                        "type": "array",
+                        "example": [
+                            1.524,
+                            2.23432,
+                            3.664
+                        ],
+                        "items": {
+                            "type": "number",
+                            "format": "float"
+                        }
+                    },
+                    "topK": {
+                        "type": "integer",
+                        "format": "int64",
+                        "example": {
+                            "top_k": 106
+                        },
+                        "description": "The number of results to return for this query vector."
+                    },
+                    "namespace": {
+                        "type": "string",
+                        "example": "namespace_a",
+                        "description": "The namespace to search."
+                    },
+                    "filter": {
+                        "type": "object",
+                        "example": "filter_to_use",
+                        "description": "The metadata filter to apply."
+                    }
+                },
+                "description": "A single query vector within a `QueryRequest`."
+            },
+            "ScoredVector": {
                 "type": "object",
                 "example": {
                     "id": "id-0",
@@ -626,11 +580,27 @@
                         }
                     },
                     "metadata": {
-                        "type": "string"
+                        "type": "object"
                     }
                 }
             },
-            "pineconeSummarizeResponse": {
+            "SingleQueryResults": {
+                "type": "object",
+                "properties": {
+                    "matches": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ScoredVector"
+                        }
+                    },
+                    "namespace": {
+                        "type": "string",
+                        "example": "namespace_a"
+                    }
+                },
+                "title": "The query results for a single `QueryVector`"
+            },
+            "SummarizeResponse": {
                 "type": "object",
                 "properties": {
                     "indexSize": {
@@ -652,7 +622,7 @@
                 },
                 "description": "The response for the `Summarize` operation."
             },
-            "pineconeUpsertRequest": {
+            "UpsertRequest": {
                 "type": "object",
                 "properties": {
                     "vectors": {
@@ -669,7 +639,7 @@
                             }
                         ],
                         "items": {
-                            "$ref": "#/components/schemas/pineconeDenseVector"
+                            "$ref": "#/components/schemas/Vector"
                         },
                         "description": "This is the actual array data."
                     },
@@ -680,9 +650,36 @@
                 },
                 "description": "The request for the `Upsert` operation."
             },
-            "pineconeUpsertResponse": {
+            "UpsertResponse": {
                 "type": "object",
                 "description": "The response for the `Upsert` operation."
+            },
+            "Vector": {
+                "type": "object",
+                "example": {
+                    "id": "id-0",
+                    "values": [
+                        1.22,
+                        2.234,
+                        3.73
+                    ],
+                    "metadata": "{mykey : myvalue}"
+                },
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "values": {
+                        "type": "array",
+                        "items": {
+                            "type": "number",
+                            "format": "float"
+                        }
+                    },
+                    "metadata": {
+                        "type": "object"
+                    }
+                }
             },
             "protobufAny": {
                 "type": "object",
@@ -695,6 +692,14 @@
                         "format": "byte"
                     }
                 }
+            },
+            "protobufNullValue": {
+                "type": "string",
+                "enum": [
+                    "NULL_VALUE"
+                ],
+                "default": "NULL_VALUE",
+                "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\n The JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
             },
             "rpcStatus": {
                 "type": "object",
