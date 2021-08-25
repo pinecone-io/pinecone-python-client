@@ -11,6 +11,7 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
+from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 from google.api import annotations_pb2 as google_dot_api_dot_annotations__pb2
 from google.rpc import error_details_pb2 as google_dot_rpc_dot_error__details__pb2
 from protoc_gen_openapiv2.options import annotations_pb2 as protoc__gen__openapiv2_dot_options_dot_annotations__pb2
@@ -22,9 +23,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\021io.pinecone.protoP\001Z/github.com/pinecone-io/new-go-pinecone/pinecone\222A\225\002\022P\n\021Pinecone JSON API\";\n\017Pinecone.io Ops\022\023https://pinecone.io\032\023support@pinecone.io\032.{service_prefix}.svc.{environment}.pinecone.io*\001\0022\020application/json:\020application/jsonZ\035\n\033\n\nApiKeyAuth\022\r\010\002\032\007api-key \002b\020\n\016\n\nApiKeyAuth\022\000r9\n\031More Pinecone.io API docs\022\034https://www.pinecone.io/docs',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x14vector_service.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/rpc/error_details.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x95\x01\n\x06Vector\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06values\x18\x02 \x03(\x02\x12\x10\n\x08metadata\x18\x03 \x01(\t:]\x92\x41Z2X      {\"id\": \"id-0\", \"values\": [1.22, 2.234, 3.73], \"metadata\": \"{mykey : myvalue}\"}    \"\xae\x01\n\x0cScoredVector\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05score\x18\x02 \x01(\x02\x12\x0e\n\x06values\x18\x03 \x03(\x02\x12\x10\n\x08metadata\x18\x04 \x01(\t:a\x92\x41^2\\{\"id\": \"id-0\", \"score\": 5.4, \"values\": [1.22, 2.234, 3.73], \"metadata\": \"{mykey : myvalue}\"}\"\x95\x01\n\rUpsertRequest\x12q\n\x07vectors\x18\x01 \x03(\x0b\x32\x07.VectorBW\x92\x41TJR[ {\"id\": \"id-0\", \"values\": [1.22, 2.234, 3.73], \"metadata\": \"{mykey : myvalue}\"} ]\x12\x11\n\tnamespace\x18\x02 \x01(\t\"\x10\n\x0eUpsertResponse\"\x89\x01\n\rDeleteRequest\x12\"\n\x03ids\x18\x01 \x03(\tB\x15\x92\x41\x12J\x10[\"id-0\", \"id-1\"]\x12-\n\ndelete_all\x18\x02 \x01(\x08\x42\x19\x92\x41\x16J\x14{\"delete_all\": true}\x12%\n\tnamespace\x18\x03 \x01(\tB\x12\x92\x41\x0fJ\r\"namespace_a\"\"\x10\n\x0e\x44\x65leteResponse\"Y\n\x0c\x46\x65tchRequest\x12\"\n\x03ids\x18\x01 \x03(\tB\x15\x92\x41\x12J\x10[\"id-0\", \"id-1\"]\x12%\n\tnamespace\x18\x02 \x01(\tB\x12\x92\x41\x0fJ\r\"namespace_a\"\"\xe8\x01\n\rFetchResponse\x12\xc3\x01\n\x07vectors\x18\x01 \x03(\x0b\x32\x07.VectorB\xa8\x01\x92\x41\xa4\x01J\xa1\x01[{\"id\": \"id-0\", \"values\": [17.222, 7.234, 8.73], \"metadata\": \"{mykey:myvalue}\"}, {\"id\": \"id-0\", \"values\": [15.222, 2.234, 4.73], \"metadata\": \"{mykey:myvalue}\"}] \x12\x11\n\tnamespace\x18\x02 \x01(\t\"\xaa\x01\n\x0bQueryVector\x12*\n\x06values\x18\x01 \x03(\x02\x42\x1a\x92\x41\x17J\x15[1.524,2.23432,3.664]\x12\"\n\x05top_k\x18\x02 \x01(\rB\x13\x92\x41\x10J\x0e{\"top_k\": 106}\x12%\n\tnamespace\x18\x03 \x01(\tB\x12\x92\x41\x0fJ\r\"namespace_a\"\x12$\n\x06\x66ilter\x18\x04 \x01(\tB\x14\x92\x41\x11J\x0f\"filter_to_use\"\"\xc1\x04\n\x0cQueryRequest\x12\x35\n\x19request_default_namespace\x18\x01 \x01(\tB\x12\x92\x41\x0fJ\r\"namespace_a\"\x12\x42\n\x15request_default_top_k\x18\x02 \x01(\rB#\x92\x41 J\x1e{\"request_default_top_k\": 102}\x12/\n\x16request_default_filter\x18\x03 \x01(\tB\x0f\x92\x41\x0cJ\n\"filter_a\"\x12\x31\n\x0cinclude_data\x18\x04 \x01(\x08\x42\x1b\x92\x41\x18J\x16{\"include_data\": true}\x12\x35\n\x10include_metadata\x18\x05 \x01(\x08\x42\x1b\x92\x41\x18J\x16{\"include_data\": true}\x12\x9a\x02\n\x07queries\x18\x06 \x03(\x0b\x32\x0c.QueryVectorB\xfa\x01\x92\x41\xf6\x01J\xf3\x01{\"queries\": [ {\"vector\":{\"values\":[1.524,2.23432,3.664]}, \"top_k\":106, \"namespace\": \"namespace_a\", \"filter\": \"filter_to_use\"}, {\"vector\":{\"values\":[2.4,3.22,7.664]}, \"top_k\":90, \"namespace\": \"namespace_a\", \"filter\": \"another_filter_to_use\"} ]}\"[\n\x12SingleQueryResults\x12\x1e\n\x07matches\x18\x01 \x03(\x0b\x32\r.ScoredVector\x12%\n\tnamespace\x18\x02 \x01(\tB\x12\x92\x41\x0fJ\r\"namespace_a\"\"5\n\rQueryResponse\x12$\n\x07results\x18\x01 \x03(\x0b\x32\x13.SingleQueryResults\"4\n\x0bListRequest\x12%\n\tnamespace\x18\x01 \x01(\tB\x12\x92\x41\x0fJ\r\"namespace_a\"\"a\n\x0cListResponse\x12*\n\x03ids\x18\x01 \x03(\tB\x1d\x92\x41\x1aJ\x18[\"id-0\", \"id-1\", \"id-2\"]\x12%\n\tnamespace\x18\x02 \x01(\tB\x12\x92\x41\x0fJ\r\"namespace_a\"\"\x17\n\x15ListNamespacesRequest\"Q\n\x16ListNamespacesResponse\x12\x37\n\nnamespaces\x18\x01 \x03(\tB#\x92\x41 J\x1e[\"namespace_a\", \"namespace_a\"]\"\x12\n\x10SummarizeRequest\"k\n\x11SummarizeResponse\x12,\n\nindex_size\x18\x01 \x01(\rB\x18\x92\x41\x15J\x13{\"index_size\": 106}\x12(\n\tdimension\x18\x02 \x01(\rB\x15\x92\x41\x12J\x10{\"dimension\": 2}2\xf6\x03\n\rVectorService\x12\x45\n\x06Upsert\x12\x0e.UpsertRequest\x1a\x0f.UpsertResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\"\x0f/vectors/upsert:\x01*\x12\x42\n\x06\x44\x65lete\x12\x0e.DeleteRequest\x1a\x0f.DeleteResponse\"\x17\x82\xd3\xe4\x93\x02\x11*\x0f/vectors/delete\x12>\n\x05\x46\x65tch\x12\r.FetchRequest\x1a\x0e.FetchResponse\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/vectors/fetch\x12\x39\n\x05Query\x12\r.QueryRequest\x1a\x0e.QueryResponse\"\x11\x82\xd3\xe4\x93\x02\x0b\"\x06/query:\x01*\x12:\n\x04List\x12\x0c.ListRequest\x1a\r.ListResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/vectors/list\x12[\n\x0eListNamespaces\x12\x16.ListNamespacesRequest\x1a\x17.ListNamespacesResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/namespaces/list\x12\x46\n\tSummarize\x12\x11.SummarizeRequest\x1a\x12.SummarizeResponse\"\x12\x82\xd3\xe4\x93\x02\x0c\x12\n/summarizeB\xdf\x02\n\x11io.pinecone.protoP\x01Z/github.com/pinecone-io/new-go-pinecone/pinecone\x92\x41\x95\x02\x12P\n\x11Pinecone JSON API\";\n\x0fPinecone.io Ops\x12\x13https://pinecone.io\x1a\x13support@pinecone.io\x1a.{service_prefix}.svc.{environment}.pinecone.io*\x01\x02\x32\x10\x61pplication/json:\x10\x61pplication/jsonZ\x1d\n\x1b\n\nApiKeyAuth\x12\r\x08\x02\x1a\x07\x61pi-key \x02\x62\x10\n\x0e\n\nApiKeyAuth\x12\x00r9\n\x19More Pinecone.io API docs\x12\x1chttps://www.pinecone.io/docsb\x06proto3'
+  serialized_pb=b'\n\x14vector_service.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1egoogle/rpc/error_details.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xae\x01\n\x06Vector\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06values\x18\x02 \x03(\x02\x12)\n\x08metadata\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct:]\x92\x41Z2X      {\"id\": \"id-0\", \"values\": [1.22, 2.234, 3.73], \"metadata\": \"{mykey : myvalue}\"}    \"\xc7\x01\n\x0cScoredVector\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05score\x18\x02 \x01(\x02\x12\x0e\n\x06values\x18\x03 \x03(\x02\x12)\n\x08metadata\x18\x04 \x01(\x0b\x32\x17.google.protobuf.Struct:a\x92\x41^2\\{\"id\": \"id-0\", \"score\": 5.4, \"values\": [1.22, 2.234, 3.73], \"metadata\": \"{mykey : myvalue}\"}\"\x95\x01\n\rUpsertRequest\x12q\n\x07vectors\x18\x01 \x03(\x0b\x32\x07.VectorBW\x92\x41TJR[ {\"id\": \"id-0\", \"values\": [1.22, 2.234, 3.73], \"metadata\": \"{mykey : myvalue}\"} ]\x12\x11\n\tnamespace\x18\x02 \x01(\t\"\x10\n\x0eUpsertResponse\"\x89\x01\n\rDeleteRequest\x12\"\n\x03ids\x18\x01 \x03(\tB\x15\x92\x41\x12J\x10[\"id-0\", \"id-1\"]\x12-\n\ndelete_all\x18\x02 \x01(\x08\x42\x19\x92\x41\x16J\x14{\"delete_all\": true}\x12%\n\tnamespace\x18\x03 \x01(\tB\x12\x92\x41\x0fJ\r\"namespace_a\"\"\x10\n\x0e\x44\x65leteResponse\"Y\n\x0c\x46\x65tchRequest\x12\"\n\x03ids\x18\x01 \x03(\tB\x15\x92\x41\x12J\x10[\"id-0\", \"id-1\"]\x12%\n\tnamespace\x18\x02 \x01(\tB\x12\x92\x41\x0fJ\r\"namespace_a\"\"\xe8\x01\n\rFetchResponse\x12\xc3\x01\n\x07vectors\x18\x01 \x03(\x0b\x32\x07.VectorB\xa8\x01\x92\x41\xa4\x01J\xa1\x01[{\"id\": \"id-0\", \"values\": [17.222, 7.234, 8.73], \"metadata\": \"{mykey:myvalue}\"}, {\"id\": \"id-0\", \"values\": [15.222, 2.234, 4.73], \"metadata\": \"{mykey:myvalue}\"}] \x12\x11\n\tnamespace\x18\x02 \x01(\t\"\xc3\x01\n\x0bQueryVector\x12*\n\x06values\x18\x01 \x03(\x02\x42\x1a\x92\x41\x17J\x15[1.524,2.23432,3.664]\x12\"\n\x05top_k\x18\x02 \x01(\rB\x13\x92\x41\x10J\x0e{\"top_k\": 106}\x12%\n\tnamespace\x18\x03 \x01(\tB\x12\x92\x41\x0fJ\r\"namespace_a\"\x12=\n\x06\x66ilter\x18\x04 \x01(\x0b\x32\x17.google.protobuf.StructB\x14\x92\x41\x11J\x0f\"filter_to_use\"\"\xda\x04\n\x0cQueryRequest\x12\x35\n\x19request_default_namespace\x18\x01 \x01(\tB\x12\x92\x41\x0fJ\r\"namespace_a\"\x12\x42\n\x15request_default_top_k\x18\x02 \x01(\rB#\x92\x41 J\x1e{\"request_default_top_k\": 102}\x12H\n\x16request_default_filter\x18\x03 \x01(\x0b\x32\x17.google.protobuf.StructB\x0f\x92\x41\x0cJ\n\"filter_a\"\x12\x31\n\x0cinclude_data\x18\x04 \x01(\x08\x42\x1b\x92\x41\x18J\x16{\"include_data\": true}\x12\x35\n\x10include_metadata\x18\x05 \x01(\x08\x42\x1b\x92\x41\x18J\x16{\"include_data\": true}\x12\x9a\x02\n\x07queries\x18\x06 \x03(\x0b\x32\x0c.QueryVectorB\xfa\x01\x92\x41\xf6\x01J\xf3\x01{\"queries\": [ {\"vector\":{\"values\":[1.524,2.23432,3.664]}, \"top_k\":106, \"namespace\": \"namespace_a\", \"filter\": \"filter_to_use\"}, {\"vector\":{\"values\":[2.4,3.22,7.664]}, \"top_k\":90, \"namespace\": \"namespace_a\", \"filter\": \"another_filter_to_use\"} ]}\"[\n\x12SingleQueryResults\x12\x1e\n\x07matches\x18\x01 \x03(\x0b\x32\r.ScoredVector\x12%\n\tnamespace\x18\x02 \x01(\tB\x12\x92\x41\x0fJ\r\"namespace_a\"\"5\n\rQueryResponse\x12$\n\x07results\x18\x01 \x03(\x0b\x32\x13.SingleQueryResults\"4\n\x0bListRequest\x12%\n\tnamespace\x18\x01 \x01(\tB\x12\x92\x41\x0fJ\r\"namespace_a\"\"a\n\x0cListResponse\x12*\n\x03ids\x18\x01 \x03(\tB\x1d\x92\x41\x1aJ\x18[\"id-0\", \"id-1\", \"id-2\"]\x12%\n\tnamespace\x18\x02 \x01(\tB\x12\x92\x41\x0fJ\r\"namespace_a\"\"\x17\n\x15ListNamespacesRequest\"Q\n\x16ListNamespacesResponse\x12\x37\n\nnamespaces\x18\x01 \x03(\tB#\x92\x41 J\x1e[\"namespace_a\", \"namespace_a\"]\"\x12\n\x10SummarizeRequest\"k\n\x11SummarizeResponse\x12,\n\nindex_size\x18\x01 \x01(\rB\x18\x92\x41\x15J\x13{\"index_size\": 106}\x12(\n\tdimension\x18\x02 \x01(\rB\x15\x92\x41\x12J\x10{\"dimension\": 2}2\xf6\x03\n\rVectorService\x12\x45\n\x06Upsert\x12\x0e.UpsertRequest\x1a\x0f.UpsertResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\"\x0f/vectors/upsert:\x01*\x12\x42\n\x06\x44\x65lete\x12\x0e.DeleteRequest\x1a\x0f.DeleteResponse\"\x17\x82\xd3\xe4\x93\x02\x11*\x0f/vectors/delete\x12>\n\x05\x46\x65tch\x12\r.FetchRequest\x1a\x0e.FetchResponse\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/vectors/fetch\x12\x39\n\x05Query\x12\r.QueryRequest\x1a\x0e.QueryResponse\"\x11\x82\xd3\xe4\x93\x02\x0b\"\x06/query:\x01*\x12:\n\x04List\x12\x0c.ListRequest\x1a\r.ListResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/vectors/list\x12[\n\x0eListNamespaces\x12\x16.ListNamespacesRequest\x1a\x17.ListNamespacesResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/namespaces/list\x12\x46\n\tSummarize\x12\x11.SummarizeRequest\x1a\x12.SummarizeResponse\"\x12\x82\xd3\xe4\x93\x02\x0c\x12\n/summarizeB\xdf\x02\n\x11io.pinecone.protoP\x01Z/github.com/pinecone-io/new-go-pinecone/pinecone\x92\x41\x95\x02\x12P\n\x11Pinecone JSON API\";\n\x0fPinecone.io Ops\x12\x13https://pinecone.io\x1a\x13support@pinecone.io\x1a.{service_prefix}.svc.{environment}.pinecone.io*\x01\x02\x32\x10\x61pplication/json:\x10\x61pplication/jsonZ\x1d\n\x1b\n\nApiKeyAuth\x12\r\x08\x02\x1a\x07\x61pi-key \x02\x62\x10\n\x0e\n\nApiKeyAuth\x12\x00r9\n\x19More Pinecone.io API docs\x12\x1chttps://www.pinecone.io/docsb\x06proto3'
   ,
-  dependencies=[google_dot_api_dot_annotations__pb2.DESCRIPTOR,google_dot_rpc_dot_error__details__pb2.DESCRIPTOR,protoc__gen__openapiv2_dot_options_dot_annotations__pb2.DESCRIPTOR,])
+  dependencies=[google_dot_protobuf_dot_struct__pb2.DESCRIPTOR,google_dot_api_dot_annotations__pb2.DESCRIPTOR,google_dot_rpc_dot_error__details__pb2.DESCRIPTOR,protoc__gen__openapiv2_dot_options_dot_annotations__pb2.DESCRIPTOR,])
 
 
 
@@ -53,8 +54,8 @@ _VECTOR = _descriptor.Descriptor(
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
       name='metadata', full_name='Vector.metadata', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
@@ -70,8 +71,8 @@ _VECTOR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=135,
-  serialized_end=284,
+  serialized_start=165,
+  serialized_end=339,
 )
 
 
@@ -106,8 +107,8 @@ _SCOREDVECTOR = _descriptor.Descriptor(
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
       name='metadata', full_name='ScoredVector.metadata', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
@@ -123,8 +124,8 @@ _SCOREDVECTOR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=287,
-  serialized_end=461,
+  serialized_start=342,
+  serialized_end=541,
 )
 
 
@@ -162,8 +163,8 @@ _UPSERTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=464,
-  serialized_end=613,
+  serialized_start=544,
+  serialized_end=693,
 )
 
 
@@ -187,8 +188,8 @@ _UPSERTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=615,
-  serialized_end=631,
+  serialized_start=695,
+  serialized_end=711,
 )
 
 
@@ -233,8 +234,8 @@ _DELETEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=634,
-  serialized_end=771,
+  serialized_start=714,
+  serialized_end=851,
 )
 
 
@@ -258,8 +259,8 @@ _DELETERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=773,
-  serialized_end=789,
+  serialized_start=853,
+  serialized_end=869,
 )
 
 
@@ -297,8 +298,8 @@ _FETCHREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=791,
-  serialized_end=880,
+  serialized_start=871,
+  serialized_end=960,
 )
 
 
@@ -336,8 +337,8 @@ _FETCHRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=883,
-  serialized_end=1115,
+  serialized_start=963,
+  serialized_end=1195,
 )
 
 
@@ -372,8 +373,8 @@ _QUERYVECTOR = _descriptor.Descriptor(
       serialized_options=b'\222A\017J\r\"namespace_a\"', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
       name='filter', full_name='QueryVector.filter', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=b'\222A\021J\017\"filter_to_use\"', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
@@ -389,8 +390,8 @@ _QUERYVECTOR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1118,
-  serialized_end=1288,
+  serialized_start=1198,
+  serialized_end=1393,
 )
 
 
@@ -418,8 +419,8 @@ _QUERYREQUEST = _descriptor.Descriptor(
       serialized_options=b'\222A J\036{\"request_default_top_k\": 102}', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
       name='request_default_filter', full_name='QueryRequest.request_default_filter', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=b'\222A\014J\n\"filter_a\"', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
@@ -456,8 +457,8 @@ _QUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1291,
-  serialized_end=1868,
+  serialized_start=1396,
+  serialized_end=1998,
 )
 
 
@@ -495,8 +496,8 @@ _SINGLEQUERYRESULTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1870,
-  serialized_end=1961,
+  serialized_start=2000,
+  serialized_end=2091,
 )
 
 
@@ -527,8 +528,8 @@ _QUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1963,
-  serialized_end=2016,
+  serialized_start=2093,
+  serialized_end=2146,
 )
 
 
@@ -559,8 +560,8 @@ _LISTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2018,
-  serialized_end=2070,
+  serialized_start=2148,
+  serialized_end=2200,
 )
 
 
@@ -598,8 +599,8 @@ _LISTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2072,
-  serialized_end=2169,
+  serialized_start=2202,
+  serialized_end=2299,
 )
 
 
@@ -623,8 +624,8 @@ _LISTNAMESPACESREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2171,
-  serialized_end=2194,
+  serialized_start=2301,
+  serialized_end=2324,
 )
 
 
@@ -655,8 +656,8 @@ _LISTNAMESPACESRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2196,
-  serialized_end=2277,
+  serialized_start=2326,
+  serialized_end=2407,
 )
 
 
@@ -680,8 +681,8 @@ _SUMMARIZEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2279,
-  serialized_end=2297,
+  serialized_start=2409,
+  serialized_end=2427,
 )
 
 
@@ -719,12 +720,16 @@ _SUMMARIZERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2299,
-  serialized_end=2406,
+  serialized_start=2429,
+  serialized_end=2536,
 )
 
+_VECTOR.fields_by_name['metadata'].message_type = google_dot_protobuf_dot_struct__pb2._STRUCT
+_SCOREDVECTOR.fields_by_name['metadata'].message_type = google_dot_protobuf_dot_struct__pb2._STRUCT
 _UPSERTREQUEST.fields_by_name['vectors'].message_type = _VECTOR
 _FETCHRESPONSE.fields_by_name['vectors'].message_type = _VECTOR
+_QUERYVECTOR.fields_by_name['filter'].message_type = google_dot_protobuf_dot_struct__pb2._STRUCT
+_QUERYREQUEST.fields_by_name['request_default_filter'].message_type = google_dot_protobuf_dot_struct__pb2._STRUCT
 _QUERYREQUEST.fields_by_name['queries'].message_type = _QUERYVECTOR
 _SINGLEQUERYRESULTS.fields_by_name['matches'].message_type = _SCOREDVECTOR
 _QUERYRESPONSE.fields_by_name['results'].message_type = _SINGLEQUERYRESULTS
@@ -910,8 +915,8 @@ _VECTORSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=2409,
-  serialized_end=2911,
+  serialized_start=2539,
+  serialized_end=3041,
   methods=[
   _descriptor.MethodDescriptor(
     name='Upsert',
