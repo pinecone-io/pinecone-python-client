@@ -1,5 +1,6 @@
 from pinecone.specs import Spec
 
+
 class DatabaseSpec(Spec):
 
     @property
@@ -15,7 +16,6 @@ class DatabaseSpec(Spec):
         self.shards = shards
         self.replicas = replicas
         self.index_config = index_config if index_config else {}
-
 
     @classmethod
     def from_obj(cls, obj: dict) -> "DatabaseSpec":
