@@ -2,7 +2,6 @@
 import sys
 from google.protobuf.descriptor import (
     Descriptor as google___protobuf___descriptor___Descriptor,
-    EnumDescriptor as google___protobuf___descriptor___EnumDescriptor,
     FileDescriptor as google___protobuf___descriptor___FileDescriptor,
 )
 
@@ -11,26 +10,14 @@ from google.protobuf.internal.containers import (
     RepeatedScalarFieldContainer as google___protobuf___internal___containers___RepeatedScalarFieldContainer,
 )
 
-from google.protobuf.internal.enum_type_wrapper import (
-    _EnumTypeWrapper as google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper,
-)
-
 from google.protobuf.message import (
     Message as google___protobuf___message___Message,
 )
 
-from google.protobuf.timestamp_pb2 import (
-    Timestamp as google___protobuf___timestamp_pb2___Timestamp,
-)
-
 from typing import (
     Iterable as typing___Iterable,
-    Mapping as typing___Mapping,
-    MutableMapping as typing___MutableMapping,
-    NewType as typing___NewType,
     Optional as typing___Optional,
     Text as typing___Text,
-    cast as typing___cast,
 )
 
 from typing_extensions import (
@@ -62,83 +49,6 @@ class NdArray(google___protobuf___message___Message):
         ) -> None: ...
     def ClearField(self, field_name: typing_extensions___Literal[u"buffer",b"buffer",u"compressed",b"compressed",u"dtype",b"dtype",u"shape",b"shape"]) -> None: ...
 type___NdArray = NdArray
-
-class Status(google___protobuf___message___Message):
-    DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
-    StatusCodeValue = typing___NewType('StatusCodeValue', builtin___int)
-    type___StatusCodeValue = StatusCodeValue
-    StatusCode: _StatusCode
-    class _StatusCode(google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper[Status.StatusCodeValue]):
-        DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
-        SUCCESS = typing___cast(Status.StatusCodeValue, 0)
-        READY = typing___cast(Status.StatusCodeValue, 1)
-        ERROR = typing___cast(Status.StatusCodeValue, 2)
-        ERROR_DUPLICATE = typing___cast(Status.StatusCodeValue, 3)
-    SUCCESS = typing___cast(Status.StatusCodeValue, 0)
-    READY = typing___cast(Status.StatusCodeValue, 1)
-    ERROR = typing___cast(Status.StatusCodeValue, 2)
-    ERROR_DUPLICATE = typing___cast(Status.StatusCodeValue, 3)
-    type___StatusCode = StatusCode
-
-    class Details(google___protobuf___message___Message):
-        DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
-        function: typing___Text = ...
-        function_id: typing___Text = ...
-        exception: typing___Text = ...
-        traceback: typing___Text = ...
-
-        @property
-        def time(self) -> google___protobuf___timestamp_pb2___Timestamp: ...
-
-        def __init__(self,
-            *,
-            function : typing___Optional[typing___Text] = None,
-            function_id : typing___Optional[typing___Text] = None,
-            exception : typing___Optional[typing___Text] = None,
-            traceback : typing___Optional[typing___Text] = None,
-            time : typing___Optional[google___protobuf___timestamp_pb2___Timestamp] = None,
-            ) -> None: ...
-        def HasField(self, field_name: typing_extensions___Literal[u"time",b"time"]) -> builtin___bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"exception",b"exception",u"function",b"function",u"function_id",b"function_id",u"time",b"time",u"traceback",b"traceback"]) -> None: ...
-    type___Details = Details
-
-    class AvgTimeEntry(google___protobuf___message___Message):
-        DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
-        key: typing___Text = ...
-        value: builtin___int = ...
-
-        def __init__(self,
-            *,
-            key : typing___Optional[typing___Text] = None,
-            value : typing___Optional[builtin___int] = None,
-            ) -> None: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
-    type___AvgTimeEntry = AvgTimeEntry
-
-    code: type___Status.StatusCodeValue = ...
-    description: typing___Text = ...
-    msg_sent: builtin___int = ...
-    msg_recv: builtin___int = ...
-    size: builtin___int = ...
-
-    @property
-    def details(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[type___Status.Details]: ...
-
-    @property
-    def avg_time(self) -> typing___MutableMapping[typing___Text, builtin___int]: ...
-
-    def __init__(self,
-        *,
-        code : typing___Optional[type___Status.StatusCodeValue] = None,
-        description : typing___Optional[typing___Text] = None,
-        details : typing___Optional[typing___Iterable[type___Status.Details]] = None,
-        msg_sent : typing___Optional[builtin___int] = None,
-        msg_recv : typing___Optional[builtin___int] = None,
-        avg_time : typing___Optional[typing___Mapping[typing___Text, builtin___int]] = None,
-        size : typing___Optional[builtin___int] = None,
-        ) -> None: ...
-    def ClearField(self, field_name: typing_extensions___Literal[u"avg_time",b"avg_time",u"code",b"code",u"description",b"description",u"details",b"details",u"msg_recv",b"msg_recv",u"msg_sent",b"msg_sent",u"size",b"size"]) -> None: ...
-type___Status = Status
 
 class ScoredResults(google___protobuf___message___Message):
     DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...

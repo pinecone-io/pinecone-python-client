@@ -143,8 +143,8 @@ class PineconeUpsertRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            vectors ([PineconeDenseVector]): [optional]  # noqa: E501
-            namespace (str): [optional]  # noqa: E501
+            vectors ([PineconeDenseVector]): This is the actual array data.. [optional]  # noqa: E501
+            namespace (str): This is the namespace name where you upsert vectors.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -226,8 +226,8 @@ class PineconeUpsertRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            vectors ([PineconeDenseVector]): [optional]  # noqa: E501
-            namespace (str): [optional]  # noqa: E501
+            vectors ([PineconeDenseVector]): This is the actual array data.. [optional]  # noqa: E501
+            namespace (str): This is the namespace name where you upsert vectors.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)

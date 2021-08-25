@@ -20,46 +20,11 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\021io.pinecone.protoZ+github.com/pinecone-io/go-pinecone/pinecone',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x1bvector_column_service.proto\x12\x11pinecone_columnar\x1a\x1fgoogle/protobuf/timestamp.proto\"K\n\x07NdArray\x12\x0e\n\x06\x62uffer\x18\x01 \x01(\x0c\x12\r\n\x05shape\x18\x02 \x03(\r\x12\r\n\x05\x64type\x18\x03 \x01(\t\x12\x12\n\ncompressed\x18\x04 \x01(\x08\"\xea\x03\n\x06Status\x12\x32\n\x04\x63ode\x18\x01 \x01(\x0e\x32$.pinecone_columnar.Status.StatusCode\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x12\x32\n\x07\x64\x65tails\x18\x03 \x03(\x0b\x32!.pinecone_columnar.Status.Details\x12\x10\n\x08msg_sent\x18\x04 \x01(\x04\x12\x10\n\x08msg_recv\x18\x05 \x01(\x04\x12\x38\n\x08\x61vg_time\x18\x06 \x03(\x0b\x32&.pinecone_columnar.Status.AvgTimeEntry\x12\x0c\n\x04size\x18\x07 \x01(\x04\x1a\x80\x01\n\x07\x44\x65tails\x12\x10\n\x08\x66unction\x18\x01 \x01(\t\x12\x13\n\x0b\x66unction_id\x18\x02 \x01(\t\x12\x11\n\texception\x18\x03 \x01(\t\x12\x11\n\ttraceback\x18\x04 \x01(\t\x12(\n\x04time\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x1a.\n\x0c\x41vgTimeEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\r:\x02\x38\x01\"D\n\nStatusCode\x12\x0b\n\x07SUCCESS\x10\x00\x12\t\n\x05READY\x10\x01\x12\t\n\x05\x45RROR\x10\x02\x12\x13\n\x0f\x45RROR_DUPLICATE\x10\x03\"\xbc\x01\n\rScoredResults\x12\'\n\x03ids\x18\x01 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12*\n\x06scores\x18\x02 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12(\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12,\n\x08metadata\x18\x04 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\"k\n\rUpsertRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12(\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12\x10\n\x08metadata\x18\x04 \x03(\t\"\x10\n\x0eUpsertResponse\"C\n\rDeleteRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12\x12\n\ndelete_all\x18\x03 \x01(\x08\"\x10\n\x0e\x44\x65leteResponse\".\n\x0c\x46\x65tchRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\"n\n\rFetchResponse\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12+\n\x07vectors\x18\x03 \x03(\x0b\x32\x1a.pinecone_columnar.NdArray\x12\x10\n\x08metadata\x18\x04 \x03(\t\"\xed\x01\n\x0cQueryRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x1b\n\x13namespace_overrides\x18\x06 \x03(\t\x12\r\n\x05top_k\x18\x02 \x01(\r\x12\x17\n\x0ftop_k_overrides\x18\x05 \x03(\r\x12\x0e\n\x06\x66ilter\x18\x07 \x01(\t\x12\x18\n\x10\x66ilter_overrides\x18\x08 \x03(\t\x12\x14\n\x0cinclude_data\x18\x03 \x01(\x08\x12\x18\n\x10include_metadata\x18\t \x01(\x08\x12+\n\x07queries\x18\x04 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\"B\n\rQueryResponse\x12\x31\n\x07matches\x18\x01 \x03(\x0b\x32 .pinecone_columnar.ScoredResults\" \n\x0bListRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\"J\n\x0cListResponse\x12\'\n\x03ids\x18\x01 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12\x11\n\tnamespace\x18\x02 \x01(\t\"\x17\n\x15ListNamespacesRequest\",\n\x16ListNamespacesResponse\x12\x12\n\nnamespaces\x18\x01 \x03(\t\"\x12\n\x10SummarizeRequest\":\n\x11SummarizeResponse\x12\x12\n\nindex_size\x18\x01 \x01(\x04\x12\x11\n\tdimension\x18\x02 \x01(\r2\xe1\x04\n\x13VectorColumnService\x12O\n\x06Upsert\x12 .pinecone_columnar.UpsertRequest\x1a!.pinecone_columnar.UpsertResponse\"\x00\x12O\n\x06\x44\x65lete\x12 .pinecone_columnar.DeleteRequest\x1a!.pinecone_columnar.DeleteResponse\"\x00\x12L\n\x05\x46\x65tch\x12\x1f.pinecone_columnar.FetchRequest\x1a .pinecone_columnar.FetchResponse\"\x00\x12L\n\x05Query\x12\x1f.pinecone_columnar.QueryRequest\x1a .pinecone_columnar.QueryResponse\"\x00\x12I\n\x04List\x12\x1e.pinecone_columnar.ListRequest\x1a\x1f.pinecone_columnar.ListResponse\"\x00\x12g\n\x0eListNamespaces\x12(.pinecone_columnar.ListNamespacesRequest\x1a).pinecone_columnar.ListNamespacesResponse\"\x00\x12X\n\tSummarize\x12#.pinecone_columnar.SummarizeRequest\x1a$.pinecone_columnar.SummarizeResponse\"\x00\x42@\n\x11io.pinecone.protoZ+github.com/pinecone-io/go-pinecone/pineconeb\x06proto3'
+  serialized_pb=b'\n\x1bvector_column_service.proto\x12\x11pinecone_columnar\x1a\x1fgoogle/protobuf/timestamp.proto\"K\n\x07NdArray\x12\x0e\n\x06\x62uffer\x18\x01 \x01(\x0c\x12\r\n\x05shape\x18\x02 \x03(\r\x12\r\n\x05\x64type\x18\x03 \x01(\t\x12\x12\n\ncompressed\x18\x04 \x01(\x08\"\xbc\x01\n\rScoredResults\x12\'\n\x03ids\x18\x01 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12*\n\x06scores\x18\x02 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12(\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12,\n\x08metadata\x18\x04 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\"k\n\rUpsertRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12(\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12\x10\n\x08metadata\x18\x04 \x03(\t\"\x10\n\x0eUpsertResponse\"C\n\rDeleteRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12\x12\n\ndelete_all\x18\x03 \x01(\x08\"\x10\n\x0e\x44\x65leteResponse\".\n\x0c\x46\x65tchRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\"n\n\rFetchResponse\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12+\n\x07vectors\x18\x03 \x03(\x0b\x32\x1a.pinecone_columnar.NdArray\x12\x10\n\x08metadata\x18\x04 \x03(\t\"\xed\x01\n\x0cQueryRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x1b\n\x13namespace_overrides\x18\x06 \x03(\t\x12\r\n\x05top_k\x18\x02 \x01(\r\x12\x17\n\x0ftop_k_overrides\x18\x05 \x03(\r\x12\x0e\n\x06\x66ilter\x18\x07 \x01(\t\x12\x18\n\x10\x66ilter_overrides\x18\x08 \x03(\t\x12\x14\n\x0cinclude_data\x18\x03 \x01(\x08\x12\x18\n\x10include_metadata\x18\t \x01(\x08\x12+\n\x07queries\x18\x04 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\"B\n\rQueryResponse\x12\x31\n\x07matches\x18\x01 \x03(\x0b\x32 .pinecone_columnar.ScoredResults\" \n\x0bListRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\"J\n\x0cListResponse\x12\'\n\x03ids\x18\x01 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12\x11\n\tnamespace\x18\x02 \x01(\t\"\x17\n\x15ListNamespacesRequest\",\n\x16ListNamespacesResponse\x12\x12\n\nnamespaces\x18\x01 \x03(\t\"\x12\n\x10SummarizeRequest\":\n\x11SummarizeResponse\x12\x12\n\nindex_size\x18\x01 \x01(\x04\x12\x11\n\tdimension\x18\x02 \x01(\r2\xe1\x04\n\x13VectorColumnService\x12O\n\x06Upsert\x12 .pinecone_columnar.UpsertRequest\x1a!.pinecone_columnar.UpsertResponse\"\x00\x12O\n\x06\x44\x65lete\x12 .pinecone_columnar.DeleteRequest\x1a!.pinecone_columnar.DeleteResponse\"\x00\x12L\n\x05\x46\x65tch\x12\x1f.pinecone_columnar.FetchRequest\x1a .pinecone_columnar.FetchResponse\"\x00\x12L\n\x05Query\x12\x1f.pinecone_columnar.QueryRequest\x1a .pinecone_columnar.QueryResponse\"\x00\x12I\n\x04List\x12\x1e.pinecone_columnar.ListRequest\x1a\x1f.pinecone_columnar.ListResponse\"\x00\x12g\n\x0eListNamespaces\x12(.pinecone_columnar.ListNamespacesRequest\x1a).pinecone_columnar.ListNamespacesResponse\"\x00\x12X\n\tSummarize\x12#.pinecone_columnar.SummarizeRequest\x1a$.pinecone_columnar.SummarizeResponse\"\x00\x42@\n\x11io.pinecone.protoZ+github.com/pinecone-io/go-pinecone/pineconeb\x06proto3'
   ,
   dependencies=[google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
 
-
-_STATUS_STATUSCODE = _descriptor.EnumDescriptor(
-  name='StatusCode',
-  full_name='pinecone_columnar.Status.StatusCode',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='SUCCESS', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='READY', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='ERROR', index=2, number=2,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='ERROR_DUPLICATE', index=3, number=3,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=583,
-  serialized_end=651,
-)
-_sym_db.RegisterEnumDescriptor(_STATUS_STATUSCODE)
 
 
 _NDARRAY = _descriptor.Descriptor(
@@ -115,178 +80,6 @@ _NDARRAY = _descriptor.Descriptor(
 )
 
 
-_STATUS_DETAILS = _descriptor.Descriptor(
-  name='Details',
-  full_name='pinecone_columnar.Status.Details',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='function', full_name='pinecone_columnar.Status.Details.function', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='function_id', full_name='pinecone_columnar.Status.Details.function_id', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='exception', full_name='pinecone_columnar.Status.Details.exception', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='traceback', full_name='pinecone_columnar.Status.Details.traceback', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='time', full_name='pinecone_columnar.Status.Details.time', index=4,
-      number=5, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=405,
-  serialized_end=533,
-)
-
-_STATUS_AVGTIMEENTRY = _descriptor.Descriptor(
-  name='AvgTimeEntry',
-  full_name='pinecone_columnar.Status.AvgTimeEntry',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='key', full_name='pinecone_columnar.Status.AvgTimeEntry.key', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='value', full_name='pinecone_columnar.Status.AvgTimeEntry.value', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=b'8\001',
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=535,
-  serialized_end=581,
-)
-
-_STATUS = _descriptor.Descriptor(
-  name='Status',
-  full_name='pinecone_columnar.Status',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='code', full_name='pinecone_columnar.Status.code', index=0,
-      number=1, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='description', full_name='pinecone_columnar.Status.description', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='details', full_name='pinecone_columnar.Status.details', index=2,
-      number=3, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='msg_sent', full_name='pinecone_columnar.Status.msg_sent', index=3,
-      number=4, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='msg_recv', full_name='pinecone_columnar.Status.msg_recv', index=4,
-      number=5, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='avg_time', full_name='pinecone_columnar.Status.avg_time', index=5,
-      number=6, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='size', full_name='pinecone_columnar.Status.size', index=6,
-      number=7, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[_STATUS_DETAILS, _STATUS_AVGTIMEENTRY, ],
-  enum_types=[
-    _STATUS_STATUSCODE,
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=161,
-  serialized_end=651,
-)
-
-
 _SCOREDRESULTS = _descriptor.Descriptor(
   name='ScoredResults',
   full_name='pinecone_columnar.ScoredResults',
@@ -335,8 +128,8 @@ _SCOREDRESULTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=654,
-  serialized_end=842,
+  serialized_start=161,
+  serialized_end=349,
 )
 
 
@@ -388,8 +181,8 @@ _UPSERTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=844,
-  serialized_end=951,
+  serialized_start=351,
+  serialized_end=458,
 )
 
 
@@ -413,8 +206,8 @@ _UPSERTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=953,
-  serialized_end=969,
+  serialized_start=460,
+  serialized_end=476,
 )
 
 
@@ -459,8 +252,8 @@ _DELETEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=971,
-  serialized_end=1038,
+  serialized_start=478,
+  serialized_end=545,
 )
 
 
@@ -484,8 +277,8 @@ _DELETERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1040,
-  serialized_end=1056,
+  serialized_start=547,
+  serialized_end=563,
 )
 
 
@@ -523,8 +316,8 @@ _FETCHREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1058,
-  serialized_end=1104,
+  serialized_start=565,
+  serialized_end=611,
 )
 
 
@@ -576,8 +369,8 @@ _FETCHRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1106,
-  serialized_end=1216,
+  serialized_start=613,
+  serialized_end=723,
 )
 
 
@@ -664,8 +457,8 @@ _QUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1219,
-  serialized_end=1456,
+  serialized_start=726,
+  serialized_end=963,
 )
 
 
@@ -696,8 +489,8 @@ _QUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1458,
-  serialized_end=1524,
+  serialized_start=965,
+  serialized_end=1031,
 )
 
 
@@ -728,8 +521,8 @@ _LISTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1526,
-  serialized_end=1558,
+  serialized_start=1033,
+  serialized_end=1065,
 )
 
 
@@ -767,8 +560,8 @@ _LISTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1560,
-  serialized_end=1634,
+  serialized_start=1067,
+  serialized_end=1141,
 )
 
 
@@ -792,8 +585,8 @@ _LISTNAMESPACESREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1636,
-  serialized_end=1659,
+  serialized_start=1143,
+  serialized_end=1166,
 )
 
 
@@ -824,8 +617,8 @@ _LISTNAMESPACESRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1661,
-  serialized_end=1705,
+  serialized_start=1168,
+  serialized_end=1212,
 )
 
 
@@ -849,8 +642,8 @@ _SUMMARIZEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1707,
-  serialized_end=1725,
+  serialized_start=1214,
+  serialized_end=1232,
 )
 
 
@@ -888,17 +681,10 @@ _SUMMARIZERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1727,
-  serialized_end=1785,
+  serialized_start=1234,
+  serialized_end=1292,
 )
 
-_STATUS_DETAILS.fields_by_name['time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
-_STATUS_DETAILS.containing_type = _STATUS
-_STATUS_AVGTIMEENTRY.containing_type = _STATUS
-_STATUS.fields_by_name['code'].enum_type = _STATUS_STATUSCODE
-_STATUS.fields_by_name['details'].message_type = _STATUS_DETAILS
-_STATUS.fields_by_name['avg_time'].message_type = _STATUS_AVGTIMEENTRY
-_STATUS_STATUSCODE.containing_type = _STATUS
 _SCOREDRESULTS.fields_by_name['ids'].message_type = _NDARRAY
 _SCOREDRESULTS.fields_by_name['scores'].message_type = _NDARRAY
 _SCOREDRESULTS.fields_by_name['data'].message_type = _NDARRAY
@@ -909,7 +695,6 @@ _QUERYREQUEST.fields_by_name['queries'].message_type = _NDARRAY
 _QUERYRESPONSE.fields_by_name['matches'].message_type = _SCOREDRESULTS
 _LISTRESPONSE.fields_by_name['ids'].message_type = _NDARRAY
 DESCRIPTOR.message_types_by_name['NdArray'] = _NDARRAY
-DESCRIPTOR.message_types_by_name['Status'] = _STATUS
 DESCRIPTOR.message_types_by_name['ScoredResults'] = _SCOREDRESULTS
 DESCRIPTOR.message_types_by_name['UpsertRequest'] = _UPSERTREQUEST
 DESCRIPTOR.message_types_by_name['UpsertResponse'] = _UPSERTRESPONSE
@@ -933,29 +718,6 @@ NdArray = _reflection.GeneratedProtocolMessageType('NdArray', (_message.Message,
   # @@protoc_insertion_point(class_scope:pinecone_columnar.NdArray)
   })
 _sym_db.RegisterMessage(NdArray)
-
-Status = _reflection.GeneratedProtocolMessageType('Status', (_message.Message,), {
-
-  'Details' : _reflection.GeneratedProtocolMessageType('Details', (_message.Message,), {
-    'DESCRIPTOR' : _STATUS_DETAILS,
-    '__module__' : 'vector_column_service_pb2'
-    # @@protoc_insertion_point(class_scope:pinecone_columnar.Status.Details)
-    })
-  ,
-
-  'AvgTimeEntry' : _reflection.GeneratedProtocolMessageType('AvgTimeEntry', (_message.Message,), {
-    'DESCRIPTOR' : _STATUS_AVGTIMEENTRY,
-    '__module__' : 'vector_column_service_pb2'
-    # @@protoc_insertion_point(class_scope:pinecone_columnar.Status.AvgTimeEntry)
-    })
-  ,
-  'DESCRIPTOR' : _STATUS,
-  '__module__' : 'vector_column_service_pb2'
-  # @@protoc_insertion_point(class_scope:pinecone_columnar.Status)
-  })
-_sym_db.RegisterMessage(Status)
-_sym_db.RegisterMessage(Status.Details)
-_sym_db.RegisterMessage(Status.AvgTimeEntry)
 
 ScoredResults = _reflection.GeneratedProtocolMessageType('ScoredResults', (_message.Message,), {
   'DESCRIPTOR' : _SCOREDRESULTS,
@@ -1064,7 +826,6 @@ _sym_db.RegisterMessage(SummarizeResponse)
 
 
 DESCRIPTOR._options = None
-_STATUS_AVGTIMEENTRY._options = None
 
 _VECTORCOLUMNSERVICE = _descriptor.ServiceDescriptor(
   name='VectorColumnService',
@@ -1073,8 +834,8 @@ _VECTORCOLUMNSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=1788,
-  serialized_end=2397,
+  serialized_start=1295,
+  serialized_end=1904,
   methods=[
   _descriptor.MethodDescriptor(
     name='Upsert',

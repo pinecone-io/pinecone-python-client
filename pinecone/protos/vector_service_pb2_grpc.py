@@ -5,7 +5,8 @@ import grpc
 import pinecone.protos.vector_service_pb2 as vector__service__pb2
 
 class VectorServiceStub(object):
-    """The VectorService interface is exposed by Pinecone vector database services
+    """The `VectorService` interface is exposed by Pinecone's vector index services.
+    This service could also be called a `gRPC` service or a `REST`-like api.
     """
 
     def __init__(self, channel):
@@ -52,57 +53,57 @@ class VectorServiceStub(object):
 
 
 class VectorServiceServicer(object):
-    """The VectorService interface is exposed by Pinecone vector database services
+    """The `VectorService` interface is exposed by Pinecone's vector index services.
+    This service could also be called a `gRPC` service or a `REST`-like api.
     """
 
     def Upsert(self, request, context):
-        """The Upsert operation is for uploading data (vector ids and values) to be indexed.
-        Note: Most users are recommended to submit upserts via the StreamWrites operation instead.
-        If a new value is upserted for an existing vector id, it overwrites the previous value.
+        """Use the `Upsert` operation to upload data (vector ids, values, and metadata) for indexing.
+        If a new value is upserted for an existing vector id, it will overwrite the previous value.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Delete(self, request, context):
-        """The Delete operation deletes a vector by id.
+        """The `Delete` operation deletes one or more vectors by id from a single namespace.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Fetch(self, request, context):
-        """The FetchVectors operation returns a vector value by id.
+        """The `FetchVectors` operation returns vectors by id. The returned vectors include vector data and/or metadata.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Query(self, request, context):
-        """The Query operation queries the database for the nearest stored vectors to one
-        or more query vectors and returns their ids and/or values.
+        """The `Query` operation queries the index for the nearest stored vectors for one
+        or more query vectors, and returns their ids and/or values.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def List(self, request, context):
-        """The List operation returns the vector IDs in this database.
+        """The `List` operation returns the vector ids in a single namespace.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def ListNamespaces(self, request, context):
-        """The ListNamespaces operation returns the namespaces for which data exists in this
-        database.
+        """The `ListNamespaces` operation returns the namespaces with existing data in this
+        index.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Summarize(self, request, context):
-        """The Summarize operation returns summary statistics about the database contents.
+        """The `Summarize` operation returns summary statistics about the index contents.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -154,7 +155,8 @@ def add_VectorServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class VectorService(object):
-    """The VectorService interface is exposed by Pinecone vector database services
+    """The `VectorService` interface is exposed by Pinecone's vector index services.
+    This service could also be called a `gRPC` service or a `REST`-like api.
     """
 
     @staticmethod
