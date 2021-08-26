@@ -380,8 +380,15 @@
           }
         },
         "responses": {
-          "default": {
-            "description": "Something"
+          "200": {
+            "description": "Successfully Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -450,7 +457,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Index deleted successfully"
+            "description": "Successfully Deleted",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
             "description": "Index not found"
@@ -486,7 +500,14 @@
         },
         "responses": {
           "200": {
-            "description": "Number of replicas changes successfully"
+            "description": "Successfully Updated",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
             "description": "Index not found"

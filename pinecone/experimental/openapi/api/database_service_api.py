@@ -77,7 +77,7 @@ class DatabaseServiceApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                None
+                str
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -104,7 +104,7 @@ class DatabaseServiceApi(object):
 
         self.create_index = _Endpoint(
             settings={
-                'response_type': None,
+                'response_type': (str,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
@@ -154,7 +154,9 @@ class DatabaseServiceApi(object):
                 }
             },
             headers_map={
-                'accept': [],
+                'accept': [
+                    'text/plain'
+                ],
                 'content_type': [
                     'application/json'
                 ]
@@ -202,7 +204,7 @@ class DatabaseServiceApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                None
+                str
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -231,7 +233,7 @@ class DatabaseServiceApi(object):
 
         self.delete_index = _Endpoint(
             settings={
-                'response_type': None,
+                'response_type': (str,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
@@ -284,7 +286,9 @@ class DatabaseServiceApi(object):
                 }
             },
             headers_map={
-                'accept': [],
+                'accept': [
+                    'text/plain'
+                ],
                 'content_type': [],
             },
             api_client=api_client,
@@ -709,7 +713,7 @@ class DatabaseServiceApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                None
+                str
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -738,7 +742,7 @@ class DatabaseServiceApi(object):
 
         self.scale_index = _Endpoint(
             settings={
-                'response_type': None,
+                'response_type': (str,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
@@ -795,7 +799,9 @@ class DatabaseServiceApi(object):
                 }
             },
             headers_map={
-                'accept': [],
+                'accept': [
+                    'text/plain'
+                ],
                 'content_type': [
                     'application/json'
                 ]
