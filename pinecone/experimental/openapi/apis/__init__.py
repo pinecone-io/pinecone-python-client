@@ -6,7 +6,7 @@
 # raise a `RecursionError`.
 # In order to avoid this, import only the API that you directly need like:
 #
-#   from .api.vector_service_api import VectorServiceApi
+#   from .api.database_service_api import DatabaseServiceApi
 #
 # or import this package, but before doing it, use:
 #
@@ -14,4 +14,5 @@
 #   sys.setrecursionlimit(n)
 
 # Import APIs into API package:
+from pinecone.experimental.openapi.api.database_service_api import DatabaseServiceApi
 from pinecone.experimental.openapi.api.vector_service_api import VectorServiceApi

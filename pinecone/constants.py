@@ -11,12 +11,12 @@ import configparser
 from pinecone.api_action import ActionAPI, WhoAmIResponse
 from pinecone.utils import get_version, get_environment
 
-__all__ = ["CLIENT_VERSION", "Config", "PACKAGE_ENVIRONMENT", "SENTRY_DSN_TXT_RECORD"]
+__all__ = ["CLIENT_VERSION", "Config", "PACKAGE_ENVIRONMENT", "SENTRY_DSN_TXT_RECORD", "ENABLE_PROGRESS_BAR"]
 
 CLIENT_VERSION = get_version()
 PACKAGE_ENVIRONMENT = get_environment() or "development"
 SENTRY_DSN_TXT_RECORD = "pinecone-client.sentry.pinecone.io"
-
+ENABLE_PROGRESS_BAR = False
 
 def _set_sentry_tags(config: dict):
     sentry_sdk.set_tag("package_version", CLIENT_VERSION)

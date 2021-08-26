@@ -1,0 +1,11 @@
+{
+ "inputs":[
+  {
+   "inputFile":"specs/vector_service.openapi.json"
+  },
+  {
+   "inputFile":"specs/index_service.json"
+  }
+  ],
+  "output":"specs/pinecone_api.json"
+}

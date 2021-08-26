@@ -1,113 +1,45 @@
-from typing import NamedTuple, Optional, Tuple, List
-import enum
-from pinecone import logger
-
+from pinecone.constants import Config
+from pinecone.experimental.openapi.api.database_service_api import DatabaseServiceApi
+from pinecone.experimental.openapi.api_client import ApiClient
+from pinecone.experimental.openapi.configuration import Configuration
+from pinecone.experimental.openapi.model.create_request import CreateRequest
+from pinecone.experimental.openapi.model.patch_request import PatchRequest
 from pinecone.utils.sentry import sentry_decorator as sentry
-from ._database import deploy as index_deploy, stop as index_stop, ls as index_ls, describe as get_index, \
-    update as update_index
-
-__all__ = [
-    "create",
-    "delete",
-    "ls",
-    "update",
-    "describe"
-    "create_index",
-    "delete_index",
-    "describe_index",
-    "scale_index",
-    "list_indexes",
-    "ResourceType",
-    "IndexDescription",
-]
+from pinecone.constants import ENABLE_PROGRESS_BAR
+from pinecone.utils.progressbar import ProgressBar
+from typing import NamedTuple
+import json
+import time
 
 
-class ResourceType(enum.Enum):
-    INDEX = "index"
-
-
-class IndexDescription(NamedTuple):
-    """Description of an index."""
-
+class IndexMeta(NamedTuple):
     name: str
     index_type: str
     metric: str
-    dimension: int
     replicas: int
-    status: dict
-    index_config: dict
+    dimension: int
+    shards: int
+    index_config: None
 
 
-@sentry
-def create(name: str, dimension: int, wait: bool = True, index_type: str = 'approximated', metric: str = 'cosine',
-           replicas: int = 1, shards: int = 1, index_config: dict = None, kind: str = "index") -> Optional[dict]:
-    """Creates a Pinecone index.
-
-    :param name: the name of the index.
-    :type name: str
-    :param wait: wait for the index to deploy. Defaults to ``True``
-    :type wait: bool
-    :param dimension: dimension of vectors in index
-    :param index_type : type of engine in the index
-    :param  metric : metric for distance calculation
-    :param replicas : number of replicas
-    :param shards: number of shards
-    :param index_config : advanced configuration options for the index
-    :param kind: resource kind
-    """
-    if kind == ResourceType.INDEX.value:
-        response, _ = index_deploy(name=name, dimension=dimension, wait=wait, index_type=index_type, metric=metric,
-                                replicas=replicas, shards=shards, index_config=index_config)
-        return response
-    logger.warning("Unrecognized resource type '{}'.".format(kind))
+def _get_api_instance():
+    client_config = Configuration.get_default_copy()
+    client_config.api_key = client_config.api_key or {}
+    client_config.api_key['ApiKeyAuth'] = client_config.api_key.get('ApiKeyAuth', Config.API_KEY)
+    client_config.server_variables = {
+        **{
+            'environment': Config.ENVIRONMENT
+        },
+        **client_config.server_variables
+    }
+    api_client = ApiClient(configuration=client_config)
+    api_instance = DatabaseServiceApi(api_client)
+    return api_instance
 
 
-@sentry
-def delete(name: str, wait: bool = True, kind: str = "index") -> Optional[dict]:
-    """Deletes a Pinecone index.
-
-    :param name: the name of the index.
-    :type name: str
-    :param wait: wait for the index to deploy. Defaults to ``True``
-    :type wait: bool
-    :param kind: Resource Kind
-    """
-    if kind == ResourceType.INDEX.value:
-        response, _ = index_stop(db_name=name, wait=wait)
-        return response
-    logger.warning("Unrecognized resource type '{}'.".format(kind))
-
-
-@sentry
-def ls(kind: str = "index") -> Optional[List[str]]:
-    """Lists all indexes.
-    """
-    if kind == ResourceType.INDEX.value:
-        return index_ls()
-    logger.warning("Unrecognized resource type '{}'.".format(kind))
-
-
-@sentry
-def describe(name: str, kind: str = "index") -> Optional[IndexDescription]:
-    """Describes the index.
-
-    :param name: the name of the index.
-    :type name: str
-    :param kind: Resource kind
-    """
-    if kind == ResourceType.INDEX.value:
-        response = get_index(name)
-        return response
-    logger.warning("Unrecognized resource type '{}'.".format(kind))
-
-
-@sentry
-def update(name: str, replicas: int, kind: str = "index") -> Optional[dict]:
-    """Updates the number of replicas for an index
-    """
-    if kind == ResourceType.INDEX.value:
-        return update_index(name, replicas)
-    logger.warning("Unrecognized resource type '{}'.".format(kind))
+def get_status(name: str):
+    api_instance = _get_api_instance()
+    return api_instance.get_status(name)
 
 
 @sentry
@@ -120,7 +52,7 @@ def create_index(
         replicas: int = 1,
         shards: int = 1,
         index_config: dict = None
-) -> Optional[dict]:
+):
     """Creates a Pinecone index.
 
     :param name: the name of the index.
@@ -147,21 +79,32 @@ def create_index(
     :type shards: int,optional
     :param index_config: Advanced configuration options for the index
     """
-    return create(
+    api_instance = _get_api_instance()
+
+    response = api_instance.create_index(create_request=CreateRequest(
         name=name,
         dimension=dimension,
-        wait=wait,
         index_type=index_type,
         metric=metric,
         replicas=replicas,
         shards=shards,
-        index_config=index_config,
-        kind=ResourceType.INDEX.value
-    )
+        index_config=index_config or {}
+    ))
+
+    def is_ready():
+        status = api_instance.get_status(name)
+        ready = status['ready']
+        return ready
+
+    if wait:
+        while not is_ready():
+            time.sleep(1)
+
+    return response
 
 
 @sentry
-def delete_index(name: str, wait: bool = True) -> Optional[dict]:
+def delete_index(name: str, wait: bool = True):
     """Deletes a Pinecone index.
 
     :param name: the name of the index.
@@ -169,27 +112,44 @@ def delete_index(name: str, wait: bool = True) -> Optional[dict]:
     :param wait: wait for the index to deploy. Defaults to ``True``
     :type wait: bool
     """
-    return delete(name=name, wait=wait, kind=ResourceType.INDEX.value)
+    api_instance = _get_api_instance()
+    response = api_instance.delete_index(name)
+
+    def get_remaining():
+        return name in api_instance.list_indexes()
+
+    if wait:
+        while get_remaining():
+            time.sleep(1)
+
+    return response
 
 
 @sentry
-def list_indexes() -> Optional[List[str]]:
+def list_indexes():
     """Lists all indexes."""
-    return ls(kind=ResourceType.INDEX.value)
+    api_instance = _get_api_instance()
+    response = api_instance.list_indexes()
+    return response
 
 
 @sentry
-def describe_index(name: str) -> Optional[IndexDescription]:
+def describe_index(name: str):
     """Describes a Pinecone index.
 
     :param: the name of the index
-    :return: IndexDescription
+    :return: Description of an index
     """
-    return describe(name=name, kind=ResourceType.INDEX.value)
+    api_instance = _get_api_instance()
+    response = api_instance.describe_index(name)
+    db = json.loads(response['database'])
+    return IndexMeta(name=db['metadata']['name'], index_type=db['spec']['index_type'], metric=db['spec']['metric'],
+                     replicas=db['spec']['replicas'], dimension=db['spec']['dimension'], shards=db['spec']['shards'],
+                     index_config=db['spec']['index_config'])
 
 
 @sentry
-def scale_index(name: str, replicas: int) -> Optional[IndexDescription]:
+def scale_index(name: str, replicas: int):
     """Increases number of replicas for the index.
 
     :param name: the name of the Index
@@ -197,4 +157,6 @@ def scale_index(name: str, replicas: int) -> Optional[IndexDescription]:
     :param replicas: the number of replicas in the index now, lowest value is 0.
     :type replicas: int
     """
-    return update(name, replicas, kind=ResourceType.INDEX.value)
+    api_instance = _get_api_instance()
+    response = api_instance.scale_index(name, patch_request=PatchRequest(replicas=replicas))
+    return response

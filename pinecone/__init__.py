@@ -6,7 +6,7 @@ from loguru import logger
 import sys
 from .utils.sentry import sentry_decorator as sentry
 from .constants import Config, CLIENT_VERSION as __version__
-from .manage import create_index, delete_index, describe_index, list_indexes, IndexDescription, scale_index
+from .manage import create_index, delete_index, describe_index, list_indexes, scale_index, get_status
 from .index import Index
 from .experimental.openapi.models import FetchResponse, ListNamespacesResponse, ListResponse, ProtobufAny, \
     QueryRequest, QueryResponse, QueryVector, RpcStatus, ScoredVector, SingleQueryResults, SummarizeResponse, \
@@ -17,7 +17,7 @@ from .experimental.openapi.exceptions import OpenApiException, ApiAttributeError
 __all__ = [
     "init",
     # Control plane names
-    "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "IndexDescription",
+    "create_index", "delete_index", "describe_index", "list_indexes", "scale_index",
     # Data plane
     "Index",
     # Data plane OpenAPI models
@@ -38,8 +38,10 @@ QueryResult = None
 FetchResult = None
 InfoResult = None
 
+
 @sentry
-def init(project_name: str = None, api_key: str = None, host: str = None, environment: str = None, config: str = "~/.pinecone", **kwargs):
+def init(project_name: str = None, api_key: str = None, host: str = None, environment: str = None,
+         config: str = "~/.pinecone", **kwargs):
     """Initializes the Pinecone client.
 
     :param api_key: Required if not set in config file or by environment variable ``PINECONE_API_KEY``.
@@ -47,7 +49,8 @@ def init(project_name: str = None, api_key: str = None, host: str = None, enviro
     :param environment: Optional. Deployment environment.
     :param config: Optional. An INI configuration file.
     """
-    Config.reset(project_name=project_name, api_key=api_key, controller_host=host, environment=environment, config_file=config, **kwargs)
+    Config.reset(project_name=project_name, api_key=api_key, controller_host=host, environment=environment,
+                 config_file=config, **kwargs)
     if not bool(Config.API_KEY):
         logger.warning("API key is required.")
 

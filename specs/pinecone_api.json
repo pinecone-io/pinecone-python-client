@@ -1,0 +1,1106 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Pinecone JSON API",
+    "version": "version not set",
+    "contact": {
+      "name": "Pinecone.io Ops",
+      "url": "https://pinecone.io",
+      "email": "support@pinecone.io"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://{service_prefix}.svc.{environment}.pinecone.io",
+      "variables": {
+        "service_prefix": {
+          "default": "unknown"
+        },
+        "environment": {
+          "default": "unknown"
+        }
+      }
+    }
+  ],
+  "externalDocs": {
+    "description": "More Pinecone.io API docs",
+    "url": "https://www.pinecone.io/docs"
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "VectorService"
+    },
+    {
+      "name": "DatabseService"
+    }
+  ],
+  "paths": {
+    "/namespaces/list": {
+      "get": {
+        "summary": "The `ListNamespaces` operation returns the namespaces with existing data in this\nindex.",
+        "operationId": "VectorService_ListNamespaces",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListNamespacesResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VectorService"
+        ]
+      }
+    },
+    "/query": {
+      "post": {
+        "summary": "The `Query` operation queries the index for the nearest stored vectors for one\nor more query vectors, and returns their ids and/or values.",
+        "operationId": "VectorService_Query",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "tags": [
+          "VectorService"
+        ]
+      }
+    },
+    "/summarize": {
+      "get": {
+        "summary": "The `Summarize` operation returns summary statistics about the index contents.",
+        "operationId": "VectorService_Summarize",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummarizeResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VectorService"
+        ]
+      }
+    },
+    "/vectors/delete": {
+      "delete": {
+        "summary": "The `Delete` operation deletes one or more vectors by id from a single namespace.",
+        "operationId": "VectorService_Delete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "ids",
+            "description": "Vectors to delete.",
+            "in": "query",
+            "required": false,
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "deleteAll",
+            "description": "This indicates that all vectors in the index namespace should be deleted.",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "namespace",
+            "description": "The namespace to delete vectors from, if applicable.",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "VectorService"
+        ]
+      }
+    },
+    "/vectors/fetch": {
+      "get": {
+        "summary": "The `FetchVectors` operation returns vectors by id. The returned vectors include vector data and/or metadata.",
+        "operationId": "VectorService_Fetch",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FetchResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "ids",
+            "description": "The vector ids to fetch.",
+            "in": "query",
+            "required": false,
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "VectorService"
+        ]
+      }
+    },
+    "/vectors/list": {
+      "get": {
+        "summary": "The `List` operation returns the vector ids in a single namespace.",
+        "operationId": "VectorService_List",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "description": "The namespace whose vectors will be returned.",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "VectorService"
+        ]
+      }
+    },
+    "/vectors/upsert": {
+      "post": {
+        "summary": "Use the `Upsert` operation to upload data (vector ids, values, and metadata) for indexing.\nIf a new value is upserted for an existing vector id, it will overwrite the previous value.",
+        "operationId": "VectorService_Upsert",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpsertResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "tags": [
+          "VectorService"
+        ]
+      }
+    },
+    "/databases": {
+      "get": {
+        "operationId": "list_indexes",
+        "description": "Returns the list of active indexes",
+        "responses": {
+          "200": {
+            "description": "List of indexes running for the given API key",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DatabaseService"
+        ]
+      },
+      "post": {
+        "operationId": "create_index",
+        "description": "Creates an index",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/createRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DatabaseService"
+        ]
+      },
+      "servers": [
+        {
+          "url": "https://controller.{environment}.pinecone.io",
+          "variables": {
+            "environment": {
+              "default": "unknown"
+            }
+          }
+        }
+      ]
+    },
+    "/databases/{indexName}": {
+      "get": {
+        "operationId": "describe_index",
+        "description": "Get description on an index",
+        "parameters": [
+          {
+            "name": "indexName",
+            "required": true,
+            "in": "path",
+            "description": "Name of the index",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Index information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "$ref": "#/components/schemas/indexMeta"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Index not found"
+          }
+        },
+        "tags": [
+          "DatabaseService"
+        ]
+      },
+      "delete": {
+        "operationId": "delete_index",
+        "description": "Delete an existing index",
+        "parameters": [
+          {
+            "name": "indexName",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name of the index"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully Deleted",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Index not found"
+          }
+        },
+        "tags": [
+          "DatabaseService"
+        ]
+      },
+      "patch": {
+        "operationId": "scale_index",
+        "description": "Increase or Decrease the number of replicas in the index",
+        "parameters": [
+          {
+            "name": "indexName",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name of the index"
+          }
+        ],
+        "requestBody": {
+          "description": "Number of replicas",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/patchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully Updated",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Index not found"
+          }
+        },
+        "tags": [
+          "DatabaseService"
+        ]
+      },
+      "servers": [
+        {
+          "url": "https://controller.{environment}.pinecone.io",
+          "variables": {
+            "environment": {
+              "default": "unknown"
+            }
+          }
+        }
+      ]
+    },
+    "/databases/{indexName}/status": {
+      "get": {
+        "operationId": "get_status",
+        "description": "Get status of an index",
+        "parameters": [
+          {
+            "name": "indexName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name of the index"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Index is ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/statusResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error"
+          }
+        },
+        "tags": [
+          "DatabaseService"
+        ]
+      },
+      "servers": [
+        {
+          "url": "https://controller.{environment}.pinecone.io",
+          "variables": {
+            "environment": {
+              "default": "unknown"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "components": {
+    "schemas": {
+      "DeleteResponse": {
+        "type": "object",
+        "description": "The response for the `Delete` operation."
+      },
+      "FetchResponse": {
+        "type": "object",
+        "properties": {
+          "vectors": {
+            "type": "array",
+            "example": [
+              {
+                "id": "id-0",
+                "values": [
+                  17.222,
+                  7.234,
+                  8.73
+                ],
+                "metadata": "{mykey:myvalue}"
+              },
+              {
+                "id": "id-0",
+                "values": [
+                  15.222,
+                  2.234,
+                  4.73
+                ],
+                "metadata": "{mykey:myvalue}"
+              }
+            ],
+            "items": {
+              "$ref": "#/components/schemas/Vector"
+            },
+            "description": "The fetched vectors. These follow the same order as `FetchRequest.ids`."
+          },
+          "namespace": {
+            "type": "string",
+            "description": "The namespace of the vectors."
+          }
+        },
+        "description": "The response for the `Fetch` operation."
+      },
+      "ListNamespacesResponse": {
+        "type": "object",
+        "properties": {
+          "namespaces": {
+            "type": "array",
+            "example": [
+              "namespace_a",
+              "namespace_a"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "The namespaces that exist in the index."
+          }
+        },
+        "description": "The request for the `ListNamespaces` operation."
+      },
+      "ListResponse": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "type": "array",
+            "example": [
+              "id-0",
+              "id-1",
+              "id-2"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "namespace": {
+            "type": "string",
+            "example": "namespace_a"
+          }
+        },
+        "description": "The response module for the list operation."
+      },
+      "QueryRequest": {
+        "type": "object",
+        "properties": {
+          "namespace": {
+            "type": "string",
+            "example": "namespace_a",
+            "description": "The default namespace to query if no namespace is specified in `QueryVector`. The default value is `\"\"`."
+          },
+          "topK": {
+            "type": "integer",
+            "format": "int64",
+            "example": {
+              "top_k": 102
+            },
+            "description": "The default number of results to return for each query."
+          },
+          "filter": {
+            "type": "object",
+            "example": "filter_a",
+            "description": "The default filter to apply if no filter is specified in `QueryVector`. The default value is empty ({})."
+          },
+          "includeData": {
+            "type": "boolean",
+            "example": {
+              "include_data": true
+            },
+            "description": "Indicates whether vectors are included in the response as well as the ids."
+          },
+          "includeMetadata": {
+            "type": "boolean",
+            "example": {
+              "include_data": true
+            },
+            "description": "Indicates whether metadata is included in the response as well as the ids."
+          },
+          "queries": {
+            "type": "array",
+            "example": {
+              "queries": [
+                {
+                  "vector": {
+                    "values": [
+                      1.524,
+                      2.23432,
+                      3.664
+                    ]
+                  },
+                  "top_k": 106,
+                  "namespace": "namespace_a",
+                  "filter": "filter_to_use"
+                },
+                {
+                  "vector": {
+                    "values": [
+                      2.4,
+                      3.22,
+                      7.664
+                    ]
+                  },
+                  "top_k": 90,
+                  "namespace": "namespace_a",
+                  "filter": "another_filter_to_use"
+                }
+              ]
+            },
+            "items": {
+              "$ref": "#/components/schemas/QueryVector"
+            },
+            "description": "The query vectors."
+          }
+        },
+        "description": "The request for the `Query` operation."
+      },
+      "QueryResponse": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SingleQueryResults"
+            },
+            "description": "The results of each query. The order is the same as `QueryRequest.queries`."
+          }
+        },
+        "description": "The response for the `Query` operation. These are the matches found for a particular query vector. The matches are ordered from most similar to least similar."
+      },
+      "QueryVector": {
+        "type": "object",
+        "properties": {
+          "values": {
+            "type": "array",
+            "example": [
+              1.524,
+              2.23432,
+              3.664
+            ],
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "topK": {
+            "type": "integer",
+            "format": "int64",
+            "example": {
+              "top_k": 106
+            },
+            "description": "The number of results to return for this query vector."
+          },
+          "namespace": {
+            "type": "string",
+            "example": "namespace_a",
+            "description": "The namespace to search."
+          },
+          "filter": {
+            "type": "object",
+            "example": "filter_to_use",
+            "description": "The metadata filter to apply."
+          }
+        },
+        "description": "A single query vector within a `QueryRequest`."
+      },
+      "ScoredVector": {
+        "type": "object",
+        "example": {
+          "id": "id-0",
+          "score": 5.4,
+          "values": [
+            1.22,
+            2.234,
+            3.73
+          ],
+          "metadata": "{mykey : myvalue}"
+        },
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number",
+            "format": "float"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      },
+      "SingleQueryResults": {
+        "type": "object",
+        "properties": {
+          "matches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScoredVector"
+            }
+          },
+          "namespace": {
+            "type": "string",
+            "example": "namespace_a"
+          }
+        },
+        "title": "The query results for a single `QueryVector`"
+      },
+      "SummarizeResponse": {
+        "type": "object",
+        "properties": {
+          "indexSize": {
+            "type": "integer",
+            "format": "int64",
+            "example": {
+              "index_size": 106
+            },
+            "description": "The size of a stateful function `Index`."
+          },
+          "dimension": {
+            "type": "integer",
+            "format": "int64",
+            "example": {
+              "dimension": 2
+            },
+            "description": "The dimension of the indexed vectors."
+          }
+        },
+        "description": "The response for the `Summarize` operation."
+      },
+      "UpsertRequest": {
+        "type": "object",
+        "properties": {
+          "vectors": {
+            "type": "array",
+            "example": [
+              {
+                "id": "id-0",
+                "values": [
+                  1.22,
+                  2.234,
+                  3.73
+                ],
+                "metadata": "{mykey : myvalue}"
+              }
+            ],
+            "items": {
+              "$ref": "#/components/schemas/Vector"
+            },
+            "description": "This is the actual array data."
+          },
+          "namespace": {
+            "type": "string",
+            "description": "This is the namespace name where you upsert vectors."
+          }
+        },
+        "description": "The request for the `Upsert` operation."
+      },
+      "UpsertResponse": {
+        "type": "object",
+        "description": "The response for the `Upsert` operation."
+      },
+      "Vector": {
+        "type": "object",
+        "example": {
+          "id": "id-0",
+          "values": [
+            1.22,
+            2.234,
+            3.73
+          ],
+          "metadata": "{mykey : myvalue}"
+        },
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      },
+      "protobufAny": {
+        "type": "object",
+        "properties": {
+          "typeUrl": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string",
+            "format": "byte"
+          }
+        }
+      },
+      "protobufNullValue": {
+        "type": "string",
+        "enum": [
+          "NULL_VALUE"
+        ],
+        "default": "NULL_VALUE",
+        "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\n The JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
+      },
+      "rpcStatus": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/protobufAny"
+            }
+          }
+        }
+      },
+      "createRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "dimension"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the index to be created"
+          },
+          "dimension": {
+            "type": "integer",
+            "description": "The dimensions of the vectors to be inserted in the index"
+          },
+          "index_type": {
+            "type": "string",
+            "description": "Type of vector index",
+            "default": "approximated"
+          },
+          "metric": {
+            "type": "string",
+            "description": "Distance metric to be used for similarity search",
+            "default": "cosine"
+          },
+          "replicas": {
+            "type": "integer",
+            "description": "The number of replicas",
+            "default": 1
+          },
+          "shards": {
+            "type": "integer",
+            "description": "Number of shards to be used in the index. Use 1 shard per 1GB of data.",
+            "default": 1
+          },
+          "index_config": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/HnswConfig"
+              },
+              {
+                "$ref": "#/components/schemas/ApproximatedConfig"
+              }
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "description": "Resource kind",
+            "default": "database"
+          }
+        }
+      },
+      "indexMeta": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "dimensions": {
+            "type": "string"
+          },
+          "index_type": {
+            "type": "string"
+          },
+          "metric": {
+            "type": "string"
+          },
+          "replicas": {
+            "type": "integer"
+          },
+          "shards": {
+            "type": "integer"
+          },
+          "index_config": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/HnswConfig"
+              },
+              {
+                "$ref": "#/components/schemas/ApproximatedConfig"
+              }
+            ]
+          }
+        }
+      },
+      "patchRequest": {
+        "type": "object",
+        "properties": {
+          "replicas": {
+            "type": "integer"
+          }
+        }
+      },
+      "HnswConfig": {
+        "type": "object",
+        "properties": {
+          "ef_construction": {
+            "type": "integer",
+            "default": 500
+          },
+          "ef": {
+            "type": "integer",
+            "default": 250
+          },
+          "M": {
+            "type": "integer",
+            "default": 12
+          },
+          "max_elements": {
+            "type": "integer",
+            "default": 50000000
+          }
+        }
+      },
+      "ApproximatedConfig": {
+        "type": "object",
+        "properties": {
+          "kbits": {
+            "type": "integer",
+            "default": 512
+          },
+          "hybrid": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "statusResponse": {
+        "type": "object",
+        "properties": {
+          "crashed": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ready": {
+            "type": "boolean"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "waiting": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "name": "api-key",
+        "in": "header"
+      }
+    }
+  }
+}
