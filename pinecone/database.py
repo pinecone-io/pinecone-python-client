@@ -68,12 +68,6 @@ def create_index(
     :param index_config: Advanced configuration options for the index
     """
     api_instance = get_api_instance()
-    if name in api_instance.list_indexes():
-        raise RuntimeError(
-            "An index with the name '{}' already exists. Please deploy your index with a different name.".format(
-                name
-            )
-        )
 
     response = api_instance.create_index(create_request=CreateRequest(
         name=name,
@@ -84,7 +78,7 @@ def create_index(
         shards=shards,
         index_config=index_config
     ))
-    
+
     return response
 
 

@@ -53,8 +53,8 @@
                   }
                },
                "responses": {
-                  "200": {
-                     "description": "Index created successfully"
+                  "default": {
+                     "description": "Something"
                   }
                },
                "tags": [

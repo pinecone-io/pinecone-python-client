@@ -25,7 +25,6 @@ from pinecone.experimental.openapi.model_utils import (  # noqa: F401
 from pinecone.experimental.openapi.model.create_request import CreateRequest
 from pinecone.experimental.openapi.model.index_meta import IndexMeta
 from pinecone.experimental.openapi.model.patch_request import PatchRequest
-from pinecone.experimental.openapi.model.status_response import StatusResponse
 
 
 class DatabaseServiceApi(object):
@@ -77,7 +76,7 @@ class DatabaseServiceApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                StatusResponse
+                None
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -104,7 +103,7 @@ class DatabaseServiceApi(object):
 
         self.create_index = _Endpoint(
             settings={
-                'response_type': (StatusResponse,),
+                'response_type': None,
                 'auth': [
                     'ApiKeyAuth'
                 ],
@@ -154,9 +153,7 @@ class DatabaseServiceApi(object):
                 }
             },
             headers_map={
-                'accept': [
-                    'application/json'
-                ],
+                'accept': [],
                 'content_type': [
                     'application/json'
                 ]
@@ -462,7 +459,7 @@ class DatabaseServiceApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                StatusResponse
+                None
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -491,7 +488,7 @@ class DatabaseServiceApi(object):
 
         self.get_status = _Endpoint(
             settings={
-                'response_type': (StatusResponse,),
+                'response_type': None,
                 'auth': [
                     'ApiKeyAuth'
                 ],
@@ -544,9 +541,7 @@ class DatabaseServiceApi(object):
                 }
             },
             headers_map={
-                'accept': [
-                    'application/json'
-                ],
+                'accept': [],
                 'content_type': [],
             },
             api_client=api_client,
@@ -711,7 +706,7 @@ class DatabaseServiceApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                StatusResponse
+                None
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -740,7 +735,7 @@ class DatabaseServiceApi(object):
 
         self.scale_index = _Endpoint(
             settings={
-                'response_type': (StatusResponse,),
+                'response_type': None,
                 'auth': [
                     'ApiKeyAuth'
                 ],
@@ -797,9 +792,7 @@ class DatabaseServiceApi(object):
                 }
             },
             headers_map={
-                'accept': [
-                    'application/json'
-                ],
+                'accept': [],
                 'content_type': [
                     'application/json'
                 ]
