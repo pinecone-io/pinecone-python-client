@@ -381,14 +381,7 @@
         },
         "responses": {
           "200": {
-            "description": "Index created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/statusResponse"
-                }
-              }
-            }
+            "description": "Index created successfully"
           }
         },
         "tags": [
@@ -493,17 +486,10 @@
         },
         "responses": {
           "200": {
-            "description": "Number of replicas changes successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/statusResponse"
-                }
-              }
-            }
+            "description": "Number of replicas changes successfully"
           },
           "404": {
-            "description": "Bad Request"
+            "description": "Index not found"
           }
         },
         "tags": [
@@ -538,14 +524,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Index is ready",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/statusResponse"
-                }
-              }
-            }
+            "description": "Index is ready"
           },
           "default": {
             "description": "An unexpected error"

@@ -2,10 +2,10 @@ from typing import NamedTuple, Iterable, Tuple, List
 
 from pinecone.utils.sentry import sentry_decorator as sentry
 from pinecone.constants import Config
-
+from pinecone.constants import ENABLE_PROGRESS_BAR
 import enum
 from pinecone import logger
-
+from pinecone.utils.progressbar import ProgressBar
 from pinecone.experimental.openapi.api.database_service_api import DatabaseServiceApi
 from pinecone.experimental.openapi.api_client import ApiClient
 from pinecone.experimental.openapi.model.create_request import CreateRequest
@@ -17,7 +17,6 @@ from pinecone.experimental.openapi.configuration import Configuration
 
 def get_api_instance():
     client_config = Configuration.get_default_copy()
-    client_config.verify_ssl = False
     client_config.api_key = client_config.api_key or {}
     client_config.api_key['ApiKeyAuth'] = client_config.api_key.get('ApiKeyAuth', Config.API_KEY)
     client_config.server_variables = {
@@ -85,12 +84,7 @@ def create_index(
         shards=shards,
         index_config=index_config
     ))
-
-    # ready = False
-    # while not ready:
-    #     status = api_instance.get_status(name)
-    #     ready = status.get('ready')
-
+    
     return response
 
 
@@ -140,3 +134,4 @@ def scale_index(name: str, replicas: int):
     """
     api_instance = get_api_instance()
     response = api_instance.scale_index(name, patch_request=PatchRequest(replicas=replicas))
+    return response
