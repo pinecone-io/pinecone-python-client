@@ -5,7 +5,8 @@ import grpc
 import pinecone.protos.vector_service_pb2 as vector__service__pb2
 
 class VectorServiceStub(object):
-    """The VectorService interface is exposed by Pinecone vector database services
+    """The `VectorService` interface is exposed by Pinecone's vector index services.
+    This service could also be called a `gRPC` service or a `REST`-like api.
     """
 
     def __init__(self, channel):
@@ -15,94 +16,94 @@ class VectorServiceStub(object):
             channel: A grpc.Channel.
         """
         self.Upsert = channel.unary_unary(
-                '/pinecone.VectorService/Upsert',
+                '/VectorService/Upsert',
                 request_serializer=vector__service__pb2.UpsertRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.UpsertResponse.FromString,
                 )
         self.Delete = channel.unary_unary(
-                '/pinecone.VectorService/Delete',
+                '/VectorService/Delete',
                 request_serializer=vector__service__pb2.DeleteRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.DeleteResponse.FromString,
                 )
         self.Fetch = channel.unary_unary(
-                '/pinecone.VectorService/Fetch',
+                '/VectorService/Fetch',
                 request_serializer=vector__service__pb2.FetchRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.FetchResponse.FromString,
                 )
         self.Query = channel.unary_unary(
-                '/pinecone.VectorService/Query',
+                '/VectorService/Query',
                 request_serializer=vector__service__pb2.QueryRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.QueryResponse.FromString,
                 )
         self.List = channel.unary_unary(
-                '/pinecone.VectorService/List',
+                '/VectorService/List',
                 request_serializer=vector__service__pb2.ListRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.ListResponse.FromString,
                 )
         self.ListNamespaces = channel.unary_unary(
-                '/pinecone.VectorService/ListNamespaces',
+                '/VectorService/ListNamespaces',
                 request_serializer=vector__service__pb2.ListNamespacesRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.ListNamespacesResponse.FromString,
                 )
         self.Summarize = channel.unary_unary(
-                '/pinecone.VectorService/Summarize',
+                '/VectorService/Summarize',
                 request_serializer=vector__service__pb2.SummarizeRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.SummarizeResponse.FromString,
                 )
 
 
 class VectorServiceServicer(object):
-    """The VectorService interface is exposed by Pinecone vector database services
+    """The `VectorService` interface is exposed by Pinecone's vector index services.
+    This service could also be called a `gRPC` service or a `REST`-like api.
     """
 
     def Upsert(self, request, context):
-        """The Upsert operation is for uploading data (vector ids and values) to be indexed.
-        Note: Most users are recommended to submit upserts via the StreamWrites operation instead.
-        If a new value is upserted for an existing vector id, it overwrites the previous value.
+        """Use the `Upsert` operation to upload data (vector ids, values, and metadata) for indexing.
+        If a new value is upserted for an existing vector id, it will overwrite the previous value.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Delete(self, request, context):
-        """The Delete operation deletes a vector by id.
+        """The `Delete` operation deletes one or more vectors by id from a single namespace.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Fetch(self, request, context):
-        """The FetchVectors operation returns a vector value by id.
+        """The `FetchVectors` operation returns vectors by id. The returned vectors include vector data and/or metadata.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Query(self, request, context):
-        """The Query operation queries the database for the nearest stored vectors to one
-        or more query vectors and returns their ids and/or values.
+        """The `Query` operation queries the index for the nearest stored vectors for one
+        or more query vectors, and returns their ids and/or values.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def List(self, request, context):
-        """The List operation returns the vector IDs in this database.
+        """The `List` operation returns the vector ids in a single namespace.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def ListNamespaces(self, request, context):
-        """The ListNamespaces operation returns the namespaces for which data exists in this
-        database.
+        """The `ListNamespaces` operation returns the namespaces with existing data in this
+        index.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Summarize(self, request, context):
-        """The Summarize operation returns summary statistics about the database contents.
+        """The `Summarize` operation returns summary statistics about the index contents.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -148,13 +149,14 @@ def add_VectorServiceServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'pinecone.VectorService', rpc_method_handlers)
+            'VectorService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
  # This class is part of an EXPERIMENTAL API.
 class VectorService(object):
-    """The VectorService interface is exposed by Pinecone vector database services
+    """The `VectorService` interface is exposed by Pinecone's vector index services.
+    This service could also be called a `gRPC` service or a `REST`-like api.
     """
 
     @staticmethod
@@ -168,7 +170,7 @@ class VectorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone.VectorService/Upsert',
+        return grpc.experimental.unary_unary(request, target, '/VectorService/Upsert',
             vector__service__pb2.UpsertRequest.SerializeToString,
             vector__service__pb2.UpsertResponse.FromString,
             options, channel_credentials,
@@ -185,7 +187,7 @@ class VectorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone.VectorService/Delete',
+        return grpc.experimental.unary_unary(request, target, '/VectorService/Delete',
             vector__service__pb2.DeleteRequest.SerializeToString,
             vector__service__pb2.DeleteResponse.FromString,
             options, channel_credentials,
@@ -202,7 +204,7 @@ class VectorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone.VectorService/Fetch',
+        return grpc.experimental.unary_unary(request, target, '/VectorService/Fetch',
             vector__service__pb2.FetchRequest.SerializeToString,
             vector__service__pb2.FetchResponse.FromString,
             options, channel_credentials,
@@ -219,7 +221,7 @@ class VectorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone.VectorService/Query',
+        return grpc.experimental.unary_unary(request, target, '/VectorService/Query',
             vector__service__pb2.QueryRequest.SerializeToString,
             vector__service__pb2.QueryResponse.FromString,
             options, channel_credentials,
@@ -236,7 +238,7 @@ class VectorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone.VectorService/List',
+        return grpc.experimental.unary_unary(request, target, '/VectorService/List',
             vector__service__pb2.ListRequest.SerializeToString,
             vector__service__pb2.ListResponse.FromString,
             options, channel_credentials,
@@ -253,7 +255,7 @@ class VectorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone.VectorService/ListNamespaces',
+        return grpc.experimental.unary_unary(request, target, '/VectorService/ListNamespaces',
             vector__service__pb2.ListNamespacesRequest.SerializeToString,
             vector__service__pb2.ListNamespacesResponse.FromString,
             options, channel_credentials,
@@ -270,7 +272,7 @@ class VectorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone.VectorService/Summarize',
+        return grpc.experimental.unary_unary(request, target, '/VectorService/Summarize',
             vector__service__pb2.SummarizeRequest.SerializeToString,
             vector__service__pb2.SummarizeResponse.FromString,
             options, channel_credentials,

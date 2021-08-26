@@ -42,7 +42,7 @@
   "paths": {
     "/namespaces/list": {
       "get": {
-        "summary": "The ListNamespaces operation returns the namespaces for which data exists in this\ndatabase.",
+        "summary": "The `ListNamespaces` operation returns the namespaces with existing data in this\nindex.",
         "operationId": "VectorService_ListNamespaces",
         "responses": {
           "200": {
@@ -50,7 +50,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/pineconeListNamespacesResponse"
+                  "$ref": "#/components/schemas/ListNamespacesResponse"
                 }
               }
             }
@@ -73,7 +73,7 @@
     },
     "/query": {
       "post": {
-        "summary": "The Query operation queries the database for the nearest stored vectors to one\nor more query vectors and returns their ids and/or values.",
+        "summary": "The `Query` operation queries the index for the nearest stored vectors for one\nor more query vectors, and returns their ids and/or values.",
         "operationId": "VectorService_Query",
         "responses": {
           "200": {
@@ -81,7 +81,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/pineconeQueryResponse"
+                  "$ref": "#/components/schemas/QueryResponse"
                 }
               }
             }
@@ -101,7 +101,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/pineconeQueryRequest"
+                "$ref": "#/components/schemas/QueryRequest"
               }
             }
           },
@@ -114,7 +114,7 @@
     },
     "/summarize": {
       "get": {
-        "summary": "The Summarize operation returns summary statistics about the database contents.",
+        "summary": "The `Summarize` operation returns summary statistics about the index contents.",
         "operationId": "VectorService_Summarize",
         "responses": {
           "200": {
@@ -122,7 +122,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/pineconeSummarizeResponse"
+                  "$ref": "#/components/schemas/SummarizeResponse"
                 }
               }
             }
@@ -145,7 +145,7 @@
     },
     "/vectors/delete": {
       "delete": {
-        "summary": "The Delete operation deletes a vector by id.",
+        "summary": "The `Delete` operation deletes one or more vectors by id from a single namespace.",
         "operationId": "VectorService_Delete",
         "responses": {
           "200": {
@@ -153,7 +153,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/pineconeDeleteResponse"
+                  "$ref": "#/components/schemas/DeleteResponse"
                 }
               }
             }
@@ -185,7 +185,7 @@
           },
           {
             "name": "deleteAll",
-            "description": "Indicates that all vectors in the index namespace should be deleted.",
+            "description": "This indicates that all vectors in the index namespace should be deleted.",
             "in": "query",
             "required": false,
             "schema": {
@@ -194,7 +194,7 @@
           },
           {
             "name": "namespace",
-            "description": "Namespace to delete vectors from applicable.",
+            "description": "The namespace to delete vectors from, if applicable.",
             "in": "query",
             "required": false,
             "schema": {
@@ -209,7 +209,7 @@
     },
     "/vectors/fetch": {
       "get": {
-        "summary": "The FetchVectors operation returns a vector value by id.",
+        "summary": "The `FetchVectors` operation returns vectors by id. The returned vectors include vector data and/or metadata.",
         "operationId": "VectorService_Fetch",
         "responses": {
           "200": {
@@ -217,7 +217,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/pineconeFetchResponse"
+                  "$ref": "#/components/schemas/FetchResponse"
                 }
               }
             }
@@ -236,7 +236,7 @@
         "parameters": [
           {
             "name": "ids",
-            "description": "Vector ids to fetch.",
+            "description": "The vector ids to fetch.",
             "in": "query",
             "required": false,
             "explode": true,
@@ -263,7 +263,7 @@
     },
     "/vectors/list": {
       "get": {
-        "summary": "The List operation returns the vector IDs in this database.",
+        "summary": "The `List` operation returns the vector ids in a single namespace.",
         "operationId": "VectorService_List",
         "responses": {
           "200": {
@@ -271,7 +271,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/pineconeListResponse"
+                  "$ref": "#/components/schemas/ListResponse"
                 }
               }
             }
@@ -290,7 +290,7 @@
         "parameters": [
           {
             "name": "namespace",
-            "description": "Namespace to list vectors of.",
+            "description": "The namespace whose vectors will be returned.",
             "in": "query",
             "required": false,
             "schema": {
@@ -305,7 +305,7 @@
     },
     "/vectors/upsert": {
       "post": {
-        "summary": "The Upsert operation is for uploading data (vector ids and values) to be indexed.\nNote: Most users are recommended to submit upserts via the StreamWrites operation instead.\nIf a new value is upserted for an existing vector id, it overwrites the previous value.",
+        "summary": "Use the `Upsert` operation to upload data (vector ids, values, and metadata) for indexing.\nIf a new value is upserted for an existing vector id, it will overwrite the previous value.",
         "operationId": "VectorService_Upsert",
         "responses": {
           "200": {
@@ -313,7 +313,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/pineconeUpsertResponse"
+                  "$ref": "#/components/schemas/UpsertResponse"
                 }
               }
             }
@@ -333,7 +333,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/pineconeUpsertRequest"
+                "$ref": "#/components/schemas/UpsertRequest"
               }
             }
           },
@@ -548,166 +548,219 @@
   },
   "components": {
     "schemas": {
-      "QueryRequestQueryVector": {
+      "DeleteResponse": {
         "type": "object",
-        "properties": {
-          "vector": {
-            "$ref": "#/components/schemas/pineconeAnonymousVector"
-          },
-          "topK": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "namespace": {
-            "type": "string"
-          },
-          "filter": {
-            "type": "string"
-          }
-        }
+        "description": "The response for the `Delete` operation."
       },
-      "QueryResponseSingleQueryResults": {
-        "type": "object",
-        "properties": {
-          "matches": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/pineconeScoredVector"
-            }
-          },
-          "namespace": {
-            "type": "string"
-          }
-        }
-      },
-      "pineconeAnonymousVector": {
-        "type": "object",
-        "properties": {
-          "values": {
-            "type": "array",
-            "items": {
-              "type": "number",
-              "format": "float"
-            }
-          }
-        }
-      },
-      "pineconeDeleteResponse": {
-        "type": "object",
-        "title": "Response model for the Delete operation"
-      },
-      "pineconeDenseVector": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "values": {
-            "type": "array",
-            "items": {
-              "type": "number",
-              "format": "float"
-            }
-          },
-          "metadata": {
-            "type": "string"
-          }
-        }
-      },
-      "pineconeFetchResponse": {
+      "FetchResponse": {
         "type": "object",
         "properties": {
           "vectors": {
             "type": "array",
+            "example": [
+              {
+                "id": "id-0",
+                "values": [
+                  17.222,
+                  7.234,
+                  8.73
+                ],
+                "metadata": "{mykey:myvalue}"
+              },
+              {
+                "id": "id-0",
+                "values": [
+                  15.222,
+                  2.234,
+                  4.73
+                ],
+                "metadata": "{mykey:myvalue}"
+              }
+            ],
             "items": {
-              "$ref": "#/components/schemas/pineconeDenseVector"
+              "$ref": "#/components/schemas/Vector"
             },
-            "title": "Fetched vectors"
+            "description": "The fetched vectors. These follow the same order as `FetchRequest.ids`."
           },
           "namespace": {
             "type": "string",
-            "title": "The namespace of the vectors"
+            "description": "The namespace of the vectors."
           }
         },
-        "title": "Response model for the Fetch operation"
+        "description": "The response for the `Fetch` operation."
       },
-      "pineconeListNamespacesResponse": {
+      "ListNamespacesResponse": {
         "type": "object",
         "properties": {
           "namespaces": {
             "type": "array",
+            "example": [
+              "namespace_a",
+              "namespace_a"
+            ],
             "items": {
               "type": "string"
             },
-            "title": "Namespaces that exist in the database"
+            "description": "The namespaces that exist in the index."
           }
         },
-        "title": "Request model for the ListNamespaces operation"
+        "description": "The request for the `ListNamespaces` operation."
       },
-      "pineconeListResponse": {
+      "ListResponse": {
         "type": "object",
         "properties": {
           "ids": {
             "type": "array",
+            "example": [
+              "id-0",
+              "id-1",
+              "id-2"
+            ],
             "items": {
               "type": "string"
             }
           },
           "namespace": {
-            "type": "string"
+            "type": "string",
+            "example": "namespace_a"
           }
         },
-        "title": "Response module for the List operation"
+        "description": "The response module for the list operation."
       },
-      "pineconeQueryRequest": {
+      "QueryRequest": {
         "type": "object",
         "properties": {
-          "requestDefaultNamespace": {
+          "namespace": {
             "type": "string",
-            "title": "Default namespace to query if no namespace specified in QueryVector (default value \"\")"
+            "example": "namespace_a",
+            "description": "The default namespace to query if no namespace is specified in `QueryVector`. The default value is `\"\"`."
           },
-          "requestDefaultTopK": {
+          "topK": {
             "type": "integer",
             "format": "int64",
-            "title": "Number of results to return for each query"
+            "example": {
+              "top_k": 102
+            },
+            "description": "The default number of results to return for each query."
           },
-          "requestDefaultFilter": {
-            "type": "string",
-            "title": "Default filter to apply if no filter specified in QueryVector (default value \"\")"
+          "filter": {
+            "type": "object",
+            "example": "filter_a",
+            "description": "The default filter to apply if no filter is specified in `QueryVector`. The default value is empty ({})."
           },
           "includeData": {
             "type": "boolean",
-            "title": "Whether to include the vectors in response as well as ids"
+            "example": {
+              "include_data": true
+            },
+            "description": "Indicates whether vectors are included in the response as well as the ids."
           },
           "includeMetadata": {
             "type": "boolean",
-            "title": "Whether to include the metadata in response as well as ids"
+            "example": {
+              "include_data": true
+            },
+            "description": "Indicates whether metadata is included in the response as well as the ids."
           },
           "queries": {
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/QueryRequestQueryVector"
+            "example": {
+              "queries": [
+                {
+                  "vector": {
+                    "values": [
+                      1.524,
+                      2.23432,
+                      3.664
+                    ]
+                  },
+                  "top_k": 106,
+                  "namespace": "namespace_a",
+                  "filter": "filter_to_use"
+                },
+                {
+                  "vector": {
+                    "values": [
+                      2.4,
+                      3.22,
+                      7.664
+                    ]
+                  },
+                  "top_k": 90,
+                  "namespace": "namespace_a",
+                  "filter": "another_filter_to_use"
+                }
+              ]
             },
-            "title": "Query vectors"
+            "items": {
+              "$ref": "#/components/schemas/QueryVector"
+            },
+            "description": "The query vectors."
           }
         },
-        "title": "Request model for the Query operation"
+        "description": "The request for the `Query` operation."
       },
-      "pineconeQueryResponse": {
+      "QueryResponse": {
         "type": "object",
         "properties": {
           "results": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/QueryResponseSingleQueryResults"
+              "$ref": "#/components/schemas/SingleQueryResults"
             },
-            "title": "Results of each query"
+            "description": "The results of each query. The order is the same as `QueryRequest.queries`."
           }
         },
-        "title": "Response model for the Query operation"
+        "description": "The response for the `Query` operation. These are the matches found for a particular query vector. The matches are ordered from most similar to least similar."
       },
-      "pineconeScoredVector": {
+      "QueryVector": {
         "type": "object",
+        "properties": {
+          "values": {
+            "type": "array",
+            "example": [
+              1.524,
+              2.23432,
+              3.664
+            ],
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "topK": {
+            "type": "integer",
+            "format": "int64",
+            "example": {
+              "top_k": 106
+            },
+            "description": "The number of results to return for this query vector."
+          },
+          "namespace": {
+            "type": "string",
+            "example": "namespace_a",
+            "description": "The namespace to search."
+          },
+          "filter": {
+            "type": "object",
+            "example": "filter_to_use",
+            "description": "The metadata filter to apply."
+          }
+        },
+        "description": "A single query vector within a `QueryRequest`."
+      },
+      "ScoredVector": {
+        "type": "object",
+        "example": {
+          "id": "id-0",
+          "score": 5.4,
+          "values": [
+            1.22,
+            2.234,
+            3.73
+          ],
+          "metadata": "{mykey : myvalue}"
+        },
         "properties": {
           "id": {
             "type": "string"
@@ -724,46 +777,106 @@
             }
           },
           "metadata": {
-            "type": "string"
+            "type": "object"
           }
         }
       },
-      "pineconeSummarizeResponse": {
+      "SingleQueryResults": {
+        "type": "object",
+        "properties": {
+          "matches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScoredVector"
+            }
+          },
+          "namespace": {
+            "type": "string",
+            "example": "namespace_a"
+          }
+        },
+        "title": "The query results for a single `QueryVector`"
+      },
+      "SummarizeResponse": {
         "type": "object",
         "properties": {
           "indexSize": {
-            "type": "string",
-            "format": "uint64",
-            "title": "Size of a stateful function (Index)"
+            "type": "integer",
+            "format": "int64",
+            "example": {
+              "index_size": 106
+            },
+            "description": "The size of a stateful function `Index`."
           },
           "dimension": {
             "type": "integer",
             "format": "int64",
-            "title": "Dimension of the indexed vectors"
+            "example": {
+              "dimension": 2
+            },
+            "description": "The dimension of the indexed vectors."
           }
         },
-        "title": "Response model for the Summarize operation"
+        "description": "The response for the `Summarize` operation."
       },
-      "pineconeUpsertRequest": {
+      "UpsertRequest": {
         "type": "object",
         "properties": {
           "vectors": {
             "type": "array",
+            "example": [
+              {
+                "id": "id-0",
+                "values": [
+                  1.22,
+                  2.234,
+                  3.73
+                ],
+                "metadata": "{mykey : myvalue}"
+              }
+            ],
             "items": {
-              "$ref": "#/components/schemas/pineconeDenseVector"
+              "$ref": "#/components/schemas/Vector"
             },
-            "title": "The actual array data"
+            "description": "This is the actual array data."
           },
           "namespace": {
             "type": "string",
-            "title": "The namespace name to upsert vectors into"
+            "description": "This is the namespace name where you upsert vectors."
           }
         },
-        "title": "Request model for the Upsert operation"
+        "description": "The request for the `Upsert` operation."
       },
-      "pineconeUpsertResponse": {
+      "UpsertResponse": {
         "type": "object",
-        "title": "Response model for the Upsert operation"
+        "description": "The response for the `Upsert` operation."
+      },
+      "Vector": {
+        "type": "object",
+        "example": {
+          "id": "id-0",
+          "values": [
+            1.22,
+            2.234,
+            3.73
+          ],
+          "metadata": "{mykey : myvalue}"
+        },
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
       },
       "protobufAny": {
         "type": "object",
@@ -776,6 +889,14 @@
             "format": "byte"
           }
         }
+      },
+      "protobufNullValue": {
+        "type": "string",
+        "enum": [
+          "NULL_VALUE"
+        ],
+        "default": "NULL_VALUE",
+        "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\n The JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
       },
       "rpcStatus": {
         "type": "object",
