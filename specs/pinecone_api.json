@@ -1,0 +1,963 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Pinecone JSON API",
+    "version": "version not set",
+    "contact": {
+      "name": "Pinecone.io Ops",
+      "url": "https://pinecone.io",
+      "email": "support@pinecone.io"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://{service_prefix}.svc.{environment}.pinecone.io",
+      "variables": {
+        "service_prefix": {
+          "default": "unknown"
+        },
+        "environment": {
+          "default": "unknown"
+        }
+      }
+    }
+  ],
+  "externalDocs": {
+    "description": "More Pinecone.io API docs",
+    "url": "https://www.pinecone.io/docs"
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "VectorService"
+    },
+    {
+      "name": "DatabseService"
+    }
+  ],
+  "paths": {
+    "/namespaces/list": {
+      "get": {
+        "summary": "The ListNamespaces operation returns the namespaces for which data exists in this\ndatabase.",
+        "operationId": "VectorService_ListNamespaces",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/pineconeListNamespacesResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VectorService"
+        ]
+      }
+    },
+    "/query": {
+      "post": {
+        "summary": "The Query operation queries the database for the nearest stored vectors to one\nor more query vectors and returns their ids and/or values.",
+        "operationId": "VectorService_Query",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/pineconeQueryResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/pineconeQueryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "tags": [
+          "VectorService"
+        ]
+      }
+    },
+    "/summarize": {
+      "get": {
+        "summary": "The Summarize operation returns summary statistics about the database contents.",
+        "operationId": "VectorService_Summarize",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/pineconeSummarizeResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VectorService"
+        ]
+      }
+    },
+    "/vectors/delete": {
+      "delete": {
+        "summary": "The Delete operation deletes a vector by id.",
+        "operationId": "VectorService_Delete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/pineconeDeleteResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "ids",
+            "description": "Vectors to delete.",
+            "in": "query",
+            "required": false,
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "deleteAll",
+            "description": "Indicates that all vectors in the index namespace should be deleted.",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "namespace",
+            "description": "Namespace to delete vectors from applicable.",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "VectorService"
+        ]
+      }
+    },
+    "/vectors/fetch": {
+      "get": {
+        "summary": "The FetchVectors operation returns a vector value by id.",
+        "operationId": "VectorService_Fetch",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/pineconeFetchResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "ids",
+            "description": "Vector ids to fetch.",
+            "in": "query",
+            "required": false,
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "VectorService"
+        ]
+      }
+    },
+    "/vectors/list": {
+      "get": {
+        "summary": "The List operation returns the vector IDs in this database.",
+        "operationId": "VectorService_List",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/pineconeListResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "description": "Namespace to list vectors of.",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "VectorService"
+        ]
+      }
+    },
+    "/vectors/upsert": {
+      "post": {
+        "summary": "The Upsert operation is for uploading data (vector ids and values) to be indexed.\nNote: Most users are recommended to submit upserts via the StreamWrites operation instead.\nIf a new value is upserted for an existing vector id, it overwrites the previous value.",
+        "operationId": "VectorService_Upsert",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/pineconeUpsertResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/pineconeUpsertRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "tags": [
+          "VectorService"
+        ]
+      }
+    },
+    "/databases": {
+      "get": {
+        "operationId": "list_indexes",
+        "description": "Returns the list of active indexes",
+        "responses": {
+          "200": {
+            "description": "List of indexes running for the given API key",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DatabaseService"
+        ]
+      },
+      "post": {
+        "operationId": "create_index",
+        "description": "Creates an index",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/createRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Index created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/statusResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DatabaseService"
+        ]
+      },
+      "servers": [
+        {
+          "url": "https://controller.{environment}.pinecone.io",
+          "variables": {
+            "environment": {
+              "default": "unknown"
+            }
+          }
+        }
+      ]
+    },
+    "/databases/{indexName}": {
+      "get": {
+        "operationId": "describe_index",
+        "description": "Get description on an index",
+        "parameters": [
+          {
+            "name": "indexName",
+            "required": true,
+            "in": "path",
+            "description": "Name of the index",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Index information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "$ref": "#/components/schemas/indexMeta"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Index not found"
+          }
+        },
+        "tags": [
+          "DatabaseService"
+        ]
+      },
+      "delete": {
+        "operationId": "delete_index",
+        "description": "Delete an existing index",
+        "parameters": [
+          {
+            "name": "indexName",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name of the index"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Index deleted successfully"
+          },
+          "404": {
+            "description": "Index not found"
+          }
+        },
+        "tags": [
+          "DatabaseService"
+        ]
+      },
+      "patch": {
+        "operationId": "scale_index",
+        "description": "Increase or Decrease the number of replicas in the index",
+        "parameters": [
+          {
+            "name": "indexName",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name of the index"
+          }
+        ],
+        "requestBody": {
+          "description": "Number of replicas",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/patchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Number of replicas changes successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/statusResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bad Request"
+          }
+        },
+        "tags": [
+          "DatabaseService"
+        ]
+      },
+      "servers": [
+        {
+          "url": "https://controller.{environment}.pinecone.io",
+          "variables": {
+            "environment": {
+              "default": "unknown"
+            }
+          }
+        }
+      ]
+    },
+    "/databases/{indexName}/status": {
+      "get": {
+        "operationId": "get_status",
+        "description": "Get status of an index",
+        "parameters": [
+          {
+            "name": "indexName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name of the index"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Index is ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/statusResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error"
+          }
+        },
+        "tags": [
+          "DatabaseService"
+        ]
+      },
+      "servers": [
+        {
+          "url": "https://controller.{environment}.pinecone.io",
+          "variables": {
+            "environment": {
+              "default": "unknown"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "components": {
+    "schemas": {
+      "QueryRequestQueryVector": {
+        "type": "object",
+        "properties": {
+          "vector": {
+            "$ref": "#/components/schemas/pineconeAnonymousVector"
+          },
+          "topK": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "filter": {
+            "type": "string"
+          }
+        }
+      },
+      "QueryResponseSingleQueryResults": {
+        "type": "object",
+        "properties": {
+          "matches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/pineconeScoredVector"
+            }
+          },
+          "namespace": {
+            "type": "string"
+          }
+        }
+      },
+      "pineconeAnonymousVector": {
+        "type": "object",
+        "properties": {
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          }
+        }
+      },
+      "pineconeDeleteResponse": {
+        "type": "object",
+        "title": "Response model for the Delete operation"
+      },
+      "pineconeDenseVector": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "metadata": {
+            "type": "string"
+          }
+        }
+      },
+      "pineconeFetchResponse": {
+        "type": "object",
+        "properties": {
+          "vectors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/pineconeDenseVector"
+            },
+            "title": "Fetched vectors"
+          },
+          "namespace": {
+            "type": "string",
+            "title": "The namespace of the vectors"
+          }
+        },
+        "title": "Response model for the Fetch operation"
+      },
+      "pineconeListNamespacesResponse": {
+        "type": "object",
+        "properties": {
+          "namespaces": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "title": "Namespaces that exist in the database"
+          }
+        },
+        "title": "Request model for the ListNamespaces operation"
+      },
+      "pineconeListResponse": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "namespace": {
+            "type": "string"
+          }
+        },
+        "title": "Response module for the List operation"
+      },
+      "pineconeQueryRequest": {
+        "type": "object",
+        "properties": {
+          "requestDefaultNamespace": {
+            "type": "string",
+            "title": "Default namespace to query if no namespace specified in QueryVector (default value \"\")"
+          },
+          "requestDefaultTopK": {
+            "type": "integer",
+            "format": "int64",
+            "title": "Number of results to return for each query"
+          },
+          "requestDefaultFilter": {
+            "type": "string",
+            "title": "Default filter to apply if no filter specified in QueryVector (default value \"\")"
+          },
+          "includeData": {
+            "type": "boolean",
+            "title": "Whether to include the vectors in response as well as ids"
+          },
+          "includeMetadata": {
+            "type": "boolean",
+            "title": "Whether to include the metadata in response as well as ids"
+          },
+          "queries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QueryRequestQueryVector"
+            },
+            "title": "Query vectors"
+          }
+        },
+        "title": "Request model for the Query operation"
+      },
+      "pineconeQueryResponse": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QueryResponseSingleQueryResults"
+            },
+            "title": "Results of each query"
+          }
+        },
+        "title": "Response model for the Query operation"
+      },
+      "pineconeScoredVector": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number",
+            "format": "float"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "metadata": {
+            "type": "string"
+          }
+        }
+      },
+      "pineconeSummarizeResponse": {
+        "type": "object",
+        "properties": {
+          "indexSize": {
+            "type": "string",
+            "format": "uint64",
+            "title": "Size of a stateful function (Index)"
+          },
+          "dimension": {
+            "type": "integer",
+            "format": "int64",
+            "title": "Dimension of the indexed vectors"
+          }
+        },
+        "title": "Response model for the Summarize operation"
+      },
+      "pineconeUpsertRequest": {
+        "type": "object",
+        "properties": {
+          "vectors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/pineconeDenseVector"
+            },
+            "title": "The actual array data"
+          },
+          "namespace": {
+            "type": "string",
+            "title": "The namespace name to upsert vectors into"
+          }
+        },
+        "title": "Request model for the Upsert operation"
+      },
+      "pineconeUpsertResponse": {
+        "type": "object",
+        "title": "Response model for the Upsert operation"
+      },
+      "protobufAny": {
+        "type": "object",
+        "properties": {
+          "typeUrl": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string",
+            "format": "byte"
+          }
+        }
+      },
+      "rpcStatus": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/protobufAny"
+            }
+          }
+        }
+      },
+      "createRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "dimension"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the index to be created"
+          },
+          "dimension": {
+            "type": "integer",
+            "description": "The dimensions of the vectors to be inserted in the index"
+          },
+          "index_type": {
+            "type": "string",
+            "description": "Type of vector index",
+            "default": "approximated"
+          },
+          "metric": {
+            "type": "string",
+            "description": "Distance metric to be used for similarity search",
+            "default": "cosine"
+          },
+          "replicas": {
+            "type": "integer",
+            "description": "The number of replicas",
+            "default": 1
+          },
+          "shards": {
+            "type": "integer",
+            "description": "Number of shards to be used in the index. Use 1 shard per 1GB of data.",
+            "default": 1
+          },
+          "index_config": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/HnswConfig"
+              },
+              {
+                "$ref": "#/components/schemas/ApproximatedConfig"
+              }
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "description": "Resource kind",
+            "default": "database"
+          }
+        }
+      },
+      "indexMeta": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "dimensions": {
+            "type": "string"
+          },
+          "index_type": {
+            "type": "string"
+          },
+          "metric": {
+            "type": "string"
+          },
+          "replicas": {
+            "type": "integer"
+          },
+          "shards": {
+            "type": "integer"
+          },
+          "index_config": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/HnswConfig"
+              },
+              {
+                "$ref": "#/components/schemas/ApproximatedConfig"
+              }
+            ]
+          }
+        }
+      },
+      "patchRequest": {
+        "type": "object",
+        "properties": {
+          "replicas": {
+            "type": "integer"
+          }
+        }
+      },
+      "HnswConfig": {
+        "type": "object",
+        "properties": {
+          "ef_construction": {
+            "type": "integer",
+            "default": 500
+          },
+          "ef": {
+            "type": "integer",
+            "default": 250
+          },
+          "M": {
+            "type": "integer",
+            "default": 12
+          },
+          "max_elements": {
+            "type": "integer",
+            "default": 50000000
+          }
+        }
+      },
+      "ApproximatedConfig": {
+        "type": "object",
+        "properties": {
+          "kbits": {
+            "type": "integer",
+            "default": 512
+          },
+          "hybrid": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "statusResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "name": "api-key",
+        "in": "header"
+      }
+    }
+  }
+}

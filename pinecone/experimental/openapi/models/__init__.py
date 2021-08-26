@@ -9,6 +9,11 @@
 # import sys
 # sys.setrecursionlimit(n)
 
+from pinecone.experimental.openapi.model.approximated_config import ApproximatedConfig
+from pinecone.experimental.openapi.model.create_request import CreateRequest
+from pinecone.experimental.openapi.model.hnsw_config import HnswConfig
+from pinecone.experimental.openapi.model.index_meta import IndexMeta
+from pinecone.experimental.openapi.model.patch_request import PatchRequest
 from pinecone.experimental.openapi.model.pinecone_anonymous_vector import PineconeAnonymousVector
 from pinecone.experimental.openapi.model.pinecone_dense_vector import PineconeDenseVector
 from pinecone.experimental.openapi.model.pinecone_fetch_response import PineconeFetchResponse
@@ -23,3 +28,4 @@ from pinecone.experimental.openapi.model.protobuf_any import ProtobufAny
 from pinecone.experimental.openapi.model.query_request_query_vector import QueryRequestQueryVector
 from pinecone.experimental.openapi.model.query_response_single_query_results import QueryResponseSingleQueryResults
 from pinecone.experimental.openapi.model.rpc_status import RpcStatus
+from pinecone.experimental.openapi.model.status_response import StatusResponse

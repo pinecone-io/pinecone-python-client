@@ -34,7 +34,7 @@ license:
 	# Add license header using https://github.com/google/addlicense.
 	# If the license header already exists in a file, re-running this command has no effect.
 	pushd pinecone && \
-		addlicense -f ../license_header.txt *.py */*.py */*/*.py */*/*/*.py */*/*/*/*.py */*/*/*/*/*.py */*/*/*/*/*/*.py && \
+		addlicense -f ../license_header.txt *.py */*.py */*/*.py */*/*/*.py **/*/*/*.py */*/*/*/*/*.py */*/*/*/*/*/*.py && \
 		popd
 
 set-production:
@@ -44,6 +44,6 @@ set-development:
 	echo "" > pinecone/__environment__
 
 gen-openapi:
-	docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli:v5.2.0 generate --input-spec /local/specs/vector_service.openapi.json --config /local/specs/openapi-generator-args.python.json --generator-name python --output /local/openapi-gen
+	docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli:v5.2.0 generate --input-spec /local/node/pinecone_api.json --config /local/specs/openapi-generator-args.python.json --generator-name python --output /local/openapi-gen
 	cp -r openapi-gen/pinecone/experimental/openapi/ pinecone/experimental/openapi/
 	rm -r openapi-gen

@@ -7,7 +7,7 @@ from loguru import logger
 import sys
 from pinecone.utils.sentry import sentry_decorator as sentry
 from .constants import Config, CLIENT_VERSION as __version__
-from .manage import create_index, delete_index, describe_index, list_indexes, IndexDescription, scale_index
+from .database import  create_index,delete_index,describe_index,list_indexes,scale_index
 from .index import Index, UpsertResult, DeleteResult, QueryResult, FetchResult, InfoResult
 
 __all__ = [
@@ -17,7 +17,6 @@ __all__ = [
     "describe_index",
     "list_indexes",
     "scale_index",
-    "IndexDescription",
     "Index",
     "UpsertResult",
     "DeleteResult",
