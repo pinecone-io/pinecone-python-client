@@ -1,0 +1,387 @@
+{
+   "openapi": "3.0.1",
+   "info": {
+      "title": "defaultTitle",
+      "description": "defaultDescription",
+      "version": "0.1"
+   },
+   "tags": [
+      {
+         "name" : "DatabseService"
+      }
+   ],
+   "servers": [
+      {
+         "url": "https://controller.{environment}.pinecone.io"
+      }
+   ],
+   "paths": {
+      "/databases": {
+            "get": {
+               "operationId": "list_indexes",
+               "description": "Returns the list of active indexes",
+               "responses": {
+                  "200": {
+                     "description": "List of indexes running for the given API key",
+                     "content": {
+                        "application/json; charset=utf-8": {
+                           "schema": {
+                              "type": "array",
+                              "items" : {
+                                 "type" : "string"
+                              }
+
+                           }
+                        }
+                     }
+                  }
+               },
+               "tags": [
+               "DatabaseService"
+               ]
+            },
+            "post": {
+               "operationId" : "create_index",
+               "description": "Creates an index",
+               "requestBody": {
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/createRequest"
+                        }
+                     }
+                  }
+               },
+               "responses": {
+                  "200": {
+                     "description": "Index created successfully",
+                     "content": {
+                        "application/json": {
+                           "schema": {
+                              "$ref": "#/components/schemas/statusResponse"
+                           }
+                        }
+                     }
+                  }
+               },
+               "tags": [
+               "DatabaseService"
+               ]
+            },
+            "servers": [
+              {
+                "url": "https://controller.{environment}.pinecone.io",
+                "variables": {
+                    "environment": {
+                    "default": "unknown"
+                    }
+                }
+              }
+            ]
+       },
+     "/databases/{indexName}": {
+        "get": {
+           "operationId" : "describe_index",
+           "description": "Get description on an index",
+           "parameters": [
+              {
+                 "name": "indexName",
+                 "required": true,
+                 "in": "path",
+                 "description": "Name of the index",
+                 "schema": {
+                    "type": "string"
+                 }
+              }
+           ],
+           "responses": {
+              "200": {
+                 "description": "Index information",
+                 "content": {
+                    "application/json": {
+                       "schema": {
+                          "type" : "object",
+                          "$ref": "#/components/schemas/indexMeta"
+                       }
+                    }
+                 }
+              },
+              "404": {
+                 "description": "Index not found"
+              }
+           },
+           "tags": [
+               "DatabaseService"
+           ]
+        },
+        "delete": {
+           "operationId" : "delete_index",
+           "description": "Delete an existing index",
+           "parameters": [
+              {
+                 "name": "indexName",
+                 "required": true,
+                 "in": "path",
+                 "schema": {
+                    "type": "string"
+                 },
+                 "description": "Name of the index"
+              }
+           ],
+           "responses": {
+              "200": {
+                 "description": "Index deleted successfully"
+              },
+              "404": {
+                 "description": "Index not found"
+              }
+           },
+           "tags": [
+               "DatabaseService"
+           ]
+        },
+        "patch": {
+           "operationId" : "scale_index",
+           "description": "Increase or Decrease the number of replicas in the index",
+           "parameters": [
+              {
+                 "name": "indexName",
+                 "required": true,
+                 "in": "path",
+                 "schema": {
+                    "type": "string"
+                 },
+                 "description": "Name of the index"
+              }
+           ],
+           "requestBody": {
+              "description": "Number of replicas",
+              "content": {
+                 "application/json": {
+                    "schema": {
+                       "$ref": "#/components/schemas/patchRequest"
+                    }
+                 }
+              }
+           },
+           "responses": {
+              "200": {
+                 "description": "Number of replicas changes successfully",
+                 "content": {
+                    "application/json": {
+                       "schema": {
+                          "$ref": "#/components/schemas/statusResponse"
+                       }
+                    }
+                 }
+              },
+              "404": {
+                 "description": "Bad Request"
+              }
+           },
+           "tags": [
+               "DatabaseService"
+           ]
+        },
+       "servers": [
+         {
+           "url": "https://controller.{environment}.pinecone.io",
+           "variables": {
+               "environment": {
+                   "default": "unknown"
+               }
+           }
+        }
+       ]
+     },
+     "/databases/{indexName}/status": {
+        "get": {
+           "operationId" : "get_status",
+           "description": "Get status of an index",
+           "parameters": [
+              {
+                 "name": "indexName",
+                 "in": "path",
+                 "required": true,
+                 "schema": {
+                    "type": "string"
+                 },
+                 "description": "Name of the index"
+              }
+           ],
+           "responses": {
+              "200": {
+                 "description": "Index is ready",
+                 "content": {
+                    "application/json": {
+                       "schema": {
+                          "$ref": "#/components/schemas/statusResponse"
+                       }
+                    }
+                 }
+              },
+              "default":{
+                 "description": "An unexpected error"
+              }
+           },
+           "tags": [
+               "DatabaseService"
+           ]
+        },
+       "servers": [
+         {
+           "url": "https://controller.{environment}.pinecone.io",
+           "variables": {
+               "environment": {
+                   "default": "unknown"
+               }
+           }
+        }
+       ]
+     }
+   },
+   "components": {
+      "schemas": {
+         "createRequest": {
+            "type": "object",
+            "required" : ["name","dimension"],
+            "properties": {
+               "name": {
+                  "type": "string",
+                  "description": "Name of the index to be created"
+               },
+               "dimension": {
+                  "type": "integer",
+                  "description": "The dimensions of the vectors to be inserted in the index"
+               },
+               "index_type": {
+                  "type": "string",
+                  "description": "Type of vector index",
+                  "default": "approximated"
+               },
+               "metric": {
+                  "type": "string",
+                  "description": "Distance metric to be used for similarity search",
+                  "default": "cosine"
+               },
+               "replicas": {
+                  "type": "integer",
+                  "description": "The number of replicas",
+                  "default": 1
+               },
+               "shards": {
+                  "type": "integer",
+                  "description": "Number of shards to be used in the index. Use 1 shard per 1GB of data.",
+                  "default": 1
+               },
+               "index_config": {
+                  "oneOf": [{
+                     "$ref": "#/components/schemas/HnswConfig"},
+		            {"$ref": "#/components/schemas/ApproximatedConfig"
+                  }]
+               },
+               "kind": {
+                  "type": "string",
+                  "description": "Resource kind",
+                  "default": "database"
+               }
+            }
+         },
+         "indexMeta": {
+            "type": "object",
+            "properties": {
+               "name": {
+                  "type": "string"
+               },
+               "dimensions": {
+                  "type": "string"
+               },
+               "index_type": {
+                  "type": "string"
+               },
+               "metric": {
+                  "type": "string"
+               },
+               "replicas": {
+                  "type": "integer"
+               },
+               "shards": {
+                  "type": "integer"
+               },
+               "index_config": {
+                  "oneOf": [{
+                     "$ref": "#/components/schemas/HnswConfig"},
+		            {"$ref": "#/components/schemas/ApproximatedConfig"
+                  }]
+               }
+            }
+         },
+         "patchRequest": {
+            "type": "object",
+            "properties": {
+               "replicas": {
+                  "type": "integer"
+               }
+            }
+         },
+         "HnswConfig": {
+            "type": "object",
+            "properties": {
+               "ef_construction": {
+                  "type": "integer",
+                  "default": 500
+               },
+               "ef": {
+                  "type": "integer",
+                  "default": 250
+               },
+               "M": {
+                  "type": "integer",
+                  "default": 12
+               },
+               "max_elements": {
+                  "type": "integer",
+                  "default": 50000000
+               }
+            }
+         },
+         "ApproximatedConfig": {
+            "type": "object",
+            "properties": {
+               "kbits": {
+                  "type": "integer",
+                  "default": 512
+               },
+               "hybrid": {
+                  "type": "boolean",
+                  "default": false
+               }
+            }
+         },
+         "statusResponse" : {
+            "type" : "object",
+            "properties": {
+               "status": {
+                  "type" : "boolean"
+               }
+            }
+         }
+      },
+      "securitySchemes": {
+         "ApiKeyAuth": {
+           "type": "apiKey",
+           "name": "api-key",
+           "in": "header"
+         }
+       }
+   },
+   "security": [
+      {
+        "ApiKeyAuth": []
+      }
+    ],
+    "externalDocs": {
+      "description": "More Pinecone.io API docs",
+      "url": "https://www.pinecone.io/docs"
+    }
+}
