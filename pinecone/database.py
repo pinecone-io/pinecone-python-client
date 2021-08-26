@@ -1,18 +1,10 @@
-from typing import NamedTuple, Iterable, Tuple, List
-
-from pinecone.utils.sentry import sentry_decorator as sentry
 from pinecone.constants import Config
-from pinecone.constants import ENABLE_PROGRESS_BAR
-import enum
-from pinecone import logger
-from pinecone.utils.progressbar import ProgressBar
 from pinecone.experimental.openapi.api.database_service_api import DatabaseServiceApi
 from pinecone.experimental.openapi.api_client import ApiClient
+from pinecone.experimental.openapi.configuration import Configuration
 from pinecone.experimental.openapi.model.create_request import CreateRequest
 from pinecone.experimental.openapi.model.patch_request import PatchRequest
-from pinecone.experimental.openapi.model.index_meta import IndexMeta
-from pinecone.experimental.openapi.model.status_response import StatusResponse
-from pinecone.experimental.openapi.configuration import Configuration
+from pinecone.utils.sentry import sentry_decorator as sentry
 
 
 def get_api_instance():
@@ -39,7 +31,7 @@ def create_index(
         metric: str = "cosine",
         replicas: int = 1,
         shards: int = 1,
-        index_config: dict = {}
+        index_config: dict = None
 ):
     """Creates a Pinecone index.
 
@@ -76,7 +68,7 @@ def create_index(
         metric=metric,
         replicas=replicas,
         shards=shards,
-        index_config=index_config
+        index_config=index_config or {}
     ))
 
     return response
@@ -93,9 +85,8 @@ def delete_index(name: str, wait: bool = True):
     """
     api_instance = get_api_instance()
     response = api_instance.delete_index(name)
-    # while name in api_instance.list_indexes():
-    #     continue
     return response
+
 
 @sentry
 def list_indexes():

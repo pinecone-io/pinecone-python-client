@@ -17,7 +17,7 @@ from .experimental.openapi.exceptions import OpenApiException, ApiAttributeError
 __all__ = [
     "init",
     # Control plane names
-    "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "IndexDescription",
+    "create_index", "delete_index", "describe_index", "list_indexes", "scale_index",
     # Data plane
     "Index",
     # Data plane OpenAPI models
