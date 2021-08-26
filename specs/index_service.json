@@ -197,7 +197,14 @@
            ],
            "responses": {
               "200": {
-                 "description": "Index is ready"
+                 "description": "Index is ready",
+                 "content" : {
+                    "application/json" : {
+                       "schema": {
+                          "$ref" : "#/components/schemas/statusResponse"
+                       }
+                    }
+                 }
               },
               "default":{
                  "description": "An unexpected error"
@@ -340,10 +347,25 @@
          "statusResponse" : {
             "type" : "object",
             "properties": {
-               "status": {
-                  "type" : "boolean"
-               }
-            }
+                    "crashed": {
+                       "type": "array",
+                       "items": {
+                          "type" : "string"
+                       }
+                    },
+                    "ready" : {
+                       "type" : "boolean"
+                    },
+                     "port" : {
+                       "type" : "integer"
+                    },
+                    "waiting": {
+                       "type": "array",
+                       "items": {
+                          "type": "string"
+                       }
+                    }
+                 }
          }
       },
       "securitySchemes": {

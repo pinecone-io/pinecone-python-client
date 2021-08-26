@@ -6,7 +6,7 @@ from loguru import logger
 import sys
 from .utils.sentry import sentry_decorator as sentry
 from .constants import Config, CLIENT_VERSION as __version__
-from .database import  create_index,delete_index,describe_index,list_indexes,scale_index
+from .database import  create_index,delete_index,describe_index,list_indexes,scale_index,get_status
 from .index import Index
 from .experimental.openapi.models import FetchResponse, ListNamespacesResponse, ListResponse, ProtobufAny, \
     QueryRequest, QueryResponse, QueryVector, RpcStatus, ScoredVector, SingleQueryResults, SummarizeResponse, \

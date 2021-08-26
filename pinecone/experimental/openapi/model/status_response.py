@@ -82,7 +82,10 @@ class StatusResponse(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            'status': (bool,),  # noqa: E501
+            'crashed': ([str],),  # noqa: E501
+            'ready': (bool,),  # noqa: E501
+            'port': (int,),  # noqa: E501
+            'waiting': ([str],),  # noqa: E501
         }
 
     @cached_property
@@ -91,7 +94,10 @@ class StatusResponse(ModelNormal):
 
 
     attribute_map = {
-        'status': 'status',  # noqa: E501
+        'crashed': 'crashed',  # noqa: E501
+        'ready': 'ready',  # noqa: E501
+        'port': 'port',  # noqa: E501
+        'waiting': 'waiting',  # noqa: E501
     }
 
     read_only_vars = {
@@ -135,7 +141,10 @@ class StatusResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            status (bool): [optional]  # noqa: E501
+            crashed ([str]): [optional]  # noqa: E501
+            ready (bool): [optional]  # noqa: E501
+            port (int): [optional]  # noqa: E501
+            waiting ([str]): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -217,7 +226,10 @@ class StatusResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            status (bool): [optional]  # noqa: E501
+            crashed ([str]): [optional]  # noqa: E501
+            ready (bool): [optional]  # noqa: E501
+            port (int): [optional]  # noqa: E501
+            waiting ([str]): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)

@@ -15,10 +15,7 @@ class DatabaseSpec(Spec):
         self.shards = shards
         self.replicas = replicas
         self.index_config = index_config if index_config else {}
-<<<<<<< HEAD
-=======
 
->>>>>>> 7a246901b987af0cd07f34c23a831877ea96fa6d
 
     @classmethod
     def from_obj(cls, obj: dict) -> "DatabaseSpec":

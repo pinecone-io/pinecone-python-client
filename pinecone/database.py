@@ -29,6 +29,9 @@ def get_api_instance():
     api_instance = DatabaseServiceApi(api_client)
     return api_instance
 
+def get_status(name:str):
+    api_instance = get_api_instance()
+    return api_instance.get_status(name)
 
 @sentry
 def create_index(
@@ -39,7 +42,7 @@ def create_index(
         metric: str = "cosine",
         replicas: int = 1,
         shards: int = 1,
-        index_config: dict = {}
+        index_config: dict = None
 ):
     """Creates a Pinecone index.
 
@@ -76,10 +79,24 @@ def create_index(
         metric=metric,
         replicas=replicas,
         shards=shards,
-        index_config=index_config
+        index_config=index_config or {}
     ))
 
-    return response
+    def get_status():
+        status = api_instance.get_status(name)
+        ready = status['ready']
+        return 1 * ready
+
+    pbar = None
+    if wait:
+        if ENABLE_PROGRESS_BAR:
+            pbar = ProgressBar(total=1, get_remaining_fn=get_status)
+            pbar.watch()
+        else:
+            while not get_status():
+                continue
+
+    return response, pbar
 
 
 @sentry
@@ -93,9 +110,20 @@ def delete_index(name: str, wait: bool = True):
     """
     api_instance = get_api_instance()
     response = api_instance.delete_index(name)
-    # while name in api_instance.list_indexes():
-    #     continue
-    return response
+
+    def get_remaining():
+        return 1 * (name in api_instance.list_indexes())
+
+    pbar = None
+    if wait:
+        if ENABLE_PROGRESS_BAR:
+            pbar = ProgressBar(total=1, get_remaining_fn=get_remaining)
+            pbar.watch()
+        else:
+            while (not get_remaining()):
+                continue
+    return response, pbar
+
 
 @sentry
 def list_indexes():
