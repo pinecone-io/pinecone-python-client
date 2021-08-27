@@ -143,9 +143,9 @@ def describe_index(name: str):
     api_instance = _get_api_instance()
     response = api_instance.describe_index(name)
     db = json.loads(response['database'])
-    return IndexDescription(name=db['metadata']['name'], index_type=db['spec']['index_type'], metric=db['spec']['metric'],
-                            replicas=db['spec']['replicas'], dimension=db['spec']['dimension'], shards=db['spec']['shards'],
-                            index_config=db['spec']['index_config'])
+    return IndexDescription(name=db['name'], index_type=db['index_type'], metric=db['metric'],
+                            replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
+                            index_config=db['index_config'])
 
 
 @sentry
