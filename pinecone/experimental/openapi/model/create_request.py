@@ -89,7 +89,6 @@ class CreateRequest(ModelNormal):
             'replicas': (int,),  # noqa: E501
             'shards': (int,),  # noqa: E501
             'index_config': (dict,),  # noqa: E501
-            'kind': (str,),  # noqa: E501
         }
 
     @cached_property
@@ -105,7 +104,6 @@ class CreateRequest(ModelNormal):
         'replicas': 'replicas',  # noqa: E501
         'shards': 'shards',  # noqa: E501
         'index_config': 'index_config',  # noqa: E501
-        'kind': 'kind',  # noqa: E501
     }
 
     read_only_vars = {
@@ -158,7 +156,6 @@ class CreateRequest(ModelNormal):
             replicas (int): The number of replicas. [optional] if omitted the server will use the default value of 1  # noqa: E501
             shards (int): Number of shards to be used in the index. Use 1 shard per 1GB of data.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             index_config (dict): [optional]  # noqa: E501
-            kind (str): Resource kind. [optional] if omitted the server will use the default value of "database"  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -251,7 +248,6 @@ class CreateRequest(ModelNormal):
             replicas (int): The number of replicas. [optional] if omitted the server will use the default value of 1  # noqa: E501
             shards (int): Number of shards to be used in the index. Use 1 shard per 1GB of data.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             index_config (dict): [optional]  # noqa: E501
-            kind (str): Resource kind. [optional] if omitted the server will use the default value of "database"  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
