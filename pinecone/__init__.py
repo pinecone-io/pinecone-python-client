@@ -6,7 +6,7 @@ from loguru import logger
 import sys
 from .utils.sentry import sentry_decorator as sentry
 from .constants import Config, CLIENT_VERSION as __version__
-from .manage import create_index, delete_index, describe_index, list_indexes, scale_index, get_status
+from .manage import create_index, delete_index, describe_index, list_indexes, scale_index, get_status, IndexDescription
 from .index import Index
 from .experimental.openapi.models import FetchResponse, ListNamespacesResponse, ListResponse, ProtobufAny, \
     QueryRequest, QueryResponse, QueryVector, RpcStatus, ScoredVector, SingleQueryResults, SummarizeResponse, \
@@ -17,7 +17,7 @@ from .experimental.openapi.exceptions import OpenApiException, ApiAttributeError
 __all__ = [
     "init",
     # Control plane names
-    "create_index", "delete_index", "describe_index", "list_indexes", "scale_index",
+    "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "IndexDescription",
     # Data plane
     "Index",
     # Data plane OpenAPI models
