@@ -286,11 +286,6 @@
                      "$ref": "#/components/schemas/HnswConfig"},
 		            {"$ref": "#/components/schemas/ApproximatedConfig"
                   }]
-               },
-               "kind": {
-                  "type": "string",
-                  "description": "Resource kind",
-                  "default": "database"
                }
             }
          },

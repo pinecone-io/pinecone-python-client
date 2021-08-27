@@ -45,7 +45,7 @@ set-development:
 	echo "" > pinecone/__environment__
 
 gen-openapi:
-	docker run --rm -v "${mkfile_path}:/local" openapitools/openapi-generator-cli:v5.2.0 generate --input-spec /local/specs/vector_service.openapi.json --config /local/specs/openapi-generator-args.python.json --generator-name python --output /local/openapi-gen
+	docker run --rm -v "${mkfile_path}:/local" openapitools/openapi-generator-cli:v5.2.0 generate --input-spec /local/specs/pinecone_api.json --config /local/specs/openapi-generator-args.python.json --generator-name python --output /local/openapi-gen
 	cp -r ${mkfile_path}/openapi-gen/pinecone/experimental/openapi/ ${mkfile_path}/pinecone/experimental/openapi/
 	rm -r ${mkfile_path}/openapi-gen
 
