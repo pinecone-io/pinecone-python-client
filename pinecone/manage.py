@@ -96,8 +96,9 @@ def create_index(
         ready = status['ready']
         return ready
 
+    timeout = time.time() + 300
     if wait:
-        while not is_ready():
+        while not is_ready() or time.time <= timeout:
             time.sleep(1)
 
     return response
@@ -118,8 +119,9 @@ def delete_index(name: str, wait: bool = True):
     def get_remaining():
         return name in api_instance.list_indexes()
 
+    timeout = time.time() + 300
     if wait:
-        while get_remaining():
+        while get_remaining() or time.time <= timeout:
             time.sleep(1)
 
     return response
