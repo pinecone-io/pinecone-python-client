@@ -96,9 +96,12 @@ def create_index(
         ready = status['ready']
         return ready
 
+    timeout = time.time() + 300
     if wait:
-        while not is_ready():
+        while (not is_ready()) and (time.time() <= timeout):
             time.sleep(1)
+        if time.time() > timeout:
+            raise (TimeoutError('Index created, but it did not get ready in time.'))
 
     return response
 
@@ -118,9 +121,12 @@ def delete_index(name: str, wait: bool = True):
     def get_remaining():
         return name in api_instance.list_indexes()
 
+    timeout = time.time() + 300
     if wait:
-        while get_remaining():
+        while get_remaining() and (time.time() <= timeout):
             time.sleep(1)
+        if time.time() > timeout:
+            raise (TimeoutError('Index deletion timed out.'))
 
     return response
 
