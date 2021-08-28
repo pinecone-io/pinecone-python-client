@@ -98,8 +98,10 @@ def create_index(
 
     timeout = time.time() + 300
     if wait:
-        while not is_ready() or time.time <= timeout:
+        while (not is_ready()) and (time.time() <= timeout):
             time.sleep(1)
+        if time.time() <= timeout:
+            raise (TimeoutError('Index creation timed out'))
 
     return response
 
@@ -121,8 +123,10 @@ def delete_index(name: str, wait: bool = True):
 
     timeout = time.time() + 300
     if wait:
-        while get_remaining() or time.time <= timeout:
+        while get_remaining() and (time.time() <= timeout):
             time.sleep(1)
+        if time.time() <= timeout:
+            raise (TimeoutError('Index deletion timed out'))
 
     return response
 
