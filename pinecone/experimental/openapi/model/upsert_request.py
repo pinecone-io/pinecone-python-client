@@ -63,6 +63,8 @@ class UpsertRequest(ModelNormal):
     }
 
     validations = {
+        ('vectors',): {
+        },
     }
 
     @cached_property
@@ -109,8 +111,11 @@ class UpsertRequest(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, vectors, *args, **kwargs):  # noqa: E501
         """UpsertRequest - a model defined in OpenAPI
+
+        Args:
+            vectors ([Vector]): This is the actual array data.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -143,8 +148,7 @@ class UpsertRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            vectors ([Vector]): This is the actual array data.. [optional]  # noqa: E501
-            namespace (str): This is the namespace name where you upsert vectors.. [optional]  # noqa: E501
+            namespace (str): This is the namespace name where you upsert vectors.. [optional] if omitted the server will use the default value of ""  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -172,6 +176,7 @@ class UpsertRequest(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.vectors = vectors
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
@@ -192,8 +197,11 @@ class UpsertRequest(ModelNormal):
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs):  # noqa: E501
+    def __init__(self, vectors, *args, **kwargs):  # noqa: E501
         """UpsertRequest - a model defined in OpenAPI
+
+        Args:
+            vectors ([Vector]): This is the actual array data.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -226,8 +234,7 @@ class UpsertRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            vectors ([Vector]): This is the actual array data.. [optional]  # noqa: E501
-            namespace (str): This is the namespace name where you upsert vectors.. [optional]  # noqa: E501
+            namespace (str): This is the namespace name where you upsert vectors.. [optional] if omitted the server will use the default value of ""  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -253,6 +260,7 @@ class UpsertRequest(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.vectors = vectors
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \

@@ -391,7 +391,7 @@ conf = pinecone.experimental.openapi.Configuration(
             auth['ApiKeyAuth'] = {
                 'type': 'api_key',
                 'in': 'header',
-                'key': 'api-key',
+                'key': 'Api-Key',
                 'value': self.get_api_key_with_prefix(
                     'ApiKeyAuth',
                 ),

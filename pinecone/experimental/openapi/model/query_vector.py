@@ -59,6 +59,12 @@ class QueryVector(ModelNormal):
     }
 
     validations = {
+        ('values',): {
+        },
+        ('top_k',): {
+            'inclusive_maximum': 10000,
+            'inclusive_minimum': 1,
+        },
     }
 
     @cached_property
@@ -107,8 +113,11 @@ class QueryVector(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, values, *args, **kwargs):  # noqa: E501
         """QueryVector - a model defined in OpenAPI
+
+        Args:
+            values ([float]): The query vector values. This should be the same length as the dimension of the index being queried.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -141,10 +150,9 @@ class QueryVector(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            values ([float]): [optional]  # noqa: E501
-            top_k (int): The number of results to return for this query vector.. [optional]  # noqa: E501
-            namespace (str): The namespace to search.. [optional]  # noqa: E501
-            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): The metadata filter to apply.. [optional]  # noqa: E501
+            top_k (int): An override for the number of results to return for this query vector.. [optional]  # noqa: E501
+            namespace (str): An override the namespace to search.. [optional]  # noqa: E501
+            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): An override for the metadata filter to apply. This replaces the request-level filter.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -172,6 +180,7 @@ class QueryVector(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.values = values
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
@@ -192,8 +201,11 @@ class QueryVector(ModelNormal):
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs):  # noqa: E501
+    def __init__(self, values, *args, **kwargs):  # noqa: E501
         """QueryVector - a model defined in OpenAPI
+
+        Args:
+            values ([float]): The query vector values. This should be the same length as the dimension of the index being queried.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -226,10 +238,9 @@ class QueryVector(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            values ([float]): [optional]  # noqa: E501
-            top_k (int): The number of results to return for this query vector.. [optional]  # noqa: E501
-            namespace (str): The namespace to search.. [optional]  # noqa: E501
-            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): The metadata filter to apply.. [optional]  # noqa: E501
+            top_k (int): An override for the number of results to return for this query vector.. [optional]  # noqa: E501
+            namespace (str): An override the namespace to search.. [optional]  # noqa: E501
+            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): An override for the metadata filter to apply. This replaces the request-level filter.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -255,6 +266,7 @@ class QueryVector(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.values = values
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
