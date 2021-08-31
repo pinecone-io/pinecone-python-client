@@ -1,13 +1,16 @@
+from collections import Iterable
+
 from pinecone import Config
 from pinecone.experimental.openapi import ApiClient, Configuration
 from pinecone.utils.sentry import sentry_decorator as sentry
-from .experimental.openapi.models import QueryRequest, UpsertRequest
+from pinecone.experimental.openapi.models import QueryRequest, UpsertRequest, QueryVector, Vector
 
 __all__ = [
     "Index",
 ]
 
 from pinecone.experimental.openapi.api.vector_service_api import VectorServiceApi
+from .utils import fix_tuple_length
 
 
 class Index(ApiClient):
@@ -28,8 +31,18 @@ class Index(ApiClient):
         self._vector_api = VectorServiceApi(self)
 
     @sentry
-    def upsert(self, *args, **kwargs):
-        return self._vector_api.vector_service_upsert(UpsertRequest(*args, **kwargs))
+    def upsert(self, vectors, **kwargs):
+        def _vector_transform(item):
+            if isinstance(item, Vector):
+                return item
+            if isinstance(item, tuple):
+                id, values, metadata = fix_tuple_length(item, 3)
+                return Vector(id=id, values=values, metadata=metadata or {})
+            raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
+
+        return self._vector_api.vector_service_upsert(
+            UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
+        )
 
     @sentry
     def delete(self, *args, **kwargs):
@@ -40,8 +53,20 @@ class Index(ApiClient):
         return self._vector_api.vector_service_fetch(*args, **kwargs)
 
     @sentry
-    def query(self, *args, **kwargs):
-        return self._vector_api.vector_service_query(QueryRequest(*args, **kwargs))
+    def query(self, queries, **kwargs):
+        def _query_transform(item):
+            if isinstance(item, QueryVector):
+                return item
+            if isinstance(item, tuple):
+                values, filter = fix_tuple_length(item, 2)
+                return QueryVector(values=values, filter=filter)
+            if isinstance(item, Iterable):
+                return QueryVector(values=item)
+            raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")
+
+        return self._vector_api.vector_service_query(
+            QueryRequest(queries=list(map(_query_transform, queries)), **kwargs)
+        )
 
     @sentry
     def list(self, *args, **kwargs):
