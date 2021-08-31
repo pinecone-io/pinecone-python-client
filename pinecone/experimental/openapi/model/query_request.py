@@ -63,6 +63,12 @@ class QueryRequest(ModelNormal):
     }
 
     validations = {
+        ('top_k',): {
+            'inclusive_maximum': 10000,
+            'inclusive_minimum': 1,
+        },
+        ('queries',): {
+        },
     }
 
     @cached_property
@@ -88,12 +94,12 @@ class QueryRequest(ModelNormal):
         """
         lazy_import()
         return {
-            'namespace': (str,),  # noqa: E501
             'top_k': (int,),  # noqa: E501
+            'queries': ([QueryVector],),  # noqa: E501
+            'namespace': (str,),  # noqa: E501
             'filter': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
             'include_data': (bool,),  # noqa: E501
             'include_metadata': (bool,),  # noqa: E501
-            'queries': ([QueryVector],),  # noqa: E501
         }
 
     @cached_property
@@ -102,12 +108,12 @@ class QueryRequest(ModelNormal):
 
 
     attribute_map = {
-        'namespace': 'namespace',  # noqa: E501
         'top_k': 'topK',  # noqa: E501
+        'queries': 'queries',  # noqa: E501
+        'namespace': 'namespace',  # noqa: E501
         'filter': 'filter',  # noqa: E501
         'include_data': 'includeData',  # noqa: E501
         'include_metadata': 'includeMetadata',  # noqa: E501
-        'queries': 'queries',  # noqa: E501
     }
 
     read_only_vars = {
@@ -117,8 +123,12 @@ class QueryRequest(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, top_k, queries, *args, **kwargs):  # noqa: E501
         """QueryRequest - a model defined in OpenAPI
+
+        Args:
+            top_k (int): The number of results to return for each query.
+            queries ([QueryVector]): The query vectors.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -151,12 +161,10 @@ class QueryRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            namespace (str): The default namespace to query if no namespace is specified in `QueryVector`. The default value is `\"\"`.. [optional]  # noqa: E501
-            top_k (int): The default number of results to return for each query.. [optional]  # noqa: E501
-            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): The default filter to apply if no filter is specified in `QueryVector`. The default value is empty ({}).. [optional]  # noqa: E501
-            include_data (bool): Indicates whether vectors are included in the response as well as the ids.. [optional]  # noqa: E501
-            include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional]  # noqa: E501
-            queries ([QueryVector]): The query vectors.. [optional]  # noqa: E501
+            namespace (str): The namespace to query.. [optional] if omitted the server will use the default value of ""  # noqa: E501
+            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): [optional]  # noqa: E501
+            include_data (bool): Indicates whether vectors are included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
+            include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -184,6 +192,8 @@ class QueryRequest(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.top_k = top_k
+        self.queries = queries
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
@@ -204,8 +214,12 @@ class QueryRequest(ModelNormal):
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs):  # noqa: E501
+    def __init__(self, top_k, queries, *args, **kwargs):  # noqa: E501
         """QueryRequest - a model defined in OpenAPI
+
+        Args:
+            top_k (int): The number of results to return for each query.
+            queries ([QueryVector]): The query vectors.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -238,12 +252,10 @@ class QueryRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            namespace (str): The default namespace to query if no namespace is specified in `QueryVector`. The default value is `\"\"`.. [optional]  # noqa: E501
-            top_k (int): The default number of results to return for each query.. [optional]  # noqa: E501
-            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): The default filter to apply if no filter is specified in `QueryVector`. The default value is empty ({}).. [optional]  # noqa: E501
-            include_data (bool): Indicates whether vectors are included in the response as well as the ids.. [optional]  # noqa: E501
-            include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional]  # noqa: E501
-            queries ([QueryVector]): The query vectors.. [optional]  # noqa: E501
+            namespace (str): The namespace to query.. [optional] if omitted the server will use the default value of ""  # noqa: E501
+            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): [optional]  # noqa: E501
+            include_data (bool): Indicates whether vectors are included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
+            include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -269,6 +281,8 @@ class QueryRequest(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.top_k = top_k
+        self.queries = queries
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \

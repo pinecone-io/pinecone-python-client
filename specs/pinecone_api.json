@@ -198,7 +198,8 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "\"\""
             }
           }
         ],
@@ -238,7 +239,7 @@
             "name": "ids",
             "description": "The vector ids to fetch.",
             "in": "query",
-            "required": false,
+            "required": true,
             "explode": true,
             "schema": {
               "type": "array",
@@ -252,7 +253,8 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "\"\""
             }
           }
         ],
@@ -661,7 +663,8 @@
           "namespace": {
             "type": "string",
             "example": "namespace_a",
-            "description": "The default namespace to query if no namespace is specified in `QueryVector`. The default value is `\"\"`."
+            "default": "\"\"",
+            "description": "The namespace to query."
           },
           "topK": {
             "type": "integer",
@@ -669,18 +672,24 @@
             "example": {
               "top_k": 102
             },
-            "description": "The default number of results to return for each query."
+            "description": "The number of results to return for each query.",
+            "maximum": 10000,
+            "minimum": 1,
+            "required": [
+              "top_k"
+            ]
           },
           "filter": {
             "type": "object",
             "example": "filter_a",
-            "description": "The default filter to apply if no filter is specified in `QueryVector`. The default value is empty ({})."
+            "title": "The filter to apply if no filter is specified in `QueryVector`"
           },
           "includeData": {
             "type": "boolean",
             "example": {
               "include_data": true
             },
+            "default": "false",
             "description": "Indicates whether vectors are included in the response as well as the ids."
           },
           "includeMetadata": {
@@ -688,6 +697,7 @@
             "example": {
               "include_data": true
             },
+            "default": "false",
             "description": "Indicates whether metadata is included in the response as well as the ids."
           },
           "queries": {
@@ -723,10 +733,19 @@
             "items": {
               "$ref": "#/components/schemas/QueryVector"
             },
-            "description": "The query vectors."
+            "description": "The query vectors.",
+            "maxLength": 1000,
+            "minLength": 1,
+            "required": [
+              "queries"
+            ]
           }
         },
-        "description": "The request for the `Query` operation."
+        "description": "The request for the `Query` operation.",
+        "required": [
+          "topK",
+          "queries"
+        ]
       },
       "QueryResponse": {
         "type": "object",
@@ -754,7 +773,13 @@
             "items": {
               "type": "number",
               "format": "float"
-            }
+            },
+            "description": "The query vector values. This should be the same length as the dimension of the index being queried.",
+            "maxLength": 100000,
+            "minLength": 1,
+            "required": [
+              "values"
+            ]
           },
           "topK": {
             "type": "integer",
@@ -762,20 +787,25 @@
             "example": {
               "top_k": 106
             },
-            "description": "The number of results to return for this query vector."
+            "description": "An override for the number of results to return for this query vector.",
+            "maximum": 10000,
+            "minimum": 1
           },
           "namespace": {
             "type": "string",
             "example": "namespace_a",
-            "description": "The namespace to search."
+            "description": "An override the namespace to search."
           },
           "filter": {
             "type": "object",
             "example": "filter_to_use",
-            "description": "The metadata filter to apply."
+            "description": "An override for the metadata filter to apply. This replaces the request-level filter."
           }
         },
-        "description": "A single query vector within a `QueryRequest`."
+        "description": "A single query vector within a `QueryRequest`.",
+        "required": [
+          "values"
+        ]
       },
       "ScoredVector": {
         "type": "object",
@@ -866,14 +896,24 @@
             "items": {
               "$ref": "#/components/schemas/Vector"
             },
-            "description": "This is the actual array data."
+            "description": "This is the actual array data.",
+            "maxLength": 10000,
+            "minLength": 1,
+            "required": [
+              "vectors"
+            ]
           },
           "namespace": {
             "type": "string",
+            "example": "namespace_a",
+            "default": "\"\"",
             "description": "This is the namespace name where you upsert vectors."
           }
         },
-        "description": "The request for the `Upsert` operation."
+        "description": "The request for the `Upsert` operation.",
+        "required": [
+          "vectors"
+        ]
       },
       "UpsertResponse": {
         "type": "object",
@@ -1093,7 +1133,8 @@
     "securitySchemes": {
       "ApiKeyAuth": {
         "type": "apiKey",
-        "name": "api-key",
+        "description": "An API Key is required to call Pinecone APIs. Get yours at https://www.pinecone.io/start/",
+        "name": "Api-Key",
         "in": "header"
       }
     }

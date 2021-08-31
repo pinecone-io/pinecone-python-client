@@ -60,7 +60,7 @@ class VectorServiceApi(object):
             Keyword Args:
                 ids ([str]): Vectors to delete.. [optional]
                 delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional]
-                namespace (str): The namespace to delete vectors from, if applicable.. [optional]
+                namespace (str): The namespace to delete vectors from, if applicable.. [optional] if omitted the server will use the default value of ""
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -171,6 +171,7 @@ class VectorServiceApi(object):
 
         def __vector_service_fetch(
             self,
+            ids,
             **kwargs
         ):
             """The `FetchVectors` operation returns vectors by id. The returned vectors include vector data and/or metadata.  # noqa: E501
@@ -178,13 +179,14 @@ class VectorServiceApi(object):
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.vector_service_fetch(async_req=True)
+            >>> thread = api.vector_service_fetch(ids, async_req=True)
             >>> result = thread.get()
 
+            Args:
+                ids ([str]): The vector ids to fetch.
 
             Keyword Args:
-                ids ([str]): The vector ids to fetch.. [optional]
-                namespace (str): [optional]
+                namespace (str): [optional] if omitted the server will use the default value of ""
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -229,6 +231,8 @@ class VectorServiceApi(object):
                 '_check_return_type', True
             )
             kwargs['_host_index'] = kwargs.get('_host_index')
+            kwargs['ids'] = \
+                ids
             return self.call_with_http_info(**kwargs)
 
         self.vector_service_fetch = _Endpoint(
@@ -247,7 +251,9 @@ class VectorServiceApi(object):
                     'ids',
                     'namespace',
                 ],
-                'required': [],
+                'required': [
+                    'ids',
+                ],
                 'nullable': [
                 ],
                 'enum': [
