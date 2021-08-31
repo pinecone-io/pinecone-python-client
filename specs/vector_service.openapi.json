@@ -149,7 +149,7 @@
                         "name": "ids",
                         "description": "Vectors to delete.",
                         "in": "query",
-                        "required": true,
+                        "required": false,
                         "explode": true,
                         "schema": {
                             "type": "array",
