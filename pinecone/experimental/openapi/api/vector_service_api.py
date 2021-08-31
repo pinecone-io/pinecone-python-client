@@ -24,7 +24,6 @@ from pinecone.experimental.openapi.model_utils import (  # noqa: F401
 )
 from pinecone.experimental.openapi.model.fetch_response import FetchResponse
 from pinecone.experimental.openapi.model.list_namespaces_response import ListNamespacesResponse
-from pinecone.experimental.openapi.model.list_response import ListResponse
 from pinecone.experimental.openapi.model.query_request import QueryRequest
 from pinecone.experimental.openapi.model.query_response import QueryResponse
 from pinecone.experimental.openapi.model.rpc_status import RpcStatus
@@ -292,118 +291,6 @@ class VectorServiceApi(object):
             },
             api_client=api_client,
             callable=__vector_service_fetch
-        )
-
-        def __vector_service_list(
-            self,
-            **kwargs
-        ):
-            """The `List` operation returns the vector ids in a single namespace.  # noqa: E501
-
-            This method makes a synchronous HTTP request by default. To make an
-            asynchronous HTTP request, please pass async_req=True
-
-            >>> thread = api.vector_service_list(async_req=True)
-            >>> result = thread.get()
-
-
-            Keyword Args:
-                namespace (str): The namespace whose vectors will be returned.. [optional]
-                _return_http_data_only (bool): response data without head status
-                    code and headers. Default is True.
-                _preload_content (bool): if False, the urllib3.HTTPResponse object
-                    will be returned without reading/decoding response data.
-                    Default is True.
-                _request_timeout (int/float/tuple): timeout setting for this request. If
-                    one number provided, it will be total request timeout. It can also
-                    be a pair (tuple) of (connection, read) timeouts.
-                    Default is None.
-                _check_input_type (bool): specifies if type checking
-                    should be done one the data sent to the server.
-                    Default is True.
-                _check_return_type (bool): specifies if type checking
-                    should be done one the data received from the server.
-                    Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
-                async_req (bool): execute request asynchronously
-
-            Returns:
-                ListResponse
-                    If the method is called asynchronously, returns the request
-                    thread.
-            """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
-            return self.call_with_http_info(**kwargs)
-
-        self.vector_service_list = _Endpoint(
-            settings={
-                'response_type': (ListResponse,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/vectors/list',
-                'operation_id': 'vector_service_list',
-                'http_method': 'GET',
-                'servers': None,
-            },
-            params_map={
-                'all': [
-                    'namespace',
-                ],
-                'required': [],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
-            },
-            root_map={
-                'validations': {
-                },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'namespace':
-                        (str,),
-                },
-                'attribute_map': {
-                    'namespace': 'namespace',
-                },
-                'location_map': {
-                    'namespace': 'query',
-                },
-                'collection_format_map': {
-                }
-            },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
-            api_client=api_client,
-            callable=__vector_service_list
         )
 
         def __vector_service_list_namespaces(
