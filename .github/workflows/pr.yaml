@@ -5,8 +5,7 @@ on: pull_request
 jobs:
   run-tests:
     name: Run tests
-    runs-on: self-hosted
-    if: ${{ !contains(github.head_ref, 'docs') }}
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
