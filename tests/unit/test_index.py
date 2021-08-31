@@ -38,9 +38,9 @@ def test_query_request_tuples_query_only(mocker):
     import pinecone
     index = pinecone.Index('example-name')
     mocker.patch.object(index._vector_api, 'vector_service_query', autospec=True)
-    index.query(queries=[vals1, vals2])
+    index.query(top_k=10, queries=[vals1, vals2])
     index._vector_api.vector_service_query.assert_called_once_with(
-        pinecone.QueryRequest(queries=[
+        pinecone.QueryRequest(top_k=10, queries=[
             pinecone.QueryVector(values=vals1),
             pinecone.QueryVector(values=vals2)
         ])
@@ -51,12 +51,12 @@ def test_query_request_tuples_query_filter(mocker):
     import pinecone
     index = pinecone.Index('example-name')
     mocker.patch.object(index._vector_api, 'vector_service_query', autospec=True)
-    index.query(queries=[
+    index.query(top_k=10, queries=[
         (vals1, filter1),
         (vals2, filter2)
     ])
     index._vector_api.vector_service_query.assert_called_once_with(
-        pinecone.QueryRequest(queries=[
+        pinecone.QueryRequest(top_k=10, queries=[
             pinecone.QueryVector(values=vals1, filter=filter1),
             pinecone.QueryVector(values=vals2, filter=filter2)
         ])
