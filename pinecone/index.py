@@ -69,10 +69,6 @@ class Index(ApiClient):
         )
 
     @sentry
-    def list(self, *args, **kwargs):
-        return self._vector_api.vector_service_list(*args, **kwargs)
-
-    @sentry
     def list_namespaces(self, *args, **kwargs):
         return self._vector_api.vector_service_list_namespaces(*args, **kwargs)
 
