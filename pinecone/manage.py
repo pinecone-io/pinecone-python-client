@@ -1,3 +1,7 @@
+import json
+import time
+from typing import NamedTuple
+
 from pinecone.constants import Config
 from pinecone.experimental.openapi.api.database_service_api import DatabaseServiceApi
 from pinecone.experimental.openapi.api_client import ApiClient
@@ -5,11 +9,6 @@ from pinecone.experimental.openapi.configuration import Configuration
 from pinecone.experimental.openapi.model.create_request import CreateRequest
 from pinecone.experimental.openapi.model.patch_request import PatchRequest
 from pinecone.utils.sentry import sentry_decorator as sentry
-from pinecone.constants import ENABLE_PROGRESS_BAR
-from pinecone.utils.progressbar import ProgressBar
-from typing import NamedTuple
-import json
-import time
 
 
 class IndexDescription(NamedTuple):
@@ -81,7 +80,7 @@ def create_index(
     """
     api_instance = _get_api_instance()
 
-    response = api_instance.create_index(create_request=CreateRequest(
+    api_instance.create_index(create_request=CreateRequest(
         name=name,
         dimension=dimension,
         index_type=index_type,
@@ -103,8 +102,6 @@ def create_index(
         if time.time() > timeout:
             raise (TimeoutError('Index created, but it did not get ready in time.'))
 
-    return response
-
 
 @sentry
 def delete_index(name: str, wait: bool = True):
@@ -116,7 +113,7 @@ def delete_index(name: str, wait: bool = True):
     :type wait: bool
     """
     api_instance = _get_api_instance()
-    response = api_instance.delete_index(name)
+    api_instance.delete_index(name)
 
     def get_remaining():
         return name in api_instance.list_indexes()
@@ -127,9 +124,6 @@ def delete_index(name: str, wait: bool = True):
             time.sleep(1)
         if time.time() > timeout:
             raise (TimeoutError('Index deletion timed out.'))
-
-    return response
-
 
 @sentry
 def list_indexes():
@@ -164,5 +158,4 @@ def scale_index(name: str, replicas: int):
     :type replicas: int
     """
     api_instance = _get_api_instance()
-    response = api_instance.scale_index(name, patch_request=PatchRequest(replicas=replicas))
-    return response
+    api_instance.scale_index(name, patch_request=PatchRequest(replicas=replicas))
