@@ -11,7 +11,7 @@ develop:
 
 tests:
 	# skipping flake8 for now
-	pip3 install --upgrade --quiet tox && tox -e py38
+	pip3 install --upgrade --quiet tox && tox -e py3
 
 docs:
 	pip3 install --upgrade --quiet tox && tox -e docs
