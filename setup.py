@@ -36,6 +36,9 @@ setuptools.setup(
     keywords="Pinecone vector database cloud",
     packages=setuptools.find_packages(),
     install_requires=read("requirements.txt"),
+    extras_require={
+        "grpc": read("requirements-grpc.txt"),
+    },
     include_package_data=True,
     python_requires=">=3.6",
     entry_points={
