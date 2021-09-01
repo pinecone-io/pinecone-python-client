@@ -7,7 +7,7 @@ image:
 	MODULE=pinecone ../scripts/build.sh ./
 
 develop:
-	pip3 install -e .
+	pip3 install -e .[grpc]
 
 tests:
 	# skipping flake8 for now
