@@ -263,48 +263,6 @@
         ]
       }
     },
-    "/vectors/list": {
-      "get": {
-        "summary": "The `List` operation returns the vector ids in a single namespace.",
-        "operationId": "VectorService_List",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/rpcStatus"
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "description": "The namespace whose vectors will be returned.",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "tags": [
-          "VectorService"
-        ]
-      }
-    },
     "/vectors/upsert": {
       "post": {
         "summary": "Use the `Upsert` operation to upload data (vector ids, values, and metadata) for indexing.\nIf a new value is upserted for an existing vector id, it will overwrite the previous value.",
@@ -635,27 +593,6 @@
           }
         },
         "description": "The request for the `ListNamespaces` operation."
-      },
-      "ListResponse": {
-        "type": "object",
-        "properties": {
-          "ids": {
-            "type": "array",
-            "example": [
-              "id-0",
-              "id-1",
-              "id-2"
-            ],
-            "items": {
-              "type": "string"
-            }
-          },
-          "namespace": {
-            "type": "string",
-            "example": "namespace_a"
-          }
-        },
-        "description": "The response module for the list operation."
       },
       "QueryRequest": {
         "type": "object",

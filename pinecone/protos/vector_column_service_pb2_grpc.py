@@ -35,11 +35,6 @@ class VectorColumnServiceStub(object):
                 request_serializer=vector__column__service__pb2.QueryRequest.SerializeToString,
                 response_deserializer=vector__column__service__pb2.QueryResponse.FromString,
                 )
-        self.List = channel.unary_unary(
-                '/pinecone_columnar.VectorColumnService/List',
-                request_serializer=vector__column__service__pb2.ListRequest.SerializeToString,
-                response_deserializer=vector__column__service__pb2.ListResponse.FromString,
-                )
         self.ListNamespaces = channel.unary_unary(
                 '/pinecone_columnar.VectorColumnService/ListNamespaces',
                 request_serializer=vector__column__service__pb2.ListNamespacesRequest.SerializeToString,
@@ -87,13 +82,6 @@ class VectorColumnServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def List(self, request, context):
-        """The `List` operation returns the vector IDs in the index.
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
     def ListNamespaces(self, request, context):
         """The `ListNamespaces` operation returns the namespaces that have data in the index.
         """
@@ -130,11 +118,6 @@ def add_VectorColumnServiceServicer_to_server(servicer, server):
                     servicer.Query,
                     request_deserializer=vector__column__service__pb2.QueryRequest.FromString,
                     response_serializer=vector__column__service__pb2.QueryResponse.SerializeToString,
-            ),
-            'List': grpc.unary_unary_rpc_method_handler(
-                    servicer.List,
-                    request_deserializer=vector__column__service__pb2.ListRequest.FromString,
-                    response_serializer=vector__column__service__pb2.ListResponse.SerializeToString,
             ),
             'ListNamespaces': grpc.unary_unary_rpc_method_handler(
                     servicer.ListNamespaces,
@@ -223,23 +206,6 @@ class VectorColumnService(object):
         return grpc.experimental.unary_unary(request, target, '/pinecone_columnar.VectorColumnService/Query',
             vector__column__service__pb2.QueryRequest.SerializeToString,
             vector__column__service__pb2.QueryResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def List(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone_columnar.VectorColumnService/List',
-            vector__column__service__pb2.ListRequest.SerializeToString,
-            vector__column__service__pb2.ListResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

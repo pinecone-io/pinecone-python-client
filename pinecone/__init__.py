@@ -8,7 +8,7 @@ from .utils.sentry import sentry_decorator as sentry
 from .constants import Config, CLIENT_VERSION as __version__
 from .manage import create_index, delete_index, describe_index, list_indexes, scale_index, get_status, IndexDescription
 from .index import Index
-from .experimental.openapi.models import FetchResponse, ListNamespacesResponse, ListResponse, ProtobufAny, \
+from .experimental.openapi.models import FetchResponse, ListNamespacesResponse, ProtobufAny, \
     QueryRequest, QueryResponse, QueryVector, RpcStatus, ScoredVector, SingleQueryResults, SummarizeResponse, \
     UpsertRequest, Vector
 from .experimental.openapi.exceptions import OpenApiException, ApiAttributeError, ApiTypeError, ApiValueError, \
@@ -21,8 +21,8 @@ __all__ = [
     # Data plane
     "Index",
     # Data plane OpenAPI models
-    "FetchResponse", "ListNamespacesResponse", "ListResponse", "ProtobufAny", "QueryRequest", "QueryResponse",
-    "QueryVector", "RpcStatus", "ScoredVector", "SingleQueryResults", "SummarizeResponse", "UpsertRequest", "Vector",
+    "FetchResponse", "ListNamespacesResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector",
+    "RpcStatus", "ScoredVector", "SingleQueryResults", "SummarizeResponse", "UpsertRequest", "Vector",
     # Data plane OpenAPI exceptions
     "OpenApiException", "ApiAttributeError", "ApiTypeError", "ApiValueError", "ApiKeyError", "ApiException",
     # Kept for backwards-compatibility
