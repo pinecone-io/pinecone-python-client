@@ -88,7 +88,7 @@ class FetchResponse(ModelNormal):
         """
         lazy_import()
         return {
-            'vectors': ([Vector],),  # noqa: E501
+            'vectors': ({str: (Vector,)},),  # noqa: E501
             'namespace': (str,),  # noqa: E501
         }
 
@@ -143,7 +143,7 @@ class FetchResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            vectors ([Vector]): The fetched vectors. These follow the same order as `FetchRequest.ids`.. [optional]  # noqa: E501
+            vectors ({str: (Vector,)}): [optional]  # noqa: E501
             namespace (str): The namespace of the vectors.. [optional]  # noqa: E501
         """
 
@@ -226,7 +226,7 @@ class FetchResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            vectors ([Vector]): The fetched vectors. These follow the same order as `FetchRequest.ids`.. [optional]  # noqa: E501
+            vectors ({str: (Vector,)}): [optional]  # noqa: E501
             namespace (str): The namespace of the vectors.. [optional]  # noqa: E501
         """
 

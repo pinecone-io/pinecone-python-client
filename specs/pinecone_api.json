@@ -544,9 +544,9 @@
         "type": "object",
         "properties": {
           "vectors": {
-            "type": "array",
-            "example": [
-              {
+            "type": "object",
+            "example": {
+              "id-0": {
                 "id": "id-0",
                 "values": [
                   17.222,
@@ -555,8 +555,8 @@
                 ],
                 "metadata": "{mykey:myvalue}"
               },
-              {
-                "id": "id-0",
+              "id-1": {
+                "id": "id-1",
                 "values": [
                   15.222,
                   2.234,
@@ -564,11 +564,11 @@
                 ],
                 "metadata": "{mykey:myvalue}"
               }
-            ],
-            "items": {
+            },
+            "additionalProperties": {
               "$ref": "#/components/schemas/Vector"
             },
-            "description": "The fetched vectors. These follow the same order as `FetchRequest.ids`."
+            "title": "The fetched vectors, in the form of a map between the fetched ids and the fetched vectors"
           },
           "namespace": {
             "type": "string",

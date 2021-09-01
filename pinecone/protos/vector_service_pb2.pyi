@@ -20,6 +20,8 @@ from google.protobuf.struct_pb2 import (
 
 from typing import (
     Iterable as typing___Iterable,
+    Mapping as typing___Mapping,
+    MutableMapping as typing___MutableMapping,
     Optional as typing___Optional,
     Text as typing___Text,
 )
@@ -134,14 +136,30 @@ type___FetchRequest = FetchRequest
 
 class FetchResponse(google___protobuf___message___Message):
     DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
+    class VectorsEntry(google___protobuf___message___Message):
+        DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
+        key: typing___Text = ...
+
+        @property
+        def value(self) -> type___Vector: ...
+
+        def __init__(self,
+            *,
+            key : typing___Optional[typing___Text] = None,
+            value : typing___Optional[type___Vector] = None,
+            ) -> None: ...
+        def HasField(self, field_name: typing_extensions___Literal[u"value",b"value"]) -> builtin___bool: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
+    type___VectorsEntry = VectorsEntry
+
     namespace: typing___Text = ...
 
     @property
-    def vectors(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[type___Vector]: ...
+    def vectors(self) -> typing___MutableMapping[typing___Text, type___Vector]: ...
 
     def __init__(self,
         *,
-        vectors : typing___Optional[typing___Iterable[type___Vector]] = None,
+        vectors : typing___Optional[typing___Mapping[typing___Text, type___Vector]] = None,
         namespace : typing___Optional[typing___Text] = None,
         ) -> None: ...
     def ClearField(self, field_name: typing_extensions___Literal[u"namespace",b"namespace",u"vectors",b"vectors"]) -> None: ...
