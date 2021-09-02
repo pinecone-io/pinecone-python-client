@@ -12,7 +12,7 @@ from pinecone.core.utils import _generate_request_id
 from pinecone.core.utils.sentry import sentry_decorator as sentry
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
 from pinecone.core.grpc.retry import RetryOnRpcErrorClientInterceptor, RetryConfig
-from pinecone.core.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSION
+from pinecone.core.utils.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSION
 
 
 class GRPCClientConfig(NamedTuple):

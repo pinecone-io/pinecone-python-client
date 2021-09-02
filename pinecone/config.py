@@ -11,7 +11,7 @@ import sentry_sdk
 import configparser
 
 from pinecone.core.api_action import ActionAPI, WhoAmIResponse
-from pinecone.core.constants import CLIENT_VERSION
+from pinecone.core.utils.constants import CLIENT_VERSION
 from pinecone.core.utils.sentry import sentry_decorator as sentry
 
 __all__ = [

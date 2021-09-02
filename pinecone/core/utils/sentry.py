@@ -5,7 +5,7 @@ import json
 import inspect
 from functools import wraps
 
-from pinecone.core.constants import PACKAGE_ENVIRONMENT, SENTRY_DSN_TXT_RECORD
+from pinecone.core.utils.constants import PACKAGE_ENVIRONMENT, SENTRY_DSN_TXT_RECORD
 from pinecone.config import logger
 
 
