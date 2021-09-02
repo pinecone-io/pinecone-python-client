@@ -66,11 +66,11 @@ def load_strings(proto_arr: 'core_pb2.NdArray') -> List[str]:
 
 
 def get_version():
-    return Path(__file__).parent.parent.joinpath('__version__').read_text().strip()
+    return Path(__file__).parent.parent.parent.joinpath('__version__').read_text().strip()
 
 
 def get_environment():
-    return Path(__file__).parent.parent.joinpath('__environment__').read_text().strip()
+    return Path(__file__).parent.parent.parent.joinpath('__environment__').read_text().strip()
 
 
 def validate_dns_name(name):
