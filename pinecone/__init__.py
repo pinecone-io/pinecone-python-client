@@ -3,6 +3,7 @@
 #
 from .config import *
 from .exceptions import *
+from .info import *
 from .manage import *
 from .index import *
 
