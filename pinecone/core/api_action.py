@@ -5,7 +5,7 @@
 from typing import NamedTuple
 from pinecone.core.api_base import BaseAPI
 
-__all__ = ["ActionAPI"]
+__all__ = ["ActionAPI", "VersionResponse", "WhoAmIResponse"]
 
 from pinecone.core.utils import get_version
 
