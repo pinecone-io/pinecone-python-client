@@ -1,16 +1,24 @@
+#
+# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
+#
+
 from collections import Iterable
 
 from pinecone import Config
-from pinecone.experimental.openapi import ApiClient, Configuration
-from pinecone.utils.sentry import sentry_decorator as sentry
-from pinecone.experimental.openapi.models import QueryRequest, UpsertRequest, QueryVector, Vector
+from pinecone.core.client import ApiClient, Configuration
+from pinecone.core.utils.sentry import sentry_decorator as sentry
+from .core.client.models import FetchResponse, ListNamespacesResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, ScoredVector, SingleQueryResults, SummarizeResponse, UpsertRequest, Vector
 
 __all__ = [
-    "Index",
+    "Index", "FetchResponse", "ListNamespacesResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus", "ScoredVector", "SingleQueryResults", "SummarizeResponse", "UpsertRequest", "Vector"
 ]
 
-from pinecone.experimental.openapi.api.vector_service_api import VectorServiceApi
-from .utils import fix_tuple_length
+
+
+
+
+from pinecone.core.client.api.vector_service_api import VectorServiceApi
+from pinecone.core.utils import fix_tuple_length
 
 
 class Index(ApiClient):

@@ -1,15 +1,23 @@
+#
+# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
+#
+
 import json
 import time
 from typing import NamedTuple
 
-from pinecone.constants import Config
-from pinecone.experimental.openapi.api.database_service_api import DatabaseServiceApi
-from pinecone.experimental.openapi.api_client import ApiClient
-from pinecone.experimental.openapi.configuration import Configuration
-from pinecone.experimental.openapi.model.create_request import CreateRequest
-from pinecone.experimental.openapi.model.patch_request import PatchRequest
-from pinecone.utils.sentry import sentry_decorator as sentry
+from pinecone.config import Config
+from pinecone.core.client.api.database_service_api import DatabaseServiceApi
+from pinecone.core.client.api_client import ApiClient
+from pinecone.core.client.configuration import Configuration
+from pinecone.core.client.model.create_request import CreateRequest
+from pinecone.core.client.model.patch_request import PatchRequest
+from pinecone.core.utils.sentry import sentry_decorator as sentry
 
+
+__all__ = [
+    "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "get_status", "IndexDescription"
+]
 
 class IndexDescription(NamedTuple):
     name: str
