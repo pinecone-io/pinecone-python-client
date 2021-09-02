@@ -11,6 +11,10 @@ from pinecone.core.openapi.model.patch_request import PatchRequest
 from pinecone.core.utils.sentry import sentry_decorator as sentry
 
 
+__all__ = [
+    "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "get_status", "IndexDescription"
+]
+
 class IndexDescription(NamedTuple):
     name: str
     index_type: str

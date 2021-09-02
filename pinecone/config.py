@@ -1,17 +1,22 @@
 #
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
+import sys
 from typing import NamedTuple
 import os
 
+from loguru import logger
 import requests
 import sentry_sdk
 import configparser
 
 from pinecone.core.api_action import ActionAPI, WhoAmIResponse
 from pinecone.core.utils import get_version, get_environment
+from pinecone.core.utils.sentry import sentry_decorator as sentry
 
-__all__ = ["CLIENT_VERSION", "Config", "PACKAGE_ENVIRONMENT", "SENTRY_DSN_TXT_RECORD", "ENABLE_PROGRESS_BAR"]
+__all__ = [
+    "CLIENT_VERSION", "Config", "PACKAGE_ENVIRONMENT", "SENTRY_DSN_TXT_RECORD", "ENABLE_PROGRESS_BAR", "logger", "init"
+]
 
 CLIENT_VERSION = get_version()
 PACKAGE_ENVIRONMENT = get_environment() or "development"
@@ -150,4 +155,26 @@ class _CONFIG:
         return self._config.controller_host
 
 
+@sentry
+def init(project_name: str = None, api_key: str = None, host: str = None, environment: str = None,
+         config: str = "~/.pinecone", **kwargs):
+    """Initializes the Pinecone client.
+
+    :param api_key: Required if not set in config file or by environment variable ``PINECONE_API_KEY``.
+    :param host: Optional. Controller host.
+    :param environment: Optional. Deployment environment.
+    :param config: Optional. An INI configuration file.
+    """
+    Config.reset(project_name=project_name, api_key=api_key, controller_host=host, environment=environment,
+                 config_file=config, **kwargs)
+    if not bool(Config.API_KEY):
+        logger.warning("API key is required.")
+
+
+logger.remove()
+logger.add(sys.stdout, enqueue=True, level=(os.getenv("PINECONE_LOGGING") or "ERROR"))
+
 Config = _CONFIG()
+
+# Init
+init()

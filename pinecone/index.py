@@ -3,11 +3,15 @@ from collections import Iterable
 from pinecone import Config
 from pinecone.core.openapi import ApiClient, Configuration
 from pinecone.core.utils.sentry import sentry_decorator as sentry
-from pinecone.core.openapi.models import QueryRequest, UpsertRequest, QueryVector, Vector
+from .core.openapi.models import FetchResponse, ListNamespacesResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, ScoredVector, SingleQueryResults, SummarizeResponse, UpsertRequest, Vector
 
 __all__ = [
-    "Index",
+    "Index", "FetchResponse", "ListNamespacesResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus", "ScoredVector", "SingleQueryResults", "SummarizeResponse", "UpsertRequest", "Vector"
 ]
+
+
+
+
 
 from pinecone.core.openapi.api.vector_service_api import VectorServiceApi
 from pinecone.core.utils import fix_tuple_length
