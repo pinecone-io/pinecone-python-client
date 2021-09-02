@@ -1,6 +1,7 @@
 #
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
+from pinecone.core.utils.constants import CLIENT_VERSION as __version__
 from .config import *
 from .exceptions import *
 from .info import *
