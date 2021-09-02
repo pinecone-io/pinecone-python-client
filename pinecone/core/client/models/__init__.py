@@ -1,0 +1,34 @@
+#
+# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
+#
+
+# flake8: noqa
+
+# import all models into this package
+# if you have many models here with many references from one model to another this may
+# raise a RecursionError
+# to avoid this, import only the models that you directly need like:
+# from from pinecone.core.client.model.pet import Pet
+# or import this package, but before doing it, use:
+# import sys
+# sys.setrecursionlimit(n)
+
+from pinecone.core.client.model.approximated_config import ApproximatedConfig
+from pinecone.core.client.model.create_request import CreateRequest
+from pinecone.core.client.model.fetch_response import FetchResponse
+from pinecone.core.client.model.hnsw_config import HnswConfig
+from pinecone.core.client.model.index_meta import IndexMeta
+from pinecone.core.client.model.list_namespaces_response import ListNamespacesResponse
+from pinecone.core.client.model.patch_request import PatchRequest
+from pinecone.core.client.model.protobuf_any import ProtobufAny
+from pinecone.core.client.model.protobuf_null_value import ProtobufNullValue
+from pinecone.core.client.model.query_request import QueryRequest
+from pinecone.core.client.model.query_response import QueryResponse
+from pinecone.core.client.model.query_vector import QueryVector
+from pinecone.core.client.model.rpc_status import RpcStatus
+from pinecone.core.client.model.scored_vector import ScoredVector
+from pinecone.core.client.model.single_query_results import SingleQueryResults
+from pinecone.core.client.model.status_response import StatusResponse
+from pinecone.core.client.model.summarize_response import SummarizeResponse
+from pinecone.core.client.model.upsert_request import UpsertRequest
+from pinecone.core.client.model.vector import Vector

@@ -2,14 +2,14 @@
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
 
-from pinecone.utils.sentry import sentry_decorator as sentry
-from pinecone.api_action import ActionAPI
-from pinecone.constants import Config
+from pinecone.core.utils.sentry import sentry_decorator as sentry
+from pinecone.core.api_action import ActionAPI, VersionResponse, WhoAmIResponse
+from pinecone.config import Config
 
 import time
 import requests
 
-__all__ = ["version"]
+__all__ = ["version", "whoami", "VersionResponse", "WhoAmIResponse"]
 
 
 def _get_action_api():
@@ -17,10 +17,17 @@ def _get_action_api():
 
 
 @sentry
-def version():
+def version() -> VersionResponse:
     """Returns version information (client and server)."""
     api = _get_action_api()
     return api.version()
+
+
+@sentry
+def whoami() -> WhoAmIResponse:
+    """Returns the details of the currently authenticated API key."""
+    api = _get_action_api()
+    return api.whoami()
 
 
 @sentry
