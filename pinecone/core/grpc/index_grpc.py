@@ -5,14 +5,14 @@ from typing import NamedTuple, Optional, Dict
 import grpc
 
 from pinecone import logger
-from pinecone.config import Config, CLIENT_VERSION
+from pinecone.config import Config
 from pinecone.core.grpc.protos.vector_column_service_pb2_grpc import VectorColumnServiceStub
 from pinecone.core.grpc.protos import vector_service_pb2, vector_column_service_pb2
 from pinecone.core.utils import _generate_request_id
 from pinecone.core.utils.sentry import sentry_decorator as sentry
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
 from pinecone.core.grpc.retry import RetryOnRpcErrorClientInterceptor, RetryConfig
-from pinecone.core.constants import MAX_MSG_SIZE, REQUEST_ID
+from pinecone.core.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSION
 
 
 class GRPCClientConfig(NamedTuple):

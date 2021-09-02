@@ -5,6 +5,8 @@
 import os
 import enum
 
+from pinecone.core.utils import get_environment, get_version
+
 MAX_MSG_SIZE = 128 * 1024 * 1024
 
 MAX_ID_LENGTH = int(os.environ.get("PINECONE_MAX_ID_LENGTH", default="64"))
@@ -22,3 +24,8 @@ class NodeType(str, enum.Enum):
     STANDARD4X = 'STANDARD4X'
     COMPUTE4X = 'COMPUTE4X'
     MEMORY4X = 'MEMORY4X'
+
+
+PACKAGE_ENVIRONMENT = get_environment() or "development"
+SENTRY_DSN_TXT_RECORD = "pinecone-client.sentry.pinecone.io"
+CLIENT_VERSION = get_version()

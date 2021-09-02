@@ -5,8 +5,8 @@ import json
 import inspect
 from functools import wraps
 
-from pinecone.config import PACKAGE_ENVIRONMENT, SENTRY_DSN_TXT_RECORD
-from pinecone import logger
+from pinecone.core.constants import PACKAGE_ENVIRONMENT, SENTRY_DSN_TXT_RECORD
+from pinecone.config import logger
 
 
 def sentry_decorator(func):
