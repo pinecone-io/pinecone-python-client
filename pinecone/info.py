@@ -2,9 +2,9 @@
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
 
-from pinecone.utils.sentry import sentry_decorator as sentry
-from pinecone.api_action import ActionAPI
-from pinecone.constants import Config
+from pinecone.core.utils.sentry import sentry_decorator as sentry
+from pinecone.core.api_action import ActionAPI
+from pinecone.config import Config
 
 import time
 import requests

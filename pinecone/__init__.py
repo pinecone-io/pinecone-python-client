@@ -4,14 +4,14 @@
 import os
 from loguru import logger
 import sys
-from .utils.sentry import sentry_decorator as sentry
-from .constants import Config, CLIENT_VERSION as __version__
+from pinecone.core.utils.sentry import sentry_decorator as sentry
+from .config import Config, CLIENT_VERSION as __version__
 from .manage import create_index, delete_index, describe_index, list_indexes, scale_index, get_status, IndexDescription
 from .index import Index
-from .experimental.openapi.models import FetchResponse, ListNamespacesResponse, ProtobufAny, \
+from .core.openapi.models import FetchResponse, ListNamespacesResponse, ProtobufAny, \
     QueryRequest, QueryResponse, QueryVector, RpcStatus, ScoredVector, SingleQueryResults, SummarizeResponse, \
     UpsertRequest, Vector
-from .experimental.openapi.exceptions import OpenApiException, ApiAttributeError, ApiTypeError, ApiValueError, \
+from .core.openapi.exceptions import OpenApiException, ApiAttributeError, ApiTypeError, ApiValueError, \
     ApiKeyError, ApiException
 
 __all__ = [

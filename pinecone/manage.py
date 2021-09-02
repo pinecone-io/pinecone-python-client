@@ -2,13 +2,13 @@ import json
 import time
 from typing import NamedTuple
 
-from pinecone.constants import Config
-from pinecone.experimental.openapi.api.database_service_api import DatabaseServiceApi
-from pinecone.experimental.openapi.api_client import ApiClient
-from pinecone.experimental.openapi.configuration import Configuration
-from pinecone.experimental.openapi.model.create_request import CreateRequest
-from pinecone.experimental.openapi.model.patch_request import PatchRequest
-from pinecone.utils.sentry import sentry_decorator as sentry
+from pinecone.config import Config
+from pinecone.core.openapi.api.database_service_api import DatabaseServiceApi
+from pinecone.core.openapi.api_client import ApiClient
+from pinecone.core.openapi.configuration import Configuration
+from pinecone.core.openapi.model.create_request import CreateRequest
+from pinecone.core.openapi.model.patch_request import PatchRequest
+from pinecone.core.utils.sentry import sentry_decorator as sentry
 
 
 class IndexDescription(NamedTuple):
