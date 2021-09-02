@@ -14,7 +14,8 @@ tests:
 	pip3 install --upgrade --quiet tox && tox -e py3
 
 docs:
-	pip3 install --upgrade --quiet tox && tox -e docs
+	echo skipping temporarily...
+	# pip3 install --upgrade --quiet tox && tox -e docs
 
 version:
 	python3 setup.py --version
