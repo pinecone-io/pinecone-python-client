@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
+#
+
 from typing import Callable
 import time
 import os

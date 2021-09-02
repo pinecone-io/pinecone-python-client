@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
+#
+
 from abc import ABC, abstractmethod
 from functools import wraps
 from typing import NamedTuple, Optional, Dict
