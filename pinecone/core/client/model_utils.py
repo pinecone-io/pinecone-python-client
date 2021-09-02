@@ -213,7 +213,7 @@ class OpenApiModel(object):
             cls.discriminator is None or
             cls in visited_composed_classes
         ):
-            # Use case 1: this client schema (cls) does not have a discriminator
+            # Use case 1: this openapi schema (cls) does not have a discriminator
             # Use case 2: we have already visited this class before and are sure that we
             # want to instantiate it this time. We have visited this class deserializing
             # a payload with a discriminator. During that process we traveled through
@@ -329,7 +329,7 @@ class OpenApiModel(object):
             cls.discriminator is None or
             cls in visited_composed_classes
         ):
-            # Use case 1: this client schema (cls) does not have a discriminator
+            # Use case 1: this openapi schema (cls) does not have a discriminator
             # Use case 2: we have already visited this class before and are sure that we
             # want to instantiate it this time. We have visited this class deserializing
             # a payload with a discriminator. During that process we traveled through
@@ -422,7 +422,7 @@ class OpenApiModel(object):
 
 class ModelSimple(OpenApiModel):
     """the parent class of models whose type != object in their
-    swagger/client"""
+    swagger/openapi"""
 
     def __setitem__(self, name, value):
         """set the value of an attribute using square-bracket notation: `instance[attr] = val`"""
@@ -477,7 +477,7 @@ class ModelSimple(OpenApiModel):
 
 class ModelNormal(OpenApiModel):
     """the parent class of models whose type == object in their
-    swagger/client"""
+    swagger/openapi"""
 
     def __setitem__(self, name, value):
         """set the value of an attribute using square-bracket notation: `instance[attr] = val`"""
@@ -540,7 +540,7 @@ class ModelNormal(OpenApiModel):
 
 class ModelComposed(OpenApiModel):
     """the parent class of models whose type == object in their
-    swagger/client and have oneOf/allOf/anyOf
+    swagger/openapi and have oneOf/allOf/anyOf
 
     When one sets a property we use var_name_to_model_instances to store the value in
     the correct class instances + run any type checking + validation code.
@@ -552,7 +552,7 @@ class ModelComposed(OpenApiModel):
     _composed_schemas (dict) stores the anyOf/allOf/oneOf classes
     key (str): allOf/oneOf/anyOf
     value (list): the classes in the XOf definition.
-        Note: none_type can be included when the client document version >= 3.1.0
+        Note: none_type can be included when the openapi document version >= 3.1.0
     _composed_instances (list): stores a list of instances of the composed schemas
     defined in _composed_schemas. When properties are accessed in the self instance,
     they are returned from the self._data_store or the data stores in the instances

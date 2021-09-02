@@ -36,7 +36,7 @@
       "name": "VectorService"
     },
     {
-      "name": "DatabseService"
+      "name": "DatabaseService"
     }
   ],
   "paths": {
@@ -959,9 +959,6 @@
           "index_config": {
             "oneOf": [
               {
-                "$ref": "#/components/schemas/HnswConfig"
-              },
-              {
                 "$ref": "#/components/schemas/ApproximatedConfig"
               }
             ]
@@ -991,9 +988,6 @@
           },
           "index_config": {
             "oneOf": [
-              {
-                "$ref": "#/components/schemas/HnswConfig"
-              },
               {
                 "$ref": "#/components/schemas/ApproximatedConfig"
               }

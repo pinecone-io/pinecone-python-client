@@ -648,7 +648,7 @@ class Endpoint(object):
                     paths to their validation dictionaries
                 'allowed_values' (dict): the dict mapping endpoint parameter
                     tuple paths to their allowed_values (enum) dictionaries
-                'openapi_types' (dict): param_name to client type
+                'openapi_types' (dict): param_name to openapi type
                 'attribute_map' (dict): param_name to camelCase name
                 'location_map' (dict): param_name to  'body', 'file', 'form',
                     'header', 'path', 'query'

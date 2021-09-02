@@ -283,8 +283,7 @@
                },
                "index_config": {
                   "oneOf": [{
-                     "$ref": "#/components/schemas/HnswConfig"},
-		            {"$ref": "#/components/schemas/ApproximatedConfig"
+                     "$ref": "#/components/schemas/ApproximatedConfig"
                   }]
                }
             }
@@ -312,8 +311,7 @@
                },
                "index_config": {
                   "oneOf": [{
-                     "$ref": "#/components/schemas/HnswConfig"},
-		            {"$ref": "#/components/schemas/ApproximatedConfig"
+                     "$ref": "#/components/schemas/ApproximatedConfig"
                   }]
                }
             }
