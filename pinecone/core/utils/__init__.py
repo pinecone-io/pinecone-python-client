@@ -5,10 +5,14 @@ import uuid
 from pathlib import Path
 
 from pinecone.core.grpc.protos import vector_column_service_pb2
-import numpy as np
 import re
-import lz4.frame
 from typing import List
+
+try:
+    import numpy as np
+    import lz4.frame
+except ImportError:
+    pass  # ignore for non-[grpc] installations
 
 DNS_COMPATIBLE_REGEX = re.compile("^[a-z0-9]([a-z0-9]|[-])+[a-z0-9]$")
 
