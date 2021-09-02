@@ -5,9 +5,9 @@
 from collections import Iterable
 
 from pinecone import Config
-from pinecone.core.openapi import ApiClient, Configuration
+from pinecone.core.client import ApiClient, Configuration
 from pinecone.core.utils.sentry import sentry_decorator as sentry
-from .core.openapi.models import FetchResponse, ListNamespacesResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, ScoredVector, SingleQueryResults, SummarizeResponse, UpsertRequest, Vector
+from .core.client.models import FetchResponse, ListNamespacesResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, ScoredVector, SingleQueryResults, SummarizeResponse, UpsertRequest, Vector
 
 __all__ = [
     "Index", "FetchResponse", "ListNamespacesResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus", "ScoredVector", "SingleQueryResults", "SummarizeResponse", "UpsertRequest", "Vector"
@@ -17,7 +17,7 @@ __all__ = [
 
 
 
-from pinecone.core.openapi.api.vector_service_api import VectorServiceApi
+from pinecone.core.client.api.vector_service_api import VectorServiceApi
 from pinecone.core.utils import fix_tuple_length
 
 

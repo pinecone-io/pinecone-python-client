@@ -7,11 +7,11 @@ import time
 from typing import NamedTuple
 
 from pinecone.config import Config
-from pinecone.core.openapi.api.database_service_api import DatabaseServiceApi
-from pinecone.core.openapi.api_client import ApiClient
-from pinecone.core.openapi.configuration import Configuration
-from pinecone.core.openapi.model.create_request import CreateRequest
-from pinecone.core.openapi.model.patch_request import PatchRequest
+from pinecone.core.client.api.database_service_api import DatabaseServiceApi
+from pinecone.core.client.api_client import ApiClient
+from pinecone.core.client.configuration import Configuration
+from pinecone.core.client.model.create_request import CreateRequest
+from pinecone.core.client.model.patch_request import PatchRequest
 from pinecone.core.utils.sentry import sentry_decorator as sentry
 
 
