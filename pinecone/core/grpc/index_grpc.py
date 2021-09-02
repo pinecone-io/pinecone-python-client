@@ -182,18 +182,6 @@ class Index(GRPCIndex):
               metadata: Dict[str, str] = None):
         return self._wrap_grpc_call(self.stub.Query, request, timeout=timeout, metadata=metadata)
 
-    def list(self,
-             request: 'vector_service_pb2.ListRequest',
-             timeout: int = None,
-             metadata: Dict[str, str] = None):
-        return self._wrap_grpc_call(self.stub.List, request, timeout=timeout, metadata=metadata)
-
-    def list_namespaces(self,
-                        request: 'vector_service_pb2.ListNamespacesRequest',
-                        timeout: int = None,
-                        metadata: Dict[str, str] = None):
-        return self._wrap_grpc_call(self.stub.ListNamespaces, request, timeout=timeout, metadata=metadata)
-
     def summarize(self,
                   request: 'vector_service_pb2.SummarizeRequest',
                   timeout: int = None,
@@ -230,18 +218,6 @@ class CIndex(GRPCIndex):
               timeout: int = None,
               metadata: Dict[str, str] = None):
         return self._wrap_grpc_call(self.stub.Query, request, timeout=timeout, metadata=metadata)
-
-    def list(self,
-             request: 'vector_column_service_pb2.ListRequest',
-             timeout: int = None,
-             metadata: Dict[str, str] = None):
-        return self._wrap_grpc_call(self.stub.List, request, timeout=timeout, metadata=metadata)
-
-    def list_namespaces(self,
-                        request: 'vector_column_service_pb2.ListNamespacesRequest',
-                        timeout: int = None,
-                        metadata: Dict[str, str] = None):
-        return self._wrap_grpc_call(self.stub.ListNamespaces, request, timeout=timeout, metadata=metadata)
 
     def summarize(self,
                   request: 'vector_column_service_pb2.SummarizeRequest',
