@@ -152,7 +152,7 @@ def describe_index(name: str):
     """
     api_instance = _get_api_instance()
     response = api_instance.describe_index(name)
-    db = json.loads(response['database'])
+    db = response['database']
     return IndexDescription(name=db['name'], index_type=db['index_type'], metric=db['metric'],
                             replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
                             index_config=db['index_config'])

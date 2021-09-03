@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
+#
+
 """
     Pinecone JSON API
 
@@ -29,6 +33,12 @@ from pinecone.core.client.model_utils import (  # noqa: F401
 from ..model_utils import OpenApiModel
 from pinecone.core.client.exceptions import ApiAttributeError
 
+
+def lazy_import():
+    from pinecone.core.client.model.index_meta_database import IndexMetaDatabase
+    from pinecone.core.client.model.index_meta_status import IndexMetaStatus
+    globals()['IndexMetaDatabase'] = IndexMetaDatabase
+    globals()['IndexMetaStatus'] = IndexMetaStatus
 
 
 class IndexMeta(ModelNormal):
@@ -67,6 +77,7 @@ class IndexMeta(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
+        lazy_import()
         return (bool, date, datetime, dict, float, int, list, str, none_type,)  # noqa: E501
 
     _nullable = False
@@ -81,14 +92,10 @@ class IndexMeta(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
+        lazy_import()
         return {
-            'name': (str,),  # noqa: E501
-            'dimensions': (str,),  # noqa: E501
-            'index_type': (str,),  # noqa: E501
-            'metric': (str,),  # noqa: E501
-            'replicas': (int,),  # noqa: E501
-            'shards': (int,),  # noqa: E501
-            'index_config': (dict,),  # noqa: E501
+            'database': (IndexMetaDatabase,),  # noqa: E501
+            'status': (IndexMetaStatus,),  # noqa: E501
         }
 
     @cached_property
@@ -97,13 +104,8 @@ class IndexMeta(ModelNormal):
 
 
     attribute_map = {
-        'name': 'name',  # noqa: E501
-        'dimensions': 'dimensions',  # noqa: E501
-        'index_type': 'index_type',  # noqa: E501
-        'metric': 'metric',  # noqa: E501
-        'replicas': 'replicas',  # noqa: E501
-        'shards': 'shards',  # noqa: E501
-        'index_config': 'index_config',  # noqa: E501
+        'database': 'database',  # noqa: E501
+        'status': 'status',  # noqa: E501
     }
 
     read_only_vars = {
@@ -147,13 +149,8 @@ class IndexMeta(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            name (str): [optional]  # noqa: E501
-            dimensions (str): [optional]  # noqa: E501
-            index_type (str): [optional]  # noqa: E501
-            metric (str): [optional]  # noqa: E501
-            replicas (int): [optional]  # noqa: E501
-            shards (int): [optional]  # noqa: E501
-            index_config (dict): [optional]  # noqa: E501
+            database (IndexMetaDatabase): [optional]  # noqa: E501
+            status (IndexMetaStatus): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -235,13 +232,8 @@ class IndexMeta(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            name (str): [optional]  # noqa: E501
-            dimensions (str): [optional]  # noqa: E501
-            index_type (str): [optional]  # noqa: E501
-            metric (str): [optional]  # noqa: E501
-            replicas (int): [optional]  # noqa: E501
-            shards (int): [optional]  # noqa: E501
-            index_config (dict): [optional]  # noqa: E501
+            database (IndexMetaDatabase): [optional]  # noqa: E501
+            status (IndexMetaStatus): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)

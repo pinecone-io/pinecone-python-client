@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
+#
+
 # flake8: noqa
 
 # import all models into this package
@@ -14,6 +18,8 @@ from pinecone.core.client.model.create_request import CreateRequest
 from pinecone.core.client.model.fetch_response import FetchResponse
 from pinecone.core.client.model.hnsw_config import HnswConfig
 from pinecone.core.client.model.index_meta import IndexMeta
+from pinecone.core.client.model.index_meta_database import IndexMetaDatabase
+from pinecone.core.client.model.index_meta_status import IndexMetaStatus
 from pinecone.core.client.model.list_namespaces_response import ListNamespacesResponse
 from pinecone.core.client.model.patch_request import PatchRequest
 from pinecone.core.client.model.protobuf_any import ProtobufAny

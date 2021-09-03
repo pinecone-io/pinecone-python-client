@@ -923,30 +923,58 @@
       "indexMeta": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string"
-          },
-          "dimensions": {
-            "type": "string"
-          },
-          "index_type": {
-            "type": "string"
-          },
-          "metric": {
-            "type": "string"
-          },
-          "replicas": {
-            "type": "integer"
-          },
-          "shards": {
-            "type": "integer"
-          },
-          "index_config": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/ApproximatedConfig"
+          "database": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "dimensions": {
+                "type": "string"
+              },
+              "index_type": {
+                "type": "string"
+              },
+              "metric": {
+                "type": "string"
+              },
+              "replicas": {
+                "type": "integer"
+              },
+              "shards": {
+                "type": "integer"
+              },
+              "index_config": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/ApproximatedConfig"
+                  }
+                ]
               }
-            ]
+            }
+          },
+          "status": {
+            "type": "object",
+            "properties": {
+              "crashed": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ready": {
+                "type": "boolean"
+              },
+              "port": {
+                "type": "integer"
+              },
+              "waiting": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       },
