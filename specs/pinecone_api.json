@@ -487,51 +487,6 @@
           }
         }
       ]
-    },
-    "/databases/{indexName}/status": {
-      "get": {
-        "operationId": "get_status",
-        "description": "Get status of an index",
-        "parameters": [
-          {
-            "name": "indexName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Name of the index"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Index is ready",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/statusResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "An unexpected error"
-          }
-        },
-        "tags": [
-          "DatabaseService"
-        ]
-      },
-      "servers": [
-        {
-          "url": "https://controller.{environment}.pinecone.io",
-          "variables": {
-            "environment": {
-              "default": "unknown"
-            }
-          }
-        }
-      ]
     }
   },
   "components": {
@@ -1034,29 +989,6 @@
           "hybrid": {
             "type": "boolean",
             "default": false
-          }
-        }
-      },
-      "statusResponse": {
-        "type": "object",
-        "properties": {
-          "crashed": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "ready": {
-            "type": "boolean"
-          },
-          "port": {
-            "type": "integer"
-          },
-          "waiting": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           }
         }
       }

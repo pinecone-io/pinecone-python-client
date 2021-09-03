@@ -1,7 +1,3 @@
-#
-# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
-#
-
 # flake8: noqa
 
 # import all models into this package
@@ -28,7 +24,6 @@ from pinecone.core.client.model.query_vector import QueryVector
 from pinecone.core.client.model.rpc_status import RpcStatus
 from pinecone.core.client.model.scored_vector import ScoredVector
 from pinecone.core.client.model.single_query_results import SingleQueryResults
-from pinecone.core.client.model.status_response import StatusResponse
 from pinecone.core.client.model.summarize_response import SummarizeResponse
 from pinecone.core.client.model.upsert_request import UpsertRequest
 from pinecone.core.client.model.vector import Vector
