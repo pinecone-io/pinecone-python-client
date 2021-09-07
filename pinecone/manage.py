@@ -14,10 +14,10 @@ from pinecone.core.client.model.create_request import CreateRequest
 from pinecone.core.client.model.patch_request import PatchRequest
 from pinecone.core.utils.sentry import sentry_decorator as sentry
 
-
 __all__ = [
     "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "get_status", "IndexDescription"
 ]
+
 
 class IndexDescription(NamedTuple):
     name: str
@@ -46,7 +46,8 @@ def _get_api_instance():
 
 def get_status(name: str):
     api_instance = _get_api_instance()
-    return api_instance.get_status(name)
+    response = api_instance.describe_index(name)
+    return response['status']
 
 
 @sentry
@@ -99,7 +100,7 @@ def create_index(
     ))
 
     def is_ready():
-        status = api_instance.get_status(name)
+        status = get_status(name)
         ready = status['ready']
         return ready
 
@@ -133,6 +134,7 @@ def delete_index(name: str, wait: bool = True):
         if time.time() > timeout:
             raise (TimeoutError('Index deletion timed out.'))
 
+
 @sentry
 def list_indexes():
     """Lists all indexes."""
@@ -150,7 +152,7 @@ def describe_index(name: str):
     """
     api_instance = _get_api_instance()
     response = api_instance.describe_index(name)
-    db = json.loads(response['database'])
+    db = response['database']
     return IndexDescription(name=db['name'], index_type=db['index_type'], metric=db['metric'],
                             replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
                             index_config=db['index_config'])

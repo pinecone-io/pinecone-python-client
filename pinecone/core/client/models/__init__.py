@@ -19,6 +19,8 @@ from pinecone.core.client.model.fetch_response import FetchResponse
 from pinecone.core.client.model.hnsw_config import HnswConfig
 from pinecone.core.client.model.index_meta import IndexMeta
 from pinecone.core.client.model.namespace_summary import NamespaceSummary
+from pinecone.core.client.model.index_meta_database import IndexMetaDatabase
+from pinecone.core.client.model.index_meta_status import IndexMetaStatus
 from pinecone.core.client.model.patch_request import PatchRequest
 from pinecone.core.client.model.protobuf_any import ProtobufAny
 from pinecone.core.client.model.protobuf_null_value import ProtobufNullValue
@@ -28,7 +30,6 @@ from pinecone.core.client.model.query_vector import QueryVector
 from pinecone.core.client.model.rpc_status import RpcStatus
 from pinecone.core.client.model.scored_vector import ScoredVector
 from pinecone.core.client.model.single_query_results import SingleQueryResults
-from pinecone.core.client.model.status_response import StatusResponse
 from pinecone.core.client.model.summarize_response import SummarizeResponse
 from pinecone.core.client.model.upsert_request import UpsertRequest
 from pinecone.core.client.model.vector import Vector
