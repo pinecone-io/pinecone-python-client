@@ -24,7 +24,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\021io.pinecone.protoZ+github.com/pinecone-io/go-pinecone/pinecone',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x1bvector_column_service.proto\x12\x11pinecone_columnar\x1a\x1cgoogle/protobuf/struct.proto\"K\n\x07NdArray\x12\x0e\n\x06\x62uffer\x18\x01 \x01(\x0c\x12\r\n\x05shape\x18\x02 \x03(\r\x12\r\n\x05\x64type\x18\x03 \x01(\t\x12\x12\n\ncompressed\x18\x04 \x01(\x08\"\xbc\x01\n\rScoredResults\x12\'\n\x03ids\x18\x01 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12*\n\x06scores\x18\x02 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12(\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12,\n\x08metadata\x18\x04 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\"\x84\x01\n\rUpsertRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12(\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12)\n\x08metadata\x18\x04 \x03(\x0b\x32\x17.google.protobuf.Struct\"\x10\n\x0eUpsertResponse\"C\n\rDeleteRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12\x12\n\ndelete_all\x18\x03 \x01(\x08\"\x10\n\x0e\x44\x65leteResponse\".\n\x0c\x46\x65tchRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\"\x87\x01\n\rFetchResponse\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12+\n\x07vectors\x18\x03 \x03(\x0b\x32\x1a.pinecone_columnar.NdArray\x12)\n\x08metadata\x18\x04 \x03(\x0b\x32\x17.google.protobuf.Struct\"\x9f\x02\n\x0cQueryRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x1b\n\x13namespace_overrides\x18\x06 \x03(\t\x12\r\n\x05top_k\x18\x02 \x01(\r\x12\x17\n\x0ftop_k_overrides\x18\x05 \x03(\r\x12\'\n\x06\x66ilter\x18\x07 \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x31\n\x10\x66ilter_overrides\x18\x08 \x03(\x0b\x32\x17.google.protobuf.Struct\x12\x14\n\x0cinclude_data\x18\x03 \x01(\x08\x12\x18\n\x10include_metadata\x18\t \x01(\x08\x12+\n\x07queries\x18\x04 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\"B\n\rQueryResponse\x12\x31\n\x07matches\x18\x01 \x03(\x0b\x32 .pinecone_columnar.ScoredResults\"\x17\n\x15ListNamespacesRequest\",\n\x16ListNamespacesResponse\x12\x12\n\nnamespaces\x18\x01 \x03(\t\"\x12\n\x10SummarizeRequest\":\n\x11SummarizeResponse\x12\x12\n\nindex_size\x18\x01 \x01(\x04\x12\x11\n\tdimension\x18\x02 \x01(\r2\x96\x04\n\x13VectorColumnService\x12O\n\x06Upsert\x12 .pinecone_columnar.UpsertRequest\x1a!.pinecone_columnar.UpsertResponse\"\x00\x12O\n\x06\x44\x65lete\x12 .pinecone_columnar.DeleteRequest\x1a!.pinecone_columnar.DeleteResponse\"\x00\x12L\n\x05\x46\x65tch\x12\x1f.pinecone_columnar.FetchRequest\x1a .pinecone_columnar.FetchResponse\"\x00\x12L\n\x05Query\x12\x1f.pinecone_columnar.QueryRequest\x1a .pinecone_columnar.QueryResponse\"\x00\x12g\n\x0eListNamespaces\x12(.pinecone_columnar.ListNamespacesRequest\x1a).pinecone_columnar.ListNamespacesResponse\"\x00\x12X\n\tSummarize\x12#.pinecone_columnar.SummarizeRequest\x1a$.pinecone_columnar.SummarizeResponse\"\x00\x42@\n\x11io.pinecone.protoZ+github.com/pinecone-io/go-pinecone/pineconeb\x06proto3'
+  serialized_pb=b'\n\x1bvector_column_service.proto\x12\x11pinecone_columnar\x1a\x1cgoogle/protobuf/struct.proto\"K\n\x07NdArray\x12\x0e\n\x06\x62uffer\x18\x01 \x01(\x0c\x12\r\n\x05shape\x18\x02 \x03(\r\x12\r\n\x05\x64type\x18\x03 \x01(\t\x12\x12\n\ncompressed\x18\x04 \x01(\x08\"\xbc\x01\n\rScoredResults\x12\'\n\x03ids\x18\x01 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12*\n\x06scores\x18\x02 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12(\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12,\n\x08metadata\x18\x04 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\"\x84\x01\n\rUpsertRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12(\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12)\n\x08metadata\x18\x04 \x03(\x0b\x32\x17.google.protobuf.Struct\"\x10\n\x0eUpsertResponse\"C\n\rDeleteRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12\x12\n\ndelete_all\x18\x03 \x01(\x08\"\x10\n\x0e\x44\x65leteResponse\".\n\x0c\x46\x65tchRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\"\x87\x01\n\rFetchResponse\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12+\n\x07vectors\x18\x03 \x03(\x0b\x32\x1a.pinecone_columnar.NdArray\x12)\n\x08metadata\x18\x04 \x03(\x0b\x32\x17.google.protobuf.Struct\"\x9f\x02\n\x0cQueryRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x1b\n\x13namespace_overrides\x18\x06 \x03(\t\x12\r\n\x05top_k\x18\x02 \x01(\r\x12\x17\n\x0ftop_k_overrides\x18\x05 \x03(\r\x12\'\n\x06\x66ilter\x18\x07 \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x31\n\x10\x66ilter_overrides\x18\x08 \x03(\x0b\x32\x17.google.protobuf.Struct\x12\x14\n\x0cinclude_data\x18\x03 \x01(\x08\x12\x18\n\x10include_metadata\x18\t \x01(\x08\x12+\n\x07queries\x18\x04 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\"B\n\rQueryResponse\x12\x31\n\x07matches\x18\x01 \x03(\x0b\x32 .pinecone_columnar.ScoredResults\"\x12\n\x10SummarizeRequest\"(\n\x10NamespaceSummary\x12\x14\n\x0cvector_count\x18\x01 \x01(\r\"\xc8\x01\n\x11SummarizeResponse\x12H\n\nnamespaces\x18\x01 \x03(\x0b\x32\x34.pinecone_columnar.SummarizeResponse.NamespacesEntry\x12\x11\n\tdimension\x18\x02 \x01(\r\x1aV\n\x0fNamespacesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x32\n\x05value\x18\x02 \x01(\x0b\x32#.pinecone_columnar.NamespaceSummary:\x02\x38\x01\x32\xad\x03\n\x13VectorColumnService\x12O\n\x06Upsert\x12 .pinecone_columnar.UpsertRequest\x1a!.pinecone_columnar.UpsertResponse\"\x00\x12O\n\x06\x44\x65lete\x12 .pinecone_columnar.DeleteRequest\x1a!.pinecone_columnar.DeleteResponse\"\x00\x12L\n\x05\x46\x65tch\x12\x1f.pinecone_columnar.FetchRequest\x1a .pinecone_columnar.FetchResponse\"\x00\x12L\n\x05Query\x12\x1f.pinecone_columnar.QueryRequest\x1a .pinecone_columnar.QueryResponse\"\x00\x12X\n\tSummarize\x12#.pinecone_columnar.SummarizeRequest\x1a$.pinecone_columnar.SummarizeResponse\"\x00\x42@\n\x11io.pinecone.protoZ+github.com/pinecone-io/go-pinecone/pineconeb\x06proto3'
   ,
   dependencies=[google_dot_protobuf_dot_struct__pb2.DESCRIPTOR,])
 
@@ -498,63 +498,6 @@ _QUERYRESPONSE = _descriptor.Descriptor(
 )
 
 
-_LISTNAMESPACESREQUEST = _descriptor.Descriptor(
-  name='ListNamespacesRequest',
-  full_name='pinecone_columnar.ListNamespacesRequest',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1132,
-  serialized_end=1155,
-)
-
-
-_LISTNAMESPACESRESPONSE = _descriptor.Descriptor(
-  name='ListNamespacesResponse',
-  full_name='pinecone_columnar.ListNamespacesResponse',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='namespaces', full_name='pinecone_columnar.ListNamespacesResponse.namespaces', index=0,
-      number=1, type=9, cpp_type=9, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1157,
-  serialized_end=1201,
-)
-
-
 _SUMMARIZEREQUEST = _descriptor.Descriptor(
   name='SummarizeRequest',
   full_name='pinecone_columnar.SummarizeRequest',
@@ -575,29 +518,22 @@ _SUMMARIZEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1203,
-  serialized_end=1221,
+  serialized_start=1132,
+  serialized_end=1150,
 )
 
 
-_SUMMARIZERESPONSE = _descriptor.Descriptor(
-  name='SummarizeResponse',
-  full_name='pinecone_columnar.SummarizeResponse',
+_NAMESPACESUMMARY = _descriptor.Descriptor(
+  name='NamespaceSummary',
+  full_name='pinecone_columnar.NamespaceSummary',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='index_size', full_name='pinecone_columnar.SummarizeResponse.index_size', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='dimension', full_name='pinecone_columnar.SummarizeResponse.dimension', index=1,
-      number=2, type=13, cpp_type=3, label=1,
+      name='vector_count', full_name='pinecone_columnar.NamespaceSummary.vector_count', index=0,
+      number=1, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -614,8 +550,85 @@ _SUMMARIZERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1223,
-  serialized_end=1281,
+  serialized_start=1152,
+  serialized_end=1192,
+)
+
+
+_SUMMARIZERESPONSE_NAMESPACESENTRY = _descriptor.Descriptor(
+  name='NamespacesEntry',
+  full_name='pinecone_columnar.SummarizeResponse.NamespacesEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='pinecone_columnar.SummarizeResponse.NamespacesEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='pinecone_columnar.SummarizeResponse.NamespacesEntry.value', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=b'8\001',
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1309,
+  serialized_end=1395,
+)
+
+_SUMMARIZERESPONSE = _descriptor.Descriptor(
+  name='SummarizeResponse',
+  full_name='pinecone_columnar.SummarizeResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='namespaces', full_name='pinecone_columnar.SummarizeResponse.namespaces', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='dimension', full_name='pinecone_columnar.SummarizeResponse.dimension', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[_SUMMARIZERESPONSE_NAMESPACESENTRY, ],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1195,
+  serialized_end=1395,
 )
 
 _SCOREDRESULTS.fields_by_name['ids'].message_type = _NDARRAY
@@ -630,6 +643,9 @@ _QUERYREQUEST.fields_by_name['filter'].message_type = google_dot_protobuf_dot_st
 _QUERYREQUEST.fields_by_name['filter_overrides'].message_type = google_dot_protobuf_dot_struct__pb2._STRUCT
 _QUERYREQUEST.fields_by_name['queries'].message_type = _NDARRAY
 _QUERYRESPONSE.fields_by_name['matches'].message_type = _SCOREDRESULTS
+_SUMMARIZERESPONSE_NAMESPACESENTRY.fields_by_name['value'].message_type = _NAMESPACESUMMARY
+_SUMMARIZERESPONSE_NAMESPACESENTRY.containing_type = _SUMMARIZERESPONSE
+_SUMMARIZERESPONSE.fields_by_name['namespaces'].message_type = _SUMMARIZERESPONSE_NAMESPACESENTRY
 DESCRIPTOR.message_types_by_name['NdArray'] = _NDARRAY
 DESCRIPTOR.message_types_by_name['ScoredResults'] = _SCOREDRESULTS
 DESCRIPTOR.message_types_by_name['UpsertRequest'] = _UPSERTREQUEST
@@ -640,9 +656,8 @@ DESCRIPTOR.message_types_by_name['FetchRequest'] = _FETCHREQUEST
 DESCRIPTOR.message_types_by_name['FetchResponse'] = _FETCHRESPONSE
 DESCRIPTOR.message_types_by_name['QueryRequest'] = _QUERYREQUEST
 DESCRIPTOR.message_types_by_name['QueryResponse'] = _QUERYRESPONSE
-DESCRIPTOR.message_types_by_name['ListNamespacesRequest'] = _LISTNAMESPACESREQUEST
-DESCRIPTOR.message_types_by_name['ListNamespacesResponse'] = _LISTNAMESPACESRESPONSE
 DESCRIPTOR.message_types_by_name['SummarizeRequest'] = _SUMMARIZEREQUEST
+DESCRIPTOR.message_types_by_name['NamespaceSummary'] = _NAMESPACESUMMARY
 DESCRIPTOR.message_types_by_name['SummarizeResponse'] = _SUMMARIZERESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -716,20 +731,6 @@ QueryResponse = _reflection.GeneratedProtocolMessageType('QueryResponse', (_mess
   })
 _sym_db.RegisterMessage(QueryResponse)
 
-ListNamespacesRequest = _reflection.GeneratedProtocolMessageType('ListNamespacesRequest', (_message.Message,), {
-  'DESCRIPTOR' : _LISTNAMESPACESREQUEST,
-  '__module__' : 'vector_column_service_pb2'
-  # @@protoc_insertion_point(class_scope:pinecone_columnar.ListNamespacesRequest)
-  })
-_sym_db.RegisterMessage(ListNamespacesRequest)
-
-ListNamespacesResponse = _reflection.GeneratedProtocolMessageType('ListNamespacesResponse', (_message.Message,), {
-  'DESCRIPTOR' : _LISTNAMESPACESRESPONSE,
-  '__module__' : 'vector_column_service_pb2'
-  # @@protoc_insertion_point(class_scope:pinecone_columnar.ListNamespacesResponse)
-  })
-_sym_db.RegisterMessage(ListNamespacesResponse)
-
 SummarizeRequest = _reflection.GeneratedProtocolMessageType('SummarizeRequest', (_message.Message,), {
   'DESCRIPTOR' : _SUMMARIZEREQUEST,
   '__module__' : 'vector_column_service_pb2'
@@ -737,15 +738,31 @@ SummarizeRequest = _reflection.GeneratedProtocolMessageType('SummarizeRequest', 
   })
 _sym_db.RegisterMessage(SummarizeRequest)
 
+NamespaceSummary = _reflection.GeneratedProtocolMessageType('NamespaceSummary', (_message.Message,), {
+  'DESCRIPTOR' : _NAMESPACESUMMARY,
+  '__module__' : 'vector_column_service_pb2'
+  # @@protoc_insertion_point(class_scope:pinecone_columnar.NamespaceSummary)
+  })
+_sym_db.RegisterMessage(NamespaceSummary)
+
 SummarizeResponse = _reflection.GeneratedProtocolMessageType('SummarizeResponse', (_message.Message,), {
+
+  'NamespacesEntry' : _reflection.GeneratedProtocolMessageType('NamespacesEntry', (_message.Message,), {
+    'DESCRIPTOR' : _SUMMARIZERESPONSE_NAMESPACESENTRY,
+    '__module__' : 'vector_column_service_pb2'
+    # @@protoc_insertion_point(class_scope:pinecone_columnar.SummarizeResponse.NamespacesEntry)
+    })
+  ,
   'DESCRIPTOR' : _SUMMARIZERESPONSE,
   '__module__' : 'vector_column_service_pb2'
   # @@protoc_insertion_point(class_scope:pinecone_columnar.SummarizeResponse)
   })
 _sym_db.RegisterMessage(SummarizeResponse)
+_sym_db.RegisterMessage(SummarizeResponse.NamespacesEntry)
 
 
 DESCRIPTOR._options = None
+_SUMMARIZERESPONSE_NAMESPACESENTRY._options = None
 
 _VECTORCOLUMNSERVICE = _descriptor.ServiceDescriptor(
   name='VectorColumnService',
@@ -754,8 +771,8 @@ _VECTORCOLUMNSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=1284,
-  serialized_end=1818,
+  serialized_start=1398,
+  serialized_end=1827,
   methods=[
   _descriptor.MethodDescriptor(
     name='Upsert',
@@ -798,19 +815,9 @@ _VECTORCOLUMNSERVICE = _descriptor.ServiceDescriptor(
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
-    name='ListNamespaces',
-    full_name='pinecone_columnar.VectorColumnService.ListNamespaces',
-    index=4,
-    containing_service=None,
-    input_type=_LISTNAMESPACESREQUEST,
-    output_type=_LISTNAMESPACESRESPONSE,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
     name='Summarize',
     full_name='pinecone_columnar.VectorColumnService.Summarize',
-    index=5,
+    index=4,
     containing_service=None,
     input_type=_SUMMARIZEREQUEST,
     output_type=_SUMMARIZERESPONSE,

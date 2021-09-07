@@ -39,11 +39,6 @@ class VectorColumnServiceStub(object):
                 request_serializer=vector__column__service__pb2.QueryRequest.SerializeToString,
                 response_deserializer=vector__column__service__pb2.QueryResponse.FromString,
                 )
-        self.ListNamespaces = channel.unary_unary(
-                '/pinecone_columnar.VectorColumnService/ListNamespaces',
-                request_serializer=vector__column__service__pb2.ListNamespacesRequest.SerializeToString,
-                response_deserializer=vector__column__service__pb2.ListNamespacesResponse.FromString,
-                )
         self.Summarize = channel.unary_unary(
                 '/pinecone_columnar.VectorColumnService/Summarize',
                 request_serializer=vector__column__service__pb2.SummarizeRequest.SerializeToString,
@@ -86,13 +81,6 @@ class VectorColumnServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def ListNamespaces(self, request, context):
-        """The `ListNamespaces` operation returns the namespaces that have data in the index.
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
     def Summarize(self, request, context):
         """The `Summarize` operation returns summary statistics about the index contents.
         """
@@ -122,11 +110,6 @@ def add_VectorColumnServiceServicer_to_server(servicer, server):
                     servicer.Query,
                     request_deserializer=vector__column__service__pb2.QueryRequest.FromString,
                     response_serializer=vector__column__service__pb2.QueryResponse.SerializeToString,
-            ),
-            'ListNamespaces': grpc.unary_unary_rpc_method_handler(
-                    servicer.ListNamespaces,
-                    request_deserializer=vector__column__service__pb2.ListNamespacesRequest.FromString,
-                    response_serializer=vector__column__service__pb2.ListNamespacesResponse.SerializeToString,
             ),
             'Summarize': grpc.unary_unary_rpc_method_handler(
                     servicer.Summarize,
@@ -210,23 +193,6 @@ class VectorColumnService(object):
         return grpc.experimental.unary_unary(request, target, '/pinecone_columnar.VectorColumnService/Query',
             vector__column__service__pb2.QueryRequest.SerializeToString,
             vector__column__service__pb2.QueryResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def ListNamespaces(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone_columnar.VectorColumnService/ListNamespaces',
-            vector__column__service__pb2.ListNamespacesRequest.SerializeToString,
-            vector__column__service__pb2.ListNamespacesResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

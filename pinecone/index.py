@@ -7,18 +7,13 @@ from collections import Iterable
 from pinecone import Config
 from pinecone.core.client import ApiClient, Configuration
 from pinecone.core.utils.sentry import sentry_decorator as sentry
-from .core.client.models import FetchResponse, ListNamespacesResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, ScoredVector, SingleQueryResults, SummarizeResponse, UpsertRequest, Vector
-
-__all__ = [
-    "Index", "FetchResponse", "ListNamespacesResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus", "ScoredVector", "SingleQueryResults", "SummarizeResponse", "UpsertRequest", "Vector"
-]
-
-
-
-
-
+from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, ScoredVector, SingleQueryResults, SummarizeResponse, UpsertRequest, Vector
 from pinecone.core.client.api.vector_service_api import VectorServiceApi
 from pinecone.core.utils import fix_tuple_length
+
+__all__ = [
+    "Index", "FetchResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus", "ScoredVector", "SingleQueryResults", "SummarizeResponse", "UpsertRequest", "Vector"
+]
 
 
 class Index(ApiClient):
@@ -75,10 +70,6 @@ class Index(ApiClient):
         return self._vector_api.vector_service_query(
             QueryRequest(queries=list(map(_query_transform, queries)), **kwargs)
         )
-
-    @sentry
-    def list_namespaces(self, *args, **kwargs):
-        return self._vector_api.vector_service_list_namespaces(*args, **kwargs)
 
     @sentry
     def summarize(self, *args, **kwargs):

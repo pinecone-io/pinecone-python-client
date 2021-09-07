@@ -40,37 +40,6 @@
     }
   ],
   "paths": {
-    "/namespaces/list": {
-      "get": {
-        "summary": "The `ListNamespaces` operation returns the namespaces with existing data in this\nindex.",
-        "operationId": "VectorService_ListNamespaces",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListNamespacesResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/rpcStatus"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "VectorService"
-        ]
-      }
-    },
     "/query": {
       "post": {
         "summary": "The `Query` operation queries the index for the nearest stored vectors for one\nor more query vectors, and returns their ids and/or values.",
@@ -532,22 +501,16 @@
         },
         "description": "The response for the `Fetch` operation."
       },
-      "ListNamespacesResponse": {
+      "NamespaceSummary": {
         "type": "object",
         "properties": {
-          "namespaces": {
-            "type": "array",
-            "example": [
-              "namespace_a",
-              "namespace_a"
-            ],
-            "items": {
-              "type": "string"
-            },
-            "description": "The namespaces that exist in the index."
+          "vectorCount": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The number of vectors stored in this namespace. Note that updates to this field may lag behind updates to the\nunderlying index and corresponding query results, etc."
           }
         },
-        "description": "The request for the `ListNamespaces` operation."
+        "description": "A summary of the contents of a namespace."
       },
       "QueryRequest": {
         "type": "object",
@@ -750,13 +713,20 @@
       "SummarizeResponse": {
         "type": "object",
         "properties": {
-          "indexSize": {
-            "type": "integer",
-            "format": "int64",
+          "namespaces": {
+            "type": "object",
             "example": {
-              "index_size": 106
+              "ns1": {
+                "vector_count": 15000
+              },
+              "ns2": {
+                "vector_count": 25000
+              }
             },
-            "description": "The size of a stateful function `Index`."
+            "additionalProperties": {
+              "$ref": "#/components/schemas/NamespaceSummary"
+            },
+            "description": "A mapping for each namespace in the index from namespace name to a summary of its contents."
           },
           "dimension": {
             "type": "integer",
