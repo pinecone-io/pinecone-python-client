@@ -33,17 +33,17 @@
   ],
   "tags": [
     {
-      "name": "VectorService"
+      "name": "Vector Operations"
     },
     {
-      "name": "DatabaseService"
+      "name": "Index Operations"
     }
   ],
   "paths": {
     "/query": {
       "post": {
         "summary": "The `Query` operation queries the index for the nearest stored vectors for one\nor more query vectors, and returns their ids and/or values.",
-        "operationId": "Query",
+        "operationId": "query",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -77,14 +77,14 @@
           "required": true
         },
         "tags": [
-          "VectorService"
+          "Vector Operations"
         ]
       }
     },
     "/summarize": {
       "get": {
         "summary": "The `Summarize` operation returns summary statistics about the index contents.",
-        "operationId": "Summarize",
+        "operationId": "summarize",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -108,14 +108,14 @@
           }
         },
         "tags": [
-          "VectorService"
+          "Vector Operations"
         ]
       }
     },
     "/vectors/delete": {
       "delete": {
         "summary": "The `Delete` operation deletes one or more vectors by id from a single namespace.",
-        "operationId": "Delete",
+        "operationId": "delete",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -173,14 +173,14 @@
           }
         ],
         "tags": [
-          "VectorService"
+          "Vector Operations"
         ]
       }
     },
     "/vectors/fetch": {
       "get": {
         "summary": "The `FetchVectors` operation returns vectors by id. The returned vectors include vector data and/or metadata.",
-        "operationId": "Fetch",
+        "operationId": "fetch",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -228,14 +228,14 @@
           }
         ],
         "tags": [
-          "VectorService"
+          "Vector Operations"
         ]
       }
     },
     "/vectors/upsert": {
       "post": {
         "summary": "Use the `Upsert` operation to upload data (vector ids, values, and metadata) for indexing.\nIf a new value is upserted for an existing vector id, it will overwrite the previous value.",
-        "operationId": "Upsert",
+        "operationId": "upsert",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -269,7 +269,7 @@
           "required": true
         },
         "tags": [
-          "VectorService"
+          "Vector Operations"
         ]
       }
     },
@@ -293,7 +293,7 @@
           }
         },
         "tags": [
-          "DatabaseService"
+          "Index Operations"
         ]
       },
       "post": {
@@ -321,7 +321,7 @@
           }
         },
         "tags": [
-          "DatabaseService"
+          "Index Operations"
         ]
       },
       "servers": [
@@ -367,7 +367,7 @@
           }
         },
         "tags": [
-          "DatabaseService"
+          "Index Operations"
         ]
       },
       "delete": {
@@ -400,7 +400,7 @@
           }
         },
         "tags": [
-          "DatabaseService"
+          "Index Operations"
         ]
       },
       "patch": {
@@ -443,7 +443,7 @@
           }
         },
         "tags": [
-          "DatabaseService"
+          "Index Operations"
         ]
       },
       "servers": [
