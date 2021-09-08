@@ -104,7 +104,7 @@ def create_index(
         ready = status['ready']
         return ready
 
-    timeout = time.time() + 300
+    timeout = time.time() + 600
     if wait:
         while (not is_ready()) and (time.time() <= timeout):
             time.sleep(1)
