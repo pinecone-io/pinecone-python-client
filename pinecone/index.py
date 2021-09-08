@@ -8,7 +8,7 @@ from pinecone import Config
 from pinecone.core.client import ApiClient, Configuration
 from pinecone.core.utils.sentry import sentry_decorator as sentry
 from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, ScoredVector, SingleQueryResults, SummarizeResponse, UpsertRequest, Vector
-from pinecone.core.client.api.vector_service_api import VectorServiceApi
+from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
 from pinecone.core.utils import fix_tuple_length
 
 __all__ = [
@@ -31,7 +31,7 @@ class Index(ApiClient):
             **openapi_client_config.server_variables
         }
         super().__init__(configuration=openapi_client_config, pool_threads=pool_threads)
-        self._vector_api = VectorServiceApi(self)
+        self._vector_api = VectorOperationsApi(self)
 
     @sentry
     def upsert(self, vectors, **kwargs):
