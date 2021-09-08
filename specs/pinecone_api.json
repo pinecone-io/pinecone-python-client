@@ -43,7 +43,7 @@
     "/query": {
       "post": {
         "summary": "The `Query` operation queries the index for the nearest stored vectors for one\nor more query vectors, and returns their ids and/or values.",
-        "operationId": "VectorService_Query",
+        "operationId": "Query",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -84,7 +84,7 @@
     "/summarize": {
       "get": {
         "summary": "The `Summarize` operation returns summary statistics about the index contents.",
-        "operationId": "VectorService_Summarize",
+        "operationId": "Summarize",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -115,7 +115,7 @@
     "/vectors/delete": {
       "delete": {
         "summary": "The `Delete` operation deletes one or more vectors by id from a single namespace.",
-        "operationId": "VectorService_Delete",
+        "operationId": "Delete",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -180,7 +180,7 @@
     "/vectors/fetch": {
       "get": {
         "summary": "The `FetchVectors` operation returns vectors by id. The returned vectors include vector data and/or metadata.",
-        "operationId": "VectorService_Fetch",
+        "operationId": "Fetch",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -235,7 +235,7 @@
     "/vectors/upsert": {
       "post": {
         "summary": "Use the `Upsert` operation to upload data (vector ids, values, and metadata) for indexing.\nIf a new value is upserted for an existing vector id, it will overwrite the previous value.",
-        "operationId": "VectorService_Upsert",
+        "operationId": "Upsert",
         "responses": {
           "200": {
             "description": "A successful response.",

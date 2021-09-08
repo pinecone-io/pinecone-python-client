@@ -46,7 +46,7 @@ class VectorServiceApi(object):
             api_client = ApiClient()
         self.api_client = api_client
 
-        def __vector_service_delete(
+        def __delete(
             self,
             **kwargs
         ):
@@ -55,7 +55,7 @@ class VectorServiceApi(object):
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.vector_service_delete(async_req=True)
+            >>> thread = api.delete(async_req=True)
             >>> result = thread.get()
 
 
@@ -109,14 +109,14 @@ class VectorServiceApi(object):
             kwargs['_host_index'] = kwargs.get('_host_index')
             return self.call_with_http_info(**kwargs)
 
-        self.vector_service_delete = _Endpoint(
+        self.delete = _Endpoint(
             settings={
                 'response_type': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
                 'auth': [
                     'ApiKeyAuth'
                 ],
                 'endpoint_path': '/vectors/delete',
-                'operation_id': 'vector_service_delete',
+                'operation_id': 'delete',
                 'http_method': 'DELETE',
                 'servers': None,
             },
@@ -168,10 +168,10 @@ class VectorServiceApi(object):
                 'content_type': [],
             },
             api_client=api_client,
-            callable=__vector_service_delete
+            callable=__delete
         )
 
-        def __vector_service_fetch(
+        def __fetch(
             self,
             ids,
             **kwargs
@@ -181,7 +181,7 @@ class VectorServiceApi(object):
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.vector_service_fetch(ids, async_req=True)
+            >>> thread = api.fetch(ids, async_req=True)
             >>> result = thread.get()
 
             Args:
@@ -237,14 +237,14 @@ class VectorServiceApi(object):
                 ids
             return self.call_with_http_info(**kwargs)
 
-        self.vector_service_fetch = _Endpoint(
+        self.fetch = _Endpoint(
             settings={
                 'response_type': (FetchResponse,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
                 'endpoint_path': '/vectors/fetch',
-                'operation_id': 'vector_service_fetch',
+                'operation_id': 'fetch',
                 'http_method': 'GET',
                 'servers': None,
             },
@@ -293,10 +293,10 @@ class VectorServiceApi(object):
                 'content_type': [],
             },
             api_client=api_client,
-            callable=__vector_service_fetch
+            callable=__fetch
         )
 
-        def __vector_service_query(
+        def __query(
             self,
             query_request,
             **kwargs
@@ -306,7 +306,7 @@ class VectorServiceApi(object):
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.vector_service_query(query_request, async_req=True)
+            >>> thread = api.query(query_request, async_req=True)
             >>> result = thread.get()
 
             Args:
@@ -361,14 +361,14 @@ class VectorServiceApi(object):
                 query_request
             return self.call_with_http_info(**kwargs)
 
-        self.vector_service_query = _Endpoint(
+        self.query = _Endpoint(
             settings={
                 'response_type': (QueryResponse,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
                 'endpoint_path': '/query',
-                'operation_id': 'vector_service_query',
+                'operation_id': 'query',
                 'http_method': 'POST',
                 'servers': None,
             },
@@ -412,10 +412,10 @@ class VectorServiceApi(object):
                 ]
             },
             api_client=api_client,
-            callable=__vector_service_query
+            callable=__query
         )
 
-        def __vector_service_summarize(
+        def __summarize(
             self,
             **kwargs
         ):
@@ -424,7 +424,7 @@ class VectorServiceApi(object):
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.vector_service_summarize(async_req=True)
+            >>> thread = api.summarize(async_req=True)
             >>> result = thread.get()
 
 
@@ -475,14 +475,14 @@ class VectorServiceApi(object):
             kwargs['_host_index'] = kwargs.get('_host_index')
             return self.call_with_http_info(**kwargs)
 
-        self.vector_service_summarize = _Endpoint(
+        self.summarize = _Endpoint(
             settings={
                 'response_type': (SummarizeResponse,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
                 'endpoint_path': '/summarize',
-                'operation_id': 'vector_service_summarize',
+                'operation_id': 'summarize',
                 'http_method': 'GET',
                 'servers': None,
             },
@@ -518,10 +518,10 @@ class VectorServiceApi(object):
                 'content_type': [],
             },
             api_client=api_client,
-            callable=__vector_service_summarize
+            callable=__summarize
         )
 
-        def __vector_service_upsert(
+        def __upsert(
             self,
             upsert_request,
             **kwargs
@@ -531,7 +531,7 @@ class VectorServiceApi(object):
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.vector_service_upsert(upsert_request, async_req=True)
+            >>> thread = api.upsert(upsert_request, async_req=True)
             >>> result = thread.get()
 
             Args:
@@ -586,14 +586,14 @@ class VectorServiceApi(object):
                 upsert_request
             return self.call_with_http_info(**kwargs)
 
-        self.vector_service_upsert = _Endpoint(
+        self.upsert = _Endpoint(
             settings={
                 'response_type': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
                 'auth': [
                     'ApiKeyAuth'
                 ],
                 'endpoint_path': '/vectors/upsert',
-                'operation_id': 'vector_service_upsert',
+                'operation_id': 'upsert',
                 'http_method': 'POST',
                 'servers': None,
             },
@@ -637,5 +637,5 @@ class VectorServiceApi(object):
                 ]
             },
             api_client=api_client,
-            callable=__vector_service_upsert
+            callable=__upsert
         )
