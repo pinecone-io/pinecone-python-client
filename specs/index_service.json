@@ -220,12 +220,12 @@
           },
           "index_type": {
             "type": "string",
-            "description": "The type of vector index. For example: approximated or exact.",
+            "description": "The type of vector index. Pinecone supports two types of index search: 'approximated' or 'exact'.",
             "default": "approximated"
           },
           "metric": {
             "type": "string",
-            "description": "The distance metric to be used for similarity search",
+            "description": "The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'.",
             "default": "cosine"
           },
           "replicas": {
