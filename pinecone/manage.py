@@ -7,7 +7,7 @@ import time
 from typing import NamedTuple
 
 from pinecone.config import Config
-from pinecone.core.client.api.database_service_api import DatabaseServiceApi
+from pinecone.core.client.api.index_operations_api import IndexOperationsApi
 from pinecone.core.client.api_client import ApiClient
 from pinecone.core.client.configuration import Configuration
 from pinecone.core.client.model.create_request import CreateRequest
@@ -40,7 +40,7 @@ def _get_api_instance():
         **client_config.server_variables
     }
     api_client = ApiClient(configuration=client_config)
-    api_instance = DatabaseServiceApi(api_client)
+    api_instance = IndexOperationsApi(api_client)
     return api_instance
 
 
