@@ -539,18 +539,18 @@
             "example": "filter_a",
             "title": "The filter to apply if no filter is specified in `QueryVector`"
           },
-          "includeData": {
+          "includeValues": {
             "type": "boolean",
             "example": {
-              "include_data": true
+              "include_values": true
             },
             "default": "false",
-            "description": "Indicates whether vectors are included in the response as well as the ids."
+            "description": "Indicates whether vector values are included in the response."
           },
           "includeMetadata": {
             "type": "boolean",
             "example": {
-              "include_data": true
+              "include_metadata": true
             },
             "default": "false",
             "description": "Indicates whether metadata is included in the response as well as the ids."
