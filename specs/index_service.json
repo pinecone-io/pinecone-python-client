@@ -7,7 +7,7 @@
   },
   "tags": [
     {
-      "name": "DatabaseService"
+      "name": " Database Management"
     }
   ],
   "servers": [
@@ -36,7 +36,7 @@
           }
         },
         "tags": [
-          "DatabaseService"
+          "Database Management"
         ]
       },
       "post": {
@@ -64,7 +64,7 @@
           }
         },
         "tags": [
-          "DatabaseService"
+          "Database Management"
         ]
       },
       "servers": [
@@ -110,7 +110,7 @@
           }
         },
         "tags": [
-          "DatabaseService"
+          "Database Management"
         ]
       },
       "delete": {
@@ -143,7 +143,7 @@
           }
         },
         "tags": [
-          "DatabaseService"
+          "Database Management"
         ]
       },
       "patch": {
@@ -186,7 +186,7 @@
           }
         },
         "tags": [
-          "DatabaseService"
+          "Database Management"
         ]
       },
       "servers": [
