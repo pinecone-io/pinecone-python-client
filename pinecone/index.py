@@ -8,7 +8,7 @@ from pinecone import Config
 from pinecone.core.client import ApiClient, Configuration
 from pinecone.core.utils.sentry import sentry_decorator as sentry
 from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, ScoredVector, SingleQueryResults, SummarizeResponse, UpsertRequest, Vector
-from pinecone.core.client.api.vector_service_api import VectorServiceApi
+from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
 from pinecone.core.utils import fix_tuple_length
 
 __all__ = [
@@ -31,7 +31,7 @@ class Index(ApiClient):
             **openapi_client_config.server_variables
         }
         super().__init__(configuration=openapi_client_config, pool_threads=pool_threads)
-        self._vector_api = VectorServiceApi(self)
+        self._vector_api = VectorOperationsApi(self)
 
     @sentry
     def upsert(self, vectors, **kwargs):
@@ -43,17 +43,17 @@ class Index(ApiClient):
                 return Vector(id=id, values=values, metadata=metadata or {})
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
-        return self._vector_api.vector_service_upsert(
+        return self._vector_api.upsert(
             UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
         )
 
     @sentry
     def delete(self, *args, **kwargs):
-        return self._vector_api.vector_service_delete(*args, **kwargs)
+        return self._vector_api.delete(*args, **kwargs)
 
     @sentry
     def fetch(self, *args, **kwargs):
-        return self._vector_api.vector_service_fetch(*args, **kwargs)
+        return self._vector_api.fetch(*args, **kwargs)
 
     @sentry
     def query(self, queries, **kwargs):
@@ -67,10 +67,10 @@ class Index(ApiClient):
                 return QueryVector(values=item)
             raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")
 
-        return self._vector_api.vector_service_query(
+        return self._vector_api.query(
             QueryRequest(queries=list(map(_query_transform, queries)), **kwargs)
         )
 
     @sentry
     def summarize(self, *args, **kwargs):
-        return self._vector_api.vector_service_summarize(*args, **kwargs)
+        return self._vector_api.summarize(*args, **kwargs)

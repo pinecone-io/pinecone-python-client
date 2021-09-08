@@ -102,7 +102,7 @@ class QueryRequest(ModelNormal):
             'queries': ([QueryVector],),  # noqa: E501
             'namespace': (str,),  # noqa: E501
             'filter': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
-            'include_data': (bool,),  # noqa: E501
+            'include_values': (bool,),  # noqa: E501
             'include_metadata': (bool,),  # noqa: E501
         }
 
@@ -116,7 +116,7 @@ class QueryRequest(ModelNormal):
         'queries': 'queries',  # noqa: E501
         'namespace': 'namespace',  # noqa: E501
         'filter': 'filter',  # noqa: E501
-        'include_data': 'includeData',  # noqa: E501
+        'include_values': 'includeValues',  # noqa: E501
         'include_metadata': 'includeMetadata',  # noqa: E501
     }
 
@@ -167,7 +167,7 @@ class QueryRequest(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             namespace (str): The namespace to query.. [optional] if omitted the server will use the default value of ""  # noqa: E501
             filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): [optional]  # noqa: E501
-            include_data (bool): Indicates whether vectors are included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
+            include_values (bool): Indicates whether vector values are included in the response.. [optional] if omitted the server will use the default value of False  # noqa: E501
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
         """
 
@@ -258,7 +258,7 @@ class QueryRequest(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             namespace (str): The namespace to query.. [optional] if omitted the server will use the default value of ""  # noqa: E501
             filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): [optional]  # noqa: E501
-            include_data (bool): Indicates whether vectors are included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
+            include_values (bool): Indicates whether vector values are included in the response.. [optional] if omitted the server will use the default value of False  # noqa: E501
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
         """
 
