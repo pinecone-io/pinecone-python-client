@@ -176,7 +176,7 @@ class VectorOperationsApi(object):
             ids,
             **kwargs
         ):
-            """FetchVectors The `FetchVectors` operation returns the vectors in an index or namespace, by their ids. The returned vectors include the vector data and/or metadata.  # noqa: E501
+            """Fetch The `Fetch` operation returns the vectors in an index or namespace, by their ids. The returned vectors include the vector data and/or metadata.  # noqa: E501
 
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True

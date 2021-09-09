@@ -179,7 +179,7 @@
     },
     "/vectors/fetch": {
       "get": {
-        "summary": "FetchVectors\nThe `FetchVectors` operation returns the vectors in an index or namespace, by their ids.\nThe returned vectors include the vector data and/or metadata.",
+        "summary": "Fetch\nThe `Fetch` operation returns the vectors in an index or namespace, by their ids.\nThe returned vectors include the vector data and/or metadata.",
         "operationId": "fetch",
         "responses": {
           "200": {
