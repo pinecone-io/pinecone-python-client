@@ -121,7 +121,7 @@ class CreateRequest(ModelNormal):
         """CreateRequest - a model defined in OpenAPI
 
         Args:
-            name (str): Name of the index to be created
+            name (str): The name of the index to be updated
             dimension (int): The dimensions of the vectors to be inserted in the index
 
         Keyword Args:
@@ -155,10 +155,10 @@ class CreateRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            index_type (str): Type of vector index. [optional] if omitted the server will use the default value of "approximated"  # noqa: E501
-            metric (str): Distance metric to be used for similarity search. [optional] if omitted the server will use the default value of "cosine"  # noqa: E501
-            replicas (int): The number of replicas. [optional] if omitted the server will use the default value of 1  # noqa: E501
-            shards (int): Number of shards to be used in the index. Use 1 shard per 1GB of data.. [optional] if omitted the server will use the default value of 1  # noqa: E501
+            index_type (str): The type of vector index. Pinecone supports two types of index search: 'approximated' or 'exact'.. [optional] if omitted the server will use the default value of "approximated"  # noqa: E501
+            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'.. [optional] if omitted the server will use the default value of "cosine"  # noqa: E501
+            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput.. [optional] if omitted the server will use the default value of 1  # noqa: E501
+            shards (int): The number of shards to be used in the index. We recommend you use 1 shard per 1GB of data.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             index_config (dict): [optional]  # noqa: E501
         """
 
@@ -213,7 +213,7 @@ class CreateRequest(ModelNormal):
         """CreateRequest - a model defined in OpenAPI
 
         Args:
-            name (str): Name of the index to be created
+            name (str): The name of the index to be updated
             dimension (int): The dimensions of the vectors to be inserted in the index
 
         Keyword Args:
@@ -247,10 +247,10 @@ class CreateRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            index_type (str): Type of vector index. [optional] if omitted the server will use the default value of "approximated"  # noqa: E501
-            metric (str): Distance metric to be used for similarity search. [optional] if omitted the server will use the default value of "cosine"  # noqa: E501
-            replicas (int): The number of replicas. [optional] if omitted the server will use the default value of 1  # noqa: E501
-            shards (int): Number of shards to be used in the index. Use 1 shard per 1GB of data.. [optional] if omitted the server will use the default value of 1  # noqa: E501
+            index_type (str): The type of vector index. Pinecone supports two types of index search: 'approximated' or 'exact'.. [optional] if omitted the server will use the default value of "approximated"  # noqa: E501
+            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'.. [optional] if omitted the server will use the default value of "cosine"  # noqa: E501
+            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput.. [optional] if omitted the server will use the default value of 1  # noqa: E501
+            shards (int): The number of shards to be used in the index. We recommend you use 1 shard per 1GB of data.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             index_config (dict): [optional]  # noqa: E501
         """
 

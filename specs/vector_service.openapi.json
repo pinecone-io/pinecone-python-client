@@ -11,14 +11,14 @@
     },
     "tags": [
         {
-            "name": "VectorService"
+            "name": "Vector Operations"
         }
     ],
     "paths": {
         "/query": {
             "post": {
-                "summary": "The `Query` operation queries the index for the nearest stored vectors for one\nor more query vectors, and returns their ids and/or values.",
-                "operationId": "VectorService_Query",
+                "summary": "Query\nThe `Query` operation searches an index or namespace, using a query vector.\nIt retrieves the IDs of the most similar items in an index, along with their similarity scores.",
+                "operationId": "query",
                 "responses": {
                     "200": {
                         "description": "A successful response.",
@@ -52,14 +52,14 @@
                     "required": true
                 },
                 "tags": [
-                    "VectorService"
+                    "Vector Operations"
                 ]
             }
         },
         "/summarize": {
             "get": {
-                "summary": "The `Summarize` operation returns summary statistics about the index contents.",
-                "operationId": "VectorService_Summarize",
+                "summary": "Summarize\nThe `Summarize` operation returns statistics about the index's contents.\nFor example: the index size and the number of dimensions.",
+                "operationId": "summarize",
                 "responses": {
                     "200": {
                         "description": "A successful response.",
@@ -83,14 +83,14 @@
                     }
                 },
                 "tags": [
-                    "VectorService"
+                    "Vector Operations"
                 ]
             }
         },
         "/vectors/delete": {
             "delete": {
-                "summary": "The `Delete` operation deletes one or more vectors by id from a single namespace.",
-                "operationId": "VectorService_Delete",
+                "summary": "Delete\nUse the `Delete` operation when you want to delete one or more vectors from an index or namespace.\nYou can delete items by their id, from a single namespace.",
+                "operationId": "delete",
                 "responses": {
                     "200": {
                         "description": "A successful response.",
@@ -148,14 +148,14 @@
                     }
                 ],
                 "tags": [
-                    "VectorService"
+                    "Vector Operations"
                 ]
             }
         },
         "/vectors/fetch": {
             "get": {
-                "summary": "The `FetchVectors` operation returns vectors by id. The returned vectors include vector data and/or metadata.",
-                "operationId": "VectorService_Fetch",
+                "summary": "FetchVectors\nThe `FetchVectors` operation returns the vectors in an index or namespace, by their ids.\nThe returned vectors include the vector data and/or metadata.",
+                "operationId": "fetch",
                 "responses": {
                     "200": {
                         "description": "A successful response.",
@@ -203,14 +203,14 @@
                     }
                 ],
                 "tags": [
-                    "VectorService"
+                    "Vector Operations"
                 ]
             }
         },
         "/vectors/upsert": {
             "post": {
-                "summary": "Use the `Upsert` operation to upload data (vector ids, values, and metadata) for indexing.\nIf a new value is upserted for an existing vector id, it will overwrite the previous value.",
-                "operationId": "VectorService_Upsert",
+                "summary": "Upsert\nUse the `Upsert` operation for inserting or updating data.\nIt uploads data (vector ids, values, and metadata) for indexing.\nIf a new value is upserted for an existing vector id, it will overwrite the previous value.",
+                "operationId": "upsert",
                 "responses": {
                     "200": {
                         "description": "A successful response.",
@@ -244,7 +244,7 @@
                     "required": true
                 },
                 "tags": [
-                    "VectorService"
+                    "Vector Operations"
                 ]
             }
         }
@@ -360,18 +360,18 @@
                         "example": "filter_a",
                         "title": "The filter to apply if no filter is specified in `QueryVector`"
                     },
-                    "includeData": {
+                    "includeValues": {
                         "type": "boolean",
                         "example": {
-                            "include_data": true
+                            "include_values": true
                         },
                         "default": "false",
-                        "description": "Indicates whether vectors are included in the response as well as the ids."
+                        "description": "Indicates whether vector values are included in the response."
                     },
                     "includeMetadata": {
                         "type": "boolean",
                         "example": {
-                            "include_data": true
+                            "include_metadata": true
                         },
                         "default": "false",
                         "description": "Indicates whether metadata is included in the response as well as the ids."

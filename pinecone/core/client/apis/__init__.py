@@ -19,4 +19,4 @@
 
 # Import APIs into API package:
 from pinecone.core.client.api.database_service_api import DatabaseServiceApi
-from pinecone.core.client.api.vector_service_api import VectorServiceApi
+from pinecone.core.client.api.vector_operations_api import VectorOperationsApi

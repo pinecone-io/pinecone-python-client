@@ -19,10 +19,10 @@
     "/databases": {
       "get": {
         "operationId": "list_indexes",
-        "description": "This method returns a list of your Pinecone indexes",
+        "description": "This operation returns a list of your Pinecone indexes",
         "responses": {
           "200": {
-            "description": "This method returns a list of all the indexes that you have previously created, and which are associated with the given API key",
+            "description": "This operation returns a list of all the indexes that you have previously created, and which are associated with the given API key",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -41,7 +41,7 @@
       },
       "post": {
         "operationId": "create_index",
-        "description": "This method creates a Pinecone index. You can use parameters to specify the measure of similarity, and to scale up your index.",
+        "description": "This operation creates a Pinecone index. You can use it to specify the measure of similarity, the dimension of vectors to be stored in the index, the numbers of shards and replicas to use, and more.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -81,7 +81,7 @@
     "/databases/{indexName}": {
       "get": {
         "operationId": "describe_index",
-        "description": "Get a description of an index. For example: name, dimensions, index type, metric, the number of replicas and shards, and size.",
+        "description": "Get a description of an index.",
         "parameters": [
           {
             "name": "indexName",
@@ -95,7 +95,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Information about the index",
+            "description": "Configuration information and deployment status of the index",
             "content": {
               "application/json": {
                 "schema": {
@@ -115,7 +115,7 @@
       },
       "delete": {
         "operationId": "delete_index",
-        "description": "This method deletes an existing index",
+        "description": "This operation deletes an existing index",
         "parameters": [
           {
             "name": "indexName",
@@ -148,7 +148,7 @@
       },
       "patch": {
         "operationId": "scale_index",
-        "description": "This method increases or decreases the number of replicas in an index",
+        "description": "This operation increases or decreases the number of replicas in an index",
         "parameters": [
           {
             "name": "indexName",
