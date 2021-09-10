@@ -10,6 +10,7 @@ import requests
 import sentry_sdk
 import configparser
 
+from pinecone.core.client.exceptions import ApiKeyError
 from pinecone.core.api_action import ActionAPI, WhoAmIResponse
 from pinecone.core.utils.constants import CLIENT_VERSION
 from pinecone.core.utils.sentry import sentry_decorator as sentry
@@ -19,6 +20,7 @@ __all__ = [
 ]
 
 ENABLE_PROGRESS_BAR = False
+
 
 def _set_sentry_tags(config: dict):
     sentry_sdk.set_tag("package_version", CLIENT_VERSION)
@@ -48,6 +50,10 @@ class _CONFIG:
 
     def __init__(self):
         self.reset()
+
+    def validate(self):
+        if not self._config.api_key:  # None or empty string invalid
+            raise ApiKeyError("You haven't specified an Api-Key.")
 
     def reset(self, config_file=None, **kwargs):
         config = ConfigBase()

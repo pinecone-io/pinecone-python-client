@@ -16,12 +16,15 @@ __all__ = [
     "Index", "FetchResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus", "ScoredVector", "SingleQueryResults", "SummarizeResponse", "UpsertRequest", "Vector"
 ]
 
+from .core.utils.error_handling import validate_and_convert_errors
+
 _OPENAPI_ENDPOINT_PARAMS = (
     '_return_http_data_only', '_preload_content', '_request_timeout',
     '_check_input_type', '_check_return_type', '_host_index', 'async_req'
 )
 
-class Index:
+
+class Index(ApiClient):
 
     def __init__(self, index_name: str, openapi_client_config: Configuration = None, pool_threads=1):
         openapi_client_config = openapi_client_config or Configuration.get_default_copy()
@@ -35,11 +38,12 @@ class Index:
             },
             **openapi_client_config.server_variables
         }
-        self._api_client = ApiClient(configuration=openapi_client_config, pool_threads=pool_threads)
-        self._api_client.set_default_header(CLIENT_VERSION_HEADER, CLIENT_ID)
+        super().__init__(configuration=openapi_client_config, pool_threads=pool_threads)
+        self.set_default_header(CLIENT_VERSION_HEADER, CLIENT_ID)
         self._vector_api = VectorOperationsApi(self)
 
     @sentry
+    @validate_and_convert_errors
     def upsert(self, vectors, **kwargs):
         def _vector_transform(item):
             if isinstance(item, Vector):
@@ -58,14 +62,17 @@ class Index:
         )
 
     @sentry
+    @validate_and_convert_errors
     def delete(self, *args, **kwargs):
         return self._vector_api.delete(*args, **kwargs)
 
     @sentry
+    @validate_and_convert_errors
     def fetch(self, *args, **kwargs):
         return self._vector_api.fetch(*args, **kwargs)
 
     @sentry
+    @validate_and_convert_errors
     def query(self, queries, **kwargs):
         def _query_transform(item):
             if isinstance(item, QueryVector):
@@ -86,11 +93,6 @@ class Index:
         )
 
     @sentry
+    @validate_and_convert_errors
     def summarize(self, *args, **kwargs):
         return self._vector_api.summarize(*args, **kwargs)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self._api_client.__exit__(exc_type, exc_value, traceback)
