@@ -8,6 +8,7 @@ from pinecone import Config
 from pinecone.core.client import ApiClient, Configuration
 from pinecone.core.utils.sentry import sentry_decorator as sentry
 from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, ScoredVector, SingleQueryResults, SummarizeResponse, UpsertRequest, Vector
+from .core.utils.constants import CLIENT_VERSION_HEADER, CLIENT_ID
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
 from pinecone.core.utils import fix_tuple_length
 
@@ -16,7 +17,7 @@ __all__ = [
 ]
 
 
-class Index(ApiClient):
+class Index:
 
     def __init__(self, index_name: str, openapi_client_config: Configuration = None, pool_threads=1):
         openapi_client_config = openapi_client_config or Configuration.get_default_copy()
@@ -30,7 +31,8 @@ class Index(ApiClient):
             },
             **openapi_client_config.server_variables
         }
-        super().__init__(configuration=openapi_client_config, pool_threads=pool_threads)
+        self._api_client = ApiClient(configuration=openapi_client_config, pool_threads=pool_threads)
+        self._api_client.set_default_header(CLIENT_VERSION_HEADER, CLIENT_ID)
         self._vector_api = VectorOperationsApi(self)
 
     @sentry
@@ -74,3 +76,9 @@ class Index(ApiClient):
     @sentry
     def summarize(self, *args, **kwargs):
         return self._vector_api.summarize(*args, **kwargs)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._api_client.__exit__(exc_type, exc_value, traceback)
