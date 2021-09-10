@@ -16,6 +16,10 @@ __all__ = [
     "Index", "FetchResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus", "ScoredVector", "SingleQueryResults", "SummarizeResponse", "UpsertRequest", "Vector"
 ]
 
+_OPENAPI_ENDPOINT_PARAMS = (
+    '_return_http_data_only', '_preload_content', '_request_timeout',
+    '_check_input_type', '_check_return_type', '_host_index', 'async_req'
+)
 
 class Index:
 
@@ -46,7 +50,11 @@ class Index:
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
         return self._vector_api.upsert(
-            UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
+            UpsertRequest(
+                vectors=list(map(_vector_transform, vectors)),
+                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
+            ),
+            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
 
     @sentry
@@ -70,7 +78,11 @@ class Index:
             raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")
 
         return self._vector_api.query(
-            QueryRequest(queries=list(map(_query_transform, queries)), **kwargs)
+            QueryRequest(
+                queries=list(map(_query_transform, queries)),
+                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
+            ),
+            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
 
     @sentry
