@@ -10,7 +10,7 @@
 # raise a `RecursionError`.
 # In order to avoid this, import only the API that you directly need like:
 #
-#   from .api.database_service_api import DatabaseServiceApi
+#   from .api.index_operations_api import IndexOperationsApi
 #
 # or import this package, but before doing it, use:
 #
@@ -18,5 +18,5 @@
 #   sys.setrecursionlimit(n)
 
 # Import APIs into API package:
-from pinecone.core.client.api.database_service_api import DatabaseServiceApi
+from pinecone.core.client.api.index_operations_api import IndexOperationsApi
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi

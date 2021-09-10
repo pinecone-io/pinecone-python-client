@@ -24,7 +24,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\021io.pinecone.protoZ+github.com/pinecone-io/go-pinecone/pinecone',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x1bvector_column_service.proto\x12\x11pinecone_columnar\x1a\x1cgoogle/protobuf/struct.proto\"K\n\x07NdArray\x12\x0e\n\x06\x62uffer\x18\x01 \x01(\x0c\x12\r\n\x05shape\x18\x02 \x03(\r\x12\r\n\x05\x64type\x18\x03 \x01(\t\x12\x12\n\ncompressed\x18\x04 \x01(\x08\"\xbc\x01\n\rScoredResults\x12\'\n\x03ids\x18\x01 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12*\n\x06scores\x18\x02 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12(\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12,\n\x08metadata\x18\x04 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\"\x84\x01\n\rUpsertRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12(\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12)\n\x08metadata\x18\x04 \x03(\x0b\x32\x17.google.protobuf.Struct\"\x10\n\x0eUpsertResponse\"C\n\rDeleteRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12\x12\n\ndelete_all\x18\x03 \x01(\x08\"\x10\n\x0e\x44\x65leteResponse\".\n\x0c\x46\x65tchRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\"\x87\x01\n\rFetchResponse\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12+\n\x07vectors\x18\x03 \x03(\x0b\x32\x1a.pinecone_columnar.NdArray\x12)\n\x08metadata\x18\x04 \x03(\x0b\x32\x17.google.protobuf.Struct\"\x9f\x02\n\x0cQueryRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x1b\n\x13namespace_overrides\x18\x06 \x03(\t\x12\r\n\x05top_k\x18\x02 \x01(\r\x12\x17\n\x0ftop_k_overrides\x18\x05 \x03(\r\x12\'\n\x06\x66ilter\x18\x07 \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x31\n\x10\x66ilter_overrides\x18\x08 \x03(\x0b\x32\x17.google.protobuf.Struct\x12\x14\n\x0cinclude_data\x18\x03 \x01(\x08\x12\x18\n\x10include_metadata\x18\t \x01(\x08\x12+\n\x07queries\x18\x04 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\"B\n\rQueryResponse\x12\x31\n\x07matches\x18\x01 \x03(\x0b\x32 .pinecone_columnar.ScoredResults\"\x12\n\x10SummarizeRequest\"(\n\x10NamespaceSummary\x12\x14\n\x0cvector_count\x18\x01 \x01(\r\"\xc8\x01\n\x11SummarizeResponse\x12H\n\nnamespaces\x18\x01 \x03(\x0b\x32\x34.pinecone_columnar.SummarizeResponse.NamespacesEntry\x12\x11\n\tdimension\x18\x02 \x01(\r\x1aV\n\x0fNamespacesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x32\n\x05value\x18\x02 \x01(\x0b\x32#.pinecone_columnar.NamespaceSummary:\x02\x38\x01\x32\xad\x03\n\x13VectorColumnService\x12O\n\x06Upsert\x12 .pinecone_columnar.UpsertRequest\x1a!.pinecone_columnar.UpsertResponse\"\x00\x12O\n\x06\x44\x65lete\x12 .pinecone_columnar.DeleteRequest\x1a!.pinecone_columnar.DeleteResponse\"\x00\x12L\n\x05\x46\x65tch\x12\x1f.pinecone_columnar.FetchRequest\x1a .pinecone_columnar.FetchResponse\"\x00\x12L\n\x05Query\x12\x1f.pinecone_columnar.QueryRequest\x1a .pinecone_columnar.QueryResponse\"\x00\x12X\n\tSummarize\x12#.pinecone_columnar.SummarizeRequest\x1a$.pinecone_columnar.SummarizeResponse\"\x00\x42@\n\x11io.pinecone.protoZ+github.com/pinecone-io/go-pinecone/pineconeb\x06proto3'
+  serialized_pb=b'\n\x1bvector_column_service.proto\x12\x11pinecone_columnar\x1a\x1cgoogle/protobuf/struct.proto\"K\n\x07NdArray\x12\x0e\n\x06\x62uffer\x18\x01 \x01(\x0c\x12\r\n\x05shape\x18\x02 \x03(\r\x12\r\n\x05\x64type\x18\x03 \x01(\t\x12\x12\n\ncompressed\x18\x04 \x01(\x08\"\xbc\x01\n\rScoredResults\x12\'\n\x03ids\x18\x01 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12*\n\x06scores\x18\x02 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12(\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12,\n\x08metadata\x18\x04 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\"\x84\x01\n\rUpsertRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12(\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\x12)\n\x08metadata\x18\x04 \x03(\x0b\x32\x17.google.protobuf.Struct\"\x10\n\x0eUpsertResponse\"C\n\rDeleteRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12\x12\n\ndelete_all\x18\x03 \x01(\x08\"\x10\n\x0e\x44\x65leteResponse\".\n\x0c\x46\x65tchRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\"\x87\x01\n\rFetchResponse\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x0b\n\x03ids\x18\x02 \x03(\t\x12+\n\x07vectors\x18\x03 \x03(\x0b\x32\x1a.pinecone_columnar.NdArray\x12)\n\x08metadata\x18\x04 \x03(\x0b\x32\x17.google.protobuf.Struct\"\xa1\x02\n\x0cQueryRequest\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\x1b\n\x13namespace_overrides\x18\x06 \x03(\t\x12\r\n\x05top_k\x18\x02 \x01(\r\x12\x17\n\x0ftop_k_overrides\x18\x05 \x03(\r\x12\'\n\x06\x66ilter\x18\x07 \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x31\n\x10\x66ilter_overrides\x18\x08 \x03(\x0b\x32\x17.google.protobuf.Struct\x12\x16\n\x0einclude_values\x18\x03 \x01(\x08\x12\x18\n\x10include_metadata\x18\t \x01(\x08\x12+\n\x07queries\x18\x04 \x01(\x0b\x32\x1a.pinecone_columnar.NdArray\"B\n\rQueryResponse\x12\x31\n\x07matches\x18\x01 \x03(\x0b\x32 .pinecone_columnar.ScoredResults\"\x12\n\x10SummarizeRequest\"(\n\x10NamespaceSummary\x12\x14\n\x0cvector_count\x18\x01 \x01(\r\"\xc8\x01\n\x11SummarizeResponse\x12H\n\nnamespaces\x18\x01 \x03(\x0b\x32\x34.pinecone_columnar.SummarizeResponse.NamespacesEntry\x12\x11\n\tdimension\x18\x02 \x01(\r\x1aV\n\x0fNamespacesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x32\n\x05value\x18\x02 \x01(\x0b\x32#.pinecone_columnar.NamespaceSummary:\x02\x38\x01\x32\xad\x03\n\x13VectorColumnService\x12O\n\x06Upsert\x12 .pinecone_columnar.UpsertRequest\x1a!.pinecone_columnar.UpsertResponse\"\x00\x12O\n\x06\x44\x65lete\x12 .pinecone_columnar.DeleteRequest\x1a!.pinecone_columnar.DeleteResponse\"\x00\x12L\n\x05\x46\x65tch\x12\x1f.pinecone_columnar.FetchRequest\x1a .pinecone_columnar.FetchResponse\"\x00\x12L\n\x05Query\x12\x1f.pinecone_columnar.QueryRequest\x1a .pinecone_columnar.QueryResponse\"\x00\x12X\n\tSummarize\x12#.pinecone_columnar.SummarizeRequest\x1a$.pinecone_columnar.SummarizeResponse\"\x00\x42@\n\x11io.pinecone.protoZ+github.com/pinecone-io/go-pinecone/pineconeb\x06proto3'
   ,
   dependencies=[google_dot_protobuf_dot_struct__pb2.DESCRIPTOR,])
 
@@ -429,7 +429,7 @@ _QUERYREQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='include_data', full_name='pinecone_columnar.QueryRequest.include_data', index=6,
+      name='include_values', full_name='pinecone_columnar.QueryRequest.include_values', index=6,
       number=3, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
@@ -462,7 +462,7 @@ _QUERYREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=775,
-  serialized_end=1062,
+  serialized_end=1064,
 )
 
 
@@ -493,8 +493,8 @@ _QUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1064,
-  serialized_end=1130,
+  serialized_start=1066,
+  serialized_end=1132,
 )
 
 
@@ -518,8 +518,8 @@ _SUMMARIZEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1132,
-  serialized_end=1150,
+  serialized_start=1134,
+  serialized_end=1152,
 )
 
 
@@ -550,8 +550,8 @@ _NAMESPACESUMMARY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1152,
-  serialized_end=1192,
+  serialized_start=1154,
+  serialized_end=1194,
 )
 
 
@@ -589,8 +589,8 @@ _SUMMARIZERESPONSE_NAMESPACESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1309,
-  serialized_end=1395,
+  serialized_start=1311,
+  serialized_end=1397,
 )
 
 _SUMMARIZERESPONSE = _descriptor.Descriptor(
@@ -627,8 +627,8 @@ _SUMMARIZERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1195,
-  serialized_end=1395,
+  serialized_start=1197,
+  serialized_end=1397,
 )
 
 _SCOREDRESULTS.fields_by_name['ids'].message_type = _NDARRAY
@@ -771,8 +771,8 @@ _VECTORCOLUMNSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=1398,
-  serialized_end=1827,
+  serialized_start=1400,
+  serialized_end=1829,
   methods=[
   _descriptor.MethodDescriptor(
     name='Upsert',

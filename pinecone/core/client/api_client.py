@@ -766,7 +766,7 @@ class Endpoint(object):
         """ This method is invoked when endpoints are called
         Example:
 
-        api_instance = DatabaseServiceApi()
+        api_instance = IndexOperationsApi()
         api_instance.create_index  # this is an instance of the class Endpoint
         api_instance.create_index()  # this invokes api_instance.create_index.__call__()
         which then invokes the callable functions stored in that endpoint at

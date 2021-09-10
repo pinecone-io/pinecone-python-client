@@ -52,7 +52,8 @@ class VectorServiceServicer(object):
     """
 
     def Upsert(self, request, context):
-        """Use the `Upsert` operation to upload data (vector ids, values, and metadata) for indexing.
+        """Upsert
+        The `Upsert` operation writes vectors into a namespace.
         If a new value is upserted for an existing vector id, it will overwrite the previous value.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -60,29 +61,36 @@ class VectorServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def Delete(self, request, context):
-        """The `Delete` operation deletes one or more vectors by id from a single namespace.
+        """Delete
+        The `Delete` operation deletes vectors, by id, from a single namespace.
+        You can delete items by their id, from a single namespace.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Fetch(self, request, context):
-        """The `FetchVectors` operation returns vectors by id. The returned vectors include vector data and/or metadata.
+        """Fetch
+        The `Fetch` operation looks up and returns vectors, by id, from a single namespace.
+        The returned vectors include the vector data and/or metadata.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Query(self, request, context):
-        """The `Query` operation queries the index for the nearest stored vectors for one
-        or more query vectors, and returns their ids and/or values.
+        """Query
+        The `Query` operation searches a namespace, using one or more query vectors.
+        It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Summarize(self, request, context):
-        """The `Summarize` operation returns summary statistics about the index contents.
+        """Summarize
+        The `Summarize` operation returns statistics about the index's contents.
+        For example: The vector count per namespace and the number of dimensions.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')

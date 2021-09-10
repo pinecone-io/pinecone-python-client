@@ -7,7 +7,7 @@
   },
   "tags": [
     {
-      "name": "DatabaseService"
+      "name": "Index Operations"
     }
   ],
   "servers": [
@@ -36,7 +36,7 @@
           }
         },
         "tags": [
-          "DatabaseService"
+          "Index Operations"
         ]
       },
       "post": {
@@ -64,7 +64,7 @@
           }
         },
         "tags": [
-          "DatabaseService"
+          "Index Operations"
         ]
       },
       "servers": [
@@ -110,7 +110,7 @@
           }
         },
         "tags": [
-          "DatabaseService"
+          "Index Operations"
         ]
       },
       "delete": {
@@ -143,7 +143,7 @@
           }
         },
         "tags": [
-          "DatabaseService"
+          "Index Operations"
         ]
       },
       "patch": {
@@ -186,7 +186,7 @@
           }
         },
         "tags": [
-          "DatabaseService"
+          "Index Operations"
         ]
       },
       "servers": [
