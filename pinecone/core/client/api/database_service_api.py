@@ -49,7 +49,7 @@ class DatabaseServiceApi(object):
         ):
             """create_index  # noqa: E501
 
-            This operation creates a Pinecone index. \\n\\ You can use it to specify the measure of similarity, the dimension of vectors to be stored in the index, the numbers of shards and replicas to use, and more.  # noqa: E501
+            This operation creates a Pinecone index. You can use it to specify the measure of similarity, the dimension of vectors to be stored in the index, the numbers of shards and replicas to use, and more.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -175,7 +175,7 @@ class DatabaseServiceApi(object):
         ):
             """delete_index  # noqa: E501
 
-            This operation deletes an existing index  # noqa: E501
+            This operation deletes an existing index.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -434,7 +434,7 @@ class DatabaseServiceApi(object):
         ):
             """list_indexes  # noqa: E501
 
-            This operation returns a list of your Pinecone indexes  # noqa: E501
+            This operation returns a list of your Pinecone indexes.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -553,7 +553,7 @@ class DatabaseServiceApi(object):
         ):
             """scale_index  # noqa: E501
 
-            This operation increases or decreases the number of replicas in an index  # noqa: E501
+            This operation increases or decreases the number of replicas in an index.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 

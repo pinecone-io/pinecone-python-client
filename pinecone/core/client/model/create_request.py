@@ -155,7 +155,7 @@ class CreateRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            index_type (str): The type of vector index. Pinecone supports two types of index search: 'approximated' or 'exact'.. [optional] if omitted the server will use the default value of "approximated"  # noqa: E501
+            index_type (str): The type of vector index. Pinecone supports 'approximated'.. [optional] if omitted the server will use the default value of "approximated"  # noqa: E501
             metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'.. [optional] if omitted the server will use the default value of "cosine"  # noqa: E501
             replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             shards (int): The number of shards to be used in the index. We recommend you use 1 shard per 1GB of data.. [optional] if omitted the server will use the default value of 1  # noqa: E501
@@ -247,7 +247,7 @@ class CreateRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            index_type (str): The type of vector index. Pinecone supports two types of index search: 'approximated' or 'exact'.. [optional] if omitted the server will use the default value of "approximated"  # noqa: E501
+            index_type (str): The type of vector index. Pinecone supports 'approximated'.. [optional] if omitted the server will use the default value of "approximated"  # noqa: E501
             metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'.. [optional] if omitted the server will use the default value of "cosine"  # noqa: E501
             replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             shards (int): The number of shards to be used in the index. We recommend you use 1 shard per 1GB of data.. [optional] if omitted the server will use the default value of 1  # noqa: E501
