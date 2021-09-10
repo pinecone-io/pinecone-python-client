@@ -53,6 +53,7 @@ class VectorServiceServicer(object):
 
     def Upsert(self, request, context):
         """Upsert
+
         The `Upsert` operation writes vectors into a namespace.
         If a new value is upserted for an existing vector id, it will overwrite the previous value.
         """
@@ -62,6 +63,7 @@ class VectorServiceServicer(object):
 
     def Delete(self, request, context):
         """Delete
+
         The `Delete` operation deletes vectors, by id, from a single namespace.
         You can delete items by their id, from a single namespace.
         """
@@ -71,6 +73,7 @@ class VectorServiceServicer(object):
 
     def Fetch(self, request, context):
         """Fetch
+
         The `Fetch` operation looks up and returns vectors, by id, from a single namespace.
         The returned vectors include the vector data and/or metadata.
         """
@@ -80,6 +83,7 @@ class VectorServiceServicer(object):
 
     def Query(self, request, context):
         """Query
+
         The `Query` operation searches a namespace, using one or more query vectors.
         It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
         """
@@ -89,6 +93,7 @@ class VectorServiceServicer(object):
 
     def Summarize(self, request, context):
         """Summarize
+
         The `Summarize` operation returns statistics about the index's contents.
         For example: The vector count per namespace and the number of dimensions.
         """
