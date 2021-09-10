@@ -42,7 +42,7 @@
   "paths": {
     "/query": {
       "post": {
-        "summary": "Query\nThe `Query` operation searches an index or namespace, using a query vector.\nIt retrieves the IDs of the most similar items in an index, along with their similarity scores.",
+        "summary": "Query\nThe `Query` operation searches a namespace, using one or more query vectors.\nIt retrieves the ids of the most similar items in a namespace, along with their similarity scores.",
         "operationId": "query",
         "responses": {
           "200": {
@@ -83,7 +83,7 @@
     },
     "/summarize": {
       "get": {
-        "summary": "Summarize\nThe `Summarize` operation returns statistics about the index's contents.\nFor example: the index size and the number of dimensions.",
+        "summary": "Summarize\nThe `Summarize` operation returns statistics about the index's contents.\nFor example: The vector count per namespace and the number of dimensions.",
         "operationId": "summarize",
         "responses": {
           "200": {
@@ -114,7 +114,7 @@
     },
     "/vectors/delete": {
       "delete": {
-        "summary": "Delete\nUse the `Delete` operation when you want to delete one or more vectors from an index or namespace.\nYou can delete items by their id, from a single namespace.",
+        "summary": "Delete\nThe `Delete` operation deletes vectors, by id, from a single namespace.\nYou can delete items by their id, from a single namespace.",
         "operationId": "delete",
         "responses": {
           "200": {
@@ -179,7 +179,7 @@
     },
     "/vectors/fetch": {
       "get": {
-        "summary": "Fetch\nThe `Fetch` operation returns the vectors in an index or namespace, by their ids.\nThe returned vectors include the vector data and/or metadata.",
+        "summary": "Fetch\nThe `Fetch` operation looks up and returns vectors, by id, from a single namespace.\nThe returned vectors include the vector data and/or metadata.",
         "operationId": "fetch",
         "responses": {
           "200": {
@@ -234,7 +234,7 @@
     },
     "/vectors/upsert": {
       "post": {
-        "summary": "Upsert\nUse the `Upsert` operation for inserting or updating data.\nIt uploads data (vector ids, values, and metadata) for indexing.\nIf a new value is upserted for an existing vector id, it will overwrite the previous value.",
+        "summary": "Upsert\nThe `Upsert` operation writes vectors into a namespace.\nIf a new value is upserted for an existing vector id, it will overwrite the previous value.",
         "operationId": "upsert",
         "responses": {
           "200": {
