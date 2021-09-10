@@ -12,6 +12,7 @@ MAX_MSG_SIZE = 128 * 1024 * 1024
 MAX_ID_LENGTH = int(os.environ.get("PINECONE_MAX_ID_LENGTH", default="64"))
 
 REQUEST_ID: str = "request_id"
+CLIENT_VERSION_HEADER = 'X-Pinecone-Client-Version'
 
 
 class NodeType(str, enum.Enum):
@@ -29,3 +30,4 @@ class NodeType(str, enum.Enum):
 PACKAGE_ENVIRONMENT = get_environment() or "development"
 SENTRY_DSN_TXT_RECORD = "pinecone-client.sentry.pinecone.io"
 CLIENT_VERSION = get_version()
+CLIENT_ID = f'python-client-{CLIENT_VERSION}'

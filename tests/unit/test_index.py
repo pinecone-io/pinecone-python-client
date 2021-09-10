@@ -9,6 +9,7 @@ filter2 = {'year': {'$eq': 2020}}
 
 def test_upsert_request_tuples_id_data(mocker):
     import pinecone
+    pinecone.init(api_key='example-key')
     index = pinecone.Index('example-name')
     mocker.patch.object(index._vector_api, 'upsert', autospec=True)
     index.upsert([('vec1', vals1), ('vec2', vals2)])
@@ -22,6 +23,7 @@ def test_upsert_request_tuples_id_data(mocker):
 
 def test_upsert_request_tuples_id_data_metadata(mocker):
     import pinecone
+    pinecone.init(api_key='example-key')
     index = pinecone.Index('example-name')
     mocker.patch.object(index._vector_api, 'upsert', autospec=True)
     index.upsert([('vec1', vals1, md1),
@@ -36,6 +38,7 @@ def test_upsert_request_tuples_id_data_metadata(mocker):
 
 def test_query_request_tuples_query_only(mocker):
     import pinecone
+    pinecone.init(api_key='example-key')
     index = pinecone.Index('example-name')
     mocker.patch.object(index._vector_api, 'query', autospec=True)
     index.query(top_k=10, queries=[vals1, vals2])
@@ -49,6 +52,7 @@ def test_query_request_tuples_query_only(mocker):
 
 def test_query_request_tuples_query_filter(mocker):
     import pinecone
+    pinecone.init(api_key='example-key')
     index = pinecone.Index('example-name')
     mocker.patch.object(index._vector_api, 'query', autospec=True)
     index.query(top_k=10, queries=[
