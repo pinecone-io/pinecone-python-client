@@ -298,7 +298,7 @@
       },
       "post": {
         "operationId": "create_index",
-        "description": "This operation creates a Pinecone index. You can use it to specify the measure of similarity, the dimension of vectors to be stored in the index, the numbers of shards and replicas to use, and more.",
+        "description": "This operation creates a Pinecone index. \\n\\ You can use it to specify the measure of similarity, the dimension of vectors to be stored in the index, the numbers of shards and replicas to use, and more.",
         "requestBody": {
           "content": {
             "application/json": {

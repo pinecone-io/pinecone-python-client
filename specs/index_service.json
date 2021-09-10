@@ -19,7 +19,7 @@
     "/databases": {
       "get": {
         "operationId": "list_indexes",
-        "description": "This operation returns a list of your Pinecone indexes",
+        "description": "This operation returns a list of your Pinecone indexes.",
         "responses": {
           "200": {
             "description": "This operation returns a list of all the indexes that you have previously created, and which are associated with the given API key",
@@ -115,7 +115,7 @@
       },
       "delete": {
         "operationId": "delete_index",
-        "description": "This operation deletes an existing index",
+        "description": "This operation deletes an existing index.",
         "parameters": [
           {
             "name": "indexName",
@@ -148,7 +148,7 @@
       },
       "patch": {
         "operationId": "scale_index",
-        "description": "This operation increases or decreases the number of replicas in an index",
+        "description": "This operation increases or decreases the number of replicas in an index.",
         "parameters": [
           {
             "name": "indexName",
@@ -220,7 +220,7 @@
           },
           "index_type": {
             "type": "string",
-            "description": "The type of vector index. Pinecone supports two types of index search: 'approximated' or 'exact'.",
+            "description": "The type of vector index. Pinecone supports 'approximated'.",
             "default": "approximated"
           },
           "metric": {

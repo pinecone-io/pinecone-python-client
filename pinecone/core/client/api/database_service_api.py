@@ -49,7 +49,7 @@ class DatabaseServiceApi(object):
         ):
             """create_index  # noqa: E501
 
-            This operation creates a Pinecone index. You can use it to specify the measure of similarity, the dimension of vectors to be stored in the index, the numbers of shards and replicas to use, and more.  # noqa: E501
+            This operation creates a Pinecone index. \\n\\ You can use it to specify the measure of similarity, the dimension of vectors to be stored in the index, the numbers of shards and replicas to use, and more.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
