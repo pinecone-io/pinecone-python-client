@@ -50,8 +50,9 @@ class VectorOperationsApi(object):
             self,
             **kwargs
         ):
-            """The `Delete` operation deletes one or more vectors by id from a single namespace.  # noqa: E501
+            """Delete  # noqa: E501
 
+            The `Delete` operation deletes vectors, by id, from a single namespace. You can delete items by their id, from a single namespace.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -176,8 +177,9 @@ class VectorOperationsApi(object):
             ids,
             **kwargs
         ):
-            """The `FetchVectors` operation returns vectors by id. The returned vectors include vector data and/or metadata.  # noqa: E501
+            """Fetch  # noqa: E501
 
+            The `Fetch` operation looks up and returns vectors, by id, from a single namespace. The returned vectors include the vector data and/or metadata.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -301,8 +303,9 @@ class VectorOperationsApi(object):
             query_request,
             **kwargs
         ):
-            """The `Query` operation queries the index for the nearest stored vectors for one or more query vectors, and returns their ids and/or values.  # noqa: E501
+            """Query  # noqa: E501
 
+            The `Query` operation searches a namespace, using one or more query vectors. It retrieves the ids of the most similar items in a namespace, along with their similarity scores.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -419,8 +422,9 @@ class VectorOperationsApi(object):
             self,
             **kwargs
         ):
-            """The `Summarize` operation returns summary statistics about the index contents.  # noqa: E501
+            """Summarize  # noqa: E501
 
+            The `Summarize` operation returns statistics about the index's contents. For example: The vector count per namespace and the number of dimensions.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -526,8 +530,9 @@ class VectorOperationsApi(object):
             upsert_request,
             **kwargs
         ):
-            """Use the `Upsert` operation to upload data (vector ids, values, and metadata) for indexing. If a new value is upserted for an existing vector id, it will overwrite the previous value.  # noqa: E501
+            """Upsert  # noqa: E501
 
+            The `Upsert` operation writes vectors into a namespace. If a new value is upserted for an existing vector id, it will overwrite the previous value.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 

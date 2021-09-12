@@ -42,7 +42,8 @@
   "paths": {
     "/query": {
       "post": {
-        "summary": "The `Query` operation queries the index for the nearest stored vectors for one\nor more query vectors, and returns their ids and/or values.",
+        "summary": "Query",
+        "description": "The `Query` operation searches a namespace, using one or more query vectors.\nIt retrieves the ids of the most similar items in a namespace, along with their similarity scores.",
         "operationId": "query",
         "responses": {
           "200": {
@@ -83,7 +84,8 @@
     },
     "/summarize": {
       "get": {
-        "summary": "The `Summarize` operation returns summary statistics about the index contents.",
+        "summary": "Summarize",
+        "description": "The `Summarize` operation returns statistics about the index's contents.\nFor example: The vector count per namespace and the number of dimensions.",
         "operationId": "summarize",
         "responses": {
           "200": {
@@ -114,7 +116,8 @@
     },
     "/vectors/delete": {
       "delete": {
-        "summary": "The `Delete` operation deletes one or more vectors by id from a single namespace.",
+        "summary": "Delete",
+        "description": "The `Delete` operation deletes vectors, by id, from a single namespace.\nYou can delete items by their id, from a single namespace.",
         "operationId": "delete",
         "responses": {
           "200": {
@@ -179,7 +182,8 @@
     },
     "/vectors/fetch": {
       "get": {
-        "summary": "The `FetchVectors` operation returns vectors by id. The returned vectors include vector data and/or metadata.",
+        "summary": "Fetch",
+        "description": "The `Fetch` operation looks up and returns vectors, by id, from a single namespace.\nThe returned vectors include the vector data and/or metadata.",
         "operationId": "fetch",
         "responses": {
           "200": {
@@ -234,7 +238,8 @@
     },
     "/vectors/upsert": {
       "post": {
-        "summary": "Use the `Upsert` operation to upload data (vector ids, values, and metadata) for indexing.\nIf a new value is upserted for an existing vector id, it will overwrite the previous value.",
+        "summary": "Upsert",
+        "description": "The `Upsert` operation writes vectors into a namespace.\nIf a new value is upserted for an existing vector id, it will overwrite the previous value.",
         "operationId": "upsert",
         "responses": {
           "200": {
@@ -276,10 +281,10 @@
     "/databases": {
       "get": {
         "operationId": "list_indexes",
-        "description": "Returns the list of active indexes",
+        "description": "This operation returns a list of your Pinecone indexes.",
         "responses": {
           "200": {
-            "description": "List of indexes running for the given API key",
+            "description": "This operation returns a list of all the indexes that you have previously created, and which are associated with the given API key",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -298,7 +303,7 @@
       },
       "post": {
         "operationId": "create_index",
-        "description": "Creates an index",
+        "description": "This operation creates a Pinecone index. You can use it to specify the measure of similarity, the dimension of vectors to be stored in the index, the numbers of shards and replicas to use, and more.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -310,7 +315,7 @@
         },
         "responses": {
           "200": {
-            "description": "Successfully Created",
+            "description": "The index has been successfully created",
             "content": {
               "text/plain": {
                 "schema": {
@@ -338,13 +343,13 @@
     "/databases/{indexName}": {
       "get": {
         "operationId": "describe_index",
-        "description": "Get description on an index",
+        "description": "Get a description of an index.",
         "parameters": [
           {
             "name": "indexName",
             "required": true,
             "in": "path",
-            "description": "Name of the index",
+            "description": "The name of the index",
             "schema": {
               "type": "string"
             }
@@ -352,7 +357,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Index information",
+            "description": "Configuration information and deployment status of the index",
             "content": {
               "application/json": {
                 "schema": {
@@ -372,7 +377,7 @@
       },
       "delete": {
         "operationId": "delete_index",
-        "description": "Delete an existing index",
+        "description": "This operation deletes an existing index.",
         "parameters": [
           {
             "name": "indexName",
@@ -381,12 +386,12 @@
             "schema": {
               "type": "string"
             },
-            "description": "Name of the index"
+            "description": "The name of the index"
           }
         ],
         "responses": {
           "200": {
-            "description": "Successfully Deleted",
+            "description": "The index has been successfully deleted",
             "content": {
               "text/plain": {
                 "schema": {
@@ -405,7 +410,7 @@
       },
       "patch": {
         "operationId": "scale_index",
-        "description": "Increase or Decrease the number of replicas in the index",
+        "description": "This operation increases or decreases the number of replicas in an index.",
         "parameters": [
           {
             "name": "indexName",
@@ -414,11 +419,11 @@
             "schema": {
               "type": "string"
             },
-            "description": "Name of the index"
+            "description": "The name of the index"
           }
         ],
         "requestBody": {
-          "description": "Number of replicas",
+          "description": "The number of replicas",
           "content": {
             "application/json": {
               "schema": {
@@ -429,7 +434,7 @@
         },
         "responses": {
           "200": {
-            "description": "Successfully Updated",
+            "description": "The index has been successfully updated",
             "content": {
               "text/plain": {
                 "schema": {
@@ -855,7 +860,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Name of the index to be created"
+            "description": "The name of the index to be updated"
           },
           "dimension": {
             "type": "integer",
@@ -863,22 +868,22 @@
           },
           "index_type": {
             "type": "string",
-            "description": "Type of vector index",
+            "description": "The type of vector index. Pinecone supports 'approximated'.",
             "default": "approximated"
           },
           "metric": {
             "type": "string",
-            "description": "Distance metric to be used for similarity search",
+            "description": "The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'.",
             "default": "cosine"
           },
           "replicas": {
             "type": "integer",
-            "description": "The number of replicas",
+            "description": "The number of replicas. Replicas duplicate your index. They provide higher availability and throughput.",
             "default": 1
           },
           "shards": {
             "type": "integer",
-            "description": "Number of shards to be used in the index. Use 1 shard per 1GB of data.",
+            "description": "The number of shards to be used in the index. We recommend you use 1 shard per 1GB of data.",
             "default": 1
           },
           "index_config": {

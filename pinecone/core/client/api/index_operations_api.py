@@ -49,7 +49,7 @@ class IndexOperationsApi(object):
         ):
             """create_index  # noqa: E501
 
-            Creates an index  # noqa: E501
+            This operation creates a Pinecone index. You can use it to specify the measure of similarity, the dimension of vectors to be stored in the index, the numbers of shards and replicas to use, and more.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -175,7 +175,7 @@ class IndexOperationsApi(object):
         ):
             """delete_index  # noqa: E501
 
-            Delete an existing index  # noqa: E501
+            This operation deletes an existing index.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -183,7 +183,7 @@ class IndexOperationsApi(object):
             >>> result = thread.get()
 
             Args:
-                index_name (str): Name of the index
+                index_name (str): The name of the index
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -305,7 +305,7 @@ class IndexOperationsApi(object):
         ):
             """describe_index  # noqa: E501
 
-            Get description on an index  # noqa: E501
+            Get a description of an index.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -313,7 +313,7 @@ class IndexOperationsApi(object):
             >>> result = thread.get()
 
             Args:
-                index_name (str): Name of the index
+                index_name (str): The name of the index
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -434,7 +434,7 @@ class IndexOperationsApi(object):
         ):
             """list_indexes  # noqa: E501
 
-            Returns the list of active indexes  # noqa: E501
+            This operation returns a list of your Pinecone indexes.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -553,7 +553,7 @@ class IndexOperationsApi(object):
         ):
             """scale_index  # noqa: E501
 
-            Increase or Decrease the number of replicas in the index  # noqa: E501
+            This operation increases or decreases the number of replicas in an index.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -561,10 +561,10 @@ class IndexOperationsApi(object):
             >>> result = thread.get()
 
             Args:
-                index_name (str): Name of the index
+                index_name (str): The name of the index
 
             Keyword Args:
-                patch_request (PatchRequest): Number of replicas. [optional]
+                patch_request (PatchRequest): The number of replicas. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
