@@ -16,7 +16,7 @@ from pinecone.core.utils.constants import CLIENT_VERSION_HEADER, CLIENT_ID
 from pinecone.core.utils.sentry import sentry_decorator as sentry
 
 __all__ = [
-    "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "get_status", "IndexDescription"
+    "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "IndexDescription"
 ]
 
 
@@ -28,7 +28,7 @@ class IndexDescription(NamedTuple):
     dimension: int
     shards: int
     index_config: None
-
+    status: None
 
 def _get_api_instance():
     client_config = Configuration.get_default_copy()
@@ -46,7 +46,7 @@ def _get_api_instance():
     return api_instance
 
 
-def get_status(name: str):
+def _get_status(name: str):
     api_instance = _get_api_instance()
     response = api_instance.describe_index(name)
     return response['status']
@@ -102,7 +102,7 @@ def create_index(
     ))
 
     def is_ready():
-        status = get_status(name)
+        status = _get_status(name)
         ready = status['ready']
         return ready
 
@@ -155,9 +155,10 @@ def describe_index(name: str):
     api_instance = _get_api_instance()
     response = api_instance.describe_index(name)
     db = response['database']
+    ready = response['status']['ready']
     return IndexDescription(name=db['name'], index_type=db['index_type'], metric=db['metric'],
                             replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
-                            index_config=db['index_config'])
+                            index_config=db['index_config'],status={'ready':ready})
 
 
 @sentry
