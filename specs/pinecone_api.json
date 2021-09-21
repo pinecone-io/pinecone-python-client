@@ -40,6 +40,38 @@
     }
   ],
   "paths": {
+    "/describe_index_stats": {
+      "get": {
+        "summary": "DescribeIndexStats",
+        "description": "The `DescribeIndexStats` operation returns statistics about the index's contents.\nFor example: The vector count per namespace and the number of dimensions.",
+        "operationId": "describe_index_stats",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DescribeIndexStatsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Vector Operations"
+        ]
+      }
+    },
     "/query": {
       "post": {
         "summary": "Query",
@@ -76,38 +108,6 @@
             }
           },
           "required": true
-        },
-        "tags": [
-          "Vector Operations"
-        ]
-      }
-    },
-    "/summarize": {
-      "get": {
-        "summary": "Summarize",
-        "description": "The `Summarize` operation returns statistics about the index's contents.\nFor example: The vector count per namespace and the number of dimensions.",
-        "operationId": "summarize",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SummarizeResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/rpcStatus"
-                }
-              }
-            }
-          }
         },
         "tags": [
           "Vector Operations"
@@ -469,6 +469,35 @@
         "type": "object",
         "description": "The response for the `Delete` operation."
       },
+      "DescribeIndexStatsResponse": {
+        "type": "object",
+        "properties": {
+          "namespaces": {
+            "type": "object",
+            "example": {
+              "ns1": {
+                "vector_count": 15000
+              },
+              "ns2": {
+                "vector_count": 25000
+              }
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/NamespaceSummary"
+            },
+            "description": "A mapping for each namespace in the index from namespace name to a summary of its contents."
+          },
+          "dimension": {
+            "type": "integer",
+            "format": "int64",
+            "example": {
+              "dimension": 2
+            },
+            "description": "The dimension of the indexed vectors."
+          }
+        },
+        "description": "The response for the `DescribeIndexStats` operation."
+      },
       "FetchResponse": {
         "type": "object",
         "properties": {
@@ -714,35 +743,6 @@
           }
         },
         "title": "The query results for a single `QueryVector`"
-      },
-      "SummarizeResponse": {
-        "type": "object",
-        "properties": {
-          "namespaces": {
-            "type": "object",
-            "example": {
-              "ns1": {
-                "vector_count": 15000
-              },
-              "ns2": {
-                "vector_count": 25000
-              }
-            },
-            "additionalProperties": {
-              "$ref": "#/components/schemas/NamespaceSummary"
-            },
-            "description": "A mapping for each namespace in the index from namespace name to a summary of its contents."
-          },
-          "dimension": {
-            "type": "integer",
-            "format": "int64",
-            "example": {
-              "dimension": 2
-            },
-            "description": "The dimension of the indexed vectors."
-          }
-        },
-        "description": "The response for the `Summarize` operation."
       },
       "UpsertRequest": {
         "type": "object",
