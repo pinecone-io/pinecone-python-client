@@ -159,13 +159,14 @@ class _CONFIG:
 
 
 @sentry
-def init(project_name: str = None, api_key: str = None, host: str = None, environment: str = None,
+def init(api_key: str = None, host: str = None, environment: str = None, project_name: str = None,
          config: str = "~/.pinecone", **kwargs):
     """Initializes the Pinecone client.
 
     :param api_key: Required if not set in config file or by environment variable ``PINECONE_API_KEY``.
     :param host: Optional. Controller host.
     :param environment: Optional. Deployment environment.
+    :param project_name: Optional. Pinecone project name. Overrides the value that is otherwise looked up and used from the Pinecone backend.
     :param config: Optional. An INI configuration file.
     """
     Config.reset(project_name=project_name, api_key=api_key, controller_host=host, environment=environment,
