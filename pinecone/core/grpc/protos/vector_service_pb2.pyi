@@ -239,12 +239,12 @@ class QueryResponse(google___protobuf___message___Message):
     def ClearField(self, field_name: typing_extensions___Literal[u"results",b"results"]) -> None: ...
 type___QueryResponse = QueryResponse
 
-class SummarizeRequest(google___protobuf___message___Message):
+class DescribeIndexStatsRequest(google___protobuf___message___Message):
     DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
 
     def __init__(self,
         ) -> None: ...
-type___SummarizeRequest = SummarizeRequest
+type___DescribeIndexStatsRequest = DescribeIndexStatsRequest
 
 class NamespaceSummary(google___protobuf___message___Message):
     DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
@@ -257,7 +257,7 @@ class NamespaceSummary(google___protobuf___message___Message):
     def ClearField(self, field_name: typing_extensions___Literal[u"vector_count",b"vector_count"]) -> None: ...
 type___NamespaceSummary = NamespaceSummary
 
-class SummarizeResponse(google___protobuf___message___Message):
+class DescribeIndexStatsResponse(google___protobuf___message___Message):
     DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
     class NamespacesEntry(google___protobuf___message___Message):
         DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
@@ -286,4 +286,4 @@ class SummarizeResponse(google___protobuf___message___Message):
         dimension : typing___Optional[builtin___int] = None,
         ) -> None: ...
     def ClearField(self, field_name: typing_extensions___Literal[u"dimension",b"dimension",u"namespaces",b"namespaces"]) -> None: ...
-type___SummarizeResponse = SummarizeResponse
+type___DescribeIndexStatsResponse = DescribeIndexStatsResponse
