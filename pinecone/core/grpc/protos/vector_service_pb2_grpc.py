@@ -39,10 +39,10 @@ class VectorServiceStub(object):
                 request_serializer=vector__service__pb2.QueryRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.QueryResponse.FromString,
                 )
-        self.Summarize = channel.unary_unary(
-                '/VectorService/Summarize',
-                request_serializer=vector__service__pb2.SummarizeRequest.SerializeToString,
-                response_deserializer=vector__service__pb2.SummarizeResponse.FromString,
+        self.DescribeIndexStats = channel.unary_unary(
+                '/VectorService/DescribeIndexStats',
+                request_serializer=vector__service__pb2.DescribeIndexStatsRequest.SerializeToString,
+                response_deserializer=vector__service__pb2.DescribeIndexStatsResponse.FromString,
                 )
 
 
@@ -91,10 +91,10 @@ class VectorServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def Summarize(self, request, context):
-        """Summarize
+    def DescribeIndexStats(self, request, context):
+        """DescribeIndexStats
 
-        The `Summarize` operation returns statistics about the index's contents.
+        The `DescribeIndexStats` operation returns statistics about the index's contents.
         For example: The vector count per namespace and the number of dimensions.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -124,10 +124,10 @@ def add_VectorServiceServicer_to_server(servicer, server):
                     request_deserializer=vector__service__pb2.QueryRequest.FromString,
                     response_serializer=vector__service__pb2.QueryResponse.SerializeToString,
             ),
-            'Summarize': grpc.unary_unary_rpc_method_handler(
-                    servicer.Summarize,
-                    request_deserializer=vector__service__pb2.SummarizeRequest.FromString,
-                    response_serializer=vector__service__pb2.SummarizeResponse.SerializeToString,
+            'DescribeIndexStats': grpc.unary_unary_rpc_method_handler(
+                    servicer.DescribeIndexStats,
+                    request_deserializer=vector__service__pb2.DescribeIndexStatsRequest.FromString,
+                    response_serializer=vector__service__pb2.DescribeIndexStatsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -210,7 +210,7 @@ class VectorService(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def Summarize(request,
+    def DescribeIndexStats(request,
             target,
             options=(),
             channel_credentials=None,
@@ -220,8 +220,8 @@ class VectorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/VectorService/Summarize',
-            vector__service__pb2.SummarizeRequest.SerializeToString,
-            vector__service__pb2.SummarizeResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/VectorService/DescribeIndexStats',
+            vector__service__pb2.DescribeIndexStatsRequest.SerializeToString,
+            vector__service__pb2.DescribeIndexStatsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

@@ -7,13 +7,15 @@ from collections import Iterable
 from pinecone import Config
 from pinecone.core.client import ApiClient, Configuration
 from pinecone.core.utils.sentry import sentry_decorator as sentry
-from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, ScoredVector, SingleQueryResults, SummarizeResponse, UpsertRequest, Vector
+from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, \
+    ScoredVector, SingleQueryResults, DescribeIndexStatsResponse, UpsertRequest, Vector
 from .core.utils.constants import CLIENT_VERSION_HEADER, CLIENT_ID
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
 from pinecone.core.utils import fix_tuple_length
 
 __all__ = [
-    "Index", "FetchResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus", "ScoredVector", "SingleQueryResults", "SummarizeResponse", "UpsertRequest", "Vector"
+    "Index", "FetchResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus",
+    "ScoredVector", "SingleQueryResults", "DescribeIndexStatsResponse", "UpsertRequest", "Vector"
 ]
 
 from .core.utils.error_handling import validate_and_convert_errors
@@ -94,5 +96,5 @@ class Index(ApiClient):
 
     @sentry
     @validate_and_convert_errors
-    def summarize(self, *args, **kwargs):
-        return self._vector_api.summarize(*args, **kwargs)
+    def describe_index_stats(self, *args, **kwargs):
+        return self._vector_api.describe_index_stats(*args, **kwargs)
