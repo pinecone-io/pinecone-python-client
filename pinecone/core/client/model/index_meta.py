@@ -36,9 +36,7 @@ from pinecone.core.client.exceptions import ApiAttributeError
 
 def lazy_import():
     from pinecone.core.client.model.index_meta_database import IndexMetaDatabase
-    from pinecone.core.client.model.index_meta_status import IndexMetaStatus
     globals()['IndexMetaDatabase'] = IndexMetaDatabase
-    globals()['IndexMetaStatus'] = IndexMetaStatus
 
 
 class IndexMeta(ModelNormal):
@@ -95,7 +93,6 @@ class IndexMeta(ModelNormal):
         lazy_import()
         return {
             'database': (IndexMetaDatabase,),  # noqa: E501
-            'status': (IndexMetaStatus,),  # noqa: E501
         }
 
     @cached_property
@@ -105,7 +102,6 @@ class IndexMeta(ModelNormal):
 
     attribute_map = {
         'database': 'database',  # noqa: E501
-        'status': 'status',  # noqa: E501
     }
 
     read_only_vars = {
@@ -150,7 +146,6 @@ class IndexMeta(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             database (IndexMetaDatabase): [optional]  # noqa: E501
-            status (IndexMetaStatus): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -233,7 +228,6 @@ class IndexMeta(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             database (IndexMetaDatabase): [optional]  # noqa: E501
-            status (IndexMetaStatus): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
