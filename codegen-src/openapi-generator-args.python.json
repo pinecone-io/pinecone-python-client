@@ -1,3 +1,4 @@
 {
-  "packageName": "pinecone.core.client"
+  "packageName": "pinecone.core.client",
+  "pythonAttrNoneIfUnset": true
 }
