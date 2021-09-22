@@ -185,7 +185,7 @@ class OpenApiModel(object):
 
     def __getattr__(self, attr):
         """get the value of an attribute using dot notation: `instance.attr`"""
-        return self.__getitem__(attr)
+        return self.get(attr)
 
     def __new__(cls, *args, **kwargs):
         # this function uses the discriminator to
