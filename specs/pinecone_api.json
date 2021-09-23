@@ -925,28 +925,13 @@
                     "$ref": "#/components/schemas/ApproximatedConfig"
                   }
                 ]
-              }
-            }
-          },
-          "status": {
-            "type": "object",
-            "properties": {
-              "crashed": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
               },
-              "ready": {
-                "type": "boolean"
-              },
-              "port": {
-                "type": "integer"
-              },
-              "waiting": {
-                "type": "array",
-                "items": {
-                  "type": "string"
+              "status": {
+                "type": "object",
+                "properties": {
+                  "ready": {
+                    "type": "boolean"
+                  }
                 }
               }
             }

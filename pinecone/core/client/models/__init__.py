@@ -20,7 +20,7 @@ from pinecone.core.client.model.fetch_response import FetchResponse
 from pinecone.core.client.model.hnsw_config import HnswConfig
 from pinecone.core.client.model.index_meta import IndexMeta
 from pinecone.core.client.model.index_meta_database import IndexMetaDatabase
-from pinecone.core.client.model.index_meta_status import IndexMetaStatus
+from pinecone.core.client.model.index_meta_database_status import IndexMetaDatabaseStatus
 from pinecone.core.client.model.namespace_summary import NamespaceSummary
 from pinecone.core.client.model.patch_request import PatchRequest
 from pinecone.core.client.model.protobuf_any import ProtobufAny
