@@ -620,19 +620,30 @@
                 },
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "This is the vector's unique id.",
+                        "maxLength": 1000,
+                        "minLength": 1,
+                        "required": [
+                            "id"
+                        ]
                     },
                     "values": {
                         "type": "array",
                         "items": {
                             "type": "number",
                             "format": "float"
-                        }
+                        },
+                        "description": "This is the vector data included in the request."
                     },
                     "metadata": {
-                        "type": "object"
+                        "type": "object",
+                        "description": "This is the metadata included in the request."
                     }
-                }
+                },
+                "required": [
+                    "id"
+                ]
             },
             "protobufAny": {
                 "type": "object",
