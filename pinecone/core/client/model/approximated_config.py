@@ -86,7 +86,7 @@ class ApproximatedConfig(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            'kbits': (int,),  # noqa: E501
+            'k_bits': (int,),  # noqa: E501
             'hybrid': (bool,),  # noqa: E501
         }
 
@@ -96,7 +96,7 @@ class ApproximatedConfig(ModelNormal):
 
 
     attribute_map = {
-        'kbits': 'kbits',  # noqa: E501
+        'k_bits': 'k_bits',  # noqa: E501
         'hybrid': 'hybrid',  # noqa: E501
     }
 
@@ -141,7 +141,7 @@ class ApproximatedConfig(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            kbits (int): [optional] if omitted the server will use the default value of 512  # noqa: E501
+            k_bits (int): [optional] if omitted the server will use the default value of 512  # noqa: E501
             hybrid (bool): [optional] if omitted the server will use the default value of False  # noqa: E501
         """
 
@@ -224,7 +224,7 @@ class ApproximatedConfig(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            kbits (int): [optional] if omitted the server will use the default value of 512  # noqa: E501
+            k_bits (int): [optional] if omitted the server will use the default value of 512  # noqa: E501
             hybrid (bool): [optional] if omitted the server will use the default value of False  # noqa: E501
         """
 

@@ -322,7 +322,7 @@
       "ApproximatedConfig": {
         "type": "object",
         "properties": {
-          "kbits": {
+          "k_bits": {
             "type": "integer",
             "default": 512
           },
