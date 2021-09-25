@@ -36,7 +36,8 @@ class Index(ApiClient):
         openapi_client_config.server_variables = {
             **{
                 'environment': Config.ENVIRONMENT,
-                'service_prefix': f'{index_name}-{Config.PROJECT_NAME}'
+                'index_name': index_name,
+                'project_name': Config.PROJECT_NAME
             },
             **openapi_client_config.server_variables
         }
