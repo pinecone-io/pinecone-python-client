@@ -212,11 +212,13 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "The name of the index to be updated"
+            "description": "The name of the index to be updated",
+            "example": "example-index"
           },
           "dimension": {
             "type": "integer",
-            "description": "The dimensions of the vectors to be inserted in the index"
+            "description": "The dimensions of the vectors to be inserted in the index",
+            "example": 1024
           },
           "index_type": {
             "type": "string",
@@ -294,7 +296,8 @@
         "type": "object",
         "properties": {
           "replicas": {
-            "type": "integer"
+            "type": "integer",
+            "example": 3
           }
         }
       },
@@ -336,7 +339,7 @@
     "securitySchemes": {
       "ApiKeyAuth": {
         "type": "apiKey",
-        "name": "api-key",
+        "name": "Api-Key",
         "in": "header"
       }
     }
