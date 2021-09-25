@@ -1,7 +1,7 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "Pinecone JSON API",
+        "title": "Pinecone API",
         "version": "version not set",
         "contact": {
             "name": "Pinecone.io Ops",
@@ -145,8 +145,7 @@
                         "in": "query",
                         "required": false,
                         "schema": {
-                            "type": "string",
-                            "default": "\"\""
+                            "type": "string"
                         }
                     }
                 ],
@@ -201,8 +200,7 @@
                         "in": "query",
                         "required": false,
                         "schema": {
-                            "type": "string",
-                            "default": "\"\""
+                            "type": "string"
                         }
                     }
                 ],
@@ -265,9 +263,12 @@
     },
     "servers": [
         {
-            "url": "https://{service_prefix}.svc.{environment}.pinecone.io",
+            "url": "https://{index_name}-{project_name}.svc.{environment}.pinecone.io",
             "variables": {
-                "service_prefix": {
+                "index_name": {
+                    "default": "unknown"
+                },
+                "project_name": {
                     "default": "unknown"
                 },
                 "environment": {
@@ -292,17 +293,20 @@
             },
             "DescribeIndexStatsResponse": {
                 "type": "object",
+                "example": {
+                    "namespaces": {
+                        "": {
+                            "vectorCount": 50000
+                        },
+                        "example-namespace-2": {
+                            "vectorCount": 30000
+                        }
+                    },
+                    "dimension": 1024
+                },
                 "properties": {
                     "namespaces": {
                         "type": "object",
-                        "example": {
-                            "ns1": {
-                                "vector_count": 15000
-                            },
-                            "ns2": {
-                                "vector_count": 25000
-                            }
-                        },
                         "additionalProperties": {
                             "$ref": "#/components/schemas/NamespaceSummary"
                         },
@@ -311,9 +315,7 @@
                     "dimension": {
                         "type": "integer",
                         "format": "int64",
-                        "example": {
-                            "dimension": 2
-                        },
+                        "example": 1024,
                         "description": "The dimension of the indexed vectors."
                     }
                 },
@@ -324,26 +326,6 @@
                 "properties": {
                     "vectors": {
                         "type": "object",
-                        "example": {
-                            "id-0": {
-                                "id": "id-0",
-                                "values": [
-                                    17.222,
-                                    7.234,
-                                    8.73
-                                ],
-                                "metadata": "{mykey:myvalue}"
-                            },
-                            "id-1": {
-                                "id": "id-1",
-                                "values": [
-                                    15.222,
-                                    2.234,
-                                    4.73
-                                ],
-                                "metadata": "{mykey:myvalue}"
-                            }
-                        },
                         "additionalProperties": {
                             "$ref": "#/components/schemas/Vector"
                         },
@@ -351,6 +333,7 @@
                     },
                     "namespace": {
                         "type": "string",
+                        "example": "example-namespace",
                         "description": "The namespace of the vectors."
                     }
                 },
@@ -362,6 +345,7 @@
                     "vectorCount": {
                         "type": "integer",
                         "format": "int64",
+                        "example": 50000,
                         "description": "The number of vectors stored in this namespace. Note that updates to this field may lag behind updates to the\nunderlying index and corresponding query results, etc."
                     }
                 },
@@ -372,16 +356,13 @@
                 "properties": {
                     "namespace": {
                         "type": "string",
-                        "example": "namespace_a",
-                        "default": "\"\"",
+                        "example": "example-namespace",
                         "description": "The namespace to query."
                     },
                     "topK": {
                         "type": "integer",
                         "format": "int64",
-                        "example": {
-                            "top_k": 102
-                        },
+                        "example": 10,
                         "description": "The number of results to return for each query.",
                         "maximum": 10000,
                         "minimum": 1,
@@ -391,55 +372,34 @@
                     },
                     "filter": {
                         "type": "object",
-                        "example": "filter_a",
+                        "example": {
+                            "genre": {
+                                "$in": [
+                                    "comedy",
+                                    "documentary",
+                                    "drama"
+                                ]
+                            },
+                            "year": {
+                                "$eq": 2019
+                            }
+                        },
                         "title": "The filter to apply if no filter is specified in `QueryVector`"
                     },
                     "includeValues": {
                         "type": "boolean",
-                        "example": {
-                            "include_values": true
-                        },
+                        "example": true,
                         "default": "false",
                         "description": "Indicates whether vector values are included in the response."
                     },
                     "includeMetadata": {
                         "type": "boolean",
-                        "example": {
-                            "include_metadata": true
-                        },
+                        "example": true,
                         "default": "false",
                         "description": "Indicates whether metadata is included in the response as well as the ids."
                     },
                     "queries": {
                         "type": "array",
-                        "example": {
-                            "queries": [
-                                {
-                                    "vector": {
-                                        "values": [
-                                            1.524,
-                                            2.23432,
-                                            3.664
-                                        ]
-                                    },
-                                    "top_k": 106,
-                                    "namespace": "namespace_a",
-                                    "filter": "filter_to_use"
-                                },
-                                {
-                                    "vector": {
-                                        "values": [
-                                            2.4,
-                                            3.22,
-                                            7.664
-                                        ]
-                                    },
-                                    "top_k": 90,
-                                    "namespace": "namespace_a",
-                                    "filter": "another_filter_to_use"
-                                }
-                            ]
-                        },
                         "items": {
                             "$ref": "#/components/schemas/QueryVector"
                         },
@@ -476,9 +436,14 @@
                     "values": {
                         "type": "array",
                         "example": [
-                            1.524,
-                            2.23432,
-                            3.664
+                            0.1,
+                            0.2,
+                            0.3,
+                            0.4,
+                            0.5,
+                            0.6,
+                            0.7,
+                            0.8
                         ],
                         "items": {
                             "type": "number",
@@ -494,21 +459,30 @@
                     "topK": {
                         "type": "integer",
                         "format": "int64",
-                        "example": {
-                            "top_k": 106
-                        },
+                        "example": 10,
                         "description": "An override for the number of results to return for this query vector.",
                         "maximum": 10000,
                         "minimum": 1
                     },
                     "namespace": {
                         "type": "string",
-                        "example": "namespace_a",
+                        "example": "example-namespace",
                         "description": "An override the namespace to search."
                     },
                     "filter": {
                         "type": "object",
-                        "example": "filter_to_use",
+                        "example": {
+                            "genre": {
+                                "$in": [
+                                    "comedy",
+                                    "documentary",
+                                    "drama"
+                                ]
+                            },
+                            "year": {
+                                "$eq": 2019
+                            }
+                        },
                         "description": "An override for the metadata filter to apply. This replaces the request-level filter."
                     }
                 },
@@ -519,35 +493,53 @@
             },
             "ScoredVector": {
                 "type": "object",
-                "example": {
-                    "id": "id-0",
-                    "score": 5.4,
-                    "values": [
-                        1.22,
-                        2.234,
-                        3.73
-                    ],
-                    "metadata": "{mykey : myvalue}"
-                },
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "string",
+                        "example": "example-vector-1",
+                        "description": "This is the vector's unique id.",
+                        "maxLength": 1000,
+                        "minLength": 1,
+                        "required": [
+                            "id"
+                        ]
                     },
                     "score": {
                         "type": "number",
-                        "format": "float"
+                        "format": "float",
+                        "example": 0.08,
+                        "description": "This is a measure of similarity between this vector and the query vector.  The higher the score, the more they are similar."
                     },
                     "values": {
                         "type": "array",
+                        "example": [
+                            0.1,
+                            0.2,
+                            0.3,
+                            0.4,
+                            0.5,
+                            0.6,
+                            0.7,
+                            0.8
+                        ],
                         "items": {
                             "type": "number",
                             "format": "float"
-                        }
+                        },
+                        "description": "This is the vector data, if it is requested."
                     },
                     "metadata": {
-                        "type": "object"
+                        "type": "object",
+                        "example": {
+                            "genre": "documentary",
+                            "year": 2019
+                        },
+                        "description": "This is the metadata, if it is requested."
                     }
-                }
+                },
+                "required": [
+                    "id"
+                ]
             },
             "SingleQueryResults": {
                 "type": "object",
@@ -556,11 +548,13 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/ScoredVector"
-                        }
+                        },
+                        "description": "The matches for the vectors."
                     },
                     "namespace": {
                         "type": "string",
-                        "example": "namespace_a"
+                        "example": "example-namespace",
+                        "description": "The namespace for the vectors."
                     }
                 },
                 "title": "The query results for a single `QueryVector`"
@@ -570,17 +564,6 @@
                 "properties": {
                     "vectors": {
                         "type": "array",
-                        "example": [
-                            {
-                                "id": "id-0",
-                                "values": [
-                                    1.22,
-                                    2.234,
-                                    3.73
-                                ],
-                                "metadata": "{mykey : myvalue}"
-                            }
-                        ],
                         "items": {
                             "$ref": "#/components/schemas/Vector"
                         },
@@ -593,8 +576,7 @@
                     },
                     "namespace": {
                         "type": "string",
-                        "example": "namespace_a",
-                        "default": "\"\"",
+                        "example": "example-namespace",
                         "description": "This is the namespace name where you upsert vectors."
                     }
                 },
@@ -609,18 +591,10 @@
             },
             "Vector": {
                 "type": "object",
-                "example": {
-                    "id": "id-0",
-                    "values": [
-                        1.22,
-                        2.234,
-                        3.73
-                    ],
-                    "metadata": "{mykey : myvalue}"
-                },
                 "properties": {
                     "id": {
                         "type": "string",
+                        "example": "example-vector-1",
                         "description": "This is the vector's unique id.",
                         "maxLength": 1000,
                         "minLength": 1,
@@ -630,6 +604,16 @@
                     },
                     "values": {
                         "type": "array",
+                        "example": [
+                            0.1,
+                            0.2,
+                            0.3,
+                            0.4,
+                            0.5,
+                            0.6,
+                            0.7,
+                            0.8
+                        ],
                         "items": {
                             "type": "number",
                             "format": "float"
@@ -638,6 +622,10 @@
                     },
                     "metadata": {
                         "type": "object",
+                        "example": {
+                            "genre": "documentary",
+                            "year": 2019
+                        },
                         "description": "This is the metadata included in the request."
                     }
                 },
