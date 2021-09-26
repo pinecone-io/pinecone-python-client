@@ -5,7 +5,6 @@ typing-extensions==3.10.0.0
 sentry-sdk==1.1.0
 tqdm~=4.60.0
 dnspython==2.1.0
-google-api-python-client==2.13.0
 # openapi generated client:
 python_dateutil >= 2.5.3
 urllib3 >= 1.25.3
