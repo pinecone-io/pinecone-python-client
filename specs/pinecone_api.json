@@ -771,7 +771,7 @@
             "type": "integer",
             "format": "int64",
             "example": 10,
-            "title": "Number of vectors upserted"
+            "description": "The number of vectors upserted."
           }
         },
         "description": "The response for the `Upsert` operation."
