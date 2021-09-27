@@ -67,6 +67,8 @@ class Vector(ModelNormal):
             'max_length': 1000,
             'min_length': 1,
         },
+        ('values',): {
+        },
     }
 
     @cached_property
@@ -113,11 +115,12 @@ class Vector(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, id, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, id, values, *args, **kwargs):  # noqa: E501
         """Vector - a model defined in OpenAPI
 
         Args:
             id (str): This is the vector's unique id.
+            values ([float]): This is the vector data included in the request.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -150,7 +153,6 @@ class Vector(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            values ([float]): This is the vector data included in the request.. [optional]  # noqa: E501
             metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): This is the metadata included in the request.. [optional]  # noqa: E501
         """
 
@@ -180,6 +182,7 @@ class Vector(ModelNormal):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         self.id = id
+        self.values = values
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
@@ -200,11 +203,12 @@ class Vector(ModelNormal):
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, id, *args, **kwargs):  # noqa: E501
+    def __init__(self, id, values, *args, **kwargs):  # noqa: E501
         """Vector - a model defined in OpenAPI
 
         Args:
             id (str): This is the vector's unique id.
+            values ([float]): This is the vector data included in the request.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -237,7 +241,6 @@ class Vector(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            values ([float]): This is the vector data included in the request.. [optional]  # noqa: E501
             metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): This is the metadata included in the request.. [optional]  # noqa: E501
         """
 
@@ -265,6 +268,7 @@ class Vector(ModelNormal):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         self.id = id
+        self.values = values
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
