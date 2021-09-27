@@ -1,14 +1,13 @@
 #
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
+import re
 import uuid
 from pathlib import Path
-
-from pinecone.core.grpc.protos import vector_column_service_pb2
-import re
 from typing import List
 
 try:
+    from pinecone.core.grpc.protos import vector_column_service_pb2
     import numpy as np
     import lz4.frame
 except ImportError:
