@@ -94,9 +94,13 @@ type___UpsertRequest = UpsertRequest
 
 class UpsertResponse(google___protobuf___message___Message):
     DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
+    upserted_count: builtin___int = ...
 
     def __init__(self,
+        *,
+        upserted_count : typing___Optional[builtin___int] = None,
         ) -> None: ...
+    def ClearField(self, field_name: typing_extensions___Literal[u"upserted_count",b"upserted_count"]) -> None: ...
 type___UpsertResponse = UpsertResponse
 
 class DeleteRequest(google___protobuf___message___Message):
