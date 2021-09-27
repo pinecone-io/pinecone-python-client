@@ -28,8 +28,8 @@ _OPENAPI_ENDPOINT_PARAMS = (
 
 class Index(ApiClient):
 
-    def __init__(self, index_name: str, openapi_client_config: Configuration = None, pool_threads=1):
-        openapi_client_config = openapi_client_config or Configuration.get_default_copy()
+    def __init__(self, index_name: str, pool_threads=1):
+        openapi_client_config = Config.OPENAPI_CONFIG
         openapi_client_config.api_key = openapi_client_config.api_key or {}
         openapi_client_config.api_key['ApiKeyAuth'] = openapi_client_config.api_key.get('ApiKeyAuth', Config.API_KEY)
         openapi_client_config.server_variables = openapi_client_config.server_variables or {}
