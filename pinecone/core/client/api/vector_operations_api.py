@@ -32,6 +32,7 @@ from pinecone.core.client.model.query_request import QueryRequest
 from pinecone.core.client.model.query_response import QueryResponse
 from pinecone.core.client.model.rpc_status import RpcStatus
 from pinecone.core.client.model.upsert_request import UpsertRequest
+from pinecone.core.client.model.upsert_response import UpsertResponse
 
 
 class VectorOperationsApi(object):
@@ -564,7 +565,7 @@ class VectorOperationsApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                {str: (bool, date, datetime, dict, float, int, list, str, none_type)}
+                UpsertResponse
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -593,7 +594,7 @@ class VectorOperationsApi(object):
 
         self.upsert = _Endpoint(
             settings={
-                'response_type': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
+                'response_type': (UpsertResponse,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
