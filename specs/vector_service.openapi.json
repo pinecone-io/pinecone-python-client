@@ -626,7 +626,11 @@
                             "type": "number",
                             "format": "float"
                         },
-                        "description": "This is the vector data included in the request."
+                        "description": "This is the vector data included in the request.",
+                        "minLength": 1,
+                        "required": [
+                            "values"
+                        ]
                     },
                     "metadata": {
                         "type": "object",
@@ -638,7 +642,8 @@
                     }
                 },
                 "required": [
-                    "id"
+                    "id",
+                    "values"
                 ]
             },
             "protobufAny": {
