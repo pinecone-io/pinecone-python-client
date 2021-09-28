@@ -67,7 +67,7 @@ class _CONFIG:
                 kwargs.pop("environment", None)
                 or os.getenv("PINECONE_ENVIRONMENT")
                 or file_config.pop("environment", None)
-                or "beta"
+                or "us-west1-gcp"
         )
         config = config._replace(environment=environment)
 
