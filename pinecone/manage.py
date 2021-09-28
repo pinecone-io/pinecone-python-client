@@ -31,7 +31,7 @@ class IndexDescription(NamedTuple):
     status: None
 
 def _get_api_instance():
-    client_config = Configuration.get_default_copy()
+    client_config = Config.OPENAPI_CONFIG
     client_config.api_key = client_config.api_key or {}
     client_config.api_key['ApiKeyAuth'] = client_config.api_key.get('ApiKeyAuth', Config.API_KEY)
     client_config.server_variables = {

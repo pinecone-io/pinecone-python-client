@@ -14,12 +14,11 @@ from pinecone.core.client.exceptions import ApiKeyError
 from pinecone.core.api_action import ActionAPI, WhoAmIResponse
 from pinecone.core.utils.constants import CLIENT_VERSION
 from pinecone.core.utils.sentry import sentry_decorator as sentry
+from pinecone.core.client.configuration import Configuration
 
 __all__ = [
-    "Config", "ENABLE_PROGRESS_BAR", "logger", "init"
+    "Config", "logger", "init"
 ]
-
-ENABLE_PROGRESS_BAR = False
 
 
 def _set_sentry_tags(config: dict):
@@ -35,6 +34,8 @@ class ConfigBase(NamedTuple):
     api_key: str = ""
     project_name: str = ""
     controller_host: str = ""
+    log_level: str = ""
+    openapi_config: Configuration = None
 
 
 class _CONFIG:
@@ -63,10 +64,10 @@ class _CONFIG:
 
         # Get the environment first. Make sure that it is not overwritten in subsequent config objects.
         environment = (
-            kwargs.pop("environment", None)
-            or os.getenv("PINECONE_ENVIRONMENT")
-            or file_config.pop("environment", None)
-            or "beta"
+                kwargs.pop("environment", None)
+                or os.getenv("PINECONE_ENVIRONMENT")
+                or file_config.pop("environment", None)
+                or "us-west1-gcp"
         )
         config = config._replace(environment=environment)
 
@@ -101,8 +102,29 @@ class _CONFIG:
             whoami_response = WhoAmIResponse()
 
         if not self._config.project_name:
-            config = config._replace(**self._preprocess_and_validate_config({'project_name': whoami_response.projectname}))
+            config = config._replace(
+                **self._preprocess_and_validate_config({'project_name': whoami_response.projectname}))
 
+        self._config = config
+
+        # Set OpenAPI client config
+        openapi_config = (
+                kwargs.pop("openapi_config", None)
+                or os.getenv("PINECONE_OPENAPI_CONFIG")
+                or file_config.pop("openapi_config", None)
+                or Configuration.get_default_copy()
+        )
+
+        config = config._replace(openapi_config=openapi_config)
+        self._config = config
+
+        # Set log level
+        log_level = (
+                kwargs.pop("log_level", None)
+                or os.getenv("PINECONE_LOG_LEVEL")
+                or file_config.pop("log_level", None)
+        )
+        config = config._replace(log_level=log_level)
         self._config = config
 
         # Sentry
@@ -152,14 +174,22 @@ class _CONFIG:
     def PROJECT_NAME(self):
         return self._config.project_name
 
-
     @property
     def CONTROLLER_HOST(self):
         return self._config.controller_host
 
+    @property
+    def OPENAPI_CONFIG(self):
+        return self._config.openapi_config
+
+    @property
+    def LOG_LEVEL(self):
+        return self._config.log_level
+
 
 @sentry
 def init(api_key: str = None, host: str = None, environment: str = None, project_name: str = None,
+         log_level: str = None, openapi_config: Configuration = None,
          config: str = "~/.pinecone", **kwargs):
     """Initializes the Pinecone client.
 
@@ -167,9 +197,12 @@ def init(api_key: str = None, host: str = None, environment: str = None, project
     :param host: Optional. Controller host.
     :param environment: Optional. Deployment environment.
     :param project_name: Optional. Pinecone project name. Overrides the value that is otherwise looked up and used from the Pinecone backend.
+    :param log_level: Optional. Set Pinecone log level.
+    :param openapi_config: Optional. Set OpenAPI client configuration.
     :param config: Optional. An INI configuration file.
     """
     Config.reset(project_name=project_name, api_key=api_key, controller_host=host, environment=environment,
+                 log_level=log_level, openapi_config=openapi_config,
                  config_file=config, **kwargs)
     if not bool(Config.API_KEY):
         logger.warning("API key is required.")
