@@ -587,6 +587,14 @@
             },
             "UpsertResponse": {
                 "type": "object",
+                "properties": {
+                    "upsertedCount": {
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 10,
+                        "description": "The number of vectors upserted."
+                    }
+                },
                 "description": "The response for the `Upsert` operation."
             },
             "Vector": {
@@ -618,7 +626,11 @@
                             "type": "number",
                             "format": "float"
                         },
-                        "description": "This is the vector data included in the request."
+                        "description": "This is the vector data included in the request.",
+                        "minLength": 1,
+                        "required": [
+                            "values"
+                        ]
                     },
                     "metadata": {
                         "type": "object",
@@ -630,7 +642,8 @@
                     }
                 },
                 "required": [
-                    "id"
+                    "id",
+                    "values"
                 ]
             },
             "protobufAny": {
