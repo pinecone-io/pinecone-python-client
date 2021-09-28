@@ -35,7 +35,7 @@ class ConfigBase(NamedTuple):
     project_name: str = ""
     controller_host: str = ""
     log_level: str = ""
-    openapi_config: dict = ""
+    openapi_config: Configuration = None
 
 
 class _CONFIG:
@@ -115,10 +115,8 @@ class _CONFIG:
             or Configuration.get_default_copy()
         )
 
-        config = config._replace(**self._preprocess_and_validate_config(openapi_config))
-
+        config = config._replace(openapi_config=openapi_config)
         self._config = config
-
 
         # Set log level
         log_level = (
@@ -126,7 +124,7 @@ class _CONFIG:
             or os.getenv("PINECONE_LOG_LEVEL")
             or file_config.pop("log_level",None)
         )
-
+        config = config._replace(log_level=log_level)
         self._config = config
 
         # Sentry
@@ -184,10 +182,12 @@ class _CONFIG:
     def OPENAPI_CONFIG(self):
         return self._config.openapi_config
 
-
+    @property
+    def LOG_LEVEL(self):
+        return self._config.log_level
 
 @sentry
-def init(api_key: str = None, host: str = None, environment: str = None, project_name: str = None, log_level:str = None, openapi_config:dict = None,
+def init(api_key: str = None, host: str = None, environment: str = None, project_name: str = None, log_level:str = None, openapi_config:Configuration  = None,
          config: str = "~/.pinecone", **kwargs):
     """Initializes the Pinecone client.
 
