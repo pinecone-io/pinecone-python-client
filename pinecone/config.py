@@ -109,10 +109,10 @@ class _CONFIG:
 
         # Set OpenAPI client config
         openapi_config = (
-            kwargs.pop("openapi_config",None)
-            or os.getenv("PINECONE_OPENAPI_CONFIG")
-            or file_config.pop("openapi_config", None)
-            or Configuration.get_default_copy()
+                kwargs.pop("openapi_config", None)
+                or os.getenv("PINECONE_OPENAPI_CONFIG")
+                or file_config.pop("openapi_config", None)
+                or Configuration.get_default_copy()
         )
 
         config = config._replace(openapi_config=openapi_config)
@@ -120,9 +120,9 @@ class _CONFIG:
 
         # Set log level
         log_level = (
-            kwargs.pop("log_level",None)
-            or os.getenv("PINECONE_LOG_LEVEL")
-            or file_config.pop("log_level",None)
+                kwargs.pop("log_level", None)
+                or os.getenv("PINECONE_LOG_LEVEL")
+                or file_config.pop("log_level", None)
         )
         config = config._replace(log_level=log_level)
         self._config = config
@@ -186,8 +186,10 @@ class _CONFIG:
     def LOG_LEVEL(self):
         return self._config.log_level
 
+
 @sentry
-def init(api_key: str = None, host: str = None, environment: str = None, project_name: str = None, log_level:str = None, openapi_config:Configuration  = None,
+def init(api_key: str = None, host: str = None, environment: str = None, project_name: str = None,
+         log_level: str = None, openapi_config: Configuration = None,
          config: str = "~/.pinecone", **kwargs):
     """Initializes the Pinecone client.
 
@@ -199,7 +201,8 @@ def init(api_key: str = None, host: str = None, environment: str = None, project
     :param openapi_config: Optional. Set OpenAPI client configuration.
     :param config: Optional. An INI configuration file.
     """
-    Config.reset(project_name=project_name, api_key=api_key, controller_host=host, environment=environment, log_level=log_level, openapi_config=openapi_config,
+    Config.reset(project_name=project_name, api_key=api_key, controller_host=host, environment=environment,
+                 log_level=log_level, openapi_config=openapi_config,
                  config_file=config, **kwargs)
     if not bool(Config.API_KEY):
         logger.warning("API key is required.")
