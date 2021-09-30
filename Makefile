@@ -11,7 +11,7 @@ develop:
 
 tests:
 	# skipping flake8 for now
-	pip3 install --upgrade --quiet tox && tox -p 4 -e py36,py37,py38,py39
+	pip3 install --upgrade --quiet tox && TOX_SKIP_ENV='flake|docs' tox
 
 docs:
 	echo skipping temporarily...
