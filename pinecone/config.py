@@ -137,7 +137,7 @@ class _CONFIG:
         and raises ValueError in case an invalid value was specified.
         """
         # general preprocessing and filtering
-        result = {k.strip(): v.strip() for k, v in config.items() if v is not None}
+#         result = {k.strip(): v.strip() for k, v in config.items() if v is not None}
         result = {k: v for k, v in result.items() if k in ConfigBase._fields}
         result.pop('environment', None)
         # validate api key
