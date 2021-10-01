@@ -138,7 +138,7 @@ class _CONFIG:
         """
         # general preprocessing and filtering
 #         result = {k.strip(): v.strip() for k, v in config.items() if v is not None}
-        result = {k: v for k, v in result.items() if k in ConfigBase._fields}
+        result = {k: v for k, v in config.items() if k in ConfigBase._fields}
         result.pop('environment', None)
         # validate api key
         api_key = result.get('api_key')
