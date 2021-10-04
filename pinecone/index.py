@@ -42,7 +42,7 @@ class Index(ApiClient):
             **openapi_client_config.server_variables
         }
         super().__init__(configuration=openapi_client_config, pool_threads=pool_threads)
-        self.set_default_header(CLIENT_VERSION_HEADER, CLIENT_ID)
+        self.user_agent = CLIENT_ID
         self._vector_api = VectorOperationsApi(self)
 
     @sentry

@@ -41,7 +41,7 @@ def _get_api_instance():
         **client_config.server_variables
     }
     api_client = ApiClient(configuration=client_config)
-    api_client.set_default_header(CLIENT_VERSION_HEADER, CLIENT_ID)
+    api_client.user_agent = CLIENT_ID
     api_instance = IndexOperationsApi(api_client)
     return api_instance
 
