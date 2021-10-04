@@ -473,7 +473,7 @@
             "type": "integer",
             "format": "int64",
             "example": 10,
-            "description": "The number of vectors deleted."
+            "description": "The number of vectors deleted. 0 for requests with delete_all."
           }
         },
         "description": "The response for the `Delete` operation."
