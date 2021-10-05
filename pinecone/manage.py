@@ -57,7 +57,7 @@ def _get_status(name: str):
 def create_index(
         name: str,
         dimension: int,
-        wait: bool = True,
+        timeout: int = None,
         index_type: str = "approximated",
         metric: str = "cosine",
         replicas: int = 1,
@@ -69,8 +69,6 @@ def create_index(
     :param name: the name of the index.
     :type name: str
     :param dimension: the dimension of vectors that would be inserted in the index
-    :param wait: wait for the index to deploy. Defaults to ``True``
-    :type wait: bool
     :param index_type: type of index, one of {"approximated", "exact"}, defaults to "approximated".
         The "approximated" index uses fast approximate search algorithms developed by Pinecone.
         The "exact" index uses accurate exact search algorithms.
@@ -89,6 +87,8 @@ def create_index(
         Use 1 shard per 1GB of vectors
     :type shards: int,optional
     :param index_config: Advanced configuration options for the index
+    :type timeout: int, optional
+    :param timeout: Timeout for wait until index gets ready. If None, wait indefinitely; if >=0, time out after this many seconds; if -1, return immediately and do not wait. Default: None
     """
     api_instance = _get_api_instance()
 
@@ -107,22 +107,29 @@ def create_index(
         ready = status['ready']
         return ready
 
-    timeout = time.time() + 300
-    if wait:
-        while (not is_ready()) and (time.time() <= timeout):
+    if timeout == -1:
+        return
+    if timeout is None:
+        while not is_ready():
             time.sleep(5)
-        if time.time() > timeout:
-            raise (TimeoutError('Index created, but it did not get ready in time.'))
+    else:
+        while (not is_ready()) and timeout >= 0:
+            time.sleep(5)
+            timeout -= 5
+    if timeout and timeout < 0:
+        raise (TimeoutError(
+            'Please call the describe_index API ({}) to confirm index status.'.format(
+                'https://www.pinecone.io/docs/api/operation/describe_index/')))
 
 
 @sentry
-def delete_index(name: str, wait: bool = True):
+def delete_index(name: str, timeout: int = None):
     """Deletes a Pinecone index.
 
     :param name: the name of the index.
     :type name: str
-    :param wait: wait for the index to deploy. Defaults to ``True``
-    :type wait: bool
+    :param timeout: Timeout for wait until index gets ready. If None, wait indefinitely; if >=0, time out after this many seconds; if -1, return immediately and do not wait. Default: None
+    :type timeout: int, optional
     """
     api_instance = _get_api_instance()
     api_instance.delete_index(name)
@@ -130,12 +137,20 @@ def delete_index(name: str, wait: bool = True):
     def get_remaining():
         return name in api_instance.list_indexes()
 
-    timeout = time.time() + 300
-    if wait:
-        while get_remaining() and (time.time() <= timeout):
+    if timeout == -1:
+        return
+
+    if timeout is None:
+        while get_remaining():
             time.sleep(5)
-        if time.time() > timeout:
-            raise (TimeoutError('Index deletion timed out.'))
+    else:
+        while get_remaining() and timeout >= 0:
+            time.sleep(5)
+            timeout -= 5
+    if timeout and timeout < 0:
+        raise (TimeoutError(
+            'Please call the list_indexes API ({}) to confirm if index is deleted'.format(
+                'https://www.pinecone.io/docs/api/operation/list_indexes/')))
 
 
 @sentry
