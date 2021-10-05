@@ -12,9 +12,8 @@ from pinecone.core.client.api_client import ApiClient
 from pinecone.core.client.configuration import Configuration
 from pinecone.core.client.model.create_request import CreateRequest
 from pinecone.core.client.model.patch_request import PatchRequest
-from pinecone.core.utils.constants import CLIENT_ID
-import requests, urllib3
 from pinecone.core.utils.sentry import sentry_decorator as sentry
+from pinecone.core.utils import get_user_agent
 
 __all__ = [
     "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "IndexDescription"
@@ -43,8 +42,7 @@ def _get_api_instance():
         **client_config.server_variables
     }
     api_client = ApiClient(configuration=client_config)
-    user_agent_details = {'requests': requests.__version__, 'urllib3': urllib3.__version__}
-    api_client.user_agent = '{} ({})'.format(CLIENT_ID, ', '.join([f'{k}:{v}' for k, v in user_agent_details.items()]))
+    api_client.user_agent = get_user_agent()
     api_instance = IndexOperationsApi(api_client)
     return api_instance
 
