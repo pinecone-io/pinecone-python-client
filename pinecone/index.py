@@ -8,14 +8,13 @@ from pinecone import Config
 from pinecone.core.client import ApiClient, Configuration
 from pinecone.core.utils.sentry import sentry_decorator as sentry
 from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, \
-    ScoredVector, SingleQueryResults, DescribeIndexStatsResponse, UpsertRequest, Vector
-from .core.utils.constants import CLIENT_VERSION_HEADER, CLIENT_ID
+    ScoredVector, SingleQueryResults, DescribeIndexStatsResponse, UpsertRequest, UpsertResponse, Vector
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
-from pinecone.core.utils import fix_tuple_length
+from pinecone.core.utils import fix_tuple_length, get_user_agent
 
 __all__ = [
     "Index", "FetchResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus",
-    "ScoredVector", "SingleQueryResults", "DescribeIndexStatsResponse", "UpsertRequest", "Vector"
+    "ScoredVector", "SingleQueryResults", "DescribeIndexStatsResponse", "UpsertRequest", "UpsertResponse", "Vector"
 ]
 
 from .core.utils.error_handling import validate_and_convert_errors
@@ -42,7 +41,7 @@ class Index(ApiClient):
             **openapi_client_config.server_variables
         }
         super().__init__(configuration=openapi_client_config, pool_threads=pool_threads)
-        self.set_default_header(CLIENT_VERSION_HEADER, CLIENT_ID)
+        self.user_agent = get_user_agent()
         self._vector_api = VectorOperationsApi(self)
 
     @sentry
