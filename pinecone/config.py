@@ -98,6 +98,7 @@ class _CONFIG:
         try:
             whoami_response = action_api.whoami()
         except requests.exceptions.RequestException:
+            # proceed with default values; reset() may be called later w/ correct values
             whoami_response = WhoAmIResponse()
 
         if not self._config.project_name:
