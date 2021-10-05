@@ -292,9 +292,9 @@
                 "properties": {
                     "deletedCount": {
                         "type": "integer",
-                        "format": "int32",
+                        "format": "int64",
                         "example": 10,
-                        "description": "The number of vectors deleted. -1 for requests with delete_all=true."
+                        "description": "The number of vectors deleted. 0 for requests with delete_all."
                     }
                 },
                 "description": "The response for the `Delete` operation."
