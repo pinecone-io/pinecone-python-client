@@ -118,7 +118,7 @@ def create_index(
             timeout -= 5
     if timeout and timeout < 0:
         raise (TimeoutError(
-            'Index didnt ready in time. Please call the describe_index API ({}) to confirm index status.'.format(
+            'Please call the describe_index API ({}) to confirm index status.'.format(
                 'https://www.pinecone.io/docs/api/operation/describe_index/')))
 
 
@@ -149,7 +149,7 @@ def delete_index(name: str, timeout: int = None):
             timeout -= 5
     if timeout and timeout < 0:
         raise (TimeoutError(
-            'Index didnt get delete in time. Please call the list_indexes API ({}) to confirm if index is still active'.format(
+            'Please call the list_indexes API ({}) to confirm if index is deleted'.format(
                 'https://www.pinecone.io/docs/api/operation/list_indexes/')))
 
 
