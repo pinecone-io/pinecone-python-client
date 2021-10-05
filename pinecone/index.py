@@ -14,7 +14,7 @@ from pinecone.core.utils import fix_tuple_length, get_user_agent
 
 __all__ = [
     "Index", "FetchResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus",
-    "ScoredVector", "SingleQueryResults", "DescribeIndexStatsResponse", "UpsertRequest", "Vector"
+    "ScoredVector", "SingleQueryResults", "DescribeIndexStatsResponse", "UpsertRequest", "UpsertResponse", "Vector"
 ]
 
 from .core.utils.error_handling import validate_and_convert_errors
