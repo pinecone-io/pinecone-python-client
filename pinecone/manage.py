@@ -110,13 +110,16 @@ def create_index(
     if timeout == -1:
         return
     if timeout is None:
-        timeout = 90000
-    timeout = time.time() + timeout
-    while (not is_ready()) and (time.time() <= timeout):
-        time.sleep(5)
-    if time.time() > timeout:
+        while not is_ready():
+            time.sleep(5)
+    else:
+        while (not is_ready()) and timeout >= 0:
+            time.sleep(5)
+            timeout -= 5
+    if timeout and timeout < 0:
         raise (TimeoutError(
-            'Index creation timed out. Please call pinecone.describe_index(index_name) to confirm index status.'))
+            'Index creation timed out. Please call the describe_index API ({}) to confirm index status.'.format(
+                'https://www.pinecone.io/docs/api/operation/describe_index/')))
 
 
 @sentry
@@ -136,14 +139,18 @@ def delete_index(name: str, timeout: int = None):
 
     if timeout == -1:
         return
+
     if timeout is None:
-        timeout = 90000
-    timeout = time.time() + timeout
-    while get_remaining() and (time.time() <= timeout):
-        time.sleep(5)
-    if time.time() > timeout:
+        while get_remaining():
+            time.sleep(5)
+    else:
+        while get_remaining() and timeout >= 0:
+            time.sleep(5)
+            timeout -= 5
+    if timeout and timeout < 0:
         raise (TimeoutError(
-            'Index deletion timed out. Please call pinecone.list_indexes() to confirm if index is still active'))
+            'Index deletion timed out. Please call the list_indexes API ({}) to confirm if index is still active'.format(
+                'https://www.pinecone.io/docs/api/operation/list_indexes/')))
 
 
 @sentry
