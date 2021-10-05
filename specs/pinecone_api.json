@@ -468,14 +468,6 @@
     "schemas": {
       "DeleteResponse": {
         "type": "object",
-        "properties": {
-          "deletedCount": {
-            "type": "integer",
-            "format": "int64",
-            "example": 10,
-            "description": "The number of vectors deleted."
-          }
-        },
         "description": "The response for the `Delete` operation."
       },
       "DescribeIndexStatsResponse": {
