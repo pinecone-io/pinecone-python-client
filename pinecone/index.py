@@ -8,14 +8,14 @@ from pinecone import Config
 from pinecone.core.client import ApiClient, Configuration
 from pinecone.core.utils.sentry import sentry_decorator as sentry
 from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, \
-    ScoredVector, SingleQueryResults, DescribeIndexStatsResponse, UpsertRequest, Vector
+    ScoredVector, SingleQueryResults, DescribeIndexStatsResponse, UpsertRequest, UpsertResponse, Vector
 from .core.utils.constants import CLIENT_VERSION_HEADER, CLIENT_ID
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
 from pinecone.core.utils import fix_tuple_length
 
 __all__ = [
     "Index", "FetchResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus",
-    "ScoredVector", "SingleQueryResults", "DescribeIndexStatsResponse", "UpsertRequest", "Vector"
+    "ScoredVector", "SingleQueryResults", "DescribeIndexStatsResponse", "UpsertRequest", "UpsertResponse", "Vector"
 ]
 
 from .core.utils.error_handling import validate_and_convert_errors
