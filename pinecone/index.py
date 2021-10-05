@@ -9,7 +9,7 @@ from pinecone.core.client import ApiClient, Configuration
 from pinecone.core.utils.sentry import sentry_decorator as sentry
 from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, \
     ScoredVector, SingleQueryResults, DescribeIndexStatsResponse, UpsertRequest, Vector
-from .core.utils.constants import CLIENT_VERSION_HEADER, CLIENT_ID
+from .core.utils.constants import CLIENT_ID
 import requests, urllib3
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
 from pinecone.core.utils import fix_tuple_length
@@ -34,8 +34,6 @@ class Index(ApiClient):
         openapi_client_config.api_key = openapi_client_config.api_key or {}
         openapi_client_config.api_key['ApiKeyAuth'] = openapi_client_config.api_key.get('ApiKeyAuth', Config.API_KEY)
         openapi_client_config.server_variables = openapi_client_config.server_variables or {}
-        openapi_client_config.verify_ssl = False
-        openapi_client_config.proxy = 'http://0.0.0.0:8081'
         openapi_client_config.server_variables = {
             **{
                 'environment': Config.ENVIRONMENT,
@@ -46,8 +44,7 @@ class Index(ApiClient):
         }
         super().__init__(configuration=openapi_client_config, pool_threads=pool_threads)
         user_agent_details = {'requests': requests.__version__, 'urllib3': urllib3.__version__}
-        self.user_agent = '{} ({})'.format(CLIENT_ID,
-                                           ', '.join([f'{k}:{v}' for k, v in user_agent_details.items()]))
+        self.user_agent = '{} ({})'.format(CLIENT_ID, ', '.join([f'{k}:{v}' for k, v in user_agent_details.items()]))
         self._vector_api = VectorOperationsApi(self)
 
     @sentry
