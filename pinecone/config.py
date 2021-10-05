@@ -98,7 +98,6 @@ class _CONFIG:
         try:
             whoami_response = action_api.whoami()
         except requests.exceptions.RequestException:
-            # proceed with default values; reset() may be called later w/ correct values
             whoami_response = WhoAmIResponse()
 
         if not self._config.project_name:
@@ -137,8 +136,8 @@ class _CONFIG:
         and raises ValueError in case an invalid value was specified.
         """
         # general preprocessing and filtering
-#         result = {k.strip(): v.strip() for k, v in config.items() if v is not None}
-        result = {k: v for k, v in config.items() if k in ConfigBase._fields}
+        result = {k.strip(): v.strip() for k, v in config.items() if v is not None}
+        result = {k: v for k, v in result.items() if k in ConfigBase._fields}
         result.pop('environment', None)
         # validate api key
         api_key = result.get('api_key')
