@@ -6,6 +6,9 @@ import uuid
 from pathlib import Path
 from typing import List
 
+import requests
+import urllib3
+
 try:
     from pinecone.core.grpc.protos import vector_column_service_pb2
     import numpy as np
@@ -57,3 +60,10 @@ def _generate_request_id() -> str:
 def fix_tuple_length(t, n):
     """Extend tuple t to length n by adding None items at the end of the tuple. Return the new tuple."""
     return t + ((None,) * (n - len(t))) if len(t) < n else t
+
+
+def get_user_agent():
+    client_id = f'python-client-{get_version()}'
+    user_agent_details = {'requests': requests.__version__, 'urllib3': urllib3.__version__}
+    user_agent = '{} ({})'.format(client_id, ', '.join([f'{k}:{v}' for k, v in user_agent_details.items()]))
+    return user_agent
