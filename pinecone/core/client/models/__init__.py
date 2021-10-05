@@ -15,7 +15,6 @@
 
 from pinecone.core.client.model.approximated_config import ApproximatedConfig
 from pinecone.core.client.model.create_request import CreateRequest
-from pinecone.core.client.model.delete_response import DeleteResponse
 from pinecone.core.client.model.describe_index_stats_response import DescribeIndexStatsResponse
 from pinecone.core.client.model.fetch_response import FetchResponse
 from pinecone.core.client.model.hnsw_config import HnswConfig

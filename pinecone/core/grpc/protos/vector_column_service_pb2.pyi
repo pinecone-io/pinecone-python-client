@@ -132,13 +132,9 @@ type___DeleteRequest = DeleteRequest
 
 class DeleteResponse(google___protobuf___message___Message):
     DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
-    deleted_count: builtin___int = ...
 
     def __init__(self,
-        *,
-        deleted_count : typing___Optional[builtin___int] = None,
         ) -> None: ...
-    def ClearField(self, field_name: typing_extensions___Literal[u"deleted_count",b"deleted_count"]) -> None: ...
 type___DeleteResponse = DeleteResponse
 
 class FetchRequest(google___protobuf___message___Message):

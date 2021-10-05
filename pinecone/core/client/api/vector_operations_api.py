@@ -26,7 +26,6 @@ from pinecone.core.client.model_utils import (  # noqa: F401
     none_type,
     validate_and_convert_types
 )
-from pinecone.core.client.model.delete_response import DeleteResponse
 from pinecone.core.client.model.describe_index_stats_response import DescribeIndexStatsResponse
 from pinecone.core.client.model.fetch_response import FetchResponse
 from pinecone.core.client.model.query_request import QueryRequest
@@ -87,7 +86,7 @@ class VectorOperationsApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                DeleteResponse
+                {str: (bool, date, datetime, dict, float, int, list, str, none_type)}
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -114,7 +113,7 @@ class VectorOperationsApi(object):
 
         self.delete = _Endpoint(
             settings={
-                'response_type': (DeleteResponse,),
+                'response_type': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
                 'auth': [
                     'ApiKeyAuth'
                 ],
