@@ -139,7 +139,7 @@ class DeleteResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            deleted_count (int): The number of vectors deleted. 0 for requests with delete_all.. [optional]  # noqa: E501
+            deleted_count (int): The number of vectors deleted.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -221,7 +221,7 @@ class DeleteResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            deleted_count (int): The number of vectors deleted. 0 for requests with delete_all.. [optional]  # noqa: E501
+            deleted_count (int): The number of vectors deleted.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
