@@ -5,6 +5,7 @@ import sys
 from typing import NamedTuple
 import os
 
+import certifi
 from loguru import logger
 import requests
 import sentry_sdk
@@ -50,6 +51,7 @@ class _CONFIG:
     """
 
     def __init__(self):
+        self._loguru_handler_id = None
         self.reset()
 
     def validate(self):
@@ -108,11 +110,11 @@ class _CONFIG:
         self._config = config
 
         # Set OpenAPI client config
+        default_openapi_config = Configuration.get_default_copy()
+        default_openapi_config.ssl_ca_cert = certifi.where()
         openapi_config = (
                 kwargs.pop("openapi_config", None)
-                or os.getenv("PINECONE_OPENAPI_CONFIG")
-                or file_config.pop("openapi_config", None)
-                or Configuration.get_default_copy()
+                or default_openapi_config
         )
 
         config = config._replace(openapi_config=openapi_config)
@@ -122,8 +124,12 @@ class _CONFIG:
         log_level = (
                 kwargs.pop("log_level", None)
                 or os.getenv("PINECONE_LOG_LEVEL")
+                or os.getenv("PINECONE_LOGGING")
                 or file_config.pop("log_level", None)
         )
+        if log_level or not self._loguru_handler_id:
+            logger.remove(self._loguru_handler_id)
+            self._loguru_handler_id = logger.add(sys.stdout, enqueue=True, level=(log_level or "ERROR"))
         config = config._replace(log_level=log_level)
         self._config = config
 
@@ -206,9 +212,6 @@ def init(api_key: str = None, host: str = None, environment: str = None, project
     if not bool(Config.API_KEY):
         logger.warning("API key is required.")
 
-
-logger.remove()
-logger.add(sys.stdout, enqueue=True, level=(os.getenv("PINECONE_LOGGING") or "ERROR"))
 
 Config = _CONFIG()
 
