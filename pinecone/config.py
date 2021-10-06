@@ -23,11 +23,14 @@ __all__ = [
 
 
 def _set_sentry_tags(config: dict):
-    sentry_sdk.set_tag("package_version", CLIENT_VERSION)
-    sentry_tag_names = ('environment', 'project_name', 'controller_host', 'username', 'user_label')
-    for key, val in config.items():
-        if key in sentry_tag_names:
-            sentry_sdk.set_tag(key, val)
+    if config['disable_error_reporting']:
+        sentry_sdk.init()
+    else:
+        sentry_sdk.set_tag("package_version", CLIENT_VERSION)
+        sentry_tag_names = ('environment', 'project_name', 'controller_host', 'username', 'user_label')
+        for key, val in config.items():
+            if key in sentry_tag_names:
+                sentry_sdk.set_tag(key, val)
 
 
 class ConfigBase(NamedTuple):
@@ -36,6 +39,7 @@ class ConfigBase(NamedTuple):
     project_name: str = ""
     controller_host: str = ""
     log_level: str = ""
+    disable_error_reporting: bool = False
     openapi_config: OpenApiConfiguration = None
 
 
@@ -134,6 +138,14 @@ class _CONFIG:
         self._config = config
 
         # Sentry
+        disable_error_reporting = (
+                kwargs.pop("disable_error_reporting", False)
+                or os.getenv("PINECONE_ERROR_REPORTING")
+                or file_config.pop("disable_error_reporting", False)
+                or False
+        )
+        config = config._replace(disable_error_reporting=disable_error_reporting)
+        self._config = config
         _set_sentry_tags({**whoami_response._asdict(), **self._config._asdict()})
 
     def _preprocess_and_validate_config(self, config: dict) -> dict:
@@ -191,10 +203,14 @@ class _CONFIG:
     def LOG_LEVEL(self):
         return self._config.log_level
 
+    @property
+    def DISABLE_ERROR_REPORTING(self):
+        return self._config.disable_error_reporting
+
 
 @sentry
 def init(api_key: str = None, host: str = None, environment: str = None, project_name: str = None,
-         log_level: str = None, openapi_config: OpenApiConfiguration = None,
+         log_level: str = None, openapi_config: OpenApiConfiguration = None, disable_error_reporting: bool = None,
          config: str = "~/.pinecone", **kwargs):
     """Initializes the Pinecone client.
 
@@ -203,11 +219,12 @@ def init(api_key: str = None, host: str = None, environment: str = None, project
     :param environment: Optional. Deployment environment.
     :param project_name: Optional. Pinecone project name. Overrides the value that is otherwise looked up and used from the Pinecone backend.
     :param log_level: Optional. Set Pinecone log level.
+    :param disable_error_reporting: Optional. Don't sent client errors to Pinecone.
     :param openapi_config: Optional. Set OpenAPI client configuration.
     :param config: Optional. An INI configuration file.
     """
     Config.reset(project_name=project_name, api_key=api_key, controller_host=host, environment=environment,
-                 log_level=log_level, openapi_config=openapi_config,
+                 log_level=log_level, openapi_config=openapi_config, disable_error_reporting=disable_error_reporting,
                  config_file=config, **kwargs)
     if not bool(Config.API_KEY):
         logger.warning("API key is required.")
