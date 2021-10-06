@@ -5,6 +5,7 @@ import sys
 from typing import NamedTuple
 import os
 
+import certifi
 from loguru import logger
 import requests
 import sentry_sdk
@@ -14,7 +15,7 @@ from pinecone.core.client.exceptions import ApiKeyError
 from pinecone.core.api_action import ActionAPI, WhoAmIResponse
 from pinecone.core.utils.constants import CLIENT_VERSION
 from pinecone.core.utils.sentry import sentry_decorator as sentry
-from pinecone.core.client.configuration import Configuration
+from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
 
 __all__ = [
     "Config", "logger", "init"
@@ -35,7 +36,7 @@ class ConfigBase(NamedTuple):
     project_name: str = ""
     controller_host: str = ""
     log_level: str = ""
-    openapi_config: Configuration = None
+    openapi_config: OpenApiConfiguration = None
 
 
 class _CONFIG:
@@ -50,6 +51,7 @@ class _CONFIG:
     """
 
     def __init__(self):
+        self._loguru_handler_id = None
         self.reset()
 
     def validate(self):
@@ -108,11 +110,11 @@ class _CONFIG:
         self._config = config
 
         # Set OpenAPI client config
+        default_openapi_config = OpenApiConfiguration.get_default_copy()
+        default_openapi_config.ssl_ca_cert = certifi.where()
         openapi_config = (
                 kwargs.pop("openapi_config", None)
-                or os.getenv("PINECONE_OPENAPI_CONFIG")
-                or file_config.pop("openapi_config", None)
-                or Configuration.get_default_copy()
+                or default_openapi_config
         )
 
         config = config._replace(openapi_config=openapi_config)
@@ -122,8 +124,12 @@ class _CONFIG:
         log_level = (
                 kwargs.pop("log_level", None)
                 or os.getenv("PINECONE_LOG_LEVEL")
+                or os.getenv("PINECONE_LOGGING")
                 or file_config.pop("log_level", None)
         )
+        if log_level or not self._loguru_handler_id:
+            logger.remove(self._loguru_handler_id)
+            self._loguru_handler_id = logger.add(sys.stdout, enqueue=True, level=(log_level or "ERROR"))
         config = config._replace(log_level=log_level)
         self._config = config
 
@@ -188,7 +194,7 @@ class _CONFIG:
 
 @sentry
 def init(api_key: str = None, host: str = None, environment: str = None, project_name: str = None,
-         log_level: str = None, openapi_config: Configuration = None,
+         log_level: str = None, openapi_config: OpenApiConfiguration = None,
          config: str = "~/.pinecone", **kwargs):
     """Initializes the Pinecone client.
 
@@ -206,9 +212,6 @@ def init(api_key: str = None, host: str = None, environment: str = None, project
     if not bool(Config.API_KEY):
         logger.warning("API key is required.")
 
-
-logger.remove()
-logger.add(sys.stdout, enqueue=True, level=(os.getenv("PINECONE_LOGGING") or "ERROR"))
 
 Config = _CONFIG()
 
