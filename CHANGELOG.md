@@ -4,6 +4,7 @@
 
 ### Changed
 - `pinecone.init()` can now be used to set the pinecone logger's log level.
+- The python client `pinecone.config.OpenApiConfiguration` object now uses the certifi package's SSL CA bundle by default. This should fix HTTPS connection errors in certain environments depending on their default CA bundle, including some Google Colab notebooks. 
 
 ## [2.0.0] - 2020-10-04
 ### Added

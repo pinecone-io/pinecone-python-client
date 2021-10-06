@@ -15,7 +15,7 @@ from pinecone.core.client.exceptions import ApiKeyError
 from pinecone.core.api_action import ActionAPI, WhoAmIResponse
 from pinecone.core.utils.constants import CLIENT_VERSION
 from pinecone.core.utils.sentry import sentry_decorator as sentry
-from pinecone.core.client.configuration import Configuration
+from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
 
 __all__ = [
     "Config", "logger", "init"
@@ -36,7 +36,7 @@ class ConfigBase(NamedTuple):
     project_name: str = ""
     controller_host: str = ""
     log_level: str = ""
-    openapi_config: Configuration = None
+    openapi_config: OpenApiConfiguration = None
 
 
 class _CONFIG:
@@ -110,7 +110,7 @@ class _CONFIG:
         self._config = config
 
         # Set OpenAPI client config
-        default_openapi_config = Configuration.get_default_copy()
+        default_openapi_config = OpenApiConfiguration.get_default_copy()
         default_openapi_config.ssl_ca_cert = certifi.where()
         openapi_config = (
                 kwargs.pop("openapi_config", None)
@@ -194,7 +194,7 @@ class _CONFIG:
 
 @sentry
 def init(api_key: str = None, host: str = None, environment: str = None, project_name: str = None,
-         log_level: str = None, openapi_config: Configuration = None,
+         log_level: str = None, openapi_config: OpenApiConfiguration = None,
          config: str = "~/.pinecone", **kwargs):
     """Initializes the Pinecone client.
 
