@@ -2,7 +2,7 @@
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
 
-from collections import Iterable
+from collections.abc import Iterable
 
 from pinecone import Config
 from pinecone.core.client import ApiClient, Configuration
