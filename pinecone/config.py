@@ -51,7 +51,6 @@ class _CONFIG:
     """
 
     def __init__(self):
-        self._loguru_handler_id = None
         self.reset()
 
     def validate(self):
@@ -127,9 +126,9 @@ class _CONFIG:
                 or os.getenv("PINECONE_LOGGING")
                 or file_config.pop("log_level", None)
         )
-        if log_level or not self._loguru_handler_id:
-            logger.remove(self._loguru_handler_id)
-            self._loguru_handler_id = logger.add(sys.stdout, enqueue=True, level=(log_level or "ERROR"))
+        if log_level:
+            logger.remove()
+            logger.add(sys.stdout, enqueue=True, level=(log_level or "ERROR"))
         config = config._replace(log_level=log_level)
         self._config = config
 
