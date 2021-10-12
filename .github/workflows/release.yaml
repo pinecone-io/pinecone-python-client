@@ -1,0 +1,38 @@
+name: Pypi
+# upload package to Pypi
+on:
+  push:
+    tags:
+      - '**-release'
+
+env:
+  PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+
+jobs:
+
+  pypi:
+    timeout-minutes: 30
+    name: pypi
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+
+    - uses: actions/checkout@v2
+      with:
+        repository: pinecone-io/pinecone-python-client
+        ref: ''
+        token: ${{ secrets.PAT }}
+        path: pinecone-python-client
+
+    - name: Set Python client production environment
+      run: make set-production
+
+    - name: Build Python client
+      run: make package
+
+    - name: Upload Python client to Pypi
+      run: make upload PYPI_PASSWORD=${{ env.PYPI_PASSWORD }}
