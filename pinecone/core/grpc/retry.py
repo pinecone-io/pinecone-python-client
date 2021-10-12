@@ -3,13 +3,15 @@
 #
 
 import abc
+import logging
 import random
 import time
 from typing import Optional, Tuple, NamedTuple
 
 import grpc
 
-from pinecone import logger
+
+_logger = logging.getLogger(__name__)
 
 
 class SleepPolicy(abc.ABC):
@@ -31,7 +33,7 @@ class ExponentialBackoff(SleepPolicy):
     def sleep(self, try_i: int):
         sleep_range = min(self.init_backoff * self.multiplier ** try_i, self.max_backoff)
         sleep_ms = random.randint(0, sleep_range)
-        logger.debug(f"gRPC retry. Sleeping for {sleep_ms}ms")
+        _logger.debug(f"gRPC retry. Sleeping for {sleep_ms}ms")
         time.sleep(sleep_ms / 1000)
 
 

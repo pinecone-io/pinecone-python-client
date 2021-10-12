@@ -1,14 +1,13 @@
 #
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
-
+import logging
 from abc import ABC, abstractmethod
 from functools import wraps
 from typing import NamedTuple, Optional, Dict
 
 import grpc
 
-from pinecone import logger
 from pinecone.config import Config
 from pinecone.core.grpc.protos.vector_column_service_pb2_grpc import VectorColumnServiceStub
 from pinecone.core.grpc.protos import vector_service_pb2, vector_column_service_pb2
@@ -17,6 +16,9 @@ from pinecone.core.utils.sentry import sentry_decorator as sentry
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
 from pinecone.core.grpc.retry import RetryOnRpcErrorClientInterceptor, RetryConfig
 from pinecone.core.utils.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSION
+
+
+_logger = logging.getLogger(__name__)
 
 
 class GRPCClientConfig(NamedTuple):
@@ -91,7 +93,7 @@ class GRPCIndex(ABC):
             default_options['grpc.ssl_target_name_override'] = target.split(':')[0]
         user_provided_options = options or {}
         _options = tuple((k, v) for k, v in {**default_options, **user_provided_options}.items())
-        logger.debug('creating new channel with endpoint {} options {} and config {}',
+        _logger.debug('creating new channel with endpoint %s options %s and config %s',
                      target, _options, self.grpc_client_config)
         if not self.grpc_client_config.secure:
             channel = grpc.insecure_channel(target, options=_options)
