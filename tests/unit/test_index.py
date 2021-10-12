@@ -7,10 +7,6 @@ filter1 = {'genre': {'$in': ['action']}}
 filter2 = {'year': {'$eq': 2020}}
 
 
-def test_fail():
-    assert False
-
-
 def test_upsert_request_tuples_id_data(mocker):
     import pinecone
     pinecone.init(api_key='example-key')
