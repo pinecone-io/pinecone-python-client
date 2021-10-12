@@ -212,6 +212,10 @@ def init(api_key: str = None, host: str = None, environment: str = None, project
         logger.warning("API key is required.")
 
 
+logger.remove()
+logger.add(sys.stdout, enqueue=True, level=(
+        os.getenv("PINECONE_LOG_LEVEL") or os.getenv("PINECONE_LOGGING") or "ERROR"))
+
 Config = _CONFIG()
 
 # Init
