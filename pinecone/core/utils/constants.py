@@ -7,6 +7,9 @@ import enum
 
 from pinecone.core.utils import get_environment, get_version
 
+PARENT_LOGGER_NAME = 'pinecone'
+DEFAULT_PARENT_LOGGER_LEVEL = 'ERROR'
+
 MAX_MSG_SIZE = 128 * 1024 * 1024
 
 MAX_ID_LENGTH = int(os.environ.get("PINECONE_MAX_ID_LENGTH", default="64"))

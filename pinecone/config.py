@@ -1,25 +1,29 @@
 #
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
-import sys
+import logging
 from typing import NamedTuple
 import os
 
 import certifi
-from loguru import logger
 import requests
 import sentry_sdk
 import configparser
 
 from pinecone.core.client.exceptions import ApiKeyError
 from pinecone.core.api_action import ActionAPI, WhoAmIResponse
-from pinecone.core.utils.constants import CLIENT_VERSION
+from pinecone.core.utils import warn_deprecated
+from pinecone.core.utils.constants import CLIENT_VERSION, PARENT_LOGGER_NAME, DEFAULT_PARENT_LOGGER_LEVEL
 from pinecone.core.utils.sentry import sentry_decorator as sentry
 from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
 
 __all__ = [
-    "Config", "logger", "init"
+    "Config", "init"
 ]
+
+_logger = logging.getLogger(__name__)
+_parent_logger = logging.getLogger(PARENT_LOGGER_NAME)
+_parent_logger.setLevel(DEFAULT_PARENT_LOGGER_LEVEL)
 
 
 def _set_sentry_tags(config: dict):
@@ -35,7 +39,6 @@ class ConfigBase(NamedTuple):
     api_key: str = ""
     project_name: str = ""
     controller_host: str = ""
-    log_level: str = ""
     openapi_config: OpenApiConfiguration = None
 
 
@@ -119,19 +122,6 @@ class _CONFIG:
         config = config._replace(openapi_config=openapi_config)
         self._config = config
 
-        # Set log level
-        log_level = (
-                kwargs.pop("log_level", None)
-                or os.getenv("PINECONE_LOG_LEVEL")
-                or os.getenv("PINECONE_LOGGING")
-                or file_config.pop("log_level", None)
-        )
-        if log_level:
-            logger.remove()
-            logger.add(sys.stdout, enqueue=True, level=(log_level or "ERROR"))
-        config = config._replace(log_level=log_level)
-        self._config = config
-
         # Sentry
         _set_sentry_tags({**whoami_response._asdict(), **self._config._asdict()})
 
@@ -188,7 +178,15 @@ class _CONFIG:
 
     @property
     def LOG_LEVEL(self):
-        return self._config.log_level
+        """
+        Deprecated since v2.0.2 [Will be removed in v3.0.0]; use the standard logging module logger "pinecone" instead.
+        """
+        warn_deprecated(
+            description='LOG_LEVEL is deprecated. Use the standard logging module logger "pinecone" instead.',
+            deprecated_in='2.0.2',
+            removal_in='3.0.0'
+        )
+        return logging.getLevelName(logging.getLogger('pinecone').level)
 
 
 @sentry
@@ -201,20 +199,19 @@ def init(api_key: str = None, host: str = None, environment: str = None, project
     :param host: Optional. Controller host.
     :param environment: Optional. Deployment environment.
     :param project_name: Optional. Pinecone project name. Overrides the value that is otherwise looked up and used from the Pinecone backend.
-    :param log_level: Optional. Set Pinecone log level.
     :param openapi_config: Optional. Set OpenAPI client configuration.
     :param config: Optional. An INI configuration file.
+    :param log_level: Deprecated since v2.0.2 [Will be removed in v3.0.0]; use the standard logging module to manage logger "pinecone" instead.
     """
     Config.reset(project_name=project_name, api_key=api_key, controller_host=host, environment=environment,
-                 log_level=log_level, openapi_config=openapi_config,
-                 config_file=config, **kwargs)
-    if not bool(Config.API_KEY):
-        logger.warning("API key is required.")
+                 openapi_config=openapi_config, config_file=config, **kwargs)
+    if log_level:
+        warn_deprecated(
+            description='log_level is deprecated. Use the standard logging module to manage logger "pinecone" instead.',
+            deprecated_in='2.0.2',
+            removal_in='3.0.0'
+        )
 
-
-logger.remove()
-logger.add(sys.stdout, enqueue=True, level=(
-        os.getenv("PINECONE_LOG_LEVEL") or os.getenv("PINECONE_LOGGING") or "ERROR"))
 
 Config = _CONFIG()
 

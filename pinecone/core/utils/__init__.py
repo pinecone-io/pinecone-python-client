@@ -3,6 +3,7 @@
 #
 import re
 import uuid
+import warnings
 from pathlib import Path
 from typing import List
 
@@ -67,3 +68,8 @@ def get_user_agent():
     user_agent_details = {'requests': requests.__version__, 'urllib3': urllib3.__version__}
     user_agent = '{} ({})'.format(client_id, ', '.join([f'{k}:{v}' for k, v in user_agent_details.items()]))
     return user_agent
+
+
+def warn_deprecated(description: str = '', deprecated_in: str = None, removal_in: str = None):
+    message = f'DEPRECATED since v{deprecated_in} [Will be removed in v{removal_in}]: {description}'
+    warnings.warn(message, DeprecationWarning)
