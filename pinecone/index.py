@@ -11,6 +11,7 @@ from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryR
     ScoredVector, SingleQueryResults, DescribeIndexStatsResponse, UpsertRequest, UpsertResponse, Vector
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
 from pinecone.core.utils import fix_tuple_length, get_user_agent
+import copy
 
 __all__ = [
     "Index", "FetchResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus",
@@ -28,7 +29,7 @@ _OPENAPI_ENDPOINT_PARAMS = (
 class Index(ApiClient):
 
     def __init__(self, index_name: str, pool_threads=1):
-        openapi_client_config = Config.OPENAPI_CONFIG
+        openapi_client_config = copy.deepcopy(Config.OPENAPI_CONFIG)
         openapi_client_config.api_key = openapi_client_config.api_key or {}
         openapi_client_config.api_key['ApiKeyAuth'] = openapi_client_config.api_key.get('ApiKeyAuth', Config.API_KEY)
         openapi_client_config.server_variables = openapi_client_config.server_variables or {}
