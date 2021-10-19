@@ -6,6 +6,14 @@
 - `pinecone.init()` can now be used to set the pinecone logger's log level.
 - The python client `pinecone.config.OpenApiConfiguration` object now uses the certifi package's SSL CA bundle by default. This should fix HTTPS connection errors in certain environments depending on their default CA bundle, including some Google Colab notebooks. 
 
+## [2.0.1] - 2021-10-06
+### Added
+- New `timeout` parameter to the `pinecone.create_index()` and the `pinecone.delete_index()` call.
+  - `timeout` allows you to set how many seconds you want to wait for `create_index()` and `delete_index()` to complete. If `None`, wait indefinitely; if `>=0`, time out after this many seconds; if `-1`, return immediately and do not wait. Defaults to `None`.
+
+### Changed
+- Updates the default openapi_config object to use the certifice ssl_ca_cert bundle.
+
 ## [2.0.0] - 2020-10-04
 ### Added
 - New major release!
