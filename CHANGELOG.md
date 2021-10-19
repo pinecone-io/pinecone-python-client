@@ -3,7 +3,10 @@
 ## [Unreleased]
 
 ### Changed
+- The python client `pinecone.config.OpenApiConfiguration` object now uses the certifi package's SSL CA bundle by default. This should fix HTTPS connection errors in certain environments depending on their default CA bundle, including some Google Colab notebooks. 
+- A bug causing different index instances to share the same configuration object was fixed.
 - Deprecated control via `pinecone.init()` of the pinecone logger's log level and removed the loguru dependency. To control log level now, use the standard library's logging module to manage the level of the "pinecone" logger or its children. 
+
 
 ## [2.0.1] - 2021-10-06
 ### Added
