@@ -7,6 +7,7 @@ from functools import wraps
 from typing import NamedTuple, Optional, Dict
 
 import grpc
+import certifi
 
 from pinecone.config import Config
 from pinecone.core.grpc.protos.vector_column_service_pb2_grpc import VectorColumnServiceStub
@@ -98,7 +99,8 @@ class GRPCIndex(ABC):
         if not self.grpc_client_config.secure:
             channel = grpc.insecure_channel(target, options=_options)
         else:
-            tls = grpc.ssl_channel_credentials()
+            root_cas = open(certifi.where(), "rb").read()
+            tls = grpc.ssl_channel_credentials(root_certificates=root_cas)
             channel = grpc.secure_channel(target, tls, options=_options)
         interceptor = RetryOnRpcErrorClientInterceptor(self.retry_config)
         return grpc.intercept_channel(channel, interceptor)
@@ -184,11 +186,11 @@ class Index(GRPCIndex):
               metadata: Dict[str, str] = None):
         return self._wrap_grpc_call(self.stub.Query, request, timeout=timeout, metadata=metadata)
 
-    def summarize(self,
-                  request: 'vector_service_pb2.SummarizeRequest',
+    def describe_index_stats(self,
+                  request: 'vector_service_pb2.DescribeIndexStatsRequest',
                   timeout: int = None,
                   metadata: Dict[str, str] = None):
-        return self._wrap_grpc_call(self.stub.Summarize, request, timeout=timeout, metadata=metadata)
+        return self._wrap_grpc_call(self.stub.DescribeIndexStats, request, timeout=timeout, metadata=metadata)
 
 
 class CIndex(GRPCIndex):
@@ -221,10 +223,10 @@ class CIndex(GRPCIndex):
               metadata: Dict[str, str] = None):
         return self._wrap_grpc_call(self.stub.Query, request, timeout=timeout, metadata=metadata)
 
-    def summarize(self,
-                  request: 'vector_column_service_pb2.SummarizeRequest',
+    def describe_index_stats(self,
+                  request: 'vector_column_service_pb2.DescribeIndexStatsRequest',
                   timeout: int = None,
                   metadata: Dict[str, str] = None):
-        return self._wrap_grpc_call(self.stub.Summarize, request, timeout=timeout, metadata=metadata)
+        return self._wrap_grpc_call(self.stub.DescribeIndexStats, request, timeout=timeout, metadata=metadata)
 
 
