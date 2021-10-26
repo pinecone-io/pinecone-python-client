@@ -17,7 +17,7 @@
 - Updates the default openapi_config object to use the certifice ssl_ca_cert bundle.
 - The python client `pinecone.config.OpenApiConfiguration` object now uses the certifi package's SSL CA bundle by default. This should fix HTTPS connection errors in certain environments depending on their default CA bundle, including some Google Colab notebooks. 
 
-## [2.0.0] - 2020-10-04
+## 2.0.0 - 2020-10-04
 ### Added
 - New major release!
 
@@ -29,6 +29,5 @@
   - The `Index()` constructor no longer validates index existence. This is instead done on all operations executed using the Index instance.
 
 
-[2.0.2]: https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.2...v2.0.2
+[2.0.2]: https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.0...v2.0.1
-[2.0.0]: https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.0...v2.0.1
