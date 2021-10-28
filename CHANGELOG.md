@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased Changes
+
+### Changed
+
+- Some type validations were moved to the backend for performance reasons. In these cases a 4xx ApiException will be returned instead of an ApiTypeError.
+
 ## [2.0.2] - 2021-10-21
 
 ### Changed
