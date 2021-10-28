@@ -48,17 +48,20 @@ class Index(ApiClient):
     @sentry
     @validate_and_convert_errors
     def upsert(self, vectors, **kwargs):
+        _check_type = kwargs.pop('_check_type', False)
+
         def _vector_transform(item):
             if isinstance(item, Vector):
                 return item
             if isinstance(item, tuple):
                 id, values, metadata = fix_tuple_length(item, 3)
-                return Vector(id=id, values=values, metadata=metadata or {})
+                return Vector(id=id, values=values, metadata=metadata or {}, _check_type=_check_type)
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
         return self._vector_api.upsert(
             UpsertRequest(
                 vectors=list(map(_vector_transform, vectors)),
+                _check_type=_check_type,
                 **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
@@ -77,19 +80,22 @@ class Index(ApiClient):
     @sentry
     @validate_and_convert_errors
     def query(self, queries, **kwargs):
+        _check_type = kwargs.pop('_check_type', False)
+
         def _query_transform(item):
             if isinstance(item, QueryVector):
                 return item
             if isinstance(item, tuple):
                 values, filter = fix_tuple_length(item, 2)
-                return QueryVector(values=values, filter=filter)
+                return QueryVector(values=values, filter=filter, _check_type=_check_type)
             if isinstance(item, Iterable):
-                return QueryVector(values=item)
+                return QueryVector(values=item, _check_type=_check_type)
             raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")
 
         return self._vector_api.query(
             QueryRequest(
                 queries=list(map(_query_transform, queries)),
+                _check_type=_check_type,
                 **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
