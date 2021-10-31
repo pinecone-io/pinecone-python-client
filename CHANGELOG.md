@@ -2,6 +2,8 @@
 
 ## Unreleased Changes
 
+## [2.0.3](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.2...v2.0.3) - 2021-10-31
+
 ### Changed
 
 - Some type validations were moved to the backend for performance reasons. In these cases a 4xx ApiException will be returned instead of an ApiTypeError.
@@ -33,7 +35,6 @@
   - `Index.upsert`, `Index.query`, `Index.fetch`, and `Index.delete` now take different parameters and return different results.
   - `Index.info` has been removed. See `Index.describe_index_stats()` as an alternative.
   - The `Index()` constructor no longer validates index existence. This is instead done on all operations executed using the Index instance.
-
 
 [2.0.2]: https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.0...v2.0.1
