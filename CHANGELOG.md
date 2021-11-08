@@ -1,11 +1,20 @@
 # Changelog
 
-## [Unreleased]
+## Unreleased Changes
+
+## [2.0.3](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.2...v2.0.3) - 2021-10-31
 
 ### Changed
-- `pinecone.init()` can now be used to set the pinecone logger's log level.
+
+- Some type validations were moved to the backend for performance reasons. In these cases a 4xx ApiException will be returned instead of an ApiTypeError.
+
+## [2.0.2] - 2021-10-21
+
+### Changed
 - The python client `pinecone.config.OpenApiConfiguration` object now uses the certifi package's SSL CA bundle by default. This should fix HTTPS connection errors in certain environments depending on their default CA bundle, including some Google Colab notebooks. 
 - A bug causing different index instances to share the same configuration object was fixed.
+- Deprecated control via `pinecone.init()` of the pinecone logger's log level and removed the loguru dependency. To control log level now, use the standard library's logging module to manage the level of the "pinecone" logger or its children. 
+
 
 ## [2.0.1] - 2021-10-06
 ### Added
@@ -14,8 +23,9 @@
 
 ### Changed
 - Updates the default openapi_config object to use the certifice ssl_ca_cert bundle.
+- The python client `pinecone.config.OpenApiConfiguration` object now uses the certifi package's SSL CA bundle by default. This should fix HTTPS connection errors in certain environments depending on their default CA bundle, including some Google Colab notebooks. 
 
-## [2.0.0] - 2020-10-04
+## 2.0.0 - 2020-10-04
 ### Added
 - New major release!
 
@@ -26,7 +36,5 @@
   - `Index.info` has been removed. See `Index.describe_index_stats()` as an alternative.
   - The `Index()` constructor no longer validates index existence. This is instead done on all operations executed using the Index instance.
 
-
-[Unreleased]: https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.1...HEAD
+[2.0.2]: https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.0...v2.0.1
-[2.0.0]: https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.0...v2.0.1
