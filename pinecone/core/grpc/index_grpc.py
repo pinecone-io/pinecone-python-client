@@ -4,20 +4,26 @@
 
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import NamedTuple, Optional, Dict
+from typing import NamedTuple, Optional, Dict, Iterable
 
 import grpc
 import certifi
+from google.protobuf import json_format
 
 from pinecone import logger
 from pinecone.config import Config
 from pinecone.core.grpc.protos.vector_column_service_pb2_grpc import VectorColumnServiceStub
 from pinecone.core.grpc.protos import vector_service_pb2, vector_column_service_pb2
-from pinecone.core.utils import _generate_request_id
+from pinecone.core.utils import _generate_request_id, dict_to_proto_struct, fix_tuple_length, proto_struct_to_dict
 from pinecone.core.utils.sentry import sentry_decorator as sentry
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
 from pinecone.core.grpc.retry import RetryOnRpcErrorClientInterceptor, RetryConfig
 from pinecone.core.utils.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSION
+from pinecone.core.grpc.protos.vector_service_pb2 import Vector, QueryVector, UpsertRequest, DeleteRequest, \
+    QueryRequest, FetchRequest, DescribeIndexStatsRequest, UpsertResponse
+from pinecone.core.utils.error_handling import validate_and_convert_errors
+
+__all__ = ["GRPCIndex", "QueryVector", "Vector"]
 
 
 class GRPCClientConfig(NamedTuple):
@@ -50,15 +56,13 @@ class GRPCClientConfig(NamedTuple):
         return cls(**cls_kwargs)
 
 
-class GRPCIndex(ABC):
+class GRPCIndexBase(ABC):
     """
     Base class for grpc-based interaction with Pinecone indexes
     """
 
     def __init__(self, name: str, channel=None, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
         self.name = name
-        # self.batch_size = batch_size
-        # self.disable_progress_bar = disable_progress_bar
 
         self.grpc_client_config = grpc_config or GRPCClientConfig()
         self.retry_config = self.grpc_client_config.retry_config or RetryConfig()
@@ -137,7 +141,8 @@ class GRPCIndex(ABC):
         except TypeError:
             pass
 
-    def _wrap_grpc_call(self, func, request, timeout=None, metadata=None, credentials=None, wait_for_ready=None, compression=None):
+    def _wrap_grpc_call(self, func, request, timeout=None, metadata=None, credentials=None, wait_for_ready=None,
+                        compression=None):
         @sentry
         @wraps(func)
         def wrapped():
@@ -153,42 +158,160 @@ class GRPCIndex(ABC):
     def _request_metadata(self) -> Dict[str, str]:
         return {REQUEST_ID: _generate_request_id()}
 
+    def __enter__(self):
+        return self
 
-class Index(GRPCIndex):
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+
+class vector(object):
+    def __init__(self, id: str, values: list, metadata: dict):
+        self.id = id
+        self.values = values
+        self.metadata = metadata
+
+    def __repr__(self):
+        return str({'id': self.id, 'values': self.values, 'metadata': self.metadata})
+
+
+class FetchResponse(object):
+    def __init__(self, vectors: dict, namespace: str):
+        self.vectors = vectors
+        self.namespace = namespace
+
+    def __repr__(self):
+        return str({'vectors': self.vectors, 'namespace': self.namespace})
+
+
+def parse_fetch_response(response: dict):
+    vd = {}
+    vectors = response.get('vectors')
+    if not vectors:
+        return None
+    for id, vec in vectors.items():
+        v_obj = vector(id=vec['id'], values=vec['values'], metadata=vec.get('metadata', None))
+        vd[id] = v_obj
+    namespace = response.get('namespace', None)
+    f = FetchResponse(vectors=vd, namespace=namespace)
+    return f
+
+
+class ScoredVector(object):
+    def __init__(self, id: str, score: float, values: list, metadata: dict):
+        self.id = id
+        self.score = score
+        self.values = values
+        self.metadata = metadata
+
+    def __repr__(self):
+        return str({'id': self.id, 'score': self.score, 'values': self.values, 'metadtata': self.metadata})
+
+
+class QueryResult(object):
+    def __init__(self, matches: list, namespace: str):
+        self.matches = matches
+        self.namespace = namespace
+
+    def __repr__(self):
+        return str({'matches': self.matches, 'namespace': self.namespace})
+
+
+class QueryResponse(object):
+    def __init__(self, results: list):
+        self.results = results
+
+    def __repr__(self):
+        return str({'results': self.results})
+
+
+def parse_query_response(response: dict):
+    res = []
+
+    for match in response['results']:
+        namespace = match.get('namespace', None)
+        m = []
+        for item in match['matches']:
+            sc = ScoredVector(id=item['id'], score=item['score'], values=item.get('values', []),
+                              metadata=item.get('metadata', {}))
+            m.append(sc)
+        res.append(QueryResult(matches=m, namespace=namespace))
+    return QueryResponse(results=res)
+
+
+class GRPCIndex(GRPCIndexBase):
 
     @property
     def stub_class(self):
         return VectorServiceStub
 
-    def upsert(self,
-               request: 'vector_service_pb2.UpsertRequest',
-               timeout: int = None,
-               metadata: Dict[str, str] = None):
-        return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout, metadata=metadata)
+    @sentry
+    @validate_and_convert_errors
+    def upsert(self, vectors, **kwargs):
+        def _vector_transform(item):
+            if isinstance(item, Vector):
+                item.metadata
+                return item
+            if isinstance(item, tuple):
+                id, values, metadata = fix_tuple_length(item, 3)
+                return Vector(id=id, values=values, metadata=dict_to_proto_struct(metadata) or {})
+            raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
-    def delete(self,
-               request: 'vector_service_pb2.DeleteRequest',
-               timeout: int = None,
-               metadata: Dict[str, str] = None):
-        return self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout, metadata=metadata)
+        request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
+        timeout = kwargs.pop('timeout', None)
+        response = self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
+        return response
 
-    def fetch(self,
-              request: 'vector_service_pb2.FetchRequest',
-              timeout: int = None,
-              metadata: Dict[str, str] = None):
-        return self._wrap_grpc_call(self.stub.Fetch, request, timeout=timeout, metadata=metadata)
+    @sentry
+    @validate_and_convert_errors
+    def delete(self, *args, **kwargs):
+        request = DeleteRequest(*args, **kwargs)
+        timeout = kwargs.pop('timeout', None)
+        response = self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout)
+        return response
 
-    def query(self,
-              request: 'vector_service_pb2.QueryRequest',
-              timeout: int = None,
-              metadata: Dict[str, str] = None):
-        return self._wrap_grpc_call(self.stub.Query, request, timeout=timeout, metadata=metadata)
+    @sentry
+    @validate_and_convert_errors
+    def fetch(self, *args, **kwargs):
+        timeout = kwargs.pop('timeout', None)
+        request = FetchRequest(*args, **kwargs)
+        response = self._wrap_grpc_call(self.stub.Fetch, request, timeout=timeout)
+        json_response = json_format.MessageToDict(response)
+        return parse_fetch_response(json_response)
 
-    def describe_index_stats(self,
-                  request: 'vector_service_pb2.DescribeIndexStatsRequest',
-                  timeout: int = None,
-                  metadata: Dict[str, str] = None):
-        return self._wrap_grpc_call(self.stub.DescribeIndexStats, request, timeout=timeout, metadata=metadata)
+    @sentry
+    @validate_and_convert_errors
+    def query(self, queries, **kwargs):
+        timeout = kwargs.pop('timeout', None)
+
+        def _query_transform(item):
+            if isinstance(item, QueryVector):
+                return item
+            if isinstance(item, tuple):
+                values, filter = fix_tuple_length(item, 2)
+                filter = dict_to_proto_struct(filter)
+                return QueryVector(values=values, filter=filter)
+            if isinstance(item, Iterable):
+                return QueryVector(values=item)
+            raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")
+
+        _QUERY_ARGS = ['namespace', 'top_k', 'filter', 'include_values', 'include_metadata']
+        if 'filter' in kwargs:
+            kwargs['filter'] = dict_to_proto_struct(kwargs['filter'])
+        request = QueryRequest(queries=list(map(_query_transform, queries)),
+                               **{k: v for k, v in kwargs.items() if k in _QUERY_ARGS})
+
+        response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
+        json_response = json_format.MessageToDict(response)
+        return parse_query_response(json_response)
+
+    @sentry
+    @validate_and_convert_errors
+    def describe_index_stats(self, **kwargs):
+        timeout = kwargs.pop('timeout', None)
+        request = DescribeIndexStatsRequest()
+        response = self._wrap_grpc_call(self.stub.DescribeIndexStats, request, timeout=timeout)
+        return response
 
 
 class CIndex(GRPCIndex):
@@ -222,9 +345,7 @@ class CIndex(GRPCIndex):
         return self._wrap_grpc_call(self.stub.Query, request, timeout=timeout, metadata=metadata)
 
     def describe_index_stats(self,
-                  request: 'vector_column_service_pb2.DescribeIndexStatsRequest',
-                  timeout: int = None,
-                  metadata: Dict[str, str] = None):
+                             request: 'vector_column_service_pb2.DescribeIndexStatsRequest',
+                             timeout: int = None,
+                             metadata: Dict[str, str] = None):
         return self._wrap_grpc_call(self.stub.DescribeIndexStats, request, timeout=timeout, metadata=metadata)
-
-
