@@ -18,12 +18,16 @@ from pinecone.core.utils.sentry import sentry_decorator as sentry
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
 from pinecone.core.grpc.retry import RetryOnRpcErrorClientInterceptor, RetryConfig
 from pinecone.core.utils.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSION
-from pinecone.core.grpc.protos.vector_service_pb2 import Vector, QueryVector, UpsertRequest, DeleteRequest, \
-    QueryRequest, FetchRequest, DescribeIndexStatsRequest, UpsertResponse
+from pinecone.core.grpc.protos.vector_service_pb2 import Vector as GRPCVector, QueryVector as GRPCQueryVector, \
+    UpsertRequest, DeleteRequest, \
+    QueryRequest, FetchRequest, DescribeIndexStatsRequest
 from pinecone.core.utils.error_handling import validate_and_convert_errors
+from pinecone import Vector as _Vector
+from pinecone.core.client.model.namespace_summary import NamespaceSummary
+from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, UpsertResponse, \
+    DescribeIndexStatsResponse
 
-__all__ = ["GRPCIndex", "QueryVector", "Vector"]
-
+__all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector"]
 
 _logger = logging.getLogger(__name__)
 
@@ -99,7 +103,7 @@ class GRPCIndexBase(ABC):
         user_provided_options = options or {}
         _options = tuple((k, v) for k, v in {**default_options, **user_provided_options}.items())
         _logger.debug('creating new channel with endpoint %s options %s and config %s',
-                     target, _options, self.grpc_client_config)
+                      target, _options, self.grpc_client_config)
         if not self.grpc_client_config.secure:
             channel = grpc.insecure_channel(target, options=_options)
         else:
@@ -123,17 +127,6 @@ class GRPCIndexBase(ABC):
             return True
         except grpc.FutureTimeoutError:
             return False
-
-    def _check_readiness(self, grpc_config: dict):
-        """Sets up a connection to an index."""
-        # api = ControllerAPI(host=Config.CONTROLLER_HOST, api_key=Config.API_KEY)
-        # status = api.get_status(self.name)
-        # if not status.get("ready"):
-        #     raise ConnectionError
-
-        # if self.name not in api.list_services():
-        #     raise RuntimeError("Index '{}' is not found.".format(self.name))
-        pass
 
     @sentry
     def close(self):
@@ -167,64 +160,17 @@ class GRPCIndexBase(ABC):
         self.close()
 
 
-class vector(object):
-    def __init__(self, id: str, values: list, metadata: dict):
-        self.id = id
-        self.values = values
-        self.metadata = metadata
-
-    def __repr__(self):
-        return str({'id': self.id, 'values': self.values, 'metadata': self.metadata})
-
-
-class FetchResponse(object):
-    def __init__(self, vectors: dict, namespace: str):
-        self.vectors = vectors
-        self.namespace = namespace
-
-    def __repr__(self):
-        return str({'vectors': self.vectors, 'namespace': self.namespace})
-
-
 def parse_fetch_response(response: dict):
     vd = {}
     vectors = response.get('vectors')
     if not vectors:
         return None
     for id, vec in vectors.items():
-        v_obj = vector(id=vec['id'], values=vec['values'], metadata=vec.get('metadata', None))
+        v_obj = _Vector(id=vec['id'], values=vec['values'], metadata=vec.get('metadata', None))
         vd[id] = v_obj
     namespace = response.get('namespace', None)
     f = FetchResponse(vectors=vd, namespace=namespace)
     return f
-
-
-class ScoredVector(object):
-    def __init__(self, id: str, score: float, values: list, metadata: dict):
-        self.id = id
-        self.score = score
-        self.values = values
-        self.metadata = metadata
-
-    def __repr__(self):
-        return str({'id': self.id, 'score': self.score, 'values': self.values, 'metadtata': self.metadata})
-
-
-class QueryResult(object):
-    def __init__(self, matches: list, namespace: str):
-        self.matches = matches
-        self.namespace = namespace
-
-    def __repr__(self):
-        return str({'matches': self.matches, 'namespace': self.namespace})
-
-
-class QueryResponse(object):
-    def __init__(self, results: list):
-        self.results = results
-
-    def __repr__(self):
-        return str({'results': self.results})
 
 
 def parse_query_response(response: dict):
@@ -234,11 +180,25 @@ def parse_query_response(response: dict):
         namespace = match.get('namespace', None)
         m = []
         for item in match['matches']:
-            sc = ScoredVector(id=item['id'], score=item['score'], values=item.get('values', []),
+            sc = ScoredVector(id=item['id'], score=item.get('score',None), values=item.get('values', []),
                               metadata=item.get('metadata', {}))
             m.append(sc)
-        res.append(QueryResult(matches=m, namespace=namespace))
+        res.append(SingleQueryResults(matches=m, namespace=namespace))
     return QueryResponse(results=res)
+
+
+def parse_upsert_response(response: dict):
+    return UpsertResponse(upserted_count=response['upsertedCount'])
+
+
+def parse_stats_response(response: dict):
+    dimension = response.get('dimension',0)
+    summaries = response['namespaces']
+    namespace_summaries = {}
+    for key in summaries:
+        vc = summaries[key]['vectorCount']
+        namespace_summaries[key] = NamespaceSummary(vectorCount=vc)
+    return DescribeIndexStatsResponse(namespaces=namespace_summaries, dimension=dimension)
 
 
 class GRPCIndex(GRPCIndexBase):
@@ -251,18 +211,19 @@ class GRPCIndex(GRPCIndexBase):
     @validate_and_convert_errors
     def upsert(self, vectors, **kwargs):
         def _vector_transform(item):
-            if isinstance(item, Vector):
+            if isinstance(item, GRPCVector):
                 item.metadata
                 return item
             if isinstance(item, tuple):
                 id, values, metadata = fix_tuple_length(item, 3)
-                return Vector(id=id, values=values, metadata=dict_to_proto_struct(metadata) or {})
+                return GRPCVector(id=id, values=values, metadata=dict_to_proto_struct(metadata) or {})
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
         request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
         timeout = kwargs.pop('timeout', None)
         response = self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
-        return response
+        json_response = json_format.MessageToDict(response)
+        return parse_upsert_response(json_response)
 
     @sentry
     @validate_and_convert_errors
@@ -287,14 +248,14 @@ class GRPCIndex(GRPCIndexBase):
         timeout = kwargs.pop('timeout', None)
 
         def _query_transform(item):
-            if isinstance(item, QueryVector):
+            if isinstance(item, GRPCQueryVector):
                 return item
             if isinstance(item, tuple):
                 values, filter = fix_tuple_length(item, 2)
                 filter = dict_to_proto_struct(filter)
-                return QueryVector(values=values, filter=filter)
+                return GRPCQueryVector(values=values, filter=filter)
             if isinstance(item, Iterable):
-                return QueryVector(values=item)
+                return GRPCQueryVector(values=item)
             raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")
 
         _QUERY_ARGS = ['namespace', 'top_k', 'filter', 'include_values', 'include_metadata']
@@ -313,7 +274,8 @@ class GRPCIndex(GRPCIndexBase):
         timeout = kwargs.pop('timeout', None)
         request = DescribeIndexStatsRequest()
         response = self._wrap_grpc_call(self.stub.DescribeIndexStats, request, timeout=timeout)
-        return response
+        json_response = json_format.MessageToDict(response)
+        return parse_stats_response(json_response)
 
 
 class CIndex(GRPCIndex):
