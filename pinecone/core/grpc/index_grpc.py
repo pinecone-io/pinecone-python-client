@@ -166,11 +166,10 @@ def parse_fetch_response(response: dict):
     if not vectors:
         return None
     for id, vec in vectors.items():
-        v_obj = _Vector(id=vec['id'], values=vec['values'], metadata=vec.get('metadata', None))
+        v_obj = _Vector(id=vec['id'], values=vec['values'], metadata=vec.get('metadata', None),_check_type=False)
         vd[id] = v_obj
     namespace = response.get('namespace', None)
-    f = FetchResponse(vectors=vd, namespace=namespace)
-    return f
+    return FetchResponse(vectors=vd, namespace=namespace,_check_type=False)
 
 
 def parse_query_response(response: dict):
@@ -180,15 +179,15 @@ def parse_query_response(response: dict):
         namespace = match.get('namespace', None)
         m = []
         for item in match['matches']:
-            sc = ScoredVector(id=item['id'], score=item.get('score',None), values=item.get('values', []),
+            sc = ScoredVector(id=item['id'], score=item.get('score',0.0), values=item.get('values', []),
                               metadata=item.get('metadata', {}))
             m.append(sc)
         res.append(SingleQueryResults(matches=m, namespace=namespace))
-    return QueryResponse(results=res)
+    return QueryResponse(results=res,_check_type=False)
 
 
 def parse_upsert_response(response: dict):
-    return UpsertResponse(upserted_count=response['upsertedCount'])
+    return UpsertResponse(upserted_count=response['upsertedCount'],_check_type=False)
 
 
 def parse_stats_response(response: dict):
@@ -197,8 +196,8 @@ def parse_stats_response(response: dict):
     namespace_summaries = {}
     for key in summaries:
         vc = summaries[key]['vectorCount']
-        namespace_summaries[key] = NamespaceSummary(vectorCount=vc)
-    return DescribeIndexStatsResponse(namespaces=namespace_summaries, dimension=dimension)
+        namespace_summaries[key] = NamespaceSummary(vector_count=vc)
+    return DescribeIndexStatsResponse(namespaces=namespace_summaries, dimension=dimension,_check_type=False)
 
 
 class GRPCIndex(GRPCIndexBase):
