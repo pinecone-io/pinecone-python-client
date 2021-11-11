@@ -12,6 +12,8 @@ import urllib3
 
 try:
     from pinecone.core.grpc.protos import vector_column_service_pb2
+    from google.protobuf.struct_pb2 import Struct
+    from google.protobuf import json_format
     import numpy as np
     import lz4.frame
 except Exception:
@@ -68,6 +70,37 @@ def get_user_agent():
     user_agent_details = {'requests': requests.__version__, 'urllib3': urllib3.__version__}
     user_agent = '{} ({})'.format(client_id, ', '.join([f'{k}:{v}' for k, v in user_agent_details.items()]))
     return user_agent
+
+
+def dict_to_proto_struct(d: dict) -> Struct:
+    if not d:
+        d = {}
+    s = Struct()
+    s.update(d)
+    return s
+
+
+def proto_struct_to_dict(s: Struct) -> dict:
+    return json_format.MessageToDict(s)
+
+
+def load_numpy_public(proto_arr: 'vector_column_service_pb2.NdArray') -> 'np.ndarray':
+    """
+    Load numpy array from protobuf
+    :param proto_arr:
+    :return:
+    """
+    if len(proto_arr.shape) == 0:
+        return np.array([])
+    if proto_arr.compressed:
+        numpy_arr = np.frombuffer(lz4.frame.decompress(proto_arr.buffer), dtype=proto_arr.dtype)
+    else:
+        numpy_arr = np.frombuffer(proto_arr.buffer, dtype=proto_arr.dtype)
+    return numpy_arr.reshape(proto_arr.shape)
+
+
+def load_strings_public(proto_arr: 'vector_column_service_pb2.NdArray') -> List[str]:
+    return [str(item, 'utf-8') for item in load_numpy_public(proto_arr)]
 
 
 def warn_deprecated(description: str = '', deprecated_in: str = None, removal_in: str = None):

@@ -7,6 +7,7 @@ from .exceptions import *
 from .info import *
 from .manage import *
 from .index import *
+from .core.grpc.index_grpc import *
 
 # Kept for backwards-compatibility
 UpsertResult = None
