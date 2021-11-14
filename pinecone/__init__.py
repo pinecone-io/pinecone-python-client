@@ -7,7 +7,10 @@ from .exceptions import *
 from .info import *
 from .manage import *
 from .index import *
-from .core.grpc.index_grpc import *
+try:
+    from .core.grpc.index_grpc import *
+except ImportError:
+    pass  # ignore for non-[grpc] installations
 
 # Kept for backwards-compatibility
 UpsertResult = None
