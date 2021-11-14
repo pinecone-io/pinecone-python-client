@@ -72,7 +72,7 @@ def get_user_agent():
     return user_agent
 
 
-def dict_to_proto_struct(d: dict) -> Struct:
+def dict_to_proto_struct(d: dict) -> 'Struct':
     if not d:
         d = {}
     s = Struct()
@@ -80,7 +80,7 @@ def dict_to_proto_struct(d: dict) -> Struct:
     return s
 
 
-def proto_struct_to_dict(s: Struct) -> dict:
+def proto_struct_to_dict(s: 'Struct') -> dict:
     return json_format.MessageToDict(s)
 
 
