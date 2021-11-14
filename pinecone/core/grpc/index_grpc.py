@@ -22,7 +22,7 @@ from pinecone.core.grpc.protos.vector_service_pb2 import Vector as GRPCVector, Q
     UpsertRequest, DeleteRequest, \
     QueryRequest, FetchRequest, DescribeIndexStatsRequest
 from pinecone.core.utils.error_handling import validate_and_convert_errors
-from pinecone import Vector as _Vector
+from pinecone.core.client.model.vector import Vector as _Vector
 from pinecone.core.client.model.namespace_summary import NamespaceSummary
 from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, UpsertResponse, \
     DescribeIndexStatsResponse
