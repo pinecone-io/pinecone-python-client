@@ -64,7 +64,7 @@ class Vector(ModelNormal):
 
     validations = {
         ('id',): {
-            'max_length': 1000,
+            'max_length': 64,
             'min_length': 1,
         },
         ('values',): {

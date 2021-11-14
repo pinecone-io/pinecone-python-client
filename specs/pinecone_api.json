@@ -563,7 +563,7 @@
                 "$eq": 2019
               }
             },
-            "title": "The filter to apply if no filter is specified in `QueryVector`"
+            "title": "The filter to apply if no filter is specified in `QueryVector. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/`"
           },
           "includeValues": {
             "type": "boolean",
@@ -583,7 +583,7 @@
               "$ref": "#/components/schemas/QueryVector"
             },
             "description": "The query vectors.",
-            "maxLength": 1000,
+            "maxLength": 100,
             "minLength": 1,
             "required": [
               "queries"
@@ -629,7 +629,7 @@
               "format": "float"
             },
             "description": "The query vector values. This should be the same length as the dimension of the index being queried.",
-            "maxLength": 100000,
+            "maxLength": 10000,
             "minLength": 1,
             "required": [
               "values"
@@ -677,7 +677,7 @@
             "type": "string",
             "example": "example-vector-1",
             "description": "This is the vector's unique id.",
-            "maxLength": 1000,
+            "maxLength": 64,
             "minLength": 1,
             "required": [
               "id"
@@ -747,7 +747,7 @@
               "$ref": "#/components/schemas/Vector"
             },
             "description": "This is the actual array data.",
-            "maxLength": 10000,
+            "maxLength": 1000,
             "minLength": 1,
             "required": [
               "vectors"
@@ -783,7 +783,7 @@
             "type": "string",
             "example": "example-vector-1",
             "description": "This is the vector's unique id.",
-            "maxLength": 1000,
+            "maxLength": 64,
             "minLength": 1,
             "required": [
               "id"
