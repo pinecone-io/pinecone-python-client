@@ -211,7 +211,6 @@ class GRPCIndex(GRPCIndexBase):
     def upsert(self, vectors, **kwargs):
         def _vector_transform(item):
             if isinstance(item, GRPCVector):
-                item.metadata
                 return item
             if isinstance(item, tuple):
                 id, values, metadata = fix_tuple_length(item, 3)
