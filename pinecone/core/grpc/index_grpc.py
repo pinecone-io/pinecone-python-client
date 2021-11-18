@@ -26,6 +26,9 @@ from pinecone.core.client.model.vector import Vector as _Vector
 from pinecone.core.client.model.namespace_summary import NamespaceSummary
 from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, UpsertResponse, \
     DescribeIndexStatsResponse
+import atexit
+from multiprocessing.pool import ThreadPool
+from concurrent.futures import ThreadPoolExecutor
 
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector"]
 
@@ -67,7 +70,10 @@ class GRPCIndexBase(ABC):
     Base class for grpc-based interaction with Pinecone indexes
     """
 
-    def __init__(self, name: str, channel=None, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
+    _pool = None
+
+    def __init__(self, name: str, channel=None, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None,
+                 pool_threads=1):
         self.name = name
 
         self.grpc_client_config = grpc_config or GRPCClientConfig()
@@ -79,9 +85,9 @@ class GRPCIndexBase(ABC):
         }
         self._endpoint_override = _endpoint_override
         self._channel = channel or self._gen_channel()
-        # self._check_readiness(grpc_config)
-        # atexit.register(self.close)
+        self.pool_threads = pool_threads
         self.stub = self.stub_class(self._channel)
+        self.executor = ThreadPoolExecutor(max_workers=pool_threads)
 
     @property
     @abstractmethod
@@ -159,6 +165,24 @@ class GRPCIndexBase(ABC):
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
 
+    def close(self):
+        if self._pool:
+            self._pool.close()
+            self._pool.join()
+            self._pool = None
+            if hasattr(atexit, 'unregister'):
+                atexit.unregister(self.close)
+
+    @property
+    def pool(self):
+        """Create thread pool on first request
+         avoids instantiating unused threadpool for blocking clients.
+        """
+        if self._pool is None:
+            atexit.register(self.close)
+            self._pool = ThreadPool(self.pool_threads)
+        return self._pool
+
 
 def parse_fetch_response(response: dict):
     vd = {}
@@ -166,10 +190,10 @@ def parse_fetch_response(response: dict):
     if not vectors:
         return None
     for id, vec in vectors.items():
-        v_obj = _Vector(id=vec['id'], values=vec['values'], metadata=vec.get('metadata', None),_check_type=False)
+        v_obj = _Vector(id=vec['id'], values=vec['values'], metadata=vec.get('metadata', None), _check_type=False)
         vd[id] = v_obj
     namespace = response.get('namespace', None)
-    return FetchResponse(vectors=vd, namespace=namespace,_check_type=False)
+    return FetchResponse(vectors=vd, namespace=namespace, _check_type=False)
 
 
 def parse_query_response(response: dict):
@@ -179,25 +203,26 @@ def parse_query_response(response: dict):
         namespace = match.get('namespace', None)
         m = []
         for item in match['matches']:
-            sc = ScoredVector(id=item['id'], score=item.get('score',0.0), values=item.get('values', []),
+            sc = ScoredVector(id=item['id'], score=item.get('score', 0.0), values=item.get('values', []),
                               metadata=item.get('metadata', {}))
             m.append(sc)
         res.append(SingleQueryResults(matches=m, namespace=namespace))
-    return QueryResponse(results=res,_check_type=False)
+    return QueryResponse(results=res, _check_type=False)
 
 
-def parse_upsert_response(response: dict):
-    return UpsertResponse(upserted_count=response['upsertedCount'],_check_type=False)
+def parse_upsert_response(response):
+    response = json_format.MessageToDict(response)
+    return UpsertResponse(upserted_count=response['upsertedCount'], _check_type=False)
 
 
 def parse_stats_response(response: dict):
-    dimension = response.get('dimension',0)
+    dimension = response.get('dimension', 0)
     summaries = response['namespaces']
     namespace_summaries = {}
     for key in summaries:
         vc = summaries[key]['vectorCount']
         namespace_summaries[key] = NamespaceSummary(vector_count=vc)
-    return DescribeIndexStatsResponse(namespaces=namespace_summaries, dimension=dimension,_check_type=False)
+    return DescribeIndexStatsResponse(namespaces=namespace_summaries, dimension=dimension, _check_type=False)
 
 
 class GRPCIndex(GRPCIndexBase):
@@ -207,8 +232,7 @@ class GRPCIndex(GRPCIndexBase):
         return VectorServiceStub
 
     @sentry
-    @validate_and_convert_errors
-    def upsert(self, vectors, **kwargs):
+    def upsert(self, vectors, async_req=False, **kwargs):
         def _vector_transform(item):
             if isinstance(item, GRPCVector):
                 return item
@@ -219,12 +243,13 @@ class GRPCIndex(GRPCIndexBase):
 
         request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
         timeout = kwargs.pop('timeout', None)
-        response = self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
-        json_response = json_format.MessageToDict(response)
-        return parse_upsert_response(json_response)
+        if not async_req:
+            return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
+        # return self.pool.apply_async(
+        #     self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout))
+        return self.executor.submit(self._wrap_grpc_call, self.stub.Upsert, request, timeout=timeout)
 
     @sentry
-    @validate_and_convert_errors
     def delete(self, *args, **kwargs):
         request = DeleteRequest(*args, **kwargs)
         timeout = kwargs.pop('timeout', None)
@@ -232,7 +257,6 @@ class GRPCIndex(GRPCIndexBase):
         return response
 
     @sentry
-    @validate_and_convert_errors
     def fetch(self, *args, **kwargs):
         timeout = kwargs.pop('timeout', None)
         request = FetchRequest(*args, **kwargs)
@@ -241,7 +265,6 @@ class GRPCIndex(GRPCIndexBase):
         return parse_fetch_response(json_response)
 
     @sentry
-    @validate_and_convert_errors
     def query(self, queries, **kwargs):
         timeout = kwargs.pop('timeout', None)
 
@@ -267,7 +290,6 @@ class GRPCIndex(GRPCIndexBase):
         return parse_query_response(json_response)
 
     @sentry
-    @validate_and_convert_errors
     def describe_index_stats(self, **kwargs):
         timeout = kwargs.pop('timeout', None)
         request = DescribeIndexStatsRequest()
