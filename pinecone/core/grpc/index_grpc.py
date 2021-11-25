@@ -21,13 +21,10 @@ from pinecone.core.utils.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSI
 from pinecone.core.grpc.protos.vector_service_pb2 import Vector as GRPCVector, QueryVector as GRPCQueryVector, \
     UpsertRequest, DeleteRequest, \
     QueryRequest, FetchRequest, DescribeIndexStatsRequest
-from pinecone.core.utils.error_handling import validate_and_convert_errors
 from pinecone.core.client.model.vector import Vector as _Vector
 from pinecone.core.client.model.namespace_summary import NamespaceSummary
 from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, UpsertResponse, \
     DescribeIndexStatsResponse
-import atexit
-from multiprocessing.pool import ThreadPool
 from concurrent.futures import ThreadPoolExecutor
 
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector"]
@@ -85,7 +82,6 @@ class GRPCIndexBase(ABC):
         }
         self._endpoint_override = _endpoint_override
         self._channel = channel or self._gen_channel()
-        self.pool_threads = pool_threads
         self.stub = self.stub_class(self._channel)
         self.executor = ThreadPoolExecutor(max_workers=pool_threads)
 
@@ -165,24 +161,6 @@ class GRPCIndexBase(ABC):
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
 
-    def close(self):
-        if self._pool:
-            self._pool.close()
-            self._pool.join()
-            self._pool = None
-            if hasattr(atexit, 'unregister'):
-                atexit.unregister(self.close)
-
-    @property
-    def pool(self):
-        """Create thread pool on first request
-         avoids instantiating unused threadpool for blocking clients.
-        """
-        if self._pool is None:
-            atexit.register(self.close)
-            self._pool = ThreadPool(self.pool_threads)
-        return self._pool
-
 
 def parse_fetch_response(response: dict):
     vd = {}
@@ -244,9 +222,7 @@ class GRPCIndex(GRPCIndexBase):
         request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
         timeout = kwargs.pop('timeout', None)
         if not async_req:
-            return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
-        # return self.pool.apply_async(
-        #     self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout))
+            return parse_upsert_response(self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout))
         return self.executor.submit(self._wrap_grpc_call, self.stub.Upsert, request, timeout=timeout)
 
     @sentry
