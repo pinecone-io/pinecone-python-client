@@ -69,15 +69,15 @@ class GRPCIndexBase(ABC):
 
     _pool = None
 
-    def __init__(self, name: str, channel=None, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None,
+    def __init__(self, index_name: str, channel=None, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None,
                  pool_threads=1):
-        self.name = name
+        self.index_name = index_name
 
         self.grpc_client_config = grpc_config or GRPCClientConfig()
         self.retry_config = self.grpc_client_config.retry_config or RetryConfig()
         self.fixed_metadata = {
             "api-key": Config.API_KEY,
-            "service-name": name,
+            "service-name": index_name,
             "client-version": CLIENT_VERSION
         }
         self._endpoint_override = _endpoint_override
@@ -92,7 +92,7 @@ class GRPCIndexBase(ABC):
 
     def _endpoint(self):
         return self._endpoint_override if self._endpoint_override \
-            else f"{self.name}-{Config.PROJECT_NAME}.svc.{Config.ENVIRONMENT}.pinecone.io:443"
+            else f"{self.index_name}-{Config.PROJECT_NAME}.svc.{Config.ENVIRONMENT}.pinecone.io:443"
 
     def _gen_channel(self, options=None):
         target = self._endpoint()
