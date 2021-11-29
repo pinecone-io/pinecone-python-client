@@ -71,7 +71,8 @@ class GRPCIndexBase(ABC):
 
     _pool = None
 
-    def __init__(self, index_name: str, channel=None, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None,
+    def __init__(self, index_name: str, channel=None, grpc_config: GRPCClientConfig = None,
+                 _endpoint_override: str = None,
                  pool_threads=1):
         self.name = index_name
 
@@ -94,7 +95,7 @@ class GRPCIndexBase(ABC):
 
     def _endpoint(self):
         return self._endpoint_override if self._endpoint_override \
-            else f"{self.name}-{Config.PROJECT_NAME}.svc.{Config.ENVIRONMENT}.pinecone.io:443"
+            else f"{self.index_name}-{Config.PROJECT_NAME}.svc.{Config.ENVIRONMENT}.pinecone.io:443"
 
     def _gen_channel(self, options=None):
         target = self._endpoint()
@@ -200,7 +201,7 @@ def parse_stats_response(response: dict):
     summaries = response['namespaces']
     namespace_summaries = {}
     for key in summaries:
-        vc = summaries[key].get('vectorCount',0)
+        vc = summaries[key].get('vectorCount', 0)
         namespace_summaries[key] = NamespaceSummary(vector_count=vc)
     return DescribeIndexStatsResponse(namespaces=namespace_summaries, dimension=dimension, _check_type=False)
 
