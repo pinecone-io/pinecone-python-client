@@ -26,6 +26,8 @@ from pinecone.core.client.model.namespace_summary import NamespaceSummary
 from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, UpsertResponse, \
     DescribeIndexStatsResponse
 from concurrent.futures import ThreadPoolExecutor
+from grpc._channel import _InactiveRpcError
+from .exception import GRPCException
 
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector"]
 
@@ -69,15 +71,15 @@ class GRPCIndexBase(ABC):
 
     _pool = None
 
-    def __init__(self, name: str, channel=None, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None,
+    def __init__(self, index_name: str, channel=None, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None,
                  pool_threads=1):
-        self.name = name
+        self.name = index_name
 
         self.grpc_client_config = grpc_config or GRPCClientConfig()
         self.retry_config = self.grpc_client_config.retry_config or RetryConfig()
         self.fixed_metadata = {
             "api-key": Config.API_KEY,
-            "service-name": name,
+            "service-name": index_name,
             "client-version": CLIENT_VERSION
         }
         self._endpoint_override = _endpoint_override
@@ -170,7 +172,7 @@ def parse_fetch_response(response: dict):
     for id, vec in vectors.items():
         v_obj = _Vector(id=vec['id'], values=vec['values'], metadata=vec.get('metadata', None), _check_type=False)
         vd[id] = v_obj
-    namespace = response.get('namespace', None)
+    namespace = response.get('namespace', '')
     return FetchResponse(vectors=vd, namespace=namespace, _check_type=False)
 
 
@@ -178,7 +180,7 @@ def parse_query_response(response: dict):
     res = []
 
     for match in response['results']:
-        namespace = match.get('namespace', None)
+        namespace = match.get('namespace', '')
         m = []
         for item in match['matches']:
             sc = ScoredVector(id=item['id'], score=item.get('score', 0.0), values=item.get('values', []),
@@ -198,7 +200,7 @@ def parse_stats_response(response: dict):
     summaries = response['namespaces']
     namespace_summaries = {}
     for key in summaries:
-        vc = summaries[key]['vectorCount']
+        vc = summaries[key].get('vectorCount',0)
         namespace_summaries[key] = NamespaceSummary(vector_count=vc)
     return DescribeIndexStatsResponse(namespaces=namespace_summaries, dimension=dimension, _check_type=False)
 
