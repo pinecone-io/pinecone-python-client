@@ -178,7 +178,7 @@ def parse_query_response(response: dict):
     res = []
 
     for match in response['results']:
-        namespace = match.get('namespace', None)
+        namespace = match.get('namespace', '')
         m = []
         for item in match['matches']:
             sc = ScoredVector(id=item['id'], score=item.get('score', 0.0), values=item.get('values', []),
