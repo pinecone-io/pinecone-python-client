@@ -27,7 +27,6 @@ from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResu
     DescribeIndexStatsResponse
 from concurrent.futures import ThreadPoolExecutor
 from grpc._channel import _InactiveRpcError
-from .exception import GRPCException
 from pinecone.exceptions import PineconeProtocolError,PineconeException
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector"]
 
