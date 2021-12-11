@@ -198,7 +198,7 @@ def parse_upsert_response(response):
 
 def parse_stats_response(response: dict):
     dimension = response.get('dimension', 0)
-    summaries = response.get('namespaces', '')
+    summaries = response.get('namespaces', {})
     namespace_summaries = {}
     for key in summaries:
         vc = summaries[key].get('vectorCount', 0)
@@ -225,8 +225,7 @@ class GRPCIndex(GRPCIndexBase):
         request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
         timeout = kwargs.pop('timeout', None)
 
-
-        return self._wrap_grpc_call(self.stub.Upsert.future, request, timeout=timeout)
+        return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
 
     @sentry
     def delete(self, *args, **kwargs):
