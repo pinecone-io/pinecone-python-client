@@ -197,8 +197,8 @@ def parse_upsert_response(response):
 
 
 def parse_stats_response(response: dict):
-    dimension = response.get('dimension', 0)
-    summaries = response.get('namespaces', '')
+    dimension = response.get('dimension',0)
+    summaries = response.get('namespaces', {})
     namespace_summaries = {}
     for key in summaries:
         vc = summaries[key].get('vectorCount', 0)
