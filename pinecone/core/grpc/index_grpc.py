@@ -25,9 +25,9 @@ from pinecone.core.client.model.vector import Vector as _Vector
 from pinecone.core.client.model.namespace_summary import NamespaceSummary
 from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, UpsertResponse, \
     DescribeIndexStatsResponse
-from concurrent.futures import ThreadPoolExecutor
 from grpc._channel import _InactiveRpcError
-from pinecone.exceptions import PineconeProtocolError,PineconeException
+from pinecone.exceptions import PineconeProtocolError, PineconeException
+
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector"]
 
 _logger = logging.getLogger(__name__)
@@ -71,8 +71,7 @@ class GRPCIndexBase(ABC):
     _pool = None
 
     def __init__(self, index_name: str, channel=None, grpc_config: GRPCClientConfig = None,
-                 _endpoint_override: str = None,
-                 pool_threads=1):
+                 _endpoint_override: str = None):
         self.name = index_name
 
         self.grpc_client_config = grpc_config or GRPCClientConfig()
@@ -85,7 +84,6 @@ class GRPCIndexBase(ABC):
         self._endpoint_override = _endpoint_override
         self._channel = channel or self._gen_channel()
         self.stub = self.stub_class(self._channel)
-        self.executor = ThreadPoolExecutor(max_workers=pool_threads)
 
     @property
     @abstractmethod
@@ -149,8 +147,11 @@ class GRPCIndexBase(ABC):
             _metadata = tuple((k, v) for k, v in {
                 **self.fixed_metadata, **self._request_metadata(), **user_provided_metadata
             }.items())
-            return func(request, timeout=timeout, metadata=_metadata, credentials=credentials,
-                        wait_for_ready=wait_for_ready, compression=compression)
+            try:
+                return func(request, timeout=timeout, metadata=_metadata, credentials=credentials,
+                            wait_for_ready=wait_for_ready, compression=compression)
+            except _InactiveRpcError as e:
+                raise PineconeException(e._state.debug_error_string) from e
 
         return wrapped()
 
@@ -197,7 +198,7 @@ def parse_upsert_response(response):
 
 def parse_stats_response(response: dict):
     dimension = response.get('dimension', 0)
-    summaries = response['namespaces']
+    summaries = response.get('namespaces', '')
     namespace_summaries = {}
     for key in summaries:
         vc = summaries[key].get('vectorCount', 0)
@@ -212,7 +213,7 @@ class GRPCIndex(GRPCIndexBase):
         return VectorServiceStub
 
     @sentry
-    def upsert(self, vectors, async_req=False, **kwargs):
+    def upsert(self, vectors, **kwargs):
         def _vector_transform(item):
             if isinstance(item, GRPCVector):
                 return item
@@ -223,32 +224,22 @@ class GRPCIndex(GRPCIndexBase):
 
         request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
         timeout = kwargs.pop('timeout', None)
-        try:
-            if not async_req:
-                return parse_upsert_response(self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout))
-            return self.executor.submit(self._wrap_grpc_call, self.stub.Upsert, request, timeout=timeout)
-        except _InactiveRpcError as e:
-            raise PineconeException(e._state.debug_error_string) from e
+
+
+        return self._wrap_grpc_call(self.stub.Upsert.future, request, timeout=timeout)
 
     @sentry
     def delete(self, *args, **kwargs):
         request = DeleteRequest(*args, **kwargs)
         timeout = kwargs.pop('timeout', None)
-        try:
-            response = self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout)
-        except _InactiveRpcError as e:
-            raise PineconeException(e._state.debug_error_string) from e
+        response = self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout)
         return response
 
     @sentry
     def fetch(self, *args, **kwargs):
         timeout = kwargs.pop('timeout', None)
         request = FetchRequest(*args, **kwargs)
-        try:
-            response = self._wrap_grpc_call(self.stub.Fetch, request, timeout=timeout)
-        except _InactiveRpcError as e:
-            raise PineconeException(e._state.debug_error_string) from e
-        return response
+        response = self._wrap_grpc_call(self.stub.Fetch, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_fetch_response(json_response)
 
@@ -272,11 +263,7 @@ class GRPCIndex(GRPCIndexBase):
             kwargs['filter'] = dict_to_proto_struct(kwargs['filter'])
         request = QueryRequest(queries=list(map(_query_transform, queries)),
                                **{k: v for k, v in kwargs.items() if k in _QUERY_ARGS})
-        try:
-            response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
-        except _InactiveRpcError as e:
-            raise PineconeException(e._state.debug_error_string) from e
-        return response
+        response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_query_response(json_response)
 
@@ -284,10 +271,7 @@ class GRPCIndex(GRPCIndexBase):
     def describe_index_stats(self, **kwargs):
         timeout = kwargs.pop('timeout', None)
         request = DescribeIndexStatsRequest()
-        try:
-            response = self._wrap_grpc_call(self.stub.DescribeIndexStats, request, timeout=timeout)
-        except _InactiveRpcError as e:
-            raise PineconeException(e._state.debug_error_string) from e
+        response = self._wrap_grpc_call(self.stub.DescribeIndexStats, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_stats_response(json_response)
 
