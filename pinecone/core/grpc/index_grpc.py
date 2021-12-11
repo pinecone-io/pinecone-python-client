@@ -225,7 +225,8 @@ class GRPCIndex(GRPCIndexBase):
         request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
         timeout = kwargs.pop('timeout', None)
 
-        return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
+        response = self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
+        return parse_upsert_response(response)
 
     @sentry
     def delete(self, *args, **kwargs):
