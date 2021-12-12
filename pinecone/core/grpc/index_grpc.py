@@ -21,11 +21,12 @@ from pinecone.core.utils.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSI
 from pinecone.core.grpc.protos.vector_service_pb2 import Vector as GRPCVector, QueryVector as GRPCQueryVector, \
     UpsertRequest, DeleteRequest, \
     QueryRequest, FetchRequest, DescribeIndexStatsRequest
-from pinecone.core.utils.error_handling import validate_and_convert_errors
 from pinecone.core.client.model.vector import Vector as _Vector
 from pinecone.core.client.model.namespace_summary import NamespaceSummary
 from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, UpsertResponse, \
     DescribeIndexStatsResponse
+from grpc._channel import _InactiveRpcError
+from pinecone.exceptions import PineconeProtocolError, PineconeException
 
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector"]
 
@@ -67,20 +68,21 @@ class GRPCIndexBase(ABC):
     Base class for grpc-based interaction with Pinecone indexes
     """
 
-    def __init__(self, name: str, channel=None, grpc_config: GRPCClientConfig = None, _endpoint_override: str = None):
-        self.name = name
+    _pool = None
+
+    def __init__(self, index_name: str, channel=None, grpc_config: GRPCClientConfig = None,
+                 _endpoint_override: str = None):
+        self.name = index_name
 
         self.grpc_client_config = grpc_config or GRPCClientConfig()
         self.retry_config = self.grpc_client_config.retry_config or RetryConfig()
         self.fixed_metadata = {
             "api-key": Config.API_KEY,
-            "service-name": name,
+            "service-name": index_name,
             "client-version": CLIENT_VERSION
         }
         self._endpoint_override = _endpoint_override
         self._channel = channel or self._gen_channel()
-        # self._check_readiness(grpc_config)
-        # atexit.register(self.close)
         self.stub = self.stub_class(self._channel)
 
     @property
@@ -145,8 +147,11 @@ class GRPCIndexBase(ABC):
             _metadata = tuple((k, v) for k, v in {
                 **self.fixed_metadata, **self._request_metadata(), **user_provided_metadata
             }.items())
-            return func(request, timeout=timeout, metadata=_metadata, credentials=credentials,
-                        wait_for_ready=wait_for_ready, compression=compression)
+            try:
+                return func(request, timeout=timeout, metadata=_metadata, credentials=credentials,
+                            wait_for_ready=wait_for_ready, compression=compression)
+            except _InactiveRpcError as e:
+                raise PineconeException(e._state.debug_error_string) from e
 
         return wrapped()
 
@@ -166,38 +171,39 @@ def parse_fetch_response(response: dict):
     if not vectors:
         return None
     for id, vec in vectors.items():
-        v_obj = _Vector(id=vec['id'], values=vec['values'], metadata=vec.get('metadata', None),_check_type=False)
+        v_obj = _Vector(id=vec['id'], values=vec['values'], metadata=vec.get('metadata', None), _check_type=False)
         vd[id] = v_obj
-    namespace = response.get('namespace', None)
-    return FetchResponse(vectors=vd, namespace=namespace,_check_type=False)
+    namespace = response.get('namespace', '')
+    return FetchResponse(vectors=vd, namespace=namespace, _check_type=False)
 
 
 def parse_query_response(response: dict):
     res = []
 
     for match in response['results']:
-        namespace = match.get('namespace', None)
+        namespace = match.get('namespace', '')
         m = []
         for item in match['matches']:
-            sc = ScoredVector(id=item['id'], score=item.get('score',0.0), values=item.get('values', []),
+            sc = ScoredVector(id=item['id'], score=item.get('score', 0.0), values=item.get('values', []),
                               metadata=item.get('metadata', {}))
             m.append(sc)
         res.append(SingleQueryResults(matches=m, namespace=namespace))
-    return QueryResponse(results=res,_check_type=False)
+    return QueryResponse(results=res, _check_type=False)
 
 
-def parse_upsert_response(response: dict):
-    return UpsertResponse(upserted_count=response['upsertedCount'],_check_type=False)
+def parse_upsert_response(response):
+    response = json_format.MessageToDict(response)
+    return UpsertResponse(upserted_count=response['upsertedCount'], _check_type=False)
 
 
 def parse_stats_response(response: dict):
-    dimension = response.get('dimension',0)
+    dimension = response.get('dimension', 0)
     summaries = response.get('namespaces', {})
     namespace_summaries = {}
     for key in summaries:
-        vc = summaries[key]['vectorCount']
+        vc = summaries[key].get('vectorCount', 0)
         namespace_summaries[key] = NamespaceSummary(vector_count=vc)
-    return DescribeIndexStatsResponse(namespaces=namespace_summaries, dimension=dimension,_check_type=False)
+    return DescribeIndexStatsResponse(namespaces=namespace_summaries, dimension=dimension, _check_type=False)
 
 
 class GRPCIndex(GRPCIndexBase):
@@ -207,7 +213,6 @@ class GRPCIndex(GRPCIndexBase):
         return VectorServiceStub
 
     @sentry
-    @validate_and_convert_errors
     def upsert(self, vectors, **kwargs):
         def _vector_transform(item):
             if isinstance(item, GRPCVector):
@@ -219,12 +224,11 @@ class GRPCIndex(GRPCIndexBase):
 
         request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
         timeout = kwargs.pop('timeout', None)
+
         response = self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
-        json_response = json_format.MessageToDict(response)
-        return parse_upsert_response(json_response)
+        return parse_upsert_response(response)
 
     @sentry
-    @validate_and_convert_errors
     def delete(self, *args, **kwargs):
         request = DeleteRequest(*args, **kwargs)
         timeout = kwargs.pop('timeout', None)
@@ -232,7 +236,6 @@ class GRPCIndex(GRPCIndexBase):
         return response
 
     @sentry
-    @validate_and_convert_errors
     def fetch(self, *args, **kwargs):
         timeout = kwargs.pop('timeout', None)
         request = FetchRequest(*args, **kwargs)
@@ -241,7 +244,6 @@ class GRPCIndex(GRPCIndexBase):
         return parse_fetch_response(json_response)
 
     @sentry
-    @validate_and_convert_errors
     def query(self, queries, **kwargs):
         timeout = kwargs.pop('timeout', None)
 
@@ -261,13 +263,11 @@ class GRPCIndex(GRPCIndexBase):
             kwargs['filter'] = dict_to_proto_struct(kwargs['filter'])
         request = QueryRequest(queries=list(map(_query_transform, queries)),
                                **{k: v for k, v in kwargs.items() if k in _QUERY_ARGS})
-
         response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_query_response(json_response)
 
     @sentry
-    @validate_and_convert_errors
     def describe_index_stats(self, **kwargs):
         timeout = kwargs.pop('timeout', None)
         request = DescribeIndexStatsRequest()
