@@ -94,7 +94,8 @@ class GRPCIndexBase(ABC):
         return self._endpoint_override if self._endpoint_override \
             else f"{self.name}-{Config.PROJECT_NAME}.svc.{Config.ENVIRONMENT}.pinecone.io:443"
 
-    def _gen_channel(self, options=None):
+    def \
+            _gen_channel(self, options=None):
         target = self._endpoint()
         default_options = {
             "grpc.max_send_message_length": MAX_MSG_SIZE,
@@ -213,7 +214,7 @@ class GRPCIndex(GRPCIndexBase):
         return VectorServiceStub
 
     @sentry
-    def upsert(self, vectors, **kwargs):
+    def upsert(self, vectors, async_req=False, **kwargs):
         def _vector_transform(item):
             if isinstance(item, GRPCVector):
                 return item
@@ -224,16 +225,19 @@ class GRPCIndex(GRPCIndexBase):
 
         request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
         timeout = kwargs.pop('timeout', None)
-
-        response = self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
-        return parse_upsert_response(response)
+        if async_req:
+            return self._wrap_grpc_call(self.stub.Upsert.future, request, timeout=timeout)
+        else:
+            return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
 
     @sentry
-    def delete(self, *args, **kwargs):
+    def delete(self, *args, async_req=False, **kwargs):
         request = DeleteRequest(*args, **kwargs)
         timeout = kwargs.pop('timeout', None)
-        response = self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout)
-        return response
+        if async_req:
+            return self._wrap_grpc_call(self.stub.Delete.future, request, timeout=timeout)
+        else:
+            return self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout)
 
     @sentry
     def fetch(self, *args, **kwargs):
