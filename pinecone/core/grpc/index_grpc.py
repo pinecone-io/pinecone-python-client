@@ -94,8 +94,7 @@ class GRPCIndexBase(ABC):
         return self._endpoint_override if self._endpoint_override \
             else f"{self.name}-{Config.PROJECT_NAME}.svc.{Config.ENVIRONMENT}.pinecone.io:443"
 
-    def \
-            _gen_channel(self, options=None):
+    def _gen_channel(self, options=None):
         target = self._endpoint()
         default_options = {
             "grpc.max_send_message_length": MAX_MSG_SIZE,
@@ -184,10 +183,11 @@ def parse_query_response(response: dict):
     for match in response['results']:
         namespace = match.get('namespace', '')
         m = []
-        for item in match['matches']:
-            sc = ScoredVector(id=item['id'], score=item.get('score', 0.0), values=item.get('values', []),
-                              metadata=item.get('metadata', {}))
-            m.append(sc)
+        if 'matches' in match:
+            for item in match['matches']:
+                sc = ScoredVector(id=item['id'], score=item.get('score', 0.0), values=item.get('values', []),
+                                  metadata=item.get('metadata', {}))
+                m.append(sc)
         res.append(SingleQueryResults(matches=m, namespace=namespace))
     return QueryResponse(results=res, _check_type=False)
 
