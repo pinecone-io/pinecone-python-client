@@ -25,7 +25,7 @@ from pinecone.core.client.model.vector import Vector as _Vector
 from pinecone.core.client.model.namespace_summary import NamespaceSummary
 from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, UpsertResponse, \
     DescribeIndexStatsResponse
-from grpc._channel import _InactiveRpcError
+from grpc._channel import _InactiveRpcError, _MultiThreadedRendezvous
 from pinecone.exceptions import PineconeProtocolError, PineconeException
 
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector"]
@@ -207,6 +207,38 @@ def parse_stats_response(response: dict):
     return DescribeIndexStatsResponse(namespaces=namespace_summaries, dimension=dimension, _check_type=False)
 
 
+class PineconeGrpcFuture:
+    def __init__(self, delegate):
+        self._delegate = delegate
+
+    def cancel(self):
+        return self._delegate.cancel()
+
+    def cancelled(self):
+        return self._delegate.cancelled()
+
+    def running(self):
+        return self._delegate.running()
+
+    def done(self):
+        return self._delegate.done()
+
+    def add_done_callback(self, fun):
+        return self._delegate.add_done_callback(fun)
+
+    def result(self, timeout=None):
+        try:
+            self._delegate.result(timeout=timeout)
+        except _MultiThreadedRendezvous as e:
+            raise PineconeException(e._state.debug_error_string) from e
+
+    def exception(self,timeout=None):
+        with _MultiThreadedRendezvous as e:
+            raise PineconeException(e._state.debug_error_string) from e
+
+    def traceback(self,timeout=None):
+        return self._delegate.traceback(timeout=timeout)
+
 class GRPCIndex(GRPCIndexBase):
 
     @property
@@ -226,7 +258,8 @@ class GRPCIndex(GRPCIndexBase):
         request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
         timeout = kwargs.pop('timeout', None)
         if async_req:
-            return self._wrap_grpc_call(self.stub.Upsert.future, request, timeout=timeout)
+            future = self._wrap_grpc_call(self.stub.Upsert.future, request, timeout=timeout)
+            return PineconeGrpcFuture(future)
         else:
             return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
 
@@ -235,7 +268,8 @@ class GRPCIndex(GRPCIndexBase):
         request = DeleteRequest(*args, **kwargs)
         timeout = kwargs.pop('timeout', None)
         if async_req:
-            return self._wrap_grpc_call(self.stub.Delete.future, request, timeout=timeout)
+            future = self._wrap_grpc_call(self.stub.Delete.future, request, timeout=timeout)
+            return PineconeGrpcFuture(future)
         else:
             return self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout)
 
