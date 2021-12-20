@@ -183,10 +183,11 @@ def parse_query_response(response: dict):
     for match in response['results']:
         namespace = match.get('namespace', '')
         m = []
-        for item in match['matches']:
-            sc = ScoredVector(id=item['id'], score=item.get('score', 0.0), values=item.get('values', []),
-                              metadata=item.get('metadata', {}))
-            m.append(sc)
+        if 'matches' in match:
+            for item in match['matches']:
+                sc = ScoredVector(id=item['id'], score=item.get('score', 0.0), values=item.get('values', []),
+                                  metadata=item.get('metadata', {}))
+                m.append(sc)
         res.append(SingleQueryResults(matches=m, namespace=namespace))
     return QueryResponse(results=res, _check_type=False)
 
@@ -213,7 +214,7 @@ class GRPCIndex(GRPCIndexBase):
         return VectorServiceStub
 
     @sentry
-    def upsert(self, vectors, **kwargs):
+    def upsert(self, vectors, async_req=False, **kwargs):
         def _vector_transform(item):
             if isinstance(item, GRPCVector):
                 return item
@@ -224,16 +225,19 @@ class GRPCIndex(GRPCIndexBase):
 
         request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
         timeout = kwargs.pop('timeout', None)
-
-        response = self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
-        return parse_upsert_response(response)
+        if async_req:
+            return self._wrap_grpc_call(self.stub.Upsert.future, request, timeout=timeout)
+        else:
+            return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
 
     @sentry
-    def delete(self, *args, **kwargs):
+    def delete(self, *args, async_req=False, **kwargs):
         request = DeleteRequest(*args, **kwargs)
         timeout = kwargs.pop('timeout', None)
-        response = self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout)
-        return response
+        if async_req:
+            return self._wrap_grpc_call(self.stub.Delete.future, request, timeout=timeout)
+        else:
+            return self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout)
 
     @sentry
     def fetch(self, *args, **kwargs):
