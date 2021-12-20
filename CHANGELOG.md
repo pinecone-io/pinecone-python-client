@@ -2,7 +2,12 @@
 
 ## Unreleased Changes
 
-## [2.0.3](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.2...v2.0.3) - 2021-10-31
+## [2.0.4](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.4...v2.0.3) - 2021-12-20
+
+### Changed
+
+- Public release of the gRPC flavor of client. The gRPC flavor comes with more dependencies but can give higher upsert speeds on multi node indexes. For more details on the gRPC client, please refer to the [installation](https://www.pinecone.io/docs/installation/) and [usage](https://www.pinecone.io/docs/performance-tuning/#using-the-grpc-client-to-get-higher-upsert-speeds) sections in the docs.
+## [2.0.3](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.3...v2.0.2) - 2021-10-31
 
 ### Changed
 
