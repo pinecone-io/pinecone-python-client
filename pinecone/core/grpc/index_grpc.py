@@ -268,7 +268,8 @@ class GRPCIndex(GRPCIndexBase):
         request = DeleteRequest(*args, **kwargs)
         timeout = kwargs.pop('timeout', None)
         if async_req:
-            return self._wrap_grpc_call(self.stub.Delete.future, request, timeout=timeout)
+            future = self._wrap_grpc_call(self.stub.Delete.future, request, timeout=timeout)
+            return PineconeGrpcFuture(future)
         else:
             return self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout)
 
