@@ -233,8 +233,7 @@ class PineconeGrpcFuture:
             raise PineconeException(e._state.debug_error_string) from e
 
     def exception(self,timeout=None):
-        with _MultiThreadedRendezvous as e:
-            raise PineconeException(e._state.debug_error_string) from e
+        return self._delegate.exception(timeout=timeout)
 
     def traceback(self,timeout=None):
         return self._delegate.traceback(timeout=timeout)
