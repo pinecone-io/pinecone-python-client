@@ -629,7 +629,7 @@
               "format": "float"
             },
             "description": "The query vector values. This should be the same length as the dimension of the index being queried.",
-            "maxLength": 10000,
+            "maxLength": 20000,
             "minLength": 1,
             "required": [
               "values"
@@ -806,6 +806,7 @@
               "format": "float"
             },
             "description": "This is the vector data included in the request.",
+            "maxLength": 20000,
             "minLength": 1,
             "required": [
               "values"
