@@ -22,12 +22,12 @@ setuptools.setup(
     version=read("pinecone/__version__").strip(),
     description="Pinecone client and SDK",
     license="Proprietary License",
-    long_description=long_desc,
+    long_description=read("README.md"),
     long_description_content_type="text/markdown",
     url="https://www.pinecone.io/",
     project_urls={
         "Homepage": "https://www.pinecone.io",
-        "Documentation": "https://docs.beta.pinecone.io/en/latest/index.html",
+        "Documentation": "https://pinecone.io/docs",
         "Contact": "https://www.pinecone.io/contact/",
         "End-User License Agreement": "https://www.pinecone.io/thin-client-user-agreement/"
     },
