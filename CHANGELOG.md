@@ -2,6 +2,12 @@
 
 ## Unreleased Changes
 
+## [2.0.5](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.5...v2.0.4) - 2022-01-17
+
+### Changed
+
+- Increased the max vector dimensionality to 20k.
+
 ## [2.0.4](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.4...v2.0.3) - 2021-12-20
 
 ### Changed
