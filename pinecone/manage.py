@@ -27,6 +27,8 @@ class IndexDescription(NamedTuple):
     replicas: int
     dimension: int
     shards: int
+    pods: int
+    pod_type: str
     index_config: None
     status: None
 
@@ -62,6 +64,8 @@ def create_index(
         metric: str = "cosine",
         replicas: int = 1,
         shards: int = 1,
+        pods: int = 1,
+        pod_type: str = 'p1',
         index_config: dict = None
 ):
     """Creates a Pinecone index.
@@ -86,6 +90,10 @@ def create_index(
     :param shards: the number of shards per index, defaults to 1.
         Use 1 shard per 1GB of vectors
     :type shards: int,optional
+    :param pods: Total number of pods to be used by the index. pods = shard*replicas
+    :type pods: int,optional
+    :param pod_type: the pod type to be used for the index. can be one of p1 or s1.
+    :type pod_type: str,optional
     :param index_config: Advanced configuration options for the index
     :type timeout: int, optional
     :param timeout: Timeout for wait until index gets ready. If None, wait indefinitely; if >=0, time out after this many seconds; if -1, return immediately and do not wait. Default: None
@@ -99,6 +107,8 @@ def create_index(
         metric=metric,
         replicas=replicas,
         shards=shards,
+        pods=pods,
+        pod_type=pod_type,
         index_config=index_config or {}
     ))
 
@@ -173,7 +183,7 @@ def describe_index(name: str):
     db = response['database']
     ready = response['status']['ready']
     return IndexDescription(name=db['name'], index_type=db['index_type'], metric=db['metric'],
-                            replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
+                            replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'], pods=db['pods'], pod_type=db['pod_type'],
                             index_config=db['index_config'], status={'ready': ready})
 
 
