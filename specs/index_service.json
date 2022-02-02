@@ -230,6 +230,11 @@
             "description": "The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'.",
             "default": "cosine"
           },
+          "pods": {
+            "type": "integer",
+            "description": "The total number of pods the index uses. pods=shards*replicas.",
+            "default": 1
+          },
           "replicas": {
             "type": "integer",
             "description": "The number of replicas. Replicas duplicate your index. They provide higher availability and throughput.",
@@ -239,6 +244,11 @@
             "type": "integer",
             "description": "The number of shards to be used in the index. We recommend you use 1 shard per 1GB of data.",
             "default": 1
+          },
+          "pod_type": {
+            "type" : "string",
+            "description": "The type of pod to use. One of 's1' or 'p1'.",
+            "default": "p1"
           },
           "index_config": {
             "oneOf": [
@@ -267,11 +277,17 @@
               "metric": {
                 "type": "string"
               },
+              "pods": {
+                "type": "integer"
+              },
               "replicas": {
                 "type": "integer"
               },
               "shards": {
                 "type": "integer"
+              },
+              "pod_type": {
+                "type": "string"
               },
               "index_config": {
                 "oneOf": [

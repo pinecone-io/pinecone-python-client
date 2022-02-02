@@ -96,8 +96,10 @@ class IndexMetaDatabase(ModelNormal):
             'dimensions': (str,),  # noqa: E501
             'index_type': (str,),  # noqa: E501
             'metric': (str,),  # noqa: E501
+            'pods': (int,),  # noqa: E501
             'replicas': (int,),  # noqa: E501
             'shards': (int,),  # noqa: E501
+            'pod_type': (str,),  # noqa: E501
             'index_config': (dict,),  # noqa: E501
             'status': (IndexMetaDatabaseStatus,),  # noqa: E501
         }
@@ -112,8 +114,10 @@ class IndexMetaDatabase(ModelNormal):
         'dimensions': 'dimensions',  # noqa: E501
         'index_type': 'index_type',  # noqa: E501
         'metric': 'metric',  # noqa: E501
+        'pods': 'pods',  # noqa: E501
         'replicas': 'replicas',  # noqa: E501
         'shards': 'shards',  # noqa: E501
+        'pod_type': 'pod_type',  # noqa: E501
         'index_config': 'index_config',  # noqa: E501
         'status': 'status',  # noqa: E501
     }
@@ -163,8 +167,10 @@ class IndexMetaDatabase(ModelNormal):
             dimensions (str): [optional]  # noqa: E501
             index_type (str): [optional]  # noqa: E501
             metric (str): [optional]  # noqa: E501
+            pods (int): [optional]  # noqa: E501
             replicas (int): [optional]  # noqa: E501
             shards (int): [optional]  # noqa: E501
+            pod_type (str): [optional]  # noqa: E501
             index_config (dict): [optional]  # noqa: E501
             status (IndexMetaDatabaseStatus): [optional]  # noqa: E501
         """
@@ -252,8 +258,10 @@ class IndexMetaDatabase(ModelNormal):
             dimensions (str): [optional]  # noqa: E501
             index_type (str): [optional]  # noqa: E501
             metric (str): [optional]  # noqa: E501
+            pods (int): [optional]  # noqa: E501
             replicas (int): [optional]  # noqa: E501
             shards (int): [optional]  # noqa: E501
+            pod_type (str): [optional]  # noqa: E501
             index_config (dict): [optional]  # noqa: E501
             status (IndexMetaDatabaseStatus): [optional]  # noqa: E501
         """
