@@ -90,8 +90,10 @@ class CreateRequest(ModelNormal):
             'dimension': (int,),  # noqa: E501
             'index_type': (str,),  # noqa: E501
             'metric': (str,),  # noqa: E501
+            'pods': (int,),  # noqa: E501
             'replicas': (int,),  # noqa: E501
             'shards': (int,),  # noqa: E501
+            'pod_type': (str,),  # noqa: E501
             'index_config': (dict,),  # noqa: E501
         }
 
@@ -105,8 +107,10 @@ class CreateRequest(ModelNormal):
         'dimension': 'dimension',  # noqa: E501
         'index_type': 'index_type',  # noqa: E501
         'metric': 'metric',  # noqa: E501
+        'pods': 'pods',  # noqa: E501
         'replicas': 'replicas',  # noqa: E501
         'shards': 'shards',  # noqa: E501
+        'pod_type': 'pod_type',  # noqa: E501
         'index_config': 'index_config',  # noqa: E501
     }
 
@@ -157,8 +161,10 @@ class CreateRequest(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             index_type (str): The type of vector index. Pinecone supports 'approximated'.. [optional] if omitted the server will use the default value of "approximated"  # noqa: E501
             metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'.. [optional] if omitted the server will use the default value of "cosine"  # noqa: E501
+            pods (int): The total number of pods the index uses. pods=shards*replicas.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             shards (int): The number of shards to be used in the index. We recommend you use 1 shard per 1GB of data.. [optional] if omitted the server will use the default value of 1  # noqa: E501
+            pod_type (str): The type of pod to use. One of 's1' or 'p1'.. [optional] if omitted the server will use the default value of "p1"  # noqa: E501
             index_config (dict): [optional]  # noqa: E501
         """
 
@@ -249,8 +255,10 @@ class CreateRequest(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             index_type (str): The type of vector index. Pinecone supports 'approximated'.. [optional] if omitted the server will use the default value of "approximated"  # noqa: E501
             metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'.. [optional] if omitted the server will use the default value of "cosine"  # noqa: E501
+            pods (int): The total number of pods the index uses. pods=shards*replicas.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             shards (int): The number of shards to be used in the index. We recommend you use 1 shard per 1GB of data.. [optional] if omitted the server will use the default value of 1  # noqa: E501
+            pod_type (str): The type of pod to use. One of 's1' or 'p1'.. [optional] if omitted the server will use the default value of "p1"  # noqa: E501
             index_config (dict): [optional]  # noqa: E501
         """
 
