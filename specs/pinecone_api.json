@@ -893,7 +893,7 @@
           },
           "pods": {
             "type": "integer",
-            "description": "The total number of pods the index uses. pods=shards*replicas.",
+            "description": "The total number of pods the index uses, including replicas",
             "default": 1
           },
           "replicas": {
