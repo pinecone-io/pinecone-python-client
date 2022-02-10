@@ -893,7 +893,7 @@
           },
           "pods": {
             "type": "integer",
-            "description": "The total number of pods the index uses, including replicas",
+            "description": "The number of pods for the index to use, per replica.",
             "default": 1
           },
           "replicas": {
@@ -903,7 +903,7 @@
           },
           "shards": {
             "type": "integer",
-            "description": "The number of shards to be used in the index. We recommend you use 1 shard per 1GB of data.",
+            "description": "The number of shards to be used in the index.",
             "default": 1
           },
           "pod_type": {
