@@ -324,6 +324,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Bad request. Exceeded quota"
+          },
+          "409": {
+            "description": "Index of given name already exists."
+          },
+          "500": {
+            "description": "Invalid parameters/request"
           }
         },
         "tags": [
@@ -370,6 +379,9 @@
           },
           "404": {
             "description": "Index not found"
+          },
+          "500": {
+            "description": "Invalid request/parameters"
           }
         },
         "tags": [
@@ -403,6 +415,9 @@
           },
           "404": {
             "description": "Index not found"
+          },
+          "500": {
+            "description": "Invalid request/params"
           }
         },
         "tags": [
@@ -444,8 +459,14 @@
               }
             }
           },
+          "400": {
+            "description": "Bad request,not enough quota"
+          },
           "404": {
             "description": "Index not found"
+          },
+          "500": {
+            "description": "Invalid request/params"
           }
         },
         "tags": [
@@ -893,7 +914,7 @@
           },
           "pods": {
             "type": "integer",
-            "description": "The number of pods for the index to use, per replica.",
+            "description": "The number of pods for the index to use,including replicas.",
             "default": 1
           },
           "replicas": {
