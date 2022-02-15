@@ -326,13 +326,13 @@
             }
           },
           "400": {
-            "description": "Bad request. Exceeded quota"
+            "description": "Bad request. Encountered when request exceeds quota or an invalid index name."
           },
           "409": {
             "description": "Index of given name already exists."
           },
           "500": {
-            "description": "Invalid parameters/request"
+            "description": "Internal error. Can be caused by invalid parameters."
           }
         },
         "tags": [
@@ -381,7 +381,7 @@
             "description": "Index not found"
           },
           "500": {
-            "description": "Invalid request/parameters"
+            "description": "Internal error. Can be caused by invalid parameters."
           }
         },
         "tags": [
@@ -404,7 +404,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The index has been successfully deleted",
+            "description": "The index has been successfully deleted.",
             "content": {
               "text/plain": {
                 "schema": {
@@ -414,10 +414,10 @@
             }
           },
           "404": {
-            "description": "Index not found"
+            "description": "Index not found."
           },
           "500": {
-            "description": "Invalid request/params"
+            "description": "Internal error. Can be caused by invalid parameters."
           }
         },
         "tags": [
@@ -460,13 +460,13 @@
             }
           },
           "400": {
-            "description": "Bad request,not enough quota"
+            "description": "Bad request,not enough quota."
           },
           "404": {
-            "description": "Index not found"
+            "description": "Index not found."
           },
           "500": {
-            "description": "Invalid request/params"
+            "description": "Internal error. Can be caused by invalid parameters."
           }
         },
         "tags": [
