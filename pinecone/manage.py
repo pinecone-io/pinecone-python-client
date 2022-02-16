@@ -184,7 +184,7 @@ def describe_index(name: str):
     ready = response['status']['ready']
     return IndexDescription(name=db['name'], index_type=db['index_type'], metric=db['metric'],
                             replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
-                            pods=db.get('pods', db['shards']), pod_type=db.get('pod_type', 'p1'),
+                            pods=db.get('pods', db['shards']*db['replicas']), pod_type=db.get('pod_type', 'p1'),
                             index_config=db['index_config'], status={'ready': ready})
 
 

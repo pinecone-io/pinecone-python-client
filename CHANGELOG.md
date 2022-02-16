@@ -2,6 +2,13 @@
 
 ## Unreleased Changes
 
+## [2.0.6](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.5...v2.0.5) - 2022-02-15
+
+### Changed
+- Changed the spec to add  ```pods``` and ```pod_type``` fields to ```create_index``` and ```describe_index```.
+- ```pod_type``` is used to select between ```'s1'``` and ```'p1'``` pod types during index creation.
+- The field ```pods``` means total number of pods the index will use, ```pods = shards*replicas```.
+
 ## [2.0.5](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.5...v2.0.4) - 2022-01-17
 
 ### Changed
