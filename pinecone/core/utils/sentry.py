@@ -18,9 +18,6 @@ def sentry_decorator(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            sentry_sdk.capture_exception(e)
-            #flushes sentry event queue
-            sentry_sdk.flush()
             raise
 
     # Override signature
