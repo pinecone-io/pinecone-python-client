@@ -13,7 +13,11 @@ import configparser
 from pinecone.core.client.exceptions import ApiKeyError
 from pinecone.core.api_action import ActionAPI, WhoAmIResponse
 from pinecone.core.utils import warn_deprecated
-from pinecone.core.utils.constants import CLIENT_VERSION, PARENT_LOGGER_NAME, DEFAULT_PARENT_LOGGER_LEVEL
+import dns.resolver
+import os
+import json
+from pinecone.core.utils.constants import CLIENT_VERSION, PARENT_LOGGER_NAME, DEFAULT_PARENT_LOGGER_LEVEL, \
+    SENTRY_DSN_TXT_RECORD, PACKAGE_ENVIRONMENT
 from pinecone.core.utils.sentry import sentry_decorator as sentry
 from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
 
@@ -26,19 +30,12 @@ _parent_logger = logging.getLogger(PARENT_LOGGER_NAME)
 _parent_logger.setLevel(DEFAULT_PARENT_LOGGER_LEVEL)
 
 
-def _set_sentry_tags(config: dict):
-    sentry_sdk.set_tag("package_version", CLIENT_VERSION)
-    sentry_tag_names = ('environment', 'project_name', 'controller_host', 'username', 'user_label')
-    for key, val in config.items():
-        if key in sentry_tag_names:
-            sentry_sdk.set_tag(key, val)
-
-
 class ConfigBase(NamedTuple):
     environment: str = ""
     api_key: str = ""
     project_name: str = ""
     controller_host: str = ""
+    disable_tracking: str = ""
     openapi_config: OpenApiConfiguration = None
 
 
@@ -122,9 +119,6 @@ class _CONFIG:
         config = config._replace(openapi_config=openapi_config)
         self._config = config
 
-        # Sentry
-        _set_sentry_tags({**whoami_response._asdict(), **self._config._asdict()})
-
     def _preprocess_and_validate_config(self, config: dict) -> dict:
         """Normalize, filter, and validate config keys/values.
 
@@ -155,6 +149,41 @@ class _CONFIG:
                 if "default" in parser.sections():
                     config_obj = {**parser["default"]}
         return config_obj
+
+    def set_sentry_info(self):
+
+        action_api = ActionAPI(host=self._config.controller_host, api_key=self._config.api_key)
+        try:
+            whoami_response = action_api.whoami()
+        except requests.exceptions.RequestException:
+            # proceed with default values; reset() may be called later w/ correct values
+            whoami_response = WhoAmIResponse()
+
+        config = {**whoami_response._asdict(), **self._config._asdict()}
+        if config['disable_tracking']:
+            # initalize with no DSN to avoid sending
+            sentry_sdk.init()
+        else:
+            _logger.info("Sentry is not initialized.")
+            # sentry is not initialized
+            sentry_dsn = None
+            try:
+                dns_result = dns.resolver.resolve(SENTRY_DSN_TXT_RECORD, "TXT")
+                for res in dns_result:
+                    sentry_dsn = json.loads(res.to_text())
+                    break
+            except Exception:
+                _logger.warning("Unable to resolve Sentry DSN.")
+            if sentry_dsn:
+                debug = os.getenv("SENTRY_DEBUG") == "True"
+                sentry_sdk.set_tag("package_version", CLIENT_VERSION)
+                sentry_tag_names = ('environment', 'project_name', 'controller_host', 'username', 'user_label')
+                for key, val in config.items():
+                    if key in sentry_tag_names:
+                        sentry_sdk.set_tag(key, val)
+                sentry_sdk.init(dsn=sentry_dsn, debug=debug, environment=PACKAGE_ENVIRONMENT,
+                                traces_sample_rate=0.1)
+
 
     @property
     def ENVIRONMENT(self):
@@ -188,11 +217,15 @@ class _CONFIG:
         )
         return logging.getLevelName(logging.getLogger('pinecone').level)
 
+    @property
+    def DISABLE_TRACKING(self):
+        return self._config.disable_tracking
+
 
 @sentry
 def init(api_key: str = None, host: str = None, environment: str = None, project_name: str = None,
-         log_level: str = None, openapi_config: OpenApiConfiguration = None,
-         config: str = "~/.pinecone", **kwargs):
+         log_level: str = None, openapi_config: OpenApiConfiguration = None, disable_tracking=True,
+         config: str = "~/.pinecone", **kwargs, ):
     """Initializes the Pinecone client.
 
     :param api_key: Required if not set in config file or by environment variable ``PINECONE_API_KEY``.
@@ -204,13 +237,14 @@ def init(api_key: str = None, host: str = None, environment: str = None, project
     :param log_level: Deprecated since v2.0.2 [Will be removed in v3.0.0]; use the standard logging module to manage logger "pinecone" instead.
     """
     Config.reset(project_name=project_name, api_key=api_key, controller_host=host, environment=environment,
-                 openapi_config=openapi_config, config_file=config, **kwargs)
+                 openapi_config=openapi_config, disable_tracking=disable_tracking, config_file=config, **kwargs)
     if log_level:
         warn_deprecated(
             description='log_level is deprecated. Use the standard logging module to manage logger "pinecone" instead.',
             deprecated_in='2.0.2',
             removal_in='3.0.0'
         )
+    Config.set_sentry_info()
 
 
 Config = _CONFIG()
