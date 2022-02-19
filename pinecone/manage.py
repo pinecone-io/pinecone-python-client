@@ -12,12 +12,9 @@ from pinecone.core.client.api_client import ApiClient
 from pinecone.core.client.configuration import Configuration
 from pinecone.core.client.model.create_request import CreateRequest
 from pinecone.core.client.model.patch_request import PatchRequest
-from pinecone.core.utils.sentry import sentry_decorator as sentry
 from pinecone.core.utils import get_user_agent
 
-__all__ = [
-    "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "IndexDescription"
-]
+__all__ = ["create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "IndexDescription"]
 
 
 class IndexDescription(NamedTuple):
@@ -36,13 +33,8 @@ class IndexDescription(NamedTuple):
 def _get_api_instance():
     client_config = Config.OPENAPI_CONFIG
     client_config.api_key = client_config.api_key or {}
-    client_config.api_key['ApiKeyAuth'] = client_config.api_key.get('ApiKeyAuth', Config.API_KEY)
-    client_config.server_variables = {
-        **{
-            'environment': Config.ENVIRONMENT
-        },
-        **client_config.server_variables
-    }
+    client_config.api_key["ApiKeyAuth"] = client_config.api_key.get("ApiKeyAuth", Config.API_KEY)
+    client_config.server_variables = {**{"environment": Config.ENVIRONMENT}, **client_config.server_variables}
     api_client = ApiClient(configuration=client_config)
     api_client.user_agent = get_user_agent()
     api_instance = IndexOperationsApi(api_client)
@@ -52,21 +44,20 @@ def _get_api_instance():
 def _get_status(name: str):
     api_instance = _get_api_instance()
     response = api_instance.describe_index(name)
-    return response['status']
+    return response["status"]
 
 
-@sentry
 def create_index(
-        name: str,
-        dimension: int,
-        timeout: int = None,
-        index_type: str = "approximated",
-        metric: str = "cosine",
-        replicas: int = 1,
-        shards: int = 1,
-        pods: int = 1,
-        pod_type: str = 'p1',
-        index_config: dict = None
+    name: str,
+    dimension: int,
+    timeout: int = None,
+    index_type: str = "approximated",
+    metric: str = "cosine",
+    replicas: int = 1,
+    shards: int = 1,
+    pods: int = 1,
+    pod_type: str = "p1",
+    index_config: dict = None,
 ):
     """Creates a Pinecone index.
 
@@ -100,21 +91,23 @@ def create_index(
     """
     api_instance = _get_api_instance()
 
-    api_instance.create_index(create_request=CreateRequest(
-        name=name,
-        dimension=dimension,
-        index_type=index_type,
-        metric=metric,
-        replicas=replicas,
-        shards=shards,
-        pods=pods,
-        pod_type=pod_type,
-        index_config=index_config or {}
-    ))
+    api_instance.create_index(
+        create_request=CreateRequest(
+            name=name,
+            dimension=dimension,
+            index_type=index_type,
+            metric=metric,
+            replicas=replicas,
+            shards=shards,
+            pods=pods,
+            pod_type=pod_type,
+            index_config=index_config or {},
+        )
+    )
 
     def is_ready():
         status = _get_status(name)
-        ready = status['ready']
+        ready = status["ready"]
         return ready
 
     if timeout == -1:
@@ -127,12 +120,15 @@ def create_index(
             time.sleep(5)
             timeout -= 5
     if timeout and timeout < 0:
-        raise (TimeoutError(
-            'Please call the describe_index API ({}) to confirm index status.'.format(
-                'https://www.pinecone.io/docs/api/operation/describe_index/')))
+        raise (
+            TimeoutError(
+                "Please call the describe_index API ({}) to confirm index status.".format(
+                    "https://www.pinecone.io/docs/api/operation/describe_index/"
+                )
+            )
+        )
 
 
-@sentry
 def delete_index(name: str, timeout: int = None):
     """Deletes a Pinecone index.
 
@@ -158,12 +154,15 @@ def delete_index(name: str, timeout: int = None):
             time.sleep(5)
             timeout -= 5
     if timeout and timeout < 0:
-        raise (TimeoutError(
-            'Please call the list_indexes API ({}) to confirm if index is deleted'.format(
-                'https://www.pinecone.io/docs/api/operation/list_indexes/')))
+        raise (
+            TimeoutError(
+                "Please call the list_indexes API ({}) to confirm if index is deleted".format(
+                    "https://www.pinecone.io/docs/api/operation/list_indexes/"
+                )
+            )
+        )
 
 
-@sentry
 def list_indexes():
     """Lists all indexes."""
     api_instance = _get_api_instance()
@@ -171,7 +170,6 @@ def list_indexes():
     return response
 
 
-@sentry
 def describe_index(name: str):
     """Describes a Pinecone index.
 
@@ -180,15 +178,22 @@ def describe_index(name: str):
     """
     api_instance = _get_api_instance()
     response = api_instance.describe_index(name)
-    db = response['database']
-    ready = response['status']['ready']
-    return IndexDescription(name=db['name'], index_type=db['index_type'], metric=db['metric'],
-                            replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
-                            pods=db.get('pods', db['shards']*db['replicas']), pod_type=db.get('pod_type', 'p1'),
-                            index_config=db['index_config'], status={'ready': ready})
+    db = response["database"]
+    ready = response["status"]["ready"]
+    return IndexDescription(
+        name=db["name"],
+        index_type=db["index_type"],
+        metric=db["metric"],
+        replicas=db["replicas"],
+        dimension=db["dimension"],
+        shards=db["shards"],
+        pods=db.get("pods", db["shards"] * db["replicas"]),
+        pod_type=db.get("pod_type", "p1"),
+        index_config=db["index_config"],
+        status={"ready": ready},
+    )
 
 
-@sentry
 def scale_index(name: str, replicas: int):
     """Increases number of replicas for the index.
 
