@@ -64,7 +64,7 @@ class ScoredVector(ModelNormal):
 
     validations = {
         ('id',): {
-            'max_length': 64,
+            'max_length': 512,
             'min_length': 1,
         },
     }
