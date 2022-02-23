@@ -498,7 +498,7 @@
                         "type": "string",
                         "example": "example-vector-1",
                         "description": "This is the vector's unique id.",
-                        "maxLength": 64,
+                        "maxLength": 512,
                         "minLength": 1,
                         "required": [
                             "id"
@@ -604,7 +604,7 @@
                         "type": "string",
                         "example": "example-vector-1",
                         "description": "This is the vector's unique id.",
-                        "maxLength": 64,
+                        "maxLength": 512,
                         "minLength": 1,
                         "required": [
                             "id"
