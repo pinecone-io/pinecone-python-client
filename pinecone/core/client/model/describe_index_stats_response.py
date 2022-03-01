@@ -94,6 +94,7 @@ class DescribeIndexStatsResponse(ModelNormal):
         return {
             'namespaces': ({str: (NamespaceSummary,)},),  # noqa: E501
             'dimension': (int,),  # noqa: E501
+            'index_fullness': (float,),  # noqa: E501
         }
 
     @cached_property
@@ -104,6 +105,7 @@ class DescribeIndexStatsResponse(ModelNormal):
     attribute_map = {
         'namespaces': 'namespaces',  # noqa: E501
         'dimension': 'dimension',  # noqa: E501
+        'index_fullness': 'indexFullness',  # noqa: E501
     }
 
     read_only_vars = {
@@ -149,6 +151,7 @@ class DescribeIndexStatsResponse(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             namespaces ({str: (NamespaceSummary,)}): A mapping for each namespace in the index from namespace name to a summary of its contents.. [optional]  # noqa: E501
             dimension (int): The dimension of the indexed vectors.. [optional]  # noqa: E501
+            index_fullness (float): The storage fullness of the index.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -232,6 +235,7 @@ class DescribeIndexStatsResponse(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             namespaces ({str: (NamespaceSummary,)}): A mapping for each namespace in the index from namespace name to a summary of its contents.. [optional]  # noqa: E501
             dimension (int): The dimension of the indexed vectors.. [optional]  # noqa: E501
+            index_fullness (float): The storage fullness of the index.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
