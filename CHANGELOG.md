@@ -2,7 +2,12 @@
 
 ## Unreleased Changes
 
-## [2.0.6](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.5...v2.0.5) - 2022-02-15
+## [2.0.7](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.7...v2.0.6) - 2022-03-01
+
+### Changed
+- Increased maximum length of ids to 512
+
+## [2.0.6](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.6...v2.0.5) - 2022-02-15
 
 ### Changed
 - Changed the spec to add  ```pods``` and ```pod_type``` fields to ```create_index``` and ```describe_index```.
