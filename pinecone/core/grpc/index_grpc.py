@@ -6,27 +6,24 @@ from abc import ABC, abstractmethod
 from functools import wraps
 from typing import NamedTuple, Optional, Dict, Iterable
 
-import grpc
 import certifi
+import grpc
 from google.protobuf import json_format
-
+from grpc._channel import _InactiveRpcError, _MultiThreadedRendezvous
+from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, UpsertResponse, \
+    DescribeIndexStatsResponse
 from pinecone.config import Config
-from pinecone.core.grpc.protos.vector_column_service_pb2_grpc import VectorColumnServiceStub
-from pinecone.core.grpc.protos import vector_service_pb2, vector_column_service_pb2
-from pinecone.core.utils import _generate_request_id, dict_to_proto_struct, fix_tuple_length, proto_struct_to_dict
-from pinecone.core.utils.sentry import sentry_decorator as sentry
-from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
-from pinecone.core.grpc.retry import RetryOnRpcErrorClientInterceptor, RetryConfig
-from pinecone.core.utils.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSION
+from pinecone.core.client.model.namespace_summary import NamespaceSummary
+from pinecone.core.client.model.vector import Vector as _Vector
 from pinecone.core.grpc.protos.vector_service_pb2 import Vector as GRPCVector, QueryVector as GRPCQueryVector, \
     UpsertRequest, DeleteRequest, \
     QueryRequest, FetchRequest, DescribeIndexStatsRequest
-from pinecone.core.client.model.vector import Vector as _Vector
-from pinecone.core.client.model.namespace_summary import NamespaceSummary
-from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, UpsertResponse, \
-    DescribeIndexStatsResponse
-from grpc._channel import _InactiveRpcError, _MultiThreadedRendezvous
-from pinecone.exceptions import PineconeProtocolError, PineconeException
+from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
+from pinecone.core.grpc.retry import RetryOnRpcErrorClientInterceptor, RetryConfig
+from pinecone.core.utils import _generate_request_id, dict_to_proto_struct, fix_tuple_length
+from pinecone.core.utils.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSION
+from pinecone.core.utils.sentry import sentry_decorator as sentry
+from pinecone.exceptions import PineconeException
 
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector"]
 
@@ -198,13 +195,15 @@ def parse_upsert_response(response):
 
 
 def parse_stats_response(response: dict):
+    fullness = response.get('index_fullness', 0.0)
     dimension = response.get('dimension', 0)
     summaries = response.get('namespaces', {})
     namespace_summaries = {}
     for key in summaries:
         vc = summaries[key].get('vectorCount', 0)
         namespace_summaries[key] = NamespaceSummary(vector_count=vc)
-    return DescribeIndexStatsResponse(namespaces=namespace_summaries, dimension=dimension, _check_type=False)
+    return DescribeIndexStatsResponse(namespaces=namespace_summaries, dimension=dimension, index_fullness=fullness,
+                                      _check_type=False)
 
 
 class PineconeGrpcFuture:
@@ -232,11 +231,12 @@ class PineconeGrpcFuture:
         except _MultiThreadedRendezvous as e:
             raise PineconeException(e._state.debug_error_string) from e
 
-    def exception(self,timeout=None):
+    def exception(self, timeout=None):
         return self._delegate.exception(timeout=timeout)
 
-    def traceback(self,timeout=None):
+    def traceback(self, timeout=None):
         return self._delegate.traceback(timeout=timeout)
+
 
 class GRPCIndex(GRPCIndexBase):
 
@@ -311,40 +311,3 @@ class GRPCIndex(GRPCIndexBase):
         response = self._wrap_grpc_call(self.stub.DescribeIndexStats, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_stats_response(json_response)
-
-
-class CIndex(GRPCIndex):
-
-    @property
-    def stub_class(self):
-        return VectorColumnServiceStub
-
-    def upsert(self,
-               request: 'vector_column_service_pb2.UpsertRequest',
-               timeout: int = None,
-               metadata: Dict[str, str] = None):
-        return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout, metadata=metadata)
-
-    def delete(self,
-               request: 'vector_column_service_pb2.DeleteRequest',
-               timeout: int = None,
-               metadata: Dict[str, str] = None):
-        return self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout, metadata=metadata)
-
-    def fetch(self,
-              request: 'vector_column_service_pb2.FetchRequest',
-              timeout: int = None,
-              metadata: Dict[str, str] = None):
-        return self._wrap_grpc_call(self.stub.Fetch, request, timeout=timeout, metadata=metadata)
-
-    def query(self,
-              request: 'vector_column_service_pb2.QueryRequest',
-              timeout: int = None,
-              metadata: Dict[str, str] = None):
-        return self._wrap_grpc_call(self.stub.Query, request, timeout=timeout, metadata=metadata)
-
-    def describe_index_stats(self,
-                             request: 'vector_column_service_pb2.DescribeIndexStatsRequest',
-                             timeout: int = None,
-                             metadata: Dict[str, str] = None):
-        return self._wrap_grpc_call(self.stub.DescribeIndexStats, request, timeout=timeout, metadata=metadata)

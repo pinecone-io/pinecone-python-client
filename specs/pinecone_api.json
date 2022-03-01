@@ -502,7 +502,8 @@
               "vectorCount": 30000
             }
           },
-          "dimension": 1024
+          "dimension": 1024,
+          "index_fullness": 0.42
         },
         "properties": {
           "namespaces": {
@@ -517,6 +518,12 @@
             "format": "int64",
             "example": 1024,
             "description": "The dimension of the indexed vectors."
+          },
+          "indexFullness": {
+            "type": "number",
+            "format": "double",
+            "example": 0.42,
+            "description": "The storage fullness of the index."
           }
         },
         "description": "The response for the `DescribeIndexStats` operation."
