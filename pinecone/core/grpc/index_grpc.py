@@ -195,14 +195,14 @@ def parse_upsert_response(response):
 
 
 def parse_stats_response(response: dict):
-    fullness = response.get('index_fullness', 0)
+    fullness = response.get('index_fullness', 0.0)
     dimension = response.get('dimension', 0)
     summaries = response.get('namespaces', {})
     namespace_summaries = {}
     for key in summaries:
         vc = summaries[key].get('vectorCount', 0)
         namespace_summaries[key] = NamespaceSummary(vector_count=vc)
-    return DescribeIndexStatsResponse(namespaces=namespace_summaries, dimension=dimension, fullness=fullness,
+    return DescribeIndexStatsResponse(namespaces=namespace_summaries, dimension=dimension, index_fullness=fullness,
                                       _check_type=False)
 
 
