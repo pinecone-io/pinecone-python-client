@@ -195,7 +195,7 @@ def parse_upsert_response(response):
 
 
 def parse_stats_response(response: dict):
-    fullness = response.get('index_fullness', 0.0)
+    fullness = response.get('indexFullness', 0.0)
     dimension = response.get('dimension', 0)
     summaries = response.get('namespaces', {})
     namespace_summaries = {}
