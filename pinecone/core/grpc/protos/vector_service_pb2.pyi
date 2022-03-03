@@ -349,7 +349,7 @@ class DescribeIndexStatsResponse(google.protobuf.message.Message):
     """The dimension of the indexed vectors."""
 
     index_fullness: builtins.float
-    """The storage fullness of the index."""
+    """The fullness of the index."""
 
     def __init__(self,
         *,

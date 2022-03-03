@@ -321,9 +321,9 @@
                     },
                     "indexFullness": {
                         "type": "number",
-                        "format": "double",
+                        "format": "float",
                         "example": 0.42,
-                        "description": "The storage fullness of the index."
+                        "description": "The fullness of the index."
                     }
                 },
                 "description": "The response for the `DescribeIndexStats` operation."
