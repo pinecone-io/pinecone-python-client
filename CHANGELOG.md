@@ -2,6 +2,12 @@
 
 ## Unreleased Changes
 
+## [2.0.8](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.7...v2.0.6) - 2022-03-08
+
+### Changed
+- Added an ```index_fullnes``` metric in the ```describe_index_stats()``` response.
+- Removed ```Sentry``` tracking and dependencies for client errors.
+
 ## [2.0.7](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.7...v2.0.6) - 2022-03-01
 
 ### Changed
