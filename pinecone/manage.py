@@ -12,7 +12,6 @@ from pinecone.core.client.api_client import ApiClient
 from pinecone.core.client.configuration import Configuration
 from pinecone.core.client.model.create_request import CreateRequest
 from pinecone.core.client.model.patch_request import PatchRequest
-from pinecone.core.utils.sentry import sentry_decorator as sentry
 from pinecone.core.utils import get_user_agent
 
 __all__ = [
@@ -55,7 +54,6 @@ def _get_status(name: str):
     return response['status']
 
 
-@sentry
 def create_index(
         name: str,
         dimension: int,
@@ -132,7 +130,6 @@ def create_index(
                 'https://www.pinecone.io/docs/api/operation/describe_index/')))
 
 
-@sentry
 def delete_index(name: str, timeout: int = None):
     """Deletes a Pinecone index.
 
@@ -163,7 +160,6 @@ def delete_index(name: str, timeout: int = None):
                 'https://www.pinecone.io/docs/api/operation/list_indexes/')))
 
 
-@sentry
 def list_indexes():
     """Lists all indexes."""
     api_instance = _get_api_instance()
@@ -171,7 +167,6 @@ def list_indexes():
     return response
 
 
-@sentry
 def describe_index(name: str):
     """Describes a Pinecone index.
 
@@ -188,7 +183,6 @@ def describe_index(name: str):
                             index_config=db['index_config'], status={'ready': ready})
 
 
-@sentry
 def scale_index(name: str, replicas: int):
     """Increases number of replicas for the index.
 

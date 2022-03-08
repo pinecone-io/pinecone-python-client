@@ -6,7 +6,6 @@ from collections.abc import Iterable
 
 from pinecone import Config
 from pinecone.core.client import ApiClient, Configuration
-from pinecone.core.utils.sentry import sentry_decorator as sentry
 from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, \
     ScoredVector, SingleQueryResults, DescribeIndexStatsResponse, UpsertRequest, UpsertResponse, Vector
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
@@ -45,7 +44,6 @@ class Index(ApiClient):
         self.user_agent = get_user_agent()
         self._vector_api = VectorOperationsApi(self)
 
-    @sentry
     @validate_and_convert_errors
     def upsert(self, vectors, **kwargs):
         _check_type = kwargs.pop('_check_type', False)
@@ -67,17 +65,14 @@ class Index(ApiClient):
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
 
-    @sentry
     @validate_and_convert_errors
     def delete(self, *args, **kwargs):
         return self._vector_api.delete(*args, **kwargs)
 
-    @sentry
     @validate_and_convert_errors
     def fetch(self, *args, **kwargs):
         return self._vector_api.fetch(*args, **kwargs)
 
-    @sentry
     @validate_and_convert_errors
     def query(self, queries, **kwargs):
         _check_type = kwargs.pop('_check_type', False)
@@ -101,7 +96,6 @@ class Index(ApiClient):
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
 
-    @sentry
     @validate_and_convert_errors
     def describe_index_stats(self, *args, **kwargs):
         return self._vector_api.describe_index_stats(*args, **kwargs)
