@@ -31,6 +31,5 @@ class NodeType(str, enum.Enum):
 
 
 PACKAGE_ENVIRONMENT = get_environment() or "development"
-SENTRY_DSN_TXT_RECORD = "pinecone-client.sentry.pinecone.io"
 CLIENT_VERSION = get_version()
 CLIENT_ID = f'python-client-{CLIENT_VERSION}'

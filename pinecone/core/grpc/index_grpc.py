@@ -22,7 +22,6 @@ from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
 from pinecone.core.grpc.retry import RetryOnRpcErrorClientInterceptor, RetryConfig
 from pinecone.core.utils import _generate_request_id, dict_to_proto_struct, fix_tuple_length
 from pinecone.core.utils.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSION
-from pinecone.core.utils.sentry import sentry_decorator as sentry
 from pinecone.exceptions import PineconeException
 
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector"]
@@ -127,7 +126,6 @@ class GRPCIndexBase(ABC):
         except grpc.FutureTimeoutError:
             return False
 
-    @sentry
     def close(self):
         """Closes the connection to the index."""
         try:
@@ -137,7 +135,6 @@ class GRPCIndexBase(ABC):
 
     def _wrap_grpc_call(self, func, request, timeout=None, metadata=None, credentials=None, wait_for_ready=None,
                         compression=None):
-        @sentry
         @wraps(func)
         def wrapped():
             user_provided_metadata = metadata or {}
@@ -244,7 +241,6 @@ class GRPCIndex(GRPCIndexBase):
     def stub_class(self):
         return VectorServiceStub
 
-    @sentry
     def upsert(self, vectors, async_req=False, **kwargs):
         def _vector_transform(item):
             if isinstance(item, GRPCVector):
@@ -262,7 +258,6 @@ class GRPCIndex(GRPCIndexBase):
         else:
             return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
 
-    @sentry
     def delete(self, *args, async_req=False, **kwargs):
         request = DeleteRequest(*args, **kwargs)
         timeout = kwargs.pop('timeout', None)
@@ -272,7 +267,6 @@ class GRPCIndex(GRPCIndexBase):
         else:
             return self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout)
 
-    @sentry
     def fetch(self, *args, **kwargs):
         timeout = kwargs.pop('timeout', None)
         request = FetchRequest(*args, **kwargs)
@@ -280,7 +274,6 @@ class GRPCIndex(GRPCIndexBase):
         json_response = json_format.MessageToDict(response)
         return parse_fetch_response(json_response)
 
-    @sentry
     def query(self, queries, **kwargs):
         timeout = kwargs.pop('timeout', None)
 
@@ -304,7 +297,6 @@ class GRPCIndex(GRPCIndexBase):
         json_response = json_format.MessageToDict(response)
         return parse_query_response(json_response)
 
-    @sentry
     def describe_index_stats(self, **kwargs):
         timeout = kwargs.pop('timeout', None)
         request = DescribeIndexStatsRequest()

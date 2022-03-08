@@ -7,14 +7,12 @@ import os
 
 import certifi
 import requests
-import sentry_sdk
 import configparser
 
 from pinecone.core.client.exceptions import ApiKeyError
 from pinecone.core.api_action import ActionAPI, WhoAmIResponse
 from pinecone.core.utils import warn_deprecated
 from pinecone.core.utils.constants import CLIENT_VERSION, PARENT_LOGGER_NAME, DEFAULT_PARENT_LOGGER_LEVEL
-from pinecone.core.utils.sentry import sentry_decorator as sentry
 from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
 
 __all__ = [
@@ -24,14 +22,6 @@ __all__ = [
 _logger = logging.getLogger(__name__)
 _parent_logger = logging.getLogger(PARENT_LOGGER_NAME)
 _parent_logger.setLevel(DEFAULT_PARENT_LOGGER_LEVEL)
-
-
-def _set_sentry_tags(config: dict):
-    sentry_sdk.set_tag("package_version", CLIENT_VERSION)
-    sentry_tag_names = ('environment', 'project_name', 'controller_host', 'username', 'user_label')
-    for key, val in config.items():
-        if key in sentry_tag_names:
-            sentry_sdk.set_tag(key, val)
 
 
 class ConfigBase(NamedTuple):
@@ -122,8 +112,6 @@ class _CONFIG:
         config = config._replace(openapi_config=openapi_config)
         self._config = config
 
-        # Sentry
-        _set_sentry_tags({**whoami_response._asdict(), **self._config._asdict()})
 
     def _preprocess_and_validate_config(self, config: dict) -> dict:
         """Normalize, filter, and validate config keys/values.
@@ -189,7 +177,6 @@ class _CONFIG:
         return logging.getLevelName(logging.getLogger('pinecone').level)
 
 
-@sentry
 def init(api_key: str = None, host: str = None, environment: str = None, project_name: str = None,
          log_level: str = None, openapi_config: OpenApiConfiguration = None,
          config: str = "~/.pinecone", **kwargs):
