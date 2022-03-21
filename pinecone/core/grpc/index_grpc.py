@@ -24,6 +24,9 @@ from pinecone.core.utils import _generate_request_id, dict_to_proto_struct, fix_
 from pinecone.core.utils.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSION
 from pinecone.exceptions import PineconeException
 
+from concurrent.futures import ThreadPoolExecutor
+import concurrent.futures
+
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector"]
 
 _logger = logging.getLogger(__name__)
@@ -77,6 +80,7 @@ class GRPCIndexBase(ABC):
             "service-name": index_name,
             "client-version": CLIENT_VERSION
         }
+        self.pool = ThreadPoolExecutor()
         self._endpoint_override = _endpoint_override
         self._channel = channel or self._gen_channel()
         self.stub = self.stub_class(self._channel)
@@ -158,8 +162,36 @@ class GRPCIndexBase(ABC):
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
 
+    def copy_future_state(self, source, destination):
+        if source.cancelled():
+            destination.cancel()
+        if not destination.set_running_or_notify_cancel():
+            return
+        exception = source.exception()
+        if exception is not None:
+            destination.set_exception(exception)
+        else:
+            result = source.result()
+            destination.set_result(result)
 
-def parse_fetch_response(response: dict):
+    def chain(self, future, fn):
+        result = concurrent.futures.Future()
+
+        def callback(_):
+            try:
+                temp = self.pool.submit(fn, future.result())
+                copy = lambda _: self.copy_future_state(temp, result)
+                temp.add_done_callback(copy)
+            except:
+                result.cancel()
+                raise
+
+        future.add_done_callback(callback)
+        return result
+
+
+def parse_fetch_response(response):
+    response = json_format.MessageToDict(response)
     vd = {}
     vectors = response.get('vectors')
     if not vectors:
@@ -171,7 +203,8 @@ def parse_fetch_response(response: dict):
     return FetchResponse(vectors=vd, namespace=namespace, _check_type=False)
 
 
-def parse_query_response(response: dict):
+def parse_query_response(response):
+    response = json_format.MessageToDict(response)
     res = []
 
     for match in response['results']:
@@ -267,14 +300,20 @@ class GRPCIndex(GRPCIndexBase):
         else:
             return self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout)
 
-    def fetch(self, *args, **kwargs):
+    def fetch(self, async_req=False, *args, **kwargs):
         timeout = kwargs.pop('timeout', None)
         request = FetchRequest(*args, **kwargs)
-        response = self._wrap_grpc_call(self.stub.Fetch, request, timeout=timeout)
-        json_response = json_format.MessageToDict(response)
-        return parse_fetch_response(json_response)
+        if async_req:
+            future = self._wrap_grpc_call(self.stub.Fetch.future, request, timeout=timeout)
+            final_future = self.chain(future, parse_fetch_response)
+            return final_future
 
-    def query(self, queries, **kwargs):
+        else:
+            response = self._wrap_grpc_call(self.stub.Fetch, request, timeout=timeout)
+
+            return parse_fetch_response(response)
+
+    def query(self, queries, async_req=False, **kwargs):
         timeout = kwargs.pop('timeout', None)
 
         def _query_transform(item):
@@ -293,9 +332,13 @@ class GRPCIndex(GRPCIndexBase):
             kwargs['filter'] = dict_to_proto_struct(kwargs['filter'])
         request = QueryRequest(queries=list(map(_query_transform, queries)),
                                **{k: v for k, v in kwargs.items() if k in _QUERY_ARGS})
-        response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
-        json_response = json_format.MessageToDict(response)
-        return parse_query_response(json_response)
+        if async_req:
+            future = self._wrap_grpc_call(self.stub.Query.future, request, timeout=timeout)
+            final_future = self.chain(future, parse_query_response)
+            return final_future
+        else:
+            response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
+            return parse_query_response(response)
 
     def describe_index_stats(self, **kwargs):
         timeout = kwargs.pop('timeout', None)
