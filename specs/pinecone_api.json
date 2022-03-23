@@ -611,7 +611,7 @@
               "$ref": "#/components/schemas/QueryVector"
             },
             "description": "The query vectors.",
-            "maxLength": 100,
+            "maxLength": 10,
             "minLength": 1,
             "required": [
               "queries"
