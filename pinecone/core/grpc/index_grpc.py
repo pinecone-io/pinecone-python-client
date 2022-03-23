@@ -258,7 +258,7 @@ class PineconeGrpcFuture:
     def result(self, timeout=None):
         try:
             self._delegate.result(timeout=timeout)
-        except _MultiThreadedRendezvous as e:
+        except (_MultiThreadedRendezvous|_InactiveRpcError) as e:
             raise PineconeException(e._state.debug_error_string) from e
 
     def exception(self, timeout=None):
@@ -306,7 +306,7 @@ class GRPCIndex(GRPCIndexBase):
         if async_req:
             future = self._wrap_grpc_call(self.stub.Fetch.future, request, timeout=timeout)
             final_future = self.chain(future, parse_fetch_response)
-            return final_future
+            return PineconeGrpcFuture(final_future)
 
         else:
             response = self._wrap_grpc_call(self.stub.Fetch, request, timeout=timeout)
@@ -335,7 +335,7 @@ class GRPCIndex(GRPCIndexBase):
         if async_req:
             future = self._wrap_grpc_call(self.stub.Query.future, request, timeout=timeout)
             final_future = self.chain(future, parse_query_response)
-            return final_future
+            return PineconeGrpcFuture(final_future)
         else:
             response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
             return parse_query_response(response)
