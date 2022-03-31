@@ -177,10 +177,11 @@ def describe_index(name: str):
     response = api_instance.describe_index(name)
     db = response['database']
     ready = response['status']['ready']
+    state = response['status']['state']
     return IndexDescription(name=db['name'], index_type=db['index_type'], metric=db['metric'],
                             replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
                             pods=db.get('pods', db['shards']*db['replicas']), pod_type=db.get('pod_type', 'p1'),
-                            index_config=db['index_config'], status={'ready': ready})
+                            index_config=db['index_config'], status={'ready': ready, 'state': state})
 
 
 def scale_index(name: str, replicas: int):
