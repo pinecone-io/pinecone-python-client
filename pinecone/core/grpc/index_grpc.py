@@ -10,14 +10,14 @@ import certifi
 import grpc
 from google.protobuf import json_format
 from grpc._channel import _InactiveRpcError, _MultiThreadedRendezvous
-from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, UpsertResponse, \
-    DescribeIndexStatsResponse
+from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, \
+    UpsertResponse, DescribeIndexStatsResponse
 from pinecone.config import Config
 from pinecone.core.client.model.namespace_summary import NamespaceSummary
 from pinecone.core.client.model.vector import Vector as _Vector
-from pinecone.core.grpc.protos.vector_service_pb2 import Vector as GRPCVector, QueryVector as GRPCQueryVector, \
-    UpsertRequest, DeleteRequest, \
-    QueryRequest, FetchRequest, DescribeIndexStatsRequest
+from pinecone.core.grpc.protos.vector_service_pb2 import Vector as GRPCVector, \
+    QueryVector as GRPCQueryVector, UpsertRequest, DeleteRequest, QueryRequest, \
+    FetchRequest, UpdateRequest, DescribeIndexStatsRequest
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
 from pinecone.core.grpc.retry import RetryOnRpcErrorClientInterceptor, RetryConfig
 from pinecone.core.utils import _generate_request_id, dict_to_proto_struct, fix_tuple_length
@@ -296,6 +296,18 @@ class GRPCIndex(GRPCIndexBase):
         response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_query_response(json_response)
+
+    def update(self, id, async_req=False, **kwargs):
+        _UPDATE_ARGS = ['values', 'set_metadata', 'namespace']
+        if 'set_metadata' in kwargs:
+            kwargs['set_metadata'] = dict_to_proto_struct(kwargs['set_metadata'])
+        request = UpdateRequest(id=id, **{k: v for k, v in kwargs.items() if k in _UPDATE_ARGS})
+        timeout = kwargs.pop('timeout', None)
+        if async_req:
+            future = self._wrap_grpc_call(self.stub.Update.future, request, timeout=timeout)
+            return PineconeGrpcFuture(future)
+        else:
+            return self._wrap_grpc_call(self.stub.Update, request, timeout=timeout)
 
     def describe_index_stats(self, **kwargs):
         timeout = kwargs.pop('timeout', None)

@@ -39,6 +39,11 @@ class VectorServiceStub(object):
                 request_serializer=vector__service__pb2.QueryRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.QueryResponse.FromString,
                 )
+        self.Update = channel.unary_unary(
+                '/VectorService/Update',
+                request_serializer=vector__service__pb2.UpdateRequest.SerializeToString,
+                response_deserializer=vector__service__pb2.UpdateResponse.FromString,
+                )
         self.DescribeIndexStats = channel.unary_unary(
                 '/VectorService/DescribeIndexStats',
                 request_serializer=vector__service__pb2.DescribeIndexStatsRequest.SerializeToString,
@@ -91,6 +96,17 @@ class VectorServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def Update(self, request, context):
+        """Update
+
+        The `Update` operation updates vector in a namespace.
+        If a value is included, it will overwrite the previous value.
+        If a set_metadata is included, the values of the fields specified in it will be added or overwrite the previous value.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def DescribeIndexStats(self, request, context):
         """DescribeIndexStats
 
@@ -123,6 +139,11 @@ def add_VectorServiceServicer_to_server(servicer, server):
                     servicer.Query,
                     request_deserializer=vector__service__pb2.QueryRequest.FromString,
                     response_serializer=vector__service__pb2.QueryResponse.SerializeToString,
+            ),
+            'Update': grpc.unary_unary_rpc_method_handler(
+                    servicer.Update,
+                    request_deserializer=vector__service__pb2.UpdateRequest.FromString,
+                    response_serializer=vector__service__pb2.UpdateResponse.SerializeToString,
             ),
             'DescribeIndexStats': grpc.unary_unary_rpc_method_handler(
                     servicer.DescribeIndexStats,
@@ -206,6 +227,23 @@ class VectorService(object):
         return grpc.experimental.unary_unary(request, target, '/VectorService/Query',
             vector__service__pb2.QueryRequest.SerializeToString,
             vector__service__pb2.QueryResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Update(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/VectorService/Update',
+            vector__service__pb2.UpdateRequest.SerializeToString,
+            vector__service__pb2.UpdateResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
