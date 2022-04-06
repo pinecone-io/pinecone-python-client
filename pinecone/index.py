@@ -7,14 +7,15 @@ from collections.abc import Iterable
 from pinecone import Config
 from pinecone.core.client import ApiClient, Configuration
 from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, \
-    ScoredVector, SingleQueryResults, DescribeIndexStatsResponse, UpsertRequest, UpsertResponse, Vector
+    ScoredVector, SingleQueryResults, DescribeIndexStatsResponse, UpsertRequest, UpsertResponse, UpdateRequest, Vector
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
 from pinecone.core.utils import fix_tuple_length, get_user_agent
 import copy
 
 __all__ = [
     "Index", "FetchResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus",
-    "ScoredVector", "SingleQueryResults", "DescribeIndexStatsResponse", "UpsertRequest", "UpsertResponse", "Vector"
+    "ScoredVector", "SingleQueryResults", "DescribeIndexStatsResponse", "UpsertRequest", "UpsertResponse",
+    "UpdateRequest", "Vector"
 ]
 
 from .core.utils.error_handling import validate_and_convert_errors
@@ -95,6 +96,16 @@ class Index(ApiClient):
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
+
+    @validate_and_convert_errors
+    def update(self, id, **kwargs):
+        _check_type = kwargs.pop('_check_type', False)
+        return self._vector_api.update(UpdateRequest(
+                id=id,
+                _check_type=_check_type,
+                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
+            ),
+            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS})
 
     @validate_and_convert_errors
     def describe_index_stats(self, *args, **kwargs):

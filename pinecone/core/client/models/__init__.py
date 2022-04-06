@@ -31,6 +31,7 @@ from pinecone.core.client.model.query_vector import QueryVector
 from pinecone.core.client.model.rpc_status import RpcStatus
 from pinecone.core.client.model.scored_vector import ScoredVector
 from pinecone.core.client.model.single_query_results import SingleQueryResults
+from pinecone.core.client.model.update_request import UpdateRequest
 from pinecone.core.client.model.upsert_request import UpsertRequest
 from pinecone.core.client.model.upsert_response import UpsertResponse
 from pinecone.core.client.model.vector import Vector
