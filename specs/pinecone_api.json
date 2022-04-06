@@ -237,6 +237,48 @@
         ]
       }
     },
+    "/vectors/update": {
+      "post": {
+        "summary": "Update",
+        "description": "The `Update` operation updates vector in a namespace.\nIf a value is included, it will overwrite the previous value.\nIf a set_metadata is included, the values of the fields specified in it will be added or overwrite the previous value.",
+        "operationId": "update",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "tags": [
+          "Vector Operations"
+        ]
+      }
+    },
     "/vectors/upsert": {
       "post": {
         "summary": "Upsert",
@@ -765,6 +807,62 @@
           }
         },
         "title": "The query results for a single `QueryVector`"
+      },
+      "UpdateRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "example-vector-1",
+            "description": "Vector's unique id.",
+            "maxLength": 512,
+            "minLength": 1,
+            "required": [
+              "id"
+            ]
+          },
+          "values": {
+            "type": "array",
+            "example": [
+              0.1,
+              0.2,
+              0.3,
+              0.4,
+              0.5,
+              0.6,
+              0.7,
+              0.8
+            ],
+            "items": {
+              "type": "number",
+              "format": "float"
+            },
+            "description": "Vector data.",
+            "maxLength": 20000,
+            "minLength": 1
+          },
+          "setMetadata": {
+            "type": "object",
+            "example": {
+              "genre": "documentary",
+              "year": 2019
+            },
+            "description": "Metadata to *set* for the vector."
+          },
+          "namespace": {
+            "type": "string",
+            "example": "example-namespace",
+            "description": "Namespace name where to update the vector."
+          }
+        },
+        "description": "The request for the `Upsert` operation.",
+        "required": [
+          "id"
+        ]
+      },
+      "UpdateResponse": {
+        "type": "object",
+        "description": "The response for the `Update` operation."
       },
       "UpsertRequest": {
         "type": "object",
