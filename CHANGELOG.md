@@ -1,37 +1,46 @@
 # Changelog
 
 ## Unreleased Changes
-
-## [2.0.8](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.7...v2.0.6) - 2022-03-08
+## [2.0.9](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.8...v2.0.9)
+### Changed
+- Added [update](https://www.pinecone.io/docs/api/operation/update/) API. Allows updates to a vector and it's metadata.
+- Added ```state``` to index status. Allows the user to check what state the index is in with the ```describe_index``` call. An index can be in one of the following states:
+  - ```Initializing```: Index is getting ready
+  - ```Ready```: Index is ready to receive requests
+  - ```ScalingUp```: Index is adding replicas, it can still take requests.
+  - ```ScalingDown```: Index is scaling down replicas, it can still take requests.
+  - ```Terminating```: Index is in the stage of getting deleted.
+  
+## [2.0.8](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.7...v2.0.8) - 2022-03-08
 
 ### Changed
 - Added an ```index_fullnes``` metric in the ```describe_index_stats()``` response.
 - Removed ```Sentry``` tracking and dependencies for client errors.
 
-## [2.0.7](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.7...v2.0.6) - 2022-03-01
+## [2.0.7](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.6...v2.0.7) - 2022-03-01
 
 ### Changed
 - Increased maximum length of ids to 512
 
-## [2.0.6](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.6...v2.0.5) - 2022-02-15
+## [2.0.6](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.5...v2.0.6) - 2022-02-15
 
 ### Changed
 - Changed the spec to add  ```pods``` and ```pod_type``` fields to ```create_index``` and ```describe_index```.
 - ```pod_type``` is used to select between ```'s1'``` and ```'p1'``` pod types during index creation.
 - The field ```pods``` means total number of pods the index will use, ```pods = shards*replicas```.
 
-## [2.0.5](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.5...v2.0.4) - 2022-01-17
+## [2.0.5](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.4...v2.0.5) - 2022-01-17
 
 ### Changed
 
 - Increased the max vector dimensionality to 20k.
 
-## [2.0.4](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.4...v2.0.3) - 2021-12-20
+## [2.0.4](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.3...v2.0.4) - 2021-12-20
 
 ### Changed
 
 - Public release of the gRPC flavor of client. The gRPC flavor comes with more dependencies but can give higher upsert speeds on multi node indexes. For more details on the gRPC client, please refer to the [installation](https://www.pinecone.io/docs/installation/) and [usage](https://www.pinecone.io/docs/performance-tuning/#using-the-grpc-client-to-get-higher-upsert-speeds) sections in the docs.
-## [2.0.3](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.3...v2.0.2) - 2021-10-31
+## [2.0.3](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.2...v2.0.3) - 2021-10-31
 
 ### Changed
 
