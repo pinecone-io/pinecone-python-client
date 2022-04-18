@@ -508,7 +508,7 @@
                                 "$eq": 2019
                             }
                         },
-                        "description": "The filter to apply if no filter is specified in `QueryVector. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/`."
+                        "description": "The filter to apply if no filter is specified in `QueryVector. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/."
                     },
                     "includeValues": {
                         "type": "boolean",
