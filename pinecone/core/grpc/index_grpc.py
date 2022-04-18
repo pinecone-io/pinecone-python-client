@@ -260,7 +260,10 @@ class GRPCIndex(GRPCIndexBase):
 
     def delete(self, *args, async_req=False, **kwargs):
         _filter = dict_to_proto_struct(kwargs.pop('filter', None))
-        request = DeleteRequest(*args, **kwargs, filter=_filter)
+        filter_param = {}
+        if _filter:
+            filter_param['filter'] = _filter
+        request = DeleteRequest(*args, **kwargs, **filter_param)
         timeout = kwargs.pop('timeout', None)
         if async_req:
             future = self._wrap_grpc_call(self.stub.Delete.future, request, timeout=timeout)
