@@ -185,7 +185,7 @@ class VectorOperationsApi(object):
 
             Keyword Args:
                 ids ([str]): Vectors to delete.. [optional]
-                delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional]
+                delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional] if omitted the server will use the default value of False
                 namespace (str): The namespace to delete vectors from, if applicable.. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.

@@ -136,7 +136,8 @@
                         "in": "query",
                         "required": false,
                         "schema": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "default": "false"
                         }
                     },
                     {
@@ -387,7 +388,8 @@
                     },
                     "deleteAll": {
                         "type": "boolean",
-                        "example": true,
+                        "example": false,
+                        "default": "false",
                         "description": "This indicates that all vectors in the index namespace should be deleted."
                     },
                     "namespace": {
@@ -397,7 +399,7 @@
                     },
                     "filter": {
                         "type": "object",
-                        "title": "If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive\nwith specifying ids to delete in the ids param or using delete_all=True.\nSee https://www.pinecone.io/docs/metadata-filtering/`"
+                        "description": "If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive\nwith specifying ids to delete in the ids param or using delete_all=True.\nSee https://www.pinecone.io/docs/metadata-filtering/`."
                     }
                 },
                 "description": "The request for the `Delete` operation."
@@ -506,7 +508,7 @@
                                 "$eq": 2019
                             }
                         },
-                        "title": "The filter to apply if no filter is specified in `QueryVector. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/`"
+                        "description": "The filter to apply if no filter is specified in `QueryVector. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/`."
                     },
                     "includeValues": {
                         "type": "boolean",
