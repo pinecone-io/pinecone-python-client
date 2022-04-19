@@ -136,7 +136,8 @@
                         "in": "query",
                         "required": false,
                         "schema": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "default": "false"
                         }
                     },
                     {
@@ -149,6 +150,46 @@
                         }
                     }
                 ],
+                "tags": [
+                    "Vector Operations"
+                ]
+            },
+            "post": {
+                "summary": "Delete",
+                "description": "The `Delete` operation deletes vectors, by id, from a single namespace.\nYou can delete items by their id, from a single namespace.",
+                "operationId": "delete",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeleteResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rpcStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
                 "tags": [
                     "Vector Operations"
                 ]
@@ -329,6 +370,40 @@
             }
         },
         "schemas": {
+            "DeleteRequest": {
+                "type": "object",
+                "properties": {
+                    "ids": {
+                        "type": "array",
+                        "example": [
+                            "id-0",
+                            "id-1"
+                        ],
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Vectors to delete.",
+                        "maxLength": 1000,
+                        "minLength": 1
+                    },
+                    "deleteAll": {
+                        "type": "boolean",
+                        "example": false,
+                        "default": "false",
+                        "description": "This indicates that all vectors in the index namespace should be deleted."
+                    },
+                    "namespace": {
+                        "type": "string",
+                        "example": "example-namespace",
+                        "description": "The namespace to delete vectors from, if applicable."
+                    },
+                    "filter": {
+                        "type": "object",
+                        "description": "If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive\nwith specifying ids to delete in the ids param or using delete_all=True.\nSee https://www.pinecone.io/docs/metadata-filtering/`."
+                    }
+                },
+                "description": "The request for the `Delete` operation."
+            },
             "DeleteResponse": {
                 "type": "object",
                 "description": "The response for the `Delete` operation."
@@ -433,7 +508,7 @@
                                 "$eq": 2019
                             }
                         },
-                        "title": "The filter to apply if no filter is specified in `QueryVector. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/`"
+                        "description": "The filter to apply if no filter is specified in `QueryVector. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/."
                     },
                     "includeValues": {
                         "type": "boolean",

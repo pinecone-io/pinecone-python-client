@@ -7,7 +7,8 @@ from collections.abc import Iterable
 from pinecone import Config
 from pinecone.core.client import ApiClient, Configuration
 from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, \
-    ScoredVector, SingleQueryResults, DescribeIndexStatsResponse, UpsertRequest, UpsertResponse, UpdateRequest, Vector
+    ScoredVector, SingleQueryResults, DescribeIndexStatsResponse, UpsertRequest, UpsertResponse, UpdateRequest, \
+    Vector, DeleteRequest, UpdateRequest
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
 from pinecone.core.utils import fix_tuple_length, get_user_agent
 import copy
@@ -15,7 +16,7 @@ import copy
 __all__ = [
     "Index", "FetchResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus",
     "ScoredVector", "SingleQueryResults", "DescribeIndexStatsResponse", "UpsertRequest", "UpsertResponse",
-    "UpdateRequest", "Vector"
+    "UpdateRequest", "Vector", "DeleteRequest", "UpdateRequest"
 ]
 
 from .core.utils.error_handling import validate_and_convert_errors
@@ -68,7 +69,15 @@ class Index(ApiClient):
 
     @validate_and_convert_errors
     def delete(self, *args, **kwargs):
-        return self._vector_api.delete(*args, **kwargs)
+        _check_type = kwargs.pop('_check_type', False)
+        return self._vector_api.delete(
+            DeleteRequest(
+                *args,
+                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS},
+                _check_type=_check_type
+            ),
+            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
+        )
 
     @validate_and_convert_errors
     def fetch(self, *args, **kwargs):

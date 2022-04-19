@@ -26,6 +26,7 @@ from pinecone.core.client.model_utils import (  # noqa: F401
     none_type,
     validate_and_convert_types
 )
+from pinecone.core.client.model.delete_request import DeleteRequest
 from pinecone.core.client.model.describe_index_stats_response import DescribeIndexStatsResponse
 from pinecone.core.client.model.fetch_response import FetchResponse
 from pinecone.core.client.model.query_request import QueryRequest
@@ -50,6 +51,7 @@ class VectorOperationsApi(object):
 
         def __delete(
             self,
+            delete_request,
             **kwargs
         ):
             """Delete  # noqa: E501
@@ -58,13 +60,132 @@ class VectorOperationsApi(object):
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.delete(async_req=True)
+            >>> thread = api.delete(delete_request, async_req=True)
+            >>> result = thread.get()
+
+            Args:
+                delete_request (DeleteRequest):
+
+            Keyword Args:
+                _return_http_data_only (bool): response data without head status
+                    code and headers. Default is True.
+                _preload_content (bool): if False, the urllib3.HTTPResponse object
+                    will be returned without reading/decoding response data.
+                    Default is True.
+                _request_timeout (int/float/tuple): timeout setting for this request. If
+                    one number provided, it will be total request timeout. It can also
+                    be a pair (tuple) of (connection, read) timeouts.
+                    Default is None.
+                _check_input_type (bool): specifies if type checking
+                    should be done one the data sent to the server.
+                    Default is True.
+                _check_return_type (bool): specifies if type checking
+                    should be done one the data received from the server.
+                    Default is True.
+                _host_index (int/None): specifies the index of the server
+                    that we want to use.
+                    Default is read from the configuration.
+                async_req (bool): execute request asynchronously
+
+            Returns:
+                {str: (bool, date, datetime, dict, float, int, list, str, none_type)}
+                    If the method is called asynchronously, returns the request
+                    thread.
+            """
+            kwargs['async_req'] = kwargs.get(
+                'async_req', False
+            )
+            kwargs['_return_http_data_only'] = kwargs.get(
+                '_return_http_data_only', True
+            )
+            kwargs['_preload_content'] = kwargs.get(
+                '_preload_content', True
+            )
+            kwargs['_request_timeout'] = kwargs.get(
+                '_request_timeout', None
+            )
+            kwargs['_check_input_type'] = kwargs.get(
+                '_check_input_type', True
+            )
+            kwargs['_check_return_type'] = kwargs.get(
+                '_check_return_type', True
+            )
+            kwargs['_host_index'] = kwargs.get('_host_index')
+            kwargs['delete_request'] = \
+                delete_request
+            return self.call_with_http_info(**kwargs)
+
+        self.delete = _Endpoint(
+            settings={
+                'response_type': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
+                'auth': [
+                    'ApiKeyAuth'
+                ],
+                'endpoint_path': '/vectors/delete',
+                'operation_id': 'delete',
+                'http_method': 'POST',
+                'servers': None,
+            },
+            params_map={
+                'all': [
+                    'delete_request',
+                ],
+                'required': [
+                    'delete_request',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                ]
+            },
+            root_map={
+                'validations': {
+                },
+                'allowed_values': {
+                },
+                'openapi_types': {
+                    'delete_request':
+                        (DeleteRequest,),
+                },
+                'attribute_map': {
+                },
+                'location_map': {
+                    'delete_request': 'body',
+                },
+                'collection_format_map': {
+                }
+            },
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [
+                    'application/json'
+                ]
+            },
+            api_client=api_client,
+            callable=__delete
+        )
+
+        def __delete1(
+            self,
+            **kwargs
+        ):
+            """Delete  # noqa: E501
+
+            The `Delete` operation deletes vectors, by id, from a single namespace. You can delete items by their id, from a single namespace.  # noqa: E501
+            This method makes a synchronous HTTP request by default. To make an
+            asynchronous HTTP request, please pass async_req=True
+
+            >>> thread = api.delete1(async_req=True)
             >>> result = thread.get()
 
 
             Keyword Args:
                 ids ([str]): Vectors to delete.. [optional]
-                delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional]
+                delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional] if omitted the server will use the default value of False
                 namespace (str): The namespace to delete vectors from, if applicable.. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
@@ -112,14 +233,14 @@ class VectorOperationsApi(object):
             kwargs['_host_index'] = kwargs.get('_host_index')
             return self.call_with_http_info(**kwargs)
 
-        self.delete = _Endpoint(
+        self.delete1 = _Endpoint(
             settings={
                 'response_type': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
                 'auth': [
                     'ApiKeyAuth'
                 ],
                 'endpoint_path': '/vectors/delete',
-                'operation_id': 'delete',
+                'operation_id': 'delete1',
                 'http_method': 'DELETE',
                 'servers': None,
             },
@@ -171,7 +292,7 @@ class VectorOperationsApi(object):
                 'content_type': [],
             },
             api_client=api_client,
-            callable=__delete
+            callable=__delete1
         )
 
         def __describe_index_stats(
