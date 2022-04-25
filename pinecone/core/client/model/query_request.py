@@ -73,6 +73,8 @@ class QueryRequest(ModelNormal):
         },
         ('queries',): {
         },
+        ('vector',): {
+        },
     }
 
     @cached_property
@@ -99,11 +101,12 @@ class QueryRequest(ModelNormal):
         lazy_import()
         return {
             'top_k': (int,),  # noqa: E501
-            'queries': ([QueryVector],),  # noqa: E501
             'namespace': (str,),  # noqa: E501
             'filter': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
             'include_values': (bool,),  # noqa: E501
             'include_metadata': (bool,),  # noqa: E501
+            'queries': ([QueryVector],),  # noqa: E501
+            'vector': ([float],),  # noqa: E501
         }
 
     @cached_property
@@ -113,11 +116,12 @@ class QueryRequest(ModelNormal):
 
     attribute_map = {
         'top_k': 'topK',  # noqa: E501
-        'queries': 'queries',  # noqa: E501
         'namespace': 'namespace',  # noqa: E501
         'filter': 'filter',  # noqa: E501
         'include_values': 'includeValues',  # noqa: E501
         'include_metadata': 'includeMetadata',  # noqa: E501
+        'queries': 'queries',  # noqa: E501
+        'vector': 'vector',  # noqa: E501
     }
 
     read_only_vars = {
@@ -127,12 +131,11 @@ class QueryRequest(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, top_k, queries, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, top_k, *args, **kwargs):  # noqa: E501
         """QueryRequest - a model defined in OpenAPI
 
         Args:
             top_k (int): The number of results to return for each query.
-            queries ([QueryVector]): The query vectors.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -166,9 +169,11 @@ class QueryRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             namespace (str): The namespace to query.. [optional]  # noqa: E501
-            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): The filter to apply if no filter is specified in `QueryVector. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/.. [optional]  # noqa: E501
+            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/.. [optional]  # noqa: E501
             include_values (bool): Indicates whether vector values are included in the response.. [optional] if omitted the server will use the default value of False  # noqa: E501
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
+            queries ([QueryVector]): The query vectors.. [optional]  # noqa: E501
+            vector ([float]): The query vector. This should be the same length as the dimension of the index being queried.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -197,7 +202,6 @@ class QueryRequest(ModelNormal):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         self.top_k = top_k
-        self.queries = queries
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
@@ -218,12 +222,11 @@ class QueryRequest(ModelNormal):
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, top_k, queries, *args, **kwargs):  # noqa: E501
+    def __init__(self, top_k, *args, **kwargs):  # noqa: E501
         """QueryRequest - a model defined in OpenAPI
 
         Args:
             top_k (int): The number of results to return for each query.
-            queries ([QueryVector]): The query vectors.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -257,9 +260,11 @@ class QueryRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             namespace (str): The namespace to query.. [optional]  # noqa: E501
-            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): The filter to apply if no filter is specified in `QueryVector. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/.. [optional]  # noqa: E501
+            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/.. [optional]  # noqa: E501
             include_values (bool): Indicates whether vector values are included in the response.. [optional] if omitted the server will use the default value of False  # noqa: E501
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
+            queries ([QueryVector]): The query vectors. [optional]  # noqa: E501
+            vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -286,7 +291,6 @@ class QueryRequest(ModelNormal):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         self.top_k = top_k
-        self.queries = queries
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
