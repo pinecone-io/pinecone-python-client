@@ -527,7 +527,7 @@
                         "items": {
                             "$ref": "#/components/schemas/QueryVector"
                         },
-                        "description": "The query vectors.",
+                        "description": "DEPRECATED. The query vectors.",
                         "maxLength": 10,
                         "minLength": 1
                     },

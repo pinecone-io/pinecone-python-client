@@ -172,7 +172,7 @@ class QueryRequest(ModelNormal):
             filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/.. [optional]  # noqa: E501
             include_values (bool): Indicates whether vector values are included in the response.. [optional] if omitted the server will use the default value of False  # noqa: E501
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
-            queries ([QueryVector]): The query vectors.. [optional]  # noqa: E501
+            queries ([QueryVector]): DEPRECATED. The query vectors.. [optional]  # noqa: E501
             vector ([float]): The query vector. This should be the same length as the dimension of the index being queried.. [optional]  # noqa: E501
         """
 
@@ -263,7 +263,7 @@ class QueryRequest(ModelNormal):
             filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/.. [optional]  # noqa: E501
             include_values (bool): Indicates whether vector values are included in the response.. [optional] if omitted the server will use the default value of False  # noqa: E501
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
-            queries ([QueryVector]): The query vectors.. [optional]  # noqa: E501
+            queries ([QueryVector]): DEPRECATED. The query vectors.. [optional]  # noqa: E501
             vector ([float]): The query vector. This should be the same length as the dimension of the index being queried.. [optional]  # noqa: E501
         """
 
