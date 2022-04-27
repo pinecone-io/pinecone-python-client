@@ -566,6 +566,17 @@
                             "$ref": "#/components/schemas/SingleQueryResults"
                         },
                         "description": "The results of the query."
+                    },
+                    "matches": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ScoredVector"
+                        },
+                        "description": "The matches for the vectors."
+                    },
+                    "namespace": {
+                        "type": "string",
+                        "description": "The namespace for the vectors."
                     }
                 },
                 "description": "The response for the `Query` operation. These are the matches found for a particular query vector. The matches are ordered from most similar to least similar."

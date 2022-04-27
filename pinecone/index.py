@@ -84,7 +84,7 @@ class Index(ApiClient):
         return self._vector_api.fetch(*args, **kwargs)
 
     @validate_and_convert_errors
-    def query(self, queries, **kwargs):
+    def query(self, vector=[], queries=[], **kwargs):
         _check_type = kwargs.pop('_check_type', False)
 
         def _query_transform(item):
@@ -100,6 +100,7 @@ class Index(ApiClient):
         return self._vector_api.query(
             QueryRequest(
                 queries=list(map(_query_transform, queries)),
+                vector=vector,
                 _check_type=_check_type,
                 **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
             ),

@@ -35,7 +35,9 @@ from pinecone.core.client.exceptions import ApiAttributeError
 
 
 def lazy_import():
+    from pinecone.core.client.model.scored_vector import ScoredVector
     from pinecone.core.client.model.single_query_results import SingleQueryResults
+    globals()['ScoredVector'] = ScoredVector
     globals()['SingleQueryResults'] = SingleQueryResults
 
 
@@ -93,6 +95,8 @@ class QueryResponse(ModelNormal):
         lazy_import()
         return {
             'results': ([SingleQueryResults],),  # noqa: E501
+            'matches': ([ScoredVector],),  # noqa: E501
+            'namespace': (str,),  # noqa: E501
         }
 
     @cached_property
@@ -102,6 +106,8 @@ class QueryResponse(ModelNormal):
 
     attribute_map = {
         'results': 'results',  # noqa: E501
+        'matches': 'matches',  # noqa: E501
+        'namespace': 'namespace',  # noqa: E501
     }
 
     read_only_vars = {
@@ -145,7 +151,9 @@ class QueryResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            results ([SingleQueryResults]): The results of the query. [optional]  # noqa: E501
+            results ([SingleQueryResults]): The results of the query.. [optional]  # noqa: E501
+            matches ([ScoredVector]): The matches for the vectors.. [optional]  # noqa: E501
+            namespace (str): The namespace for the vectors.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -227,7 +235,9 @@ class QueryResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            results ([SingleQueryResults]): The results of the query. [optional]  # noqa: E501
+            results ([SingleQueryResults]): The results of the query.. [optional]  # noqa: E501
+            matches ([ScoredVector]): The matches for the vectors.. [optional]  # noqa: E501
+            namespace (str): The namespace for the vectors.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
