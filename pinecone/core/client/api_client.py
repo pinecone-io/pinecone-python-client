@@ -293,7 +293,7 @@ class ApiClient(object):
             return cls.sanitize_for_serialization(obj.value)
         elif isinstance(obj, (list, tuple)):
             return [cls.sanitize_for_serialization(item) for item in obj]
-        elif ndarray is not None and isinstance(obj, ndarray)
+        elif ndarray is not None and isinstance(obj, ndarray):
             return [cls.sanitize_for_serialization(item) for item in obj.tolist()]
         if isinstance(obj, dict):
             return {key: cls.sanitize_for_serialization(val) for key, val in obj.items()}
