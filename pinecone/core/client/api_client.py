@@ -43,6 +43,12 @@ from pinecone.core.client.model_utils import (
     validate_and_convert_types
 )
 
+try:
+    # If numpy is installed we could also sanitize numpy arrays
+    from numpy import ndarray
+except:
+    ndarray = None
+
 
 class ApiClient(object):
     """Generic API client for OpenAPI client library builds.
@@ -287,6 +293,8 @@ class ApiClient(object):
             return cls.sanitize_for_serialization(obj.value)
         elif isinstance(obj, (list, tuple)):
             return [cls.sanitize_for_serialization(item) for item in obj]
+        elif ndarray is not None and isinstance(obj, ndarray)
+            return [cls.sanitize_for_serialization(item) for item in obj.tolist()]
         if isinstance(obj, dict):
             return {key: cls.sanitize_for_serialization(val) for key, val in obj.items()}
         raise ApiValueError('Unable to prepare type {} for serialization'.format(obj.__class__.__name__))
