@@ -27,6 +27,15 @@ _OPENAPI_ENDPOINT_PARAMS = (
 )
 
 
+def parse_query_response(response: QueryResponse, unary_query: bool):
+    if unary_query:
+        response._data_store.pop('results')
+    else:
+        response._data_store.pop('matches')
+        response._data_store.pop('namespace')
+    return response
+
+
 class Index(ApiClient):
 
     def __init__(self, index_name: str, pool_threads=1):
@@ -97,7 +106,7 @@ class Index(ApiClient):
                 return QueryVector(values=item, _check_type=_check_type)
             raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")
 
-        return self._vector_api.query(
+        response = self._vector_api.query(
             QueryRequest(
                 queries=list(map(_query_transform, queries)),
                 vector=vector,
@@ -106,6 +115,7 @@ class Index(ApiClient):
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
+        return parse_query_response(response, vector)
 
     @validate_and_convert_errors
     def update(self, id, **kwargs):
