@@ -1118,6 +1118,11 @@
                 "$ref": "#/components/schemas/ApproximatedConfig"
               }
             ]
+          },
+          "metadata_index_config": {
+            "type": "object",
+            "description": "Configuration for the behavior of Pinecone's internal metadata index",
+            "nullable": true
           }
         }
       },

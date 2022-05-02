@@ -30,6 +30,7 @@ class IndexDescription(NamedTuple):
     pod_type: str
     index_config: None
     status: None
+    metadata_index_config: None
 
 
 def _get_api_instance():
@@ -64,7 +65,8 @@ def create_index(
         shards: int = 1,
         pods: int = 1,
         pod_type: str = 'p1',
-        index_config: dict = None
+        index_config: dict = None,
+        metadata_index_config: dict = None
 ):
     """Creates a Pinecone index.
 
@@ -93,6 +95,8 @@ def create_index(
     :param pod_type: the pod type to be used for the index. can be one of p1 or s1.
     :type pod_type: str,optional
     :param index_config: Advanced configuration options for the index
+    :param metadata_index_config: Configuration related to the metadata index
+    :type metadata_index_config: dict, optional
     :type timeout: int, optional
     :param timeout: Timeout for wait until index gets ready. If None, wait indefinitely; if >=0, time out after this many seconds; if -1, return immediately and do not wait. Default: None
     """
@@ -107,7 +111,8 @@ def create_index(
         shards=shards,
         pods=pods,
         pod_type=pod_type,
-        index_config=index_config or {}
+        index_config=index_config or {},
+        metadata_index_config=metadata_index_config
     ))
 
     def is_ready():
@@ -181,7 +186,7 @@ def describe_index(name: str):
     return IndexDescription(name=db['name'], index_type=db['index_type'], metric=db['metric'],
                             replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
                             pods=db.get('pods', db['shards']*db['replicas']), pod_type=db.get('pod_type', 'p1'),
-                            index_config=db['index_config'], status={'ready': ready, 'state': state})
+                            index_config=db['index_config'], status={'ready': ready, 'state': state}, metadata_index_config=db.get('metadata_index_config'))
 
 
 def scale_index(name: str, replicas: int):
