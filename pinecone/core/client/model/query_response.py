@@ -151,7 +151,7 @@ class QueryResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            results ([SingleQueryResults]): The results of the query.. [optional]  # noqa: E501
+            results ([SingleQueryResults]): DEPRECATED. The results of each query. The order is the same as `QueryRequest.queries`.. [optional]  # noqa: E501
             matches ([ScoredVector]): The matches for the vectors.. [optional]  # noqa: E501
             namespace (str): The namespace for the vectors.. [optional]  # noqa: E501
         """
@@ -235,7 +235,7 @@ class QueryResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            results ([SingleQueryResults]): The results of the query.. [optional]  # noqa: E501
+            results ([SingleQueryResults]): DEPRECATED. The results of each query. The order is the same as `QueryRequest.queries`.. [optional]  # noqa: E501
             matches ([ScoredVector]): The matches for the vectors.. [optional]  # noqa: E501
             namespace (str): The namespace for the vectors.. [optional]  # noqa: E501
         """

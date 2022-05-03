@@ -765,7 +765,7 @@
             "items": {
               "$ref": "#/components/schemas/SingleQueryResults"
             },
-            "description": "The results of the query."
+            "description": "DEPRECATED. The results of each query. The order is the same as `QueryRequest.queries`."
           },
           "matches": {
             "type": "array",
@@ -908,7 +908,7 @@
             "description": "The namespace for the vectors."
           }
         },
-        "title": "The query results for a single query"
+        "title": "The query results for a single `QueryVector`"
       },
       "UpdateRequest": {
         "type": "object",
