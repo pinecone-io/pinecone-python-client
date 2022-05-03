@@ -93,7 +93,7 @@ class Index(ApiClient):
         return self._vector_api.fetch(*args, **kwargs)
 
     @validate_and_convert_errors
-    def query(self, vector=[], id=None, queries=[], **kwargs):
+    def query(self, vector=[], id='', queries=[], **kwargs):
         _check_type = kwargs.pop('_check_type', False)
 
         def _query_transform(item):
@@ -106,14 +106,14 @@ class Index(ApiClient):
                 return QueryVector(values=item, _check_type=_check_type)
             raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")
 
-        args = {'queries': list(map(_query_transform, queries)),
-                'vector': vector,
-                '_check_type': _check_type,
-                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}}
-        if id:
-            args['id'] = id
         response = self._vector_api.query(
-            QueryRequest(**args),
+            QueryRequest(
+                queries=list(map(_query_transform, queries)),
+                vector=vector,
+                id=id,
+                _check_type=_check_type,
+                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
+            ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
         return parse_query_response(response, vector or id)

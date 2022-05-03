@@ -755,8 +755,7 @@
             "type": "string",
             "example": "example-vector-1",
             "description": "The vector's unique id.",
-            "maxLength": 512,
-            "minLength": 1
+            "maxLength": 512
           }
         },
         "description": "The request for the `Query` operation.",

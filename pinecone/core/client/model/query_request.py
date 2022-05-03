@@ -77,7 +77,6 @@ class QueryRequest(ModelNormal):
         },
         ('id',): {
             'max_length': 512,
-            'min_length': 1,
         },
     }
 
