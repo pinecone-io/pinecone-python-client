@@ -750,6 +750,12 @@
             "description": "The query vector. This should be the same length as the dimension of the index being queried.",
             "maxLength": 20000,
             "minLength": 1
+          },
+          "id": {
+            "type": "string",
+            "example": "example-vector-1",
+            "description": "The vector's unique id.",
+            "maxLength": 512
           }
         },
         "description": "The request for the `Query` operation.",
