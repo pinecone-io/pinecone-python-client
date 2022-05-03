@@ -291,7 +291,7 @@ class GRPCIndex(GRPCIndexBase):
         json_response = json_format.MessageToDict(response)
         return parse_fetch_response(json_response)
 
-    def query(self, vector=[], id_=None, queries=[], **kwargs):
+    def query(self, vector=[], id=None, queries=[], **kwargs):
         timeout = kwargs.pop('timeout', None)
 
         def _query_transform(item):
@@ -308,13 +308,16 @@ class GRPCIndex(GRPCIndexBase):
         _QUERY_ARGS = ['namespace', 'top_k', 'filter', 'include_values', 'include_metadata']
         if 'filter' in kwargs:
             kwargs['filter'] = dict_to_proto_struct(kwargs['filter'])
-        request = QueryRequest(queries=list(map(_query_transform, queries)),
-                               vector=vector,
-                               id=id_,
-                               **{k: v for k, v in kwargs.items() if k in _QUERY_ARGS})
+
+        args = {'queries': list(map(_query_transform, queries)),
+                'vector': vector,
+                **{k: v for k, v in kwargs.items() if k in _QUERY_ARGS}}
+        if id:
+            args['id'] = id
+        request = QueryRequest(**args)
         response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
-        return parse_query_response(json_response, vector or id_)
+        return parse_query_response(json_response, vector or id)
 
     def update(self, id, async_req=False, **kwargs):
         _UPDATE_ARGS = ['values', 'set_metadata', 'namespace']
