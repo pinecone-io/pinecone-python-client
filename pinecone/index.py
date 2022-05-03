@@ -93,7 +93,7 @@ class Index(ApiClient):
         return self._vector_api.fetch(*args, **kwargs)
 
     @validate_and_convert_errors
-    def query(self, vector=[], id_='', queries=[], **kwargs):
+    def query(self, vector=[], id_=None, queries=[], **kwargs):
         _check_type = kwargs.pop('_check_type', False)
 
         def _query_transform(item):
