@@ -291,7 +291,7 @@ class GRPCIndex(GRPCIndexBase):
         json_response = json_format.MessageToDict(response)
         return parse_fetch_response(json_response)
 
-    def query(self, vector=[], id=None, queries=[], **kwargs):
+    def query(self, vector=[], id='', queries=[], **kwargs):
         timeout = kwargs.pop('timeout', None)
 
         def _query_transform(item):
