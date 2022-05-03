@@ -122,10 +122,10 @@ class Index(ApiClient):
     def update(self, id, **kwargs):
         _check_type = kwargs.pop('_check_type', False)
         return self._vector_api.update(UpdateRequest(
-            id=id,
-            _check_type=_check_type,
-            **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
-        ),
+                id=id,
+                _check_type=_check_type,
+                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
+            ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS})
 
     @validate_and_convert_errors
