@@ -10,7 +10,7 @@
 ### Changed
 - Added support for deleting vectors by metadata filter. The pinecone.Index.delete() api now accepts an additional filter= parameter which takes metadata filter expression equivalent to what query() supports.
   - Internally these requests are now sent as POST requests, though the previous DELETE api is still supported.
-
+ 
 ## [2.0.9](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.8...v2.0.9)
 ### Changed
 - Added [update](https://www.pinecone.io/docs/api/operation/update/) API. Allows updates to a vector and it's metadata.
