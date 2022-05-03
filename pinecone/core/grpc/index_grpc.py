@@ -171,10 +171,10 @@ def parse_fetch_response(response: dict):
     return FetchResponse(vectors=vd, namespace=namespace, _check_type=False)
 
 
-def parse_query_response(response: dict):
+def parse_query_response(response: dict, unary_query: bool):
     res = []
 
-    for match in response['results']:
+    for match in response.get('results', []):
         namespace = match.get('namespace', '')
         m = []
         if 'matches' in match:
@@ -183,7 +183,20 @@ def parse_query_response(response: dict):
                                   metadata=item.get('metadata', {}))
                 m.append(sc)
         res.append(SingleQueryResults(matches=m, namespace=namespace))
-    return QueryResponse(results=res, _check_type=False)
+
+    m = []
+    for item in response.get('matches', []):
+        sc = ScoredVector(id=item['id'], score=item.get('score', 0.0), values=item.get('values', []),
+                          metadata=item.get('metadata', {}))
+        m.append(sc)
+
+    kwargs = {'check_type': False}
+    if unary_query:
+        kwargs['namespace'] = response.get('namespace', '')
+        kwargs['matches'] = m
+    else:
+        kwargs['results'] = res
+    return QueryResponse(**kwargs)
 
 
 def parse_upsert_response(response):
@@ -278,7 +291,7 @@ class GRPCIndex(GRPCIndexBase):
         json_response = json_format.MessageToDict(response)
         return parse_fetch_response(json_response)
 
-    def query(self, queries, **kwargs):
+    def query(self, vector=[], id='', queries=[], **kwargs):
         timeout = kwargs.pop('timeout', None)
 
         def _query_transform(item):
@@ -296,10 +309,12 @@ class GRPCIndex(GRPCIndexBase):
         if 'filter' in kwargs:
             kwargs['filter'] = dict_to_proto_struct(kwargs['filter'])
         request = QueryRequest(queries=list(map(_query_transform, queries)),
+                               vector=vector,
+                               id=id,
                                **{k: v for k, v in kwargs.items() if k in _QUERY_ARGS})
         response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
-        return parse_query_response(json_response)
+        return parse_query_response(json_response, vector or id)
 
     def update(self, id, async_req=False, **kwargs):
         _UPDATE_ARGS = ['values', 'set_metadata', 'namespace']

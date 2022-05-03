@@ -78,7 +78,7 @@
     "/query": {
       "post": {
         "summary": "Query",
-        "description": "The `Query` operation searches a namespace, using one or more query vectors.\nIt retrieves the ids of the most similar items in a namespace, along with their similarity scores.",
+        "description": "The `Query` operation searches a namespace, using a query vector.\nIt retrieves the ids of the most similar items in a namespace, along with their similarity scores.",
         "operationId": "query",
         "responses": {
           "200": {
@@ -708,7 +708,7 @@
                 "$eq": 2019
               }
             },
-            "description": "The filter to apply if no filter is specified in `QueryVector. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/."
+            "description": "The filter to apply. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/."
           },
           "includeValues": {
             "type": "boolean",
@@ -727,18 +727,40 @@
             "items": {
               "$ref": "#/components/schemas/QueryVector"
             },
-            "description": "The query vectors.",
+            "description": "DEPRECATED. The query vectors.",
             "maxLength": 10,
-            "minLength": 1,
-            "required": [
-              "queries"
-            ]
+            "minLength": 1
+          },
+          "vector": {
+            "type": "array",
+            "example": [
+              0.1,
+              0.2,
+              0.3,
+              0.4,
+              0.5,
+              0.6,
+              0.7,
+              0.8
+            ],
+            "items": {
+              "type": "number",
+              "format": "float"
+            },
+            "description": "The query vector. This should be the same length as the dimension of the index being queried.",
+            "maxLength": 20000,
+            "minLength": 1
+          },
+          "id": {
+            "type": "string",
+            "example": "example-vector-1",
+            "description": "The vector's unique id.",
+            "maxLength": 512
           }
         },
         "description": "The request for the `Query` operation.",
         "required": [
-          "topK",
-          "queries"
+          "topK"
         ]
       },
       "QueryResponse": {
@@ -749,7 +771,18 @@
             "items": {
               "$ref": "#/components/schemas/SingleQueryResults"
             },
-            "description": "The results of each query. The order is the same as `QueryRequest.queries`."
+            "description": "DEPRECATED. The results of each query. The order is the same as `QueryRequest.queries`."
+          },
+          "matches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScoredVector"
+            },
+            "description": "The matches for the vectors."
+          },
+          "namespace": {
+            "type": "string",
+            "description": "The namespace for the vectors."
           }
         },
         "description": "The response for the `Query` operation. These are the matches found for a particular query vector. The matches are ordered from most similar to least similar."

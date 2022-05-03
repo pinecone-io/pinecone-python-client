@@ -535,7 +535,7 @@ class VectorOperationsApi(object):
         ):
             """Query  # noqa: E501
 
-            The `Query` operation searches a namespace, using one or more query vectors. It retrieves the ids of the most similar items in a namespace, along with their similarity scores.  # noqa: E501
+            The `Query` operation searches a namespace, using a query vector. It retrieves the ids of the most similar items in a namespace, along with their similarity scores.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
