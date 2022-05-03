@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased Changes
+### Changed
+- Added support of querying by a single vector.
+  - This is a step in deprecating batch queries.
+ 
 ## [2.0.10](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.9...v2.0.10)
 ### Changed
 - Added support for deleting vectors by metadata filter. The pinecone.Index.delete() api now accepts an additional filter= parameter which takes metadata filter expression equivalent to what query() supports.
