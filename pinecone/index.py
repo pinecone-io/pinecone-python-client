@@ -29,10 +29,10 @@ _OPENAPI_ENDPOINT_PARAMS = (
 
 def parse_query_response(response: QueryResponse, unary_query: bool):
     if unary_query:
-        response._data_store.pop('results')
+        response._data_store.pop('results', None)
     else:
-        response._data_store.pop('matches')
-        response._data_store.pop('namespace')
+        response._data_store.pop('matches', None)
+        response._data_store.pop('namespace', None)
     return response
 
 
