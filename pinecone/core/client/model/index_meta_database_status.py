@@ -60,6 +60,13 @@ class IndexMetaDatabaseStatus(ModelNormal):
     """
 
     allowed_values = {
+        ('state',): {
+            'INITIALIZING': "Initializing",
+            'SCALINGUP': "ScalingUp",
+            'SCALINGDOWN': "ScalingDown",
+            'TERMINATING': "Terminating",
+            'READY': "Ready",
+        },
     }
 
     validations = {
