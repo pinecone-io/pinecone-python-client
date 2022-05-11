@@ -95,6 +95,7 @@ class CreateRequest(ModelNormal):
             'shards': (int,),  # noqa: E501
             'pod_type': (str,),  # noqa: E501
             'index_config': (dict,),  # noqa: E501
+            'metadata_index_config': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}, none_type,),  # noqa: E501
         }
 
     @cached_property
@@ -112,6 +113,7 @@ class CreateRequest(ModelNormal):
         'shards': 'shards',  # noqa: E501
         'pod_type': 'pod_type',  # noqa: E501
         'index_config': 'index_config',  # noqa: E501
+        'metadata_index_config': 'metadata_index_config',  # noqa: E501
     }
 
     read_only_vars = {
@@ -166,6 +168,7 @@ class CreateRequest(ModelNormal):
             shards (int): The number of shards to be used in the index.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             pod_type (str): The type of pod to use. One of 's1' or 'p1'.. [optional] if omitted the server will use the default value of "p1"  # noqa: E501
             index_config (dict): [optional]  # noqa: E501
+            metadata_index_config ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}, none_type): Configuration for the behavior of Pinecone's internal metadata index. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -260,6 +263,7 @@ class CreateRequest(ModelNormal):
             shards (int): The number of shards to be used in the index.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             pod_type (str): The type of pod to use. One of 's1' or 'p1'.. [optional] if omitted the server will use the default value of "p1"  # noqa: E501
             index_config (dict): [optional]  # noqa: E501
+            metadata_index_config ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}, none_type): Configuration for the behavior of Pinecone's internal metadata index. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)

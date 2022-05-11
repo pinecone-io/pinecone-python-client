@@ -267,7 +267,7 @@
             "default": 1
           },
           "pod_type": {
-            "type" : "string",
+            "type": "string",
             "description": "The type of pod to use. One of 's1' or 'p1'.",
             "default": "p1"
           },
@@ -277,6 +277,11 @@
                 "$ref": "#/components/schemas/ApproximatedConfig"
               }
             ]
+          },
+          "metadata_index_config": {
+            "type": "object",
+            "description": "Configuration for the behavior of Pinecone's internal metadata index",
+            "nullable": true
           }
         }
       },
@@ -317,7 +322,7 @@
                   }
                 ]
               },
-              "status" : {
+              "status": {
                 "type": "object",
                 "properties": {
                   "ready": {
