@@ -329,8 +329,9 @@
                     "type": "boolean"
                   },
                   "state": {
-                    "type": "string"
-                  }
+                    "type": "string",
+                    "enum": ["Initializing", "ScalingUp", "ScalingDown", "Terminating", "Ready"]    
+		  }
                 }
               }
             }

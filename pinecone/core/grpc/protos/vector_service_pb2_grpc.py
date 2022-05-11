@@ -89,7 +89,7 @@ class VectorServiceServicer(object):
     def Query(self, request, context):
         """Query
 
-        The `Query` operation searches a namespace, using one or more query vectors.
+        The `Query` operation searches a namespace, using a query vector.
         It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
