@@ -36,7 +36,7 @@ license:
 	# Add license header using https://github.com/google/addlicense.
 	# If the license header already exists in a file, re-running this command has no effect.
 	pushd ${mkfile_path}/pinecone && \
-		docker run --rm -it -v ${mkfile_path}/pinecone:/src ghcr.io/google/addlicense:latest -f ./license_header.txt *.py */*.py */*/*.py */*/*/*.py; \
+		docker run --rm -it -v ${mkfile_path}/pinecone:/src ghcr.io/google/addlicense:latest -f ./license_header.txt *.py */*.py */*/*.py */*/*/*.py */*/*/*/*.py */*/*/*/*/*.py */*/*/*/*/*/*.py; \
 		popd
 
 set-production:
