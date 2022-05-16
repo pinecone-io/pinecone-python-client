@@ -991,6 +991,13 @@
             "type": "string",
             "example": "example-namespace",
             "description": "This is the namespace name where you upsert vectors."
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "The conditions for upserting vectors. If specified, this should be the same length as the vectors."
           }
         },
         "description": "The request for the `Upsert` operation.",

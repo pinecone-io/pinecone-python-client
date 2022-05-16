@@ -6,6 +6,7 @@
   - This is a step in deprecating batch queries.
 - Added support of querying by vector id.
 - Adds support to specify what metadata fields should be indexed on index creation using the ```index_metadata_config``` option.
+- Added support of conditional upserts 
 
 ## [2.0.10](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.9...v2.0.10)
 ### Changed

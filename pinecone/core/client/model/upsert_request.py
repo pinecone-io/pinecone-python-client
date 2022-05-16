@@ -96,6 +96,7 @@ class UpsertRequest(ModelNormal):
         return {
             'vectors': ([Vector],),  # noqa: E501
             'namespace': (str,),  # noqa: E501
+            'conditions': ([{str: (bool, date, datetime, dict, float, int, list, str, none_type)}],),  # noqa: E501
         }
 
     @cached_property
@@ -106,6 +107,7 @@ class UpsertRequest(ModelNormal):
     attribute_map = {
         'vectors': 'vectors',  # noqa: E501
         'namespace': 'namespace',  # noqa: E501
+        'conditions': 'conditions',  # noqa: E501
     }
 
     read_only_vars = {
@@ -153,6 +155,7 @@ class UpsertRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             namespace (str): This is the namespace name where you upsert vectors.. [optional]  # noqa: E501
+            conditions ([{str: (bool, date, datetime, dict, float, int, list, str, none_type)}]): The conditions for upserting vectors. If specified, this should be the same length as the vectors.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -239,6 +242,7 @@ class UpsertRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             namespace (str): This is the namespace name where you upsert vectors.. [optional]  # noqa: E501
+            conditions ([{str: (bool, date, datetime, dict, float, int, list, str, none_type)}]): The conditions for upserting vectors. If specified, this should be the same length as the vectors.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
