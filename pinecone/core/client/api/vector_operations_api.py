@@ -1,6 +1,6 @@
-#
-# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
-#
+
+Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
+
 
 """
     Pinecone API
@@ -417,7 +417,7 @@ class VectorOperationsApi(object):
             >>> result = thread.get()
 
             Args:
-                ids ([str]): The vector ids to fetch.
+                ids ([str]): The vector ids to fetch. Does not accept values containing spaces.
 
             Keyword Args:
                 namespace (str): [optional]

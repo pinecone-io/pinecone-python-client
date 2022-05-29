@@ -1,6 +1,6 @@
-#
-# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
-#
+
+Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
+
 
 # we can not import model classes here because that would create a circular
 # reference which would not work in python2
