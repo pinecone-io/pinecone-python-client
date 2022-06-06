@@ -23,7 +23,7 @@ jobs:
       with:
         repository: pinecone-io/pinecone-python-client
         ref: ''
-        token: ${{ secrets.PAT }}
+        token: ${{secrets.PUSH_TOKEN}}
         path: pinecone-python-client
 
     - name: Set Python client production environment
@@ -35,8 +35,9 @@ jobs:
     - name: Set Version
       run: echo "VERSION=$(cat pinecone/__version__ )" >> $GITHUB_ENV
 
-    - name: Upload Python client to Pypi
-      run: make upload PYPI_PASSWORD=${{ env.PYPI_PASSWORD }}
+    - name: Upload Python client to Pypi:q
+      run: export TWINE_REPOSITORY_URL=${{ env.TEST_PYPI_URL }} && make upload PYPI_PASSWORD=${{ env.TEST_PYPI_PASSWORD }}
+#      run: make upload PYPI_PASSWORD=${{ env.PYPI_PASSWORD }}
 
     - name: Create tag
       uses: actions/github-script@v5
