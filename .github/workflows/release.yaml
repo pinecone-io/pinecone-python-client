@@ -39,7 +39,7 @@ jobs:
       run: |
         echo "PYPI_USERNAME=${{secrets.PYPI_USERNAME}}" >> $GITHUB_ENV
         echo "PYPI_PASSWORD=${{secrets.PYPI_PASSWORD}}" >> $GITHUB_ENV
-#        make upload PYPI_PASSWORD=${{ env.PYPI_PASSWORD }}
+        make upload PYPI_PASSWORD=${{ env.PYPI_PASSWORD }}
 
     - name: Create tag
       uses: actions/github-script@v5
