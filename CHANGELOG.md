@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased Changes
+## [2.0.11](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.10...v2.0.11)
 ### Changed
 - Added support of querying by a single vector.
   - This is a step in deprecating batch queries.
