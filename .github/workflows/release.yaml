@@ -54,5 +54,7 @@ jobs:
 
     - name: Create a Release
       uses: elgohr/Github-Release-Action@v4
+      env:
+        GITHUB_TOKEN: ${{ secrets.PUSH_TOKEN }}
       with:
         title: Release ${{ env.VERSION }}
