@@ -1,6 +1,6 @@
-#
-# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
-#
+
+//Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
+
 
 # flake8: noqa
 
@@ -17,6 +17,7 @@ from pinecone.core.client.model.approximated_config import ApproximatedConfig
 from pinecone.core.client.model.create_request import CreateRequest
 from pinecone.core.client.model.delete_request import DeleteRequest
 from pinecone.core.client.model.describe_index_stats_response import DescribeIndexStatsResponse
+from pinecone.core.client.model.fetch_request import FetchRequest
 from pinecone.core.client.model.fetch_response import FetchResponse
 from pinecone.core.client.model.hnsw_config import HnswConfig
 from pinecone.core.client.model.index_meta import IndexMeta
