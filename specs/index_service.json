@@ -280,9 +280,12 @@
           },
           "metadata_config": {
             "type": "object",
-            "description": "Configuration for the behavior of Pinecone's internal metadata index",
+            "description": "Configuration for the behavior of Pinecone's internal metadata index. By default, all metadata is indexed; when `metadata_config` is present, only specified metadata fields are indexed. To specify metadata fields to index, provide a JSON object of the following form:  \n 
+	    ``` \n
+	    {\"indexed\": [\"example_metadata_field\"] \n
+	    ``` ",
             "nullable": true
-          }
+	  }
         }
       },
       "indexMeta": {
