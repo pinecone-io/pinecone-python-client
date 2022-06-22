@@ -84,12 +84,16 @@ class UpsertRequest(google___protobuf___message___Message):
     @property
     def vectors(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[type___Vector]: ...
 
+    @property
+    def conditions(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[google___protobuf___struct_pb2___Struct]: ...
+
     def __init__(self,
         *,
         vectors : typing___Optional[typing___Iterable[type___Vector]] = None,
         namespace : typing___Optional[typing___Text] = None,
+        conditions : typing___Optional[typing___Iterable[google___protobuf___struct_pb2___Struct]] = None,
         ) -> None: ...
-    def ClearField(self, field_name: typing_extensions___Literal[u"namespace",b"namespace",u"vectors",b"vectors"]) -> None: ...
+    def ClearField(self, field_name: typing_extensions___Literal[u"conditions",b"conditions",u"namespace",b"namespace",u"vectors",b"vectors"]) -> None: ...
 type___UpsertRequest = UpsertRequest
 
 class UpsertResponse(google___protobuf___message___Message):
