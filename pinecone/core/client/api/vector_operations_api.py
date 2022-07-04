@@ -409,7 +409,7 @@ class VectorOperationsApi(object):
         ):
             """Fetch  # noqa: E501
 
-            The `Fetch` operation looks up and returns vectors, by id, from a single namespace. The returned vectors include the vector data and/or metadata.  # noqa: E501
+            The `Fetch` operation looks up and returns vectors, by ID, from a single namespace. The returned vectors include the vector data and/or metadata.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -417,7 +417,7 @@ class VectorOperationsApi(object):
             >>> result = thread.get()
 
             Args:
-                ids ([str]): The vector ids to fetch.
+                ids ([str]): The vector IDs to fetch. Does not accept values containing spaces.
 
             Keyword Args:
                 namespace (str): [optional]
