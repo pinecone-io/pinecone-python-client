@@ -154,6 +154,7 @@ class DescribeIndexStatsResponse(ModelNormal):
             namespaces ({str: (NamespaceSummary,)}): A mapping for each namespace in the index from namespace name to a summary of its contents.. [optional]  # noqa: E501
             dimension (int): The dimension of the indexed vectors.. [optional]  # noqa: E501
             index_fullness (float): The fullness of the index. The granularity of this metric is 10%.. [optional]  # noqa: E501
+            total_vector_count (int): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
