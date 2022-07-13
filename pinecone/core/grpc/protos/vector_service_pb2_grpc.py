@@ -79,7 +79,7 @@ class VectorServiceServicer(object):
     def Fetch(self, request, context):
         """Fetch
 
-        The `Fetch` operation looks up and returns vectors, by id, from a single namespace.
+        The `Fetch` operation looks up and returns vectors, by ID, from a single namespace.
         The returned vectors include the vector data and/or metadata.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
