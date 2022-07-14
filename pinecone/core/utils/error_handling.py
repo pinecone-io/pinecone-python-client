@@ -21,6 +21,8 @@ def validate_and_convert_errors(func):
                     f'Failed to connect to {e.url}; did you specify the correct index name?') from e
             else:
                 raise
+        except ProtocolError as e:
+            raise PineconeProtocolError(f'Failed to connect; did you specify the correct index name?') from e
 
     # Override signature
     sig = inspect.signature(func)

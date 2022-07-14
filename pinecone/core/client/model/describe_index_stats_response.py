@@ -151,9 +151,9 @@ class DescribeIndexStatsResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            namespaces ({str: (NamespaceSummary,)}): A mapping for each namespace in the index from namespace name to a summary of its contents.. [optional]  # noqa: E501
+            namespaces ({str: (NamespaceSummary,)}): [optional]  # noqa: E501
             dimension (int): The dimension of the indexed vectors.. [optional]  # noqa: E501
-            index_fullness (float): The fullness of the index. The granularity of this metric is 10%.. [optional]  # noqa: E501
+            index_fullness (float): The fullness of the index, regardless of whether a metadata filter expression was passed. The granularity of this metric is 10%.. [optional]  # noqa: E501
             total_vector_count (int): [optional]  # noqa: E501
         """
 
@@ -236,9 +236,9 @@ class DescribeIndexStatsResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            namespaces ({str: (NamespaceSummary,)}): A mapping for each namespace in the index from namespace name to a summary of its contents.. [optional]  # noqa: E501
+            namespaces ({str: (NamespaceSummary,)}): [optional]  # noqa: E501
             dimension (int): The dimension of the indexed vectors.. [optional]  # noqa: E501
-            index_fullness (float): The fullness of the index. The granularity of this metric is 10%.. [optional]  # noqa: E501
+            index_fullness (float): The fullness of the index, regardless of whether a metadata filter expression was passed. The granularity of this metric is 10%.. [optional]  # noqa: E501
             total_vector_count (int): [optional]  # noqa: E501
         """
 
