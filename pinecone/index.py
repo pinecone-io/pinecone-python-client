@@ -131,7 +131,7 @@ class Index(ApiClient):
     @validate_and_convert_errors
     def describe_index_stats(self, *args, **kwargs):
         _check_type = kwargs.pop('_check_type', False)
-        return self._vector_api.describe_index_stats1(
+        return self._vector_api.describe_index_stats(
             DescribeIndexStatsRequest(
                 *args,
                 **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS},
