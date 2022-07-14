@@ -47,6 +47,36 @@
       "get": {
         "summary": "DescribeIndexStats",
         "description": "The `DescribeIndexStats` operation returns statistics about the index's contents.\nFor example: The vector count per namespace and the number of dimensions.",
+        "operationId": "describe_index_stats1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DescribeIndexStatsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/rpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Vector Operations"
+        ]
+      },
+      "post": {
+        "summary": "DescribeIndexStats",
+        "description": "The `DescribeIndexStats` operation returns statistics about the index's contents.\nFor example: The vector count per namespace and the number of dimensions.",
         "operationId": "describe_index_stats",
         "responses": {
           "200": {
@@ -69,6 +99,16 @@
               }
             }
           }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DescribeIndexStatsRequest"
+              }
+            }
+          },
+          "required": true
         },
         "tags": [
           "Vector Operations"
@@ -608,6 +648,16 @@
         "type": "object",
         "description": "The response for the `Delete` operation."
       },
+      "DescribeIndexStatsRequest": {
+        "type": "object",
+        "properties": {
+          "filter": {
+            "type": "object",
+            "title": "If specified, the metadata filter here will be used to select the vectors to get stats about.\nSee https://www.pinecone.io/docs/metadata-filtering/`"
+          }
+        },
+        "description": "The request for the `DescribeIndexStats` operation."
+      },
       "DescribeIndexStatsResponse": {
         "type": "object",
         "example": {
@@ -628,7 +678,7 @@
             "additionalProperties": {
               "$ref": "#/components/schemas/NamespaceSummary"
             },
-            "description": "A mapping for each namespace in the index from namespace name to a summary of its contents."
+            "title": "A mapping for each namespace in the index from namespace name to a summary of its contents.\nIf a metadata filter expression is passed, the summary will reflect only vectors matching that expression"
           },
           "dimension": {
             "type": "integer",
@@ -640,7 +690,13 @@
             "type": "number",
             "format": "float",
             "example": 0.42,
-            "description": "The fullness of the index."
+            "description": "The fullness of the index, regardless of whether a metadata filter expression was passed. The granularity of this metric is 10%."
+          },
+          "totalVectorCount": {
+            "type": "integer",
+            "format": "int64",
+            "example": 80000,
+            "title": "The total number of vectors in the index, regardless of whether a metadata filter expression was passed"
           }
         },
         "description": "The response for the `DescribeIndexStats` operation."

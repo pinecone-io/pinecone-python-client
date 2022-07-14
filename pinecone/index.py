@@ -8,7 +8,7 @@ from pinecone import Config
 from pinecone.core.client import ApiClient, Configuration
 from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, \
     ScoredVector, SingleQueryResults, DescribeIndexStatsResponse, UpsertRequest, UpsertResponse, UpdateRequest, \
-    Vector, DeleteRequest, UpdateRequest
+    Vector, DeleteRequest, UpdateRequest, DescribeIndexStatsRequest
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
 from pinecone.core.utils import fix_tuple_length, get_user_agent
 import copy
@@ -16,7 +16,7 @@ import copy
 __all__ = [
     "Index", "FetchResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus",
     "ScoredVector", "SingleQueryResults", "DescribeIndexStatsResponse", "UpsertRequest", "UpsertResponse",
-    "UpdateRequest", "Vector", "DeleteRequest", "UpdateRequest"
+    "UpdateRequest", "Vector", "DeleteRequest", "UpdateRequest", "DescribeIndexStatsRequest"
 ]
 
 from .core.utils.error_handling import validate_and_convert_errors
@@ -130,4 +130,12 @@ class Index(ApiClient):
 
     @validate_and_convert_errors
     def describe_index_stats(self, *args, **kwargs):
-        return self._vector_api.describe_index_stats(*args, **kwargs)
+        _check_type = kwargs.pop('_check_type', False)
+        return self._vector_api.describe_index_stats(
+            DescribeIndexStatsRequest(
+                *args,
+                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS},
+                _check_type=_check_type
+            ),
+            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
+        )

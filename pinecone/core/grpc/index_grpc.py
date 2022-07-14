@@ -206,6 +206,7 @@ def parse_upsert_response(response):
 
 def parse_stats_response(response: dict):
     fullness = response.get('indexFullness', 0.0)
+    total_vector_count = response.get('totalVectorCount', 0)
     dimension = response.get('dimension', 0)
     summaries = response.get('namespaces', {})
     namespace_summaries = {}
@@ -213,7 +214,7 @@ def parse_stats_response(response: dict):
         vc = summaries[key].get('vectorCount', 0)
         namespace_summaries[key] = NamespaceSummary(vector_count=vc)
     return DescribeIndexStatsResponse(namespaces=namespace_summaries, dimension=dimension, index_fullness=fullness,
-                                      _check_type=False)
+                                      total_vector_count=total_vector_count, _check_type=False)
 
 
 class PineconeGrpcFuture:
@@ -329,8 +330,12 @@ class GRPCIndex(GRPCIndexBase):
             return self._wrap_grpc_call(self.stub.Update, request, timeout=timeout)
 
     def describe_index_stats(self, **kwargs):
+        _filter = dict_to_proto_struct(kwargs.pop('filter', None))
+        filter_param = {}
+        if _filter:
+            filter_param['filter'] = _filter
         timeout = kwargs.pop('timeout', None)
-        request = DescribeIndexStatsRequest()
+        request = DescribeIndexStatsRequest(**filter_param)
         response = self._wrap_grpc_call(self.stub.DescribeIndexStats, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_stats_response(json_response)
