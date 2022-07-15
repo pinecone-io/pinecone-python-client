@@ -243,7 +243,7 @@
           },
           "index_type": {
             "type": "string",
-            "description": "The type of vector index. Pinecone supports 'approximated'.",
+            "description": "The type of vector index. Pinecone supports 'approximated' and 'exact'.",
             "default": "approximated"
           },
           "metric": {
