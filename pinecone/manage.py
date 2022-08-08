@@ -12,6 +12,7 @@ from pinecone.core.client.api_client import ApiClient
 from pinecone.core.client.configuration import Configuration
 from pinecone.core.client.model.create_request import CreateRequest
 from pinecone.core.client.model.patch_request import PatchRequest
+from pinecone.core.client.model.create_collection_request import CreateCollectionRequest
 from pinecone.core.utils import get_user_agent
 
 __all__ = [
@@ -218,7 +219,7 @@ def create_collection(
     :param: source: Name of the source index
     """
     api_instance = _get_api_instance()
-    api_instance.create_collection(name,str)
+    api_instance.create_collection(create_collection_request=CreateCollectionRequest(name=name, source=source))
 
 
 def list_collections():
