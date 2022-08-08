@@ -96,6 +96,7 @@ class CreateRequest(ModelNormal):
             'pod_type': (str,),  # noqa: E501
             'index_config': (dict,),  # noqa: E501
             'metadata_config': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}, none_type,),  # noqa: E501
+            'source_collection': (str,),  # noqa: E501
         }
 
     @cached_property
@@ -114,6 +115,7 @@ class CreateRequest(ModelNormal):
         'pod_type': 'pod_type',  # noqa: E501
         'index_config': 'index_config',  # noqa: E501
         'metadata_config': 'metadata_config',  # noqa: E501
+        'source_collection': 'source_collection',  # noqa: E501
     }
 
     read_only_vars = {
@@ -127,7 +129,7 @@ class CreateRequest(ModelNormal):
         """CreateRequest - a model defined in OpenAPI
 
         Args:
-            name (str): The name of the index to be updated
+            name (str): The name of the index to be created. The maximum length is 50 characters.
             dimension (int): The dimensions of the vectors to be inserted in the index
 
         Keyword Args:
@@ -168,7 +170,8 @@ class CreateRequest(ModelNormal):
             shards (int): The number of shards to be used in the index.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             pod_type (str): The type of pod to use. One of 's1' or 'p1'.. [optional] if omitted the server will use the default value of "p1"  # noqa: E501
             index_config (dict): [optional]  # noqa: E501
-            metadata_config ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}, none_type): Configuration for the behavior of Pinecone's internal metadata index. By default, all metadata is indexed; when `metadata_config` is present, only specified metadata fields are indexed. To specify metadata fields to index, provide a JSON object of the following form:     ```   {\"indexed\": [\"example_metadata_field\"]   ``` . [optional]  # noqa: E501
+            metadata_config ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}, none_type): Configuration for the behavior of Pinecone's internal metadata index. By default, all metadata is indexed; when `metadata_config` is present, only specified metadata fields are indexed. To specify metadata fields to index, provide a JSON object of the following form:    ```   {\"indexed\": [\"example_metadata_field\"]}   ``` . [optional]  # noqa: E501
+            source_collection (str): The name of the collection to create an index from. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -222,7 +225,7 @@ class CreateRequest(ModelNormal):
         """CreateRequest - a model defined in OpenAPI
 
         Args:
-            name (str): The name of the index to be updated
+            name (str): The name of the index to be created. The maximum length is 50 characters.
             dimension (int): The dimensions of the vectors to be inserted in the index
 
         Keyword Args:
@@ -263,7 +266,8 @@ class CreateRequest(ModelNormal):
             shards (int): The number of shards to be used in the index.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             pod_type (str): The type of pod to use. One of 's1' or 'p1'.. [optional] if omitted the server will use the default value of "p1"  # noqa: E501
             index_config (dict): [optional]  # noqa: E501
-            metadata_config ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}, none_type): Configuration for the behavior of Pinecone's internal metadata index. By default, all metadata is indexed; when `metadata_config` is present, only specified metadata fields are indexed. To specify metadata fields to index, provide a JSON object of the following form:     ```   {\"indexed\": [\"example_metadata_field\"]   ``` . [optional]  # noqa: E501
+            metadata_config ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}, none_type): Configuration for the behavior of Pinecone's internal metadata index. By default, all metadata is indexed; when `metadata_config` is present, only specified metadata fields are indexed. To specify metadata fields to index, provide a JSON object of the following form:    ```   {\"indexed\": [\"example_metadata_field\"]}   ``` . [optional]  # noqa: E501
+            source_collection (str): The name of the collection to create an index from. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
