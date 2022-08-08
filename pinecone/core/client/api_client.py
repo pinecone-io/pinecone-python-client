@@ -767,10 +767,10 @@ class Endpoint(object):
         Example:
 
         api_instance = IndexOperationsApi()
-        api_instance.create_index  # this is an instance of the class Endpoint
-        api_instance.create_index()  # this invokes api_instance.create_index.__call__()
+        api_instance.create_collection  # this is an instance of the class Endpoint
+        api_instance.create_collection()  # this invokes api_instance.create_collection.__call__()
         which then invokes the callable functions stored in that endpoint at
-        api_instance.create_index.callable or self.callable in this class
+        api_instance.create_collection.callable or self.callable in this class
 
         """
         return self.callable(self, *args, **kwargs)
