@@ -74,7 +74,8 @@ def create_index(
         pods: int = 1,
         pod_type: str = 'p1',
         index_config: dict = None,
-        metadata_config: dict = None
+        metadata_config: dict = None,
+        source_collection: str = None,
 ):
     """Creates a Pinecone index.
 
@@ -105,6 +106,8 @@ def create_index(
     :param index_config: Advanced configuration options for the index
     :param metadata_config: Configuration related to the metadata index
     :type metadata_config: dict, optional
+    :param source_collection: Collection name to create the index from
+    :type metadata_config: str, optional
     :type timeout: int, optional
     :param timeout: Timeout for wait until index gets ready. If None, wait indefinitely; if >=0, time out after this many seconds; if -1, return immediately and do not wait. Default: None
     """
@@ -120,7 +123,8 @@ def create_index(
         pods=pods,
         pod_type=pod_type,
         index_config=index_config or {},
-        metadata_config=metadata_config
+        metadata_config=metadata_config,
+        source_collection=source_collection
     ))
 
     def is_ready():
