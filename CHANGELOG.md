@@ -8,7 +8,7 @@
 - Sanitized repo by removing leftover files from old versions.
 - Added more info to ```describe_index_stats``` call. The call now gives a namespace wise vector count breakdown.
 
-## [2.0.11](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.10...v2.0.11)
+## [2.0.11](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.12...v2.0.11)
 ### Changed
 - Added support of querying by a single vector.
   - This is a step in deprecating batch queries.
