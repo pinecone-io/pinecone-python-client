@@ -15,7 +15,8 @@ from pinecone.core.client.model.patch_request import PatchRequest
 from pinecone.core.utils import get_user_agent
 
 __all__ = [
-    "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "IndexDescription"
+    "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "IndexDescription",
+    "create_collection", "describe_collection", "list_collections", "delete_collction", "CollectionDescription"
 ]
 
 
@@ -31,6 +32,12 @@ class IndexDescription(NamedTuple):
     index_config: None
     status: None
     metadata_config: None
+
+
+class CollectionDescription(NamedTuple):
+    name: str
+    size: int
+    status: str
 
 
 def _get_api_instance():
@@ -185,8 +192,9 @@ def describe_index(name: str):
     state = response['status']['state']
     return IndexDescription(name=db['name'], index_type=db['index_type'], metric=db['metric'],
                             replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
-                            pods=db.get('pods', db['shards']*db['replicas']), pod_type=db.get('pod_type', 'p1'),
-                            index_config=db['index_config'], status={'ready': ready, 'state': state}, metadata_config=db.get('metadata_config'))
+                            pods=db.get('pods', db['shards'] * db['replicas']), pod_type=db.get('pod_type', 'p1'),
+                            index_config=db['index_config'], status={'ready': ready, 'state': state},
+                            metadata_config=db.get('metadata_config'))
 
 
 def scale_index(name: str, replicas: int):
@@ -199,3 +207,40 @@ def scale_index(name: str, replicas: int):
     """
     api_instance = _get_api_instance()
     api_instance.scale_index(name, patch_request=PatchRequest(replicas=replicas))
+
+
+def create_collection(
+        name: str,
+        source: str
+):
+    """Create a collection
+    :param: name: Name of the collection
+    :param: source: Name of the source index
+    """
+    api_instance = _get_api_instance()
+    api_instance.create_collection(name,str)
+
+
+def list_collections():
+    """List all collections"""
+    api_instance = _get_api_instance()
+    response = api_instance.list_collections()
+    return response
+
+
+def delete_collction(name: str):
+    """Deletes a collection.
+    :param: name: The name of the collection
+    """
+    api_instance = _get_api_instance()
+    api_instance.delete_collection(name)
+
+
+def describe_collection(name: str):
+    """Describes a collection.
+    :param: The name of the collection
+    :return: Description of the collection
+    """
+    api_instance = _get_api_instance()
+    response = api_instance.describe_collection(name)
+    return CollectionDescription(name=response['name'], size=response['size'], status=response['status'])
