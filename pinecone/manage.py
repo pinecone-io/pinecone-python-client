@@ -75,7 +75,7 @@ def create_index(
         pod_type: str = 'p1',
         index_config: dict = None,
         metadata_config: dict = None,
-        source_collection: str = None,
+        source_collection: str = '',
 ):
     """Creates a Pinecone index.
 
