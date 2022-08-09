@@ -233,7 +233,7 @@ def list_collections():
     return response
 
 
-def delete_collction(name: str):
+def delete_collection(name: str):
     """Deletes a collection.
     :param: name: The name of the collection
     """
