@@ -6,6 +6,7 @@ import json
 import time
 from typing import NamedTuple
 
+import pinecone
 from pinecone.config import Config
 from pinecone.core.client.api.index_operations_api import IndexOperationsApi
 from pinecone.core.client.api_client import ApiClient
@@ -17,7 +18,8 @@ from pinecone.core.utils import get_user_agent
 
 __all__ = [
     "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "IndexDescription",
-    "create_collection", "describe_collection", "list_collections", "delete_collection", "CollectionDescription"
+    "create_collection", "describe_collection", "list_collections", "delete_collection", "CollectionDescription",
+    "configure_index"
 ]
 
 
@@ -211,7 +213,7 @@ def scale_index(name: str, replicas: int):
     :type replicas: int
     """
     api_instance = _get_api_instance()
-    api_instance.scale_index(name, patch_request=PatchRequest(replicas=replicas))
+    api_instance.configure_index(name, patch_request=PatchRequest(replicas=replicas, pod_type=""))
 
 
 def create_collection(
@@ -249,3 +251,17 @@ def describe_collection(name: str):
     api_instance = _get_api_instance()
     response = api_instance.describe_collection(name)
     return CollectionDescription(name=response['name'], size=response['size'], status=response['status'])
+
+
+def configure_index(name: str, replicas: int = None, pod_type: str = ""):
+    """Changes current configuration of the index.
+       :param: name: the name of the Index
+       :param: replicas: the desired number of replicas, lowest value is 0.
+       :param: pod_type: the new pod_type for the index.
+       """
+    api_instance = _get_api_instance()
+    if replicas:
+        patch_request = PatchRequest(replicas=replicas, pod_type=pod_type)
+    else:
+        patch_request = PatchRequest(pod_type=pod_type)
+    api_instance.configure_index(name, patch_request=patch_request)
