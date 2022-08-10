@@ -17,7 +17,7 @@ from pinecone.core.utils import get_user_agent
 
 __all__ = [
     "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "IndexDescription",
-    "create_collection", "describe_collection", "list_collections", "delete_collction", "CollectionDescription"
+    "create_collection", "describe_collection", "list_collections", "delete_collection", "CollectionDescription"
 ]
 
 
