@@ -25,14 +25,12 @@ __all__ = [
 
 class IndexDescription(NamedTuple):
     name: str
-    index_type: str
     metric: str
     replicas: int
     dimension: int
     shards: int
     pods: int
     pod_type: str
-    index_config: None
     status: None
     metadata_config: None
 
@@ -197,10 +195,10 @@ def describe_index(name: str):
     db = response['database']
     ready = response['status']['ready']
     state = response['status']['state']
-    return IndexDescription(name=db['name'], index_type=db['index_type'], metric=db['metric'],
+    return IndexDescription(name=db['name'], metric=db['metric'],
                             replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
                             pods=db.get('pods', db['shards'] * db['replicas']), pod_type=db.get('pod_type', 'p1'),
-                            index_config=db['index_config'], status={'ready': ready, 'state': state},
+                            status={'ready': ready, 'state': state},
                             metadata_config=db.get('metadata_config'))
 
 
@@ -261,7 +259,7 @@ def configure_index(name: str, replicas: int = None, pod_type: str = ""):
        """
     api_instance = _get_api_instance()
     if replicas:
-        patch_request = PatchRequest(replicas=replicas,pod_type=pod_type)
+        patch_request = PatchRequest(replicas=replicas, pod_type=pod_type)
     else:
         patch_request = PatchRequest(pod_type=pod_type)
     api_instance.configure_index(name, patch_request=patch_request)
