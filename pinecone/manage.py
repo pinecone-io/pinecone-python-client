@@ -6,6 +6,7 @@ import json
 import time
 from typing import NamedTuple
 
+import pinecone
 from pinecone.config import Config
 from pinecone.core.client.api.index_operations_api import IndexOperationsApi
 from pinecone.core.client.api_client import ApiClient
@@ -212,7 +213,7 @@ def scale_index(name: str, replicas: int):
     :type replicas: int
     """
     api_instance = _get_api_instance()
-    api_instance.configure_index(name, patch_request=PatchRequest(replicas=replicas, pod_type=None))
+    api_instance.configure_index(name, patch_request=PatchRequest(replicas=replicas, pod_type=""))
 
 
 def create_collection(
@@ -252,11 +253,15 @@ def describe_collection(name: str):
     return CollectionDescription(name=response['name'], size=response['size'], status=response['status'])
 
 
-def configure_index(name: str, replicas: int = None, pod_type: str = None):
+def configure_index(name: str, replicas: int = None, pod_type: str = ""):
     """Changes current configuration of the index.
        :param: name: the name of the Index
        :param: replicas: the desired number of replicas, lowest value is 0.
        :param: pod_type: the new pod_type for the index.
        """
     api_instance = _get_api_instance()
-    api_instance.configure_index(name, patch_request=PatchRequest(replicas=replicas, pod_type=pod_type))
+    if replicas:
+        patch_request = PatchRequest(replicas=replicas,pod_type=pod_type)
+    else:
+        patch_request = PatchRequest(pod_type=pod_type)
+    api_instance.configure_index(name, patch_request=patch_request)
