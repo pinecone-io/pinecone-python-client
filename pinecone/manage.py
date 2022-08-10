@@ -212,7 +212,7 @@ def scale_index(name: str, replicas: int):
     :type replicas: int
     """
     api_instance = _get_api_instance()
-    api_instance.configure_index(name, patch_request=PatchRequest(replicas=replicas))
+    api_instance.configure_index(name, patch_request=PatchRequest(replicas=replicas, pod_type=None))
 
 
 def create_collection(
