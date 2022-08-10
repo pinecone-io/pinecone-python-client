@@ -129,7 +129,7 @@ class CreateRequest(ModelNormal):
         """CreateRequest - a model defined in OpenAPI
 
         Args:
-            name (str): The name of the index to be created. The maximum length is 50 characters.
+            name (str): The name of the index to be created. The maximum length is 45 characters.
             dimension (int): The dimensions of the vectors to be inserted in the index
 
         Keyword Args:
@@ -225,7 +225,7 @@ class CreateRequest(ModelNormal):
         """CreateRequest - a model defined in OpenAPI
 
         Args:
-            name (str): The name of the index to be created. The maximum length is 50 characters.
+            name (str): The name of the index to be created. The maximum length is 45 characters.
             dimension (int): The dimensions of the vectors to be inserted in the index
 
         Keyword Args:
