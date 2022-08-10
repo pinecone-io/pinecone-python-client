@@ -14,6 +14,8 @@
 # sys.setrecursionlimit(n)
 
 from pinecone.core.client.model.approximated_config import ApproximatedConfig
+from pinecone.core.client.model.collection_meta import CollectionMeta
+from pinecone.core.client.model.create_collection_request import CreateCollectionRequest
 from pinecone.core.client.model.create_request import CreateRequest
 from pinecone.core.client.model.delete_request import DeleteRequest
 from pinecone.core.client.model.describe_index_stats_request import DescribeIndexStatsRequest
