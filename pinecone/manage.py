@@ -18,8 +18,7 @@ from pinecone.core.utils import get_user_agent
 
 __all__ = [
     "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "IndexDescription",
-    "create_collection", "describe_collection", "list_collections", "delete_collection", "CollectionDescription",
-    "configure_index"
+    "create_collection", "describe_collection", "list_collections", "delete_collection", "configure_index"
 ]
 
 
@@ -250,7 +249,7 @@ def describe_collection(name: str):
     """
     api_instance = _get_api_instance()
     response = api_instance.describe_collection(name)
-    return CollectionDescription(name=response['name'], size=response['size'], status=response['status'])
+    return response
 
 
 def configure_index(name: str, replicas: int = None, pod_type: str = ""):
