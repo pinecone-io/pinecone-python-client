@@ -4,6 +4,8 @@
 
 import time
 from typing import NamedTuple
+
+import pinecone
 from pinecone.config import Config
 from pinecone.core.client.api.index_operations_api import IndexOperationsApi
 from pinecone.core.client.api_client import ApiClient
@@ -30,6 +32,7 @@ class IndexDescription(NamedTuple):
     index_config: None
     status: None
     metadata_config: None
+    source_collection: None
 
 
 class CollectionDescription(object):
@@ -199,7 +202,7 @@ def describe_index(name: str):
                             replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
                             pods=db.get('pods', db['shards'] * db['replicas']), pod_type=db.get('pod_type', 'p1'),
                             index_config=db['index_config'], status={'ready': ready, 'state': state},
-                            metadata_config=db.get('metadata_config'))
+                            metadata_config=db.get('metadata_config'), source_collection=db.get('source_collection',''))
 
 
 def scale_index(name: str, replicas: int):
@@ -264,4 +267,3 @@ def configure_index(name: str, replicas: int = None, pod_type: str = ""):
     else:
         patch_request = PatchRequest(pod_type=pod_type)
     api_instance.configure_index(name, patch_request=patch_request)
-
