@@ -2,15 +2,11 @@
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
 
-import json
 import time
 from typing import NamedTuple
-
-import pinecone
 from pinecone.config import Config
 from pinecone.core.client.api.index_operations_api import IndexOperationsApi
 from pinecone.core.client.api_client import ApiClient
-from pinecone.core.client.configuration import Configuration
 from pinecone.core.client.model.create_request import CreateRequest
 from pinecone.core.client.model.patch_request import PatchRequest
 from pinecone.core.client.model.create_collection_request import CreateCollectionRequest
@@ -18,13 +14,13 @@ from pinecone.core.utils import get_user_agent
 
 __all__ = [
     "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "IndexDescription",
-    "create_collection", "describe_collection", "list_collections", "delete_collection", "configure_index"
+    "create_collection", "describe_collection", "list_collections", "delete_collection", "configure_index",
+    "CollectionDescription"
 ]
 
 
 class IndexDescription(NamedTuple):
     name: str
-    index_type: str
     metric: str
     replicas: int
     dimension: int
@@ -36,10 +32,13 @@ class IndexDescription(NamedTuple):
     metadata_config: None
 
 
-class CollectionDescription(NamedTuple):
-    name: str
-    size: int
-    status: str
+class CollectionDescription(object):
+    def __init__(self, keys, values):
+        for k, v in zip(keys, values):
+            self.__dict__[k] = v
+
+    def __str__(self):
+        return  str(self.__dict__)
 
 
 def _get_api_instance():
@@ -196,7 +195,7 @@ def describe_index(name: str):
     db = response['database']
     ready = response['status']['ready']
     state = response['status']['state']
-    return IndexDescription(name=db['name'], index_type=db['index_type'], metric=db['metric'],
+    return IndexDescription(name=db['name'], metric=db['metric'],
                             replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
                             pods=db.get('pods', db['shards'] * db['replicas']), pod_type=db.get('pod_type', 'p1'),
                             index_config=db['index_config'], status={'ready': ready, 'state': state},
@@ -248,8 +247,9 @@ def describe_collection(name: str):
     :return: Description of the collection
     """
     api_instance = _get_api_instance()
-    response = api_instance.describe_collection(name)
-    return response
+    response = api_instance.describe_collection(name).to_dict()
+    response_object = CollectionDescription(response.keys(), response.values())
+    return response_object
 
 
 def configure_index(name: str, replicas: int = None, pod_type: str = ""):
@@ -264,3 +264,4 @@ def configure_index(name: str, replicas: int = None, pod_type: str = ""):
     else:
         patch_request = PatchRequest(pod_type=pod_type)
     api_instance.configure_index(name, patch_request=patch_request)
+
