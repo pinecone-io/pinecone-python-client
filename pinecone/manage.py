@@ -3,7 +3,7 @@
 #
 
 import time
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 import pinecone
 from pinecone.config import Config
@@ -41,7 +41,7 @@ class CollectionDescription(object):
             self.__dict__[k] = v
 
     def __str__(self):
-        return  str(self.__dict__)
+        return str(self.__dict__)
 
 
 def _get_api_instance():
@@ -202,7 +202,8 @@ def describe_index(name: str):
                             replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
                             pods=db.get('pods', db['shards'] * db['replicas']), pod_type=db.get('pod_type', 'p1'),
                             index_config=db['index_config'], status={'ready': ready, 'state': state},
-                            metadata_config=db.get('metadata_config'), source_collection=db.get('source_collection',''))
+                            metadata_config=db.get('metadata_config'),
+                            source_collection=db.get('source_collection', ''))
 
 
 def scale_index(name: str, replicas: int):
@@ -255,15 +256,17 @@ def describe_collection(name: str):
     return response_object
 
 
-def configure_index(name: str, replicas: int = None, pod_type: str = ""):
+def configure_index(name: str, replicas: Optional[int] = None, pod_type: Optional[str] = ""):
     """Changes current configuration of the index.
        :param: name: the name of the Index
        :param: replicas: the desired number of replicas, lowest value is 0.
        :param: pod_type: the new pod_type for the index.
        """
     api_instance = _get_api_instance()
+    config_args = {}
+    if pod_type != "":
+        config_args.update(pod_type=pod_type)
     if replicas:
-        patch_request = PatchRequest(replicas=replicas, pod_type=pod_type)
-    else:
-        patch_request = PatchRequest(pod_type=pod_type)
+        config_args.update(replicas=replicas)
+    patch_request = PatchRequest(**config_args)
     api_instance.configure_index(name, patch_request=patch_request)
