@@ -29,7 +29,6 @@ class IndexDescription(NamedTuple):
     shards: int
     pods: int
     pod_type: str
-    index_config: None
     status: None
     metadata_config: None
     source_collection: None
@@ -201,8 +200,7 @@ def describe_index(name: str):
     return IndexDescription(name=db['name'], metric=db['metric'],
                             replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
                             pods=db.get('pods', db['shards'] * db['replicas']), pod_type=db.get('pod_type', 'p1'),
-                            index_config=db['index_config'], status={'ready': ready, 'state': state},
-                            metadata_config=db.get('metadata_config'),
+                            status={'ready': ready, 'state': state}, metadata_config=db.get('metadata_config'),
                             source_collection=db.get('source_collection', ''))
 
 
