@@ -196,6 +196,10 @@ def describe_index(name: str):
     ready = db_status.get('ready', '')
     status = {'state': state, 'ready': ready}
     response['status'] = status
+    shards = response.get('shards', 1)
+    replicas = response.get('replicas', 1)
+    pods = shards * replicas
+    response['pods'] = pods
     response_object = IndexDescription(response.keys(), response.values())
     return response_object
 
@@ -264,4 +268,3 @@ def configure_index(name: str, replicas: Optional[int] = None, pod_type: Optiona
         config_args.update(replicas=replicas)
     patch_request = PatchRequest(**config_args)
     api_instance.configure_index(name, patch_request=patch_request)
-
