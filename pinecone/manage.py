@@ -189,7 +189,13 @@ def describe_index(name: str):
     :return: Description of an index
     """
     api_instance = _get_api_instance()
-    response = api_instance.describe_index(name).to_dict()
+    response = api_instance.describe_index(name)
+    db_status = response.get('status', {})
+    response = response['database'].to_dict()
+    state = db_status.get('state', '')
+    ready = db_status.get('ready', '')
+    status = {'state': state, 'ready': ready}
+    response['status'] = status
     response_object = IndexDescription(response.keys(), response.values())
     return response_object
 
@@ -258,3 +264,4 @@ def configure_index(name: str, replicas: Optional[int] = None, pod_type: Optiona
         config_args.update(replicas=replicas)
     patch_request = PatchRequest(**config_args)
     api_instance.configure_index(name, patch_request=patch_request)
+
