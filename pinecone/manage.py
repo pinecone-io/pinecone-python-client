@@ -192,7 +192,6 @@ def describe_index(name: str):
     response = api_instance.describe_index(name).to_dict()
     response_object = IndexDescription(response.keys(), response.values())
     return response_object
-    # return IndexDescription(**returned_values)
 
 
 def scale_index(name: str, replicas: int):
