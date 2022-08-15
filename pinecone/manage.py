@@ -21,17 +21,13 @@ __all__ = [
 ]
 
 
-class IndexDescription(NamedTuple):
-    name: str
-    metric: str
-    replicas: int
-    dimension: int
-    shards: int
-    pods: int
-    pod_type: str
-    status: None
-    metadata_config: None
-    source_collection: None
+class IndexDescription(object):
+    def __init__(self, keys, values):
+        for k, v in zip(keys, values):
+            self.__dict__[k] = v
+
+    def __str__(self):
+        return str(self.__dict__)
 
 
 class CollectionDescription(object):
@@ -193,15 +189,10 @@ def describe_index(name: str):
     :return: Description of an index
     """
     api_instance = _get_api_instance()
-    response = api_instance.describe_index(name)
-    db = response['database']
-    ready = response['status']['ready']
-    state = response['status']['state']
-    return IndexDescription(name=db['name'], metric=db['metric'],
-                            replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
-                            pods=db.get('pods', db['shards'] * db['replicas']), pod_type=db.get('pod_type', 'p1'),
-                            status={'ready': ready, 'state': state}, metadata_config=db.get('metadata_config'),
-                            source_collection=db.get('source_collection', ''))
+    response = api_instance.describe_index(name).to_dict()
+    response_object = IndexDescription(response.keys(), response.values())
+    return response_object
+    # return IndexDescription(**returned_values)
 
 
 def scale_index(name: str, replicas: int):
