@@ -22,8 +22,8 @@ __all__ = [
 
 
 class IndexDescription(object):
-    def __init__(self, keys, values):
-        for k, v in zip(keys, values):
+    def __init__(self, response: dict):
+        for k, v in response.items():
             self.__dict__[k] = v
 
     def __str__(self):
@@ -192,15 +192,15 @@ def describe_index(name: str):
     response = api_instance.describe_index(name)
     db_status = response.get('status', {})
     response = response['database'].to_dict()
-    state = db_status.get('state', '')
-    ready = db_status.get('ready', '')
+    state = db_status.get('state', None)
+    ready = db_status.get('ready', None)
     status = {'state': state, 'ready': ready}
     response['status'] = status
     shards = response.get('shards', 1)
     replicas = response.get('replicas', 1)
     pods = shards * replicas
     response['pods'] = pods
-    response_object = IndexDescription(response.keys(), response.values())
+    response_object = IndexDescription(response)
     return response_object
 
 
