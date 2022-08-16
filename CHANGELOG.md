@@ -1,14 +1,23 @@
 # Changelog
 
 ## Unreleased Changes
+None
 
-## [2.0.12]()
+## [2.0.13](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.13...v2.0.12)
+- Added support for collections 
+  - Users can manage collections using ``create_collection`` , ``describe_collection`` and ``delete_collection`` calls.
+  - Users can specify additional ``source_collection`` parameter during index creation to create index from a collection
+- The ```scale_index``` call is now deprecated in favor of ```configure_index``` , users can now modify both ``pod_type`` and ```replicas``` on existing indexes.
+- Added support for vertical scaling. This can be done by changing ```pod_type ``` via the ```configure_index``` call or during index creation.
+- Updated dependency requirements for grpc client.
+
+## [2.0.12](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.12...v2.0.11)
 
 - Changed grpcio verison to be > 1.44.1
 - Sanitized repo by removing leftover files from old versions.
 - Added more info to ```describe_index_stats``` call. The call now gives a namespace wise vector count breakdown.
 
-## [2.0.11](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.12...v2.0.11)
+## [2.0.11](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.11...v2.0.10)
 ### Changed
 - Added support of querying by a single vector.
   - This is a step in deprecating batch queries.
