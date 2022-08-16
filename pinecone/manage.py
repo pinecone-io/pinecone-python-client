@@ -21,13 +21,17 @@ __all__ = [
 ]
 
 
-class IndexDescription(object):
-    def __init__(self, response: dict):
-        for k, v in response.items():
-            self.__dict__[k] = v
-
-    def __str__(self):
-        return str(self.__dict__)
+class IndexDescription(NamedTuple):
+    name: str
+    metric: str
+    replicas: int
+    dimension: int
+    shards: int
+    pods: int
+    pod_type: str
+    status: None
+    metadata_config: None
+    source_collection: None
 
 
 class CollectionDescription(object):
@@ -63,7 +67,7 @@ def _get_status(name: str):
 
 def create_index(
         name: str,
-        dimension: int,
+        dimension: int = None,
         timeout: int = None,
         index_type: str = "approximated",
         metric: str = "cosine",
@@ -190,18 +194,14 @@ def describe_index(name: str):
     """
     api_instance = _get_api_instance()
     response = api_instance.describe_index(name)
-    db_status = response.get('status', {})
-    response = response['database'].to_dict()
-    state = db_status.get('state', None)
-    ready = db_status.get('ready', None)
-    status = {'state': state, 'ready': ready}
-    response['status'] = status
-    shards = response.get('shards', 1)
-    replicas = response.get('replicas', 1)
-    pods = shards * replicas
-    response['pods'] = pods
-    response_object = IndexDescription(response)
-    return response_object
+    db = response['database']
+    ready = response['status']['ready']
+    state = response['status']['state']
+    return IndexDescription(name=db['name'], metric=db['metric'],
+                            replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
+                            pods=db.get('pods', db['shards'] * db['replicas']), pod_type=db.get('pod_type', 'p1'),
+                            status={'ready': ready, 'state': state}, metadata_config=db.get('metadata_config'),
+                            source_collection=db.get('source_collection', ''))
 
 
 def scale_index(name: str, replicas: int):
