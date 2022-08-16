@@ -93,7 +93,7 @@ class IndexMetaDatabase(ModelNormal):
         lazy_import()
         return {
             'name': (str,),  # noqa: E501
-            'dimensions': (str,),  # noqa: E501
+            'dimension': (str,),  # noqa: E501
             'index_type': (str,),  # noqa: E501
             'metric': (str,),  # noqa: E501
             'pods': (int,),  # noqa: E501
@@ -111,7 +111,7 @@ class IndexMetaDatabase(ModelNormal):
 
     attribute_map = {
         'name': 'name',  # noqa: E501
-        'dimensions': 'dimensions',  # noqa: E501
+        'dimension': 'dimension',  # noqa: E501
         'index_type': 'index_type',  # noqa: E501
         'metric': 'metric',  # noqa: E501
         'pods': 'pods',  # noqa: E501
@@ -164,7 +164,7 @@ class IndexMetaDatabase(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             name (str): [optional]  # noqa: E501
-            dimensions (str): [optional]  # noqa: E501
+            dimension (str): [optional]  # noqa: E501
             index_type (str): [optional]  # noqa: E501
             metric (str): [optional]  # noqa: E501
             pods (int): [optional]  # noqa: E501
@@ -255,7 +255,7 @@ class IndexMetaDatabase(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             name (str): [optional]  # noqa: E501
-            dimensions (str): [optional]  # noqa: E501
+            dimension (str): [optional]  # noqa: E501
             index_type (str): [optional]  # noqa: E501
             metric (str): [optional]  # noqa: E501
             pods (int): [optional]  # noqa: E501

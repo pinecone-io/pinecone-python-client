@@ -87,7 +87,6 @@ class PatchRequest(ModelNormal):
         """
         return {
             'replicas': (int,),  # noqa: E501
-            'pod_type': (str,),  # noqa: E501
         }
 
     @cached_property
@@ -97,7 +96,6 @@ class PatchRequest(ModelNormal):
 
     attribute_map = {
         'replicas': 'replicas',  # noqa: E501
-        'pod_type': 'pod_type',  # noqa: E501
     }
 
     read_only_vars = {
@@ -141,8 +139,7 @@ class PatchRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            replicas (int): The desired number of replicas for the index.. [optional]  # noqa: E501
-            pod_type (str): The new pod type for the index.. [optional]  # noqa: E501
+            replicas (int): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -224,8 +221,7 @@ class PatchRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            replicas (int): The desired number of replicas for the index.. [optional]  # noqa: E501
-            pod_type (str): The new pod type for the index.. [optional]  # noqa: E501
+            replicas (int): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
