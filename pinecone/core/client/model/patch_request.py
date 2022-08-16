@@ -142,7 +142,7 @@ class PatchRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             replicas (int): The desired number of replicas for the index.. [optional]  # noqa: E501
-            pod_type (str): The new pod type for the index.. [optional]  # noqa: E501
+            pod_type (str): The new pod type for the index. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -225,7 +225,7 @@ class PatchRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             replicas (int): The desired number of replicas for the index.. [optional]  # noqa: E501
-            pod_type (str): The new pod type for the index.. [optional]  # noqa: E501
+            pod_type (str): The new pod type for the index. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
