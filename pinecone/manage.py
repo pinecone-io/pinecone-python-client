@@ -126,7 +126,8 @@ def create_index(
         pod_type=pod_type,
         index_config=index_config or {},
         metadata_config=metadata_config,
-        source_collection=source_collection
+        source_collection=source_collection,
+        _check_type=False
     ))
 
     def is_ready():
