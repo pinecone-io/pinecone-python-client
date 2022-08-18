@@ -1,13 +1,17 @@
 # pinecone-client
 The Pinecone python client
 
-For more information, see the docs at https://www.pinecone.io/docs/
+For more information about how to use the Python client visit the [docs](https://www.pinecone.io/docs/).
 
 ## Installation
 
 Install a released version from pip:
 ```shell
 pip install pinecone-client
+```
+Using the GRPC version of the client will decrease latency:
+```
+pip install "pinecone-client[grpc]"
 ```
 
 Or the latest development version:
