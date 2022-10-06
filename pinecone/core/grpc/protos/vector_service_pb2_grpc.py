@@ -110,8 +110,12 @@ class VectorServiceServicer(object):
     def DescribeIndexStats(self, request, context):
         """DescribeIndexStats
 
-        The `DescribeIndexStats` operation returns statistics about the index's contents.
-        For example: The vector count per namespace and the number of dimensions.
+        The `DescribeIndexStats` operation returns statistics about the index's
+        contents, including the vector count per namespace, the number of
+        dimensions, and the index fullness. The index fullness result  may be
+        inaccurate during pod resizing; to get the status of a pod resizing
+        process, use
+        [`describe_index`](https://www.pinecone.io/docs/api/operation/describe_index/).
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')

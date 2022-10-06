@@ -93,6 +93,7 @@ class ScoredVector(ModelNormal):
             'id': (str,),  # noqa: E501
             'score': (float,),  # noqa: E501
             'values': ([float],),  # noqa: E501
+            'sparse_values': ({str: (float,)},),  # noqa: E501
             'metadata': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
         }
 
@@ -105,6 +106,7 @@ class ScoredVector(ModelNormal):
         'id': 'id',  # noqa: E501
         'score': 'score',  # noqa: E501
         'values': 'values',  # noqa: E501
+        'sparse_values': 'sparseValues',  # noqa: E501
         'metadata': 'metadata',  # noqa: E501
     }
 
@@ -154,6 +156,7 @@ class ScoredVector(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             score (float): This is a measure of similarity between this vector and the query vector.  The higher the score, the more they are similar.. [optional]  # noqa: E501
             values ([float]): This is the vector data, if it is requested.. [optional]  # noqa: E501
+            sparse_values ({str: (float,)}): This is the sparse data, if it is requested.. [optional]  # noqa: E501
             metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): This is the metadata, if it is requested.. [optional]  # noqa: E501
         """
 
@@ -242,6 +245,7 @@ class ScoredVector(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             score (float): This is a measure of similarity between this vector and the query vector.  The higher the score, the more they are similar.. [optional]  # noqa: E501
             values ([float]): This is the vector data, if it is requested.. [optional]  # noqa: E501
+            sparse_values ({str: (float,)}): This is the sparse data, if it is requested.. [optional]  # noqa: E501
             metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): This is the metadata, if it is requested.. [optional]  # noqa: E501
         """
 

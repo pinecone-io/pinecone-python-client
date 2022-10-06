@@ -110,6 +110,7 @@ class QueryRequest(ModelNormal):
             'include_metadata': (bool,),  # noqa: E501
             'queries': ([QueryVector],),  # noqa: E501
             'vector': ([float],),  # noqa: E501
+            'sparse_vector': ({str: (float,)},),  # noqa: E501
             'id': (str,),  # noqa: E501
         }
 
@@ -126,6 +127,7 @@ class QueryRequest(ModelNormal):
         'include_metadata': 'includeMetadata',  # noqa: E501
         'queries': 'queries',  # noqa: E501
         'vector': 'vector',  # noqa: E501
+        'sparse_vector': 'sparseVector',  # noqa: E501
         'id': 'id',  # noqa: E501
     }
 
@@ -179,6 +181,7 @@ class QueryRequest(ModelNormal):
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
             queries ([QueryVector]): DEPRECATED. The query vectors. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`.. [optional]  # noqa: E501
             vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query()` request can contain only one of the parameters `id` or `vector`.. [optional]  # noqa: E501
+            sparse_vector ({str: (float,)}): The query sparse values.. [optional]  # noqa: E501
             id (str): The unique ID of the vector to be used as a query vector. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`.. [optional]  # noqa: E501
         """
 
@@ -271,6 +274,7 @@ class QueryRequest(ModelNormal):
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
             queries ([QueryVector]): DEPRECATED. The query vectors. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`.. [optional]  # noqa: E501
             vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query()` request can contain only one of the parameters `id` or `vector`.. [optional]  # noqa: E501
+            sparse_vector ({str: (float,)}): The query sparse values.. [optional]  # noqa: E501
             id (str): The unique ID of the vector to be used as a query vector. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`.. [optional]  # noqa: E501
         """
 

@@ -94,6 +94,7 @@ class Vector(ModelNormal):
         return {
             'id': (str,),  # noqa: E501
             'values': ([float],),  # noqa: E501
+            'sparse_values': ({str: (float,)},),  # noqa: E501
             'metadata': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
         }
 
@@ -105,6 +106,7 @@ class Vector(ModelNormal):
     attribute_map = {
         'id': 'id',  # noqa: E501
         'values': 'values',  # noqa: E501
+        'sparse_values': 'sparseValues',  # noqa: E501
         'metadata': 'metadata',  # noqa: E501
     }
 
@@ -153,6 +155,7 @@ class Vector(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            sparse_values ({str: (float,)}): [optional]  # noqa: E501
             metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): This is the metadata included in the request.. [optional]  # noqa: E501
         """
 
@@ -241,6 +244,7 @@ class Vector(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            sparse_values ({str: (float,)}): [optional]  # noqa: E501
             metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): This is the metadata included in the request.. [optional]  # noqa: E501
         """
 
