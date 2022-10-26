@@ -168,7 +168,7 @@ class CreateRequest(ModelNormal):
             pods (int): The number of pods for the index to use,including replicas.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             shards (int): The number of shards to be used in the index.. [optional] if omitted the server will use the default value of 1  # noqa: E501
-            pod_type (str): The type of pod to use. One of 's1' or 'p1'.. [optional] if omitted the server will use the default value of "p1"  # noqa: E501
+            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`.. [optional] if omitted the server will use the default value of "p1.x1"  # noqa: E501
             index_config (dict): [optional]  # noqa: E501
             metadata_config ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}, none_type): Configuration for the behavior of Pinecone's internal metadata index. By default, all metadata is indexed; when `metadata_config` is present, only specified metadata fields are indexed. To specify metadata fields to index, provide a JSON object of the following form:    ```   {\"indexed\": [\"example_metadata_field\"]}   ``` . [optional]  # noqa: E501
             source_collection (str): The name of the collection to create an index from. [optional]  # noqa: E501
@@ -264,7 +264,7 @@ class CreateRequest(ModelNormal):
             pods (int): The number of pods for the index to use,including replicas.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput.. [optional] if omitted the server will use the default value of 1  # noqa: E501
             shards (int): The number of shards to be used in the index.. [optional] if omitted the server will use the default value of 1  # noqa: E501
-            pod_type (str): The type of pod to use. One of 's1' or 'p1'.. [optional] if omitted the server will use the default value of "p1"  # noqa: E501
+            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`.. [optional] if omitted the server will use the default value of "p1.x1"  # noqa: E501
             index_config (dict): [optional]  # noqa: E501
             metadata_config ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}, none_type): Configuration for the behavior of Pinecone's internal metadata index. By default, all metadata is indexed; when `metadata_config` is present, only specified metadata fields are indexed. To specify metadata fields to index, provide a JSON object of the following form:    ```   {\"indexed\": [\"example_metadata_field\"]}   ``` . [optional]  # noqa: E501
             source_collection (str): The name of the collection to create an index from. [optional]  # noqa: E501

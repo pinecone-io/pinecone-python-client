@@ -93,6 +93,7 @@ class QueryVector(ModelNormal):
         """
         return {
             'values': ([float],),  # noqa: E501
+            'sparse_values': ({str: (float,)},),  # noqa: E501
             'top_k': (int,),  # noqa: E501
             'namespace': (str,),  # noqa: E501
             'filter': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
@@ -105,6 +106,7 @@ class QueryVector(ModelNormal):
 
     attribute_map = {
         'values': 'values',  # noqa: E501
+        'sparse_values': 'sparseValues',  # noqa: E501
         'top_k': 'topK',  # noqa: E501
         'namespace': 'namespace',  # noqa: E501
         'filter': 'filter',  # noqa: E501
@@ -154,6 +156,7 @@ class QueryVector(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            sparse_values ({str: (float,)}): The query sparse values.. [optional]  # noqa: E501
             top_k (int): An override for the number of results to return for this query vector.. [optional]  # noqa: E501
             namespace (str): An override the namespace to search.. [optional]  # noqa: E501
             filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): An override for the metadata filter to apply. This replaces the request-level filter.. [optional]  # noqa: E501
@@ -242,6 +245,7 @@ class QueryVector(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            sparse_values ({str: (float,)}): The query sparse values.. [optional]  # noqa: E501
             top_k (int): An override for the number of results to return for this query vector.. [optional]  # noqa: E501
             namespace (str): An override the namespace to search.. [optional]  # noqa: E501
             filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): An override for the metadata filter to apply. This replaces the request-level filter.. [optional]  # noqa: E501
