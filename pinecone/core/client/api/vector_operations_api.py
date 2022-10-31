@@ -303,7 +303,7 @@ class VectorOperationsApi(object):
         ):
             """DescribeIndexStats  # noqa: E501
 
-            The `DescribeIndexStats` operation returns statistics about the index's contents. For example: The vector count per namespace and the number of dimensions.  # noqa: E501
+            The `DescribeIndexStats` operation returns statistics about the index's contents, including the vector count per namespace, the number of dimensions, and the index fullness. The index fullness result  may be inaccurate during pod resizing; to get the status of a pod resizing process, use [`describe_index`](https://www.pinecone.io/docs/api/operation/describe_index/).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -422,7 +422,7 @@ class VectorOperationsApi(object):
         ):
             """DescribeIndexStats  # noqa: E501
 
-            The `DescribeIndexStats` operation returns statistics about the index's contents. For example: The vector count per namespace and the number of dimensions.  # noqa: E501
+            The `DescribeIndexStats` operation returns statistics about the index's contents, including the vector count per namespace, the number of dimensions, and the index fullness. The index fullness result  may be inaccurate during pod resizing; to get the status of a pod resizing process, use [`describe_index`](https://www.pinecone.io/docs/api/operation/describe_index/).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
