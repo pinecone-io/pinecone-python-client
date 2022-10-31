@@ -112,7 +112,7 @@ class HybridOperationsApi(object):
                 text_delete_request
             return self.call_with_http_info(**kwargs)
 
-        self.delete2 = _Endpoint(
+        self.delete = _Endpoint(
             settings={
                 'response_type': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
                 'auth': [
@@ -232,7 +232,7 @@ class HybridOperationsApi(object):
                 text_query_request
             return self.call_with_http_info(**kwargs)
 
-        self.query1 = _Endpoint(
+        self.query = _Endpoint(
             settings={
                 'response_type': (TextQueryResponse,),
                 'auth': [
@@ -352,7 +352,7 @@ class HybridOperationsApi(object):
                 text_upsert_request
             return self.call_with_http_info(**kwargs)
 
-        self.upsert1 = _Endpoint(
+        self.upsert = _Endpoint(
             settings={
                 'response_type': (TextUpsertResponse,),
                 'auth': [
