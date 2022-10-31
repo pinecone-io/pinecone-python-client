@@ -89,9 +89,7 @@ class TextDeleteRequest(ModelNormal):
         """
         return {
             'ids': ([str],),  # noqa: E501
-            'delete_all': (bool,),  # noqa: E501
             'namespace': (str,),  # noqa: E501
-            'filter': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
         }
 
     @cached_property
@@ -101,9 +99,7 @@ class TextDeleteRequest(ModelNormal):
 
     attribute_map = {
         'ids': 'ids',  # noqa: E501
-        'delete_all': 'deleteAll',  # noqa: E501
         'namespace': 'namespace',  # noqa: E501
-        'filter': 'filter',  # noqa: E501
     }
 
     read_only_vars = {
@@ -148,9 +144,7 @@ class TextDeleteRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             ids ([str]): Vectors to delete.. [optional]  # noqa: E501
-            delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional] if omitted the server will use the default value of False  # noqa: E501
             namespace (str): The namespace to delete vectors from, if applicable.. [optional]  # noqa: E501
-            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True. See https://www.pinecone.io/docs/metadata-filtering/.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -233,9 +227,7 @@ class TextDeleteRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             ids ([str]): Vectors to delete.. [optional]  # noqa: E501
-            delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional] if omitted the server will use the default value of False  # noqa: E501
             namespace (str): The namespace to delete vectors from, if applicable.. [optional]  # noqa: E501
-            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True. See https://www.pinecone.io/docs/metadata-filtering/.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
