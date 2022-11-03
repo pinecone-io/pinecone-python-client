@@ -11,7 +11,7 @@ from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryR
     Vector, DeleteRequest, UpdateRequest, DescribeIndexStatsRequest
 
 from .core.client.models import TextVector, TextUpsertResponse, TextUpsertRequest, TextQueryRequest, TextQueryResponse, \
-    TextScoredVector
+    TextScoredVector, TextDeleteRequest
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
 from pinecone.core.client.api.hybrid_operations_api import HybridOperationsApi
 from pinecone.core.utils import fix_tuple_length, get_user_agent
@@ -46,7 +46,7 @@ class HybridIndexInterface(object):
         self._api = api
 
 
-    # @validate_and_convert_errors
+    @validate_and_convert_errors
     def query(self, id='', vector=[], sparse_vector={}, alpha=0.5, **kwargs):
         _check_type = kwargs.pop('_check_type', False)
 
@@ -64,7 +64,7 @@ class HybridIndexInterface(object):
         response._data_store.pop('results', None)
         return response
         
-    # @validate_and_convert_errors 
+    @validate_and_convert_errors 
     def upsert(self, vectors, **kwargs):
         _check_type = kwargs.pop('_check_type', False)
 
@@ -85,8 +85,17 @@ class HybridIndexInterface(object):
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
 
-    def delete(self, ids, **kwargs):
-        raise NotImplementedError
+    @validate_and_convert_errors 
+    def delete(self, *args, **kwargs):
+        _check_type = kwargs.pop('_check_type', False)
+        return self._api.delete(
+            TextDeleteRequest(
+                *args,
+                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS},
+                _check_type=_check_type
+            ),
+            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
+        )
 
     def _get_api_client(self, **kwargs):
         api_client = copy.deepcopy(self.api_client)
