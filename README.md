@@ -63,4 +63,14 @@ pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
 active_indexes = pinecone.list_indexes()
 ```
 
+## Describe index
 
+The following example returns information about the index `example-index`.
+
+```python
+import pinecone
+
+pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
+
+index_description = pinecone.describe_index("example-index"
+```)
