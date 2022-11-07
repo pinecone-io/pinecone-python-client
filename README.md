@@ -50,3 +50,17 @@ metadata_config = {
 pinecone.create_index("example-index-2", dimension=1024,
                       metadata_config=metadata_config)
 ```
+
+## List indexes
+
+The following example returns all indexes in your project.
+
+```python
+import pinecone
+
+pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
+
+active_indexes = pinecone.list_indexes()
+```
+
+
