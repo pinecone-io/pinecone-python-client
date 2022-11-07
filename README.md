@@ -74,3 +74,15 @@ pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
 
 index_description = pinecone.describe_index("example-index"
 ```)
+
+## Delete an index
+
+The following example deletes `example-index`.
+
+```python
+import pinecone
+
+pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
+
+pinecone.delete_index("example-index")
+```
