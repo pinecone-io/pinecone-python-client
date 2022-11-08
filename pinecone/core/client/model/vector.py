@@ -94,7 +94,7 @@ class Vector(ModelNormal):
         return {
             'id': (str,),  # noqa: E501
             'values': ([float],),  # noqa: E501
-            'metadata': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
+            'metadata': ({str: (bool, date, dict, float, int, list, str, none_type)},),  # noqa: E501
         }
 
     @cached_property
