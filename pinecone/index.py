@@ -3,7 +3,9 @@
 #
 
 from collections.abc import Iterable
+from typing import List, Dict, Any
 
+from core.utils.tuple_unpacker import TupleUnpacker
 from pinecone import Config
 from pinecone.core.client import ApiClient, Configuration
 from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, \
@@ -124,6 +126,15 @@ class Index(ApiClient):
         self.user_agent = get_user_agent()
         self._vector_api = VectorOperationsApi(self)
 
+        self._vector_tuple_unpacker = TupleUnpacker(
+            ordered_required_items=[('id', str),
+                                    ('values', List[float])],
+            ordered_optional_items=[('sparse_vector', Dict[int, float], {}),
+                                    ('metadata', Dict[str, Any], {})])
+        self._query_vector_tuple_unpacker = TupleUnpacker(
+            ordered_required_items=[('values', List[float])],
+            ordered_optional_items=[('filter', Dict[str, Any], None)])
+
     @validate_and_convert_errors
     def upsert(self, vectors, **kwargs):
         _check_type = kwargs.pop('_check_type', False)
@@ -132,8 +143,7 @@ class Index(ApiClient):
             if isinstance(item, Vector):
                 return item
             if isinstance(item, tuple):
-                id, values, metadata = fix_tuple_length(item, 3)
-                return Vector(id=id, values=values, metadata=metadata or {}, _check_type=_check_type)
+                return Vector(**self._vector_tuple_unpacker.unpack(item), _check_type=_check_type)
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
         return self._vector_api.upsert(
@@ -169,8 +179,7 @@ class Index(ApiClient):
             if isinstance(item, QueryVector):
                 return item
             if isinstance(item, tuple):
-                values, filter = fix_tuple_length(item, 2)
-                return QueryVector(values=values, filter=filter, _check_type=_check_type)
+                return QueryVector(**self._query_vector_tuple_unpacker.unpack(item), _check_type=_check_type)
             if isinstance(item, Iterable):
                 return QueryVector(values=item, _check_type=_check_type)
             raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")

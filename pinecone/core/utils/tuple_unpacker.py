@@ -12,6 +12,8 @@ class TupleUnpacker:
         Args:
             ordered_required_items: a list of required tuples of the form (arg_name, arg_type_hint).
             ordered_optional_items: a list of optional tuples of the form (arg_name, arg_type_hint, missing_value).
+
+            Note that optional refers to the tuple and not the output arguments.
         """
         self._ordered_required_items = ordered_required_items
         self._ordered_optional_items = ordered_optional_items
