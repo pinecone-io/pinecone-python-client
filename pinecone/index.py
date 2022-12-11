@@ -64,11 +64,12 @@ class Index(ApiClient):
         self._vector_tuple_unpacker = TupleUnpacker(
             ordered_required_items=[('id', str),
                                     ('values', List[float])],
-            ordered_optional_items=[('sparse_vector', Dict[int, float], {}),
+            ordered_optional_items=[('sparse_values', Dict[int, float], {}),
                                     ('metadata', Dict[str, Any], {})])
         self._query_vector_tuple_unpacker = TupleUnpacker(
             ordered_required_items=[('values', List[float])],
-            ordered_optional_items=[('filter', Dict[str, Any], None)])
+            ordered_optional_items=[('sparse_values', Dict[int, float], {}),
+                                    ('filter', Dict[str, Any], None)])
 
     @validate_and_convert_errors
     def upsert(self, vectors, **kwargs):
@@ -78,7 +79,9 @@ class Index(ApiClient):
             if isinstance(item, Vector):
                 return item
             if isinstance(item, tuple):
-                return Vector(**self._vector_tuple_unpacker.unpack(item), _check_type=_check_type)
+                args = self._vector_tuple_unpacker.unpack(item)
+                args['sparse_values'] = {str(k): v for k, v in args['sparse_values'].items()}
+                return Vector(**args, _check_type=_check_type)
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
         return self._vector_api.upsert(
@@ -114,7 +117,9 @@ class Index(ApiClient):
             if isinstance(item, QueryVector):
                 return item
             if isinstance(item, tuple):
-                return QueryVector(**self._query_vector_tuple_unpacker.unpack(item), _check_type=_check_type)
+                args = self._vector_tuple_unpacker.unpack(item)
+                args['sparse_values'] = {str(k): v for k, v in args['sparse_values'].items()}
+                return QueryVector(**args, _check_type=_check_type)
             if isinstance(item, Iterable):
                 return QueryVector(values=item, _check_type=_check_type)
             raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")

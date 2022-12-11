@@ -4,12 +4,14 @@
 import logging
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import NamedTuple, Optional, Dict, Iterable
+from typing import NamedTuple, Optional, Dict, Iterable, List, Any
 
 import certifi
 import grpc
 from google.protobuf import json_format
 from grpc._channel import _InactiveRpcError, _MultiThreadedRendezvous
+
+from core.utils.tuple_unpacker import TupleUnpacker
 from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, \
     UpsertResponse, DescribeIndexStatsResponse
 from pinecone.config import Config
@@ -251,6 +253,16 @@ class PineconeGrpcFuture:
 
 class GRPCIndex(GRPCIndexBase):
 
+    vector_tuple_unpacker = TupleUnpacker(
+        ordered_required_items=[('id', str),
+                                ('values', List[float])],
+        ordered_optional_items=[('sparse_values', Dict[int, float], {}),
+                                ('metadata', Dict[str, Any], {})])
+    query_vector_tuple_unpacker = TupleUnpacker(
+        ordered_required_items=[('values', List[float])],
+        ordered_optional_items=[('sparse_values', Dict[int, float], {}),
+                                ('filter', Dict[str, Any], None)])
+
     @property
     def stub_class(self):
         return VectorServiceStub
@@ -260,8 +272,10 @@ class GRPCIndex(GRPCIndexBase):
             if isinstance(item, GRPCVector):
                 return item
             if isinstance(item, tuple):
-                id, values, metadata = fix_tuple_length(item, 3)
-                return GRPCVector(id=id, values=values, metadata=dict_to_proto_struct(metadata) or {})
+                args = self.vector_tuple_unpacker.unpack(item)
+                args['metadata'] = dict_to_proto_struct(args["metadata"])
+                args["sparse_values"] = dict_to_proto_struct(args["sparse_values"])
+                return GRPCVector(**args)
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
         request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
@@ -299,9 +313,10 @@ class GRPCIndex(GRPCIndexBase):
             if isinstance(item, GRPCQueryVector):
                 return item
             if isinstance(item, tuple):
-                values, filter = fix_tuple_length(item, 2)
-                filter = dict_to_proto_struct(filter)
-                return GRPCQueryVector(values=values, filter=filter)
+                args = self.query_vector_tuple_unpacker.unpack(item)
+                args["sparse_values"] = dict_to_proto_struct(args["sparse_values"])
+                args['filter'] = dict_to_proto_struct(args["filter"])
+                return GRPCQueryVector(**args)
             if isinstance(item, Iterable):
                 return GRPCQueryVector(values=item)
             raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")
