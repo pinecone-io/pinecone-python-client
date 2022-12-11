@@ -123,9 +123,6 @@ class Index(ApiClient):
         super().__init__(configuration=openapi_client_config, pool_threads=pool_threads)
         self.user_agent = get_user_agent()
         self._vector_api = VectorOperationsApi(self)
-        self._hybrid_api = HybridOperationsApi(self)
-
-        self.hybrid = HybridIndexInterface(self._hybrid_api)
 
     @validate_and_convert_errors
     def upsert(self, vectors, **kwargs):
