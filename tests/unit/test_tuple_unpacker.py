@@ -2,7 +2,7 @@ import pytest
 import re
 from typing import List, Dict, Any
 
-from core.utils.tuple_unpacker import TupleUnpacker
+from pinecone.core.utils.tuple_unpacker import TupleUnpacker
 
 
 class TestTupleUnpacker:
