@@ -11,7 +11,7 @@ import grpc
 from google.protobuf import json_format
 from grpc._channel import _InactiveRpcError, _MultiThreadedRendezvous
 
-from core.utils.tuple_unpacker import TupleUnpacker
+from pinecone.core.utils.tuple_unpacker import TupleUnpacker
 from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, \
     UpsertResponse, DescribeIndexStatsResponse
 from pinecone.config import Config

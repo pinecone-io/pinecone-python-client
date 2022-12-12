@@ -5,7 +5,7 @@
 from collections.abc import Iterable
 from typing import List, Dict, Any
 
-from core.utils.tuple_unpacker import TupleUnpacker
+from pinecone.core.utils.tuple_unpacker import TupleUnpacker
 from pinecone import Config
 from pinecone.core.client import ApiClient
 from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, \
