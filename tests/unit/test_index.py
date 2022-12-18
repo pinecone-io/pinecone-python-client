@@ -5,6 +5,8 @@ md1 = {'genre': 'action', 'year': 2021}
 md2 = {'genre': 'documentary', 'year': 2020}
 filter1 = {'genre': {'$in': ['action']}}
 filter2 = {'year': {'$eq': 2020}}
+sparse1 = {"1": 2.0, "3": 4.1}
+sparse2 = {"5": 6.3, "7": 8.7}
 
 
 def test_upsert_request_tuples_id_data(mocker):
@@ -32,6 +34,36 @@ def test_upsert_request_tuples_id_data_metadata(mocker):
         pinecone.UpsertRequest(vectors=[
             pinecone.Vector(id='vec1', values=vals1, metadata=md1, sparse_values={}),
             pinecone.Vector(id='vec2', values=vals2, metadata=md2, sparse_values={})
+        ])
+    )
+
+
+def test_upsert_request_tuples_id_data_metadata_sparse_values(mocker):
+    import pinecone
+    pinecone.init(api_key='example-key')
+    index = pinecone.Index('example-name')
+    mocker.patch.object(index._vector_api, 'upsert', autospec=True)
+    index.upsert([('vec1', vals1, md1, sparse1),
+                  ('vec2', vals2, md2, sparse2)])
+    index._vector_api.upsert.assert_called_once_with(
+        pinecone.UpsertRequest(vectors=[
+            pinecone.Vector(id='vec1', values=vals1, metadata=md1, sparse_values=sparse1),
+            pinecone.Vector(id='vec2', values=vals2, metadata=md2, sparse_values=sparse2)
+        ])
+    )
+
+
+def test_upsert_request_tuples_id_data_sparse_values(mocker):
+    import pinecone
+    pinecone.init(api_key='example-key')
+    index = pinecone.Index('example-name')
+    mocker.patch.object(index._vector_api, 'upsert', autospec=True)
+    index.upsert([('vec1', vals1, None, sparse1),
+                  ('vec2', vals2, None, sparse2)])
+    index._vector_api.upsert.assert_called_once_with(
+        pinecone.UpsertRequest(vectors=[
+            pinecone.Vector(id='vec1', values=vals1, metadata={}, sparse_values=sparse1),
+            pinecone.Vector(id='vec2', values=vals2, metadata={}, sparse_values=sparse2)
         ])
     )
 

@@ -260,11 +260,12 @@ class GRPCIndex(GRPCIndexBase):
             if isinstance(item, GRPCVector):
                 return item
             if isinstance(item, tuple):
-                id, values, metadata, sparse_values = fix_tuple_length(item, 4)
-                return GRPCVector(id=id,
+                vec_id, values, metadata, sparse_values = fix_tuple_length(item, 4)
+                sparse_values = {str(k): v for k, v in sparse_values.items() or {}}
+                return GRPCVector(id=vec_id,
                                   values=values,
                                   metadata=dict_to_proto_struct(metadata) or {},
-                                  sparse_values=dict_to_proto_struct(sparse_values) or {})
+                                  sparse_values=dict_to_proto_struct(sparse_values))
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
         request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
@@ -304,6 +305,7 @@ class GRPCIndex(GRPCIndexBase):
             if isinstance(item, tuple):
                 values, filter, sparse_values = fix_tuple_length(item, 3)
                 filter = dict_to_proto_struct(filter)
+                sparse_values = dict_to_proto_struct({str(k): v for k, v in sparse_values.items() or {}})
                 return GRPCQueryVector(values=values, filter=filter, sparse_values=sparse_values)
             if isinstance(item, Iterable):
                 return GRPCQueryVector(values=item)

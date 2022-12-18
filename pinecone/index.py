@@ -65,10 +65,11 @@ class Index(ApiClient):
                 return item
             if isinstance(item, tuple):
                 vec_id, values, metadata, sparse_values = fix_tuple_length(item, 4)
+                sparse_values = {str(k): v for k, v in (sparse_values or {}).items()}
                 return Vector(id=vec_id,
                               values=values,
                               metadata=metadata or {},
-                              sparse_values=sparse_values or {},
+                              sparse_values=sparse_values,
                               _check_type=_check_type)
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
@@ -106,9 +107,10 @@ class Index(ApiClient):
                 return item
             if isinstance(item, tuple):
                 values, query_filter, sparse_values = fix_tuple_length(item, 3)
+                sparse_values = {str(k): v for k, v in (sparse_values or {}).items()}
                 return QueryVector(values=values,
                                    filter=query_filter,
-                                   sparse_values=sparse_values or {},
+                                   sparse_values=sparse_values,
                                    _check_type=_check_type)
             if isinstance(item, Iterable):
                 return QueryVector(values=item, _check_type=_check_type)
