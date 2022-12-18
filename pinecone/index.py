@@ -5,23 +5,19 @@
 from collections.abc import Iterable
 
 from pinecone import Config
-from pinecone.core.client import ApiClient, Configuration
+from pinecone.core.client import ApiClient
 from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, \
     ScoredVector, SingleQueryResults, DescribeIndexStatsResponse, UpsertRequest, UpsertResponse, UpdateRequest, \
     Vector, DeleteRequest, UpdateRequest, DescribeIndexStatsRequest
 
-from .core.client.models import TextVector, TextUpsertResponse, TextUpsertRequest, TextQueryRequest, TextQueryResponse, \
-    TextScoredVector, TextDeleteRequest
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
-from pinecone.core.client.api.hybrid_operations_api import HybridOperationsApi
 from pinecone.core.utils import fix_tuple_length, get_user_agent
 import copy
 
 __all__ = [
     "Index", "FetchResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus",
     "ScoredVector", "SingleQueryResults", "DescribeIndexStatsResponse", "UpsertRequest", "UpsertResponse",
-    "UpdateRequest", "Vector", "DeleteRequest", "UpdateRequest", "DescribeIndexStatsRequest", "TextUpsertRequest", "TextUpsertResponse", 
-    "TextQueryRequest", "TextQueryResponse", "TextScoredVector", "TextVector"
+    "UpdateRequest", "Vector", "DeleteRequest", "UpdateRequest", "DescribeIndexStatsRequest"
 ]
 
 from .core.utils.error_handling import validate_and_convert_errors
@@ -39,70 +35,6 @@ def parse_query_response(response: QueryResponse, unary_query: bool):
         response._data_store.pop('matches', None)
         response._data_store.pop('namespace', None)
     return response
-
-
-class HybridIndexInterface(object):
-    def __init__(self, api: HybridOperationsApi):
-        self._api = api
-
-
-    @validate_and_convert_errors
-    def query(self, id='', vector=[], sparse_vector={}, alpha=0.5, **kwargs):
-        _check_type = kwargs.pop('_check_type', False)
-
-        response = self._api.query(
-            TextQueryRequest(
-                vector=vector,
-                sparse_vector=sparse_vector,
-                id=id,
-                alpha=alpha,
-                _check_type=_check_type,
-                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
-            ),
-            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
-        )
-        response._data_store.pop('results', None)
-        return response
-        
-    @validate_and_convert_errors 
-    def upsert(self, vectors, **kwargs):
-        _check_type = kwargs.pop('_check_type', False)
-
-        def _vector_transform(item):
-            if isinstance(item, TextVector):
-                return item
-            if isinstance(item, tuple):
-                id, values, sparse_values, metadata = fix_tuple_length(item, 4)
-                return TextVector(id=id, values=values, sparse_values=sparse_values, metadata=metadata or {}, _check_type=_check_type)
-            raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
-
-        return self._api.upsert(
-            TextUpsertRequest(
-                vectors=list(map(_vector_transform, vectors)),
-                _check_type=_check_type,
-                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
-            ),
-            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
-        )
-
-    @validate_and_convert_errors 
-    def delete(self, *args, **kwargs):
-        _check_type = kwargs.pop('_check_type', False)
-        return self._api.delete(
-            TextDeleteRequest(
-                *args,
-                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS},
-                _check_type=_check_type
-            ),
-            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
-        )
-
-    def _get_api_client(self, **kwargs):
-        api_client = copy.deepcopy(self.api_client)
-        for param in _OPENAPI_ENDPOINT_PARAMS:
-            if param in kwargs:
-                setattr(api_client, param, kwargs.pop(param))
-        return api_client
 
 
 class Index(ApiClient):
@@ -123,9 +55,6 @@ class Index(ApiClient):
         super().__init__(configuration=openapi_client_config, pool_threads=pool_threads)
         self.user_agent = get_user_agent()
         self._vector_api = VectorOperationsApi(self)
-        self._hybrid_api = HybridOperationsApi(self)
-
-        self.hybrid = HybridIndexInterface(self._hybrid_api)
 
     @validate_and_convert_errors
     def upsert(self, vectors, **kwargs):
@@ -135,8 +64,12 @@ class Index(ApiClient):
             if isinstance(item, Vector):
                 return item
             if isinstance(item, tuple):
-                id, values, metadata = fix_tuple_length(item, 3)
-                return Vector(id=id, values=values, metadata=metadata or {}, _check_type=_check_type)
+                vec_id, values, metadata, sparse_values = fix_tuple_length(item, 4)
+                return Vector(id=vec_id,
+                              values=values,
+                              metadata=metadata or {},
+                              sparse_values=sparse_values or {},
+                              _check_type=_check_type)
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
         return self._vector_api.upsert(
@@ -172,8 +105,11 @@ class Index(ApiClient):
             if isinstance(item, QueryVector):
                 return item
             if isinstance(item, tuple):
-                values, filter = fix_tuple_length(item, 2)
-                return QueryVector(values=values, filter=filter, _check_type=_check_type)
+                values, query_filter, sparse_values = fix_tuple_length(item, 3)
+                return QueryVector(values=values,
+                                   filter=query_filter,
+                                   sparse_values=sparse_values or {},
+                                   _check_type=_check_type)
             if isinstance(item, Iterable):
                 return QueryVector(values=item, _check_type=_check_type)
             raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")

@@ -15,8 +15,8 @@ def test_upsert_request_tuples_id_data(mocker):
     index.upsert([('vec1', vals1), ('vec2', vals2)])
     index._vector_api.upsert.assert_called_once_with(
         pinecone.UpsertRequest(vectors=[
-            pinecone.Vector(id='vec1', values=vals1, metadata={}),
-            pinecone.Vector(id='vec2', values=vals2, metadata={})
+            pinecone.Vector(id='vec1', values=vals1, metadata={}, sparse_values={}),
+            pinecone.Vector(id='vec2', values=vals2, metadata={}, sparse_values={})
         ])
     )
 
@@ -30,8 +30,8 @@ def test_upsert_request_tuples_id_data_metadata(mocker):
                   ('vec2', vals2, md2)])
     index._vector_api.upsert.assert_called_once_with(
         pinecone.UpsertRequest(vectors=[
-            pinecone.Vector(id='vec1', values=vals1, metadata=md1),
-            pinecone.Vector(id='vec2', values=vals2, metadata=md2)
+            pinecone.Vector(id='vec1', values=vals1, metadata=md1, sparse_values={}),
+            pinecone.Vector(id='vec2', values=vals2, metadata=md2, sparse_values={})
         ])
     )
 
@@ -58,7 +58,7 @@ def test_query_request_tuples_query_filter(mocker):
     ])
     index._vector_api.query.assert_called_once_with(
         pinecone.QueryRequest(top_k=10, vector=[], id='', queries=[
-            pinecone.QueryVector(values=vals1, filter=filter1),
-            pinecone.QueryVector(values=vals2, filter=filter2)
+            pinecone.QueryVector(values=vals1, filter=filter1, sparse_values={}),
+            pinecone.QueryVector(values=vals2, filter=filter2, sparse_values={})
         ])
     )
