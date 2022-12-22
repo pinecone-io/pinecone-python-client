@@ -186,8 +186,11 @@ class _CONFIG:
             socket_params += [(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, keep_alive_tries)]
 
         # TCP Keep Alive Probes for Windows OS
-        elif platform == 'win32' and hasattr(socket, "SIO_KEEPALIVE_VALS"):
-            socket_params += [(socket.SIO_KEEPALIVE_VALS, (1, keep_alive_idle_sec * 1000, keep_alive_interval_sec * 1000))]
+        # NOTE: Changing TCP KA params on windows is done via a different mechanism which OpenAPI's Rest client doesn't expose.
+        # Since the default values work well, it seems setting `(socket.SO_KEEPALIVE, 1)` is sufficient.
+        # Leaving this code here for future reference.
+        # elif platform == 'win32' and hasattr(socket, "SIO_KEEPALIVE_VALS"):
+        #     socket.ioctl((socket.SIO_KEEPALIVE_VALS, (1, keep_alive_idle_sec * 1000, keep_alive_interval_sec * 1000)))
 
         # TCP Keep Alive Probes for Mac OS
         elif platform == 'darwin':
