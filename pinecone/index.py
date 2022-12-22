@@ -107,13 +107,13 @@ class Index(ApiClient):
     @validate_and_convert_errors
     def fetch(self, ids: List[str], namespace: Optional[str] = None, **kwargs) -> FetchResponse:
         args_dict = self._parse_args_to_dict([('namespace', namespace)])
-        return self._vector_api.fetch(ids, **args_dict, **kwargs)
+        return self._vector_api.fetch(ids=ids, **args_dict, **kwargs)
 
     @validate_and_convert_errors
     def query(self,
               vector: Optional[List[float]] = None,
               id: Optional[str] = None,
-              queries: Optional[List[QueryVector]] = None,
+              queries: Optional[Union[List[QueryVector], List[Tuple]]] = None,
               top_k: Optional[int] = None,
               namespace: Optional[str] = None,
               filter: Optional[Dict[str, Any]] = None,
@@ -168,7 +168,7 @@ class Index(ApiClient):
                values: Optional[List[float]] = None,
                set_metadata: Optional[Dict[str, Any]] = None,
                namespace: Optional[str] = None,
-               **kwargs):
+               **kwargs) -> Dict[str, Any]:
         _check_type = kwargs.pop('_check_type', False)
         args_dict = self._parse_args_to_dict([('values', values),
                                               ('set_metadata', set_metadata),

@@ -4,20 +4,19 @@
 import logging
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import NamedTuple, Optional, Dict, Iterable
+from typing import NamedTuple, Optional, Dict, Iterable, Union, List, Tuple, Any
 
 import certifi
 import grpc
 from google.protobuf import json_format
 from grpc._channel import _InactiveRpcError, _MultiThreadedRendezvous
-from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, \
-    UpsertResponse, DescribeIndexStatsResponse
+from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, DescribeIndexStatsResponse
 from pinecone.config import Config
 from pinecone.core.client.model.namespace_summary import NamespaceSummary
 from pinecone.core.client.model.vector import Vector as _Vector
 from pinecone.core.grpc.protos.vector_service_pb2 import Vector as GRPCVector, \
-    QueryVector as GRPCQueryVector, UpsertRequest, DeleteRequest, QueryRequest, \
-    FetchRequest, UpdateRequest, DescribeIndexStatsRequest
+    QueryVector as GRPCQueryVector, UpsertRequest, UpsertResponse, DeleteRequest, QueryRequest, \
+    FetchRequest, UpdateRequest, DescribeIndexStatsRequest, DeleteResponse, UpdateResponse
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
 from pinecone.core.grpc.retry import RetryOnRpcErrorClientInterceptor, RetryConfig
 from pinecone.core.utils import _generate_request_id, dict_to_proto_struct, fix_tuple_length
@@ -199,11 +198,6 @@ def parse_query_response(response: dict, unary_query: bool):
     return QueryResponse(**kwargs)
 
 
-def parse_upsert_response(response):
-    response = json_format.MessageToDict(response)
-    return UpsertResponse(upserted_count=response['upsertedCount'], _check_type=False)
-
-
 def parse_stats_response(response: dict):
     fullness = response.get('indexFullness', 0.0)
     total_vector_count = response.get('totalVectorCount', 0)
@@ -255,7 +249,13 @@ class GRPCIndex(GRPCIndexBase):
     def stub_class(self):
         return VectorServiceStub
 
-    def upsert(self, vectors, async_req=False, **kwargs):
+    def upsert(self,
+               vectors: Union[List[GRPCVector], List[Tuple]],
+               async_req: bool = False,
+               namespace: Optional[str] = None,
+               **kwargs) -> Union[UpsertResponse, PineconeGrpcFuture]:
+        args_dict = self._parse_args_to_dict([('namespace', namespace)])
+
         def _vector_transform(item):
             if isinstance(item, GRPCVector):
                 return item
@@ -264,7 +264,7 @@ class GRPCIndex(GRPCIndexBase):
                 return GRPCVector(id=id, values=values, metadata=dict_to_proto_struct(metadata) or {})
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
-        request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
+        request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **args_dict, **kwargs)
         timeout = kwargs.pop('timeout', None)
         if async_req:
             future = self._wrap_grpc_call(self.stub.Upsert.future, request, timeout=timeout)
@@ -272,12 +272,22 @@ class GRPCIndex(GRPCIndexBase):
         else:
             return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
 
-    def delete(self, *args, async_req=False, **kwargs):
-        _filter = dict_to_proto_struct(kwargs.pop('filter', None))
-        filter_param = {}
-        if _filter:
-            filter_param['filter'] = _filter
-        request = DeleteRequest(*args, **kwargs, **filter_param)
+    def delete(self,
+               ids: Optional[List[str]] = None,
+               delete_all: Optional[bool] = None,
+               namespace: Optional[str] = None,
+               filter: Optional[Dict[str, Any]] = None,
+               async_req: bool = False,
+               **kwargs) -> Union[DeleteResponse, PineconeGrpcFuture]:
+        if filter is not None:
+            filter = dict_to_proto_struct(filter)
+
+        args_dict = self._parse_args_to_dict([('ids', ids),
+                                              ('delete_all', delete_all),
+                                              ('namespace', namespace),
+                                              ('filter', filter)])
+
+        request = DeleteRequest(**args_dict, **kwargs)
         timeout = kwargs.pop('timeout', None)
         if async_req:
             future = self._wrap_grpc_call(self.stub.Delete.future, request, timeout=timeout)
@@ -285,16 +295,29 @@ class GRPCIndex(GRPCIndexBase):
         else:
             return self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout)
 
-    def fetch(self, *args, **kwargs):
+    def fetch(self,
+              ids: Optional[List[str]],
+              namespace: Optional[str] = None,
+              **kwargs) -> FetchResponse:
         timeout = kwargs.pop('timeout', None)
-        request = FetchRequest(*args, **kwargs)
+
+        args_dict = self._parse_args_to_dict([('namespace', namespace)])
+
+        request = FetchRequest(ids=ids, **args_dict, **kwargs)
         response = self._wrap_grpc_call(self.stub.Fetch, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_fetch_response(json_response)
 
-    def query(self, vector=[], id='', queries=[], **kwargs):
-        timeout = kwargs.pop('timeout', None)
-
+    def query(self,
+              vector: Optional[List[float]] = None,
+              id: Optional[str] = None,
+              queries: Optional[Union[List[GRPCQueryVector], List[Tuple]]] = None,
+              namespace: Optional[str] = None,
+              top_k: Optional[int] = None,
+              filter: Optional[Dict[str, Any]] = None,
+              include_values: Optional[bool] = None,
+              include_metadata: Optional[bool] = None,
+              **kwargs) -> QueryResponse:
         def _query_transform(item):
             if isinstance(item, GRPCQueryVector):
                 return item
@@ -306,22 +329,42 @@ class GRPCIndex(GRPCIndexBase):
                 return GRPCQueryVector(values=item)
             raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")
 
-        _QUERY_ARGS = ['namespace', 'top_k', 'filter', 'include_values', 'include_metadata']
-        if 'filter' in kwargs:
-            kwargs['filter'] = dict_to_proto_struct(kwargs['filter'])
-        request = QueryRequest(queries=list(map(_query_transform, queries)),
-                               vector=vector,
-                               id=id,
-                               **{k: v for k, v in kwargs.items() if k in _QUERY_ARGS})
+        queries = list(map(_query_transform, queries)) if queries is not None else None
+
+        if filter is not None:
+            filter = dict_to_proto_struct(filter)
+
+        args_dict = self._parse_args_to_dict([('vector', vector),
+                                              ('id', id),
+                                              ('queries', queries),
+                                              ('namespace', namespace),
+                                              ('top_k', top_k),
+                                              ('filter', filter),
+                                              ('include_values', include_values),
+                                              ('include_metadata', include_metadata)])
+
+        request = QueryRequest(**args_dict)
+
+        timeout = kwargs.pop('timeout', None)
         response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
-        return parse_query_response(json_response, vector or id)
+        return parse_query_response(json_response, vector is not None or id)
 
-    def update(self, id, async_req=False, **kwargs):
-        _UPDATE_ARGS = ['values', 'set_metadata', 'namespace']
-        if 'set_metadata' in kwargs:
-            kwargs['set_metadata'] = dict_to_proto_struct(kwargs['set_metadata'])
-        request = UpdateRequest(id=id, **{k: v for k, v in kwargs.items() if k in _UPDATE_ARGS})
+    def update(self,
+               id: str,
+               async_req: bool = False,
+               values: Optional[List[float]] = None,
+               set_metadata: Optional[Dict[str, Any]] = None,
+               namespace: Optional[str] = None,
+               **kwargs) -> Union[UpdateResponse, PineconeGrpcFuture]:
+        if set_metadata is not None:
+            set_metadata = dict_to_proto_struct(set_metadata)
+
+        args_dict = self._parse_args_to_dict([('values', values),
+                                              ('set_metadata', set_metadata),
+                                              ('namespace', namespace)])
+
+        request = UpdateRequest(id=id, **args_dict)
         timeout = kwargs.pop('timeout', None)
         if async_req:
             future = self._wrap_grpc_call(self.stub.Update.future, request, timeout=timeout)
@@ -329,13 +372,16 @@ class GRPCIndex(GRPCIndexBase):
         else:
             return self._wrap_grpc_call(self.stub.Update, request, timeout=timeout)
 
-    def describe_index_stats(self, **kwargs):
-        _filter = dict_to_proto_struct(kwargs.pop('filter', None))
-        filter_param = {}
-        if _filter:
-            filter_param['filter'] = _filter
+    def describe_index_stats(self,
+                             filter: Dict[str, Any] = {},
+                             **kwargs) -> DescribeIndexStatsResponse:
+        filter = dict_to_proto_struct(filter)
         timeout = kwargs.pop('timeout', None)
-        request = DescribeIndexStatsRequest(**filter_param)
+        request = DescribeIndexStatsRequest(filter=filter)
         response = self._wrap_grpc_call(self.stub.DescribeIndexStats, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_stats_response(json_response)
+
+    @staticmethod
+    def _parse_args_to_dict(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
+        return {arg_name: val for arg_name, val in args if val is not None}
