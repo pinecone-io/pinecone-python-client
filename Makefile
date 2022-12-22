@@ -11,7 +11,7 @@ develop:
 
 tests:
 	# skipping flake8 for now
-	pip3 install --upgrade --quiet tox && TOX_SKIP_ENV='flake|docs' tox
+	pip3 install --upgrade --quiet tox==3.27.0 && TOX_SKIP_ENV='flake|docs' tox
 
 version:
 	python3 setup.py --version
