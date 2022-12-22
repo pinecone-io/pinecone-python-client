@@ -40,7 +40,7 @@ def parse_query_response(response: QueryResponse, unary_query: bool):
 class Index(ApiClient):
 
     """
-    A class for interacting with a Pinecone index via REST API.
+    A client for interacting with a Pinecone index via REST API.
     For improved performance, use the Pinecone GRPC index client (https://docs.pinecone.io/docs/performance-tuning)
     """
 
@@ -76,14 +76,14 @@ class Index(ApiClient):
             vectors (Union[List[Vector], List[Tuple]]): A list of vectors to upsert.
 
                      A vector can be represented by a 1) Vector object or a 2) tuple.
-                     1) if a tuple is used, it must be of the form (id, vector, metadata) or (id, vector).
+                     1) if a tuple is used, it must be of the form (id, values, metadata) or (id, values).
                         where id is a string, vector is a list of floats, and metadata is a dict.
                         Examples: ('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])
 
-                    2) if a Vector object is used, a Vector object must be of the form Vector(id, vector, metadata),
+                    2) if a Vector object is used, a Vector object must be of the form Vector(id, values, metadata),
                         where metadata is an optional argument.
-                       Examples: Vector(id='id1', vector=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
-                                 Vector(id='id2', vector=[1.0, 2.0, 3.0])
+                       Examples: Vector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
+                                 Vector(id='id2', values=[1.0, 2.0, 3.0])
 
                     Note: the dimension of each vector must match the dimension of the index.
 
@@ -96,8 +96,8 @@ class Index(ApiClient):
 
         Call Examples:
             index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])])
-            index.upsert([Vector(id='id1', vector=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
-                          Vector(id='id2', vector=[1.0, 2.0, 3.0])])
+            index.upsert([Vector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
+                          Vector(id='id2', values=[1.0, 2.0, 3.0])])
 
         """
 
