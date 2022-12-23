@@ -114,6 +114,26 @@ index = pinecone.Index("example-index")
 index_stats_response = index.describe_index_stats()
 ```
 
+
+## Upsert vectors
+
+The following example upserts vectors to `example-index`.
+
+```python
+import pinecone
+
+pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
+index = pinecone.Index("example-index")
+
+upsert_response = index.upsert(
+    vectors=[
+        ("vec1", [0.1, 0.2, 0.3, 0.4], {"genre": "drama"}),
+        ("vec2", [0.2, 0.3, 0.4, 0.5], {"genre": "action"}),
+    ],
+    namespace="example-namespace"
+)
+```
+
 ## Query an index
 
 The following example queries the index `example-index` with metadata
@@ -178,25 +198,6 @@ update_response = index.update(
     id="vec1",
     values=[0.1, 0.2, 0.3, 0.4],
     set_metadata={"genre": "drama"},
-    namespace="example-namespace"
-)
-```
-
-## Upsert vectors
-
-The following example upserts vectors to `example-index`.
-
-```python
-import pinecone
-
-pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
-index = pinecone.Index("example-index")
-
-upsert_response = index.upsert(
-    vectors=[
-        ("vec1", [0.1, 0.2, 0.3, 0.4], {"genre": "drama"}),
-        ("vec2", [0.2, 0.3, 0.4, 0.5], {"genre": "action"}),
-    ],
     namespace="example-namespace"
 )
 ```
