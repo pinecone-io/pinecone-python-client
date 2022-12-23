@@ -13,7 +13,7 @@ pip3 install pinecone-client
 Or the gRPC version of the client for [tuning performance](https://docs.pinecone.io/docs/performance-tuning)
 
 ```shell
-pip3 install -U "pinecone-client[grpc]"
+pip3 install "pinecone-client[grpc]"
 ```
 
 Or the latest development version:
