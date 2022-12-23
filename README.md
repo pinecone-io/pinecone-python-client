@@ -7,19 +7,25 @@ For more information, see the docs at https://www.pinecone.io/docs/
 
 Install a released version from pip:
 ```shell
-pip install pinecone-client
+pip3 install pinecone-client
+```
+
+Or the gRPC version of the client for [tuning performance](https://docs.pinecone.io/docs/performance-tuning)
+
+```shell
+pip3 install -U "pinecone-client[grpc]"
 ```
 
 Or the latest development version:
 ```shell
-pip install git+https://git@github.com/pinecone-io/pinecone-python-client.git
+pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git
 ```
 
 Or a specific development version:
 ```shell
-pip install git+https://git@github.com/pinecone-io/pinecone-python-client.git
-pip install git+https://git@github.com/pinecone-io/pinecone-python-client.git@example-branch-name
-pip install git+https://git@github.com/pinecone-io/pinecone-python-client.git@259deff
+pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git
+pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git@example-branch-name
+pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git@259deff
 ```
 
 ## Creating an index
