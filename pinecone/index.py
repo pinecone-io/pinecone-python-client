@@ -263,7 +263,10 @@ class Index(ApiClient):
                 return item
             if isinstance(item, tuple):
                 values, filter = fix_tuple_length(item, 2)
-                return QueryVector(values=values, filter=filter, _check_type=_check_type)
+                if filter is None:
+                    return QueryVector(values=values, _check_type=_check_type)
+                else:
+                    return QueryVector(values=values, filter=filter, _check_type=_check_type)
             if isinstance(item, Iterable):
                 return QueryVector(values=item, _check_type=_check_type)
             raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")
