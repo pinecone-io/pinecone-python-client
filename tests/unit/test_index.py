@@ -31,12 +31,25 @@ class TestRestIndex:
     def test_upsert_tuplesOfIdVecMD_UpsertVectorsWithMD(self, mocker):
         mocker.patch.object(self.index._vector_api, 'upsert', autospec=True)
         self.index.upsert([('vec1', self.vals1, self.md1),
-                      ('vec2', self.vals2, self.md2)])
+                           ('vec2', self.vals2, self.md2)])
         self.index._vector_api.upsert.assert_called_once_with(
             pinecone.UpsertRequest(vectors=[
                 pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
                 pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2)
             ])
+        )
+
+    def test_upsert_vectors_upsertInputVectors(self, mocker):
+        mocker.patch.object(self.index._vector_api, 'upsert', autospec=True)
+        self.index.upsert(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+                pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2)],
+            namespace='ns')
+        self.index._vector_api.upsert.assert_called_once_with(
+            pinecone.UpsertRequest(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+                pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2)
+            ], namespace='ns')
         )
 
     # endregion
@@ -85,9 +98,9 @@ class TestRestIndex:
 
     def test_query_byVecId_queryByVecId(self, mocker):
         mocker.patch.object(self.index._vector_api, 'query', autospec=True)
-        self.index.query(top_k=10, id='vec1', include_metadata=True, include_vector=False)
+        self.index.query(top_k=10, id='vec1', include_metadata=True, include_values=False)
         self.index._vector_api.query.assert_called_once_with(
-            pinecone.QueryRequest(top_k=10, id='vec1', include_metadata=True, include_vector=False)
+            pinecone.QueryRequest(top_k=10, id='vec1', include_metadata=True, include_values=False)
         )
 
     # endregion

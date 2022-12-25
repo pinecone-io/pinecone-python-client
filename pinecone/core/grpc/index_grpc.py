@@ -297,8 +297,9 @@ class GRPCIndex(GRPCIndexBase):
                 return GRPCVector(id=id, values=values, metadata=dict_to_proto_struct(metadata) or {})
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
-        request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **args_dict, **kwargs)
         timeout = kwargs.pop('timeout', None)
+
+        request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **args_dict, **kwargs)
         if async_req:
             future = self._wrap_grpc_call(self.stub.Upsert.future, request, timeout=timeout)
             return PineconeGrpcFuture(future)
@@ -351,9 +352,9 @@ class GRPCIndex(GRPCIndexBase):
                                               ('delete_all', delete_all),
                                               ('namespace', namespace),
                                               ('filter', filter)])
+        timeout = kwargs.pop('timeout', None)
 
         request = DeleteRequest(**args_dict, **kwargs)
-        timeout = kwargs.pop('timeout', None)
         if async_req:
             future = self._wrap_grpc_call(self.stub.Delete.future, request, timeout=timeout)
             return PineconeGrpcFuture(future)
@@ -494,13 +495,13 @@ class GRPCIndex(GRPCIndexBase):
         """
         if set_metadata is not None:
             set_metadata = dict_to_proto_struct(set_metadata)
+        timeout = kwargs.pop('timeout', None)
 
         args_dict = self._parse_args_to_dict([('values', values),
                                               ('set_metadata', set_metadata),
                                               ('namespace', namespace)])
 
         request = UpdateRequest(id=id, **args_dict)
-        timeout = kwargs.pop('timeout', None)
         if async_req:
             future = self._wrap_grpc_call(self.stub.Update.future, request, timeout=timeout)
             return PineconeGrpcFuture(future)
