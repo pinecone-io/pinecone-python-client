@@ -7,19 +7,25 @@ For more information, see the docs at https://www.pinecone.io/docs/
 
 Install a released version from pip:
 ```shell
-pip install pinecone-client
+pip3 install pinecone-client
+```
+
+Or the gRPC version of the client for [tuning performance](https://docs.pinecone.io/docs/performance-tuning)
+
+```shell
+pip3 install "pinecone-client[grpc]"
 ```
 
 Or the latest development version:
 ```shell
-pip install git+https://git@github.com/pinecone-io/pinecone-python-client.git
+pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git
 ```
 
 Or a specific development version:
 ```shell
-pip install git+https://git@github.com/pinecone-io/pinecone-python-client.git
-pip install git+https://git@github.com/pinecone-io/pinecone-python-client.git@example-branch-name
-pip install git+https://git@github.com/pinecone-io/pinecone-python-client.git@259deff
+pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git
+pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git@example-branch-name
+pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git@259deff
 ```
 
 ## Creating an index
@@ -72,8 +78,9 @@ import pinecone
 
 pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
 
-index_description = pinecone.describe_index("example-index"
-```)
+index_description = pinecone.describe_index("example-index")
+
+```
 
 ## Delete an index
 
@@ -111,6 +118,26 @@ pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
 index = pinecone.Index("example-index")
 
 index_stats_response = index.describe_index_stats()
+```
+
+
+## Upsert vectors
+
+The following example upserts vectors to `example-index`.
+
+```python
+import pinecone
+
+pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
+index = pinecone.Index("example-index")
+
+upsert_response = index.upsert(
+    vectors=[
+        ("vec1", [0.1, 0.2, 0.3, 0.4], {"genre": "drama"}),
+        ("vec2", [0.2, 0.3, 0.4, 0.5], {"genre": "action"}),
+    ],
+    namespace="example-namespace"
+)
 ```
 
 ## Query an index
@@ -177,25 +204,6 @@ update_response = index.update(
     id="vec1",
     values=[0.1, 0.2, 0.3, 0.4],
     set_metadata={"genre": "drama"},
-    namespace="example-namespace"
-)
-```
-
-## Upsert vectors
-
-The following example upserts vectors to `example-index`.
-
-```python
-import pinecone
-
-pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
-index = pinecone.Index("example-index")
-
-upsert_response = index.upsert(
-    vectors=[
-        ("vec1", [0.1, 0.2, 0.3, 0.4], {"genre": "drama"}),
-        ("vec2", [0.2, 0.3, 0.4, 0.5], {"genre": "action"}),
-    ],
     namespace="example-namespace"
 )
 ```
