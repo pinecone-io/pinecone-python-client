@@ -41,9 +41,8 @@ class Index(ApiClient):
 
     """
     A client for interacting with a Pinecone index via REST API.
-    For improved performance, use the Pinecone GRPC index client (https://docs.pinecone.io/docs/performance-tuning)
+    For improved performance, use the Pinecone GRPC index client.
     """
-
     def __init__(self, index_name: str, pool_threads=1):
         openapi_client_config = copy.deepcopy(Config.OPENAPI_CONFIG)
         openapi_client_config.api_key = openapi_client_config.api_key or {}
@@ -72,6 +71,11 @@ class Index(ApiClient):
 
         API reference: https://docs.pinecone.io/reference/upsert
 
+        Examples:
+            >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])])
+            >>> index.upsert([Vector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
+            >>>              Vector(id='id2', values=[1.0, 2.0, 3.0])])
+
         Args:
             vectors (Union[List[Vector], List[Tuple]]): A list of vectors to upsert.
 
@@ -92,15 +96,8 @@ class Index(ApiClient):
         Keyword Args:
             Supports OpenAPI client keyword arguments. See pinecone.core.client.models.UpsertRequest for more details.
 
-        Returns: UpsertResponse object which basically contains the number of vectors upserted.
-
-        Call Examples:
-            index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])])
-            index.upsert([Vector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
-                          Vector(id='id2', values=[1.0, 2.0, 3.0])])
-
+        Returns: UpsertResponse, includes the number of vectors upserted.
         """
-
         _check_type = kwargs.pop('_check_type', False)
         args_dict = self._parse_args_to_dict([('namespace', namespace)])
 
@@ -142,6 +139,11 @@ class Index(ApiClient):
 
         API reference: https://docs.pinecone.io/reference/delete_post
 
+        Examples:
+            >>> index.delete(ids=['id1', 'id2'], namespace='my_namespace')
+            >>> index.delete(delete_all=True, namespace='my_namespace')
+            >>> index.delete(filter={'key': 'value'}, namespace='my_namespace')
+
         Args:
             ids (List[str]): Vector ids to delete [optional]
             delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional]
@@ -158,11 +160,6 @@ class Index(ApiClient):
 
 
         Returns: An empty dictionary if the delete operation was successful.
-
-        Call Examples:
-            index.delete(ids=['id1', 'id2'], namespace='my_namespace')
-            index.delete(delete_all=True, namespace='my_namespace')
-            index.delete(filter={'key': 'value'}, namespace='my_namespace')
         """
         _check_type = kwargs.pop('_check_type', False)
         args_dict = self._parse_args_to_dict([('ids', ids),
@@ -190,19 +187,19 @@ class Index(ApiClient):
 
         API reference: https://docs.pinecone.io/reference/fetch
 
+        Examples:
+            >>> index.fetch(ids=['id1', 'id2'], namespace='my_namespace')
+            >>> index.fetch(ids=['id1', 'id2'])
+
         Args:
             ids (List[str]): The vector IDs to fetch.
             namespace (str): The namespace to fetch vectors from.
                              If not specified, the default namespace is used. [optional]
         Keyword Args:
-        Supports OpenAPI client keyword arguments. See pinecone.core.client.models.FetchResponse for more details.
+            Supports OpenAPI client keyword arguments. See pinecone.core.client.models.FetchResponse for more details.
 
 
         Returns: FetchResponse object which contains the list of Vector objects, and namespace name.
-
-        Call Examples:
-            index.fetch(ids=['id1', 'id2'], namespace='my_namespace')
-            index.fetch(ids=['id1', 'id2'])
         """
         args_dict = self._parse_args_to_dict([('namespace', namespace)])
         return self._vector_api.fetch(ids=ids, **args_dict, **kwargs)
@@ -218,12 +215,17 @@ class Index(ApiClient):
               include_values: Optional[bool] = None,
               include_metadata: Optional[bool] = None,
               **kwargs) -> QueryResponse:
-
         """
         The Query operation searches a namespace, using a query vector.
         It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
 
         API reference: https://docs.pinecone.io/reference/query
+
+        Examples:
+            >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace')
+            >>> index.query(id='id1', top_k=10, namespace='my_namespace')
+            >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace', filter={'key': 'value'})
+            >>> index.query(id='id1', top_k=10, namespace='my_namespace', include_metadata=True, include_values=True)
 
         Args:
             vector (List[float]): The query vector. This should be the same length as the dimension of the index
@@ -247,16 +249,10 @@ class Index(ApiClient):
                                      If omitted the server will use the default value of False  [optional]
 
         Keyword Args:
-        Supports OpenAPI client keyword arguments. See pinecone.core.client.models.QueryRequest for more details.
+            Supports OpenAPI client keyword arguments. See pinecone.core.client.models.QueryRequest for more details.
 
         Returns: QueryResponse object which contains the list of the closest vectors as ScoredVector objects,
                  and namespace name.
-
-        Call Examples:
-            index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace')
-            index.query(id='id1', top_k=10, namespace='my_namespace')
-            index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace', filter={'key': 'value'})
-            index.query(id='id1', top_k=10, namespace='my_namespace', include_metadata=True, include_values=True)
         """
         def _query_transform(item):
             if isinstance(item, QueryVector):
@@ -317,6 +313,10 @@ class Index(ApiClient):
 
         API reference: https://docs.pinecone.io/reference/update
 
+        Examples:
+            >>> index.update(id='id1', values=[1, 2, 3], namespace='my_namespace')
+            >>> index.update(id='id1', set_metadata={'key': 'value'}, namespace='my_namespace')
+
         Args:
             id (str): Vector's unique id.
             values (List[float]): vector values to set. [optional]
@@ -325,13 +325,9 @@ class Index(ApiClient):
             namespace (str): Namespace name where to update the vector.. [optional]
 
         Keyword Args:
-        Supports OpenAPI client keyword arguments. See pinecone.core.client.models.UpdateRequest for more details.
+            Supports OpenAPI client keyword arguments. See pinecone.core.client.models.UpdateRequest for more details.
 
         Returns: An empty dictionary if the update was successful.
-
-        Call Examples:
-            index.update(id='id1', values=[1, 2, 3], namespace='my_namespace')
-            index.update(id='id1', set_metadata={'key': 'value'}, namespace='my_namespace')
         """
         _check_type = kwargs.pop('_check_type', False)
         args_dict = self._parse_args_to_dict([('values', values),
@@ -355,16 +351,16 @@ class Index(ApiClient):
 
         API reference: https://docs.pinecone.io/reference/describe_index_stats_post
 
+        Examples:
+            >>> index.describe_index_stats()
+            >>> index.describe_index_stats(filter={'key': 'value'})
+
         Args:
             filter (Dict[str, Union[bool, date, dict, float, int, list, str, none_type)]]):
             If this parameter is present, the operation only returns statistics for vectors that satisfy the filter.
             See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
 
         Returns: DescribeIndexStatsResponse object which contains stats about the index.
-
-        Call Examples:
-            index.describe_index_stats()
-            index.describe_index_stats(filter={'key': 'value'})
         """
         _check_type = kwargs.pop('_check_type', False)
         return self._vector_api.describe_index_stats(

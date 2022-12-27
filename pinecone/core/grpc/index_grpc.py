@@ -260,6 +260,11 @@ class GRPCIndex(GRPCIndexBase):
         The upsert operation writes vectors into a namespace.
         If a new value is upserted for an existing vector id, it will overwrite the previous value.
 
+        Examples:
+            >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])], namespace='ns1')
+            >>> index.upsert([GRPCVector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
+            >>>              GRPCVector(id='id2', values=[1.0, 2.0, 3.0])], async_req=True)
+
         Args:
             vectors (Union[List[Vector], List[Tuple]]): A list of vectors to upsert.
 
@@ -278,13 +283,8 @@ class GRPCIndex(GRPCIndexBase):
                               Defaults to False. [optional]
             namespace (str): The namespace to write to. If not specified, the default namespace is used. [optional]
 
-        Returns: UpsertResponse object which basically contains the number of vectors upserted
+        Returns: UpsertResponse, contains the number of vectors upserted
                  or a PineconeGrpcFuture object if async_req is True.
-
-        Call Examples:
-            index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])], namespace='ns1')
-            index.upsert([GRPCVector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
-                          GRPCVector(id='id2', values=[1.0, 2.0, 3.0])], async_req=True)
         """
 
         args_dict = self._parse_args_to_dict([('namespace', namespace)])
@@ -324,6 +324,11 @@ class GRPCIndex(GRPCIndexBase):
         3. Delete all vectors from a single namespace by specifying a metadata filter
            (note that for this option delete all must be set to False)
 
+        Examples:
+            >>> index.delete(ids=['id1', 'id2'], namespace='my_namespace')
+            >>> index.delete(delete_all=True, namespace='my_namespace')
+            >>> index.delete(filter={'key': 'value'}, namespace='my_namespace', async_req=True)
+
         Args:
             ids (List[str]): Vector ids to delete [optional]
             delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional]
@@ -338,11 +343,6 @@ class GRPCIndex(GRPCIndexBase):
                               Defaults to False. [optional]
 
         Returns: DeleteResponse (contains no data) or a PineconeGrpcFuture object if async_req is True.
-
-        Call Examples:
-            index.delete(ids=['id1', 'id2'], namespace='my_namespace')
-            index.delete(delete_all=True, namespace='my_namespace')
-            index.delete(filter={'key': 'value'}, namespace='my_namespace', async_req=True)
         """
 
         if filter is not None:
@@ -369,16 +369,16 @@ class GRPCIndex(GRPCIndexBase):
         The fetch operation looks up and returns vectors, by ID, from a single namespace.
         The returned vectors include the vector data and/or metadata.
 
+        Examples:
+            >>> index.fetch(ids=['id1', 'id2'], namespace='my_namespace')
+            >>> index.fetch(ids=['id1', 'id2'])
+
         Args:
             ids (List[str]): The vector IDs to fetch.
             namespace (str): The namespace to fetch vectors from.
                              If not specified, the default namespace is used. [optional]
 
         Returns: FetchResponse object which contains the list of Vector objects, and namespace name.
-
-        Call Examples:
-            index.fetch(ids=['id1', 'id2'], namespace='my_namespace')
-            index.fetch(ids=['id1', 'id2'])
         """
         timeout = kwargs.pop('timeout', None)
 
@@ -403,6 +403,12 @@ class GRPCIndex(GRPCIndexBase):
         The Query operation searches a namespace, using a query vector.
         It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
 
+        Examples:
+            >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace')
+            >>> index.query(id='id1', top_k=10, namespace='my_namespace')
+            >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace', filter={'key': 'value'})
+            >>> index.query(id='id1', top_k=10, namespace='my_namespace', include_metadata=True, include_values=True)
+
         Args:
             vector (List[float]): The query vector. This should be the same length as the dimension of the index
                                   being queried. Each `query()` request can contain only one of the parameters
@@ -426,12 +432,6 @@ class GRPCIndex(GRPCIndexBase):
 
         Returns: QueryResponse object which contains the list of the closest vectors as ScoredVector objects,
                  and namespace name.
-
-        Call Examples:
-            index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace')
-            index.query(id='id1', top_k=10, namespace='my_namespace')
-            index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace', filter={'key': 'value'})
-            index.query(id='id1', top_k=10, namespace='my_namespace', include_metadata=True, include_values=True)
         """
         def _query_transform(item):
             if isinstance(item, GRPCQueryVector):
@@ -478,6 +478,10 @@ class GRPCIndex(GRPCIndexBase):
         If a set_metadata is included,
         the values of the fields specified in it will be added or overwrite the previous value.
 
+        Examples:
+            >>> index.update(id='id1', values=[1, 2, 3], namespace='my_namespace')
+            >>> index.update(id='id1', set_metadata={'key': 'value'}, namespace='my_namespace', async_req=True)
+
         Args:
             id (str): Vector's unique id.
             async_req (bool): If True, the update operation will be performed asynchronously.
@@ -488,10 +492,6 @@ class GRPCIndex(GRPCIndexBase):
             namespace (str): Namespace name where to update the vector.. [optional]
 
         Returns: UpdateResponse (contains no data) or a PineconeGrpcFuture object if async_req is True.
-
-        Call Examples:
-            index.update(id='id1', values=[1, 2, 3], namespace='my_namespace')
-            index.update(id='id1', set_metadata={'key': 'value'}, namespace='my_namespace', async_req=True)
         """
         if set_metadata is not None:
             set_metadata = dict_to_proto_struct(set_metadata)
@@ -515,16 +515,16 @@ class GRPCIndex(GRPCIndexBase):
         The DescribeIndexStats operation returns statistics about the index's contents.
         For example: The vector count per namespace and the number of dimensions.
 
+        Examples:
+            >>> index.describe_index_stats()
+            >>> index.describe_index_stats(filter={'key': 'value'})
+
         Args:
             filter (Dict[str, Union[bool, date, dict, float, int, list, str, none_type)]]):
             If this parameter is present, the operation only returns statistics for vectors that satisfy the filter.
             See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
 
         Returns: DescribeIndexStatsResponse object which contains stats about the index.
-
-        Call Examples:
-            index.describe_index_stats()
-            index.describe_index_stats(filter={'key': 'value'})
         """
 
         filter = dict_to_proto_struct(filter)
