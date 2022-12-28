@@ -171,9 +171,10 @@ def parse_fetch_response(response: dict):
     return FetchResponse(vectors=vd, namespace=namespace, _check_type=False)
 
 
-def parse_query_response(response: dict, unary_query: bool):
+def parse_query_response(response: dict, unary_query: bool, _check_type: bool = False):
     res = []
 
+    # TODO: consider deleting this deprecated case
     for match in response.get('results', []):
         namespace = match.get('namespace', '')
         m = []
@@ -187,10 +188,10 @@ def parse_query_response(response: dict, unary_query: bool):
     m = []
     for item in response.get('matches', []):
         sc = ScoredVector(id=item['id'], score=item.get('score', 0.0), values=item.get('values', []),
-                          metadata=item.get('metadata', {}))
+                          metadata=item.get('metadata', {}), _check_type=_check_type)
         m.append(sc)
 
-    kwargs = {'check_type': False}
+    kwargs = {'_check_type': _check_type}
     if unary_query:
         kwargs['namespace'] = response.get('namespace', '')
         kwargs['matches'] = m
@@ -294,6 +295,7 @@ class GRPCIndex(GRPCIndexBase):
 
     def query(self, vector=[], id='', queries=[], **kwargs):
         timeout = kwargs.pop('timeout', None)
+        _check_type = kwargs.pop('_check_type', False)
 
         def _query_transform(item):
             if isinstance(item, GRPCQueryVector):
@@ -315,7 +317,7 @@ class GRPCIndex(GRPCIndexBase):
                                **{k: v for k, v in kwargs.items() if k in _QUERY_ARGS})
         response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
-        return parse_query_response(json_response, vector or id)
+        return parse_query_response(json_response, vector or id, _check_type)
 
     def update(self, id, async_req=False, **kwargs):
         _UPDATE_ARGS = ['values', 'set_metadata', 'namespace']
