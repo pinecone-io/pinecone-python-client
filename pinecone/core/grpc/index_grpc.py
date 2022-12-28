@@ -295,7 +295,6 @@ class GRPCIndex(GRPCIndexBase):
 
     def query(self, vector=[], id='', queries=[], **kwargs):
         timeout = kwargs.pop('timeout', None)
-        _check_type = kwargs.pop('_check_type', False)
 
         def _query_transform(item):
             if isinstance(item, GRPCQueryVector):
@@ -317,7 +316,7 @@ class GRPCIndex(GRPCIndexBase):
                                **{k: v for k, v in kwargs.items() if k in _QUERY_ARGS})
         response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
-        return parse_query_response(json_response, vector or id, _check_type)
+        return parse_query_response(json_response, vector or id, _check_type=False)
 
     def update(self, id, async_req=False, **kwargs):
         _UPDATE_ARGS = ['values', 'set_metadata', 'namespace']
