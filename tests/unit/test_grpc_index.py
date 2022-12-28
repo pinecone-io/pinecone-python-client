@@ -218,6 +218,15 @@ class TestRestIndex:
 
     # region: describe index tests
 
+    def test_describeIndexStats_callWithoutFilter_CalledWithoutFilter(self, mocker):
+        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
+        self.index.describe_index_stats()
+        self.index._wrap_grpc_call.assert_called_once_with(
+            self.index.stub.DescribeIndexStats,
+            DescribeIndexStatsRequest(),
+            timeout=None,
+        )
+
     def test_describeIndexStats_callWithFilter_CalledWithFilter(self, mocker):
         mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
         self.index.describe_index_stats(filter=self.filter1)
@@ -226,4 +235,5 @@ class TestRestIndex:
             DescribeIndexStatsRequest(filter=dict_to_proto_struct(self.filter1)),
             timeout=None,
         )
+
     # endregion

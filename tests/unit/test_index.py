@@ -168,6 +168,12 @@ class TestRestIndex:
 
     # region: describe index tests
 
+    def test_describeIndexStats_callWithoutFilter_CalledWithoutFilter(self, mocker):
+        mocker.patch.object(self.index._vector_api, 'describe_index_stats', autospec=True)
+        self.index.describe_index_stats()
+        self.index._vector_api.describe_index_stats.assert_called_once_with(
+            DescribeIndexStatsRequest())
+
     def test_describeIndexStats_callWithFilter_CalledWithFilter(self, mocker):
         mocker.patch.object(self.index._vector_api, 'describe_index_stats', autospec=True)
         self.index.describe_index_stats(filter=self.filter1)
