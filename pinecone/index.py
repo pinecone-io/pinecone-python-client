@@ -1,7 +1,7 @@
 #
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
-
+from tqdm import tqdm
 from collections.abc import Iterable
 from typing import Union, List, Tuple, Optional, Dict, Any
 
@@ -64,6 +64,8 @@ class Index(ApiClient):
     def upsert(self,
                vectors: Union[List[Vector], List[Tuple]],
                namespace: Optional[str] = None,
+               batch_size: Optional[int] = None,
+               show_progress: bool = True,
                **kwargs) -> UpsertResponse:
         """
         The upsert operation writes vectors into a namespace.
@@ -93,32 +95,58 @@ class Index(ApiClient):
                     Note: the dimension of each vector must match the dimension of the index.
 
             namespace (str): The namespace to write to. If not specified, the default namespace is used. [optional]
-
+            batch_size (int): The number of vectors to upsert in each batch.
+                               If not specified, all vectors will be upserted in a single batch. [optional]
+            show_progress (bool): Whether to show a progress bar using tqdm.
+                                  Applied only if batch_size is provided. Defaults to True.
         Keyword Args:
             Supports OpenAPI client keyword arguments. See pinecone.core.client.models.UpsertRequest for more details.
 
         Returns: UpsertResponse, includes the number of vectors upserted.
         """
         _check_type = kwargs.pop('_check_type', False)
-        args_dict = self._parse_args_to_dict([('namespace', namespace)])
 
-        def _vector_transform(item):
-            if isinstance(item, Vector):
-                return item
-            if isinstance(item, tuple):
-                id, values, metadata = fix_tuple_length(item, 3)
-                return Vector(id=id, values=values, metadata=metadata or {}, _check_type=_check_type)
-            raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
+        if batch_size is None:
+            return self._upsert_batch(vectors, namespace, **kwargs)
+
+        if not isinstance(batch_size, int) or batch_size <= 0:
+            raise ValueError('batch_size must be a positive integer')
+
+        pbar = tqdm(total=len(vectors), disable=not show_progress, desc='Upserted vectors')
+        total_upserted = 0
+        for i in range(0, len(vectors), batch_size):
+            batch = vectors[i:i + batch_size]
+            batch_result = self._upsert_batch(batch, namespace, **kwargs)
+            total_upserted += batch_result.upserted_count
+            pbar.update(len(batch))
+        return UpsertResponse(upserted_count=total_upserted)
+
+    def _upsert_batch(self,
+                      vectors: List[Vector],
+                      namespace: Optional[str],
+                      _check_type: bool,
+                      **kwargs) -> UpsertResponse:
+        vectors = list(map(self._transform_upsert_vector, vectors))
+        args_dict = self._parse_args_to_dict([('namespace', namespace)])
 
         return self._vector_api.upsert(
             UpsertRequest(
-                vectors=list(map(_vector_transform, vectors)),
+                vectors=vectors,
                 **args_dict,
                 _check_type=_check_type,
                 **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
+
+    @staticmethod
+    def _transform_upsert_vector(item: Union[Vector, Tuple], _check_type):
+        if isinstance(item, Vector):
+            return item
+        if isinstance(item, tuple):
+            id, values, metadata = fix_tuple_length(item, 3)
+            return Vector(id=id, values=values, metadata=metadata or {}, _check_type=_check_type)
+        raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
     @validate_and_convert_errors
     def delete(self,
