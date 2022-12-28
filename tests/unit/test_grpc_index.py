@@ -5,7 +5,7 @@ from pinecone.core.grpc.protos.vector_service_pb2 import Vector, DescribeIndexSt
     UpsertRequest, FetchRequest, QueryRequest, DeleteRequest, QueryVector
 
 
-class TestRestIndex:
+class TestGrpcIndex:
 
     def setup_method(self):
         self.vector_dim = 8
