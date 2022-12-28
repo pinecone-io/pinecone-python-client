@@ -125,7 +125,7 @@ class Index(ApiClient):
                ids: Optional[List[str]] = None,
                delete_all: Optional[bool] = None,
                namespace: Optional[str] = None,
-               filter: Optional[Dict[str, Union[str, float, int, bool, List, Dict]]] = None,
+               filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
                **kwargs) -> Dict[str, Any]:
         """
         The Delete operation deletes vectors from the index, from a single namespace.
@@ -151,7 +151,7 @@ class Index(ApiClient):
                                Default is False.
             namespace (str): The namespace to delete vectors from [optional]
                              If not specified, the default namespace is used.
-            filter (Dict[str, Union[str, float, int, bool, List, Dict]]):
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
                     If specified, the metadata filter here will be used to select the vectors to delete.
                     This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True.
                      See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
@@ -212,7 +212,7 @@ class Index(ApiClient):
               queries: Optional[Union[List[QueryVector], List[Tuple]]] = None,
               top_k: Optional[int] = None,
               namespace: Optional[str] = None,
-              filter: Optional[Dict[str, Union[str, float, int, bool, List, Dict]]] = None,
+              filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
               include_values: Optional[bool] = None,
               include_metadata: Optional[bool] = None,
               **kwargs) -> QueryResponse:
@@ -241,7 +241,7 @@ class Index(ApiClient):
             top_k (int): The number of results to return for each query. Must be an integer greater than 1.
             namespace (str): The namespace to fetch vectors from.
                              If not specified, the default namespace is used. [optional]
-            filter (Dict[str, Union[str, float, int, bool, List, Dict]]):
+            filter (Dict[str, Union[str, float, int, bool, List, dict]):
                     The filter to apply. You can use vector metadata to limit your search.
                     See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
             include_values (bool): Indicates whether vector values are included in the response.
@@ -345,7 +345,7 @@ class Index(ApiClient):
 
     @validate_and_convert_errors
     def describe_index_stats(self,
-                             filter: Optional[Dict[str, Union[str, float, int, bool, List, Dict]]] = None,
+                             filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
                              **kwargs) -> DescribeIndexStatsResponse:
         """
         The DescribeIndexStats operation returns statistics about the index's contents.
@@ -358,7 +358,7 @@ class Index(ApiClient):
             >>> index.describe_index_stats(filter={'key': 'value'})
 
         Args:
-            filter (Dict[str, Union[str, float, int, bool, List, Dict]]):
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
             If this parameter is present, the operation only returns statistics for vectors that satisfy the filter.
             See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
 
