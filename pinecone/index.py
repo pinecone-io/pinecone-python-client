@@ -73,6 +73,8 @@ class Index(ApiClient):
 
         API reference: https://docs.pinecone.io/reference/upsert
 
+        To upsert in parallel follow: https://docs.pinecone.io/docs/insert-data#sending-upserts-in-parallel
+
         Examples:
             >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])])
             >>> index.upsert([Vector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
@@ -107,7 +109,11 @@ class Index(ApiClient):
         _check_type = kwargs.pop('_check_type', False)
 
         if batch_size is None:
-            return self._upsert_batch(vectors, namespace, **kwargs)
+            return self._upsert_batch(vectors, namespace, _check_type, **kwargs)
+        elif kwargs.get('async_req', False):
+            raise ValueError('async_req is not supported when batch_size is provided.'
+                             'To upsert in parallel, please follow: '
+                             'https://docs.pinecone.io/docs/insert-data#sending-upserts-in-parallel')
 
         if not isinstance(batch_size, int) or batch_size <= 0:
             raise ValueError('batch_size must be a positive integer')
@@ -116,7 +122,7 @@ class Index(ApiClient):
         total_upserted = 0
         for i in range(0, len(vectors), batch_size):
             batch = vectors[i:i + batch_size]
-            batch_result = self._upsert_batch(batch, namespace, **kwargs)
+            batch_result = self._upsert_batch(batch, namespace, _check_type, **kwargs)
             total_upserted += batch_result.upserted_count
             pbar.update(len(batch))
         return UpsertResponse(upserted_count=total_upserted)
@@ -126,12 +132,20 @@ class Index(ApiClient):
                       namespace: Optional[str],
                       _check_type: bool,
                       **kwargs) -> UpsertResponse:
-        vectors = list(map(self._transform_upsert_vector, vectors))
-        args_dict = self._parse_args_to_dict([('namespace', namespace)])
+
+        args_dict = self._parse_non_empty_args([('namespace', namespace)])
+
+        def transform_upsert_vector(item: Union[Vector, Tuple]):
+            if isinstance(item, Vector):
+                return item
+            if isinstance(item, tuple):
+                id, values, metadata = fix_tuple_length(item, 3)
+                return Vector(id=id, values=values, metadata=metadata or {}, _check_type=_check_type)
+            raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
         return self._vector_api.upsert(
             UpsertRequest(
-                vectors=vectors,
+                vectors=list(map(transform_upsert_vector, vectors)),
                 **args_dict,
                 _check_type=_check_type,
                 **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
@@ -139,21 +153,12 @@ class Index(ApiClient):
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
 
-    @staticmethod
-    def _transform_upsert_vector(item: Union[Vector, Tuple], _check_type):
-        if isinstance(item, Vector):
-            return item
-        if isinstance(item, tuple):
-            id, values, metadata = fix_tuple_length(item, 3)
-            return Vector(id=id, values=values, metadata=metadata or {}, _check_type=_check_type)
-        raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
-
     @validate_and_convert_errors
     def delete(self,
                ids: Optional[List[str]] = None,
                delete_all: Optional[bool] = None,
                namespace: Optional[str] = None,
-               filter: Optional[Dict[str, Union[str, float, int, bool, List, Dict]]] = None,
+               filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
                **kwargs) -> Dict[str, Any]:
         """
         The Delete operation deletes vectors from the index, from a single namespace.
@@ -179,7 +184,7 @@ class Index(ApiClient):
                                Default is False.
             namespace (str): The namespace to delete vectors from [optional]
                              If not specified, the default namespace is used.
-            filter (Dict[str, Union[str, float, int, bool, List, Dict]]):
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
                     If specified, the metadata filter here will be used to select the vectors to delete.
                     This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True.
                      See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
@@ -191,10 +196,10 @@ class Index(ApiClient):
         Returns: An empty dictionary if the delete operation was successful.
         """
         _check_type = kwargs.pop('_check_type', False)
-        args_dict = self._parse_args_to_dict([('ids', ids),
-                                              ('delete_all', delete_all),
-                                              ('namespace', namespace),
-                                              ('filter', filter)])
+        args_dict = self._parse_non_empty_args([('ids', ids),
+                                                ('delete_all', delete_all),
+                                                ('namespace', namespace),
+                                                ('filter', filter)])
 
         return self._vector_api.delete(
             DeleteRequest(
@@ -230,7 +235,7 @@ class Index(ApiClient):
 
         Returns: FetchResponse object which contains the list of Vector objects, and namespace name.
         """
-        args_dict = self._parse_args_to_dict([('namespace', namespace)])
+        args_dict = self._parse_non_empty_args([('namespace', namespace)])
         return self._vector_api.fetch(ids=ids, **args_dict, **kwargs)
 
     @validate_and_convert_errors
@@ -240,7 +245,7 @@ class Index(ApiClient):
               queries: Optional[Union[List[QueryVector], List[Tuple]]] = None,
               top_k: Optional[int] = None,
               namespace: Optional[str] = None,
-              filter: Optional[Dict[str, Union[str, float, int, bool, List, Dict]]] = None,
+              filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
               include_values: Optional[bool] = None,
               include_metadata: Optional[bool] = None,
               **kwargs) -> QueryResponse:
@@ -269,7 +274,7 @@ class Index(ApiClient):
             top_k (int): The number of results to return for each query. Must be an integer greater than 1.
             namespace (str): The namespace to fetch vectors from.
                              If not specified, the default namespace is used. [optional]
-            filter (Dict[str, Union[str, float, int, bool, List, Dict]]):
+            filter (Dict[str, Union[str, float, int, bool, List, dict]):
                     The filter to apply. You can use vector metadata to limit your search.
                     See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
             include_values (bool): Indicates whether vector values are included in the response.
@@ -298,14 +303,14 @@ class Index(ApiClient):
 
         _check_type = kwargs.pop('_check_type', False)
         queries = list(map(_query_transform, queries)) if queries is not None else None
-        args_dict = self._parse_args_to_dict([('vector', vector),
-                                              ('id', id),
-                                              ('queries', queries),
-                                              ('top_k', top_k),
-                                              ('namespace', namespace),
-                                              ('filter', filter),
-                                              ('include_values', include_values),
-                                              ('include_metadata', include_metadata)])
+        args_dict = self._parse_non_empty_args([('vector', vector),
+                                                ('id', id),
+                                                ('queries', queries),
+                                                ('top_k', top_k),
+                                                ('namespace', namespace),
+                                                ('filter', filter),
+                                                ('include_values', include_values),
+                                                ('include_metadata', include_metadata)])
 
         def _query_transform(item):
             if isinstance(item, QueryVector):
@@ -360,9 +365,9 @@ class Index(ApiClient):
         Returns: An empty dictionary if the update was successful.
         """
         _check_type = kwargs.pop('_check_type', False)
-        args_dict = self._parse_args_to_dict([('values', values),
-                                              ('set_metadata', set_metadata),
-                                              ('namespace', namespace)])
+        args_dict = self._parse_non_empty_args([('values', values),
+                                                ('set_metadata', set_metadata),
+                                                ('namespace', namespace)])
         return self._vector_api.update(UpdateRequest(
                 id=id,
                 **args_dict,
@@ -373,7 +378,7 @@ class Index(ApiClient):
 
     @validate_and_convert_errors
     def describe_index_stats(self,
-                             filter: Optional[Dict[str, Union[str, float, int, bool, List, Dict]]] = None,
+                             filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
                              **kwargs) -> DescribeIndexStatsResponse:
         """
         The DescribeIndexStats operation returns statistics about the index's contents.
@@ -386,14 +391,14 @@ class Index(ApiClient):
             >>> index.describe_index_stats(filter={'key': 'value'})
 
         Args:
-            filter (Dict[str, Union[str, float, int, bool, List, Dict]]):
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
             If this parameter is present, the operation only returns statistics for vectors that satisfy the filter.
             See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
 
         Returns: DescribeIndexStatsResponse object which contains stats about the index.
         """
         _check_type = kwargs.pop('_check_type', False)
-        args_dict = self._parse_args_to_dict([('filter', filter)])
+        args_dict = self._parse_non_empty_args([('filter', filter)])
 
         return self._vector_api.describe_index_stats(
             DescribeIndexStatsRequest(
@@ -405,5 +410,5 @@ class Index(ApiClient):
         )
 
     @staticmethod
-    def _parse_args_to_dict(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
+    def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
         return {arg_name: val for arg_name, val in args if val is not None}

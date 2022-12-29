@@ -1,5 +1,7 @@
+from pinecone.core.client.api_client import Endpoint
+
 import pinecone
-from pinecone import DescribeIndexStatsRequest
+from pinecone import DescribeIndexStatsRequest, ScoredVector, QueryResponse
 
 
 class TestRestIndex:
@@ -52,16 +54,63 @@ class TestRestIndex:
             ], namespace='ns')
         )
 
+    def test_upsert_parallelUpsert_callUpsertParallel(self, mocker):
+        mocker.patch.object(Endpoint, '__call__', autospec=True)
+        chunks = [[pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1)],
+                  [pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2)]]
+        with pinecone.Index('example-index', pool_threads=30) as index:
+            # Send requests in parallel
+            async_results = [
+                index.upsert(vectors=ids_vectors_chunk, namespace="ns", async_req=True)
+                for ids_vectors_chunk in chunks
+            ]
+            # Wait for and retrieve responses (this raises in case of error)
+            [async_result.get() for async_result in async_results]
+
+            Endpoint.__call__.assert_any_call(
+                index._vector_api.upsert,
+                pinecone.UpsertRequest(vectors=[
+                    pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+                ],
+                    namespace='ns'),
+                async_req=True
+            )
+
+            Endpoint.__call__.assert_any_call(
+                index._vector_api.upsert,
+                pinecone.UpsertRequest(vectors=[
+                    pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2),
+                ],
+                    namespace='ns'),
+                async_req=True
+            )
+
     # endregion
 
     # region: query tests
 
     def test_query_byVectorNoFilter_queryVectorNoFilter(self, mocker):
-        mocker.patch.object(self.index._vector_api, 'query', autospec=True)
-        self.index.query(top_k=10, vector=self.vals1)
+        response = QueryResponse(results=[],
+                                 matches=[ScoredVector(id="1",
+                                                       score=0.9,
+                                                       values=[0.0],
+                                                       metadata={"a": 2})],
+                                 namespace="test")
+
+        mocker.patch.object(self.index._vector_api, 'query', autospec=True, return_value=response)
+
+        actual = self.index.query(top_k=10, vector=self.vals1)
+
         self.index._vector_api.query.assert_called_once_with(
             pinecone.QueryRequest(top_k=10, vector=self.vals1)
         )
+        expected = QueryResponse(matches=[ScoredVector(id="1",
+                                                       score=0.9,
+                                                       values=[0.0],
+                                                       metadata={"a": 2})],
+                                 namespace="test")
+        expected._data_store.pop('results', None)
+        assert actual == expected
 
     def test_query_byVectorWithFilter_queryVectorWithFilter(self, mocker):
         mocker.patch.object(self.index._vector_api, 'query', autospec=True)

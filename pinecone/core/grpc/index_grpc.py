@@ -281,14 +281,13 @@ class GRPCIndex(GRPCIndexBase):
 
                     Note: the dimension of each vector must match the dimension of the index.
             async_req (bool): If True, the upsert operation will be performed asynchronously.
-                              Defaults to False. [optional]
+                              Defaults to False. See: https://docs.pinecone.io/docs/performance-tuning [optional]
             namespace (str): The namespace to write to. If not specified, the default namespace is used. [optional]
 
         Returns: UpsertResponse, contains the number of vectors upserted
-                 or a PineconeGrpcFuture object if async_req is True.
         """
 
-        args_dict = self._parse_args_to_dict([('namespace', namespace)])
+        args_dict = self._parse_non_empty_args([('namespace', namespace)])
 
         def _vector_transform(item):
             if isinstance(item, GRPCVector):
@@ -311,7 +310,7 @@ class GRPCIndex(GRPCIndexBase):
                ids: Optional[List[str]] = None,
                delete_all: Optional[bool] = None,
                namespace: Optional[str] = None,
-               filter: Optional[Dict[str, Union[str, float, int, bool, List, Dict]]] = None,
+               filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
                async_req: bool = False,
                **kwargs) -> Union[DeleteResponse, PineconeGrpcFuture]:
         """
@@ -336,7 +335,7 @@ class GRPCIndex(GRPCIndexBase):
                                Default is False.
             namespace (str): The namespace to delete vectors from [optional]
                              If not specified, the default namespace is used.
-            filter (Dict[str, Union[str, float, int, bool, List, Dict]]):
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
                     If specified, the metadata filter here will be used to select the vectors to delete.
                     This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True.
                      See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
@@ -349,10 +348,10 @@ class GRPCIndex(GRPCIndexBase):
         if filter is not None:
             filter = dict_to_proto_struct(filter)
 
-        args_dict = self._parse_args_to_dict([('ids', ids),
-                                              ('delete_all', delete_all),
-                                              ('namespace', namespace),
-                                              ('filter', filter)])
+        args_dict = self._parse_non_empty_args([('ids', ids),
+                                                ('delete_all', delete_all),
+                                                ('namespace', namespace),
+                                                ('filter', filter)])
         timeout = kwargs.pop('timeout', None)
 
         request = DeleteRequest(**args_dict, **kwargs)
@@ -383,7 +382,7 @@ class GRPCIndex(GRPCIndexBase):
         """
         timeout = kwargs.pop('timeout', None)
 
-        args_dict = self._parse_args_to_dict([('namespace', namespace)])
+        args_dict = self._parse_non_empty_args([('namespace', namespace)])
 
         request = FetchRequest(ids=ids, **args_dict, **kwargs)
         response = self._wrap_grpc_call(self.stub.Fetch, request, timeout=timeout)
@@ -396,7 +395,7 @@ class GRPCIndex(GRPCIndexBase):
               queries: Optional[Union[List[GRPCQueryVector], List[Tuple]]] = None,
               namespace: Optional[str] = None,
               top_k: Optional[int] = None,
-              filter: Optional[Dict[str, Union[str, float, int, bool, List, Dict]]] = None,
+              filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
               include_values: Optional[bool] = None,
               include_metadata: Optional[bool] = None,
               **kwargs) -> QueryResponse:
@@ -423,7 +422,7 @@ class GRPCIndex(GRPCIndexBase):
             top_k (int): The number of results to return for each query. Must be an integer greater than 1.
             namespace (str): The namespace to fetch vectors from.
                              If not specified, the default namespace is used. [optional]
-            filter (Dict[str, Union[str, float, int, bool, List, Dict]]):
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
                     The filter to apply. You can use vector metadata to limit your search.
                     See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
             include_values (bool): Indicates whether vector values are included in the response.
@@ -450,14 +449,14 @@ class GRPCIndex(GRPCIndexBase):
         if filter is not None:
             filter = dict_to_proto_struct(filter)
 
-        args_dict = self._parse_args_to_dict([('vector', vector),
-                                              ('id', id),
-                                              ('queries', queries),
-                                              ('namespace', namespace),
-                                              ('top_k', top_k),
-                                              ('filter', filter),
-                                              ('include_values', include_values),
-                                              ('include_metadata', include_metadata)])
+        args_dict = self._parse_non_empty_args([('vector', vector),
+                                                ('id', id),
+                                                ('queries', queries),
+                                                ('namespace', namespace),
+                                                ('top_k', top_k),
+                                                ('filter', filter),
+                                                ('include_values', include_values),
+                                                ('include_metadata', include_metadata)])
 
         request = QueryRequest(**args_dict)
 
@@ -499,9 +498,9 @@ class GRPCIndex(GRPCIndexBase):
             set_metadata = dict_to_proto_struct(set_metadata)
         timeout = kwargs.pop('timeout', None)
 
-        args_dict = self._parse_args_to_dict([('values', values),
-                                              ('set_metadata', set_metadata),
-                                              ('namespace', namespace)])
+        args_dict = self._parse_non_empty_args([('values', values),
+                                                ('set_metadata', set_metadata),
+                                                ('namespace', namespace)])
 
         request = UpdateRequest(id=id, **args_dict)
         if async_req:
@@ -511,7 +510,7 @@ class GRPCIndex(GRPCIndexBase):
             return self._wrap_grpc_call(self.stub.Update, request, timeout=timeout)
 
     def describe_index_stats(self,
-                             filter: Optional[Dict[str, Union[str, float, int, bool, List, Dict]]] = None,
+                             filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
                              **kwargs) -> DescribeIndexStatsResponse:
         """
         The DescribeIndexStats operation returns statistics about the index's contents.
@@ -522,7 +521,7 @@ class GRPCIndex(GRPCIndexBase):
             >>> index.describe_index_stats(filter={'key': 'value'})
 
         Args:
-            filter (Dict[str, Union[str, float, int, bool, List, Dict]]):
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
             If this parameter is present, the operation only returns statistics for vectors that satisfy the filter.
             See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
 
@@ -530,7 +529,7 @@ class GRPCIndex(GRPCIndexBase):
         """
         if filter is not None:
             filter = dict_to_proto_struct(filter)
-        args_dict = self._parse_args_to_dict([('filter', filter)])
+        args_dict = self._parse_non_empty_args([('filter', filter)])
         timeout = kwargs.pop('timeout', None)
 
         request = DescribeIndexStatsRequest(**args_dict)
@@ -539,5 +538,5 @@ class GRPCIndex(GRPCIndexBase):
         return parse_stats_response(json_response)
 
     @staticmethod
-    def _parse_args_to_dict(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
+    def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
         return {arg_name: val for arg_name, val in args if val is not None}
