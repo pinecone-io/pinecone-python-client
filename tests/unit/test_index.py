@@ -1,5 +1,5 @@
 import pinecone
-from pinecone import DescribeIndexStatsRequest
+from pinecone import DescribeIndexStatsRequest, ScoredVector, QueryResponse
 
 
 class TestRestIndex:
@@ -57,11 +57,27 @@ class TestRestIndex:
     # region: query tests
 
     def test_query_byVectorNoFilter_queryVectorNoFilter(self, mocker):
-        mocker.patch.object(self.index._vector_api, 'query', autospec=True)
-        self.index.query(top_k=10, vector=self.vals1)
+        response = QueryResponse(results=[],
+                                 matches=[ScoredVector(id="1",
+                                                       score=0.9,
+                                                       values=[0.0],
+                                                       metadata={"a": 2})],
+                                 namespace="test")
+
+        mocker.patch.object(self.index._vector_api, 'query', autospec=True, return_value=response)
+
+        actual = self.index.query(top_k=10, vector=self.vals1)
+
         self.index._vector_api.query.assert_called_once_with(
             pinecone.QueryRequest(top_k=10, vector=self.vals1)
         )
+        expected = QueryResponse(matches=[ScoredVector(id="1",
+                                                       score=0.9,
+                                                       values=[0.0],
+                                                       metadata={"a": 2})],
+                                 namespace="test")
+        expected._data_store.pop('results', None)
+        assert actual == expected
 
     def test_query_byVectorWithFilter_queryVectorWithFilter(self, mocker):
         mocker.patch.object(self.index._vector_api, 'query', autospec=True)
