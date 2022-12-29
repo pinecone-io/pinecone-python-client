@@ -287,7 +287,7 @@ class GRPCIndex(GRPCIndexBase):
         Returns: UpsertResponse, contains the number of vectors upserted
         """
 
-        args_dict = self._parse_args_to_dict([('namespace', namespace)])
+        args_dict = self._parse_non_empty_args([('namespace', namespace)])
 
         def _vector_transform(item):
             if isinstance(item, GRPCVector):
@@ -348,10 +348,10 @@ class GRPCIndex(GRPCIndexBase):
         if filter is not None:
             filter = dict_to_proto_struct(filter)
 
-        args_dict = self._parse_args_to_dict([('ids', ids),
-                                              ('delete_all', delete_all),
-                                              ('namespace', namespace),
-                                              ('filter', filter)])
+        args_dict = self._parse_non_empty_args([('ids', ids),
+                                                ('delete_all', delete_all),
+                                                ('namespace', namespace),
+                                                ('filter', filter)])
         timeout = kwargs.pop('timeout', None)
 
         request = DeleteRequest(**args_dict, **kwargs)
@@ -382,7 +382,7 @@ class GRPCIndex(GRPCIndexBase):
         """
         timeout = kwargs.pop('timeout', None)
 
-        args_dict = self._parse_args_to_dict([('namespace', namespace)])
+        args_dict = self._parse_non_empty_args([('namespace', namespace)])
 
         request = FetchRequest(ids=ids, **args_dict, **kwargs)
         response = self._wrap_grpc_call(self.stub.Fetch, request, timeout=timeout)
@@ -449,14 +449,14 @@ class GRPCIndex(GRPCIndexBase):
         if filter is not None:
             filter = dict_to_proto_struct(filter)
 
-        args_dict = self._parse_args_to_dict([('vector', vector),
-                                              ('id', id),
-                                              ('queries', queries),
-                                              ('namespace', namespace),
-                                              ('top_k', top_k),
-                                              ('filter', filter),
-                                              ('include_values', include_values),
-                                              ('include_metadata', include_metadata)])
+        args_dict = self._parse_non_empty_args([('vector', vector),
+                                                ('id', id),
+                                                ('queries', queries),
+                                                ('namespace', namespace),
+                                                ('top_k', top_k),
+                                                ('filter', filter),
+                                                ('include_values', include_values),
+                                                ('include_metadata', include_metadata)])
 
         request = QueryRequest(**args_dict)
 
@@ -498,9 +498,9 @@ class GRPCIndex(GRPCIndexBase):
             set_metadata = dict_to_proto_struct(set_metadata)
         timeout = kwargs.pop('timeout', None)
 
-        args_dict = self._parse_args_to_dict([('values', values),
-                                              ('set_metadata', set_metadata),
-                                              ('namespace', namespace)])
+        args_dict = self._parse_non_empty_args([('values', values),
+                                                ('set_metadata', set_metadata),
+                                                ('namespace', namespace)])
 
         request = UpdateRequest(id=id, **args_dict)
         if async_req:
@@ -529,7 +529,7 @@ class GRPCIndex(GRPCIndexBase):
         """
         if filter is not None:
             filter = dict_to_proto_struct(filter)
-        args_dict = self._parse_args_to_dict([('filter', filter)])
+        args_dict = self._parse_non_empty_args([('filter', filter)])
         timeout = kwargs.pop('timeout', None)
 
         request = DescribeIndexStatsRequest(**args_dict)
@@ -538,5 +538,5 @@ class GRPCIndex(GRPCIndexBase):
         return parse_stats_response(json_response)
 
     @staticmethod
-    def _parse_args_to_dict(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
+    def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
         return {arg_name: val for arg_name, val in args if val is not None}

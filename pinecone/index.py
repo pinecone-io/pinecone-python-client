@@ -102,7 +102,7 @@ class Index(ApiClient):
         Returns: UpsertResponse, includes the number of vectors upserted.
         """
         _check_type = kwargs.pop('_check_type', False)
-        args_dict = self._parse_args_to_dict([('namespace', namespace)])
+        args_dict = self._parse_non_empty_args([('namespace', namespace)])
 
         def _vector_transform(item):
             if isinstance(item, Vector):
@@ -165,10 +165,10 @@ class Index(ApiClient):
         Returns: An empty dictionary if the delete operation was successful.
         """
         _check_type = kwargs.pop('_check_type', False)
-        args_dict = self._parse_args_to_dict([('ids', ids),
-                                              ('delete_all', delete_all),
-                                              ('namespace', namespace),
-                                              ('filter', filter)])
+        args_dict = self._parse_non_empty_args([('ids', ids),
+                                                ('delete_all', delete_all),
+                                                ('namespace', namespace),
+                                                ('filter', filter)])
 
         return self._vector_api.delete(
             DeleteRequest(
@@ -204,7 +204,7 @@ class Index(ApiClient):
 
         Returns: FetchResponse object which contains the list of Vector objects, and namespace name.
         """
-        args_dict = self._parse_args_to_dict([('namespace', namespace)])
+        args_dict = self._parse_non_empty_args([('namespace', namespace)])
         return self._vector_api.fetch(ids=ids, **args_dict, **kwargs)
 
     @validate_and_convert_errors
@@ -272,14 +272,14 @@ class Index(ApiClient):
 
         _check_type = kwargs.pop('_check_type', False)
         queries = list(map(_query_transform, queries)) if queries is not None else None
-        args_dict = self._parse_args_to_dict([('vector', vector),
-                                              ('id', id),
-                                              ('queries', queries),
-                                              ('top_k', top_k),
-                                              ('namespace', namespace),
-                                              ('filter', filter),
-                                              ('include_values', include_values),
-                                              ('include_metadata', include_metadata)])
+        args_dict = self._parse_non_empty_args([('vector', vector),
+                                                ('id', id),
+                                                ('queries', queries),
+                                                ('top_k', top_k),
+                                                ('namespace', namespace),
+                                                ('filter', filter),
+                                                ('include_values', include_values),
+                                                ('include_metadata', include_metadata)])
 
         def _query_transform(item):
             if isinstance(item, QueryVector):
@@ -334,9 +334,9 @@ class Index(ApiClient):
         Returns: An empty dictionary if the update was successful.
         """
         _check_type = kwargs.pop('_check_type', False)
-        args_dict = self._parse_args_to_dict([('values', values),
-                                              ('set_metadata', set_metadata),
-                                              ('namespace', namespace)])
+        args_dict = self._parse_non_empty_args([('values', values),
+                                                ('set_metadata', set_metadata),
+                                                ('namespace', namespace)])
         return self._vector_api.update(UpdateRequest(
                 id=id,
                 **args_dict,
@@ -367,7 +367,7 @@ class Index(ApiClient):
         Returns: DescribeIndexStatsResponse object which contains stats about the index.
         """
         _check_type = kwargs.pop('_check_type', False)
-        args_dict = self._parse_args_to_dict([('filter', filter)])
+        args_dict = self._parse_non_empty_args([('filter', filter)])
 
         return self._vector_api.describe_index_stats(
             DescribeIndexStatsRequest(
@@ -379,5 +379,5 @@ class Index(ApiClient):
         )
 
     @staticmethod
-    def _parse_args_to_dict(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
+    def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
         return {arg_name: val for arg_name, val in args if val is not None}
