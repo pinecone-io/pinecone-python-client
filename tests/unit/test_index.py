@@ -1,7 +1,9 @@
+import pytest
+
 from pinecone.core.client.api_client import Endpoint
 
 import pinecone
-from pinecone import DescribeIndexStatsRequest, ScoredVector, QueryResponse
+from pinecone import DescribeIndexStatsRequest, ScoredVector, QueryResponse, UpsertResponse
 
 
 class TestRestIndex:
@@ -84,6 +86,137 @@ class TestRestIndex:
                     namespace='ns'),
                 async_req=True
             )
+
+    def test_upsert_vectorListIsMultiplyOfBatchSize_vectorsUpsertedInBatches(self, mocker):
+        mocker.patch.object(self.index._vector_api,
+                            'upsert',
+                            autospec=True,
+                            side_effect=lambda upsert_request: UpsertResponse(
+                                upserted_count=len(upsert_request.vectors)))
+
+        result = self.index.upsert(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+                pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2)],
+            namespace='ns',
+            batch_size=1,
+            show_progress=False)
+
+        self.index._vector_api.upsert.assert_any_call(
+            pinecone.UpsertRequest(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+            ], namespace='ns')
+        )
+
+        self.index._vector_api.upsert.assert_any_call(
+            pinecone.UpsertRequest(vectors=[
+                pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2),
+            ], namespace='ns')
+        )
+
+        assert result.upserted_count == 2
+
+    def test_upsert_vectorListNotMultiplyOfBatchSize_vectorsUpsertedInBatches(self, mocker):
+        mocker.patch.object(self.index._vector_api,
+                            'upsert',
+                            autospec=True,
+                            side_effect=lambda upsert_request: UpsertResponse(
+                                upserted_count=len(upsert_request.vectors)))
+
+        result = self.index.upsert(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+                pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2),
+                pinecone.Vector(id='vec3', values=self.vals1, metadata=self.md1)],
+            namespace='ns',
+            batch_size=2)
+
+        self.index._vector_api.upsert.assert_any_call(
+            pinecone.UpsertRequest(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+                pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2),
+            ], namespace='ns')
+        )
+
+        self.index._vector_api.upsert.assert_any_call(
+            pinecone.UpsertRequest(vectors=[
+                pinecone.Vector(id='vec3', values=self.vals1, metadata=self.md1),
+            ], namespace='ns')
+        )
+
+        assert result.upserted_count == 3
+
+    def test_upsert_vectorListSmallerThanBatchSize_vectorsUpsertedInBatches(self, mocker):
+        mocker.patch.object(self.index._vector_api,
+                            'upsert',
+                            autospec=True,
+                            side_effect=lambda upsert_request: UpsertResponse(
+                                upserted_count=len(upsert_request.vectors)))
+
+        result = self.index.upsert(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+                pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2),
+                pinecone.Vector(id='vec3', values=self.vals1, metadata=self.md1)],
+            namespace='ns',
+            batch_size=5)
+
+        self.index._vector_api.upsert.assert_called_once_with(
+            pinecone.UpsertRequest(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+                pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2),
+                pinecone.Vector(id='vec3', values=self.vals1, metadata=self.md1),
+            ], namespace='ns')
+        )
+
+        assert result.upserted_count == 3
+
+    def test_upsert_tuplesList_vectorsUpsertedInBatches(self, mocker):
+        mocker.patch.object(self.index._vector_api,
+                            'upsert',
+                            autospec=True,
+                            side_effect=lambda upsert_request: UpsertResponse(
+                                upserted_count=len(upsert_request.vectors)))
+
+        result = self.index.upsert(vectors=
+                                   [('vec1', self.vals1, self.md1),
+                                    ('vec2', self.vals2, self.md2),
+                                    ('vec3', self.vals1, self.md1)],
+                                   namespace='ns',
+                                   batch_size=2)
+
+        self.index._vector_api.upsert.assert_any_call(
+            pinecone.UpsertRequest(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+                pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2),
+            ], namespace='ns')
+        )
+
+        self.index._vector_api.upsert.assert_any_call(
+            pinecone.UpsertRequest(vectors=[
+                pinecone.Vector(id='vec3', values=self.vals1, metadata=self.md1),
+            ], namespace='ns')
+        )
+
+        assert result.upserted_count == 3
+
+    def test_upsert_batchSizeIsNotPositive_errorIsRaised(self):
+        with pytest.raises(ValueError, match='batch_size must be a positive integer'):
+            self.index.upsert(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1)],
+                namespace='ns',
+                batch_size=0)
+
+        with pytest.raises(ValueError, match='batch_size must be a positive integer'):
+            self.index.upsert(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1)],
+                namespace='ns',
+                batch_size=-1)
+
+    def test_upsert_useBatchSizeAndAsyncReq_valueErrorRaised(self):
+        with pytest.raises(ValueError, match='async_req is not supported when batch_size is provided.'):
+            self.index.upsert(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1)],
+                namespace='ns',
+                batch_size=1,
+                async_req=True)
 
     # endregion
 

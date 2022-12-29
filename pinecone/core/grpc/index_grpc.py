@@ -10,6 +10,8 @@ import certifi
 import grpc
 from google.protobuf import json_format
 from grpc._channel import _InactiveRpcError, _MultiThreadedRendezvous
+from tqdm import tqdm
+
 from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, DescribeIndexStatsResponse
 from pinecone.config import Config
 from pinecone.core.client.model.namespace_summary import NamespaceSummary
@@ -255,6 +257,8 @@ class GRPCIndex(GRPCIndexBase):
                vectors: Union[List[GRPCVector], List[Tuple]],
                async_req: bool = False,
                namespace: Optional[str] = None,
+               batch_size: Optional[int] = None,
+               show_progress: bool = True,
                **kwargs) -> Union[UpsertResponse, PineconeGrpcFuture]:
         """
         The upsert operation writes vectors into a namespace.
@@ -281,13 +285,21 @@ class GRPCIndex(GRPCIndexBase):
 
                     Note: the dimension of each vector must match the dimension of the index.
             async_req (bool): If True, the upsert operation will be performed asynchronously.
+                              Cannot be used with batch_size.
                               Defaults to False. See: https://docs.pinecone.io/docs/performance-tuning [optional]
             namespace (str): The namespace to write to. If not specified, the default namespace is used. [optional]
+            batch_size (int): The number of vectors to upsert in each batch.
+                                Cannot be used with async_req=Ture.
+                               If not specified, all vectors will be upserted in a single batch. [optional]
+            show_progress (bool): Whether to show a progress bar using tqdm.
+                                  Applied only if batch_size is provided. Default is True.
 
         Returns: UpsertResponse, contains the number of vectors upserted
         """
-
-        args_dict = self._parse_non_empty_args([('namespace', namespace)])
+        if async_req and batch_size is not None:
+            raise ValueError('async_req is not supported when batch_size is provided.'
+                             'To upsert in parallel, please follow: '
+                             'https://docs.pinecone.io/docs/performance-tuning')
 
         def _vector_transform(item):
             if isinstance(item, GRPCVector):
@@ -299,12 +311,37 @@ class GRPCIndex(GRPCIndexBase):
 
         timeout = kwargs.pop('timeout', None)
 
-        request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **args_dict, **kwargs)
+        vectors = list(map(_vector_transform, vectors))
         if async_req:
+            args_dict = self._parse_non_empty_args([('namespace', namespace)])
+            request = UpsertRequest(vectors=vectors, **args_dict, **kwargs)
             future = self._wrap_grpc_call(self.stub.Upsert.future, request, timeout=timeout)
             return PineconeGrpcFuture(future)
-        else:
-            return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
+
+        if batch_size is None:
+            return self._upsert_batch(vectors, namespace, timeout=timeout, **kwargs)
+
+        if not isinstance(batch_size, int) or batch_size <= 0:
+            raise ValueError('batch_size must be a positive integer')
+
+        pbar = tqdm(total=len(vectors), disable=not show_progress, desc='Upserted vectors')
+        total_upserted = 0
+        for i in range(0, len(vectors), batch_size):
+            batch_result = self._upsert_batch(vectors[i:i + batch_size], namespace, timeout=timeout, **kwargs)
+            pbar.update(batch_result.upserted_count)
+            # we can't use here pbar.n for the case show_progress=False
+            total_upserted += batch_result.upserted_count
+
+        return UpsertResponse(upserted_count=total_upserted)
+
+    def _upsert_batch(self,
+                      vectors: List[GRPCVector],
+                      namespace: Optional[str],
+                      timeout: Optional[float],
+                      **kwargs) -> UpsertResponse:
+        args_dict = self._parse_non_empty_args([('namespace', namespace)])
+        request = UpsertRequest(vectors=vectors, **args_dict)
+        return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout, **kwargs)
 
     def delete(self,
                ids: Optional[List[str]] = None,

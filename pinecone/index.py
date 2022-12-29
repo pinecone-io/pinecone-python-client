@@ -100,13 +100,18 @@ class Index(ApiClient):
             batch_size (int): The number of vectors to upsert in each batch.
                                If not specified, all vectors will be upserted in a single batch. [optional]
             show_progress (bool): Whether to show a progress bar using tqdm.
-                                  Applied only if batch_size is provided. Defaults to True.
+                                  Applied only if batch_size is provided. Default is True.
         Keyword Args:
             Supports OpenAPI client keyword arguments. See pinecone.core.client.models.UpsertRequest for more details.
 
         Returns: UpsertResponse, includes the number of vectors upserted.
         """
         _check_type = kwargs.pop('_check_type', False)
+
+        if kwargs.get('async_req', False) and batch_size is not None:
+            raise ValueError('async_req is not supported when batch_size is provided.'
+                             'To upsert in parallel, please follow: '
+                             'https://docs.pinecone.io/docs/insert-data#sending-upserts-in-parallel')
 
         if batch_size is None:
             return self._upsert_batch(vectors, namespace, _check_type, **kwargs)
@@ -121,10 +126,11 @@ class Index(ApiClient):
         pbar = tqdm(total=len(vectors), disable=not show_progress, desc='Upserted vectors')
         total_upserted = 0
         for i in range(0, len(vectors), batch_size):
-            batch = vectors[i:i + batch_size]
-            batch_result = self._upsert_batch(batch, namespace, _check_type, **kwargs)
+            batch_result = self._upsert_batch(vectors[i:i + batch_size], namespace, _check_type, **kwargs)
+            pbar.update(batch_result.upserted_count)
+            # we can't use here pbar.n for the case show_progress=False
             total_upserted += batch_result.upserted_count
-            pbar.update(len(batch))
+
         return UpsertResponse(upserted_count=total_upserted)
 
     def _upsert_batch(self,
@@ -135,7 +141,7 @@ class Index(ApiClient):
 
         args_dict = self._parse_non_empty_args([('namespace', namespace)])
 
-        def transform_upsert_vector(item: Union[Vector, Tuple]):
+        def _vector_transform(item: Union[Vector, Tuple]):
             if isinstance(item, Vector):
                 return item
             if isinstance(item, tuple):
@@ -145,7 +151,7 @@ class Index(ApiClient):
 
         return self._vector_api.upsert(
             UpsertRequest(
-                vectors=list(map(transform_upsert_vector, vectors)),
+                vectors=list(map(_vector_transform, vectors)),
                 **args_dict,
                 _check_type=_check_type,
                 **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
