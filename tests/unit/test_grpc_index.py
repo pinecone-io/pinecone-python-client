@@ -60,6 +60,21 @@ class TestGrpcIndex:
                 namespace='ns'),
             timeout=None)
 
+    def test_upsert_async_upsertInputVectorsAsync(self, mocker):
+        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
+        self.index.upsert([Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
+                           Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
+                          namespace='ns',
+                          async_req=True)
+        self.index._wrap_grpc_call.assert_called_once_with(
+            self.index.stub.Upsert.future,
+            UpsertRequest(
+                vectors=[
+                    Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
+                    Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
+                namespace='ns'),
+            timeout=None)
+
     # endregion
 
     # region: query tests

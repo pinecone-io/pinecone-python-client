@@ -1,3 +1,5 @@
+from pinecone.core.client.api_client import Endpoint
+
 import pinecone
 from pinecone import DescribeIndexStatsRequest, ScoredVector, QueryResponse
 
@@ -51,6 +53,37 @@ class TestRestIndex:
                 pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2)
             ], namespace='ns')
         )
+
+    def test_upsert_parallelUpsert_callUpsertParallel(self, mocker):
+        mocker.patch.object(Endpoint, '__call__', autospec=True)
+        chunks = [[pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1)],
+                  [pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2)]]
+        with pinecone.Index('example-index', pool_threads=30) as index:
+            # Send requests in parallel
+            async_results = [
+                index.upsert(vectors=ids_vectors_chunk, namespace="ns", async_req=True)
+                for ids_vectors_chunk in chunks
+            ]
+            # Wait for and retrieve responses (this raises in case of error)
+            [async_result.get() for async_result in async_results]
+
+            Endpoint.__call__.assert_any_call(
+                index._vector_api.upsert,
+                pinecone.UpsertRequest(vectors=[
+                    pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+                ],
+                    namespace='ns'),
+                async_req=True
+            )
+
+            Endpoint.__call__.assert_any_call(
+                index._vector_api.upsert,
+                pinecone.UpsertRequest(vectors=[
+                    pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2),
+                ],
+                    namespace='ns'),
+                async_req=True
+            )
 
     # endregion
 

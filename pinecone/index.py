@@ -71,6 +71,8 @@ class Index(ApiClient):
 
         API reference: https://docs.pinecone.io/reference/upsert
 
+        To upsert in parallel follow: https://docs.pinecone.io/docs/insert-data#sending-upserts-in-parallel
+
         Examples:
             >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])])
             >>> index.upsert([Vector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),

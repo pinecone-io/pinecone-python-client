@@ -281,11 +281,10 @@ class GRPCIndex(GRPCIndexBase):
 
                     Note: the dimension of each vector must match the dimension of the index.
             async_req (bool): If True, the upsert operation will be performed asynchronously.
-                              Defaults to False. [optional]
+                              Defaults to False. See: https://docs.pinecone.io/docs/performance-tuning [optional]
             namespace (str): The namespace to write to. If not specified, the default namespace is used. [optional]
 
         Returns: UpsertResponse, contains the number of vectors upserted
-                 or a PineconeGrpcFuture object if async_req is True.
         """
 
         args_dict = self._parse_args_to_dict([('namespace', namespace)])
