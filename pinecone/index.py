@@ -1,7 +1,7 @@
 #
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
-
+from tqdm import tqdm
 from collections.abc import Iterable
 from typing import Union, List, Tuple, Optional, Dict, Any
 
@@ -64,6 +64,8 @@ class Index(ApiClient):
     def upsert(self,
                vectors: Union[List[Vector], List[Tuple]],
                namespace: Optional[str] = None,
+               batch_size: Optional[int] = None,
+               show_progress: bool = True,
                **kwargs) -> UpsertResponse:
         """
         The upsert operation writes vectors into a namespace.
@@ -95,16 +97,47 @@ class Index(ApiClient):
                     Note: the dimension of each vector must match the dimension of the index.
 
             namespace (str): The namespace to write to. If not specified, the default namespace is used. [optional]
-
+            batch_size (int): The number of vectors to upsert in each batch.
+                               If not specified, all vectors will be upserted in a single batch. [optional]
+            show_progress (bool): Whether to show a progress bar using tqdm.
+                                  Applied only if batch_size is provided. Default is True.
         Keyword Args:
             Supports OpenAPI client keyword arguments. See pinecone.core.client.models.UpsertRequest for more details.
 
         Returns: UpsertResponse, includes the number of vectors upserted.
         """
         _check_type = kwargs.pop('_check_type', False)
+
+        if kwargs.get('async_req', False) and batch_size is not None:
+            raise ValueError('async_req is not supported when batch_size is provided.'
+                             'To upsert in parallel, please follow: '
+                             'https://docs.pinecone.io/docs/insert-data#sending-upserts-in-parallel')
+
+        if batch_size is None:
+            return self._upsert_batch(vectors, namespace, _check_type, **kwargs)
+
+        if not isinstance(batch_size, int) or batch_size <= 0:
+            raise ValueError('batch_size must be a positive integer')
+
+        pbar = tqdm(total=len(vectors), disable=not show_progress, desc='Upserted vectors')
+        total_upserted = 0
+        for i in range(0, len(vectors), batch_size):
+            batch_result = self._upsert_batch(vectors[i:i + batch_size], namespace, _check_type, **kwargs)
+            pbar.update(batch_result.upserted_count)
+            # we can't use here pbar.n for the case show_progress=False
+            total_upserted += batch_result.upserted_count
+
+        return UpsertResponse(upserted_count=total_upserted)
+
+    def _upsert_batch(self,
+                      vectors: List[Vector],
+                      namespace: Optional[str],
+                      _check_type: bool,
+                      **kwargs) -> UpsertResponse:
+
         args_dict = self._parse_non_empty_args([('namespace', namespace)])
 
-        def _vector_transform(item):
+        def _vector_transform(item: Union[Vector, Tuple]):
             if isinstance(item, Vector):
                 return item
             if isinstance(item, tuple):

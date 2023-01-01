@@ -1,8 +1,10 @@
+import pytest
+
 import pinecone
 from core.utils import dict_to_proto_struct
 from pinecone import DescribeIndexStatsRequest
 from pinecone.core.grpc.protos.vector_service_pb2 import Vector, DescribeIndexStatsRequest, UpdateRequest, \
-    UpsertRequest, FetchRequest, QueryRequest, DeleteRequest, QueryVector
+    UpsertRequest, FetchRequest, QueryRequest, DeleteRequest, QueryVector, UpsertResponse
 
 
 class TestGrpcIndex:
@@ -74,6 +76,128 @@ class TestGrpcIndex:
                     Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
                 namespace='ns'),
             timeout=None)
+
+    def test_upsert_vectorListIsMultiplyOfBatchSize_vectorsUpsertedInBatches(self, mocker):
+        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True,
+                            side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
+                                upserted_count=len(upsert_request.vectors)))
+
+        result = self.index.upsert([Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
+                                    Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
+                                   namespace='ns',
+                                   batch_size=1,
+                                   show_progress=False)
+        self.index._wrap_grpc_call.assert_any_call(
+            self.index.stub.Upsert,
+            UpsertRequest(
+                vectors=[
+                    Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1))],
+                namespace='ns'),
+            timeout=None)
+
+        self.index._wrap_grpc_call.assert_any_call(
+            self.index.stub.Upsert,
+            UpsertRequest(
+                vectors=[Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
+                namespace='ns'),
+            timeout=None)
+
+        assert result.upserted_count == 2
+
+    def test_upsert_vectorListNotMultiplyOfBatchSize_vectorsUpsertedInBatches(self, mocker):
+        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True,
+                            side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
+                                upserted_count=len(upsert_request.vectors)))
+
+        result = self.index.upsert([Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
+                                    Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2)),
+                                    Vector(id='vec3', values=self.vals1, metadata=dict_to_proto_struct(self.md1))],
+                                   namespace='ns',
+                                   batch_size=2)
+        self.index._wrap_grpc_call.assert_any_call(
+            self.index.stub.Upsert,
+            UpsertRequest(
+                vectors=[
+                    Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
+                    Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
+                namespace='ns'),
+            timeout=None)
+
+        self.index._wrap_grpc_call.assert_any_call(
+            self.index.stub.Upsert,
+            UpsertRequest(
+                vectors=[Vector(id='vec3', values=self.vals1, metadata=dict_to_proto_struct(self.md1))],
+                namespace='ns'),
+            timeout=None)
+
+        assert result.upserted_count == 3
+
+    def test_upsert_vectorListSmallerThanBatchSize_vectorsUpsertedInBatches(self, mocker):
+        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True,
+                            side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
+                                upserted_count=len(upsert_request.vectors)))
+
+        result = self.index.upsert([Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
+                                    Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
+                                   namespace='ns',
+                                   batch_size=5)
+
+        self.index._wrap_grpc_call.assert_called_once_with(
+            self.index.stub.Upsert,
+            UpsertRequest(
+                vectors=[
+                    Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
+                    Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
+                namespace='ns'),
+            timeout=None)
+
+        assert result.upserted_count == 2
+
+    def test_upsert_tuplesList_vectorsUpsertedInBatches(self, mocker):
+        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True,
+                            side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
+                                upserted_count=len(upsert_request.vectors)))
+
+        result = self.index.upsert([('vec1', self.vals1, self.md1),
+                                    ('vec2', self.vals2, self.md2),
+                                    ('vec3', self.vals1, self.md1)],
+                                   namespace='ns',
+                                   batch_size=2)
+        self.index._wrap_grpc_call.assert_any_call(
+            self.index.stub.Upsert,
+            UpsertRequest(
+                vectors=[
+                    Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
+                    Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
+                namespace='ns'),
+            timeout=None)
+
+        self.index._wrap_grpc_call.assert_any_call(
+            self.index.stub.Upsert,
+            UpsertRequest(
+                vectors=[Vector(id='vec3', values=self.vals1, metadata=dict_to_proto_struct(self.md1))],
+                namespace='ns'),
+            timeout=None)
+
+        assert result.upserted_count == 3
+
+    def test_upsert_batchSizeIsNotPositive_errorIsRaised(self):
+        with pytest.raises(ValueError, match='batch_size must be a positive integer'):
+            self.index.upsert([Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1))],
+                              namespace='ns',
+                              batch_size=0)
+
+        with pytest.raises(ValueError, match='batch_size must be a positive integer'):
+            self.index.upsert([Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1))],
+                              namespace='ns',
+                              batch_size=-1)
+
+    def test_upsert_useBatchSizeAndAsyncReq_valueErrorRaised(self):
+        with pytest.raises(ValueError, match='async_req is not supported when batch_size is provided.'):
+            self.index.upsert([Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1))],
+                              namespace='ns',
+                              batch_size=2,
+                              async_req=True)
 
     # endregion
 
