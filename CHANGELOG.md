@@ -9,6 +9,7 @@ None
 - Add typing and explicit names for arguments in all client operations
 - Add docstrings to all client operations
 - Support batch upsert by passing `batch_size` to `upsert` method
+- Improve gRPC query results parsing performance 
 
 ## [2.0.13](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.12...v2.0.13)
 - Added support for collections 
