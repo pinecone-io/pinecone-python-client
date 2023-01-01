@@ -115,10 +115,6 @@ class Index(ApiClient):
 
         if batch_size is None:
             return self._upsert_batch(vectors, namespace, _check_type, **kwargs)
-        elif kwargs.get('async_req', False):
-            raise ValueError('async_req is not supported when batch_size is provided.'
-                             'To upsert in parallel, please follow: '
-                             'https://docs.pinecone.io/docs/insert-data#sending-upserts-in-parallel')
 
         if not isinstance(batch_size, int) or batch_size <= 0:
             raise ValueError('batch_size must be a positive integer')
