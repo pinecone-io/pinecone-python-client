@@ -42,7 +42,7 @@ class _CONFIG:
 
     Order of configs to load:
 
-    - configs specified explictly in reset
+    - configs specified explicitly in reset
     - environment variables
     - configs specified in the INI file
     - default configs
