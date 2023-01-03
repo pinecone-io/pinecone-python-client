@@ -33,3 +33,7 @@ class NodeType(str, enum.Enum):
 PACKAGE_ENVIRONMENT = get_environment() or "development"
 CLIENT_VERSION = get_version()
 CLIENT_ID = f'python-client-{CLIENT_VERSION}'
+
+TCP_KEEPINTVL = 60   # Sec
+TCP_KEEPIDLE = 300   # Sec
+TCP_KEEPCNT = 4

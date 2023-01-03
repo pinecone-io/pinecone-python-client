@@ -4,20 +4,21 @@
 import logging
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import NamedTuple, Optional, Dict, Iterable
+from typing import NamedTuple, Optional, Dict, Iterable, Union, List, Tuple, Any
 
 import certifi
 import grpc
 from google.protobuf import json_format
 from grpc._channel import _InactiveRpcError, _MultiThreadedRendezvous
-from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, \
-    UpsertResponse, DescribeIndexStatsResponse
+from tqdm import tqdm
+
+from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, DescribeIndexStatsResponse
 from pinecone.config import Config
 from pinecone.core.client.model.namespace_summary import NamespaceSummary
 from pinecone.core.client.model.vector import Vector as _Vector
 from pinecone.core.grpc.protos.vector_service_pb2 import Vector as GRPCVector, \
-    QueryVector as GRPCQueryVector, UpsertRequest, DeleteRequest, QueryRequest, \
-    FetchRequest, UpdateRequest, DescribeIndexStatsRequest
+    QueryVector as GRPCQueryVector, UpsertRequest, UpsertResponse, DeleteRequest, QueryRequest, \
+    FetchRequest, UpdateRequest, DescribeIndexStatsRequest, DeleteResponse, UpdateResponse
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
 from pinecone.core.grpc.retry import RetryOnRpcErrorClientInterceptor, RetryConfig
 from pinecone.core.utils import _generate_request_id, dict_to_proto_struct, fix_tuple_length
@@ -171,9 +172,10 @@ def parse_fetch_response(response: dict):
     return FetchResponse(vectors=vd, namespace=namespace, _check_type=False)
 
 
-def parse_query_response(response: dict, unary_query: bool):
+def parse_query_response(response: dict, unary_query: bool, _check_type: bool = False):
     res = []
 
+    # TODO: consider deleting this deprecated case
     for match in response.get('results', []):
         namespace = match.get('namespace', '')
         m = []
@@ -187,21 +189,16 @@ def parse_query_response(response: dict, unary_query: bool):
     m = []
     for item in response.get('matches', []):
         sc = ScoredVector(id=item['id'], score=item.get('score', 0.0), values=item.get('values', []),
-                          metadata=item.get('metadata', {}))
+                          metadata=item.get('metadata', {}), _check_type=_check_type)
         m.append(sc)
 
-    kwargs = {'check_type': False}
+    kwargs = {'_check_type': _check_type}
     if unary_query:
         kwargs['namespace'] = response.get('namespace', '')
         kwargs['matches'] = m
     else:
         kwargs['results'] = res
     return QueryResponse(**kwargs)
-
-
-def parse_upsert_response(response):
-    response = json_format.MessageToDict(response)
-    return UpsertResponse(upserted_count=response['upsertedCount'], _check_type=False)
 
 
 def parse_stats_response(response: dict):
@@ -251,11 +248,60 @@ class PineconeGrpcFuture:
 
 class GRPCIndex(GRPCIndexBase):
 
+    """A client for interacting with a Pinecone index via GRPC API."""
+
     @property
     def stub_class(self):
         return VectorServiceStub
 
-    def upsert(self, vectors, async_req=False, **kwargs):
+    def upsert(self,
+               vectors: Union[List[GRPCVector], List[Tuple]],
+               async_req: bool = False,
+               namespace: Optional[str] = None,
+               batch_size: Optional[int] = None,
+               show_progress: bool = True,
+               **kwargs) -> Union[UpsertResponse, PineconeGrpcFuture]:
+        """
+        The upsert operation writes vectors into a namespace.
+        If a new value is upserted for an existing vector id, it will overwrite the previous value.
+
+        Examples:
+            >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])], namespace='ns1')
+            >>> index.upsert([GRPCVector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
+            >>>              GRPCVector(id='id2', values=[1.0, 2.0, 3.0])], async_req=True)
+
+        Args:
+            vectors (Union[List[Vector], List[Tuple]]): A list of vectors to upsert.
+
+                     A vector can be represented by a 1) GRPCVector object or a 2) tuple.
+                     1) if a tuple is used, it must be of the form (id, values, metadata) or (id, values).
+                        where id is a string, vector is a list of floats, and metadata is a dict.
+                        Examples: ('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])
+
+                    2) if a GRPCVector object is used, a GRPCVector object must be of the form
+                        GRPCVector(id, values, metadata), where metadata is an optional argument of type
+                        Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]
+                       Examples: GRPCVector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
+                                 GRPCVector(id='id2', values=[1.0, 2.0, 3.0])
+
+                    Note: the dimension of each vector must match the dimension of the index.
+            async_req (bool): If True, the upsert operation will be performed asynchronously.
+                              Cannot be used with batch_size.
+                              Defaults to False. See: https://docs.pinecone.io/docs/performance-tuning [optional]
+            namespace (str): The namespace to write to. If not specified, the default namespace is used. [optional]
+            batch_size (int): The number of vectors to upsert in each batch.
+                                Cannot be used with async_req=Ture.
+                               If not specified, all vectors will be upserted in a single batch. [optional]
+            show_progress (bool): Whether to show a progress bar using tqdm.
+                                  Applied only if batch_size is provided. Default is True.
+
+        Returns: UpsertResponse, contains the number of vectors upserted
+        """
+        if async_req and batch_size is not None:
+            raise ValueError('async_req is not supported when batch_size is provided.'
+                             'To upsert in parallel, please follow: '
+                             'https://docs.pinecone.io/docs/performance-tuning')
+
         def _vector_transform(item):
             if isinstance(item, GRPCVector):
                 return item
@@ -264,37 +310,167 @@ class GRPCIndex(GRPCIndexBase):
                 return GRPCVector(id=id, values=values, metadata=dict_to_proto_struct(metadata) or {})
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
-        request = UpsertRequest(vectors=list(map(_vector_transform, vectors)), **kwargs)
         timeout = kwargs.pop('timeout', None)
+
+        vectors = list(map(_vector_transform, vectors))
         if async_req:
+            args_dict = self._parse_non_empty_args([('namespace', namespace)])
+            request = UpsertRequest(vectors=vectors, **args_dict, **kwargs)
             future = self._wrap_grpc_call(self.stub.Upsert.future, request, timeout=timeout)
             return PineconeGrpcFuture(future)
-        else:
-            return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout)
 
-    def delete(self, *args, async_req=False, **kwargs):
-        _filter = dict_to_proto_struct(kwargs.pop('filter', None))
-        filter_param = {}
-        if _filter:
-            filter_param['filter'] = _filter
-        request = DeleteRequest(*args, **kwargs, **filter_param)
+        if batch_size is None:
+            return self._upsert_batch(vectors, namespace, timeout=timeout, **kwargs)
+
+        if not isinstance(batch_size, int) or batch_size <= 0:
+            raise ValueError('batch_size must be a positive integer')
+
+        pbar = tqdm(total=len(vectors), disable=not show_progress, desc='Upserted vectors')
+        total_upserted = 0
+        for i in range(0, len(vectors), batch_size):
+            batch_result = self._upsert_batch(vectors[i:i + batch_size], namespace, timeout=timeout, **kwargs)
+            pbar.update(batch_result.upserted_count)
+            # we can't use here pbar.n for the case show_progress=False
+            total_upserted += batch_result.upserted_count
+
+        return UpsertResponse(upserted_count=total_upserted)
+
+    def _upsert_batch(self,
+                      vectors: List[GRPCVector],
+                      namespace: Optional[str],
+                      timeout: Optional[float],
+                      **kwargs) -> UpsertResponse:
+        args_dict = self._parse_non_empty_args([('namespace', namespace)])
+        request = UpsertRequest(vectors=vectors, **args_dict)
+        return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout, **kwargs)
+
+    def delete(self,
+               ids: Optional[List[str]] = None,
+               delete_all: Optional[bool] = None,
+               namespace: Optional[str] = None,
+               filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+               async_req: bool = False,
+               **kwargs) -> Union[DeleteResponse, PineconeGrpcFuture]:
+        """
+        The Delete operation deletes vectors from the index, from a single namespace.
+        No error raised if the vector id does not exist.
+        Note: for any delete call, if namespace is not specified, the default namespace is used.
+
+        Delete can occur in the following mutual exclusive ways:
+        1. Delete by ids from a single namespace
+        2. Delete all vectors from a single namespace by setting delete_all to True
+        3. Delete all vectors from a single namespace by specifying a metadata filter
+           (note that for this option delete all must be set to False)
+
+        Examples:
+            >>> index.delete(ids=['id1', 'id2'], namespace='my_namespace')
+            >>> index.delete(delete_all=True, namespace='my_namespace')
+            >>> index.delete(filter={'key': 'value'}, namespace='my_namespace', async_req=True)
+
+        Args:
+            ids (List[str]): Vector ids to delete [optional]
+            delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional]
+                               Default is False.
+            namespace (str): The namespace to delete vectors from [optional]
+                             If not specified, the default namespace is used.
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+                    If specified, the metadata filter here will be used to select the vectors to delete.
+                    This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True.
+                     See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
+            async_req (bool): If True, the delete operation will be performed asynchronously.
+                              Defaults to False. [optional]
+
+        Returns: DeleteResponse (contains no data) or a PineconeGrpcFuture object if async_req is True.
+        """
+
+        if filter is not None:
+            filter = dict_to_proto_struct(filter)
+
+        args_dict = self._parse_non_empty_args([('ids', ids),
+                                                ('delete_all', delete_all),
+                                                ('namespace', namespace),
+                                                ('filter', filter)])
         timeout = kwargs.pop('timeout', None)
+
+        request = DeleteRequest(**args_dict, **kwargs)
         if async_req:
             future = self._wrap_grpc_call(self.stub.Delete.future, request, timeout=timeout)
             return PineconeGrpcFuture(future)
         else:
             return self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout)
 
-    def fetch(self, *args, **kwargs):
+    def fetch(self,
+              ids: Optional[List[str]],
+              namespace: Optional[str] = None,
+              **kwargs) -> FetchResponse:
+        """
+        The fetch operation looks up and returns vectors, by ID, from a single namespace.
+        The returned vectors include the vector data and/or metadata.
+
+        Examples:
+            >>> index.fetch(ids=['id1', 'id2'], namespace='my_namespace')
+            >>> index.fetch(ids=['id1', 'id2'])
+
+        Args:
+            ids (List[str]): The vector IDs to fetch.
+            namespace (str): The namespace to fetch vectors from.
+                             If not specified, the default namespace is used. [optional]
+
+        Returns: FetchResponse object which contains the list of Vector objects, and namespace name.
+        """
         timeout = kwargs.pop('timeout', None)
-        request = FetchRequest(*args, **kwargs)
+
+        args_dict = self._parse_non_empty_args([('namespace', namespace)])
+
+        request = FetchRequest(ids=ids, **args_dict, **kwargs)
         response = self._wrap_grpc_call(self.stub.Fetch, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_fetch_response(json_response)
 
-    def query(self, vector=[], id='', queries=[], **kwargs):
-        timeout = kwargs.pop('timeout', None)
+    def query(self,
+              vector: Optional[List[float]] = None,
+              id: Optional[str] = None,
+              queries: Optional[Union[List[GRPCQueryVector], List[Tuple]]] = None,
+              namespace: Optional[str] = None,
+              top_k: Optional[int] = None,
+              filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+              include_values: Optional[bool] = None,
+              include_metadata: Optional[bool] = None,
+              **kwargs) -> QueryResponse:
+        """
+        The Query operation searches a namespace, using a query vector.
+        It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
 
+        Examples:
+            >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace')
+            >>> index.query(id='id1', top_k=10, namespace='my_namespace')
+            >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace', filter={'key': 'value'})
+            >>> index.query(id='id1', top_k=10, namespace='my_namespace', include_metadata=True, include_values=True)
+
+        Args:
+            vector (List[float]): The query vector. This should be the same length as the dimension of the index
+                                  being queried. Each `query()` request can contain only one of the parameters
+                                  `queries`, `id` or `vector`.. [optional]
+            id (str): The unique ID of the vector to be used as a query vector.
+                      Each `query()` request can contain only one of the parameters
+                      `queries`, `vector`, or  `id`.. [optional]
+            queries ([GRPCQueryVector]): DEPRECATED. The query vectors.
+                                     Each `query()` request can contain only one of the parameters
+                                     `queries`, `vector`, or  `id`.. [optional]
+            top_k (int): The number of results to return for each query. Must be an integer greater than 1.
+            namespace (str): The namespace to fetch vectors from.
+                             If not specified, the default namespace is used. [optional]
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+                    The filter to apply. You can use vector metadata to limit your search.
+                    See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
+            include_values (bool): Indicates whether vector values are included in the response.
+                                   If omitted the server will use the default value of False [optional]
+            include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.
+                                     If omitted the server will use the default value of False  [optional]
+
+        Returns: QueryResponse object which contains the list of the closest vectors as ScoredVector objects,
+                 and namespace name.
+        """
         def _query_transform(item):
             if isinstance(item, GRPCQueryVector):
                 return item
@@ -306,36 +482,99 @@ class GRPCIndex(GRPCIndexBase):
                 return GRPCQueryVector(values=item)
             raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")
 
-        _QUERY_ARGS = ['namespace', 'top_k', 'filter', 'include_values', 'include_metadata']
-        if 'filter' in kwargs:
-            kwargs['filter'] = dict_to_proto_struct(kwargs['filter'])
-        request = QueryRequest(queries=list(map(_query_transform, queries)),
-                               vector=vector,
-                               id=id,
-                               **{k: v for k, v in kwargs.items() if k in _QUERY_ARGS})
+        queries = list(map(_query_transform, queries)) if queries is not None else None
+
+        if filter is not None:
+            filter = dict_to_proto_struct(filter)
+
+        args_dict = self._parse_non_empty_args([('vector', vector),
+                                                ('id', id),
+                                                ('queries', queries),
+                                                ('namespace', namespace),
+                                                ('top_k', top_k),
+                                                ('filter', filter),
+                                                ('include_values', include_values),
+                                                ('include_metadata', include_metadata)])
+
+        request = QueryRequest(**args_dict)
+
+        timeout = kwargs.pop('timeout', None)
         response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
-        return parse_query_response(json_response, vector or id)
+        return parse_query_response(json_response, vector is not None or id, _check_type=False)
 
-    def update(self, id, async_req=False, **kwargs):
-        _UPDATE_ARGS = ['values', 'set_metadata', 'namespace']
-        if 'set_metadata' in kwargs:
-            kwargs['set_metadata'] = dict_to_proto_struct(kwargs['set_metadata'])
-        request = UpdateRequest(id=id, **{k: v for k, v in kwargs.items() if k in _UPDATE_ARGS})
+    def update(self,
+               id: str,
+               async_req: bool = False,
+               values: Optional[List[float]] = None,
+               set_metadata: Optional[Dict[str,
+                                           Union[str, float, int, bool, List[int], List[float], List[str]]]] = None,
+               namespace: Optional[str] = None,
+               **kwargs) -> Union[UpdateResponse, PineconeGrpcFuture]:
+        """
+        The Update operation updates vector in a namespace.
+        If a value is included, it will overwrite the previous value.
+        If a set_metadata is included,
+        the values of the fields specified in it will be added or overwrite the previous value.
+
+        Examples:
+            >>> index.update(id='id1', values=[1, 2, 3], namespace='my_namespace')
+            >>> index.update(id='id1', set_metadata={'key': 'value'}, namespace='my_namespace', async_req=True)
+
+        Args:
+            id (str): Vector's unique id.
+            async_req (bool): If True, the update operation will be performed asynchronously.
+                              Defaults to False. [optional]
+            values (List[float]): vector values to set. [optional]
+            set_metadata (Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]]):
+                metadata to set for vector. [optional]
+            namespace (str): Namespace name where to update the vector.. [optional]
+
+        Returns: UpdateResponse (contains no data) or a PineconeGrpcFuture object if async_req is True.
+        """
+        if set_metadata is not None:
+            set_metadata = dict_to_proto_struct(set_metadata)
         timeout = kwargs.pop('timeout', None)
+
+        args_dict = self._parse_non_empty_args([('values', values),
+                                                ('set_metadata', set_metadata),
+                                                ('namespace', namespace)])
+
+        request = UpdateRequest(id=id, **args_dict)
         if async_req:
             future = self._wrap_grpc_call(self.stub.Update.future, request, timeout=timeout)
             return PineconeGrpcFuture(future)
         else:
             return self._wrap_grpc_call(self.stub.Update, request, timeout=timeout)
 
-    def describe_index_stats(self, **kwargs):
-        _filter = dict_to_proto_struct(kwargs.pop('filter', None))
-        filter_param = {}
-        if _filter:
-            filter_param['filter'] = _filter
+    def describe_index_stats(self,
+                             filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+                             **kwargs) -> DescribeIndexStatsResponse:
+        """
+        The DescribeIndexStats operation returns statistics about the index's contents.
+        For example: The vector count per namespace and the number of dimensions.
+
+        Examples:
+            >>> index.describe_index_stats()
+            >>> index.describe_index_stats(filter={'key': 'value'})
+
+        Args:
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+            If this parameter is present, the operation only returns statistics for vectors that satisfy the filter.
+            See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
+
+        Returns: DescribeIndexStatsResponse object which contains stats about the index.
+        """
+        if filter is not None:
+            filter = dict_to_proto_struct(filter)
+        args_dict = self._parse_non_empty_args([('filter', filter)])
         timeout = kwargs.pop('timeout', None)
-        request = DescribeIndexStatsRequest(**filter_param)
+
+        request = DescribeIndexStatsRequest(**args_dict)
         response = self._wrap_grpc_call(self.stub.DescribeIndexStats, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_stats_response(json_response)
+
+    @staticmethod
+    def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
+        return {arg_name: val for arg_name, val in args if val is not None}
