@@ -18,7 +18,7 @@ from pinecone.core.client.model.namespace_summary import NamespaceSummary
 from pinecone.core.client.model.vector import Vector as _Vector
 from pinecone.core.grpc.protos.vector_service_pb2 import Vector as GRPCVector, \
     QueryVector as GRPCQueryVector, UpsertRequest, UpsertResponse, DeleteRequest, QueryRequest, \
-    FetchRequest, UpdateRequest, DescribeIndexStatsRequest, DeleteResponse, UpdateResponse
+    FetchRequest, UpdateRequest, DescribeIndexStatsRequest, DeleteResponse, UpdateResponse, SparseValues
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
 from pinecone.core.grpc.retry import RetryOnRpcErrorClientInterceptor, RetryConfig
 from pinecone.core.utils import _generate_request_id, dict_to_proto_struct, fix_tuple_length
@@ -266,9 +266,13 @@ class GRPCIndex(GRPCIndexBase):
         If a new value is upserted for an existing vector id, it will overwrite the previous value.
 
         Examples:
-            >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])], namespace='ns1')
+            >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])],
+            >>>               namespace='ns1', async_req=True)
             >>> index.upsert([GRPCVector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
-            >>>              GRPCVector(id='id2', values=[1.0, 2.0, 3.0])], async_req=True)
+            >>>               GRPCVector(id='id2', values=[1.0, 2.0, 3.0]),
+            >>>               GRPCVector(id='id3',
+            >>>                          values=[1.0, 2.0, 3.0],
+            >>>                          sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))])
 
         Args:
             vectors (Union[List[Vector], List[Tuple]]): A list of vectors to upsert.
@@ -282,7 +286,10 @@ class GRPCIndex(GRPCIndexBase):
                         GRPCVector(id, values, metadata), where metadata is an optional argument of type
                         Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]
                        Examples: GRPCVector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
-                                 GRPCVector(id='id2', values=[1.0, 2.0, 3.0])
+                                 GRPCVector(id='id2', values=[1.0, 2.0, 3.0]),
+                                 GRPCVector(id='id3',
+                                            values=[1.0, 2.0, 3.0],
+                                            sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))
 
                     Note: the dimension of each vector must match the dimension of the index.
             async_req (bool): If True, the upsert operation will be performed asynchronously.
@@ -436,6 +443,7 @@ class GRPCIndex(GRPCIndexBase):
               filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
               include_values: Optional[bool] = None,
               include_metadata: Optional[bool] = None,
+              sparse_vector: Optional[Dict[str, Union[List[float], List[int]]]] = None,
               **kwargs) -> QueryResponse:
         """
         The Query operation searches a namespace, using a query vector.
@@ -446,6 +454,8 @@ class GRPCIndex(GRPCIndexBase):
             >>> index.query(id='id1', top_k=10, namespace='my_namespace')
             >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace', filter={'key': 'value'})
             >>> index.query(id='id1', top_k=10, namespace='my_namespace', include_metadata=True, include_values=True)
+            >>> index.query(vector=[1, 2, 3], sparse_vector={'indices': [1, 2], 'values': [0.2, 0.4]},
+            >>>             top_k=10, namespace='my_namespace')
 
         Args:
             vector (List[float]): The query vector. This should be the same length as the dimension of the index
@@ -467,6 +477,9 @@ class GRPCIndex(GRPCIndexBase):
                                    If omitted the server will use the default value of False [optional]
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.
                                      If omitted the server will use the default value of False  [optional]
+            sparse_vector: (Dict[str, Union[List[float], List[int]]]): sparse values of the query vector.
+                            Expected to be a dict of the form: {'indices': List[int], 'values': List[float]}
+                            e.g {'indices': [1, 2], 'values': [0.2, 0.4]}
 
         Returns: QueryResponse object which contains the list of the closest vectors as ScoredVector objects,
                  and namespace name.
@@ -487,6 +500,7 @@ class GRPCIndex(GRPCIndexBase):
         if filter is not None:
             filter = dict_to_proto_struct(filter)
 
+        sparse_vector = self._parse_sparse_values_arg(sparse_vector)
         args_dict = self._parse_non_empty_args([('vector', vector),
                                                 ('id', id),
                                                 ('queries', queries),
@@ -494,7 +508,8 @@ class GRPCIndex(GRPCIndexBase):
                                                 ('top_k', top_k),
                                                 ('filter', filter),
                                                 ('include_values', include_values),
-                                                ('include_metadata', include_metadata)])
+                                                ('include_metadata', include_metadata),
+                                                ('sparse_vector', sparse_vector)])
 
         request = QueryRequest(**args_dict)
 
@@ -510,6 +525,7 @@ class GRPCIndex(GRPCIndexBase):
                set_metadata: Optional[Dict[str,
                                            Union[str, float, int, bool, List[int], List[float], List[str]]]] = None,
                namespace: Optional[str] = None,
+               sparse_values: Optional[Dict[str, Union[List[float], List[int]]]] = None,
                **kwargs) -> Union[UpdateResponse, PineconeGrpcFuture]:
         """
         The Update operation updates vector in a namespace.
@@ -520,6 +536,8 @@ class GRPCIndex(GRPCIndexBase):
         Examples:
             >>> index.update(id='id1', values=[1, 2, 3], namespace='my_namespace')
             >>> index.update(id='id1', set_metadata={'key': 'value'}, namespace='my_namespace', async_req=True)
+            >>> index.update(id='id1', values=[1, 2, 3], sparse_values={'indices': [1, 2], 'values': [0.2, 0.4]},
+            >>>              namespace='my_namespace')
 
         Args:
             id (str): Vector's unique id.
@@ -529,6 +547,9 @@ class GRPCIndex(GRPCIndexBase):
             set_metadata (Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]]):
                 metadata to set for vector. [optional]
             namespace (str): Namespace name where to update the vector.. [optional]
+            sparse_values: (Dict[str, Union[List[float], List[int]]]): sparse values to update for the vector.
+                           Expected to be a dict of the form: {'indices': List[int], 'values': List[float]}
+                           e.g {'indices': [1, 2], 'values': [0.2, 0.4]}
 
         Returns: UpdateResponse (contains no data) or a PineconeGrpcFuture object if async_req is True.
         """
@@ -536,9 +557,11 @@ class GRPCIndex(GRPCIndexBase):
             set_metadata = dict_to_proto_struct(set_metadata)
         timeout = kwargs.pop('timeout', None)
 
+        sparse_values = self._parse_sparse_values_arg(sparse_values)
         args_dict = self._parse_non_empty_args([('values', values),
                                                 ('set_metadata', set_metadata),
-                                                ('namespace', namespace)])
+                                                ('namespace', namespace,
+                                                 'sparse_values', sparse_values)])
 
         request = UpdateRequest(id=id, **args_dict)
         if async_req:
@@ -578,3 +601,16 @@ class GRPCIndex(GRPCIndexBase):
     @staticmethod
     def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
         return {arg_name: val for arg_name, val in args if val is not None}
+
+    @staticmethod
+    def _parse_sparse_values_arg(
+            sparse_values: Optional[Dict[str, Union[List[float], List[int]]]]) -> Optional[SparseValues]:
+        if sparse_values is None:
+            return None
+
+        if not isinstance(sparse_values, dict) or "indices" not in sparse_values or "values" not in sparse_values:
+            raise ValueError(
+                "Invalid sparse values argument. Expected a dict of: {'indices': List[int], 'values': List[float]}."
+                f"Received: {sparse_values}")
+
+        return SparseValues(indices=sparse_values["indices"], values=sparse_values["values"])

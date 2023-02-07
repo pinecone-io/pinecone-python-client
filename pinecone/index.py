@@ -104,7 +104,7 @@ class Index(ApiClient):
                                         metadata={'key': 'value'})
                                  Vector(id='id2',
                                         values=[1.0, 2.0, 3.0])
-                                 Vector(id='id2',
+                                 Vector(id='id3',
                                         values=[1.0, 2.0, 3.0],
                                         sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))
 
