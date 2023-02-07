@@ -5,7 +5,7 @@ from tqdm import tqdm
 from collections.abc import Iterable
 from typing import Union, List, Tuple, Optional, Dict, Any
 
-from core.client.model.sparse_values import SparseValues
+from .core.client.model.sparse_values import SparseValues
 from pinecone import Config
 from pinecone.core.client import ApiClient
 from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, \
@@ -18,7 +18,7 @@ import copy
 __all__ = [
     "Index", "FetchResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus",
     "ScoredVector", "SingleQueryResults", "DescribeIndexStatsResponse", "UpsertRequest", "UpsertResponse",
-    "UpdateRequest", "Vector", "DeleteRequest", "UpdateRequest", "DescribeIndexStatsRequest"
+    "UpdateRequest", "Vector", "DeleteRequest", "UpdateRequest", "DescribeIndexStatsRequest", "SparseValues"
 ]
 
 from .core.utils.error_handling import validate_and_convert_errors

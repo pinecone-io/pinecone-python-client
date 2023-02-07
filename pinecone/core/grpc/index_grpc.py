@@ -18,14 +18,15 @@ from pinecone.core.client.model.namespace_summary import NamespaceSummary
 from pinecone.core.client.model.vector import Vector as _Vector
 from pinecone.core.grpc.protos.vector_service_pb2 import Vector as GRPCVector, \
     QueryVector as GRPCQueryVector, UpsertRequest, UpsertResponse, DeleteRequest, QueryRequest, \
-    FetchRequest, UpdateRequest, DescribeIndexStatsRequest, DeleteResponse, UpdateResponse, SparseValues
+    FetchRequest, UpdateRequest, DescribeIndexStatsRequest, DeleteResponse, UpdateResponse, \
+    SparseValues as GRPCSparseValues
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
 from pinecone.core.grpc.retry import RetryOnRpcErrorClientInterceptor, RetryConfig
 from pinecone.core.utils import _generate_request_id, dict_to_proto_struct, fix_tuple_length
 from pinecone.core.utils.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSION
 from pinecone.exceptions import PineconeException
 
-__all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector"]
+__all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues"]
 
 _logger = logging.getLogger(__name__)
 
@@ -272,7 +273,7 @@ class GRPCIndex(GRPCIndexBase):
             >>>               GRPCVector(id='id2', values=[1.0, 2.0, 3.0]),
             >>>               GRPCVector(id='id3',
             >>>                          values=[1.0, 2.0, 3.0],
-            >>>                          sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))])
+            >>>                          sparse_values=GRPCSparseValues(indices=[1, 2], values=[0.2, 0.4]))])
 
         Args:
             vectors (Union[List[Vector], List[Tuple]]): A list of vectors to upsert.
@@ -289,7 +290,7 @@ class GRPCIndex(GRPCIndexBase):
                                  GRPCVector(id='id2', values=[1.0, 2.0, 3.0]),
                                  GRPCVector(id='id3',
                                             values=[1.0, 2.0, 3.0],
-                                            sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))
+                                            sparse_values=GRPCSparseValues(indices=[1, 2], values=[0.2, 0.4]))
 
                     Note: the dimension of each vector must match the dimension of the index.
             async_req (bool): If True, the upsert operation will be performed asynchronously.
@@ -604,7 +605,7 @@ class GRPCIndex(GRPCIndexBase):
 
     @staticmethod
     def _parse_sparse_values_arg(
-            sparse_values: Optional[Dict[str, Union[List[float], List[int]]]]) -> Optional[SparseValues]:
+            sparse_values: Optional[Dict[str, Union[List[float], List[int]]]]) -> Optional[GRPCSparseValues]:
         if sparse_values is None:
             return None
 
@@ -613,4 +614,4 @@ class GRPCIndex(GRPCIndexBase):
                 "Invalid sparse values argument. Expected a dict of: {'indices': List[int], 'values': List[float]}."
                 f"Received: {sparse_values}")
 
-        return SparseValues(indices=sparse_values["indices"], values=sparse_values["values"])
+        return GRPCSparseValues(indices=sparse_values["indices"], values=sparse_values["values"])
