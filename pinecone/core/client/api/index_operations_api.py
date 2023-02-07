@@ -52,7 +52,7 @@ class IndexOperationsApi(object):
         ):
             """configure_index  # noqa: E501
 
-            Configure index to change pod type and number of replicas.  # noqa: E501
+            This operation specifies the pod type and number of replicas for an index.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -63,7 +63,7 @@ class IndexOperationsApi(object):
                 index_name (str): The name of the index
 
             Keyword Args:
-                patch_request (PatchRequest): The desired configuration changes for the index.. [optional]
+                patch_request (PatchRequest): The desired pod type and replica configuration for the index.. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
