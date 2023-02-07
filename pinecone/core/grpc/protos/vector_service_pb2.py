@@ -27,7 +27,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\021io.pinecone.protoP\001Z/github.com/pinecone-io/new-go-pinecone/pinecone\222A\366\002\022K\n\014Pinecone API\";\n\017Pinecone.io Ops\022\023https://pinecone.io\032\023support@pinecone.io\0329{index_name}-{project_name}.svc.{environment}.pinecone.io*\001\0022\020application/json:\020application/jsonZx\nv\n\nApiKeyAuth\022h\010\002\022YAn API Key is required to call Pinecone APIs. Get yours at https://www.pinecone.io/start/\032\007Api-Key \002b\020\n\016\n\nApiKeyAuth\022\000r9\n\031More Pinecone.io API docs\022\034https://www.pinecone.io/docs',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x14vector_service.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"~\n\x0cSparseValues\x12\x35\n\x07indices\x18\x01 \x03(\rB$\x92\x41\x1eJ\x16[1, 312, 822, 14, 980]x\xe8\x07\x80\x01\x01\xe0\x41\x02\x12\x37\n\x06values\x18\x02 \x03(\x02\x42\'\x92\x41!J\x19[0.1, 0.2, 0.3, 0.4, 0.5]x\xe8\x07\x80\x01\x01\xe0\x41\x02\"\xfd\x01\n\x06Vector\x12,\n\x02id\x18\x01 \x01(\tB \x92\x41\x1aJ\x12\"example-vector-1\"x\x80\x04\x80\x01\x01\xe0\x41\x02\x12G\n\x06values\x18\x02 \x03(\x02\x42\x37\x92\x41\x31J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\xa0\x9c\x01\x80\x01\x01\xe0\x41\x02\x12$\n\rsparse_values\x18\x04 \x01(\x0b\x32\r.SparseValues\x12V\n\x08metadata\x18\x03 \x01(\x0b\x32\x17.google.protobuf.StructB+\x92\x41(J&{\"genre\": \"documentary\", \"year\": 2019}\"\x93\x02\n\x0cScoredVector\x12,\n\x02id\x18\x01 \x01(\tB \x92\x41\x1aJ\x12\"example-vector-1\"x\x80\x04\x80\x01\x01\xe0\x41\x02\x12\x18\n\x05score\x18\x02 \x01(\x02\x42\t\x92\x41\x06J\x04\x30.08\x12=\n\x06values\x18\x03 \x03(\x02\x42-\x92\x41*J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]\x12$\n\rsparse_values\x18\x05 \x01(\x0b\x32\r.SparseValues\x12V\n\x08metadata\x18\x04 \x01(\x0b\x32\x17.google.protobuf.StructB+\x92\x41(J&{\"genre\": \"documentary\", \"year\": 2019}\"d\n\rUpsertRequest\x12&\n\x07vectors\x18\x01 \x03(\x0b\x32\x07.VectorB\x0c\x92\x41\x06x\xe8\x07\x80\x01\x01\xe0\x41\x02\x12+\n\tnamespace\x18\x02 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\"1\n\x0eUpsertResponse\x12\x1f\n\x0eupserted_count\x18\x01 \x01(\rB\x07\x92\x41\x04J\x02\x31\x30\"\xb6\x01\n\rDeleteRequest\x12(\n\x03ids\x18\x01 \x03(\tB\x1b\x92\x41\x18J\x10[\"id-0\", \"id-1\"]x\xe8\x07\x80\x01\x01\x12%\n\ndelete_all\x18\x02 \x01(\x08\x42\x11\x92\x41\x0e:\x05\x66\x61lseJ\x05\x66\x61lse\x12+\n\tnamespace\x18\x03 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\x12\'\n\x06\x66ilter\x18\x04 \x01(\x0b\x32\x17.google.protobuf.Struct\"\x10\n\x0e\x44\x65leteResponse\"h\n\x0c\x46\x65tchRequest\x12+\n\x03ids\x18\x01 \x03(\tB\x1e\x92\x41\x18J\x10[\"id-0\", \"id-1\"]x\xe8\x07\x80\x01\x01\xe0\x41\x02\x12+\n\tnamespace\x18\x02 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\"\xa3\x01\n\rFetchResponse\x12,\n\x07vectors\x18\x01 \x03(\x0b\x32\x1b.FetchResponse.VectorsEntry\x12+\n\tnamespace\x18\x02 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\x1a\x37\n\x0cVectorsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x16\n\x05value\x18\x02 \x01(\x0b\x32\x07.Vector:\x02\x38\x01\"\xd0\x02\n\x0bQueryVector\x12G\n\x06values\x18\x01 \x03(\x02\x42\x37\x92\x41\x31J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\xa0\x9c\x01\x80\x01\x01\xe0\x41\x02\x12$\n\rsparse_values\x18\x05 \x01(\x0b\x32\r.SparseValues\x12(\n\x05top_k\x18\x02 \x01(\rB\x19\x92\x41\x16J\x02\x31\x30Y\x00\x00\x00\x00\x00\x88\xc3@i\x00\x00\x00\x00\x00\x00\xf0?\x12+\n\tnamespace\x18\x03 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\x12{\n\x06\x66ilter\x18\x04 \x01(\x0b\x32\x17.google.protobuf.StructBR\x92\x41OJM{\"genre\": {\"$in\": [\"comedy\", \"documentary\", \"drama\"]}, \"year\": {\"$eq\": 2019}}\"\xfa\x03\n\x0cQueryRequest\x12+\n\tnamespace\x18\x01 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\x12+\n\x05top_k\x18\x02 \x01(\rB\x1c\x92\x41\x16J\x02\x31\x30Y\x00\x00\x00\x00\x00\x88\xc3@i\x00\x00\x00\x00\x00\x00\xf0?\xe0\x41\x02\x12{\n\x06\x66ilter\x18\x03 \x01(\x0b\x32\x17.google.protobuf.StructBR\x92\x41OJM{\"genre\": {\"$in\": [\"comedy\", \"documentary\", \"drama\"]}, \"year\": {\"$eq\": 2019}}\x12(\n\x0einclude_values\x18\x04 \x01(\x08\x42\x10\x92\x41\r:\x05\x66\x61lseJ\x04true\x12*\n\x10include_metadata\x18\x05 \x01(\x08\x42\x10\x92\x41\r:\x05\x66\x61lseJ\x04true\x12)\n\x07queries\x18\x06 \x03(\x0b\x32\x0c.QueryVectorB\n\x18\x01\x92\x41\x05x\n\x80\x01\x01\x12\x44\n\x06vector\x18\x07 \x03(\x02\x42\x34\x92\x41\x31J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\xa0\x9c\x01\x80\x01\x01\x12$\n\rsparse_vector\x18\t \x01(\x0b\x32\r.SparseValues\x12&\n\x02id\x18\x08 \x01(\tB\x1a\x92\x41\x17J\x12\"example-vector-1\"x\x80\x04\"a\n\x12SingleQueryResults\x12\x1e\n\x07matches\x18\x01 \x03(\x0b\x32\r.ScoredVector\x12+\n\tnamespace\x18\x02 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\"l\n\rQueryResponse\x12(\n\x07results\x18\x01 \x03(\x0b\x32\x13.SingleQueryResultsB\x02\x18\x01\x12\x1e\n\x07matches\x18\x02 \x03(\x0b\x32\r.ScoredVector\x12\x11\n\tnamespace\x18\x03 \x01(\t\"\x8c\x02\n\rUpdateRequest\x12,\n\x02id\x18\x01 \x01(\tB \x92\x41\x1aJ\x12\"example-vector-1\"x\x80\x04\x80\x01\x01\xe0\x41\x02\x12\x44\n\x06values\x18\x02 \x03(\x02\x42\x34\x92\x41\x31J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\xa0\x9c\x01\x80\x01\x01\x12Z\n\x0cset_metadata\x18\x03 \x01(\x0b\x32\x17.google.protobuf.StructB+\x92\x41(J&{\"genre\": \"documentary\", \"year\": 2019}\x12+\n\tnamespace\x18\x04 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\"\x10\n\x0eUpdateResponse\"D\n\x19\x44\x65scribeIndexStatsRequest\x12\'\n\x06\x66ilter\x18\x01 \x01(\x0b\x32\x17.google.protobuf.Struct\"4\n\x10NamespaceSummary\x12 \n\x0cvector_count\x18\x01 \x01(\rB\n\x92\x41\x07J\x05\x35\x30\x30\x30\x30\"\x9a\x03\n\x1a\x44\x65scribeIndexStatsResponse\x12?\n\nnamespaces\x18\x01 \x03(\x0b\x32+.DescribeIndexStatsResponse.NamespacesEntry\x12\x1c\n\tdimension\x18\x02 \x01(\rB\t\x92\x41\x06J\x04\x31\x30\x32\x34\x12 \n\x0eindex_fullness\x18\x03 \x01(\x02\x42\x08\x92\x41\x05J\x03\x30.4\x12&\n\x12total_vector_count\x18\x04 \x01(\rB\n\x92\x41\x07J\x05\x38\x30\x30\x30\x30\x1a\x44\n\x0fNamespacesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12 \n\x05value\x18\x02 \x01(\x0b\x32\x11.NamespaceSummary:\x02\x38\x01:\x8c\x01\x92\x41\x88\x01\x32\x85\x01{\"namespaces\": {\"\": {\"vectorCount\": 50000}, \"example-namespace-2\": {\"vectorCount\": 30000}}, \"dimension\": 1024, \"index_fullness\": 0.4}2\xbd\x05\n\rVectorService\x12\x63\n\x06Upsert\x12\x0e.UpsertRequest\x1a\x0f.UpsertResponse\"8\x82\xd3\xe4\x93\x02\x14\"\x0f/vectors/upsert:\x01*\x92\x41\x1b\n\x11Vector Operations*\x06upsert\x12v\n\x06\x44\x65lete\x12\x0e.DeleteRequest\x1a\x0f.DeleteResponse\"K\x82\xd3\xe4\x93\x02\'\"\x0f/vectors/delete:\x01*Z\x11*\x0f/vectors/delete\x92\x41\x1b\n\x11Vector Operations*\x06\x64\x65lete\x12[\n\x05\x46\x65tch\x12\r.FetchRequest\x1a\x0e.FetchResponse\"3\x82\xd3\xe4\x93\x02\x10\x12\x0e/vectors/fetch\x92\x41\x1a\n\x11Vector Operations*\x05\x66\x65tch\x12V\n\x05Query\x12\r.QueryRequest\x1a\x0e.QueryResponse\".\x82\xd3\xe4\x93\x02\x0b\"\x06/query:\x01*\x92\x41\x1a\n\x11Vector Operations*\x05query\x12\x63\n\x06Update\x12\x0e.UpdateRequest\x1a\x0f.UpdateResponse\"8\x82\xd3\xe4\x93\x02\x14\"\x0f/vectors/update:\x01*\x92\x41\x1b\n\x11Vector Operations*\x06update\x12\xb4\x01\n\x12\x44\x65scribeIndexStats\x12\x1a.DescribeIndexStatsRequest\x1a\x1b.DescribeIndexStatsResponse\"e\x82\xd3\xe4\x93\x02\x33\"\x15/describe_index_stats:\x01*Z\x17\x12\x15/describe_index_stats\x92\x41)\n\x11Vector Operations*\x14\x64\x65scribe_index_statsB\xc0\x03\n\x11io.pinecone.protoP\x01Z/github.com/pinecone-io/new-go-pinecone/pinecone\x92\x41\xf6\x02\x12K\n\x0cPinecone API\";\n\x0fPinecone.io Ops\x12\x13https://pinecone.io\x1a\x13support@pinecone.io\x1a\x39{index_name}-{project_name}.svc.{environment}.pinecone.io*\x01\x02\x32\x10\x61pplication/json:\x10\x61pplication/jsonZx\nv\n\nApiKeyAuth\x12h\x08\x02\x12YAn API Key is required to call Pinecone APIs. Get yours at https://www.pinecone.io/start/\x1a\x07\x41pi-Key \x02\x62\x10\n\x0e\n\nApiKeyAuth\x12\x00r9\n\x19More Pinecone.io API docs\x12\x1chttps://www.pinecone.io/docsb\x06proto3'
+  serialized_pb=b'\n\x14vector_service.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"~\n\x0cSparseValues\x12\x35\n\x07indices\x18\x01 \x03(\rB$\x92\x41\x1eJ\x16[1, 312, 822, 14, 980]x\xe8\x07\x80\x01\x01\xe0\x41\x02\x12\x37\n\x06values\x18\x02 \x03(\x02\x42\'\x92\x41!J\x19[0.1, 0.2, 0.3, 0.4, 0.5]x\xe8\x07\x80\x01\x01\xe0\x41\x02\"\xfd\x01\n\x06Vector\x12,\n\x02id\x18\x01 \x01(\tB \x92\x41\x1aJ\x12\"example-vector-1\"x\x80\x04\x80\x01\x01\xe0\x41\x02\x12G\n\x06values\x18\x02 \x03(\x02\x42\x37\x92\x41\x31J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\xa0\x9c\x01\x80\x01\x01\xe0\x41\x02\x12$\n\rsparse_values\x18\x04 \x01(\x0b\x32\r.SparseValues\x12V\n\x08metadata\x18\x03 \x01(\x0b\x32\x17.google.protobuf.StructB+\x92\x41(J&{\"genre\": \"documentary\", \"year\": 2019}\"\x93\x02\n\x0cScoredVector\x12,\n\x02id\x18\x01 \x01(\tB \x92\x41\x1aJ\x12\"example-vector-1\"x\x80\x04\x80\x01\x01\xe0\x41\x02\x12\x18\n\x05score\x18\x02 \x01(\x02\x42\t\x92\x41\x06J\x04\x30.08\x12=\n\x06values\x18\x03 \x03(\x02\x42-\x92\x41*J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]\x12$\n\rsparse_values\x18\x05 \x01(\x0b\x32\r.SparseValues\x12V\n\x08metadata\x18\x04 \x01(\x0b\x32\x17.google.protobuf.StructB+\x92\x41(J&{\"genre\": \"documentary\", \"year\": 2019}\"d\n\rUpsertRequest\x12&\n\x07vectors\x18\x01 \x03(\x0b\x32\x07.VectorB\x0c\x92\x41\x06x\xe8\x07\x80\x01\x01\xe0\x41\x02\x12+\n\tnamespace\x18\x02 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\"1\n\x0eUpsertResponse\x12\x1f\n\x0eupserted_count\x18\x01 \x01(\rB\x07\x92\x41\x04J\x02\x31\x30\"\xb6\x01\n\rDeleteRequest\x12(\n\x03ids\x18\x01 \x03(\tB\x1b\x92\x41\x18J\x10[\"id-0\", \"id-1\"]x\xe8\x07\x80\x01\x01\x12%\n\ndelete_all\x18\x02 \x01(\x08\x42\x11\x92\x41\x0e:\x05\x66\x61lseJ\x05\x66\x61lse\x12+\n\tnamespace\x18\x03 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\x12\'\n\x06\x66ilter\x18\x04 \x01(\x0b\x32\x17.google.protobuf.Struct\"\x10\n\x0e\x44\x65leteResponse\"h\n\x0c\x46\x65tchRequest\x12+\n\x03ids\x18\x01 \x03(\tB\x1e\x92\x41\x18J\x10[\"id-0\", \"id-1\"]x\xe8\x07\x80\x01\x01\xe0\x41\x02\x12+\n\tnamespace\x18\x02 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\"\xa3\x01\n\rFetchResponse\x12,\n\x07vectors\x18\x01 \x03(\x0b\x32\x1b.FetchResponse.VectorsEntry\x12+\n\tnamespace\x18\x02 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\x1a\x37\n\x0cVectorsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x16\n\x05value\x18\x02 \x01(\x0b\x32\x07.Vector:\x02\x38\x01\"\xd0\x02\n\x0bQueryVector\x12G\n\x06values\x18\x01 \x03(\x02\x42\x37\x92\x41\x31J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\xa0\x9c\x01\x80\x01\x01\xe0\x41\x02\x12$\n\rsparse_values\x18\x05 \x01(\x0b\x32\r.SparseValues\x12(\n\x05top_k\x18\x02 \x01(\rB\x19\x92\x41\x16J\x02\x31\x30Y\x00\x00\x00\x00\x00\x88\xc3@i\x00\x00\x00\x00\x00\x00\xf0?\x12+\n\tnamespace\x18\x03 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\x12{\n\x06\x66ilter\x18\x04 \x01(\x0b\x32\x17.google.protobuf.StructBR\x92\x41OJM{\"genre\": {\"$in\": [\"comedy\", \"documentary\", \"drama\"]}, \"year\": {\"$eq\": 2019}}\"\xfa\x03\n\x0cQueryRequest\x12+\n\tnamespace\x18\x01 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\x12+\n\x05top_k\x18\x02 \x01(\rB\x1c\x92\x41\x16J\x02\x31\x30Y\x00\x00\x00\x00\x00\x88\xc3@i\x00\x00\x00\x00\x00\x00\xf0?\xe0\x41\x02\x12{\n\x06\x66ilter\x18\x03 \x01(\x0b\x32\x17.google.protobuf.StructBR\x92\x41OJM{\"genre\": {\"$in\": [\"comedy\", \"documentary\", \"drama\"]}, \"year\": {\"$eq\": 2019}}\x12(\n\x0einclude_values\x18\x04 \x01(\x08\x42\x10\x92\x41\r:\x05\x66\x61lseJ\x04true\x12*\n\x10include_metadata\x18\x05 \x01(\x08\x42\x10\x92\x41\r:\x05\x66\x61lseJ\x04true\x12)\n\x07queries\x18\x06 \x03(\x0b\x32\x0c.QueryVectorB\n\x18\x01\x92\x41\x05x\n\x80\x01\x01\x12\x44\n\x06vector\x18\x07 \x03(\x02\x42\x34\x92\x41\x31J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\xa0\x9c\x01\x80\x01\x01\x12$\n\rsparse_vector\x18\t \x01(\x0b\x32\r.SparseValues\x12&\n\x02id\x18\x08 \x01(\tB\x1a\x92\x41\x17J\x12\"example-vector-1\"x\x80\x04\"a\n\x12SingleQueryResults\x12\x1e\n\x07matches\x18\x01 \x03(\x0b\x32\r.ScoredVector\x12+\n\tnamespace\x18\x02 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\"l\n\rQueryResponse\x12(\n\x07results\x18\x01 \x03(\x0b\x32\x13.SingleQueryResultsB\x02\x18\x01\x12\x1e\n\x07matches\x18\x02 \x03(\x0b\x32\r.ScoredVector\x12\x11\n\tnamespace\x18\x03 \x01(\t\"\xb2\x02\n\rUpdateRequest\x12,\n\x02id\x18\x01 \x01(\tB \x92\x41\x1aJ\x12\"example-vector-1\"x\x80\x04\x80\x01\x01\xe0\x41\x02\x12\x44\n\x06values\x18\x02 \x03(\x02\x42\x34\x92\x41\x31J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\xa0\x9c\x01\x80\x01\x01\x12$\n\rsparse_values\x18\x05 \x01(\x0b\x32\r.SparseValues\x12Z\n\x0cset_metadata\x18\x03 \x01(\x0b\x32\x17.google.protobuf.StructB+\x92\x41(J&{\"genre\": \"documentary\", \"year\": 2019}\x12+\n\tnamespace\x18\x04 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\"\x10\n\x0eUpdateResponse\"D\n\x19\x44\x65scribeIndexStatsRequest\x12\'\n\x06\x66ilter\x18\x01 \x01(\x0b\x32\x17.google.protobuf.Struct\"4\n\x10NamespaceSummary\x12 \n\x0cvector_count\x18\x01 \x01(\rB\n\x92\x41\x07J\x05\x35\x30\x30\x30\x30\"\x9a\x03\n\x1a\x44\x65scribeIndexStatsResponse\x12?\n\nnamespaces\x18\x01 \x03(\x0b\x32+.DescribeIndexStatsResponse.NamespacesEntry\x12\x1c\n\tdimension\x18\x02 \x01(\rB\t\x92\x41\x06J\x04\x31\x30\x32\x34\x12 \n\x0eindex_fullness\x18\x03 \x01(\x02\x42\x08\x92\x41\x05J\x03\x30.4\x12&\n\x12total_vector_count\x18\x04 \x01(\rB\n\x92\x41\x07J\x05\x38\x30\x30\x30\x30\x1a\x44\n\x0fNamespacesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12 \n\x05value\x18\x02 \x01(\x0b\x32\x11.NamespaceSummary:\x02\x38\x01:\x8c\x01\x92\x41\x88\x01\x32\x85\x01{\"namespaces\": {\"\": {\"vectorCount\": 50000}, \"example-namespace-2\": {\"vectorCount\": 30000}}, \"dimension\": 1024, \"index_fullness\": 0.4}2\xbd\x05\n\rVectorService\x12\x63\n\x06Upsert\x12\x0e.UpsertRequest\x1a\x0f.UpsertResponse\"8\x82\xd3\xe4\x93\x02\x14\"\x0f/vectors/upsert:\x01*\x92\x41\x1b\n\x11Vector Operations*\x06upsert\x12v\n\x06\x44\x65lete\x12\x0e.DeleteRequest\x1a\x0f.DeleteResponse\"K\x82\xd3\xe4\x93\x02\'\"\x0f/vectors/delete:\x01*Z\x11*\x0f/vectors/delete\x92\x41\x1b\n\x11Vector Operations*\x06\x64\x65lete\x12[\n\x05\x46\x65tch\x12\r.FetchRequest\x1a\x0e.FetchResponse\"3\x82\xd3\xe4\x93\x02\x10\x12\x0e/vectors/fetch\x92\x41\x1a\n\x11Vector Operations*\x05\x66\x65tch\x12V\n\x05Query\x12\r.QueryRequest\x1a\x0e.QueryResponse\".\x82\xd3\xe4\x93\x02\x0b\"\x06/query:\x01*\x92\x41\x1a\n\x11Vector Operations*\x05query\x12\x63\n\x06Update\x12\x0e.UpdateRequest\x1a\x0f.UpdateResponse\"8\x82\xd3\xe4\x93\x02\x14\"\x0f/vectors/update:\x01*\x92\x41\x1b\n\x11Vector Operations*\x06update\x12\xb4\x01\n\x12\x44\x65scribeIndexStats\x12\x1a.DescribeIndexStatsRequest\x1a\x1b.DescribeIndexStatsResponse\"e\x82\xd3\xe4\x93\x02\x33\"\x15/describe_index_stats:\x01*Z\x17\x12\x15/describe_index_stats\x92\x41)\n\x11Vector Operations*\x14\x64\x65scribe_index_statsB\xc0\x03\n\x11io.pinecone.protoP\x01Z/github.com/pinecone-io/new-go-pinecone/pinecone\x92\x41\xf6\x02\x12K\n\x0cPinecone API\";\n\x0fPinecone.io Ops\x12\x13https://pinecone.io\x1a\x13support@pinecone.io\x1a\x39{index_name}-{project_name}.svc.{environment}.pinecone.io*\x01\x02\x32\x10\x61pplication/json:\x10\x61pplication/jsonZx\nv\n\nApiKeyAuth\x12h\x08\x02\x12YAn API Key is required to call Pinecone APIs. Get yours at https://www.pinecone.io/start/\x1a\x07\x41pi-Key \x02\x62\x10\n\x0e\n\nApiKeyAuth\x12\x00r9\n\x19More Pinecone.io API docs\x12\x1chttps://www.pinecone.io/docsb\x06proto3'
   ,
   dependencies=[google_dot_protobuf_dot_struct__pb2.DESCRIPTOR,google_dot_api_dot_annotations__pb2.DESCRIPTOR,google_dot_api_dot_field__behavior__pb2.DESCRIPTOR,protoc__gen__openapiv2_dot_options_dot_annotations__pb2.DESCRIPTOR,])
 
@@ -707,14 +707,21 @@ _UPDATEREQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=b'\222A1J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\240\234\001\200\001\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='set_metadata', full_name='UpdateRequest.set_metadata', index=2,
+      name='sparse_values', full_name='UpdateRequest.sparse_values', index=2,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='set_metadata', full_name='UpdateRequest.set_metadata', index=3,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=b'\222A(J&{\"genre\": \"documentary\", \"year\": 2019}', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='namespace', full_name='UpdateRequest.namespace', index=3,
+      name='namespace', full_name='UpdateRequest.namespace', index=4,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -733,7 +740,7 @@ _UPDATEREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=2513,
-  serialized_end=2781,
+  serialized_end=2819,
 )
 
 
@@ -757,8 +764,8 @@ _UPDATERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2783,
-  serialized_end=2799,
+  serialized_start=2821,
+  serialized_end=2837,
 )
 
 
@@ -789,8 +796,8 @@ _DESCRIBEINDEXSTATSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2801,
-  serialized_end=2869,
+  serialized_start=2839,
+  serialized_end=2907,
 )
 
 
@@ -821,8 +828,8 @@ _NAMESPACESUMMARY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2871,
-  serialized_end=2923,
+  serialized_start=2909,
+  serialized_end=2961,
 )
 
 
@@ -860,8 +867,8 @@ _DESCRIBEINDEXSTATSRESPONSE_NAMESPACESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3125,
-  serialized_end=3193,
+  serialized_start=3163,
+  serialized_end=3231,
 )
 
 _DESCRIBEINDEXSTATSRESPONSE = _descriptor.Descriptor(
@@ -912,8 +919,8 @@ _DESCRIBEINDEXSTATSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2926,
-  serialized_end=3336,
+  serialized_start=2964,
+  serialized_end=3374,
 )
 
 _VECTOR.fields_by_name['sparse_values'].message_type = _SPARSEVALUES
@@ -933,6 +940,7 @@ _QUERYREQUEST.fields_by_name['sparse_vector'].message_type = _SPARSEVALUES
 _SINGLEQUERYRESULTS.fields_by_name['matches'].message_type = _SCOREDVECTOR
 _QUERYRESPONSE.fields_by_name['results'].message_type = _SINGLEQUERYRESULTS
 _QUERYRESPONSE.fields_by_name['matches'].message_type = _SCOREDVECTOR
+_UPDATEREQUEST.fields_by_name['sparse_values'].message_type = _SPARSEVALUES
 _UPDATEREQUEST.fields_by_name['set_metadata'].message_type = google_dot_protobuf_dot_struct__pb2._STRUCT
 _DESCRIBEINDEXSTATSREQUEST.fields_by_name['filter'].message_type = google_dot_protobuf_dot_struct__pb2._STRUCT
 _DESCRIBEINDEXSTATSRESPONSE_NAMESPACESENTRY.fields_by_name['value'].message_type = _NAMESPACESUMMARY
@@ -1153,8 +1161,8 @@ _VECTORSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=3339,
-  serialized_end=4040,
+  serialized_start=3377,
+  serialized_end=4078,
   methods=[
   _descriptor.MethodDescriptor(
     name='Upsert',
