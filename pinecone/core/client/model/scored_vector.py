@@ -162,7 +162,7 @@ class ScoredVector(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             score (float): This is a measure of similarity between this vector and the query vector.  The higher the score, the more they are similar.. [optional]  # noqa: E501
             values ([float]): This is the vector data, if it is requested.. [optional]  # noqa: E501
-            sparse_values (SparseValues): [optional]  # noqa: E501
+            sparse_values (SparseValues): the sparse data of the vector [optional]  # noqa: E501
             metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): This is the metadata, if it is requested.. [optional]  # noqa: E501
         """
 
@@ -251,7 +251,7 @@ class ScoredVector(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             score (float): This is a measure of similarity between this vector and the query vector.  The higher the score, the more they are similar.. [optional]  # noqa: E501
             values ([float]): This is the vector data, if it is requested.. [optional]  # noqa: E501
-            sparse_values (SparseValues): [optional]  # noqa: E501
+            sparse_values (SparseValues): This is the sparse data of the vector [optional]  # noqa: E501
             metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): This is the metadata, if it is requested.. [optional]  # noqa: E501
         """
 

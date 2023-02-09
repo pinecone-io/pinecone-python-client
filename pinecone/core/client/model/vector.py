@@ -161,7 +161,7 @@ class Vector(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            sparse_values (SparseValues): [optional]  # noqa: E501
+            sparse_values (SparseValues): the sparse data of the returned vector [optional]  # noqa: E501
             metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): This is the metadata included in the request.. [optional]  # noqa: E501
         """
 
@@ -250,7 +250,7 @@ class Vector(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            sparse_values (SparseValues): [optional]  # noqa: E501
+            sparse_values (SparseValues): This is the sparse data of the vector to update [optional]  # noqa: E501
             metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): This is the metadata included in the request.. [optional]  # noqa: E501
         """
 

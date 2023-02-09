@@ -163,7 +163,7 @@ class UpdateRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             values ([float]): Vector data.. [optional]  # noqa: E501
-            sparse_values (SparseValues): [optional]  # noqa: E501
+            sparse_values (SparseValues): This is the sparse data of the vector to update [optional]  # noqa: E501
             set_metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): Metadata to *set* for the vector.. [optional]  # noqa: E501
             namespace (str): Namespace name where to update the vector.. [optional]  # noqa: E501
         """
@@ -252,7 +252,7 @@ class UpdateRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             values ([float]): Vector data.. [optional]  # noqa: E501
-            sparse_values (SparseValues): [optional]  # noqa: E501
+            sparse_values (SparseValues): This is the sparse data of the vector to update [optional]  # noqa: E501
             set_metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): Metadata to *set* for the vector.. [optional]  # noqa: E501
             namespace (str): Namespace name where to update the vector.. [optional]  # noqa: E501
         """

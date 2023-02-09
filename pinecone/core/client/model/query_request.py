@@ -276,7 +276,7 @@ class QueryRequest(ModelNormal):
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
             queries ([QueryVector]): DEPRECATED. The query vectors. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`.. [optional]  # noqa: E501
             vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query()` request can contain only one of the parameters `id` or `vector`.. [optional]  # noqa: E501
-            sparse_vector (SparseValues): [optional]  # noqa: E501
+            sparse_vector (SparseValues): The sparse values of the query vector [optional]  # noqa: E501
             id (str): The unique ID of the vector to be used as a query vector. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`.. [optional]  # noqa: E501
         """
 
