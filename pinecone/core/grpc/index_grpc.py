@@ -20,6 +20,7 @@ from pinecone.core.grpc.protos.vector_service_pb2 import Vector as GRPCVector, \
     QueryVector as GRPCQueryVector, UpsertRequest, UpsertResponse, DeleteRequest, QueryRequest, \
     FetchRequest, UpdateRequest, DescribeIndexStatsRequest, DeleteResponse, UpdateResponse, \
     SparseValues as GRPCSparseValues
+from pinecone.core.client.model.sparse_values import SparseValues
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
 from pinecone.core.grpc.retry import RetryOnRpcErrorClientInterceptor, RetryConfig
 from pinecone.core.utils import _generate_request_id, dict_to_proto_struct, fix_tuple_length
@@ -162,7 +163,7 @@ class GRPCIndexBase(ABC):
 
 
 def parse_sparse_values(sparse_values: dict):
-    return GRPCSparseValues(indices=sparse_values['indices'], values=sparse_values['values']) if sparse_values else None
+    return SparseValues(indices=sparse_values['indices'], values=sparse_values['values']) if sparse_values else SparseValues(indices=[], values=[])
 
 
 def parse_fetch_response(response: dict):
@@ -195,7 +196,7 @@ def parse_query_response(response: dict, unary_query: bool, _check_type: bool = 
     m = []
     for item in response.get('matches', []):
         sc = ScoredVector(id=item['id'], score=item.get('score', 0.0), values=item.get('values', []),
-                          sparse_values=item.get('sparseValues'), metadata=item.get('metadata', {}),
+                          sparse_values=parse_sparse_values(item.get('sparseValues')), metadata=item.get('metadata', {}),
                           _check_type=_check_type)
         m.append(sc)
 
@@ -572,8 +573,8 @@ class GRPCIndex(GRPCIndexBase):
         sparse_values = self._parse_sparse_values_arg(sparse_values)
         args_dict = self._parse_non_empty_args([('values', values),
                                                 ('set_metadata', set_metadata),
-                                                ('namespace', namespace,
-                                                 'sparse_values', sparse_values)])
+                                                ('namespace', namespace),
+                                                ('sparse_values', sparse_values)])
 
         request = UpdateRequest(id=id, **args_dict)
         if async_req:
