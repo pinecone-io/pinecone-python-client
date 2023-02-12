@@ -161,13 +161,18 @@ class GRPCIndexBase(ABC):
         self.close()
 
 
+def parse_sparse_values(sparse_values: dict):
+    return GRPCSparseValues(indices=sparse_values['indices'], values=sparse_values['values']) if sparse_values else None
+
+
 def parse_fetch_response(response: dict):
     vd = {}
     vectors = response.get('vectors')
     if not vectors:
         return None
     for id, vec in vectors.items():
-        v_obj = _Vector(id=vec['id'], values=vec['values'], metadata=vec.get('metadata', None), _check_type=False)
+        v_obj = _Vector(id=vec['id'], values=vec['values'], sparse_values=parse_sparse_values(vec.get('sparseValues')),
+                        metadata=vec.get('metadata', None), _check_type=False)
         vd[id] = v_obj
     namespace = response.get('namespace', '')
     return FetchResponse(vectors=vd, namespace=namespace, _check_type=False)
@@ -183,14 +188,15 @@ def parse_query_response(response: dict, unary_query: bool, _check_type: bool = 
         if 'matches' in match:
             for item in match['matches']:
                 sc = ScoredVector(id=item['id'], score=item.get('score', 0.0), values=item.get('values', []),
-                                  metadata=item.get('metadata', {}))
+                                  sparse_values=parse_sparse_values(item.get('sparseValues')), metadata=item.get('metadata', {}))
                 m.append(sc)
         res.append(SingleQueryResults(matches=m, namespace=namespace))
 
     m = []
     for item in response.get('matches', []):
         sc = ScoredVector(id=item['id'], score=item.get('score', 0.0), values=item.get('values', []),
-                          metadata=item.get('metadata', {}), _check_type=_check_type)
+                          sparse_values=item.get('sparseValues'), metadata=item.get('metadata', {}),
+                          _check_type=_check_type)
         m.append(sc)
 
     kwargs = {'_check_type': _check_type}
