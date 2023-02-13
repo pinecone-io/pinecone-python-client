@@ -36,7 +36,9 @@ from pinecone.core.client.exceptions import ApiAttributeError
 
 def lazy_import():
     from pinecone.core.client.model.query_vector import QueryVector
+    from pinecone.core.client.model.sparse_values import SparseValues
     globals()['QueryVector'] = QueryVector
+    globals()['SparseValues'] = SparseValues
 
 
 class QueryRequest(ModelNormal):
@@ -110,6 +112,7 @@ class QueryRequest(ModelNormal):
             'include_metadata': (bool,),  # noqa: E501
             'queries': ([QueryVector],),  # noqa: E501
             'vector': ([float],),  # noqa: E501
+            'sparse_vector': (SparseValues,),  # noqa: E501
             'id': (str,),  # noqa: E501
         }
 
@@ -126,6 +129,7 @@ class QueryRequest(ModelNormal):
         'include_metadata': 'includeMetadata',  # noqa: E501
         'queries': 'queries',  # noqa: E501
         'vector': 'vector',  # noqa: E501
+        'sparse_vector': 'sparseVector',  # noqa: E501
         'id': 'id',  # noqa: E501
     }
 
@@ -179,6 +183,7 @@ class QueryRequest(ModelNormal):
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
             queries ([QueryVector]): DEPRECATED. The query vectors. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`.. [optional]  # noqa: E501
             vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query()` request can contain only one of the parameters `id` or `vector`.. [optional]  # noqa: E501
+            sparse_vector (SparseValues): [optional]  # noqa: E501
             id (str): The unique ID of the vector to be used as a query vector. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`.. [optional]  # noqa: E501
         """
 
@@ -271,6 +276,7 @@ class QueryRequest(ModelNormal):
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
             queries ([QueryVector]): DEPRECATED. The query vectors. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`.. [optional]  # noqa: E501
             vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query()` request can contain only one of the parameters `id` or `vector`.. [optional]  # noqa: E501
+            sparse_vector (SparseValues): The sparse values of the query vector [optional]  # noqa: E501
             id (str): The unique ID of the vector to be used as a query vector. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`.. [optional]  # noqa: E501
         """
 
@@ -308,4 +314,4 @@ class QueryRequest(ModelNormal):
             setattr(self, var_name, var_value)
             if var_name in self.read_only_vars:
                 raise ApiAttributeError(f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
-                                        f"class with read only attributes.")
+                                     f"class with read only attributes.")

@@ -5,6 +5,7 @@ from tqdm import tqdm
 from collections.abc import Iterable
 from typing import Union, List, Tuple, Optional, Dict, Any
 
+from .core.client.model.sparse_values import SparseValues
 from pinecone import Config
 from pinecone.core.client import ApiClient
 from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryResponse, QueryVector, RpcStatus, \
@@ -17,7 +18,7 @@ import copy
 __all__ = [
     "Index", "FetchResponse", "ProtobufAny", "QueryRequest", "QueryResponse", "QueryVector", "RpcStatus",
     "ScoredVector", "SingleQueryResults", "DescribeIndexStatsResponse", "UpsertRequest", "UpsertResponse",
-    "UpdateRequest", "Vector", "DeleteRequest", "UpdateRequest", "DescribeIndexStatsRequest"
+    "UpdateRequest", "Vector", "DeleteRequest", "UpdateRequest", "DescribeIndexStatsRequest", "SparseValues"
 ]
 
 from .core.utils.error_handling import validate_and_convert_errors
@@ -77,22 +78,35 @@ class Index(ApiClient):
 
         Examples:
             >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])])
-            >>> index.upsert([Vector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
-            >>>              Vector(id='id2', values=[1.0, 2.0, 3.0])])
+            >>> index.upsert([Vector(id='id1',
+            >>>                      values=[1.0, 2.0, 3.0],
+            >>>                      metadata={'key': 'value'}),
+            >>>               Vector(id='id2',
+            >>>                      values=[1.0, 2.0, 3.0],
+            >>>                      sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))])
 
         Args:
             vectors (Union[List[Vector], List[Tuple]]): A list of vectors to upsert.
 
                      A vector can be represented by a 1) Vector object or a 2) tuple.
-                     1) if a tuple is used, it must be of the form (id, values, metadata) or (id, values).
-                        where id is a string, vector is a list of floats, and metadata is a dict.
-                        Examples: ('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])
+                     1) if a tuple is used, it must be of the form (id, values, meatadaa) or (id, values).
+                        where id is a string, vector is a list of floats, metadata is a dict,
+                        and sparse_values is a dict of the form {'indices': List[int], 'values': List[float]}.
+                        Examples: ('id1', [1.0, 2.0, 3.0], {'key': 'value'}, {'indices': [1, 2], 'values': [0.2, 0.4]}),
+                                  ('id1', [1.0, 2.0, 3.0], None, {'indices': [1, 2], 'values': [0.2, 0.4]})
+                                  ('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0]),
 
-                    2) if a Vector object is used, a Vector object must be of the form Vector(id, values, metadata),
-                        where metadata is an optional argument of the type
-                        Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]].
-                       Examples: Vector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
-                                 Vector(id='id2', values=[1.0, 2.0, 3.0])
+                    2) if a Vector object is used, a Vector object must be of the form
+                         Vector(id, values, metadata, sparse_values),
+                        where metadata and sparse_values aree optional arguments
+                       Examples: Vector(id='id1',
+                                        values=[1.0, 2.0, 3.0],
+                                        metadata={'key': 'value'})
+                                 Vector(id='id2',
+                                        values=[1.0, 2.0, 3.0])
+                                 Vector(id='id3',
+                                        values=[1.0, 2.0, 3.0],
+                                        sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))
 
                     Note: the dimension of each vector must match the dimension of the index.
 
@@ -250,6 +264,7 @@ class Index(ApiClient):
               filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
               include_values: Optional[bool] = None,
               include_metadata: Optional[bool] = None,
+              sparse_vector: Optional[Union[SparseValues, Dict[str, Union[List[float], List[int]]]]] = None,
               **kwargs) -> QueryResponse:
         """
         The Query operation searches a namespace, using a query vector.
@@ -262,6 +277,10 @@ class Index(ApiClient):
             >>> index.query(id='id1', top_k=10, namespace='my_namespace')
             >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace', filter={'key': 'value'})
             >>> index.query(id='id1', top_k=10, namespace='my_namespace', include_metadata=True, include_values=True)
+            >>> index.query(vector=[1, 2, 3], sparse_vector={'indices': [1, 2], 'values': [0.2, 0.4]},
+            >>>             top_k=10, namespace='my_namespace')
+            >>> index.query(vector=[1, 2, 3], sparse_vector=SparseValues([1, 2], [0.2, 0.4]),
+            >>>             top_k=10, namespace='my_namespace')
 
         Args:
             vector (List[float]): The query vector. This should be the same length as the dimension of the index
@@ -283,7 +302,9 @@ class Index(ApiClient):
                                    If omitted the server will use the default value of False [optional]
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.
                                      If omitted the server will use the default value of False  [optional]
-
+            sparse_vector: (Union[SparseValues, Dict[str, Union[List[float], List[int]]]]): sparse values of the query vector.
+                            Expected to be either a SparseValues object or a dict of the form:
+                             {'indices': List[int], 'values': List[float]}, where the lists each have the same length.
         Keyword Args:
             Supports OpenAPI client keyword arguments. See pinecone.core.client.models.QueryRequest for more details.
 
@@ -305,6 +326,8 @@ class Index(ApiClient):
 
         _check_type = kwargs.pop('_check_type', False)
         queries = list(map(_query_transform, queries)) if queries is not None else None
+
+        sparse_vector = self._parse_sparse_values_arg(sparse_vector)
         args_dict = self._parse_non_empty_args([('vector', vector),
                                                 ('id', id),
                                                 ('queries', queries),
@@ -312,18 +335,8 @@ class Index(ApiClient):
                                                 ('namespace', namespace),
                                                 ('filter', filter),
                                                 ('include_values', include_values),
-                                                ('include_metadata', include_metadata)])
-
-        def _query_transform(item):
-            if isinstance(item, QueryVector):
-                return item
-            if isinstance(item, tuple):
-                values, filter = fix_tuple_length(item, 2)
-                return QueryVector(values=values, filter=filter, _check_type=_check_type)
-            if isinstance(item, Iterable):
-                return QueryVector(values=item, _check_type=_check_type)
-            raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")
-
+                                                ('include_metadata', include_metadata),
+                                                ('sparse_vector', sparse_vector)])
         response = self._vector_api.query(
             QueryRequest(
                 **args_dict,
@@ -341,6 +354,7 @@ class Index(ApiClient):
                set_metadata: Optional[Dict[str,
                                            Union[str, float, int, bool, List[int], List[float], List[str]]]] = None,
                namespace: Optional[str] = None,
+               sparse_values: Optional[Union[SparseValues, Dict[str, Union[List[float], List[int]]]]] = None,
                **kwargs) -> Dict[str, Any]:
         """
         The Update operation updates vector in a namespace.
@@ -353,6 +367,10 @@ class Index(ApiClient):
         Examples:
             >>> index.update(id='id1', values=[1, 2, 3], namespace='my_namespace')
             >>> index.update(id='id1', set_metadata={'key': 'value'}, namespace='my_namespace')
+            >>> index.update(id='id1', values=[1, 2, 3], sparse_values={'indices': [1, 2], 'values': [0.2, 0.4]},
+            >>>              namespace='my_namespace')
+            >>> index.update(id='id1', values=[1, 2, 3], sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]),
+            >>>              namespace='my_namespace')
 
         Args:
             id (str): Vector's unique id.
@@ -360,6 +378,9 @@ class Index(ApiClient):
             set_metadata (Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]]):
                 metadata to set for vector. [optional]
             namespace (str): Namespace name where to update the vector.. [optional]
+            sparse_values: (Dict[str, Union[List[float], List[int]]]): sparse values to update for the vector.
+                           Expected to be either a SparseValues object or a dict of the form:
+                           {'indices': List[int], 'values': List[float]} where the lists each have the same length.
 
         Keyword Args:
             Supports OpenAPI client keyword arguments. See pinecone.core.client.models.UpdateRequest for more details.
@@ -367,9 +388,11 @@ class Index(ApiClient):
         Returns: An empty dictionary if the update was successful.
         """
         _check_type = kwargs.pop('_check_type', False)
+        sparse_values = self._parse_sparse_values_arg(sparse_values)
         args_dict = self._parse_non_empty_args([('values', values),
                                                 ('set_metadata', set_metadata),
-                                                ('namespace', namespace)])
+                                                ('namespace', namespace),
+                                                ('sparse_values', sparse_values)])
         return self._vector_api.update(UpdateRequest(
                 id=id,
                 **args_dict,
@@ -414,3 +437,20 @@ class Index(ApiClient):
     @staticmethod
     def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
         return {arg_name: val for arg_name, val in args if val is not None}
+
+    @staticmethod
+    def _parse_sparse_values_arg(
+            sparse_values: Optional[Union[SparseValues,
+                                          Dict[str, Union[List[float], List[int]]]]]) -> Optional[SparseValues]:
+        if sparse_values is None:
+            return None
+
+        if isinstance(sparse_values, SparseValues):
+            return sparse_values
+
+        if not isinstance(sparse_values, dict) or "indices" not in sparse_values or "values" not in sparse_values:
+            raise ValueError(
+                "Invalid sparse values argument. Expected a dict of: {'indices': List[int], 'values': List[float]}."
+                f"Received: {sparse_values}")
+
+        return SparseValues(indices=sparse_values["indices"], values=sparse_values["values"])
