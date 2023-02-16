@@ -2,7 +2,7 @@
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
 from tqdm import tqdm
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from typing import Union, List, Tuple, Optional, Dict, Any
 
 from .core.client.model.sparse_values import SparseValues
@@ -63,7 +63,7 @@ class Index(ApiClient):
 
     @validate_and_convert_errors
     def upsert(self,
-               vectors: Union[List[Vector], List[Tuple]],
+               vectors: Union[List[Vector], List[tuple], List[dict]],
                namespace: Optional[str] = None,
                batch_size: Optional[int] = None,
                show_progress: bool = True,
@@ -77,18 +77,25 @@ class Index(ApiClient):
         To upsert in parallel follow: https://docs.pinecone.io/docs/insert-data#sending-upserts-in-parallel
 
         Examples:
-            >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])])
+            >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}),
+                              ('id2', [1.0, 2.0, 3.0]),
+                              ])
+            >>> index.upsert([{'id': 'id1', 'values': [1.0, 2.0, 3.0], 'metadata': {'key': 'value'}},
+                              {'id': 'id2',
+                                        'values': [1.0, 2.0, 3.0],
+                                        'sprase_values': {'indices': [1, 8], 'values': [0.2, 0.4]},
+                              ])
             >>> index.upsert([Vector(id='id1',
-            >>>                      values=[1.0, 2.0, 3.0],
-            >>>                      metadata={'key': 'value'}),
-            >>>               Vector(id='id2',
-            >>>                      values=[1.0, 2.0, 3.0],
-            >>>                      sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))])
+                                     values=[1.0, 2.0, 3.0],
+                                     metadata={'key': 'value'}),
+                              Vector(id='id2',
+                                     values=[1.0, 2.0, 3.0],
+                                     sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))])
 
         Args:
             vectors (Union[List[Vector], List[Tuple]]): A list of vectors to upsert.
 
-                     A vector can be represented by a 1) Vector object or a 2) tuple.
+                     A vector can be represented by a 1) Vector object, a 2) tuple or 3) a dictionary
                      1) if a tuple is used, it must be of the form (id, values, meatadaa) or (id, values).
                         where id is a string, vector is a list of floats, metadata is a dict,
                         and sparse_values is a dict of the form {'indices': List[int], 'values': List[float]}.
@@ -109,6 +116,10 @@ class Index(ApiClient):
                                         sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))
 
                     Note: the dimension of each vector must match the dimension of the index.
+
+                3) if a dictionary is used, it must be in the form
+                   {'id': str, 'values': List[float], 'sparse_values': {'indices': List[int], 'values': List[float]},
+                    'metadata': dict}
 
             namespace (str): The namespace to write to. If not specified, the default namespace is used. [optional]
             batch_size (int): The number of vectors to upsert in each batch.
@@ -154,9 +165,21 @@ class Index(ApiClient):
         def _vector_transform(item: Union[Vector, Tuple]):
             if isinstance(item, Vector):
                 return item
-            if isinstance(item, tuple):
+            elif isinstance(item, tuple):
+                if len(item) > 3:
+                    raise ValueError(f"Found a tuple of length {len(item)} which is not supported. " 
+                                     f"Vectors can be represented as tuples either the form (id, values, metadata) or (id, values). "
+                                     f"To pass sparse values please use either dicts or a Vector objects as inputs.")
                 id, values, metadata = fix_tuple_length(item, 3)
                 return Vector(id=id, values=values, metadata=metadata or {}, _check_type=_check_type)
+            elif isinstance(item, Mapping):
+                sparse_values = None
+                if 'sparse_values' in item:
+                    indices = item['sparse_values'].get('indices', [])
+                    values = item['sparse_values'].get('values', [])
+                    sparse_values = SparseValues(indices=indices, values=values)
+                return Vector(id=item['id'], values=item['values'], sparse_values=sparse_values, metadata=item.get('metadata', {}), _check_type=_check_type)
+
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
         return self._vector_api.upsert(
