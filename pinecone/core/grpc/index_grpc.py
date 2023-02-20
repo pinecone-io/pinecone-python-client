@@ -12,7 +12,7 @@ import certifi
 import grpc
 from google.protobuf import json_format
 from grpc._channel import _InactiveRpcError, _MultiThreadedRendezvous
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
 import json
 
 from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, DescribeIndexStatsResponse

@@ -1,7 +1,7 @@
 #
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
 from importlib.util import find_spec
 from collections.abc import Iterable, Mapping
 from typing import Union, List, Tuple, Optional, Dict, Any
