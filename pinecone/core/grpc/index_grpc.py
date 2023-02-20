@@ -5,6 +5,7 @@ import logging
 from abc import ABC, abstractmethod
 from functools import wraps
 from typing import NamedTuple, Optional, Dict, Iterable, Union, List, Tuple, Any
+from collections.abc import Mapping
 
 import certifi
 import grpc
@@ -295,7 +296,7 @@ class GRPCIndex(GRPCIndexBase):
         return VectorServiceStub
 
     def upsert(self,
-               vectors: Union[List[GRPCVector], List[Tuple]],
+               vectors: Union[List[GRPCVector], List[tuple], List[dict]],
                async_req: bool = False,
                namespace: Optional[str] = None,
                batch_size: Optional[int] = None,
@@ -306,18 +307,25 @@ class GRPCIndex(GRPCIndexBase):
         If a new value is upserted for an existing vector id, it will overwrite the previous value.
 
         Examples:
-            >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])],
-            >>>               namespace='ns1', async_req=True)
+            >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}),
+                              ('id2', [1.0, 2.0, 3.0])
+                              ],
+                              namespace='ns1', async_req=True)
+            >>> index.upsert([{'id': 'id1', 'values': [1.0, 2.0, 3.0], 'metadata': {'key': 'value'}},
+                              {'id': 'id2',
+                                        'values': [1.0, 2.0, 3.0],
+                                        'sprase_values': {'indices': [1, 8], 'values': [0.2, 0.4]},
+                              ])
             >>> index.upsert([GRPCVector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
-            >>>               GRPCVector(id='id2', values=[1.0, 2.0, 3.0]),
-            >>>               GRPCVector(id='id3',
-            >>>                          values=[1.0, 2.0, 3.0],
-            >>>                          sparse_values=GRPCSparseValues(indices=[1, 2], values=[0.2, 0.4]))])
+                              GRPCVector(id='id2', values=[1.0, 2.0, 3.0]),
+                              GRPCVector(id='id3',
+                                         values=[1.0, 2.0, 3.0],
+                                         sparse_values=GRPCSparseValues(indices=[1, 2], values=[0.2, 0.4]))])
 
         Args:
             vectors (Union[List[Vector], List[Tuple]]): A list of vectors to upsert.
 
-                     A vector can be represented by a 1) GRPCVector object or a 2) tuple.
+                     A vector can be represented by a 1) GRPCVector object, a 2) tuple or 3) a dictionary
                      1) if a tuple is used, it must be of the form (id, values, metadata) or (id, values).
                         where id is a string, vector is a list of floats, and metadata is a dict.
                         Examples: ('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])
@@ -330,6 +338,10 @@ class GRPCIndex(GRPCIndexBase):
                                  GRPCVector(id='id3',
                                             values=[1.0, 2.0, 3.0],
                                             sparse_values=GRPCSparseValues(indices=[1, 2], values=[0.2, 0.4]))
+
+                    3) if a dictionary is used, it must be in the form
+                       {'id': str, 'values': List[float], 'sparse_values': {'indices': List[int], 'values': List[float]},
+                        'metadata': dict}
 
                     Note: the dimension of each vector must match the dimension of the index.
             async_req (bool): If True, the upsert operation will be performed asynchronously.
@@ -352,9 +364,20 @@ class GRPCIndex(GRPCIndexBase):
         def _vector_transform(item):
             if isinstance(item, GRPCVector):
                 return item
-            if isinstance(item, tuple):
+            elif isinstance(item, tuple):
+                if len(item) > 3:
+                    raise ValueError(f"Found a tuple of length {len(item)} which is not supported. " 
+                                     f"Vectors can be represented as tuples either the form (id, values, metadata) or (id, values). "
+                                     f"To pass sparse values please use either dicts or a GRPCVector objects as inputs.")
                 id, values, metadata = fix_tuple_length(item, 3)
                 return GRPCVector(id=id, values=values, metadata=dict_to_proto_struct(metadata) or {})
+            elif isinstance(item, Mapping):
+                sparse_values = None
+                if 'sparse_values' in item:
+                    indices = item['sparse_values'].get('indices', None)
+                    values = item['sparse_values'].get('values', None)
+                    sparse_values = GRPCSparseValues(indices=indices, values=values)
+                return GRPCVector(id=item['id'], values=item['values'], sparse_values=sparse_values, metadata=dict_to_proto_struct(item.get('metadata', None)))
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
         timeout = kwargs.pop('timeout', None)
