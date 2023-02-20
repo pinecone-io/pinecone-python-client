@@ -11,6 +11,7 @@ import grpc
 from google.protobuf import json_format
 from grpc._channel import _InactiveRpcError, _MultiThreadedRendezvous
 from tqdm import tqdm
+import json
 
 from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, DescribeIndexStatsResponse
 from pinecone.config import Config
@@ -81,8 +82,37 @@ class GRPCIndexBase(ABC):
             "client-version": CLIENT_VERSION
         }
         self._endpoint_override = _endpoint_override
+
+        self.method_config = json.dumps(
+            {
+                "methodConfig": [
+                    {
+                        "name": [{"service": "VectorService.Upsert"}],
+                        "retryPolicy": {
+                            "maxAttempts": 5,
+                            "initialBackoff": "0.1s",
+                            "maxBackoff": "1s",
+                            "backoffMultiplier": 2,
+                            "retryableStatusCodes": ["UNAVAILABLE"],
+                        },
+                    },
+                    {
+                        "name": [{"service": "VectorService"}],
+                        "retryPolicy": {
+                            "maxAttempts": 5,
+                            "initialBackoff": "0.1s",
+                            "maxBackoff": "1s",
+                            "backoffMultiplier": 2,
+                            "retryableStatusCodes": ["UNAVAILABLE"],
+                        },
+                    }
+                ]
+            }
+        )
+
         self._channel = channel or self._gen_channel()
         self.stub = self.stub_class(self._channel)
+
 
     @property
     @abstractmethod
@@ -97,7 +127,9 @@ class GRPCIndexBase(ABC):
         target = self._endpoint()
         default_options = {
             "grpc.max_send_message_length": MAX_MSG_SIZE,
-            "grpc.max_receive_message_length": MAX_MSG_SIZE
+            "grpc.max_receive_message_length": MAX_MSG_SIZE,
+            "grpc.service_config": self.method_config,
+            "grpc.enable_retries": True
         }
         if self.grpc_client_config.secure:
             default_options['grpc.ssl_target_name_override'] = target.split(':')[0]
@@ -111,8 +143,8 @@ class GRPCIndexBase(ABC):
             root_cas = open(certifi.where(), "rb").read()
             tls = grpc.ssl_channel_credentials(root_certificates=root_cas)
             channel = grpc.secure_channel(target, tls, options=_options)
-        interceptor = RetryOnRpcErrorClientInterceptor(self.retry_config)
-        return grpc.intercept_channel(channel, interceptor)
+
+        return channel
 
     @property
     def channel(self):
@@ -243,7 +275,7 @@ class PineconeGrpcFuture:
 
     def result(self, timeout=None):
         try:
-            self._delegate.result(timeout=timeout)
+            return self._delegate.result(timeout=timeout)
         except _MultiThreadedRendezvous as e:
             raise PineconeException(e._state.debug_error_string) from e
 
