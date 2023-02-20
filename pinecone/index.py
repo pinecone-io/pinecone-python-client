@@ -2,6 +2,7 @@
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
 from tqdm import tqdm
+from importlib.util import find_spec
 from collections.abc import Iterable, Mapping
 from typing import Union, List, Tuple, Optional, Dict, Any
 
@@ -191,6 +192,28 @@ class Index(ApiClient):
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
+
+    def upsert_dataframe(self,
+                         df,
+                         namespase: str = None,
+                         batch_size: int = 500,
+                         show_progress: bool = True) -> None:
+        """Upserts a dataframe into the index.
+
+        Args:
+            df: A pandas dataframe with the following columns: id, vector, and metadata.
+            namespace: The namespace to upsert into.
+            batch_size: The number of rows to upsert in a single batch.
+            show_progress: Whether to show a progress bar.
+        """
+        if find_spec("pandas") is None:
+            raise ImportError("pandas not found. Please install pandas to use this method.")
+
+        pbar = tqdm(total=len(df), disable=not show_progress)
+        for i in range(0, len(df), batch_size):
+            batch = df.iloc[i:i + batch_size].to_dict(orient="records")
+            self.upsert(batch, namespace=namespase)
+            pbar.update(len(batch))
 
     @validate_and_convert_errors
     def delete(self,

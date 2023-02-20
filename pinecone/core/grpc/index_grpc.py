@@ -4,6 +4,7 @@
 import logging
 from abc import ABC, abstractmethod
 from functools import wraps
+from importlib.util import find_spec
 from typing import NamedTuple, Optional, Dict, Iterable, Union, List, Tuple, Any
 from collections.abc import Mapping
 
@@ -413,6 +414,35 @@ class GRPCIndex(GRPCIndexBase):
         args_dict = self._parse_non_empty_args([('namespace', namespace)])
         request = UpsertRequest(vectors=vectors, **args_dict)
         return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout, **kwargs)
+
+    def upsert_dataframe(self,
+                         df,
+                         namespase: str = None,
+                         batch_size: int = 500,
+                         show_progress: bool = True) -> None:
+        """Upserts a dataframe into the index.
+
+        Args:
+            df: A pandas dataframe with the following columns: id, vector, and metadata.
+            namespace: The namespace to upsert into.
+            batch_size: The number of rows to upsert in a single batch.
+            show_progress: Whether to show a progress bar.
+        """
+        if find_spec("pandas") is None:
+            raise ImportError("pandas not found. Please install pandas to use this method.")
+
+        async_results = [
+            self.upsert(vectors=chunk, namespace=namespase, async_req=True)
+            for chunk in tqdm(self._iter_dataframe(df, batch_size=batch_size),
+                              total=len(df) // batch_size, disable=not show_progress)
+        ]
+        res = [async_result.result() for async_result in async_results]
+
+    @staticmethod
+    def _iter_dataframe(df, batch_size):
+        for i in range(0, len(df), batch_size):
+            batch = df.iloc[i:i + batch_size].to_dict(orient="records")
+            yield batch
 
     def delete(self,
                ids: Optional[List[str]] = None,
