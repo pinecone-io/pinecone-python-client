@@ -3,7 +3,6 @@
 #
 import logging
 import numbers
-import warnings
 from abc import ABC, abstractmethod
 from functools import wraps
 from typing import NamedTuple, Optional, Dict, Iterable, Union, List, Tuple, Any
@@ -340,8 +339,8 @@ class GRPCIndex(GRPCIndexBase):
 
             excessive_keys = item_keys - (REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)
             if len(excessive_keys) > 0:
-                warnings.warn(f"Found excessive keys in the vector dictionary: {list(excessive_keys)}. "
-                              f"These keys will be ignored. The allowed keys are: {list(REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)}")
+                raise ValueError(f"Found excess keys in the vector dictionary: {list(excessive_keys)}. "
+                                 f"The allowed keys are: {list(REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)}")
 
             sparse_values = None
             if 'sparse_values' in item:
@@ -377,7 +376,7 @@ class GRPCIndex(GRPCIndexBase):
                 if len(item) > 3:
                     raise ValueError(f"Found a tuple of length {len(item)} which is not supported. " 
                                      f"Vectors can be represented as tuples either the form (id, values, metadata) or (id, values). "
-                                     f"To pass sparse values please use either dicts or a GRPCVector objects as inputs.")
+                                     f"To pass sparse values please use either dicts or GRPCVector objects as inputs.")
                 id, values, metadata = fix_tuple_length(item, 3)
                 return GRPCVector(id=id, values=values, metadata=dict_to_proto_struct(metadata) or {})
             elif isinstance(item, Mapping):

@@ -2,7 +2,6 @@
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
 import numbers
-import warnings
 
 from tqdm import tqdm
 from collections.abc import Iterable, Mapping
@@ -174,8 +173,8 @@ class Index(ApiClient):
 
             excessive_keys = item_keys - (REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)
             if len(excessive_keys) > 0:
-                warnings.warn(f"Found excessive keys in the vector dictionary: {list(excessive_keys)}. "
-                              f"These keys will be ignored. The allowed keys are: {list(REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)}")
+                raise ValueError(f"Found excess keys in the vector dictionary: {list(excessive_keys)}. "
+                                 f"The allowed keys are: {list(REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)}")
 
             sparse_values = None
             if 'sparse_values' in item:
