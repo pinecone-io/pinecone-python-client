@@ -3,6 +3,8 @@
 #
 from tqdm.autonotebook import tqdm
 from importlib.util import find_spec
+import numbers
+
 from collections.abc import Iterable, Mapping
 from typing import Union, List, Tuple, Optional, Dict, Any
 
@@ -22,6 +24,7 @@ __all__ = [
     "UpdateRequest", "Vector", "DeleteRequest", "UpdateRequest", "DescribeIndexStatsRequest", "SparseValues"
 ]
 
+from .core.utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
 from .core.utils.error_handling import validate_and_convert_errors
 
 _OPENAPI_ENDPOINT_PARAMS = (
@@ -163,6 +166,45 @@ class Index(ApiClient):
 
         args_dict = self._parse_non_empty_args([('namespace', namespace)])
 
+        def _dict_to_vector(item):
+            item_keys = set(item.keys())
+            if not item_keys.issuperset(REQUIRED_VECTOR_FIELDS):
+                raise ValueError(
+                    f"Vector dictionary is missing required fields: {list(REQUIRED_VECTOR_FIELDS - item_keys)}")
+
+            excessive_keys = item_keys - (REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)
+            if len(excessive_keys) > 0:
+                raise ValueError(f"Found excess keys in the vector dictionary: {list(excessive_keys)}. "
+                                 f"The allowed keys are: {list(REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)}")
+
+            sparse_values = None
+            if 'sparse_values' in item:
+                if not isinstance(item['sparse_values'], Mapping):
+                    raise ValueError(
+                        f"Column `sparse_values` is expected to be a dictionary, found {type(item['sparse_values'])}")
+                indices = item['sparse_values'].get('indices', None)
+                values = item['sparse_values'].get('values', None)
+                try:
+                    sparse_values = SparseValues(indices=indices, values=values)
+                except TypeError as e:
+                    raise ValueError("Found unexpected data in column `sparse_values`. "
+                                     "Expected format is `'sparse_values': {'indices': List[int], 'values': List[float]}`."
+                                     ) from e
+
+                metadata = item.get('metadata') or {}
+                if not isinstance(metadata, Mapping):
+                    raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
+
+            try:
+                return Vector(id=item['id'], values=item['values'], sparse_values=sparse_values, metadata=metadata)
+
+            except TypeError as e:
+                # if not isinstance(item['values'], Iterable) or not isinstance(item['values'][0], numbers.Real):
+                #     raise TypeError(f"Column `values` is expected to be a list of floats")
+                if not isinstance(item['values'], Iterable) or not isinstance(item['values'][0], numbers.Real):
+                    raise TypeError(f"Column `values` is expected to be a list of floats")
+                raise
+
         def _vector_transform(item: Union[Vector, Tuple]):
             if isinstance(item, Vector):
                 return item
@@ -174,13 +216,7 @@ class Index(ApiClient):
                 id, values, metadata = fix_tuple_length(item, 3)
                 return Vector(id=id, values=values, metadata=metadata or {}, _check_type=_check_type)
             elif isinstance(item, Mapping):
-                sparse_values = None
-                if 'sparse_values' in item:
-                    indices = item['sparse_values'].get('indices', [])
-                    values = item['sparse_values'].get('values', [])
-                    sparse_values = SparseValues(indices=indices, values=values)
-                return Vector(id=item['id'], values=item['values'], sparse_values=sparse_values, metadata=item.get('metadata', {}), _check_type=_check_type)
-
+                return _dict_to_vector(item)
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
         return self._vector_api.upsert(
