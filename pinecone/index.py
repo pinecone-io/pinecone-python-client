@@ -193,7 +193,7 @@ class Index(ApiClient):
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
 
-    def upsert_dataframe(self,
+    def upsert_from_dataframe(self,
                          df,
                          namespace: str = None,
                          batch_size: int = 500,

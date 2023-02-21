@@ -415,7 +415,7 @@ class GRPCIndex(GRPCIndexBase):
         request = UpsertRequest(vectors=vectors, **args_dict)
         return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout, **kwargs)
 
-    def upsert_dataframe(self,
+    def upsert_from_dataframe(self,
                          df,
                          namespace: str = None,
                          batch_size: int = 500,
