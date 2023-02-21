@@ -37,3 +37,6 @@ CLIENT_ID = f'python-client-{CLIENT_VERSION}'
 TCP_KEEPINTVL = 60   # Sec
 TCP_KEEPIDLE = 300   # Sec
 TCP_KEEPCNT = 4
+
+REQUIRED_VECTOR_FIELDS = {'id', 'values'}
+OPTIONAL_VECTOR_FIELDS = {'sparse_values', 'metadata'}
