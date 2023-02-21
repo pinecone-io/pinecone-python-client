@@ -417,8 +417,9 @@ class GRPCIndex(GRPCIndexBase):
 
     def upsert_dataframe(self,
                          df,
-                         namespase: str = None,
+                         namespace: str = None,
                          batch_size: int = 500,
+                         use_async_requests: bool = True,
                          show_progress: bool = True) -> None:
         """Upserts a dataframe into the index.
 
@@ -426,13 +427,20 @@ class GRPCIndex(GRPCIndexBase):
             df: A pandas dataframe with the following columns: id, vector, and metadata.
             namespace: The namespace to upsert into.
             batch_size: The number of rows to upsert in a single batch.
+            use_async_requests: Whether to upsert multiple requests at the same time using asynchronous request mechanism.
+                                Set to `False`
             show_progress: Whether to show a progress bar.
         """
-        if find_spec("pandas") is None:
-            raise ImportError("pandas not found. Please install pandas to use this method.")
+        try:
+            import pandas as pd
+        except ImportError:
+            raise RuntimeError("The `pandas` package is not installed. Please install pandas to use `upsert_from_dataframe()`")
+
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError(f"Only pandas dataframes are supported. Found: {type(df)}")
 
         async_results = [
-            self.upsert(vectors=chunk, namespace=namespase, async_req=True)
+            self.upsert(vectors=chunk, namespace=namespace, async_req=True)
             for chunk in tqdm(self._iter_dataframe(df, batch_size=batch_size),
                               total=len(df) // batch_size, disable=not show_progress)
         ]

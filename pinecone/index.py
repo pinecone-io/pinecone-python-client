@@ -195,7 +195,7 @@ class Index(ApiClient):
 
     def upsert_dataframe(self,
                          df,
-                         namespase: str = None,
+                         namespace: str = None,
                          batch_size: int = 500,
                          show_progress: bool = True) -> None:
         """Upserts a dataframe into the index.
@@ -206,13 +206,18 @@ class Index(ApiClient):
             batch_size: The number of rows to upsert in a single batch.
             show_progress: Whether to show a progress bar.
         """
-        if find_spec("pandas") is None:
-            raise ImportError("pandas not found. Please install pandas to use this method.")
+        try:
+            import pandas as pd
+        except ImportError:
+            raise RuntimeError("The `pandas` package is not installed. Please install pandas to use `upsert_from_dataframe()`")
+
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError(f"Only pandas dataframes are supported. Found: {type(df)}")
 
         pbar = tqdm(total=len(df), disable=not show_progress)
         for i in range(0, len(df), batch_size):
             batch = df.iloc[i:i + batch_size].to_dict(orient="records")
-            self.upsert(batch, namespace=namespase)
+            self.upsert(batch, namespace=namespace)
             pbar.update(len(batch))
 
     @validate_and_convert_errors
