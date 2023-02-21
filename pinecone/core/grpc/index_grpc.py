@@ -450,10 +450,11 @@ class GRPCIndex(GRPCIndexBase):
         request = UpsertRequest(vectors=vectors, **args_dict)
         return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout, **kwargs)
 
-    def upsert_dataframe(self,
+    def upsert_from_dataframe(self,
                          df,
-                         namespase: str = None,
+                         namespace: str = None,
                          batch_size: int = 500,
+                         use_async_requests: bool = True,
                          show_progress: bool = True) -> None:
         """Upserts a dataframe into the index.
 
@@ -461,17 +462,33 @@ class GRPCIndex(GRPCIndexBase):
             df: A pandas dataframe with the following columns: id, vector, and metadata.
             namespace: The namespace to upsert into.
             batch_size: The number of rows to upsert in a single batch.
+            use_async_requests: Whether to upsert multiple requests at the same time using asynchronous request mechanism.
+                                Set to `False`
             show_progress: Whether to show a progress bar.
         """
-        if find_spec("pandas") is None:
-            raise ImportError("pandas not found. Please install pandas to use this method.")
+        try:
+            import pandas as pd
+        except ImportError:
+            raise RuntimeError("The `pandas` package is not installed. Please install pandas to use `upsert_from_dataframe()`")
 
-        async_results = [
-            self.upsert(vectors=chunk, namespace=namespase, async_req=True)
-            for chunk in tqdm(self._iter_dataframe(df, batch_size=batch_size),
-                              total=len(df) // batch_size, disable=not show_progress)
-        ]
-        res = [async_result.result() for async_result in async_results]
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError(f"Only pandas dataframes are supported. Found: {type(df)}")
+
+        pbar = tqdm(total=len(df), disable=not show_progress, desc="sending upsert requests")
+        results = []
+        for chunk in self._iter_dataframe(df, batch_size=batch_size):
+            res = self.upsert(vectors=chunk, namespace=namespace, async_req=use_async_requests)
+            pbar.update(len(chunk))
+            results.append(res)
+
+        if use_async_requests:
+            results = [async_result.result() for async_result in tqdm(results, desc="collecting async responses")]
+
+        upserted_count = 0
+        for res in results:
+            upserted_count += res.upserted_count
+
+        return UpsertResponse(upserted_count=upserted_count)
 
     @staticmethod
     def _iter_dataframe(df, batch_size):
