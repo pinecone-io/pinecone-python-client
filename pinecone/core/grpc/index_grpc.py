@@ -439,12 +439,21 @@ class GRPCIndex(GRPCIndexBase):
         if not isinstance(df, pd.DataFrame):
             raise ValueError(f"Only pandas dataframes are supported. Found: {type(df)}")
 
-        async_results = [
-            self.upsert(vectors=chunk, namespace=namespace, async_req=True)
-            for chunk in tqdm(self._iter_dataframe(df, batch_size=batch_size),
-                              total=len(df) // batch_size, disable=not show_progress)
-        ]
-        res = [async_result.result() for async_result in async_results]
+        pbar = tqdm(total=len(df), disable=not show_progress, desc="sending upsert requests")
+        results = []
+        for chunk in self._iter_dataframe(df, batch_size=batch_size):
+            res = self.upsert(vectors=chunk, namespace=namespace, async_req=use_async_requests)
+            pbar.update(len(chunk))
+            results.append(res)
+
+        if use_async_requests:
+            results = [async_result.result() for async_result in tqdm(results, desc="collecting async responses")]
+
+        upserted_count = 0
+        for res in results:
+            upserted_count += res.upserted_count
+
+        return UpsertResponse(upserted_count=upserted_count)
 
     @staticmethod
     def _iter_dataframe(df, batch_size):

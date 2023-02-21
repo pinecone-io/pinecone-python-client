@@ -214,11 +214,15 @@ class Index(ApiClient):
         if not isinstance(df, pd.DataFrame):
             raise ValueError(f"Only pandas dataframes are supported. Found: {type(df)}")
 
+        upserted_count = 0
         pbar = tqdm(total=len(df), disable=not show_progress)
         for i in range(0, len(df), batch_size):
             batch = df.iloc[i:i + batch_size].to_dict(orient="records")
-            self.upsert(batch, namespace=namespace)
+            res = self.upsert(batch, namespace=namespace)
+            upserted_count += res.upserted_count
             pbar.update(len(batch))
+
+        return UpsertResponse(upserted_count=upserted_count)
 
     @validate_and_convert_errors
     def delete(self,
