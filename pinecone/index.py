@@ -186,6 +186,8 @@ class Index(ApiClient):
 
                 if isinstance(values, np.ndarray):
                     values = values.tolist()
+                if isinstance(indices, np.ndarray):
+                    indices = indices.tolist()
                 try:
                     sparse_values = SparseValues(indices=indices, values=values)
                 except TypeError as e:
