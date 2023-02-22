@@ -87,6 +87,126 @@ class TestGrpcIndex:
                            sparse_values=SparseValues(indices=self.sparse_indices_2, values=self.sparse_values_2))],
         )
 
+    def test_upsert_dict(self, mocker):
+        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
+        dict1 = {'id': 'vec1', 'values': self.vals1}
+        dict2 = {'id': 'vec2', 'values': self.vals2}
+        self.index.upsert([dict1, dict2], namespace='ns')
+        self._assert_called_once([
+            self.expected_vec1,
+            self.expected_vec2]
+        )
+
+    def test_upsert_dict_md(self, mocker):
+        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
+        dict1 = {'id': 'vec1', 'values': self.vals1, 'metadata': self.md1}
+        dict2 = {'id': 'vec2', 'values': self.vals2, 'metadata': self.md2}
+        self.index.upsert([dict1, dict2], namespace='ns')
+        self._assert_called_once([
+            self.expected_vec_md1,
+            self.expected_vec_md2]
+        )
+
+    def test_upsert_dict_sparse(self, mocker):
+        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
+        dict1 = {'id': 'vec1', 'values': self.vals1,
+                 'sparse_values': {'indices': self.sparse_indices_1, 'values': self.sparse_values_1}}
+        dict2 = {'id': 'vec2', 'values': self.vals2,
+                 'sparse_values': {'indices': self.sparse_indices_2, 'values': self.sparse_values_2}}
+        self.index.upsert([dict1, dict2], namespace='ns')
+        self._assert_called_once([
+            Vector(id='vec1', values=self.vals1, metadata={},
+                   sparse_values=SparseValues(indices=self.sparse_indices_1, values=self.sparse_values_1)),
+            Vector(id='vec2', values=self.vals2, metadata={},
+                   sparse_values=SparseValues(indices=self.sparse_indices_2, values=self.sparse_values_2))]
+        )
+
+    def test_upsert_dict_sparse_md(self, mocker):
+        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
+        dict1 = {'id': 'vec1', 'values': self.vals1,
+                 'sparse_values': {'indices': self.sparse_indices_1, 'values': self.sparse_values_1},
+                 'metadata': self.md1}
+        dict2 = {'id': 'vec2', 'values': self.vals2,
+                 'sparse_values': {'indices': self.sparse_indices_2, 'values': self.sparse_values_2},
+                 'metadata': self.md2}
+        self.index.upsert([dict1, dict2], namespace='ns')
+        self._assert_called_once([
+            Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1),
+                   sparse_values=SparseValues(indices=self.sparse_indices_1, values=self.sparse_values_1)),
+            Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2),
+                   sparse_values=SparseValues(indices=self.sparse_indices_2, values=self.sparse_values_2))]
+        )
+
+    def test_upsert_dict_negative(self, mocker):
+        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
+
+        # Missing required keys
+        dict1 = {'values': self.vals1}
+        dict2 = {'id': 'vec2'}
+        with pytest.raises(ValueError):
+            self.index.upsert([dict1, dict2])
+        with pytest.raises(ValueError):
+            self.index.upsert([dict1])
+        with pytest.raises(ValueError):
+            self.index.upsert([dict2])
+
+        # Excess keys
+        dict1 = {'id': 'vec1', 'values': self.vals1}
+        dict2 = {'id': 'vec2', 'values': self.vals2, 'animal': 'dog'}
+        with pytest.raises(ValueError) as e:
+            self.index.upsert([dict1, dict2])
+            assert 'animal' in str(e.value)
+
+        dict1 = {'id': 'vec1', 'values': self.vals1, 'metadatta': self.md2}
+        dict2 = {'id': 'vec2', 'values': self.vals2}
+        with pytest.raises(ValueError) as e:
+            self.index.upsert([dict1, dict2])
+            assert 'metadatta' in str(e.value)
+
+    @pytest.mark.parametrize("key,new_val", [
+        ("id", 4.2),
+        ("id", ['vec1']),
+        ("values", ['the', 'lazy', 'fox']),
+        ("values", 'the lazy fox'),
+        ("values", 0.5),
+        ("metadata", np.nan),
+        ("metadata", ['key1', 'key2']),
+        ("sparse_values", 'cat'),
+        ("sparse_values", []),
+    ])
+    def test_upsert_dict_negative_types(self, mocker, key, new_val):
+        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
+
+        full_dict1 = {'id': 'vec1', 'values': self.vals1,
+                      'sparse_values': {'indices': self.sparse_indices_1, 'values': self.sparse_values_1},
+                      'metadata': self.md1}
+
+        dict1 = deepcopy(full_dict1)
+        dict1[key] = new_val
+        with pytest.raises(TypeError) as e:
+            self.index.upsert([dict1])
+        assert key in str(e.value)
+
+    @pytest.mark.parametrize("key,new_val", [
+        ("indices", 3),
+        ("indices", [1.2, 0.5]),
+        ("values", ['1', '4.4']),
+        ("values", 0.5),
+    ])
+    def test_upsert_dict_negative_types_sparse(self, mocker, key, new_val):
+        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
+
+        full_dict1 = {'id': 'vec1', 'values': self.vals1,
+                      'sparse_values': {'indices': self.sparse_indices_1, 'values': self.sparse_values_1},
+                      'metadata': self.md1}
+
+        dict1 = deepcopy(full_dict1)
+        dict1['sparse_values'][key] = new_val
+        with pytest.raises(TypeError) as e:
+            self.index.upsert([dict1])
+        assert 'sparse' in str(e.value)
+        assert key in str(e.value)
+
     def test_upsert_async_upsertInputVectorsAsync(self, mocker):
         mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
         self.index.upsert([self.expected_vec_md1,
