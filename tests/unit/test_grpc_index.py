@@ -1,10 +1,13 @@
+from copy import deepcopy
+
+import numpy as np
 import pytest
 
 import pinecone
-from core.utils import dict_to_proto_struct
 from pinecone import DescribeIndexStatsRequest
 from pinecone.core.grpc.protos.vector_service_pb2 import Vector, DescribeIndexStatsRequest, UpdateRequest, \
-    UpsertRequest, FetchRequest, QueryRequest, DeleteRequest, QueryVector, UpsertResponse
+    UpsertRequest, FetchRequest, QueryRequest, DeleteRequest, QueryVector, UpsertResponse, SparseValues
+from pinecone.core.utils import dict_to_proto_struct
 
 
 class TestGrpcIndex:
@@ -13,6 +16,10 @@ class TestGrpcIndex:
         self.vector_dim = 8
         self.vals1 = [0.1] * self.vector_dim
         self.vals2 = [0.2] * self.vector_dim
+        self.sparse_indices_1 = [1, 8, 42]
+        self.sparse_values_1 = [0.8, 0.9, 0.42]
+        self.sparse_indices_2 = [1, 3, 5]
+        self.sparse_values_2 = [0.7, 0.3, 0.31415]
         self.md1 = {'genre': 'action', 'year': 2021}
         self.md2 = {'genre': 'documentary', 'year': 2020}
         self.filter1 = {'genre': {'$in': ['action']}}
@@ -21,59 +28,77 @@ class TestGrpcIndex:
         pinecone.init(api_key='example-key')
         self.index = pinecone.GRPCIndex('example-name')
 
+        self.expected_vec1 = Vector(id='vec1', values=self.vals1, metadata={})
+        self.expected_vec2 = Vector(id='vec2', values=self.vals2, metadata={})
+        self.expected_vec_md1 = Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1))
+        self.expected_vec_md2 = Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))
+
     # region: upsert tests
 
-    def test_upsert_tuplesOfIdVec_UpserWithoutMD(self, mocker):
-        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
-        self.index.upsert([('vec1', self.vals1), ('vec2', self.vals2)], namespace='ns')
+    def _assert_called_once(self, vectors):
         self.index._wrap_grpc_call.assert_called_once_with(
             self.index.stub.Upsert,
             UpsertRequest(
-                vectors=[
-                    Vector(id='vec1', values=self.vals1, metadata={}),
-                    Vector(id='vec2', values=self.vals2, metadata={})],
+                vectors=vectors,
                 namespace='ns'),
             timeout=None
         )
 
+    def test_upsert_tuplesOfIdVec_UpserWithoutMD(self, mocker):
+        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
+        self.index.upsert([('vec1', self.vals1), ('vec2', self.vals2)], namespace='ns')
+        self._assert_called_once([
+                    self.expected_vec1,
+                    self.expected_vec2
+        ])
+
+
     def test_upsert_tuplesOfIdVecMD_UpsertVectorsWithMD(self, mocker):
         mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
         self.index.upsert([('vec1', self.vals1, self.md1), ('vec2', self.vals2, self.md2)], namespace='ns')
-        self.index._wrap_grpc_call.assert_called_once_with(
-            self.index.stub.Upsert,
-            UpsertRequest(
-                vectors=[
-                    Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
-                    Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
-                namespace='ns'),
-            timeout=None)
+        self._assert_called_once([
+                    self.expected_vec_md1,
+                    self.expected_vec_md2],
+        )
+
 
     def test_upsert_vectors_upsertInputVectors(self, mocker):
         mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
-        self.index.upsert([Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
-                           Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
+        self.index.upsert([self.expected_vec_md1,
+                           self.expected_vec_md2],
                           namespace='ns')
-        self.index._wrap_grpc_call.assert_called_once_with(
-            self.index.stub.Upsert,
-            UpsertRequest(
-                vectors=[
-                    Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
-                    Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
-                namespace='ns'),
-            timeout=None)
+        self._assert_called_once([
+                    self.expected_vec_md1,
+                    self.expected_vec_md2],
+        )
+
+
+    def test_upsert_vectors_upsertInputVectorsSparse(self, mocker):
+        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
+        self.index.upsert([Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1),
+                                  sparse_values=SparseValues(indices=self.sparse_indices_1, values=self.sparse_values_1)),
+                           Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2),
+                                  sparse_values=SparseValues(indices=self.sparse_indices_2, values=self.sparse_values_2))],
+                          namespace='ns')
+        self._assert_called_once([
+                    Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1),
+                           sparse_values=SparseValues(indices=self.sparse_indices_1, values=self.sparse_values_1)),
+                    Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2),
+                           sparse_values=SparseValues(indices=self.sparse_indices_2, values=self.sparse_values_2))],
+        )
 
     def test_upsert_async_upsertInputVectorsAsync(self, mocker):
         mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
-        self.index.upsert([Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
-                           Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
+        self.index.upsert([self.expected_vec_md1,
+                           self.expected_vec_md2],
                           namespace='ns',
                           async_req=True)
         self.index._wrap_grpc_call.assert_called_once_with(
             self.index.stub.Upsert.future,
             UpsertRequest(
                 vectors=[
-                    Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
-                    Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
+                    self.expected_vec_md1,
+                    self.expected_vec_md2],
                 namespace='ns'),
             timeout=None)
 
@@ -82,8 +107,8 @@ class TestGrpcIndex:
                             side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
                                 upserted_count=len(upsert_request.vectors)))
 
-        result = self.index.upsert([Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
-                                    Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
+        result = self.index.upsert([self.expected_vec_md1,
+                                    self.expected_vec_md2],
                                    namespace='ns',
                                    batch_size=1,
                                    show_progress=False)
@@ -98,7 +123,7 @@ class TestGrpcIndex:
         self.index._wrap_grpc_call.assert_any_call(
             self.index.stub.Upsert,
             UpsertRequest(
-                vectors=[Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
+                vectors=[self.expected_vec_md2],
                 namespace='ns'),
             timeout=None)
 
@@ -109,7 +134,7 @@ class TestGrpcIndex:
                             side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
                                 upserted_count=len(upsert_request.vectors)))
 
-        result = self.index.upsert([Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
+        result = self.index.upsert([self.expected_vec_md1,
                                     Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2)),
                                     Vector(id='vec3', values=self.vals1, metadata=dict_to_proto_struct(self.md1))],
                                    namespace='ns',
@@ -118,8 +143,8 @@ class TestGrpcIndex:
             self.index.stub.Upsert,
             UpsertRequest(
                 vectors=[
-                    Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
-                    Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
+                    self.expected_vec_md1,
+                    self.expected_vec_md2],
                 namespace='ns'),
             timeout=None)
 
@@ -137,19 +162,14 @@ class TestGrpcIndex:
                             side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
                                 upserted_count=len(upsert_request.vectors)))
 
-        result = self.index.upsert([Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
-                                    Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
+        result = self.index.upsert([self.expected_vec_md1,
+                                    self.expected_vec_md2],
                                    namespace='ns',
                                    batch_size=5)
-
-        self.index._wrap_grpc_call.assert_called_once_with(
-            self.index.stub.Upsert,
-            UpsertRequest(
-                vectors=[
-                    Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
-                    Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
-                namespace='ns'),
-            timeout=None)
+        self._assert_called_once([
+                    self.expected_vec_md1,
+                    self.expected_vec_md2],
+        )
 
         assert result.upserted_count == 2
 
@@ -167,8 +187,8 @@ class TestGrpcIndex:
             self.index.stub.Upsert,
             UpsertRequest(
                 vectors=[
-                    Vector(id='vec1', values=self.vals1, metadata=dict_to_proto_struct(self.md1)),
-                    Vector(id='vec2', values=self.vals2, metadata=dict_to_proto_struct(self.md2))],
+                    self.expected_vec_md1,
+                    self.expected_vec_md2],
                 namespace='ns'),
             timeout=None)
 
