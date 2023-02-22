@@ -5,6 +5,7 @@ import logging
 import numbers
 from abc import ABC, abstractmethod
 from functools import wraps
+from importlib.util import find_spec
 from typing import NamedTuple, Optional, Dict, Iterable, Union, List, Tuple, Any
 from collections.abc import Mapping
 
@@ -12,7 +13,8 @@ import certifi
 import grpc
 from google.protobuf import json_format
 from grpc._channel import _InactiveRpcError, _MultiThreadedRendezvous
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
+import json
 
 from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, DescribeIndexStatsResponse
 from pinecone.config import Config
@@ -84,8 +86,37 @@ class GRPCIndexBase(ABC):
             "client-version": CLIENT_VERSION
         }
         self._endpoint_override = _endpoint_override
+
+        self.method_config = json.dumps(
+            {
+                "methodConfig": [
+                    {
+                        "name": [{"service": "VectorService.Upsert"}],
+                        "retryPolicy": {
+                            "maxAttempts": 5,
+                            "initialBackoff": "0.1s",
+                            "maxBackoff": "1s",
+                            "backoffMultiplier": 2,
+                            "retryableStatusCodes": ["UNAVAILABLE"],
+                        },
+                    },
+                    {
+                        "name": [{"service": "VectorService"}],
+                        "retryPolicy": {
+                            "maxAttempts": 5,
+                            "initialBackoff": "0.1s",
+                            "maxBackoff": "1s",
+                            "backoffMultiplier": 2,
+                            "retryableStatusCodes": ["UNAVAILABLE"],
+                        },
+                    }
+                ]
+            }
+        )
+
         self._channel = channel or self._gen_channel()
         self.stub = self.stub_class(self._channel)
+
 
     @property
     @abstractmethod
@@ -100,7 +131,9 @@ class GRPCIndexBase(ABC):
         target = self._endpoint()
         default_options = {
             "grpc.max_send_message_length": MAX_MSG_SIZE,
-            "grpc.max_receive_message_length": MAX_MSG_SIZE
+            "grpc.max_receive_message_length": MAX_MSG_SIZE,
+            "grpc.service_config": self.method_config,
+            "grpc.enable_retries": True
         }
         if self.grpc_client_config.secure:
             default_options['grpc.ssl_target_name_override'] = target.split(':')[0]
@@ -114,8 +147,8 @@ class GRPCIndexBase(ABC):
             root_cas = open(certifi.where(), "rb").read()
             tls = grpc.ssl_channel_credentials(root_certificates=root_cas)
             channel = grpc.secure_channel(target, tls, options=_options)
-        interceptor = RetryOnRpcErrorClientInterceptor(self.retry_config)
-        return grpc.intercept_channel(channel, interceptor)
+
+        return channel
 
     @property
     def channel(self):
@@ -246,7 +279,7 @@ class PineconeGrpcFuture:
 
     def result(self, timeout=None):
         try:
-            self._delegate.result(timeout=timeout)
+            return self._delegate.result(timeout=timeout)
         except _MultiThreadedRendezvous as e:
             raise PineconeException(e._state.debug_error_string) from e
 
@@ -416,6 +449,52 @@ class GRPCIndex(GRPCIndexBase):
         args_dict = self._parse_non_empty_args([('namespace', namespace)])
         request = UpsertRequest(vectors=vectors, **args_dict)
         return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout, **kwargs)
+
+    def upsert_from_dataframe(self,
+                         df,
+                         namespace: str = None,
+                         batch_size: int = 500,
+                         use_async_requests: bool = True,
+                         show_progress: bool = True) -> None:
+        """Upserts a dataframe into the index.
+
+        Args:
+            df: A pandas dataframe with the following columns: id, vector, and metadata.
+            namespace: The namespace to upsert into.
+            batch_size: The number of rows to upsert in a single batch.
+            use_async_requests: Whether to upsert multiple requests at the same time using asynchronous request mechanism.
+                                Set to `False`
+            show_progress: Whether to show a progress bar.
+        """
+        try:
+            import pandas as pd
+        except ImportError:
+            raise RuntimeError("The `pandas` package is not installed. Please install pandas to use `upsert_from_dataframe()`")
+
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError(f"Only pandas dataframes are supported. Found: {type(df)}")
+
+        pbar = tqdm(total=len(df), disable=not show_progress, desc="sending upsert requests")
+        results = []
+        for chunk in self._iter_dataframe(df, batch_size=batch_size):
+            res = self.upsert(vectors=chunk, namespace=namespace, async_req=use_async_requests)
+            pbar.update(len(chunk))
+            results.append(res)
+
+        if use_async_requests:
+            results = [async_result.result() for async_result in tqdm(results, desc="collecting async responses")]
+
+        upserted_count = 0
+        for res in results:
+            upserted_count += res.upserted_count
+
+        return UpsertResponse(upserted_count=upserted_count)
+
+    @staticmethod
+    def _iter_dataframe(df, batch_size):
+        for i in range(0, len(df), batch_size):
+            batch = df.iloc[i:i + batch_size].to_dict(orient="records")
+            yield batch
 
     def delete(self,
                ids: Optional[List[str]] = None,
