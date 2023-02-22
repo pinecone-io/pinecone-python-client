@@ -1,9 +1,10 @@
 #
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
+from tqdm.autonotebook import tqdm
+from importlib.util import find_spec
 import numbers
 
-from tqdm import tqdm
 from collections.abc import Iterable, Mapping
 from typing import Union, List, Tuple, Optional, Dict, Any
 
@@ -227,6 +228,37 @@ class Index(ApiClient):
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
+
+    def upsert_from_dataframe(self,
+                         df,
+                         namespace: str = None,
+                         batch_size: int = 500,
+                         show_progress: bool = True) -> None:
+        """Upserts a dataframe into the index.
+
+        Args:
+            df: A pandas dataframe with the following columns: id, vector, and metadata.
+            namespace: The namespace to upsert into.
+            batch_size: The number of rows to upsert in a single batch.
+            show_progress: Whether to show a progress bar.
+        """
+        try:
+            import pandas as pd
+        except ImportError:
+            raise RuntimeError("The `pandas` package is not installed. Please install pandas to use `upsert_from_dataframe()`")
+
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError(f"Only pandas dataframes are supported. Found: {type(df)}")
+
+        upserted_count = 0
+        pbar = tqdm(total=len(df), disable=not show_progress)
+        for i in range(0, len(df), batch_size):
+            batch = df.iloc[i:i + batch_size].to_dict(orient="records")
+            res = self.upsert(batch, namespace=namespace)
+            upserted_count += res.upserted_count
+            pbar.update(len(batch))
+
+        return UpsertResponse(upserted_count=upserted_count)
 
     @validate_and_convert_errors
     def delete(self,

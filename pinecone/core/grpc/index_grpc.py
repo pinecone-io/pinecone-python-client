@@ -5,6 +5,7 @@ import logging
 import numbers
 from abc import ABC, abstractmethod
 from functools import wraps
+from importlib.util import find_spec
 from typing import NamedTuple, Optional, Dict, Iterable, Union, List, Tuple, Any
 from collections.abc import Mapping
 
@@ -12,7 +13,7 @@ import certifi
 import grpc
 from google.protobuf import json_format
 from grpc._channel import _InactiveRpcError, _MultiThreadedRendezvous
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
 import json
 
 from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, DescribeIndexStatsResponse
@@ -448,6 +449,52 @@ class GRPCIndex(GRPCIndexBase):
         args_dict = self._parse_non_empty_args([('namespace', namespace)])
         request = UpsertRequest(vectors=vectors, **args_dict)
         return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout, **kwargs)
+
+    def upsert_from_dataframe(self,
+                         df,
+                         namespace: str = None,
+                         batch_size: int = 500,
+                         use_async_requests: bool = True,
+                         show_progress: bool = True) -> None:
+        """Upserts a dataframe into the index.
+
+        Args:
+            df: A pandas dataframe with the following columns: id, vector, and metadata.
+            namespace: The namespace to upsert into.
+            batch_size: The number of rows to upsert in a single batch.
+            use_async_requests: Whether to upsert multiple requests at the same time using asynchronous request mechanism.
+                                Set to `False`
+            show_progress: Whether to show a progress bar.
+        """
+        try:
+            import pandas as pd
+        except ImportError:
+            raise RuntimeError("The `pandas` package is not installed. Please install pandas to use `upsert_from_dataframe()`")
+
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError(f"Only pandas dataframes are supported. Found: {type(df)}")
+
+        pbar = tqdm(total=len(df), disable=not show_progress, desc="sending upsert requests")
+        results = []
+        for chunk in self._iter_dataframe(df, batch_size=batch_size):
+            res = self.upsert(vectors=chunk, namespace=namespace, async_req=use_async_requests)
+            pbar.update(len(chunk))
+            results.append(res)
+
+        if use_async_requests:
+            results = [async_result.result() for async_result in tqdm(results, desc="collecting async responses")]
+
+        upserted_count = 0
+        for res in results:
+            upserted_count += res.upserted_count
+
+        return UpsertResponse(upserted_count=upserted_count)
+
+    @staticmethod
+    def _iter_dataframe(df, batch_size):
+        for i in range(0, len(df), batch_size):
+            batch = df.iloc[i:i + batch_size].to_dict(orient="records")
+            yield batch
 
     def delete(self,
                ids: Optional[List[str]] = None,
