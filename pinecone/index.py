@@ -191,9 +191,9 @@ class Index(ApiClient):
                                      "Expected format is `'sparse_values': {'indices': List[int], 'values': List[float]}`."
                                      ) from e
 
-                metadata = item.get('metadata') or {}
-                if not isinstance(metadata, Mapping):
-                    raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
+            metadata = item.get('metadata') or {}
+            if not isinstance(metadata, Mapping):
+                raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
 
             try:
                 return Vector(id=item['id'], values=item['values'], sparse_values=sparse_values, metadata=metadata)
