@@ -345,19 +345,19 @@ class GRPCIndex(GRPCIndexBase):
             sparse_values = None
             if 'sparse_values' in item:
                 if not isinstance(item['sparse_values'], Mapping):
-                    raise ValueError(f"Column `sparse_values` is expected to be a dictionary, found {type(item['sparse_values'])}")
+                    raise TypeError(f"Column `sparse_values` is expected to be a dictionary, found {type(item['sparse_values'])}")
                 indices = item['sparse_values'].get('indices', None)
                 values = item['sparse_values'].get('values', None)
                 try:
                     sparse_values = GRPCSparseValues(indices=indices, values=values)
                 except TypeError as e:
-                    raise ValueError("Found unexpected data in column `sparse_values`. "
+                    raise TypeError("Found unexpected data in column `sparse_values`. "
                                      "Expected format is `'sparse_values': {'indices': List[int], 'values': List[float]}`."
                                      ) from e
 
-                metadata = item.get('metadata', None)
-                if metadata is not None and not isinstance(metadata, Mapping):
-                    raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
+            metadata = item.get('metadata', None)
+            if metadata is not None and not isinstance(metadata, Mapping):
+                raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
 
             try:
                 return GRPCVector(id=item['id'], values=item['values'], sparse_values=sparse_values,
