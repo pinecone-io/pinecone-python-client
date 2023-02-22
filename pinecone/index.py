@@ -2,7 +2,7 @@
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
 import numbers
-
+import numpy as np
 from tqdm import tqdm
 from collections.abc import Iterable, Mapping
 from typing import Union, List, Tuple, Optional, Dict, Any
@@ -183,6 +183,9 @@ class Index(ApiClient):
                         f"Column `sparse_values` is expected to be a dictionary, found {type(item['sparse_values'])}")
                 indices = item['sparse_values'].get('indices', None)
                 values = item['sparse_values'].get('values', None)
+
+                if isinstance(values, np.ndarray):
+                    values = values.tolist()
                 try:
                     sparse_values = SparseValues(indices=indices, values=values)
                 except TypeError as e:
@@ -194,8 +197,11 @@ class Index(ApiClient):
                 if not isinstance(metadata, Mapping):
                     raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
 
+            if isinstance(item['values'], np.ndarray):
+                item['values'] = item['values'].tolist()
+
             try:
-                return Vector(id=item['id'], values=item['values'], sparse_values=sparse_values, metadata=metadata)
+                return Vector(id=item['id'],values=item['values'], sparse_values=sparse_values, metadata=metadata)
 
             except TypeError as e:
                 # if not isinstance(item['values'], Iterable) or not isinstance(item['values'][0], numbers.Real):
