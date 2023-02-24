@@ -202,8 +202,8 @@ class Index(ApiClient):
                 if not isinstance(metadata, Mapping):
                     raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
     
-                if isinstance(item['values'], np.ndarray):
-                    item['values'] = item['values'].tolist()
+            if isinstance(item['values'], np.ndarray):
+                item['values'] = item['values'].tolist()
 
             try:
                 return Vector(**item)
