@@ -248,7 +248,7 @@ class Index(ApiClient):
                          df,
                          namespace: str = None,
                          batch_size: int = 500,
-                         show_progress: bool = True) -> None:
+                         show_progress: bool = True) -> UpsertResponse:
         """Upserts a dataframe into the index.
 
         Args:
