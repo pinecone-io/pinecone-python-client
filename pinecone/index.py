@@ -178,11 +178,11 @@ class Index(ApiClient):
                 raise ValueError(f"Found excess keys in the vector dictionary: {list(excessive_keys)}. "
                                  f"The allowed keys are: {list(REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)}")
 
-            sparse_values = None
             if 'sparse_values' in item:
                 if not isinstance(item['sparse_values'], Mapping):
                     raise ValueError(
                         f"Column `sparse_values` is expected to be a dictionary, found {type(item['sparse_values'])}")
+
                 indices = item['sparse_values'].get('indices', None)
                 values = item['sparse_values'].get('values', None)
 
@@ -191,25 +191,22 @@ class Index(ApiClient):
                 if isinstance(indices, np.ndarray):
                     indices = indices.tolist()
                 try:
-                    sparse_values = SparseValues(indices=indices, values=values)
+                    item['sparse_values'] = SparseValues(indices=indices, values=values)
                 except TypeError as e:
                     raise ValueError("Found unexpected data in column `sparse_values`. "
                                      "Expected format is `'sparse_values': {'indices': List[int], 'values': List[float]}`."
                                      ) from e
 
-            metadata = item.get('metadata') or {}
-            if not isinstance(metadata, Mapping):
-                raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
-
+            if 'metadata' in item:
+                metadata = item.get('metadata')
+                if not isinstance(metadata, Mapping):
+                    raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
+    
             if isinstance(item['values'], np.ndarray):
                 item['values'] = item['values'].tolist()
 
             try:
-                if sparse_values:
-                    return Vector(id=item['id'], values=item['values'], sparse_values=sparse_values, metadata=metadata)
-                else:
-                    return Vector(id=item['id'], values=item['values'], metadata=metadata)
-
+                return Vector(**item)
             except TypeError as e:
                 # if not isinstance(item['values'], Iterable) or not isinstance(item['values'][0], numbers.Real):
                 #     raise TypeError(f"Column `values` is expected to be a list of floats")
@@ -241,15 +238,21 @@ class Index(ApiClient):
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
 
+    @staticmethod
+    def _iter_dataframe(df, batch_size):
+        for i in range(0, len(df), batch_size):
+            batch = df.iloc[i:i + batch_size].to_dict(orient="records")
+            yield batch
+
     def upsert_from_dataframe(self,
                          df,
                          namespace: str = None,
                          batch_size: int = 500,
-                         show_progress: bool = True) -> None:
+                         show_progress: bool = True) -> UpsertResponse:
         """Upserts a dataframe into the index.
 
         Args:
-            df: A pandas dataframe with the following columns: id, vector, and metadata.
+            df: A pandas dataframe with the following columns: id, vector, sparse_values, and metadata.
             namespace: The namespace to upsert into.
             batch_size: The number of rows to upsert in a single batch.
             show_progress: Whether to show a progress bar.
@@ -262,13 +265,16 @@ class Index(ApiClient):
         if not isinstance(df, pd.DataFrame):
             raise ValueError(f"Only pandas dataframes are supported. Found: {type(df)}")
 
+        pbar = tqdm(total=len(df), disable=not show_progress, desc="sending upsert requests")
+        results = []
+        for chunk in self._iter_dataframe(df, batch_size=batch_size):
+            res = self.upsert(vectors=chunk, namespace=namespace)
+            pbar.update(len(chunk))
+            results.append(res)
+
         upserted_count = 0
-        pbar = tqdm(total=len(df), disable=not show_progress)
-        for i in range(0, len(df), batch_size):
-            batch = df.iloc[i:i + batch_size].to_dict(orient="records")
-            res = self.upsert(batch, namespace=namespace)
+        for res in results:
             upserted_count += res.upserted_count
-            pbar.update(len(batch))
 
         return UpsertResponse(upserted_count=upserted_count)
 

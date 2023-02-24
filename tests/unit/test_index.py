@@ -1,21 +1,36 @@
+import pandas as pd
 import pytest
 
 from pinecone.core.client.api_client import Endpoint
 
 import pinecone
-from pinecone import DescribeIndexStatsRequest, ScoredVector, QueryResponse, UpsertResponse
+from pinecone import DescribeIndexStatsRequest, ScoredVector, QueryResponse, UpsertResponse, SparseValues
 
 
 class TestRestIndex:
 
     def setup_method(self):
         self.vector_dim = 8
+        self.id1 = 'vec1'
+        self.id2 = 'vec2'
         self.vals1 = [0.1] * self.vector_dim
         self.vals2 = [0.2] * self.vector_dim
         self.md1 = {'genre': 'action', 'year': 2021}
         self.md2 = {'genre': 'documentary', 'year': 2020}
         self.filter1 = {'genre': {'$in': ['action']}}
         self.filter2 = {'year': {'$eq': 2020}}
+        self.svi1 = [1, 3, 5]
+        self.svv1 = [0.1, 0.2, 0.3]
+        self.sv1 = {
+            'indices': self.svi1,
+            'values': self.svv1,
+        }
+        self.svi2 = [2, 4, 6]
+        self.svv2 = [0.1, 0.2, 0.3]
+        self.sv2 = {
+            'indices': self.svi2,
+            'values': self.svv2
+        }
 
         pinecone.init(api_key='example-key')
         self.index = pinecone.Index('example-name')
@@ -43,11 +58,44 @@ class TestRestIndex:
             ])
         )
 
+    def test_upsert_dictOfIdVecMD_UpsertVectorsWithMD(self, mocker):
+        mocker.patch.object(self.index._vector_api, 'upsert', autospec=True)
+        self.index.upsert([{'id': self.id1, 'values': self.vals1, 'metadata': self.md1},
+                           {'id': self.id2, 'values': self.vals2, 'metadata': self.md2}])
+        self.index._vector_api.upsert.assert_called_once_with(
+            pinecone.UpsertRequest(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+                pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2)
+            ])
+        )
+
+    def test_upsert_dictOfIdVecMD_UpsertVectorsWithoutMD(self, mocker):
+        mocker.patch.object(self.index._vector_api, 'upsert', autospec=True)
+        self.index.upsert([{'id': self.id1, 'values': self.vals1},
+                           {'id': self.id2, 'values': self.vals2}])
+        self.index._vector_api.upsert.assert_called_once_with(
+            pinecone.UpsertRequest(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1),
+                pinecone.Vector(id='vec2', values=self.vals2)
+            ])
+        )
+
+    def test_upsert_dictOfIdVecMD_UpsertVectorsWithSparseValues(self, mocker):
+        mocker.patch.object(self.index._vector_api, 'upsert', autospec=True)
+        self.index.upsert([{'id': self.id1, 'values': self.vals1, 'sparse_values': self.sv1},
+                           {'id': self.id2, 'values': self.vals2, 'sparse_values': self.sv2}])
+        self.index._vector_api.upsert.assert_called_once_with(
+            pinecone.UpsertRequest(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, sparse_values=SparseValues(**self.sv1)),
+                pinecone.Vector(id='vec2', values=self.vals2, sparse_values=SparseValues(**self.sv2))
+            ])
+        )
+
     def test_upsert_vectors_upsertInputVectors(self, mocker):
         mocker.patch.object(self.index._vector_api, 'upsert', autospec=True)
         self.index.upsert(vectors=[
-                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
-                pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2)],
+            pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+            pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2)],
             namespace='ns')
         self.index._vector_api.upsert.assert_called_once_with(
             pinecone.UpsertRequest(vectors=[
@@ -95,8 +143,8 @@ class TestRestIndex:
                                 upserted_count=len(upsert_request.vectors)))
 
         result = self.index.upsert(vectors=[
-                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
-                pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2)],
+            pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+            pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2)],
             namespace='ns',
             batch_size=1,
             show_progress=False)
@@ -123,9 +171,9 @@ class TestRestIndex:
                                 upserted_count=len(upsert_request.vectors)))
 
         result = self.index.upsert(vectors=[
-                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
-                pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2),
-                pinecone.Vector(id='vec3', values=self.vals1, metadata=self.md1)],
+            pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+            pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2),
+            pinecone.Vector(id='vec3', values=self.vals1, metadata=self.md1)],
             namespace='ns',
             batch_size=2)
 
@@ -152,9 +200,9 @@ class TestRestIndex:
                                 upserted_count=len(upsert_request.vectors)))
 
         result = self.index.upsert(vectors=[
-                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
-                pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2),
-                pinecone.Vector(id='vec3', values=self.vals1, metadata=self.md1)],
+            pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+            pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2),
+            pinecone.Vector(id='vec3', values=self.vals1, metadata=self.md1)],
             namespace='ns',
             batch_size=5)
 
@@ -196,6 +244,21 @@ class TestRestIndex:
         )
 
         assert result.upserted_count == 3
+
+    def test_upsert_dataframe(self, mocker):
+        mocker.patch.object(self.index._vector_api, 'upsert', autospec=True, return_value=UpsertResponse(upserted_count=2))
+        df = pd.DataFrame([
+            {'id': self.id1, 'values': self.vals1, 'metadata': self.md1},
+            {'id': self.id2, 'values': self.vals2, 'metadata': self.md2}
+        ])
+        self.index.upsert_from_dataframe(df)
+
+        self.index._vector_api.upsert.assert_called_once_with(
+            pinecone.UpsertRequest(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+                pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2)
+            ])
+        )
 
     def test_upsert_batchSizeIsNotPositive_errorIsRaised(self):
         with pytest.raises(ValueError, match='batch_size must be a positive integer'):

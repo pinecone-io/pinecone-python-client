@@ -67,7 +67,6 @@ class TestGrpcIndex:
                     self.expected_vec_md2],
         )
 
-
     def test_upsert_vectors_upsertInputVectors(self, mocker):
         mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
         self.index.upsert([self.expected_vec_md1,
@@ -208,7 +207,7 @@ class TestGrpcIndex:
         assert 'sparse' in str(e.value)
         assert key in str(e.value)
 
-    def test_updsert_dataframe(self, mocker):
+    def test_upsert_dataframe(self, mocker):
         mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True,
                             side_effect=lambda stub, upsert_request, timeout: MockUpsertDelegate(UpsertResponse(
                                 upserted_count=len(upsert_request.vectors))))
@@ -226,7 +225,7 @@ class TestGrpcIndex:
         )
 
 
-    def test_updsert_dataframe_sync(self, mocker):
+    def test_upsert_dataframe_sync(self, mocker):
         mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True,
                             side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
                                 upserted_count=len(upsert_request.vectors)))
