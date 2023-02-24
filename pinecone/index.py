@@ -238,6 +238,12 @@ class Index(ApiClient):
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
 
+    @staticmethod
+    def _iter_dataframe(df, batch_size):
+        for i in range(0, len(df), batch_size):
+            batch = df.iloc[i:i + batch_size].to_dict(orient="records")
+            yield batch
+
     def upsert_from_dataframe(self,
                          df,
                          namespace: str = None,
@@ -246,7 +252,7 @@ class Index(ApiClient):
         """Upserts a dataframe into the index.
 
         Args:
-            df: A pandas dataframe with the following columns: id, vector, and metadata.
+            df: A pandas dataframe with the following columns: id, vector, sparse_values, and metadata.
             namespace: The namespace to upsert into.
             batch_size: The number of rows to upsert in a single batch.
             show_progress: Whether to show a progress bar.
@@ -259,13 +265,16 @@ class Index(ApiClient):
         if not isinstance(df, pd.DataFrame):
             raise ValueError(f"Only pandas dataframes are supported. Found: {type(df)}")
 
+        pbar = tqdm(total=len(df), disable=not show_progress, desc="sending upsert requests")
+        results = []
+        for chunk in self._iter_dataframe(df, batch_size=batch_size):
+            res = self.upsert(vectors=chunk, namespace=namespace)
+            pbar.update(len(chunk))
+            results.append(res)
+
         upserted_count = 0
-        pbar = tqdm(total=len(df), disable=not show_progress)
-        for i in range(0, len(df), batch_size):
-            batch = df.iloc[i:i + batch_size].to_dict(orient="records")
-            res = self.upsert(batch, namespace=namespace)
+        for res in results:
             upserted_count += res.upserted_count
-            pbar.update(len(batch))
 
         return UpsertResponse(upserted_count=upserted_count)
 
