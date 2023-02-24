@@ -205,7 +205,10 @@ class Index(ApiClient):
                 item['values'] = item['values'].tolist()
 
             try:
-                return Vector(id=item['id'],values=item['values'], sparse_values=sparse_values, metadata=metadata)
+                if sparse_values:
+                    return Vector(id=item['id'], values=item['values'], sparse_values=sparse_values, metadata=metadata)
+                else:
+                    return Vector(id=item['id'], values=item['values'], metadata=metadata)
 
             except TypeError as e:
                 # if not isinstance(item['values'], Iterable) or not isinstance(item['values'][0], numbers.Real):
