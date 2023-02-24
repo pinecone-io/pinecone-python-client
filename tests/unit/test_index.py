@@ -10,6 +10,8 @@ class TestRestIndex:
 
     def setup_method(self):
         self.vector_dim = 8
+        self.id1 = 'vec1'
+        self.id2 = 'vec2'
         self.vals1 = [0.1] * self.vector_dim
         self.vals2 = [0.2] * self.vector_dim
         self.md1 = {'genre': 'action', 'year': 2021}
@@ -40,6 +42,27 @@ class TestRestIndex:
             pinecone.UpsertRequest(vectors=[
                 pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
                 pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2)
+            ])
+        )
+    def test_upsert_dictOfIdVecMD_UpsertVectorsWithMD(self, mocker):
+        mocker.patch.object(self.index._vector_api, 'upsert', autospec=True)
+        self.index.upsert([{'id': self.id1, 'values': self.vals1, 'metadata': self.md1},
+                           {'id': self.id2, 'values': self.vals2, 'metadata': self.md2}])
+        self.index._vector_api.upsert.assert_called_once_with(
+            pinecone.UpsertRequest(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, metadata=self.md1),
+                pinecone.Vector(id='vec2', values=self.vals2, metadata=self.md2)
+            ])
+        )
+
+    def test_upsert_dictOfIdVecMD_UpsertVectorsWithoutMD(self, mocker):
+        mocker.patch.object(self.index._vector_api, 'upsert', autospec=True)
+        self.index.upsert([{'id': self.id1, 'values': self.vals1},
+                           {'id': self.id2, 'values': self.vals2}])
+        self.index._vector_api.upsert.assert_called_once_with(
+            pinecone.UpsertRequest(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1),
+                pinecone.Vector(id='vec2', values=self.vals2)
             ])
         )
 

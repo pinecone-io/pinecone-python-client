@@ -178,11 +178,11 @@ class Index(ApiClient):
                 raise ValueError(f"Found excess keys in the vector dictionary: {list(excessive_keys)}. "
                                  f"The allowed keys are: {list(REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)}")
 
-            sparse_values = None
             if 'sparse_values' in item:
                 if not isinstance(item['sparse_values'], Mapping):
                     raise ValueError(
                         f"Column `sparse_values` is expected to be a dictionary, found {type(item['sparse_values'])}")
+
                 indices = item['sparse_values'].get('indices', None)
                 values = item['sparse_values'].get('values', None)
 
@@ -191,25 +191,22 @@ class Index(ApiClient):
                 if isinstance(indices, np.ndarray):
                     indices = indices.tolist()
                 try:
-                    sparse_values = SparseValues(indices=indices, values=values)
+                    item['sparse_values'] = SparseValues(indices=indices, values=values)
                 except TypeError as e:
                     raise ValueError("Found unexpected data in column `sparse_values`. "
                                      "Expected format is `'sparse_values': {'indices': List[int], 'values': List[float]}`."
                                      ) from e
 
-            metadata = item.get('metadata') or {}
-            if not isinstance(metadata, Mapping):
-                raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
-
-            if isinstance(item['values'], np.ndarray):
-                item['values'] = item['values'].tolist()
+            if 'metadata' in item:
+                metadata = item.get('metadata')
+                if not isinstance(metadata, Mapping):
+                    raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
+    
+                if isinstance(item['values'], np.ndarray):
+                    item['values'] = item['values'].tolist()
 
             try:
-                if sparse_values:
-                    return Vector(id=item['id'], values=item['values'], sparse_values=sparse_values, metadata=metadata)
-                else:
-                    return Vector(id=item['id'], values=item['values'], metadata=metadata)
-
+                return Vector(**item)
             except TypeError as e:
                 # if not isinstance(item['values'], Iterable) or not isinstance(item['values'][0], numbers.Real):
                 #     raise TypeError(f"Column `values` is expected to be a list of floats")
