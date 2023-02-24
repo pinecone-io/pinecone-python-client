@@ -3,7 +3,7 @@ import pytest
 from pinecone.core.client.api_client import Endpoint
 
 import pinecone
-from pinecone import DescribeIndexStatsRequest, ScoredVector, QueryResponse, UpsertResponse
+from pinecone import DescribeIndexStatsRequest, ScoredVector, QueryResponse, UpsertResponse, SparseValues
 
 
 class TestRestIndex:
@@ -18,6 +18,22 @@ class TestRestIndex:
         self.md2 = {'genre': 'documentary', 'year': 2020}
         self.filter1 = {'genre': {'$in': ['action']}}
         self.filter2 = {'year': {'$eq': 2020}}
+
+
+        self.svi1 = [1, 3, 5]
+        self.svv1 = [0.1, 0.2, 0.3]
+        self.sv1 = {
+            'indices': self.svi1,
+            'values': self.svv1,
+        }
+
+        self.svi2 = [2, 4, 6]
+        self.svv2 = [0.1, 0.2, 0.3]
+        self.sv2 = {
+            'indices': self.svi2,
+            'values': self.svv2
+        }
+
 
         pinecone.init(api_key='example-key')
         self.index = pinecone.Index('example-name')
@@ -63,6 +79,16 @@ class TestRestIndex:
             pinecone.UpsertRequest(vectors=[
                 pinecone.Vector(id='vec1', values=self.vals1),
                 pinecone.Vector(id='vec2', values=self.vals2)
+            ])
+        )
+    def test_upsert_dictOfIdVecMD_UpsertVectorsWithSparseValues(self, mocker):
+        mocker.patch.object(self.index._vector_api, 'upsert', autospec=True)
+        self.index.upsert([{'id': self.id1, 'values': self.vals1, 'sparse_values': self.sv1},
+                           {'id': self.id2, 'values': self.vals2, 'sparse_values': self.sv2}])
+        self.index._vector_api.upsert.assert_called_once_with(
+            pinecone.UpsertRequest(vectors=[
+                pinecone.Vector(id='vec1', values=self.vals1, sparse_values=SparseValues(**self.sv1)),
+                pinecone.Vector(id='vec2', values=self.vals2, sparse_values=SparseValues(**self.sv2))
             ])
         )
 
