@@ -19,12 +19,12 @@ jobs:
       with:
         python-version: 3.7
 
-    - uses: actions/checkout@v3
-      with:
-        repository: pinecone-io/pinecone-python-client
-        ref: ''
-        token: ${{ secrets.PAT }}
-        path: pinecone-python-client
+#    - uses: actions/checkout@v3
+#      with:
+#        repository: pinecone-io/pinecone-python-client
+#        ref: ''
+#        token: ${{ secrets.PAT }}
+#        path: pinecone-python-client
 
     - name: Set Python client production environment
       run: make set-production

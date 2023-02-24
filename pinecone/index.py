@@ -1,8 +1,12 @@
 #
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
-from tqdm import tqdm
-from collections.abc import Iterable
+from tqdm.autonotebook import tqdm
+from importlib.util import find_spec
+import numbers
+import numpy as np
+
+from collections.abc import Iterable, Mapping
 from typing import Union, List, Tuple, Optional, Dict, Any
 
 from .core.client.model.sparse_values import SparseValues
@@ -21,6 +25,7 @@ __all__ = [
     "UpdateRequest", "Vector", "DeleteRequest", "UpdateRequest", "DescribeIndexStatsRequest", "SparseValues"
 ]
 
+from .core.utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
 from .core.utils.error_handling import validate_and_convert_errors
 
 _OPENAPI_ENDPOINT_PARAMS = (
@@ -63,7 +68,7 @@ class Index(ApiClient):
 
     @validate_and_convert_errors
     def upsert(self,
-               vectors: Union[List[Vector], List[Tuple]],
+               vectors: Union[List[Vector], List[tuple], List[dict]],
                namespace: Optional[str] = None,
                batch_size: Optional[int] = None,
                show_progress: bool = True,
@@ -77,18 +82,25 @@ class Index(ApiClient):
         To upsert in parallel follow: https://docs.pinecone.io/docs/insert-data#sending-upserts-in-parallel
 
         Examples:
-            >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])])
+            >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}),
+                              ('id2', [1.0, 2.0, 3.0]),
+                              ])
+            >>> index.upsert([{'id': 'id1', 'values': [1.0, 2.0, 3.0], 'metadata': {'key': 'value'}},
+                              {'id': 'id2',
+                                        'values': [1.0, 2.0, 3.0],
+                                        'sprase_values': {'indices': [1, 8], 'values': [0.2, 0.4]},
+                              ])
             >>> index.upsert([Vector(id='id1',
-            >>>                      values=[1.0, 2.0, 3.0],
-            >>>                      metadata={'key': 'value'}),
-            >>>               Vector(id='id2',
-            >>>                      values=[1.0, 2.0, 3.0],
-            >>>                      sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))])
+                                     values=[1.0, 2.0, 3.0],
+                                     metadata={'key': 'value'}),
+                              Vector(id='id2',
+                                     values=[1.0, 2.0, 3.0],
+                                     sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))])
 
         Args:
             vectors (Union[List[Vector], List[Tuple]]): A list of vectors to upsert.
 
-                     A vector can be represented by a 1) Vector object or a 2) tuple.
+                     A vector can be represented by a 1) Vector object, a 2) tuple or 3) a dictionary
                      1) if a tuple is used, it must be of the form (id, values, meatadaa) or (id, values).
                         where id is a string, vector is a list of floats, metadata is a dict,
                         and sparse_values is a dict of the form {'indices': List[int], 'values': List[float]}.
@@ -109,6 +121,10 @@ class Index(ApiClient):
                                         sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))
 
                     Note: the dimension of each vector must match the dimension of the index.
+
+                3) if a dictionary is used, it must be in the form
+                   {'id': str, 'values': List[float], 'sparse_values': {'indices': List[int], 'values': List[float]},
+                    'metadata': dict}
 
             namespace (str): The namespace to write to. If not specified, the default namespace is used. [optional]
             batch_size (int): The number of vectors to upsert in each batch.
@@ -151,12 +167,65 @@ class Index(ApiClient):
 
         args_dict = self._parse_non_empty_args([('namespace', namespace)])
 
+        def _dict_to_vector(item):
+            item_keys = set(item.keys())
+            if not item_keys.issuperset(REQUIRED_VECTOR_FIELDS):
+                raise ValueError(
+                    f"Vector dictionary is missing required fields: {list(REQUIRED_VECTOR_FIELDS - item_keys)}")
+
+            excessive_keys = item_keys - (REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)
+            if len(excessive_keys) > 0:
+                raise ValueError(f"Found excess keys in the vector dictionary: {list(excessive_keys)}. "
+                                 f"The allowed keys are: {list(REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)}")
+
+            if 'sparse_values' in item:
+                if not isinstance(item['sparse_values'], Mapping):
+                    raise ValueError(
+                        f"Column `sparse_values` is expected to be a dictionary, found {type(item['sparse_values'])}")
+
+                indices = item['sparse_values'].get('indices', None)
+                values = item['sparse_values'].get('values', None)
+
+                if isinstance(values, np.ndarray):
+                    values = values.tolist()
+                if isinstance(indices, np.ndarray):
+                    indices = indices.tolist()
+                try:
+                    item['sparse_values'] = SparseValues(indices=indices, values=values)
+                except TypeError as e:
+                    raise ValueError("Found unexpected data in column `sparse_values`. "
+                                     "Expected format is `'sparse_values': {'indices': List[int], 'values': List[float]}`."
+                                     ) from e
+
+            if 'metadata' in item:
+                metadata = item.get('metadata')
+                if not isinstance(metadata, Mapping):
+                    raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
+    
+            if isinstance(item['values'], np.ndarray):
+                item['values'] = item['values'].tolist()
+
+            try:
+                return Vector(**item)
+            except TypeError as e:
+                # if not isinstance(item['values'], Iterable) or not isinstance(item['values'][0], numbers.Real):
+                #     raise TypeError(f"Column `values` is expected to be a list of floats")
+                if not isinstance(item['values'], Iterable) or not isinstance(item['values'][0], numbers.Real):
+                    raise TypeError(f"Column `values` is expected to be a list of floats")
+                raise
+
         def _vector_transform(item: Union[Vector, Tuple]):
             if isinstance(item, Vector):
                 return item
-            if isinstance(item, tuple):
+            elif isinstance(item, tuple):
+                if len(item) > 3:
+                    raise ValueError(f"Found a tuple of length {len(item)} which is not supported. " 
+                                     f"Vectors can be represented as tuples either the form (id, values, metadata) or (id, values). "
+                                     f"To pass sparse values please use either dicts or a Vector objects as inputs.")
                 id, values, metadata = fix_tuple_length(item, 3)
                 return Vector(id=id, values=values, metadata=metadata or {}, _check_type=_check_type)
+            elif isinstance(item, Mapping):
+                return _dict_to_vector(item)
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
         return self._vector_api.upsert(
@@ -168,6 +237,46 @@ class Index(ApiClient):
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
+
+    @staticmethod
+    def _iter_dataframe(df, batch_size):
+        for i in range(0, len(df), batch_size):
+            batch = df.iloc[i:i + batch_size].to_dict(orient="records")
+            yield batch
+
+    def upsert_from_dataframe(self,
+                         df,
+                         namespace: str = None,
+                         batch_size: int = 500,
+                         show_progress: bool = True) -> UpsertResponse:
+        """Upserts a dataframe into the index.
+
+        Args:
+            df: A pandas dataframe with the following columns: id, vector, sparse_values, and metadata.
+            namespace: The namespace to upsert into.
+            batch_size: The number of rows to upsert in a single batch.
+            show_progress: Whether to show a progress bar.
+        """
+        try:
+            import pandas as pd
+        except ImportError:
+            raise RuntimeError("The `pandas` package is not installed. Please install pandas to use `upsert_from_dataframe()`")
+
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError(f"Only pandas dataframes are supported. Found: {type(df)}")
+
+        pbar = tqdm(total=len(df), disable=not show_progress, desc="sending upsert requests")
+        results = []
+        for chunk in self._iter_dataframe(df, batch_size=batch_size):
+            res = self.upsert(vectors=chunk, namespace=namespace)
+            pbar.update(len(chunk))
+            results.append(res)
+
+        upserted_count = 0
+        for res in results:
+            upserted_count += res.upserted_count
+
+        return UpsertResponse(upserted_count=upserted_count)
 
     @validate_and_convert_errors
     def delete(self,

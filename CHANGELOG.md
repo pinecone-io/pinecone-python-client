@@ -2,7 +2,13 @@
 
 ## Unreleased Changes
 None
-## [2.1.0](https://github.com/pinecone-io/pinecone-python-client/compare/v2.0.13...v2.1.0)
+## [2.2.0](https://github.com/pinecone-io/pinecone-python-client/compare/2.1.0...2.2.0)
+- Support for Vector `sparse_values`
+- Added function `upsert_from_dataframe()` which allows upserting a large dataset of vectors by providing a Pandas dataframe
+- Added option to pass vectors to `upsert()` as a list of dictionaries
+- Implemented GRPC retry by directly configuring the low-level `grpcio` behavior, instead of wrapping with an interceptor
+
+## [2.1.0](https://github.com/pinecone-io/pinecone-python-client/compare/2.0.13...2.1.0)
 - Fix "Connection Reset by peer" error after long idle periods 
 - Add typing and explicit names for arguments in all client operations
 - Add docstrings to all client operations
