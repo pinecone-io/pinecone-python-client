@@ -12,7 +12,7 @@ DEFAULT_PARENT_LOGGER_LEVEL = 'ERROR'
 
 MAX_MSG_SIZE = 128 * 1024 * 1024
 
-MAX_ID_LENGTH = int(os.environ.get("PINECONE_MAX_ID_LENGTH", default="64"))
+MAX_ID_LENGTH = int(os.getenv("PINECONE_MAX_ID_LENGTH", default="64"))
 
 REQUEST_ID: str = "request_id"
 CLIENT_VERSION_HEADER = 'X-Pinecone-Client-Version'
