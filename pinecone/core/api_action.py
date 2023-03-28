@@ -11,9 +11,20 @@ from pinecone.core.utils import get_version
 
 
 class WhoAmIResponse(NamedTuple):
-    username: str = 'UNKNOWN'
+    """
+    Represents the response returned by the Pinecone WhoAmI API.
+
+    Example response:
+        {"project_name":"5d54712","user_label":"default","user_name":"18bd872"}
+
+    Fields:
+        - username: the user ID of the Pinecone account, rather than username
+        - user_label: the label of the user in the Pinecone account
+        - projectname: the project ID of the Pinecone account, rather projectname
+    """
+    username: str = 'UNKNOWN'  # TODO:  should be named as user_id
     user_label: str = 'UNKNOWN'
-    projectname: str = 'UNKNOWN'
+    projectname: str = 'UNKNOWN'  # TODO:  should be named as project_id
 
 
 class VersionResponse(NamedTuple):
