@@ -7,8 +7,8 @@ develop:
 	pip3 install -e .[grpc]
 
 tests: develop
-	pip3 install --upgrade --quiet tox==3.27.0
-	tox -vv
+	pip3 install --upgrade --quiet -r test-requirements.txt
+	pytest tests/unit
 
 version:
 	python3 setup.py --version
