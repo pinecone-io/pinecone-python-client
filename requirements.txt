@@ -7,4 +7,3 @@ dnspython>=2.0.0
 python_dateutil >= 2.5.3
 urllib3 >= 1.21.1
 tqdm >= 4.64.1
-numpy

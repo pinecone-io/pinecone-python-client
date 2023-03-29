@@ -4,7 +4,6 @@
 from tqdm.autonotebook import tqdm
 from importlib.util import find_spec
 import numbers
-import numpy as np
 
 from collections.abc import Iterable, Mapping
 from typing import Union, List, Tuple, Optional, Dict, Any
@@ -27,6 +26,12 @@ __all__ = [
 
 from .core.utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
 from .core.utils.error_handling import validate_and_convert_errors
+
+try:
+    import numpy as np
+except ImportError:
+    np = None
+
 
 _OPENAPI_ENDPOINT_PARAMS = (
     '_return_http_data_only', '_preload_content', '_request_timeout',
@@ -186,10 +191,18 @@ class Index(ApiClient):
                 indices = item['sparse_values'].get('indices', None)
                 values = item['sparse_values'].get('values', None)
 
-                if isinstance(values, np.ndarray):
-                    values = values.tolist()
-                if isinstance(indices, np.ndarray):
-                    indices = indices.tolist()
+                if np:
+                    if isinstance(values, np.ndarray):
+                        values = values.tolist()
+                    if isinstance(indices, np.ndarray):
+                        indices = indices.tolist()
+                else:
+                    try:
+                        values = values.tolist()
+                        indices = indices.tolist()
+                    except Exception:
+                        raise ImportError(f"Numpy is not installed. Please install numpy. Types of `indices` and `values` are {type(indices)} and {type(values)}" )
+                    
                 try:
                     item['sparse_values'] = SparseValues(indices=indices, values=values)
                 except TypeError as e:
@@ -201,9 +214,14 @@ class Index(ApiClient):
                 metadata = item.get('metadata')
                 if not isinstance(metadata, Mapping):
                     raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
-    
-            if isinstance(item['values'], np.ndarray):
-                item['values'] = item['values'].tolist()
+            if np:
+                if isinstance(item['values'], np.ndarray):
+                    item['values'] = item['values'].tolist()
+            else:
+                try:
+                    item['values'] = item['values'].tolist()
+                except Exception:
+                    raise ImportError(f"Numpy is not installed. Please install numpy. Type of `values` is {type(item['values'])}" )
 
             try:
                 return Vector(**item)
