@@ -8,7 +8,7 @@ develop:
 
 tests: develop
 	pip3 install --upgrade --quiet tox==3.27.0
-	tox
+	tox -vv
 
 version:
 	python3 setup.py --version
