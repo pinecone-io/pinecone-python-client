@@ -1,17 +1,14 @@
-.PHONY: image develop tests tag-and-push docs version package upload license
+.PHONY: develop tests version package upload license
 mkfile_path := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 PYPI_USERNAME ?= __token__
 
-image:
-	MODULE=pinecone ../scripts/build.sh ./
-
 develop:
 	pip3 install -e .[grpc]
 
-tests:
-	# skipping flake8 for now
-	pip3 install --upgrade --quiet tox==3.27.0 && TOX_SKIP_ENV='flake|docs' tox
+tests: develop
+	pip3 install --upgrade --quiet tox==3.27.0
+	tox
 
 version:
 	python3 setup.py --version

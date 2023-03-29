@@ -24,10 +24,8 @@ jobs:
         pip install tox tox-gh-actions==2.10.0
 
     - name: Run tests
-      run: make tests TOX_PARALLEL_NO_SPINNER=1
+      run: make tests
 
     - name: Build Python client
       run: make package
 
-    - name: Build docs
-      run: make docs
