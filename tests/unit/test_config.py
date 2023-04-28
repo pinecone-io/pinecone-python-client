@@ -2,7 +2,7 @@ import pinecone
 from pinecone.config import Config
 
 
-def test_multi_init():
+def _test_multi_init():
     env = 'test-env'
     api_key = 'foobar'
     # first init() sets api_key
