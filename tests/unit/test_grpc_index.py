@@ -200,7 +200,7 @@ class TestGrpcIndex:
         dict1[key] = new_val
         with pytest.raises(TypeError) as e:
             self.index.upsert([dict1])
-        assert key in str(e.value)
+        assert str(new_val) in str(e.value)
 
     @pytest.mark.parametrize("key,new_val", [
         ("indices", 3),
