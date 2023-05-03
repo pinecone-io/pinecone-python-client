@@ -101,7 +101,7 @@ class Index(ApiClient):
             vectors (Union[List[Vector], List[Tuple]]): A list of vectors to upsert.
 
                      A vector can be represented by a 1) Vector object, a 2) tuple or 3) a dictionary
-                     1) if a tuple is used, it must be of the form (id, values, meatadaa) or (id, values).
+                     1) if a tuple is used, it must be of the form (id, values, meatadata) or (id, values).
                         where id is a string, vector is a list of floats, metadata is a dict,
                         and sparse_values is a dict of the form {'indices': List[int], 'values': List[float]}.
                         Examples: ('id1', [1.0, 2.0, 3.0], {'key': 'value'}, {'indices': [1, 2], 'values': [0.2, 0.4]}),
@@ -110,7 +110,7 @@ class Index(ApiClient):
 
                     2) if a Vector object is used, a Vector object must be of the form
                          Vector(id, values, metadata, sparse_values),
-                        where metadata and sparse_values aree optional arguments
+                        where metadata and sparse_values are optional arguments
                        Examples: Vector(id='id1',
                                         values=[1.0, 2.0, 3.0],
                                         metadata={'key': 'value'})
