@@ -164,8 +164,6 @@ class TestGrpcIndex:
             assert 'metadatta' in str(e.value)
 
     @pytest.mark.parametrize("key,new_val", [
-        ("id", 4.2),
-        ("id", ['vec1']),
         ("values", ['the', 'lazy', 'fox']),
         ("values", 'the lazy fox'),
         ("values", 0.5),
@@ -174,7 +172,7 @@ class TestGrpcIndex:
         ("sparse_values", 'cat'),
         ("sparse_values", []),
     ])
-    def test_upsert_dict_negative_types(self, mocker, key, new_val):
+    def test_upsert_dict_with_invalid_values(self, mocker, key, new_val):
         mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
 
         full_dict1 = {'id': 'vec1', 'values': self.vals1,
@@ -186,6 +184,23 @@ class TestGrpcIndex:
         with pytest.raises(TypeError) as e:
             self.index.upsert([dict1])
         assert key in str(e.value)
+    
+    @pytest.mark.parametrize("key,new_val", [
+        ("id", 4.2),
+        ("id", ['vec1']),
+    ])
+    def test_upsert_dict_with_invalid_ids(self, mocker, key, new_val):
+        mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
+
+        full_dict1 = {'id': 'vec1', 'values': self.vals1,
+                      'sparse_values': {'indices': self.sparse_indices_1, 'values': self.sparse_values_1},
+                      'metadata': self.md1}
+
+        dict1 = deepcopy(full_dict1)
+        dict1[key] = new_val
+        with pytest.raises(TypeError) as e:
+            self.index.upsert([dict1])
+        assert str(new_val) in str(e.value)
 
     @pytest.mark.parametrize("key,new_val", [
         ("indices", 3),
@@ -193,7 +208,7 @@ class TestGrpcIndex:
         ("values", ['1', '4.4']),
         ("values", 0.5),
     ])
-    def test_upsert_dict_negative_types_sparse(self, mocker, key, new_val):
+    def test_upsert_dict_with_invalid_sparse_values(self, mocker, key, new_val):
         mocker.patch.object(self.index, '_wrap_grpc_call', autospec=True)
 
         full_dict1 = {'id': 'vec1', 'values': self.vals1,
