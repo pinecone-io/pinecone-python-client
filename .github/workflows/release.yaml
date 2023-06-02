@@ -68,16 +68,21 @@ jobs:
     #   run: |
     #     git push --tags
 
-    # - name: Create Release Draft
-    #   id: create_release
-    #   uses: actions/create-release@v1
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #   with:
-    #     tag_name: ${{ steps.tag_release.outputs.VERSION_TAG }}
-    #     release_name: Release ${{ github.event.inputs.currentRelease }}
-    #     draft: true
-    #     body: |
-    #       ## Commits included in this release:
+    - name: Get change list
+      id: list_changes
+      run: |
+        echo "::set-output name=commits::$(git log --pretty=format:'- [[%h](https://github.com/pinecone-io/pinecone-python-client/commit/%h)] %s' ${{ github.event.inputs.previousRelease }}..${{ github.event.inputs.currentRelease }})~1"
+
+    - name: Create Release Draft
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        # tag_name: ${{ steps.tag_release.outputs.VERSION_TAG }}
+        release_name: Release ${{ github.event.inputs.currentRelease }}
+        draft: true
+        body: |
+          ## Commits included in this release:
             
-    #       ${{ needs.generate_commits_list.outputs.commits }}
+          ${{ steps.list_changes.outputs.commits }}
