@@ -26,7 +26,7 @@ def dump_numpy_public(np_array: 'np.ndarray', compressed: bool = False) -> 'vect
     """
     Dump numpy array to vector_column_service_pb2.NdArray
     """
-    warn_deprecated('dump_numpy_public and all numpy-related features will be removed in a future version', deprecated_in='2.2.0', removal_in='3.0.0')
+    warn_deprecated('dump_numpy_public and all numpy-related features will be removed in a future version', deprecated_in='2.2.1', removal_in='3.0.0')
     protobuf_arr = vector_column_service_pb2.NdArray()
     protobuf_arr.dtype = str(np_array.dtype)
     protobuf_arr.shape.extend(np_array.shape)
@@ -39,7 +39,7 @@ def dump_numpy_public(np_array: 'np.ndarray', compressed: bool = False) -> 'vect
 
 
 def dump_strings_public(strs: List[str], compressed: bool = False) -> 'vector_column_service_pb2.NdArray':
-    warn_deprecated('dump_strings_public and all numpy-related features will be removed in a future version', deprecated_in='2.2.0', removal_in='3.0.0')
+    warn_deprecated('dump_strings_public and all numpy-related features will be removed in a future version', deprecated_in='2.2.1', removal_in='3.0.0')
     return dump_numpy_public(np.array(strs, dtype='S'), compressed=compressed)
 
 
@@ -92,7 +92,7 @@ def load_numpy_public(proto_arr: 'vector_column_service_pb2.NdArray') -> 'np.nda
     :param proto_arr:
     :return:
     """
-    warn_deprecated('load_numpy_public and all numpy-related features will be removed in a future version', deprecated_in='2.2.0', removal_in='3.0.0')
+    warn_deprecated('load_numpy_public and all numpy-related features will be removed in a future version', deprecated_in='2.2.1', removal_in='3.0.0')
     if len(proto_arr.shape) == 0:
         return np.array([])
     if proto_arr.compressed:
@@ -103,7 +103,7 @@ def load_numpy_public(proto_arr: 'vector_column_service_pb2.NdArray') -> 'np.nda
 
 
 def load_strings_public(proto_arr: 'vector_column_service_pb2.NdArray') -> List[str]:
-    warn_deprecated('load_strings_public and all numpy-related features will be removed in a future version', deprecated_in='2.2.0', removal_in='3.0.0')
+    warn_deprecated('load_strings_public and all numpy-related features will be removed in a future version', deprecated_in='2.2.1', removal_in='3.0.0')
     return [str(item, 'utf-8') for item in load_numpy_public(proto_arr)]
 
 def warn_deprecated(description: str = '', deprecated_in: str = None, removal_in: str = None):
