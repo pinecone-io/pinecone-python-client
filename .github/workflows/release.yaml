@@ -71,18 +71,25 @@ jobs:
     - name: Get change list
       id: list_changes
       run: |
-        echo "::set-output name=commits::$(git log --pretty=format:'- [[%h](https://github.com/pinecone-io/pinecone-python-client/commit/%h)] %s' ${{ github.event.inputs.previousRelease }}..${{ github.event.inputs.currentRelease }})~1"
+        EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+        echo "COMMIT_LOG<<$EOF" >> "$GITHUB_ENV"
+        commits=$(git log --pretty=format:'- [[%h](https://github.com/pinecone-io/pinecone-python-client/commit/%h)] %s' ${{ steps.bump.outputs.PREVIOUS_VERSION_TAG }}..${{ steps.bump.outputs.VERSION_TAG }})~1) >> "$GITHUB_OUTPUT"
+        echo "$EOF" >> "$GITHUB_ENV"
 
+    - name:  Show changes
+      run:
+        echo "${{ steps.list_changes.outputs.COMMIT_LOG }}"
+    
     - name: Create Release Draft
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        # tag_name: ${{ steps.tag_release.outputs.VERSION_TAG }}
-        release_name: Release ${{ github.event.inputs.currentRelease }}
+        tag_name: ${{ steps.tag_release.outputs.VERSION_TAG }}
+        release_name: Release ${{ steps.bump.outputs.VERSION_TAG }}
         draft: true
         body: |
           ## Commits included in this release:
             
-          ${{ steps.list_changes.outputs.commits }}
+          ${{ steps.list_changes.outputs.COMMIT_LOG }}
