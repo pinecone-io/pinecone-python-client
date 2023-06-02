@@ -40,7 +40,7 @@ setuptools.setup(
         "grpc": read("requirements-grpc.txt"),
     },
     include_package_data=True,
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     entry_points={
         'console_scripts': ['pinecone=pinecone.cli:main'],
     },
