@@ -30,45 +30,38 @@ jobs:
         git config --global user.name "Pinecone CI"
         git config --global user.email "clients@pinecone.io"
     - name: Bump version
+      id: bump
       run: |
         pip install bump2version
         bump2version --current-version $(cat pinecone/__version__) ${{ github.event.inputs.releaseLevel }} pinecone/__version__
-    - name: Commit and tag
+        echo "VERSION=$(cat pinecone/__version__)" >> "$GITHUB_OUTPUT"
+    - name: Commit and tag version bump
       run: |
         git add setup.cfg pinecone/__version__
-        newVersion=$(cat pinecone/__version__)
+        newVersion="${{ steps.bump.outputs.VERSION }}"
         git commit -m "Bump version to $newVersion"
-        git tag -a "v$newVersion" -m "Version $newVersion"
+        git tag -a "v$newVersion" -m "Release v$newVersion"
         git tag --list
         git status
 
-    # - uses: actions/setup-python@v1
-    #   with:
-    #     python-version: 3.x
-    # - name: Set Python client production environment
-    #   run: make set-production
+    - uses: actions/setup-python@v1
+      with:
+        python-version: 3.x
+    - name: Set Python client production environment
+      run: make set-production
 
-    # - name: Build Python client
-    #   run: make package
-
-    # - name: Set Version
-    #   run: echo "VERSION=$(cat pinecone/__version__ )" >> $GITHUB_ENV
+    - name: Build Python client
+      run: make package
 
     # - name: Upload Python client to Pypi
     #   run: make upload PYPI_PASSWORD=${{ env.PYPI_PASSWORD }}
 
-    # - name: Create tag
-    #   uses: actions/github-script@v5
-    #   with:
-    #     script: |
-    #       github.rest.git.createRef({
-    #         owner: context.repo.owner,
-    #         repo: context.repo.repo,
-    #         ref: 'refs/tags/${{ env.VERSION }}',
-    #         sha: context.sha
-    #       })
+    # - name: Push changes and tags
+    #   run: |
+    #     # git push --tags
+
 
     # - name: Create a Release
     #   uses: elgohr/Github-Release-Action@v4
     #   with:
-    #     title: Release ${{ env.VERSION }}
+    #     title: Release ${{ steps.bump.outputs.VERSION }}
