@@ -1,7 +1,18 @@
 name: Pypi
 # upload package to Pypi
 
-on: [workflow_dispatch]
+on:
+  workflow_dispatch:
+    inputs:
+      releaseLevel:
+        description: 'Release level'
+        required: true
+        type: choice
+        default: 'patch'
+        options:
+          - 'patch' # bug fixes
+          - 'minor' # new features, backwards compatible
+          - 'major' # breaking changes
 
 env:
   PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
@@ -15,41 +26,49 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-python@v1
-      with:
-        python-version: 3.11
+    - name: Set up Git
+      run: |
+        git config --global user.name "Pinecone CI"
+        git config --global user.email "clients@pinecone.io"
+    - name: Bump version
+      run: |
+        pip install bump2version
+        bump2version --current-version $(cat pinecone/__version__) ${{ github.event.inputs.releaseLevel }} pinecone/__version__
+    - name: Commit and tag
+      run: |
+        git add setup.cfg pinecone/__version__
+        newVersion=$(cat pinecone/__version__)
+        git commit -m "Bump version to $newVersion"
+        git tag -a "v$newVersion" -m "Version $newVersion"
+        git tag --list
 
-#    - uses: actions/checkout@v3
-#      with:
-#        repository: pinecone-io/pinecone-python-client
-#        ref: ''
-#        token: ${{ secrets.PAT }}
-#        path: pinecone-python-client
+    # - uses: actions/setup-python@v1
+    #   with:
+    #     python-version: 3.x
+    # - name: Set Python client production environment
+    #   run: make set-production
 
-    - name: Set Python client production environment
-      run: make set-production
+    # - name: Build Python client
+    #   run: make package
 
-    - name: Build Python client
-      run: make package
+    # - name: Set Version
+    #   run: echo "VERSION=$(cat pinecone/__version__ )" >> $GITHUB_ENV
 
-    - name: Set Version
-      run: echo "VERSION=$(cat pinecone/__version__ )" >> $GITHUB_ENV
+    # - name: Upload Python client to Pypi
+    #   run: make upload PYPI_PASSWORD=${{ env.PYPI_PASSWORD }}
 
-    - name: Upload Python client to Pypi
-      run: make upload PYPI_PASSWORD=${{ env.PYPI_PASSWORD }}
+    # - name: Create tag
+    #   uses: actions/github-script@v5
+    #   with:
+    #     script: |
+    #       github.rest.git.createRef({
+    #         owner: context.repo.owner,
+    #         repo: context.repo.repo,
+    #         ref: 'refs/tags/${{ env.VERSION }}',
+    #         sha: context.sha
+    #       })
 
-    - name: Create tag
-      uses: actions/github-script@v5
-      with:
-        script: |
-          github.rest.git.createRef({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            ref: 'refs/tags/${{ env.VERSION }}',
-            sha: context.sha
-          })
-
-    - name: Create a Release
-      uses: elgohr/Github-Release-Action@v4
-      with:
-        title: Release ${{ env.VERSION }}
+    # - name: Create a Release
+    #   uses: elgohr/Github-Release-Action@v4
+    #   with:
+    #     title: Release ${{ env.VERSION }}
