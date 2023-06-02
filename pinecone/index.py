@@ -16,7 +16,7 @@ from .core.client.models import FetchResponse, ProtobufAny, QueryRequest, QueryR
     ScoredVector, SingleQueryResults, DescribeIndexStatsResponse, UpsertRequest, UpsertResponse, UpdateRequest, \
     Vector, DeleteRequest, UpdateRequest, DescribeIndexStatsRequest
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
-from pinecone.core.utils import fix_tuple_length, get_user_agent
+from pinecone.core.utils import fix_tuple_length, get_user_agent, warn_deprecated
 import copy
 
 __all__ = [
@@ -33,7 +33,6 @@ _OPENAPI_ENDPOINT_PARAMS = (
     '_check_input_type', '_check_return_type', '_host_index', 'async_req'
 )
 
-
 def parse_query_response(response: QueryResponse, unary_query: bool):
     if unary_query:
         response._data_store.pop('results', None)
@@ -42,6 +41,10 @@ def parse_query_response(response: QueryResponse, unary_query: bool):
         response._data_store.pop('namespace', None)
     return response
 
+def upsert_numpy_deprecation_notice(context):
+    numpy_deprecataion_notice = "The ability to pass a numpy ndarray as part of a dictionary argument to upsert() will be removed in a future version of the pinecone client. To remove this warning, use the numpy.ndarray.tolist method to convert your ndarray into a python list before calling upsert()."
+    message = " ".join([context, numpy_deprecataion_notice])
+    warn_deprecated(message, deprecated_in='2.2.1', removal_in='3.0.0')
 
 class Index(ApiClient):
 
@@ -187,8 +190,10 @@ class Index(ApiClient):
                 values = item['sparse_values'].get('values', None)
 
                 if isinstance(values, np.ndarray):
+                    upsert_numpy_deprecation_notice("Deprecated type passed in sparse_values['values'].")
                     values = values.tolist()
                 if isinstance(indices, np.ndarray):
+                    upsert_numpy_deprecation_notice("Deprecated type passed in sparse_values['indices'].")
                     indices = indices.tolist()
                 try:
                     item['sparse_values'] = SparseValues(indices=indices, values=values)
@@ -203,6 +208,7 @@ class Index(ApiClient):
                     raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
     
             if isinstance(item['values'], np.ndarray):
+                upsert_numpy_deprecation_notice("Deprecated type passed in 'values'.")
                 item['values'] = item['values'].tolist()
 
             try:
