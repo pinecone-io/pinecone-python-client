@@ -25,28 +25,36 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 # Need full history and tags to compute list of commits in release
+
     - name: Set up Git
       run: |
         git config --global user.name "Pinecone CI"
         git config --global user.email "clients@pinecone.io"
+
     - name: Bump version
       id: bump
       run: |
+        echo "PREVIOUS_VERSION=$(cat pinecone/__version__)" >> "$GITHUB_OUTPUT"
+        echo "PREVIOUS_VERSION_TAG=v$(cat pinecone/__version__)" >> "$GITHUB_OUTPUT"
         pip install bump2version
         bump2version --current-version $(cat pinecone/__version__) ${{ github.event.inputs.releaseLevel }} pinecone/__version__
         echo "VERSION=$(cat pinecone/__version__)" >> "$GITHUB_OUTPUT"
+        echo "VERSION_TAG=v$(cat pinecone/__version__)" >> "$GITHUB_OUTPUT"
+
     - name: Commit and tag version bump
+      id: tag_release
       run: |
         git add setup.cfg pinecone/__version__
-        newVersion="${{ steps.bump.outputs.VERSION }}"
+        newVersionTag="${{ steps.bump.outputs.VERSION_TAG }}"
         git commit -m "Bump version to $newVersion"
-        git tag -a "v$newVersion" -m "Release v$newVersion"
-        git tag --list
-        git status
+        git tag -a $newVersionTag -m "Release $newVersionTag"
 
     - uses: actions/setup-python@v1
       with:
         python-version: 3.x
+
     - name: Set Python client production environment
       run: make set-production
 
@@ -58,10 +66,18 @@ jobs:
 
     # - name: Push changes and tags
     #   run: |
-    #     # git push --tags
+    #     git push --tags
 
-
-    # - name: Create a Release
-    #   uses: elgohr/Github-Release-Action@v4
+    # - name: Create Release Draft
+    #   id: create_release
+    #   uses: actions/create-release@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     #   with:
-    #     title: Release ${{ steps.bump.outputs.VERSION }}
+    #     tag_name: ${{ steps.tag_release.outputs.VERSION_TAG }}
+    #     release_name: Release ${{ github.event.inputs.currentRelease }}
+    #     draft: true
+    #     body: |
+    #       ## Commits included in this release:
+            
+    #       ${{ needs.generate_commits_list.outputs.commits }}
