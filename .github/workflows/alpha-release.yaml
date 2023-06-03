@@ -2,13 +2,32 @@ name: (alpha) Pypi
 # upload package to test Pypi
 
 on:
-  push:
-    tags:
-      - '**-alpha'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref to build (branch name or SHA)'
+        required: true
+        type: string
+        default: 'main' 
+      releaseLevel:
+        description: 'Release level'
+        required: true
+        type: choice
+        default: 'patch'
+        options:
+          - 'patch' # bug fixes
+          - 'minor' # new features, backwards compatible
+          - 'major' # breaking changes
+      prereleaseSuffix:
+        description: 'Suffix to add onto the new version number in order to mark it as a prerelease'
+        required: true
+        type: string
+        default: 'rc1'
 
 env:
-  TEST_PYPI_URL: https://test.pypi.org/legacy/
-  TEST_PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
+  PYPI_URL: https://test.pypi.org/legacy/
+  PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
+  PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
 
 jobs:
   pypi:
@@ -17,13 +36,76 @@ jobs:
     runs-on: self-hosted
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: 3.11
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # Need full history and tags to compute list of commits in release
+          ref: ${{ github.event.inputs.ref }}
+  
+      - name: Bump version
+        id: bump
+        uses: './.github/actions/bump-version'
+        with:
+          versionFile: pinecone/__version__ 
+          bumpType: ${{ github.event.inputs.releaseLevel }}
+          prereleaseSuffix: ${{ github.event.inputs.prereleaseSuffix }}
+      
+      - name: Verify unique release number
+        run: |
+          if git tag -l | grep -q ${{ steps.bump.outputs.VERSION_TAG }}; then
+            echo "Tag ${{ steps.bump.outputs.VERSION_TAG }} already exists, aborting"
+            exit 1
+          fi
 
-    - name: Build Python client
-      run: make package
+      - name: Set up Git
+        run: |
+          git config --global user.name "Pinecone CI"
+          git config --global user.email "clients@pinecone.io"
+  
+      - name: Tag version
+        id: tag_release
+        run: |
+          # For prereleases, we don't want to commit the version change
+          git checkout pinecone/__version__
+          # But we do want to tag the commit used to create the prerelease
+          newVersionTag="${{ steps.bump.outputs.VERSION_TAG }}"
+          git commit -m "Bump version to $newVersionTag"
+          git tag -a $newVersionTag -m "Release $newVersionTag"
+  
+      - uses: actions/setup-python@v1
+        with:
+          python-version: 3.x
+  
+      - name: Build Python client
+        run: make package
 
-    - name: Upload Python client to Pypi
-      run: export TWINE_REPOSITORY_URL=${{ env.TEST_PYPI_URL }} && make upload PYPI_PASSWORD=${{ env.TEST_PYPI_PASSWORD }}
+      - name: Upload Python client to PyPI
+        run: export TWINE_REPOSITORY_URL=${{ env.PYPI_URL }} && make upload
+    
+      - name: Push tags
+        run: git push --tags
+  
+      # - name: Get change list
+      #   id: list_changes
+      #   run: |
+      #     EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+      #     echo "COMMIT_LOG<<$EOF" >> "$GITHUB_ENV"
+      #     commits=$(git log --pretty=format:'- [[%h](https://github.com/pinecone-io/pinecone-python-client/commit/%h)] %s' ${{ steps.bump.outputs.PREVIOUS_VERSION_TAG }}..${{ steps.bump.outputs.VERSION_TAG }}~1) >> "$GITHUB_OUTPUT"
+      #     echo "$EOF" >> "$GITHUB_ENV"
+  
+      # - name: Show changes
+      #   run:
+      #     echo "${{ steps.list_changes.outputs.COMMIT_LOG }}"
+      
+      # - name: Create Release Draft
+      #   id: create_release
+      #   uses: actions/create-release@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tag_name: ${{ steps.tag_release.outputs.VERSION_TAG }}
+      #     release_name: Release ${{ steps.bump.outputs.VERSION_TAG }}
+      #     draft: true
+      #     body: |
+      #       ## Commits included in this release:
+              
+      #       ${{ steps.list_changes.outputs.COMMIT_LOG }}
