@@ -1,5 +1,4 @@
 name: (alpha) Pypi
-# upload package to test Pypi
 
 on:
   workflow_dispatch:
@@ -33,7 +32,7 @@ jobs:
   pypi:
     timeout-minutes: 30
     name: pypi
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
