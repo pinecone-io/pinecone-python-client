@@ -4,4 +4,4 @@ on: pull_request
 
 jobs:
   run-tests:
-    uses: './.github/workflows/shared/testing.yml'
+    uses: './.github/workflows/testing.yml'
