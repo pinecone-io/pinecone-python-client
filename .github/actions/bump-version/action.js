@@ -1,4 +1,4 @@
-const core = require('@actions/core');
+const core = require('./core');
 
 function bumpVersion(currentVersion, bumpType, prerelease) {
   let newVersion = calculateNewVersion(currentVersion, bumpType, prerelease);

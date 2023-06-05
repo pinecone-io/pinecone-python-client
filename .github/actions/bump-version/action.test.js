@@ -1,7 +1,7 @@
 const action = require('./action')
-const core = require('@actions/core');
+const core = require('./core');
 
-jest.mock('@actions/core');
+jest.mock('./core');
 
 describe('bump-version', () => {
     test('bump major', () => {
