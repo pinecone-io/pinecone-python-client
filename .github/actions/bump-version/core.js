@@ -4,8 +4,6 @@
 
 const fs = require('fs');
 
-const filePath = process.env[`GITHUB_OUTPUT`]
-
 function getInput(name, options) {
     const val =
       process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] || ''
@@ -18,7 +16,7 @@ function getInput(name, options) {
     }
   
     return val.trim()
-  }
+}
 
 function toCommandValue(input) {
     if (input === null || input === undefined) {
@@ -27,7 +25,7 @@ function toCommandValue(input) {
       return input
     }
     return JSON.stringify(input)
-  }
+}
 
 function prepareKeyValueMessage(key, value) {
     const delimiter = `delimiter_${math.floor(math.random()*100000)}`
@@ -49,16 +47,32 @@ function prepareKeyValueMessage(key, value) {
     }
   
     return `${key}<<${delimiter}${os.EOL}${convertedValue}${os.EOL}${delimiter}`
-  }
+}
 
-const setOutput = (key, value) => {
+function setOutput(name, value) {
+    const filePath = process.env['GITHUB_OUTPUT'] || ''
+    if (filePath) {
+      return issueFileCommand('OUTPUT', prepareKeyValueMessage(name, value))
+    }
+  
+    process.stdout.write(os.EOL)
+    issueCommand('set-output', {name}, toCommandValue(value))
+}
+
+function issueFileCommand(command, message) {
+    const filePath = process.env[`GITHUB_${command}`]
+    if (!filePath) {
+        throw new Error(
+        `Unable to find environment variable for file command ${command}`
+        )
+    }
     if (!fs.existsSync(filePath)) {
         throw new Error(`Missing file at path: ${filePath}`)
-      }
-    
-      fs.appendFileSync(filePath, `${toCommandValue(message)}${os.EOL}`, {
+    }
+
+    fs.appendFileSync(filePath, `${toCommandValue(message)}${os.EOL}`, {
         encoding: 'utf8'
-      })
+    })
 }
 
 module.exports = { getInput, setOutput }
