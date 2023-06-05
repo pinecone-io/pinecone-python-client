@@ -47,6 +47,13 @@ jobs:
         versionFile: pinecone/__version__ 
         bumpType: ${{ github.event.inputs.releaseLevel }}
 
+    - name: Verify unique release number
+      run: |
+        if git tag -l | grep -q ${{ steps.bump.outputs.VERSION_TAG }}; then
+          echo "Tag ${{ steps.bump.outputs.VERSION_TAG }} already exists, aborting"
+          exit 1
+        fi
+
     - name: Commit and tag version bump
       id: tag_release
       run: |
