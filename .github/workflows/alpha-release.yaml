@@ -61,15 +61,6 @@ jobs:
           git config --global user.name "Pinecone CI"
           git config --global user.email "clients@pinecone.io"
   
-      - name: Tag version
-        id: tag_release
-        run: |
-          # For prereleases, we don't want to commit the version change
-          git checkout pinecone/__version__
-          # But we do want to tag the commit used to create the prerelease
-          newVersionTag="${{ steps.bump.outputs.VERSION_TAG }}"
-          git tag -a $newVersionTag -m "Release $newVersionTag"
-  
       - uses: actions/setup-python@v1
         with:
           python-version: 3.x
@@ -78,7 +69,17 @@ jobs:
         run: make package
 
       - name: Upload Python client to PyPI
+        id: pypi_upload
         run: export TWINE_REPOSITORY_URL=${{ env.PYPI_URL }} && make upload
+
+      - name: Tag version
+        id: tag_release
+        run: |
+          # For prereleases, we don't want to commit the version change
+          git checkout pinecone/__version__
+          # But we do want to tag the commit used to create the prerelease
+          newVersionTag="${{ steps.bump.outputs.VERSION_TAG }}"
+          git tag -a $newVersionTag -m "Release $newVersionTag"
     
       - name: Push tags
         run: git push --tags
