@@ -3,6 +3,7 @@
 // in node_modules and 34MB of dependencies, which I don't want to do.
 
 const fs = require('fs');
+const os = require('os');
 
 function getInput(name, options) {
     const val =
