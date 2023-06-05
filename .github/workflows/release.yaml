@@ -25,12 +25,12 @@ env:
 
 jobs:
   testing:
-    uses: './testing.yml'
+    uses: './testing.yml@latest'
     with:
       ref: ${{ github.event.inputs.ref }}
 
   pypi:
-    uses: './publish-to-pypi.yml'
+    uses: './publish-to-pypi.yml@latest'
     with:
       ref: ${{ github.event.inputs.ref }}
       releaseLevel: ${{ github.event.inputs.releaseLevel }}
