@@ -23,6 +23,10 @@ on:
         type: string
         default: 'rc1'
 
+env:
+  PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
+  PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
+
 jobs:
   testing:
     uses: './.github/workflows/testing.yaml'
@@ -36,5 +40,5 @@ jobs:
       releaseLevel: ${{ github.event.inputs.releaseLevel }}
       prereleaseSuffix: ${{ github.event.inputs.prereleaseSuffix }}
       TWINE_REPOSITORY: 'testpypi'
-      PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
-      PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
+      PYPI_USERNAME: ${{ github.env.PYPI_USERNAME }}
+      PYPI_PASSWORD: ${{ github.env.PYPI_PASSWORD }}

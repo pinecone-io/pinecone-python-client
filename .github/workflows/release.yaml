@@ -19,7 +19,6 @@ on:
           - 'major' # breaking changes
 
 env:
-  TWINE_REPOSITORY: 'testpypi'
   PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
   PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
 
@@ -36,5 +35,5 @@ jobs:
       isPrerelease: false
       prereleaseSuffix: ''
       TWINE_REPOSITORY: 'testpypi'
-      PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
-      PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
+      PYPI_USERNAME: ${{ github.env.PYPI_USERNAME }}
+      PYPI_PASSWORD: ${{ github.env.PYPI_PASSWORD }}
