@@ -61,7 +61,7 @@ jobs:
           git config --global user.name "Pinecone CI"
           git config --global user.email "clients@pinecone.io"
   
-      - uses: actions/setup-python@v1
+      - uses: actions/setup-python@v4
         with:
           python-version: 3.x
   
