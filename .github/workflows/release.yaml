@@ -19,62 +19,21 @@ on:
           - 'major' # breaking changes
 
 env:
-  PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
-  PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+  TWINE_REPOSITORY: 'testpypi'
+  PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
+  PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
 
 jobs:
+  testing:
+    uses: './.github/workflows/shared/testing.yml'
+    with:
+      ref: ${{ github.event.inputs.ref }}
 
   pypi:
-    timeout-minutes: 30
-    name: pypi
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0 # Need full history and tags to compute list of commits in release
-        ref: ${{ github.event.inputs.ref }}
-
-    - name: Set up Git
-      run: |
-        git config --global user.name "Pinecone CI"
-        git config --global user.email "clients@pinecone.io"
-
-    - name: Bump version
-      id: bump
-      uses: './.github/actions/bump-version'
-      with:
-        versionFile: pinecone/__version__ 
-        bumpType: ${{ github.event.inputs.releaseLevel }}
-
-    - name: Verify unique release number
-      run: |
-        if git tag -l | grep -q ${{ steps.bump.outputs.VERSION_TAG }}; then
-          echo "Tag ${{ steps.bump.outputs.VERSION_TAG }} already exists, aborting"
-          exit 1
-        fi
-
-    - name: Commit and tag version bump
-      id: tag_release
-      run: |
-        git add pinecone/__version__
-        newVersionTag="${{ steps.bump.outputs.VERSION_TAG }}"
-        git commit -m "Bump version to $newVersionTag"
-        git tag -a $newVersionTag -m "Release $newVersionTag"
-
-    - uses: actions/setup-python@v4
-      with:
-        python-version: 3.x
-
-    - name: Set Python client production environment
-      run: make set-production
-
-    - name: Build Python client
-      run: make package
-
-    - name: Upload Python client to Pypi
-      run: make upload
-
-    - name: Push changes and tags
-      run: |
-        git push --follow-tags
+    uses: './.github/workflows/shared/publish-to-pypi.yml'
+    with:
+      ref: ${{ github.event.inputs.ref }}
+      releaseLevel: ${{ github.event.inputs.releaseLevel }}
+      isPrerelease: false
+      prereleaseSuffix: ''
+    secrets: inherit
