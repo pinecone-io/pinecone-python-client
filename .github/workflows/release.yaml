@@ -35,20 +35,17 @@ jobs:
 
     - name: Bump version
       id: bump
-      run: |
-        echo "PREVIOUS_VERSION=$(cat pinecone/__version__)" >> "$GITHUB_OUTPUT"
-        echo "PREVIOUS_VERSION_TAG=v$(cat pinecone/__version__)" >> "$GITHUB_OUTPUT"
-        pip install bump2version
-        bump2version --current-version $(cat pinecone/__version__) ${{ github.event.inputs.releaseLevel }} pinecone/__version__
-        echo "VERSION=$(cat pinecone/__version__)" >> "$GITHUB_OUTPUT"
-        echo "VERSION_TAG=v$(cat pinecone/__version__)" >> "$GITHUB_OUTPUT"
+      uses: './.github/actions/bump-version'
+      with:
+        versionFile: pinecone/__version__ 
+        bumpType: ${{ github.event.inputs.releaseLevel }}
 
     - name: Commit and tag version bump
       id: tag_release
       run: |
-        git add setup.cfg pinecone/__version__
+        git add pinecone/__version__
         newVersionTag="${{ steps.bump.outputs.VERSION_TAG }}"
-        git commit -m "Bump version to $newVersion"
+        git commit -m "Bump version to $newVersionTag"
         git tag -a $newVersionTag -m "Release $newVersionTag"
 
     - uses: actions/setup-python@v1

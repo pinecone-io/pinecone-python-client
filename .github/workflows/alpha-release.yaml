@@ -35,7 +35,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Need full history and tags to compute list of commits in release
           ref: ${{ github.event.inputs.ref }}

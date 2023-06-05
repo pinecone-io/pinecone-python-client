@@ -1,6 +1,6 @@
 const action = require('./action');
 const fs = require('fs');
-const core = require('@actions/core');
+const core = require('./core');
 
 const version = fs.readFileSync(core.getInput('versionFile'), 'utf8');
 
