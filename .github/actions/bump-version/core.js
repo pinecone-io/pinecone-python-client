@@ -28,7 +28,7 @@ function toCommandValue(input) {
 }
 
 function prepareKeyValueMessage(key, value) {
-    const delimiter = `delimiter_${math.floor(math.random()*100000)}`
+    const delimiter = `delimiter_${Math.floor(Math.random()*100000)}`
     const convertedValue = toCommandValue(value)
   
     // These should realistically never happen, but just in case someone finds a
