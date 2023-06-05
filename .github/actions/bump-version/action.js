@@ -1,7 +1,7 @@
 const core = require('./core');
 
 function bumpVersion(currentVersion, bumpType, prerelease) {
-  let newVersion = calculateNewVersion(currentVersion, bumpType, prerelease);
+  let newVersion = calculateNewVersion(currentVersion, bumpType);
 
   if (prerelease !== undefined && prerelease !== '') {
     newVersion = `${newVersion}.${prerelease}`;
@@ -14,7 +14,7 @@ function bumpVersion(currentVersion, bumpType, prerelease) {
   return newVersion;
 }
 
-function calculateNewVersion(currentVersion, bumpType, prerelease) {
+function calculateNewVersion(currentVersion, bumpType) {
   const [major, minor, patch] = currentVersion.split('.');
   let newVersion;
 

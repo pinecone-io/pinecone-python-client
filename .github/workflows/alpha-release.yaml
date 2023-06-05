@@ -39,6 +39,13 @@ jobs:
         with:
           fetch-depth: 0 # Need full history and tags to compute list of commits in release
           ref: ${{ github.event.inputs.ref }}
+
+      - name: Verify prereleaseSuffix not empty
+        run: |
+          if [ -z "${{ github.event.inputs.prereleaseSuffix }}" ]; then
+            echo "prereleaseSuffix cannot be empty"
+            exit 1
+          fi
   
       - name: Bump version
         id: bump
