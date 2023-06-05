@@ -31,8 +31,6 @@ env:
 jobs:
   testing:
     uses: './.github/workflows/testing.yaml'
-    with:
-      ref: ${{ github.event.inputs.ref }}
 
   pypi:
     uses: './.github/workflows/publish-to-pypi.yaml'
