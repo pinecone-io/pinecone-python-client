@@ -30,12 +30,13 @@ env:
 
 jobs:
   testing:
-    uses: './.github/workflows/testing.yml'
+    uses: './.github/workflows/testing.yaml'
     with:
       ref: ${{ github.event.inputs.ref }}
 
   pypi:
-    uses: './.github/workflows/publish-to-pypi.yml'
+    uses: './.github/workflows/publish-to-pypi.yaml'
+    needs: testing
     with:
       isPrerelease: true
       ref: ${{ github.event.inputs.ref }}
