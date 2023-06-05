@@ -23,10 +23,24 @@ on:
         required: true
         type: string
         default: 'rc1'
+      PYPI_USERNAME:
+        description: 'PyPI username'
+        required: true
+        type: string
+      PYPI_PASSWORD:
+        description: 'PyPI password'
+        required: true
+        type: string
+      TWINE_REPOSITORY:
+        description: 'PyPI repository'
+        required: true
+        type: string
+        default: 'https://upload.pypi.org/legacy/'
 
 env:
-  PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
-  PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+  PYPI_USERNAME: ${{ github.event.inputs.PYPI_USERNAME }}
+  PYPI_PASSWORD: ${{ github.event.inputs.PYPI_PASSWORD }}
+  TWINE_REPOSITORY: ${{ github.event.inputs.TWINE_REPOSITORY }}
 
 jobs:
   pypi:

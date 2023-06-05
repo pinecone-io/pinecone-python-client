@@ -35,4 +35,6 @@ jobs:
       releaseLevel: ${{ github.event.inputs.releaseLevel }}
       isPrerelease: false
       prereleaseSuffix: ''
-    secrets: inherit
+      TWINE_REPOSITORY: 'testpypi'
+      PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
+      PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
