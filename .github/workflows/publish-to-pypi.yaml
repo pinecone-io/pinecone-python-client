@@ -2,6 +2,11 @@ name: PyPI Prerelease
 
 on:
   workflow_call:
+    secrets:
+      PYPI_USERNAME:
+        required: true
+      PYPI_PASSWORD:
+        required: true
     inputs:
       ref:
         description: 'Git ref to build (branch name or SHA)'
@@ -23,14 +28,6 @@ on:
         required: true
         type: string
         default: 'rc1'
-      PYPI_USERNAME:
-        description: 'PyPI username'
-        required: true
-        type: string
-      PYPI_PASSWORD:
-        description: 'PyPI password'
-        required: true
-        type: string
       TWINE_REPOSITORY:
         description: 'PyPI repository'
         required: true
@@ -88,8 +85,8 @@ jobs:
       - name: Upload Python client to PyPI
         id: pypi_upload
         env:
-          PYPI_USERNAME: ${{ inputs.PYPI_USERNAME }}
-          PYPI_PASSWORD: ${{ inputs.PYPI_PASSWORD }}
+          PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
           TWINE_REPOSITORY: ${{ inputs.TWINE_REPOSITORY }}
         run: make upload
 
