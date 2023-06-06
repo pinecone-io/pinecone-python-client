@@ -3,7 +3,7 @@ const core = require('./core');
 function bumpVersion(currentVersion, bumpType, prerelease) {
   let newVersion = calculateNewVersion(currentVersion, bumpType);
 
-  if (prerelease !== undefined && prerelease !== '') {
+  if (prerelease) {
     newVersion = `${newVersion}.${prerelease}`;
   }
   core.setOutput('previous_version', currentVersion)
