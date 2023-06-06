@@ -37,11 +37,6 @@ on:
         type: string
         default: 'https://upload.pypi.org/legacy/'
 
-env:
-  PYPI_USERNAME: ${{ inputs.PYPI_USERNAME }}
-  PYPI_PASSWORD: ${{ inputs.PYPI_PASSWORD }}
-  TWINE_REPOSITORY: ${{ inputs.TWINE_REPOSITORY }}
-
 jobs:
   pypi:
     timeout-minutes: 30
@@ -92,6 +87,10 @@ jobs:
 
       - name: Upload Python client to PyPI
         id: pypi_upload
+        env:
+          PYPI_USERNAME: ${{ inputs.PYPI_USERNAME }}
+          PYPI_PASSWORD: ${{ inputs.PYPI_PASSWORD }}
+          TWINE_REPOSITORY: ${{ inputs.TWINE_REPOSITORY }}
         run: make upload
 
       - name: Discard changes, if prerelease
