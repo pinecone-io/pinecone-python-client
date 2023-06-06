@@ -25,8 +25,6 @@ on:
 
 env:
   TWINE_REPOSITORY: 'testpypi'
-  PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
-  PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
 
 jobs:
   testing:
@@ -42,5 +40,5 @@ jobs:
       prereleaseSuffix: ${{ inputs.prereleaseSuffix }}
       TWINE_REPOSITORY: ${{ github.env.TWINE_REPOSITORY }}
     secrets:
-      PYPI_USERNAME: ${{ github.env.PYPI_USERNAME }}
-      PYPI_PASSWORD: ${{ github.env.PYPI_PASSWORD }}
+      PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
+      PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
