@@ -28,12 +28,12 @@ env:
   PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
 
 jobs:
-  # testing:
-  #   uses: './.github/workflows/testing.yaml'
+  testing:
+    uses: './.github/workflows/testing.yaml'
 
   pypi:
     uses: './.github/workflows/publish-to-pypi.yaml'
-    # needs: testing
+    needs: testing
     with:
       isPrerelease: true
       ref: ${{ inputs.ref }}

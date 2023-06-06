@@ -56,7 +56,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Verify prereleaseSuffix not empty if isPrerelease is true
-        if: ${{ inputs.isPrerelease == 'true' }}
+        if: ${{ inputs.isPrerelease == true }}
         run: |
           if [ -z "${{ inputs.prereleaseSuffix }}" ]; then
             echo "prereleaseSuffix cannot be empty if isPrerelease is true"
@@ -95,7 +95,7 @@ jobs:
         run: make upload
 
       - name: Discard changes, if prerelease
-        if: ${{ inputs.isPrerelease == 'true' }}
+        if: ${{ inputs.isPrerelease == true }}
         run: |
           git checkout pinecone/__version__
 
@@ -105,12 +105,12 @@ jobs:
           git tag -a $newVersionTag -m "Release $newVersionTag"
     
       - name: Push tags (prerelease)
-        if: ${{ inputs.isPrerelease == 'true' }}
+        if: ${{ inputs.isPrerelease == true }}
         # In the case of the prerelease, we discarded the version changes
         # instead of committing them. So we need a slightly different
         # command to push the git tag we created.
         run: git push --tags
       
       - name: Push tags (production release)
-        if: ${{ inputs.isPrerelease == 'false' }}
+        if: ${{ inputs.isPrerelease == false }}
         run: git push --follow-tags
