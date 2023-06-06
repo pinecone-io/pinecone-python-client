@@ -38,9 +38,9 @@ on:
         default: 'https://upload.pypi.org/legacy/'
 
 env:
-  PYPI_USERNAME: ${{ github.event.inputs.PYPI_USERNAME }}
-  PYPI_PASSWORD: ${{ github.event.inputs.PYPI_PASSWORD }}
-  TWINE_REPOSITORY: ${{ github.event.inputs.TWINE_REPOSITORY }}
+  PYPI_USERNAME: ${{ inputs.PYPI_USERNAME }}
+  PYPI_PASSWORD: ${{ inputs.PYPI_PASSWORD }}
+  TWINE_REPOSITORY: ${{ inputs.TWINE_REPOSITORY }}
 
 jobs:
   pypi:
@@ -53,12 +53,12 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Need full history and tags to compute list of commits in release
-          ref: ${{ github.event.inputs.ref }}
+          ref: ${{ inputs.ref }}
 
       - name: Verify prereleaseSuffix not empty if isPrerelease is true
-        if: ${{ github.event.inputs.isPrerelease == 'true' }}
+        if: ${{ inputs.isPrerelease == 'true' }}
         run: |
-          if [ -z "${{ github.event.inputs.prereleaseSuffix }}" ]; then
+          if [ -z "${{ inputs.prereleaseSuffix }}" ]; then
             echo "prereleaseSuffix cannot be empty if isPrerelease is true"
             exit 1
           fi
@@ -68,8 +68,8 @@ jobs:
         uses: './.github/actions/bump-version'
         with:
           versionFile: pinecone/__version__ 
-          bumpType: ${{ github.event.inputs.releaseLevel }}
-          prereleaseSuffix: ${{ github.event.inputs.prereleaseSuffix }}
+          bumpType: ${{ inputs.releaseLevel }}
+          prereleaseSuffix: ${{ inputs.prereleaseSuffix }}
       
       - name: Verify unique release number
         run: |
@@ -95,7 +95,7 @@ jobs:
         run: make upload
 
       - name: Discard changes, if prerelease
-        if: ${{ github.event.inputs.isPrerelease == 'true' }}
+        if: ${{ inputs.isPrerelease == 'true' }}
         run: |
           git checkout pinecone/__version__
 
@@ -105,12 +105,12 @@ jobs:
           git tag -a $newVersionTag -m "Release $newVersionTag"
     
       - name: Push tags (prerelease)
-        if: ${{ github.event.inputs.isPrerelease == 'true' }}
+        if: ${{ inputs.isPrerelease == 'true' }}
         # In the case of the prerelease, we discarded the version changes
         # instead of committing them. So we need a slightly different
         # command to push the git tag we created.
         run: git push --tags
       
       - name: Push tags (production release)
-        if: ${{ github.event.inputs.isPrerelease == 'false' }}
+        if: ${{ inputs.isPrerelease == 'false' }}
         run: git push --follow-tags

@@ -30,8 +30,8 @@ jobs:
     uses: './.github/workflows/publish-to-pypi.yaml'
     needs: testing
     with:
-      ref: ${{ github.event.inputs.ref }}
-      releaseLevel: ${{ github.event.inputs.releaseLevel }}
+      ref: ${{ inputs.ref }}
+      releaseLevel: ${{ inputs.releaseLevel }}
       isPrerelease: false
       prereleaseSuffix: ''
       TWINE_REPOSITORY: 'testpypi'

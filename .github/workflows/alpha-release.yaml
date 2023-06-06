@@ -28,17 +28,17 @@ env:
   PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
 
 jobs:
-  testing:
-    uses: './.github/workflows/testing.yaml'
+  # testing:
+  #   uses: './.github/workflows/testing.yaml'
 
   pypi:
     uses: './.github/workflows/publish-to-pypi.yaml'
-    needs: testing
+    # needs: testing
     with:
       isPrerelease: true
-      ref: ${{ github.event.inputs.ref }}
-      releaseLevel: ${{ github.event.inputs.releaseLevel }}
-      prereleaseSuffix: ${{ github.event.inputs.prereleaseSuffix }}
+      ref: ${{ inputs.ref }}
+      releaseLevel: ${{ inputs.releaseLevel }}
+      prereleaseSuffix: ${{ inputs.prereleaseSuffix }}
       TWINE_REPOSITORY: 'testpypi'
       PYPI_USERNAME: ${{ github.env.PYPI_USERNAME }}
       PYPI_PASSWORD: ${{ github.env.PYPI_PASSWORD }}
