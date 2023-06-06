@@ -42,3 +42,4 @@ jobs:
       TWINE_REPOSITORY: 'testpypi'
       PYPI_USERNAME: ${{ github.env.PYPI_USERNAME }}
       PYPI_PASSWORD: ${{ github.env.PYPI_PASSWORD }}
+    secrets: inherit
