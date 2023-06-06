@@ -23,9 +23,6 @@ on:
         type: string
         default: 'rc1'
 
-env:
-  TWINE_REPOSITORY: 'testpypi'
-
 jobs:
   testing:
     uses: './.github/workflows/testing.yaml'
@@ -38,7 +35,7 @@ jobs:
       ref: ${{ inputs.ref }}
       releaseLevel: ${{ inputs.releaseLevel }}
       prereleaseSuffix: ${{ inputs.prereleaseSuffix }}
-      TWINE_REPOSITORY: ${{ github.env.TWINE_REPOSITORY }}
+      TWINE_REPOSITORY: 'testpypi'
     secrets:
       PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
       PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
