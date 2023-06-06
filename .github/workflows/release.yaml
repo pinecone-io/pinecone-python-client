@@ -30,10 +30,10 @@ jobs:
     uses: './.github/workflows/publish-to-pypi.yaml'
     needs: testing
     with:
+      isPrerelease: false
       ref: ${{ inputs.ref }}
       releaseLevel: ${{ inputs.releaseLevel }}
-      isPrerelease: false
-      prereleaseSuffix: ''
-      TWINE_REPOSITORY: 'testpypi'
-      PYPI_USERNAME: ${{ github.env.PYPI_USERNAME }}
-      PYPI_PASSWORD: ${{ github.env.PYPI_PASSWORD }}
+      TWINE_REPOSITORY: 'pypi'
+    secrets:
+      PYPI_USERNAME: ${{ secrets.PROD_PYPI_USERNAME }}
+      PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PASSWORD }}
