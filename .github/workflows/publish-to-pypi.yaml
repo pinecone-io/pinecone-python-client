@@ -32,7 +32,7 @@ on:
         description: 'PyPI repository'
         required: true
         type: string
-        default: 'https://upload.pypi.org/legacy/'
+        default: 'pypi' # options are: pypi, testpypi
 
 jobs:
   pypi:
