@@ -34,6 +34,7 @@ jobs:
       ref: ${{ inputs.ref }}
       releaseLevel: ${{ inputs.releaseLevel }}
       TWINE_REPOSITORY: 'pypi'
+      prereleaseSuffix: ''
     secrets:
       PYPI_USERNAME: ${{ secrets.PROD_PYPI_USERNAME }}
       PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PASSWORD }}
