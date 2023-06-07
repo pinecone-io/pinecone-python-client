@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-tests:
-    uses: './.github/workflows/testing.yaml'
+#   run-tests:
+#     uses: './.github/workflows/testing.yaml'
 
   pypi-nightly:
-    needs: run-tests
+    # needs: run-tests
     timeout-minutes: 30
     name: pypi-nightly
     runs-on: ubuntu-latest
@@ -25,21 +25,34 @@ jobs:
       - name: Show commits
         run: echo "${{ steps.list-commits.outputs.commits }}"
 
-      - name: Abort release if no changes since yesterday
+      - name: Abort if no recent changes
         if: steps.list-commits.outputs.commits == ''
         uses: andymckay/cancel-action@0.3
-        
+
+      - name: Set dev version
+        id: version
+        run: |
+            versionFile="pinecone/__version__"
+            currentDate=$(date +%Y%m%d)
+            versionNumber=$(cat $versionFile)
+            devVersion="${versionNumber}.dev${currentDate}"
+            echo "$devVersion" > $versionFile
+
+      - name: Adjust module name
+        run: |
+            sed -i 's/pinecone-client/pinecone-client-nightly/g' setup.py
+
       - uses: actions/setup-python@v4
         with:
           python-version: 3.x
 
-        # - name: Build Python client
-        #   run: make package
+      - name: Build Python client
+        run: make package
 
-        # - name: Upload Python client to PyPI
-        #   id: pypi_upload
-        #   env:
-        #     TWINE_REPOSITORY: testpypy
-        #     PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
-        #     PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
-        #   run: make upload
+      - name: Upload Python client to PyPI
+        id: pypi_upload
+        env:
+          TWINE_REPOSITORY: testpypy
+          PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
+          PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
+        run: make upload
