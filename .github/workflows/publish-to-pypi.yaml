@@ -65,8 +65,9 @@ jobs:
       
       - name: Verify unique release number
         run: |
-          if git tag -l | grep -q ${{ steps.bump.outputs.VERSION_TAG }}; then
-            echo "Tag ${{ steps.bump.outputs.VERSION_TAG }} already exists, aborting"
+          TAG_NAME=${{ steps.bump.outputs.VERSION_TAG }}
+          if git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null; then
+            echo "Tag $TAG_NAME already exists."
             exit 1
           fi
 
