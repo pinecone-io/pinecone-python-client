@@ -32,7 +32,7 @@ jobs:
         id: version
         run: |
             versionFile="pinecone/__version__"
-            currentDate=$(date +%Y%m%d)
+            currentDate=$(date +%Y%m%d.%s)
             versionNumber=$(cat $versionFile)
             devVersion="${versionNumber}.dev${currentDate}"
             echo "$devVersion" > $versionFile
