@@ -1,4 +1,4 @@
-name: PyPI Release
+name: 'PyPI Release: Production (pinecone-client)'
 
 on:
   workflow_dispatch:
