@@ -91,12 +91,12 @@ jobs:
           TWINE_REPOSITORY: ${{ inputs.TWINE_REPOSITORY }}
         run: make upload
 
-      - name: Discard changes, if prerelease
+      - name: Discard changes (prerelease)
         if: ${{ inputs.isPrerelease == true }}
         run: |
           git checkout pinecone/__version__
       
-      - name: Commit changes, if not prerelease
+      - name: Commit changes (production release)
         if: ${{ inputs.isPrerelease == false }}
         run: |
           git add pinecone/__version__
