@@ -18,7 +18,7 @@ def read(fname):
 
 
 setuptools.setup(
-    name="pinecone-client",
+    name="pinecone",
     version=read("pinecone/__version__").strip(),
     description="Pinecone client and SDK",
     license="Proprietary License",
