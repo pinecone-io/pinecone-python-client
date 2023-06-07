@@ -25,7 +25,7 @@ on:
         default: true
       prereleaseSuffix:
         description: 'Suffix to add onto the new version number in order to mark it as a prerelease. Value ignored when shipping a release that is not a prerelease.'
-        required: true
+        required: false
         type: string
         default: 'rc1'
       TWINE_REPOSITORY:
