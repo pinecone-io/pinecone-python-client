@@ -1,0 +1,17 @@
+name: 'PyPI Release: Nightly (pinecone-client-nightly)'
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-tests:
+    uses: './.github/workflows/testing.yaml'
+
+  pypi-nightly:
+    needs: run-tests
+    timeout-minutes: 30
+    name: pypi-nightly
+    runs-on: ubuntu-latest
+    steps:
+      - name: greeting
+        run: echo "Hello World"
