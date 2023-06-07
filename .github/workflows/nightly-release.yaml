@@ -2,6 +2,8 @@ name: 'PyPI Release: Nightly (pinecone-client-nightly)'
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
 #   run-tests:
@@ -38,6 +40,10 @@ jobs:
       - name: Adjust module name
         run: |
             sed -i 's/pinecone-client/pinecone-client-nightly/g' setup.py
+    
+      - name: Update README
+        run: |
+            echo "This is a nightly developer build of the Pinecone Python client. It is not intended for production use." > README.md
 
       - uses: actions/setup-python@v4
         with:
