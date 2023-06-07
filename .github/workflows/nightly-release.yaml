@@ -13,5 +13,34 @@ jobs:
     name: pypi-nightly
     runs-on: ubuntu-latest
     steps:
-      - name: greeting
-        run: echo "Hello World"
+        - name: Checkout
+          uses: actions/checkout@v3
+        
+        - name: List recent changes
+          id: list-commits
+          run: |
+            recentCommits=$(git log --since=yesterday --oneline)
+            echo "commits=$recentCommits" >> "$GITHUB_OUTPUT"
+
+        - name: Show commits
+          run: |
+            echo "commits=${{ steps.list-commits.outputs.commits }}"
+
+        - name: Abort release if no changes since yesterday
+          if: steps.list-commits.outputs.commits == ''
+          uses: andymckay/cancel-action@0.3
+          
+        - uses: actions/setup-python@v4
+          with:
+            python-version: 3.x
+
+        # - name: Build Python client
+        #   run: make package
+
+        # - name: Upload Python client to PyPI
+        #   id: pypi_upload
+        #   env:
+        #     TWINE_REPOSITORY: testpypy
+        #     PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
+        #     PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
+        #   run: make upload
