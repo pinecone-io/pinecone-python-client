@@ -16,14 +16,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
     
-      - name: List recent changes
+      - name: Get recent changes
         id: list-commits
         run: |
           recentCommits=$(git log --since=yesterday --oneline)
           echo "commits=$recentCommits" >> "$GITHUB_OUTPUT"
-
-      - name: Show commits
-        run: echo "${{ steps.list-commits.outputs.commits }}"
 
       - name: Abort if no recent changes
         if: steps.list-commits.outputs.commits == ''
