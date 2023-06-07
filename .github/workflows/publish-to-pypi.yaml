@@ -47,34 +47,34 @@ jobs:
           fetch-depth: 0 # Need full history and tags to compute list of commits in release
           ref: ${{ inputs.ref }}
 
-      - name: Verify prereleaseSuffix not empty if isPrerelease is true
-        if: ${{ inputs.isPrerelease == true }}
-        run: |
-          if [ -z "${{ inputs.prereleaseSuffix }}" ]; then
-            echo "prereleaseSuffix cannot be empty if isPrerelease is true"
-            exit 1
-          fi
+      # - name: Verify prereleaseSuffix not empty if isPrerelease is true
+      #   if: ${{ inputs.isPrerelease == true }}
+      #   run: |
+      #     if [ -z "${{ inputs.prereleaseSuffix }}" ]; then
+      #       echo "prereleaseSuffix cannot be empty if isPrerelease is true"
+      #       exit 1
+      #     fi
 
-      - name: Bump version
-        id: bump
-        uses: './.github/actions/bump-version'
-        with:
-          versionFile: pinecone/__version__ 
-          bumpType: ${{ inputs.releaseLevel }}
-          prereleaseSuffix: ${{ inputs.prereleaseSuffix }}
+      # - name: Bump version
+      #   id: bump
+      #   uses: './.github/actions/bump-version'
+      #   with:
+      #     versionFile: pinecone/__version__ 
+      #     bumpType: ${{ inputs.releaseLevel }}
+      #     prereleaseSuffix: ${{ inputs.prereleaseSuffix }}
       
-      - name: Verify unique release number
-        run: |
-          TAG_NAME=${{ steps.bump.outputs.VERSION_TAG }}
-          if git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null; then
-            echo "Tag $TAG_NAME already exists."
-            exit 1
-          fi
+      # - name: Verify unique release number
+      #   run: |
+      #     TAG_NAME=${{ steps.bump.outputs.VERSION_TAG }}
+      #     if git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null; then
+      #       echo "Tag $TAG_NAME already exists."
+      #       exit 1
+      #     fi
 
-      - name: Set up Git
-        run: |
-          git config --global user.name "Pinecone CI"
-          git config --global user.email "clients@pinecone.io"
+      # - name: Set up Git
+      #   run: |
+      #     git config --global user.name "Pinecone CI"
+      #     git config --global user.email "clients@pinecone.io"
   
       - uses: actions/setup-python@v4
         with:
@@ -91,29 +91,29 @@ jobs:
           TWINE_REPOSITORY: ${{ inputs.TWINE_REPOSITORY }}
         run: make upload
 
-      - name: Discard changes (prerelease)
-        if: ${{ inputs.isPrerelease == true }}
-        run: |
-          git checkout pinecone/__version__
+      # - name: Discard changes (prerelease)
+      #   if: ${{ inputs.isPrerelease == true }}
+      #   run: |
+      #     git checkout pinecone/__version__
       
-      - name: Commit changes (production release)
-        if: ${{ inputs.isPrerelease == false }}
-        run: |
-          git add pinecone/__version__
-          git commit -m "[skip ci] Bump version to ${{ steps.bump.outputs.VERSION_TAG }}"
+      # - name: Commit changes (production release)
+      #   if: ${{ inputs.isPrerelease == false }}
+      #   run: |
+      #     git add pinecone/__version__
+      #     git commit -m "[skip ci] Bump version to ${{ steps.bump.outputs.VERSION_TAG }}"
 
-      - name: Tag version
-        run: |
-          newVersionTag="${{ steps.bump.outputs.VERSION_TAG }}"
-          git tag -a $newVersionTag -m "Release $newVersionTag"
+      # - name: Tag version
+      #   run: |
+      #     newVersionTag="${{ steps.bump.outputs.VERSION_TAG }}"
+      #     git tag -a $newVersionTag -m "Release $newVersionTag"
     
-      - name: Push tags (prerelease)
-        if: ${{ inputs.isPrerelease == true }}
-        # In the case of the prerelease, we discarded the version changes
-        # instead of committing them. So we need a slightly different
-        # command to push the git tag we created.
-        run: git push --tags
+      # - name: Push tags (prerelease)
+      #   if: ${{ inputs.isPrerelease == true }}
+      #   # In the case of the prerelease, we discarded the version changes
+      #   # instead of committing them. So we need a slightly different
+      #   # command to push the git tag we created.
+      #   run: git push --tags
       
-      - name: Push tags (production release)
-        if: ${{ inputs.isPrerelease == false }}
-        run: git push --follow-tags
+      # - name: Push tags (production release)
+      #   if: ${{ inputs.isPrerelease == false }}
+      #   run: git push --follow-tags

@@ -35,7 +35,7 @@ jobs:
       ref: ${{ inputs.ref }}
       releaseLevel: ${{ inputs.releaseLevel }}
       prereleaseSuffix: ${{ inputs.prereleaseSuffix }}
-      TWINE_REPOSITORY: 'testpypi'
+      TWINE_REPOSITORY: 'pypi'
     secrets:
-      PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
-      PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
+      PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
+      PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
