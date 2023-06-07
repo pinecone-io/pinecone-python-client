@@ -95,6 +95,12 @@ jobs:
         if: ${{ inputs.isPrerelease == true }}
         run: |
           git checkout pinecone/__version__
+      
+      - name: Commit changes, if not prerelease
+        if: ${{ inputs.isPrerelease == false }}
+        run: |
+          git add pinecone/__version__
+          git commit -m "[skip ci] Bump version to ${{ steps.bump.outputs.VERSION_TAG }}"
 
       - name: Tag version
         run: |
