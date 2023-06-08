@@ -1,4 +1,4 @@
-name: PyPI Prerelease
+name: Publish to PyPI
 
 on:
   workflow_call:
