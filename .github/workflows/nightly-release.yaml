@@ -6,11 +6,11 @@ on:
     - cron: '0 0 * * *'
 
 jobs:
-#   run-tests:
-#     uses: './.github/workflows/testing.yaml'
+  run-tests:
+    uses: './.github/workflows/testing.yaml'
 
   pypi-nightly:
-    # needs: run-tests
+    needs: run-tests
     timeout-minutes: 30
     name: pypi-nightly
     runs-on: ubuntu-latest
@@ -55,7 +55,7 @@ jobs:
       - name: Upload Python client to PyPI
         id: pypi_upload
         env:
-          TWINE_REPOSITORY: testpypi
-          PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
-          PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
+          TWINE_REPOSITORY: pypi
+          PYPI_USERNAME: ${{ secrets.PROD_PYPI_USERNAME }}
+          PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PASSWORD }}
         run: make upload
