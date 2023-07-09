@@ -93,7 +93,7 @@ class Index(ApiClient):
         print("Length of ids list is shorter than the number of total vectors...")
         input_vector = np.random.rand(num_dimensions).tolist()
         print("creating random vector...")
-        ids = get_ids_from_query(index,input_vector)
+        ids = get_ids_from_query(self, input_vector)
         print("getting ids from a vector query...")
         all_ids.update(ids)
         print("updating ids set...")
