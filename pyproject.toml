@@ -23,13 +23,12 @@ exclude = '''
 '''
 
 [tool.poetry]
-name = "pinecone-python-client"
+name = "pinecone"
 version = "2.2.2"
 description = "The official Python client for Pinecone's vector database"
 authors = ["Zachary Proser <zack.p@pinecone.io>"]
 license = "https://github.com/pinecone-io/pinecone-python-client/blob/main/LICENSE.txt"
 readme = "README.md"
-packages = [{include = "pinecone_python_client"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -42,7 +41,7 @@ python-dateutil = ">=2.5.3"
 urllib3 = ">=1.21.1"
 tqdm = ">=4.64.1"
 numpy = ">=1.22.0"
-grpciol = ">=1.44.0"
+grpcio = ">=1.44.0"
 grpc-gateway-protoc-gen-openapiv2 = "0.1.0"
 googleapis-common-protos = ">=1.53.0"
 lz4 = ">=3.1.3"
