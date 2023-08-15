@@ -21,3 +21,44 @@ exclude = '''
                      # the root of the project
 )
 '''
+
+[tool.poetry]
+name = "pinecone-python-client"
+version = "2.2.2"
+description = "The official Python client for Pinecone's vector database"
+authors = ["Zachary Proser <zack.p@pinecone.io>"]
+license = "https://github.com/pinecone-io/pinecone-python-client/blob/main/LICENSE.txt"
+readme = "README.md"
+packages = [{include = "pinecone_python_client"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+requests = "^2.31.0"
+pyyaml = ">=5.4"
+loguru = "0.5.0"
+typing-extensions = ">=3.7.4"
+dnspython = ">=2.0.0"
+python-dateutil = ">=2.5.3"
+urllib3 = ">=1.21.1"
+tqdm = ">=4.64.1"
+numpy = ">=1.22.0"
+grpciol = ">=1.44.0"
+grpc-gateway-protoc-gen-openapiv2 = "0.1.0"
+googleapis-common-protos = ">=1.53.0"
+lz4 = ">=3.1.3"
+protobuf = "~=3.20.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "6.2.4"
+pytest-asyncio = "0.15.1"
+pytest-cov = "2.10.1"
+pytest-mock = "3.6.1"
+tox = "3.27.0"
+pytest-timeout = "1.4.2"
+urllib3_mock = "0.3.3"
+responses = ">=0.8.1"
+pandas = ">=1.3.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
