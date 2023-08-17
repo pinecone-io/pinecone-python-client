@@ -1,8 +1,8 @@
-name: Poetry CI
+name: Poetry Smoke Tests
 
 on:
   push:
-    branches: [ your-branch ]
+    branches: [ '**' ] # This will run the action on all branches
 
 jobs:
   test:
@@ -21,6 +21,12 @@ jobs:
 
     - name: Install Dependencies
       run: poetry install
+
+    - name: Build Project
+      run: poetry build
+
+    - name: Start Poetry Shell (Optional)
+      run: poetry shell
 
     - name: Run Tests
       run: poetry run pytest # or your test command
