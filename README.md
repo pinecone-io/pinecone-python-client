@@ -259,4 +259,6 @@ pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
 pinecone.delete_collection("example-collection")
 ```
 
+# Contributing 
 
+If you'd like to make a contribution, or get setup locally to develop the Pinecone python client, please see our [contributing guide](./CONTRIBUTING.md)
