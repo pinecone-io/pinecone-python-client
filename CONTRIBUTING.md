@@ -5,12 +5,14 @@
 [Poetry](https://python-poetry.org/) is a tool that combines [virtualenv](https://virtualenv.pypa.io/en/latest/) usage with dependency management, to provide a consistent experience for project maintainers and contributors who need to develop the pinecone-python-client
 as a library. 
 
-A common need when making changes to the Pinecone client is to test your changes against existing Python code or Jupyter Notebooks that load the Pinecone client as a library. 
+A common need when making changes to the Pinecone client is to test your changes against existing Python code or Jupyter Notebooks that `pip install` the Pinecone Python client as a library. 
 
-Developers want to be able 
-to see their changes to the library immediately reflected in their main application code, as well as to track all changes they make in git, so that they can be contributed back in the form of a pull request. 
+Developers want to be able to see their changes to the library immediately reflected in their main application code, as well as to track all changes they make in git, so that they can be contributed back in the form of a pull request. 
 
-The Pinecone Python client therefore supports Poetry as its primary means of enabling a consistent local development experience. 
+The Pinecone Python client therefore supports Poetry as its primary means of enabling a consistent local development experience. This guide will walk you through the setup process so that you can: 
+1. Make local changes to the Pinecone Python client that are separated from your system's Python installation
+2. Make local changes to the Pinecone Python client that are immediately reflected in other applications that `import pinecone`
+3. Track all your local changes to the Pinecone Python client so that you can contribute your fixes and feature additions back via GitHub pull requests
 
 ### Step 1. Fork the Pinecone python client repository
 
