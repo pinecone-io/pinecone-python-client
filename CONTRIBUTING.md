@@ -11,7 +11,7 @@ Developers want to be able to see their changes to the library immediately refle
 
 The Pinecone Python client therefore supports Poetry as its primary means of enabling a consistent local development experience. This guide will walk you through the setup process so that you can: 
 1. Make local changes to the Pinecone Python client that are separated from your system's Python installation
-2. Make local changes to the Pinecone Python client that are immediately reflected in other applications that `import pinecone`
+2. Make local changes to the Pinecone Python client that are immediately reflected in other local code that imports the pinecone client
 3. Track all your local changes to the Pinecone Python client so that you can contribute your fixes and feature additions back via GitHub pull requests
 
 ### Step 1. Fork the Pinecone python client repository
@@ -90,7 +90,7 @@ Now, we can test that our virtualenv is working properly by adding a new test mo
 and running it from the second shell. 
 
 #### Create a new test file in pinecone-python-client
-In the root of your working directory of the `pinecone-python-client` where you first ran `poetry shell`, add a new file named `hello-world.py` under the `pinecone` folder. 
+In the root of your working directory of the `pinecone-python-client` where you first ran `poetry shell`, add a new file named `hello_virtualenv.py` under the `pinecone` folder. 
 
 In that file write the following: 
 
@@ -101,6 +101,7 @@ def hello():
 Save the file. 
 
 #### Create a new test file in your second shell 
+This step demonstrates how you can immediately test your latest Pinecone client code from any local Python application or Jupyter Notebook: 
 
 In your second shell, where you ran `source` to load your virtualenv, create a python file named `test.py` and write the following: 
 
