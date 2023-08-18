@@ -124,4 +124,4 @@ You should see the following output:
 Hello, from your virtualenv!
 ```
 
-If you experience any issues please [file a new issue](https://github.com/pinecone-io/pinecone-python-client/issues/new)
+If you experience any issues please [file a new issue](https://github.com/pinecone-io/pinecone-python-client/issues/new).
