@@ -10,8 +10,11 @@ develop:
 	pip3 install -e .[grpc]
 
 tests:
+	@echo "Installing dependencies..."
+	poetry install
+	@echo "Running tests..."
+	poetry run pytest --cov=pinecone --timeout=120 tests/unit
 	# skipping flake8 for now
-	pip3 install --upgrade --quiet tox==3.27.0 && TOX_SKIP_ENV='flake|docs' tox
 
 version:
 	python3 setup.py --version
