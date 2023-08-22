@@ -1,8 +1,7 @@
 name: Poetry Smoke Tests
 
 on:
-  push:
-    branches: [ '**' ] # This will run the action on all branches
+  push
 
 jobs:
   test:
