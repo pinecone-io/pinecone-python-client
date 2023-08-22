@@ -13,7 +13,6 @@ tests:
 	@echo "Installing dependencies..."
 	poetry install
 	@echo "Running tests..."
-	# skipping flake8 for now
 	poetry run pytest --cov=pinecone --timeout=120 tests/unit
 
 version:
