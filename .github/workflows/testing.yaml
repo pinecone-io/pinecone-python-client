@@ -36,3 +36,5 @@ jobs:
     - name: Build docs
       run: make docs
 
+  poetry-smoke-tests:
+    uses: './.github/workflows/poetry-smoke-tests'
