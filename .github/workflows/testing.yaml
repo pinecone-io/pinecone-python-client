@@ -38,6 +38,3 @@ jobs:
 
     - name: Build Project
       run: poetry build
-
-    - name: Start Poetry Shell (Create virtualenv)
-      run: poetry shell
