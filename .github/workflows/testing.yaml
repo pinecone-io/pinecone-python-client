@@ -36,5 +36,8 @@ jobs:
     - name: Build docs
       run: make docs
 
-  poetry-smoke-tests:
-    uses: './.github/workflows/poetry-smoke-tests.yaml'
+    - name: Build Project
+      run: poetry build
+
+    - name: Start Poetry Shell (Create virtualenv)
+      run: poetry shell
