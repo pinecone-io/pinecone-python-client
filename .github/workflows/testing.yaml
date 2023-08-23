@@ -37,4 +37,4 @@ jobs:
       run: make docs
 
   poetry-smoke-tests:
-    uses: './.github/workflows/poetry-smoke-tests'
+    uses: './.github/workflows/poetry-smoke-tests.yaml'

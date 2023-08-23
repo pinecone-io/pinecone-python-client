@@ -27,5 +27,5 @@ jobs:
       run: poetry shell
 
     - name: Run Tests
-      run: poetry run pytest # or your test command
+      run: poetry run pytest 
 
