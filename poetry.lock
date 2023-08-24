@@ -987,7 +987,10 @@ files = [
 [package.extras]
 dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 
+[extras]
+grpc = ["googleapis-common-protos", "grpc-gateway-protoc-gen-openapiv2", "grpcio", "lz4", "protobuf"]
+
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4.0"
-content-hash = "7d3085e54f84d284290d5e06fe03f85b1390dabd478bddd77768517c03e58f8d"
+content-hash = "555989cee957f6a0f6427d215a9cc2d5aede797010d1027ec3f5569def029b96"
