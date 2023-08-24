@@ -109,3 +109,10 @@ def load_strings_public(proto_arr: 'vector_column_service_pb2.NdArray') -> List[
 def warn_deprecated(description: str = '', deprecated_in: str = None, removal_in: str = None):
     message = f'DEPRECATED since v{deprecated_in} [Will be removed in v{removal_in}]: {description}'
     warnings.warn(message, FutureWarning)
+
+def check_kwargs(caller, given):
+    import inspect
+    argspec = inspect.getfullargspec(caller)
+    diff = set(given).difference(argspec.args)
+    if diff:
+        raise TypeError(caller.__name__ + ' had unexpected keyword argument(s): ' + ', '.join(diff))

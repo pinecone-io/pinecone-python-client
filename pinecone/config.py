@@ -245,7 +245,7 @@ def init(api_key: str = None, host: str = None, environment: str = None, project
     :param config: Optional. An INI configuration file.
     :param log_level: Deprecated since v2.0.2 [Will be removed in v3.0.0]; use the standard logging module to manage logger "pinecone" instead.
     """
-    check_kwargs.check_kwargs(init, kwargs)
+    check_kwargs(init, kwargs)
     Config.reset(project_name=project_name, api_key=api_key, controller_host=host, environment=environment,
                  openapi_config=openapi_config, config_file=config, **kwargs)
     if log_level:
