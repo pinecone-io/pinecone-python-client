@@ -1,6 +1,8 @@
 #
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
+import inspect
+import logging
 import re
 import uuid
 import warnings
@@ -109,3 +111,9 @@ def load_strings_public(proto_arr: 'vector_column_service_pb2.NdArray') -> List[
 def warn_deprecated(description: str = '', deprecated_in: str = None, removal_in: str = None):
     message = f'DEPRECATED since v{deprecated_in} [Will be removed in v{removal_in}]: {description}'
     warnings.warn(message, FutureWarning)
+
+def check_kwargs(caller, given):
+    argspec = inspect.getfullargspec(caller)
+    diff = set(given).difference(argspec.args)
+    if diff:
+        logging.exception(caller.__name__ + ' had unexpected keyword argument(s): ' + ', '.join(diff), exc_info=False)

@@ -15,7 +15,7 @@ from urllib3.connection import HTTPConnection
 
 from pinecone.core.client.exceptions import ApiKeyError
 from pinecone.core.api_action import ActionAPI, WhoAmIResponse
-from pinecone.core.utils import warn_deprecated
+from pinecone.core.utils import warn_deprecated, check_kwargs
 from pinecone.core.utils.constants import CLIENT_VERSION, PARENT_LOGGER_NAME, DEFAULT_PARENT_LOGGER_LEVEL, \
     TCP_KEEPIDLE, TCP_KEEPINTVL, TCP_KEEPCNT
 from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
@@ -245,6 +245,7 @@ def init(api_key: str = None, host: str = None, environment: str = None, project
     :param config: Optional. An INI configuration file.
     :param log_level: Deprecated since v2.0.2 [Will be removed in v3.0.0]; use the standard logging module to manage logger "pinecone" instead.
     """
+    check_kwargs(init, kwargs)
     Config.reset(project_name=project_name, api_key=api_key, controller_host=host, environment=environment,
                  openapi_config=openapi_config, config_file=config, **kwargs)
     if log_level:
