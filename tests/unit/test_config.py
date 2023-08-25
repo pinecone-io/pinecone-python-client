@@ -84,6 +84,10 @@ def test_init_with_kwargs():
     assert Config.CONTROLLER_HOST == controller_host
     assert Config.OPENAPI_CONFIG == openapi_config
 
+def test_init_with_mispelled_kwargs(caplog):
+    pinecone.init(invalid_kwarg="value")
+    assert 'init had unexpected keyword argument(s): invalid_kwarg' in caplog.text
+
 def test_init_with_file_based_configuration():
     """Test that config can be loaded from a file"""
     env = 'ini-test-env'

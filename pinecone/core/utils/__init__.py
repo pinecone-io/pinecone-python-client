@@ -1,6 +1,8 @@
 #
 # Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
 #
+import inspect
+import logging
 import re
 import uuid
 import warnings
@@ -111,8 +113,7 @@ def warn_deprecated(description: str = '', deprecated_in: str = None, removal_in
     warnings.warn(message, FutureWarning)
 
 def check_kwargs(caller, given):
-    import inspect
     argspec = inspect.getfullargspec(caller)
     diff = set(given).difference(argspec.args)
     if diff:
-        raise TypeError(caller.__name__ + ' had unexpected keyword argument(s): ' + ', '.join(diff))
+        logging.exception(caller.__name__ + ' had unexpected keyword argument(s): ' + ', '.join(diff), exc_info=False)
