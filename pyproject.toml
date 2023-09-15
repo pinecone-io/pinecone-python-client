@@ -23,7 +23,7 @@ exclude = '''
 '''
 
 [tool.poetry]
-name = "pinecone-client"
+name = "pinecone"
 version = "2.2.2"
 description = "The official Python client for Pinecone's vector database"
 authors = ["Pinecone Systems, Inc. <support@pinecone.io>"]
