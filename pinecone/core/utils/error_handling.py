@@ -1,6 +1,3 @@
-#
-# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
-#
 import inspect
 from functools import wraps
 
@@ -18,11 +15,12 @@ def validate_and_convert_errors(func):
         except MaxRetryError as e:
             if isinstance(e.reason, ProtocolError):
                 raise PineconeProtocolError(
-                    f'Failed to connect to {e.url}; did you specify the correct index name?') from e
+                    f"Failed to connect to {e.url}; did you specify the correct index name?"
+                ) from e
             else:
                 raise
         except ProtocolError as e:
-            raise PineconeProtocolError(f'Failed to connect; did you specify the correct index name?') from e
+            raise PineconeProtocolError(f"Failed to connect; did you specify the correct index name?") from e
 
     # Override signature
     sig = inspect.signature(func)

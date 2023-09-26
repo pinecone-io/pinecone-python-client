@@ -1,7 +1,3 @@
-#
-# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
-#
-
 import time
 from typing import NamedTuple, Optional
 
@@ -15,9 +11,18 @@ from pinecone.core.client.model.create_collection_request import CreateCollectio
 from pinecone.core.utils import get_user_agent
 
 __all__ = [
-    "create_index", "delete_index", "describe_index", "list_indexes", "scale_index", "IndexDescription",
-    "create_collection", "describe_collection", "list_collections", "delete_collection", "configure_index",
-    "CollectionDescription"
+    "create_index",
+    "delete_index",
+    "describe_index",
+    "list_indexes",
+    "scale_index",
+    "IndexDescription",
+    "create_collection",
+    "describe_collection",
+    "list_collections",
+    "delete_collection",
+    "configure_index",
+    "CollectionDescription",
 ]
 
 
@@ -46,13 +51,8 @@ class CollectionDescription(object):
 def _get_api_instance():
     client_config = Config.OPENAPI_CONFIG
     client_config.api_key = client_config.api_key or {}
-    client_config.api_key['ApiKeyAuth'] = client_config.api_key.get('ApiKeyAuth', Config.API_KEY)
-    client_config.server_variables = {
-        **{
-            'environment': Config.ENVIRONMENT
-        },
-        **client_config.server_variables
-    }
+    client_config.api_key["ApiKeyAuth"] = client_config.api_key.get("ApiKeyAuth", Config.API_KEY)
+    client_config.server_variables = {**{"environment": Config.ENVIRONMENT}, **client_config.server_variables}
     api_client = ApiClient(configuration=client_config)
     api_client.user_agent = get_user_agent()
     api_instance = IndexOperationsApi(api_client)
@@ -62,22 +62,22 @@ def _get_api_instance():
 def _get_status(name: str):
     api_instance = _get_api_instance()
     response = api_instance.describe_index(name)
-    return response['status']
+    return response["status"]
 
 
 def create_index(
-        name: str,
-        dimension: int,
-        timeout: int = None,
-        index_type: str = "approximated",
-        metric: str = "cosine",
-        replicas: int = 1,
-        shards: int = 1,
-        pods: int = 1,
-        pod_type: str = 'p1',
-        index_config: dict = None,
-        metadata_config: dict = None,
-        source_collection: str = '',
+    name: str,
+    dimension: int,
+    timeout: int = None,
+    index_type: str = "approximated",
+    metric: str = "cosine",
+    replicas: int = 1,
+    shards: int = 1,
+    pods: int = 1,
+    pod_type: str = "p1",
+    index_config: dict = None,
+    metadata_config: dict = None,
+    source_collection: str = "",
 ):
     """Creates a Pinecone index.
 
@@ -115,23 +115,25 @@ def create_index(
     """
     api_instance = _get_api_instance()
 
-    api_instance.create_index(create_request=CreateRequest(
-        name=name,
-        dimension=dimension,
-        index_type=index_type,
-        metric=metric,
-        replicas=replicas,
-        shards=shards,
-        pods=pods,
-        pod_type=pod_type,
-        index_config=index_config or {},
-        metadata_config=metadata_config,
-        source_collection=source_collection
-    ))
+    api_instance.create_index(
+        create_request=CreateRequest(
+            name=name,
+            dimension=dimension,
+            index_type=index_type,
+            metric=metric,
+            replicas=replicas,
+            shards=shards,
+            pods=pods,
+            pod_type=pod_type,
+            index_config=index_config or {},
+            metadata_config=metadata_config,
+            source_collection=source_collection,
+        )
+    )
 
     def is_ready():
         status = _get_status(name)
-        ready = status['ready']
+        ready = status["ready"]
         return ready
 
     if timeout == -1:
@@ -144,9 +146,13 @@ def create_index(
             time.sleep(5)
             timeout -= 5
     if timeout and timeout < 0:
-        raise (TimeoutError(
-            'Please call the describe_index API ({}) to confirm index status.'.format(
-                'https://www.pinecone.io/docs/api/operation/describe_index/')))
+        raise (
+            TimeoutError(
+                "Please call the describe_index API ({}) to confirm index status.".format(
+                    "https://www.pinecone.io/docs/api/operation/describe_index/"
+                )
+            )
+        )
 
 
 def delete_index(name: str, timeout: int = None):
@@ -174,9 +180,13 @@ def delete_index(name: str, timeout: int = None):
             time.sleep(5)
             timeout -= 5
     if timeout and timeout < 0:
-        raise (TimeoutError(
-            'Please call the list_indexes API ({}) to confirm if index is deleted'.format(
-                'https://www.pinecone.io/docs/api/operation/list_indexes/')))
+        raise (
+            TimeoutError(
+                "Please call the list_indexes API ({}) to confirm if index is deleted".format(
+                    "https://www.pinecone.io/docs/api/operation/list_indexes/"
+                )
+            )
+        )
 
 
 def list_indexes():
@@ -194,14 +204,21 @@ def describe_index(name: str):
     """
     api_instance = _get_api_instance()
     response = api_instance.describe_index(name)
-    db = response['database']
-    ready = response['status']['ready']
-    state = response['status']['state']
-    return IndexDescription(name=db['name'], metric=db['metric'],
-                            replicas=db['replicas'], dimension=db['dimension'], shards=db['shards'],
-                            pods=db.get('pods', db['shards'] * db['replicas']), pod_type=db.get('pod_type', 'p1'),
-                            status={'ready': ready, 'state': state}, metadata_config=db.get('metadata_config'),
-                            source_collection=db.get('source_collection', ''))
+    db = response["database"]
+    ready = response["status"]["ready"]
+    state = response["status"]["state"]
+    return IndexDescription(
+        name=db["name"],
+        metric=db["metric"],
+        replicas=db["replicas"],
+        dimension=db["dimension"],
+        shards=db["shards"],
+        pods=db.get("pods", db["shards"] * db["replicas"]),
+        pod_type=db.get("pod_type", "p1"),
+        status={"ready": ready, "state": state},
+        metadata_config=db.get("metadata_config"),
+        source_collection=db.get("source_collection", ""),
+    )
 
 
 def scale_index(name: str, replicas: int):
@@ -216,10 +233,7 @@ def scale_index(name: str, replicas: int):
     api_instance.configure_index(name, patch_request=PatchRequest(replicas=replicas, pod_type=""))
 
 
-def create_collection(
-        name: str,
-        source: str
-):
+def create_collection(name: str, source: str):
     """Create a collection
     :param: name: Name of the collection
     :param: source: Name of the source index
@@ -256,10 +270,10 @@ def describe_collection(name: str):
 
 def configure_index(name: str, replicas: Optional[int] = None, pod_type: Optional[str] = ""):
     """Changes current configuration of the index.
-       :param: name: the name of the Index
-       :param: replicas: the desired number of replicas, lowest value is 0.
-       :param: pod_type: the new pod_type for the index.
-       """
+    :param: name: the name of the Index
+    :param: replicas: the desired number of replicas, lowest value is 0.
+    :param: pod_type: the new pod_type for the index.
+    """
     api_instance = _get_api_instance()
     config_args = {}
     if pod_type != "":

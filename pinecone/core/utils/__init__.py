@@ -1,6 +1,3 @@
-#
-# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
-#
 import re
 import uuid
 import warnings
@@ -22,7 +19,7 @@ except Exception:
 DNS_COMPATIBLE_REGEX = re.compile("^[a-z0-9]([a-z0-9]|[-])+[a-z0-9]$")
 
 
-def dump_numpy_public(np_array: 'np.ndarray', compressed: bool = False) -> 'vector_column_service_pb2.NdArray':
+def dump_numpy_public(np_array: "np.ndarray", compressed: bool = False) -> "vector_column_service_pb2.NdArray":
     """
     Dump numpy array to vector_column_service_pb2.NdArray
     """
@@ -37,23 +34,25 @@ def dump_numpy_public(np_array: 'np.ndarray', compressed: bool = False) -> 'vect
     return protobuf_arr
 
 
-def dump_strings_public(strs: List[str], compressed: bool = False) -> 'vector_column_service_pb2.NdArray':
-    return dump_numpy_public(np.array(strs, dtype='S'), compressed=compressed)
+def dump_strings_public(strs: List[str], compressed: bool = False) -> "vector_column_service_pb2.NdArray":
+    return dump_numpy_public(np.array(strs, dtype="S"), compressed=compressed)
 
 
 def get_version():
-    return Path(__file__).parent.parent.parent.joinpath('__version__').read_text().strip()
+    return Path(__file__).parent.parent.parent.joinpath("__version__").read_text().strip()
 
 
 def get_environment():
-    return Path(__file__).parent.parent.parent.joinpath('__environment__').read_text().strip()
+    return Path(__file__).parent.parent.parent.joinpath("__environment__").read_text().strip()
 
 
 def validate_dns_name(name):
     if not DNS_COMPATIBLE_REGEX.match(name):
-        raise ValueError("{} is invalid - service names and node names must consist of lower case "
-                         "alphanumeric characters or '-', start with an alphabetic character, and end with an "
-                         "alphanumeric character (e.g. 'my-name', or 'abc-123')".format(name))
+        raise ValueError(
+            "{} is invalid - service names and node names must consist of lower case "
+            "alphanumeric characters or '-', start with an alphabetic character, and end with an "
+            "alphanumeric character (e.g. 'my-name', or 'abc-123')".format(name)
+        )
 
 
 def _generate_request_id() -> str:
@@ -66,13 +65,13 @@ def fix_tuple_length(t, n):
 
 
 def get_user_agent():
-    client_id = f'python-client-{get_version()}'
-    user_agent_details = {'requests': requests.__version__, 'urllib3': urllib3.__version__}
-    user_agent = '{} ({})'.format(client_id, ', '.join([f'{k}:{v}' for k, v in user_agent_details.items()]))
+    client_id = f"python-client-{get_version()}"
+    user_agent_details = {"requests": requests.__version__, "urllib3": urllib3.__version__}
+    user_agent = "{} ({})".format(client_id, ", ".join([f"{k}:{v}" for k, v in user_agent_details.items()]))
     return user_agent
 
 
-def dict_to_proto_struct(d: dict) -> 'Struct':
+def dict_to_proto_struct(d: dict) -> "Struct":
     if not d:
         d = {}
     s = Struct()
@@ -80,11 +79,11 @@ def dict_to_proto_struct(d: dict) -> 'Struct':
     return s
 
 
-def proto_struct_to_dict(s: 'Struct') -> dict:
+def proto_struct_to_dict(s: "Struct") -> dict:
     return json_format.MessageToDict(s)
 
 
-def load_numpy_public(proto_arr: 'vector_column_service_pb2.NdArray') -> 'np.ndarray':
+def load_numpy_public(proto_arr: "vector_column_service_pb2.NdArray") -> "np.ndarray":
     """
     Load numpy array from protobuf
     :param proto_arr:
@@ -99,10 +98,10 @@ def load_numpy_public(proto_arr: 'vector_column_service_pb2.NdArray') -> 'np.nda
     return numpy_arr.reshape(proto_arr.shape)
 
 
-def load_strings_public(proto_arr: 'vector_column_service_pb2.NdArray') -> List[str]:
-    return [str(item, 'utf-8') for item in load_numpy_public(proto_arr)]
+def load_strings_public(proto_arr: "vector_column_service_pb2.NdArray") -> List[str]:
+    return [str(item, "utf-8") for item in load_numpy_public(proto_arr)]
 
 
-def warn_deprecated(description: str = '', deprecated_in: str = None, removal_in: str = None):
-    message = f'DEPRECATED since v{deprecated_in} [Will be removed in v{removal_in}]: {description}'
+def warn_deprecated(description: str = "", deprecated_in: str = None, removal_in: str = None):
+    message = f"DEPRECATED since v{deprecated_in} [Will be removed in v{removal_in}]: {description}"
     warnings.warn(message, DeprecationWarning)

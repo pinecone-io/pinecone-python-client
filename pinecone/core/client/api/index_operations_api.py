@@ -1,7 +1,3 @@
-#
-# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
-#
-
 """
     Pinecone API
 
@@ -24,7 +20,7 @@ from pinecone.core.client.model_utils import (  # noqa: F401
     datetime,
     file_type,
     none_type,
-    validate_and_convert_types
+    validate_and_convert_types,
 )
 from pinecone.core.client.model.collection_meta import CollectionMeta
 from pinecone.core.client.model.create_collection_request import CreateCollectionRequest
@@ -45,11 +41,7 @@ class IndexOperationsApi(object):
             api_client = ApiClient()
         self.api_client = api_client
 
-        def __configure_index(
-            self,
-            index_name,
-            **kwargs
-        ):
+        def __configure_index(self, index_name, **kwargs):
             """configure_index  # noqa: E501
 
             This operation specifies the pod type and number of replicas for an index.  # noqa: E501
@@ -89,103 +81,70 @@ class IndexOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
-            kwargs['index_name'] = \
-                index_name
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs["index_name"] = index_name
             return self.call_with_http_info(**kwargs)
 
         self.configure_index = _Endpoint(
             settings={
-                'response_type': (str,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/databases/{indexName}',
-                'operation_id': 'configure_index',
-                'http_method': 'PATCH',
-                'servers': [
+                "response_type": (str,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/databases/{indexName}",
+                "operation_id": "configure_index",
+                "http_method": "PATCH",
+                "servers": [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
-                        'description': "No description provided",
-                        'variables': {
-                            'environment': {
-                                'description': "No description provided",
-                                'default_value': "unknown",
-                                }
+                        "url": "https://controller.{environment}.pinecone.io",
+                        "description": "No description provided",
+                        "variables": {
+                            "environment": {
+                                "description": "No description provided",
+                                "default_value": "unknown",
                             }
+                        },
                     },
-                ]
+                ],
             },
             params_map={
-                'all': [
-                    'index_name',
-                    'patch_request',
+                "all": [
+                    "index_name",
+                    "patch_request",
                 ],
-                'required': [
-                    'index_name',
+                "required": [
+                    "index_name",
                 ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "index_name": (str,),
+                    "patch_request": (PatchRequest,),
                 },
-                'allowed_values': {
+                "attribute_map": {
+                    "index_name": "indexName",
                 },
-                'openapi_types': {
-                    'index_name':
-                        (str,),
-                    'patch_request':
-                        (PatchRequest,),
+                "location_map": {
+                    "index_name": "path",
+                    "patch_request": "body",
                 },
-                'attribute_map': {
-                    'index_name': 'indexName',
-                },
-                'location_map': {
-                    'index_name': 'path',
-                    'patch_request': 'body',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'text/plain'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
+            headers_map={"accept": ["text/plain"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__configure_index
+            callable=__configure_index,
         )
 
-        def __create_collection(
-            self,
-            **kwargs
-        ):
+        def __create_collection(self, **kwargs):
             """create_collection  # noqa: E501
 
             This operation creates a Pinecone collection.  # noqa: E501
@@ -223,94 +182,62 @@ class IndexOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
             return self.call_with_http_info(**kwargs)
 
         self.create_collection = _Endpoint(
             settings={
-                'response_type': (str,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/collections',
-                'operation_id': 'create_collection',
-                'http_method': 'POST',
-                'servers': [
+                "response_type": (str,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/collections",
+                "operation_id": "create_collection",
+                "http_method": "POST",
+                "servers": [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
-                        'description': "No description provided",
-                        'variables': {
-                            'environment': {
-                                'description': "No description provided",
-                                'default_value': "unknown",
-                                }
+                        "url": "https://controller.{environment}.pinecone.io",
+                        "description": "No description provided",
+                        "variables": {
+                            "environment": {
+                                "description": "No description provided",
+                                "default_value": "unknown",
                             }
+                        },
                     },
-                ]
+                ],
             },
             params_map={
-                'all': [
-                    'create_collection_request',
+                "all": [
+                    "create_collection_request",
                 ],
-                'required': [],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "required": [],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "create_collection_request": (CreateCollectionRequest,),
                 },
-                'allowed_values': {
+                "attribute_map": {},
+                "location_map": {
+                    "create_collection_request": "body",
                 },
-                'openapi_types': {
-                    'create_collection_request':
-                        (CreateCollectionRequest,),
-                },
-                'attribute_map': {
-                },
-                'location_map': {
-                    'create_collection_request': 'body',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'text/plain'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
+            headers_map={"accept": ["text/plain"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__create_collection
+            callable=__create_collection,
         )
 
-        def __create_index(
-            self,
-            **kwargs
-        ):
+        def __create_index(self, **kwargs):
             """create_index  # noqa: E501
 
             This operation creates a Pinecone index. You can use it to specify the measure of similarity, the dimension of vectors to be stored in the index, the numbers of shards and replicas to use, and more.  # noqa: E501
@@ -348,95 +275,62 @@ class IndexOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
             return self.call_with_http_info(**kwargs)
 
         self.create_index = _Endpoint(
             settings={
-                'response_type': (str,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/databases',
-                'operation_id': 'create_index',
-                'http_method': 'POST',
-                'servers': [
+                "response_type": (str,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/databases",
+                "operation_id": "create_index",
+                "http_method": "POST",
+                "servers": [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
-                        'description': "No description provided",
-                        'variables': {
-                            'environment': {
-                                'description': "No description provided",
-                                'default_value': "unknown",
-                                }
+                        "url": "https://controller.{environment}.pinecone.io",
+                        "description": "No description provided",
+                        "variables": {
+                            "environment": {
+                                "description": "No description provided",
+                                "default_value": "unknown",
                             }
+                        },
                     },
-                ]
+                ],
             },
             params_map={
-                'all': [
-                    'create_request',
+                "all": [
+                    "create_request",
                 ],
-                'required': [],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "required": [],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "create_request": (CreateRequest,),
                 },
-                'allowed_values': {
+                "attribute_map": {},
+                "location_map": {
+                    "create_request": "body",
                 },
-                'openapi_types': {
-                    'create_request':
-                        (CreateRequest,),
-                },
-                'attribute_map': {
-                },
-                'location_map': {
-                    'create_request': 'body',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'text/plain'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
+            headers_map={"accept": ["text/plain"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__create_index
+            callable=__create_index,
         )
 
-        def __delete_collection(
-            self,
-            collection_name,
-            **kwargs
-        ):
+        def __delete_collection(self, collection_name, **kwargs):
             """delete_collection  # noqa: E501
 
             This operation deletes an existing collection.  # noqa: E501
@@ -475,98 +369,70 @@ class IndexOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
-            kwargs['collection_name'] = \
-                collection_name
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs["collection_name"] = collection_name
             return self.call_with_http_info(**kwargs)
 
         self.delete_collection = _Endpoint(
             settings={
-                'response_type': (str,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/collections/{collectionName}',
-                'operation_id': 'delete_collection',
-                'http_method': 'DELETE',
-                'servers': [
+                "response_type": (str,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/collections/{collectionName}",
+                "operation_id": "delete_collection",
+                "http_method": "DELETE",
+                "servers": [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
-                        'description': "No description provided",
-                        'variables': {
-                            'environment': {
-                                'description': "No description provided",
-                                'default_value': "unknown",
-                                }
+                        "url": "https://controller.{environment}.pinecone.io",
+                        "description": "No description provided",
+                        "variables": {
+                            "environment": {
+                                "description": "No description provided",
+                                "default_value": "unknown",
                             }
+                        },
                     },
-                ]
+                ],
             },
             params_map={
-                'all': [
-                    'collection_name',
+                "all": [
+                    "collection_name",
                 ],
-                'required': [
-                    'collection_name',
+                "required": [
+                    "collection_name",
                 ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "collection_name": (str,),
                 },
-                'allowed_values': {
+                "attribute_map": {
+                    "collection_name": "collectionName",
                 },
-                'openapi_types': {
-                    'collection_name':
-                        (str,),
+                "location_map": {
+                    "collection_name": "path",
                 },
-                'attribute_map': {
-                    'collection_name': 'collectionName',
-                },
-                'location_map': {
-                    'collection_name': 'path',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
             headers_map={
-                'accept': [
-                    'text/plain'
-                ],
-                'content_type': [],
+                "accept": ["text/plain"],
+                "content_type": [],
             },
             api_client=api_client,
-            callable=__delete_collection
+            callable=__delete_collection,
         )
 
-        def __delete_index(
-            self,
-            index_name,
-            **kwargs
-        ):
+        def __delete_index(self, index_name, **kwargs):
             """delete_index  # noqa: E501
 
             This operation deletes an existing index.  # noqa: E501
@@ -605,98 +471,70 @@ class IndexOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
-            kwargs['index_name'] = \
-                index_name
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs["index_name"] = index_name
             return self.call_with_http_info(**kwargs)
 
         self.delete_index = _Endpoint(
             settings={
-                'response_type': (str,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/databases/{indexName}',
-                'operation_id': 'delete_index',
-                'http_method': 'DELETE',
-                'servers': [
+                "response_type": (str,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/databases/{indexName}",
+                "operation_id": "delete_index",
+                "http_method": "DELETE",
+                "servers": [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
-                        'description': "No description provided",
-                        'variables': {
-                            'environment': {
-                                'description': "No description provided",
-                                'default_value': "unknown",
-                                }
+                        "url": "https://controller.{environment}.pinecone.io",
+                        "description": "No description provided",
+                        "variables": {
+                            "environment": {
+                                "description": "No description provided",
+                                "default_value": "unknown",
                             }
+                        },
                     },
-                ]
+                ],
             },
             params_map={
-                'all': [
-                    'index_name',
+                "all": [
+                    "index_name",
                 ],
-                'required': [
-                    'index_name',
+                "required": [
+                    "index_name",
                 ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "index_name": (str,),
                 },
-                'allowed_values': {
+                "attribute_map": {
+                    "index_name": "indexName",
                 },
-                'openapi_types': {
-                    'index_name':
-                        (str,),
+                "location_map": {
+                    "index_name": "path",
                 },
-                'attribute_map': {
-                    'index_name': 'indexName',
-                },
-                'location_map': {
-                    'index_name': 'path',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
             headers_map={
-                'accept': [
-                    'text/plain'
-                ],
-                'content_type': [],
+                "accept": ["text/plain"],
+                "content_type": [],
             },
             api_client=api_client,
-            callable=__delete_index
+            callable=__delete_index,
         )
 
-        def __describe_collection(
-            self,
-            collection_name,
-            **kwargs
-        ):
+        def __describe_collection(self, collection_name, **kwargs):
             """describe_collection  # noqa: E501
 
             Get a description of a collection.  # noqa: E501
@@ -735,98 +573,70 @@ class IndexOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
-            kwargs['collection_name'] = \
-                collection_name
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs["collection_name"] = collection_name
             return self.call_with_http_info(**kwargs)
 
         self.describe_collection = _Endpoint(
             settings={
-                'response_type': (CollectionMeta,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/collections/{collectionName}',
-                'operation_id': 'describe_collection',
-                'http_method': 'GET',
-                'servers': [
+                "response_type": (CollectionMeta,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/collections/{collectionName}",
+                "operation_id": "describe_collection",
+                "http_method": "GET",
+                "servers": [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
-                        'description': "No description provided",
-                        'variables': {
-                            'environment': {
-                                'description': "No description provided",
-                                'default_value': "unknown",
-                                }
+                        "url": "https://controller.{environment}.pinecone.io",
+                        "description": "No description provided",
+                        "variables": {
+                            "environment": {
+                                "description": "No description provided",
+                                "default_value": "unknown",
                             }
+                        },
                     },
-                ]
+                ],
             },
             params_map={
-                'all': [
-                    'collection_name',
+                "all": [
+                    "collection_name",
                 ],
-                'required': [
-                    'collection_name',
+                "required": [
+                    "collection_name",
                 ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "collection_name": (str,),
                 },
-                'allowed_values': {
+                "attribute_map": {
+                    "collection_name": "collectionName",
                 },
-                'openapi_types': {
-                    'collection_name':
-                        (str,),
+                "location_map": {
+                    "collection_name": "path",
                 },
-                'attribute_map': {
-                    'collection_name': 'collectionName',
-                },
-                'location_map': {
-                    'collection_name': 'path',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
             headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
+                "accept": ["application/json"],
+                "content_type": [],
             },
             api_client=api_client,
-            callable=__describe_collection
+            callable=__describe_collection,
         )
 
-        def __describe_index(
-            self,
-            index_name,
-            **kwargs
-        ):
+        def __describe_index(self, index_name, **kwargs):
             """describe_index  # noqa: E501
 
             Get a description of an index.  # noqa: E501
@@ -865,97 +675,70 @@ class IndexOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
-            kwargs['index_name'] = \
-                index_name
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs["index_name"] = index_name
             return self.call_with_http_info(**kwargs)
 
         self.describe_index = _Endpoint(
             settings={
-                'response_type': (IndexMeta,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/databases/{indexName}',
-                'operation_id': 'describe_index',
-                'http_method': 'GET',
-                'servers': [
+                "response_type": (IndexMeta,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/databases/{indexName}",
+                "operation_id": "describe_index",
+                "http_method": "GET",
+                "servers": [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
-                        'description': "No description provided",
-                        'variables': {
-                            'environment': {
-                                'description': "No description provided",
-                                'default_value': "unknown",
-                                }
+                        "url": "https://controller.{environment}.pinecone.io",
+                        "description": "No description provided",
+                        "variables": {
+                            "environment": {
+                                "description": "No description provided",
+                                "default_value": "unknown",
                             }
+                        },
                     },
-                ]
+                ],
             },
             params_map={
-                'all': [
-                    'index_name',
+                "all": [
+                    "index_name",
                 ],
-                'required': [
-                    'index_name',
+                "required": [
+                    "index_name",
                 ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "index_name": (str,),
                 },
-                'allowed_values': {
+                "attribute_map": {
+                    "index_name": "indexName",
                 },
-                'openapi_types': {
-                    'index_name':
-                        (str,),
+                "location_map": {
+                    "index_name": "path",
                 },
-                'attribute_map': {
-                    'index_name': 'indexName',
-                },
-                'location_map': {
-                    'index_name': 'path',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
             headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
+                "accept": ["application/json"],
+                "content_type": [],
             },
             api_client=api_client,
-            callable=__describe_index
+            callable=__describe_index,
         )
 
-        def __list_collections(
-            self,
-            **kwargs
-        ):
+        def __list_collections(self, **kwargs):
             """list_collections  # noqa: E501
 
             This operation returns a list of your Pinecone collections.  # noqa: E501
@@ -992,88 +775,53 @@ class IndexOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
             return self.call_with_http_info(**kwargs)
 
         self.list_collections = _Endpoint(
             settings={
-                'response_type': ([str],),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/collections',
-                'operation_id': 'list_collections',
-                'http_method': 'GET',
-                'servers': [
+                "response_type": ([str],),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/collections",
+                "operation_id": "list_collections",
+                "http_method": "GET",
+                "servers": [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
-                        'description': "No description provided",
-                        'variables': {
-                            'environment': {
-                                'description': "No description provided",
-                                'default_value': "unknown",
-                                }
+                        "url": "https://controller.{environment}.pinecone.io",
+                        "description": "No description provided",
+                        "variables": {
+                            "environment": {
+                                "description": "No description provided",
+                                "default_value": "unknown",
                             }
+                        },
                     },
-                ]
+                ],
             },
-            params_map={
-                'all': [
-                ],
-                'required': [],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
-            },
+            params_map={"all": [], "required": [], "nullable": [], "enum": [], "validation": []},
             root_map={
-                'validations': {
-                },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                },
-                'attribute_map': {
-                },
-                'location_map': {
-                },
-                'collection_format_map': {
-                }
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {},
+                "attribute_map": {},
+                "location_map": {},
+                "collection_format_map": {},
             },
             headers_map={
-                'accept': [
-                    'application/json; charset=utf-8'
-                ],
-                'content_type': [],
+                "accept": ["application/json; charset=utf-8"],
+                "content_type": [],
             },
             api_client=api_client,
-            callable=__list_collections
+            callable=__list_collections,
         )
 
-        def __list_indexes(
-            self,
-            **kwargs
-        ):
+        def __list_indexes(self, **kwargs):
             """list_indexes  # noqa: E501
 
             This operation returns a list of your Pinecone indexes.  # noqa: E501
@@ -1110,80 +858,48 @@ class IndexOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
             return self.call_with_http_info(**kwargs)
 
         self.list_indexes = _Endpoint(
             settings={
-                'response_type': ([str],),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/databases',
-                'operation_id': 'list_indexes',
-                'http_method': 'GET',
-                'servers': [
+                "response_type": ([str],),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/databases",
+                "operation_id": "list_indexes",
+                "http_method": "GET",
+                "servers": [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
-                        'description': "No description provided",
-                        'variables': {
-                            'environment': {
-                                'description': "No description provided",
-                                'default_value': "unknown",
-                                }
+                        "url": "https://controller.{environment}.pinecone.io",
+                        "description": "No description provided",
+                        "variables": {
+                            "environment": {
+                                "description": "No description provided",
+                                "default_value": "unknown",
                             }
+                        },
                     },
-                ]
+                ],
             },
-            params_map={
-                'all': [
-                ],
-                'required': [],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
-            },
+            params_map={"all": [], "required": [], "nullable": [], "enum": [], "validation": []},
             root_map={
-                'validations': {
-                },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                },
-                'attribute_map': {
-                },
-                'location_map': {
-                },
-                'collection_format_map': {
-                }
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {},
+                "attribute_map": {},
+                "location_map": {},
+                "collection_format_map": {},
             },
             headers_map={
-                'accept': [
-                    'application/json; charset=utf-8'
-                ],
-                'content_type': [],
+                "accept": ["application/json; charset=utf-8"],
+                "content_type": [],
             },
             api_client=api_client,
-            callable=__list_indexes
+            callable=__list_indexes,
         )
