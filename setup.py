@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-#
-# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
-#
+
 
 import os
 
@@ -21,7 +19,7 @@ setuptools.setup(
     name="pinecone-client",
     version=read("pinecone/__version__").strip(),
     description="Pinecone client and SDK",
-    license="Proprietary License",
+    license='Apache 2.0',
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
     url="https://www.pinecone.io/",
