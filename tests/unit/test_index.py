@@ -1,5 +1,7 @@
 import pandas as pd
+import numpy as np
 import pytest
+import warnings
 
 from pinecone.core.client.api_client import Endpoint
 
@@ -34,8 +36,15 @@ class TestRestIndex:
 
         pinecone.init(api_key='example-key')
         self.index = pinecone.Index('example-name')
-
-    # region: upsert tests
+    
+    def test_upsert_numpy_deprecation_warning(self, mocker):
+        mocker.patch.object(self.index._vector_api, 'upsert', autospec=True)
+        with pytest.warns(FutureWarning):
+            # numpy used in dictionary values
+            self.index.upsert([{'id': '2', 'values': np.array([3.0, 3.2, 4.2])}])
+        with pytest.warns(FutureWarning):
+            # numpy used in dictionary sparse_values
+            self.index.upsert([{'id': '3', 'values': [0.5,0.5,0.5], 'sparse_values': { 'indices': np.array([0, 1]), 'values': np.array([3.0, 3.2])}}])
 
     def test_upsert_tuplesOfIdVec_UpserWithoutMD(self, mocker):
         mocker.patch.object(self.index._vector_api, 'upsert', autospec=True)

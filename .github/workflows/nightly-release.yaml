@@ -1,0 +1,61 @@
+name: 'PyPI Release: Nightly (pinecone-client-nightly)'
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  run-tests:
+    uses: './.github/workflows/testing.yaml'
+
+  pypi-nightly:
+    needs: run-tests
+    timeout-minutes: 30
+    name: pypi-nightly
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+    
+      - name: Get recent changes
+        id: list-commits
+        run: |
+          recentCommits=$(git log --since=yesterday --oneline)
+          echo "commits=$recentCommits" >> "$GITHUB_OUTPUT"
+
+      - name: Abort if no recent changes
+        if: steps.list-commits.outputs.commits == ''
+        uses: andymckay/cancel-action@0.3
+
+      - name: Set dev version
+        id: version
+        run: |
+            versionFile="pinecone/__version__"
+            currentDate=$(date +%Y%m%d%H%M%S)
+            versionNumber=$(cat $versionFile)
+            devVersion="${versionNumber}.dev${currentDate}"
+            echo "$devVersion" > $versionFile
+
+      - name: Adjust module name
+        run: |
+            sed -i 's/pinecone-client/pinecone-client-nightly/g' setup.py
+    
+      - name: Update README
+        run: |
+            echo "This is a nightly developer build of the Pinecone Python client. It is not intended for production use." > README.md
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+
+      - name: Build Python client
+        run: make package
+
+      - name: Upload Python client to PyPI
+        id: pypi_upload
+        env:
+          TWINE_REPOSITORY: pypi
+          PYPI_USERNAME: ${{ secrets.PROD_PYPI_USERNAME }}
+          PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PASSWORD }}
+        run: make upload

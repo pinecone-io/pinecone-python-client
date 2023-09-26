@@ -1,55 +1,40 @@
-name: Pypi
-# upload package to Pypi
+name: 'PyPI Release: Production (pinecone-client)'
 
-on: [workflow_dispatch]
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref to build (branch name or SHA)'
+        required: true
+        type: string
+        default: 'main' 
+      releaseLevel:
+        description: 'Release level'
+        required: true
+        type: choice
+        default: 'patch'
+        options:
+          - 'patch' # bug fixes
+          - 'minor' # new features, backwards compatible
+          - 'major' # breaking changes
 
 env:
-  PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+  PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
+  PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
 
 jobs:
+  testing:
+    uses: './.github/workflows/testing.yaml'
 
   pypi:
-    timeout-minutes: 30
-    name: pypi
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v1
-      with:
-        python-version: 3.7
-
-#    - uses: actions/checkout@v3
-#      with:
-#        repository: pinecone-io/pinecone-python-client
-#        ref: ''
-#        token: ${{ secrets.PAT }}
-#        path: pinecone-python-client
-
-    - name: Set Python client production environment
-      run: make set-production
-
-    - name: Build Python client
-      run: make package
-
-    - name: Set Version
-      run: echo "VERSION=$(cat pinecone/__version__ )" >> $GITHUB_ENV
-
-    - name: Upload Python client to Pypi
-      run: make upload PYPI_PASSWORD=${{ env.PYPI_PASSWORD }}
-
-    - name: Create tag
-      uses: actions/github-script@v5
-      with:
-        script: |
-          github.rest.git.createRef({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            ref: 'refs/tags/${{ env.VERSION }}',
-            sha: context.sha
-          })
-
-    - name: Create a Release
-      uses: elgohr/Github-Release-Action@v4
-      with:
-        title: Release ${{ env.VERSION }}
+    uses: './.github/workflows/publish-to-pypi.yaml'
+    needs: testing
+    with:
+      isPrerelease: false
+      ref: ${{ inputs.ref }}
+      releaseLevel: ${{ inputs.releaseLevel }}
+      TWINE_REPOSITORY: 'pypi'
+      prereleaseSuffix: ''
+    secrets:
+      PYPI_USERNAME: ${{ secrets.PROD_PYPI_USERNAME }}
+      PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PASSWORD }}

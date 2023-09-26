@@ -1,3 +1,6 @@
+#
+# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
+#
 import logging
 import sys
 from typing import NamedTuple, List
@@ -12,18 +15,14 @@ from urllib3.connection import HTTPConnection
 
 from pinecone.core.client.exceptions import ApiKeyError
 from pinecone.core.api_action import ActionAPI, WhoAmIResponse
-from pinecone.core.utils import warn_deprecated
-from pinecone.core.utils.constants import (
-    CLIENT_VERSION,
-    PARENT_LOGGER_NAME,
-    DEFAULT_PARENT_LOGGER_LEVEL,
-    TCP_KEEPIDLE,
-    TCP_KEEPINTVL,
-    TCP_KEEPCNT,
-)
+from pinecone.core.utils import warn_deprecated, check_kwargs
+from pinecone.core.utils.constants import CLIENT_VERSION, PARENT_LOGGER_NAME, DEFAULT_PARENT_LOGGER_LEVEL, \
+    TCP_KEEPIDLE, TCP_KEEPINTVL, TCP_KEEPCNT
 from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
 
-__all__ = ["Config", "init"]
+__all__ = [
+    "Config", "init"
+]
 
 _logger = logging.getLogger(__name__)
 _parent_logger = logging.getLogger(PARENT_LOGGER_NAME)
@@ -64,10 +63,10 @@ class _CONFIG:
 
         # Get the environment first. Make sure that it is not overwritten in subsequent config objects.
         environment = (
-            kwargs.pop("environment", None)
-            or os.getenv("PINECONE_ENVIRONMENT")
-            or file_config.pop("environment", None)
-            or "us-west1-gcp"
+                kwargs.pop("environment", None)
+                or os.getenv("PINECONE_ENVIRONMENT")
+                or file_config.pop("environment", None)
+                or "us-west1-gcp"
         )
         config = config._replace(environment=environment)
 
@@ -103,20 +102,23 @@ class _CONFIG:
 
         if not self._config.project_name:
             config = config._replace(
-                **self._preprocess_and_validate_config({"project_name": whoami_response.projectname})
-            )
+                **self._preprocess_and_validate_config({'project_name': whoami_response.projectname}))
 
         self._config = config
 
         # Set OpenAPI client config
         default_openapi_config = OpenApiConfiguration.get_default_copy()
         default_openapi_config.ssl_ca_cert = certifi.where()
-        openapi_config = kwargs.pop("openapi_config", None) or default_openapi_config
+        openapi_config = (
+                kwargs.pop("openapi_config", None)
+                or default_openapi_config
+        )
 
         openapi_config.socket_options = self._get_socket_options()
 
         config = config._replace(openapi_config=openapi_config)
         self._config = config
+
 
     def _preprocess_and_validate_config(self, config: dict) -> dict:
         """Normalize, filter, and validate config keys/values.
@@ -126,9 +128,9 @@ class _CONFIG:
         """
         # general preprocessing and filtering
         result = {k: v for k, v in config.items() if k in ConfigBase._fields if v is not None}
-        result.pop("environment", None)
+        result.pop('environment', None)
         # validate api key
-        api_key = result.get("api_key")
+        api_key = result.get('api_key')
         # if api_key:
         #     try:
         #         uuid.UUID(api_key)
@@ -150,12 +152,11 @@ class _CONFIG:
         return config_obj
 
     @staticmethod
-    def _get_socket_options(
-        do_keep_alive: bool = True,
-        keep_alive_idle_sec: int = TCP_KEEPIDLE,
-        keep_alive_interval_sec: int = TCP_KEEPINTVL,
-        keep_alive_tries: int = TCP_KEEPCNT,
-    ) -> List[tuple]:
+    def _get_socket_options(do_keep_alive: bool = True,
+                            keep_alive_idle_sec: int = TCP_KEEPIDLE,
+                            keep_alive_interval_sec: int = TCP_KEEPINTVL,
+                            keep_alive_tries: int = TCP_KEEPCNT
+                            ) -> List[tuple]:
         """
         Returns the socket options to pass to OpenAPI's Rest client
         Args:
@@ -178,12 +179,8 @@ class _CONFIG:
         # TCP Keep Alive Probes for different platforms
         platform = sys.platform
         # TCP Keep Alive Probes for Linux
-        if (
-            platform == "linux"
-            and hasattr(socket, "TCP_KEEPIDLE")
-            and hasattr(socket, "TCP_KEEPINTVL")
-            and hasattr(socket, "TCP_KEEPCNT")
-        ):
+        if platform == 'linux' and hasattr(socket, "TCP_KEEPIDLE") and hasattr(socket, "TCP_KEEPINTVL") \
+                and hasattr(socket, "TCP_KEEPCNT"):
             socket_params += [(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, keep_alive_idle_sec)]
             socket_params += [(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, keep_alive_interval_sec)]
             socket_params += [(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, keep_alive_tries)]
@@ -196,7 +193,7 @@ class _CONFIG:
         #     socket.ioctl((socket.SIO_KEEPALIVE_VALS, (1, keep_alive_idle_sec * 1000, keep_alive_interval_sec * 1000)))
 
         # TCP Keep Alive Probes for Mac OS
-        elif platform == "darwin":
+        elif platform == 'darwin':
             TCP_KEEPALIVE = 0x10
             socket_params += [(socket.IPPROTO_TCP, TCP_KEEPALIVE, keep_alive_interval_sec)]
 
@@ -229,22 +226,15 @@ class _CONFIG:
         """
         warn_deprecated(
             description='LOG_LEVEL is deprecated. Use the standard logging module logger "pinecone" instead.',
-            deprecated_in="2.0.2",
-            removal_in="3.0.0",
+            deprecated_in='2.0.2',
+            removal_in='3.0.0'
         )
-        return logging.getLevelName(logging.getLogger("pinecone").level)
+        return logging.getLevelName(logging.getLogger('pinecone').level)
 
 
-def init(
-    api_key: str = None,
-    host: str = None,
-    environment: str = None,
-    project_name: str = None,
-    log_level: str = None,
-    openapi_config: OpenApiConfiguration = None,
-    config: str = "~/.pinecone",
-    **kwargs
-):
+def init(api_key: str = None, host: str = None, environment: str = None, project_name: str = None,
+         log_level: str = None, openapi_config: OpenApiConfiguration = None,
+         config: str = "~/.pinecone", **kwargs):
     """Initializes the Pinecone client.
 
     :param api_key: Required if not set in config file or by environment variable ``PINECONE_API_KEY``.
@@ -255,20 +245,14 @@ def init(
     :param config: Optional. An INI configuration file.
     :param log_level: Deprecated since v2.0.2 [Will be removed in v3.0.0]; use the standard logging module to manage logger "pinecone" instead.
     """
-    Config.reset(
-        project_name=project_name,
-        api_key=api_key,
-        controller_host=host,
-        environment=environment,
-        openapi_config=openapi_config,
-        config_file=config,
-        **kwargs
-    )
+    check_kwargs(init, kwargs)
+    Config.reset(project_name=project_name, api_key=api_key, controller_host=host, environment=environment,
+                 openapi_config=openapi_config, config_file=config, **kwargs)
     if log_level:
         warn_deprecated(
             description='log_level is deprecated. Use the standard logging module to manage logger "pinecone" instead.',
-            deprecated_in="2.0.2",
-            removal_in="3.0.0",
+            deprecated_in='2.0.2',
+            removal_in='3.0.0'
         )
 
 

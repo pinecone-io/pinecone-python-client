@@ -1,0 +1,119 @@
+name: Publish to PyPI
+
+on:
+  workflow_call:
+    secrets:
+      PYPI_USERNAME:
+        required: true
+      PYPI_PASSWORD:
+        required: true
+    inputs:
+      ref:
+        description: 'Git ref to build (branch name or SHA)'
+        required: true
+        type: string
+        default: 'main' 
+      releaseLevel:
+        description: 'Release level'
+        required: true
+        type: string
+        default: 'patch'
+      isPrerelease:
+        description: 'Whether this is a prerelease'
+        required: true
+        type: boolean
+        default: true
+      prereleaseSuffix:
+        description: 'Suffix to add onto the new version number in order to mark it as a prerelease. Value ignored when shipping a release that is not a prerelease.'
+        required: false
+        type: string
+        default: 'rc1'
+      TWINE_REPOSITORY:
+        description: 'PyPI repository'
+        required: true
+        type: string
+        default: 'pypi' # options are: pypi, testpypi
+
+jobs:
+  pypi:
+    timeout-minutes: 30
+    name: pypi
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Need full history and tags to compute list of commits in release
+          ref: ${{ inputs.ref }}
+
+      - name: Verify prereleaseSuffix not empty if isPrerelease is true
+        if: ${{ inputs.isPrerelease == true }}
+        run: |
+          if [ -z "${{ inputs.prereleaseSuffix }}" ]; then
+            echo "prereleaseSuffix cannot be empty if isPrerelease is true"
+            exit 1
+          fi
+
+      - name: Bump version
+        id: bump
+        uses: './.github/actions/bump-version'
+        with:
+          versionFile: pinecone/__version__ 
+          bumpType: ${{ inputs.releaseLevel }}
+          prereleaseSuffix: ${{ inputs.prereleaseSuffix }}
+      
+      - name: Verify unique release number
+        run: |
+          TAG_NAME=${{ steps.bump.outputs.VERSION_TAG }}
+          if git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null; then
+            echo "Tag $TAG_NAME already exists."
+            exit 1
+          fi
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "Pinecone CI"
+          git config --global user.email "clients@pinecone.io"
+  
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+  
+      - name: Build Python client
+        run: make package
+
+      - name: Upload Python client to PyPI
+        id: pypi_upload
+        env:
+          PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          TWINE_REPOSITORY: ${{ inputs.TWINE_REPOSITORY }}
+        run: make upload
+
+      - name: Discard changes, if prerelease
+        if: ${{ inputs.isPrerelease == true }}
+        run: |
+          git checkout pinecone/__version__
+      
+      - name: Commit changes, if not prerelease
+        if: ${{ inputs.isPrerelease == false }}
+        run: |
+          git add pinecone/__version__
+          git commit -m "[skip ci] Bump version to ${{ steps.bump.outputs.VERSION_TAG }}"
+
+      - name: Tag version
+        run: |
+          newVersionTag="${{ steps.bump.outputs.VERSION_TAG }}"
+          git tag -a $newVersionTag -m "Release $newVersionTag"
+    
+      - name: Push tags (prerelease)
+        if: ${{ inputs.isPrerelease == true }}
+        # In the case of the prerelease, we discarded the version changes
+        # instead of committing them. So we need a slightly different
+        # command to push the git tag we created.
+        run: git push --tags
+      
+      - name: Push tags (production release)
+        if: ${{ inputs.isPrerelease == false }}
+        run: git push --follow-tags
