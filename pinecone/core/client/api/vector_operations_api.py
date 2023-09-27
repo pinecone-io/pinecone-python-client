@@ -24,7 +24,7 @@ from pinecone.core.client.model_utils import (  # noqa: F401
     datetime,
     file_type,
     none_type,
-    validate_and_convert_types
+    validate_and_convert_types,
 )
 from pinecone.core.client.model.delete_request import DeleteRequest
 from pinecone.core.client.model.describe_index_stats_request import DescribeIndexStatsRequest
@@ -50,11 +50,7 @@ class VectorOperationsApi(object):
             api_client = ApiClient()
         self.api_client = api_client
 
-        def __delete(
-            self,
-            delete_request,
-            **kwargs
-        ):
+        def __delete(self, delete_request, **kwargs):
             """Delete  # noqa: E501
 
             The `Delete` operation deletes records by ID from a single namespace.  # noqa: E501
@@ -93,87 +89,54 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
-            kwargs['delete_request'] = \
-                delete_request
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs["delete_request"] = delete_request
             return self.call_with_http_info(**kwargs)
 
         self.delete = _Endpoint(
             settings={
-                'response_type': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/vectors/delete',
-                'operation_id': 'delete',
-                'http_method': 'POST',
-                'servers': None,
+                "response_type": ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/vectors/delete",
+                "operation_id": "delete",
+                "http_method": "POST",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'delete_request',
+                "all": [
+                    "delete_request",
                 ],
-                'required': [
-                    'delete_request',
+                "required": [
+                    "delete_request",
                 ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "delete_request": (DeleteRequest,),
                 },
-                'allowed_values': {
+                "attribute_map": {},
+                "location_map": {
+                    "delete_request": "body",
                 },
-                'openapi_types': {
-                    'delete_request':
-                        (DeleteRequest,),
-                },
-                'attribute_map': {
-                },
-                'location_map': {
-                    'delete_request': 'body',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
+            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__delete
+            callable=__delete,
         )
 
-        def __delete1(
-            self,
-            **kwargs
-        ):
+        def __delete1(self, **kwargs):
             """Delete  # noqa: E501
 
             The `Delete` operation deletes records by ID from a single namespace.  # noqa: E501
@@ -213,94 +176,66 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
             return self.call_with_http_info(**kwargs)
 
         self.delete1 = _Endpoint(
             settings={
-                'response_type': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/vectors/delete',
-                'operation_id': 'delete1',
-                'http_method': 'DELETE',
-                'servers': None,
+                "response_type": ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/vectors/delete",
+                "operation_id": "delete1",
+                "http_method": "DELETE",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'ids',
-                    'delete_all',
-                    'namespace',
+                "all": [
+                    "ids",
+                    "delete_all",
+                    "namespace",
                 ],
-                'required': [],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "required": [],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "ids": ([str],),
+                    "delete_all": (bool,),
+                    "namespace": (str,),
                 },
-                'allowed_values': {
+                "attribute_map": {
+                    "ids": "ids",
+                    "delete_all": "deleteAll",
+                    "namespace": "namespace",
                 },
-                'openapi_types': {
-                    'ids':
-                        ([str],),
-                    'delete_all':
-                        (bool,),
-                    'namespace':
-                        (str,),
+                "location_map": {
+                    "ids": "query",
+                    "delete_all": "query",
+                    "namespace": "query",
                 },
-                'attribute_map': {
-                    'ids': 'ids',
-                    'delete_all': 'deleteAll',
-                    'namespace': 'namespace',
+                "collection_format_map": {
+                    "ids": "multi",
                 },
-                'location_map': {
-                    'ids': 'query',
-                    'delete_all': 'query',
-                    'namespace': 'query',
-                },
-                'collection_format_map': {
-                    'ids': 'multi',
-                }
             },
             headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
+                "accept": ["application/json"],
+                "content_type": [],
             },
             api_client=api_client,
-            callable=__delete1
+            callable=__delete1,
         )
 
-        def __describe_index_stats(
-            self,
-            describe_index_stats_request,
-            **kwargs
-        ):
+        def __describe_index_stats(self, describe_index_stats_request, **kwargs):
             """DescribeIndexStats  # noqa: E501
 
             The `DescribeIndexStats` operation returns statistics about the index's contents, including the vector count per namespace, the number of dimensions, and the index fullness. The index fullness result  may be inaccurate during pod resizing; to get the status of a pod resizing process, use [`describe_index`](https://www.pinecone.io/docs/api/operation/describe_index/).  # noqa: E501
@@ -339,87 +274,54 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
-            kwargs['describe_index_stats_request'] = \
-                describe_index_stats_request
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs["describe_index_stats_request"] = describe_index_stats_request
             return self.call_with_http_info(**kwargs)
 
         self.describe_index_stats = _Endpoint(
             settings={
-                'response_type': (DescribeIndexStatsResponse,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/describe_index_stats',
-                'operation_id': 'describe_index_stats',
-                'http_method': 'POST',
-                'servers': None,
+                "response_type": (DescribeIndexStatsResponse,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/describe_index_stats",
+                "operation_id": "describe_index_stats",
+                "http_method": "POST",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'describe_index_stats_request',
+                "all": [
+                    "describe_index_stats_request",
                 ],
-                'required': [
-                    'describe_index_stats_request',
+                "required": [
+                    "describe_index_stats_request",
                 ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "describe_index_stats_request": (DescribeIndexStatsRequest,),
                 },
-                'allowed_values': {
+                "attribute_map": {},
+                "location_map": {
+                    "describe_index_stats_request": "body",
                 },
-                'openapi_types': {
-                    'describe_index_stats_request':
-                        (DescribeIndexStatsRequest,),
-                },
-                'attribute_map': {
-                },
-                'location_map': {
-                    'describe_index_stats_request': 'body',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
+            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__describe_index_stats
+            callable=__describe_index_stats,
         )
 
-        def __describe_index_stats1(
-            self,
-            **kwargs
-        ):
+        def __describe_index_stats1(self, **kwargs):
             """DescribeIndexStats  # noqa: E501
 
             The `DescribeIndexStats` operation returns statistics about the index's contents, including the vector count per namespace, the number of dimensions, and the index fullness. The index fullness result  may be inaccurate during pod resizing; to get the status of a pod resizing process, use [`describe_index`](https://www.pinecone.io/docs/api/operation/describe_index/).  # noqa: E501
@@ -456,78 +358,42 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
             return self.call_with_http_info(**kwargs)
 
         self.describe_index_stats1 = _Endpoint(
             settings={
-                'response_type': (DescribeIndexStatsResponse,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/describe_index_stats',
-                'operation_id': 'describe_index_stats1',
-                'http_method': 'GET',
-                'servers': None,
+                "response_type": (DescribeIndexStatsResponse,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/describe_index_stats",
+                "operation_id": "describe_index_stats1",
+                "http_method": "GET",
+                "servers": None,
             },
-            params_map={
-                'all': [
-                ],
-                'required': [],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
-            },
+            params_map={"all": [], "required": [], "nullable": [], "enum": [], "validation": []},
             root_map={
-                'validations': {
-                },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                },
-                'attribute_map': {
-                },
-                'location_map': {
-                },
-                'collection_format_map': {
-                }
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {},
+                "attribute_map": {},
+                "location_map": {},
+                "collection_format_map": {},
             },
             headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
+                "accept": ["application/json"],
+                "content_type": [],
             },
             api_client=api_client,
-            callable=__describe_index_stats1
+            callable=__describe_index_stats1,
         )
 
-        def __fetch(
-            self,
-            ids,
-            **kwargs
-        ):
+        def __fetch(self, ids, **kwargs):
             """Fetch  # noqa: E501
 
             The `Fetch` operation looks up and returns vectors by ID from a single namespace. The returned vectors include the vector data and metadata.  # noqa: E501
@@ -567,93 +433,65 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
-            kwargs['ids'] = \
-                ids
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs["ids"] = ids
             return self.call_with_http_info(**kwargs)
 
         self.fetch = _Endpoint(
             settings={
-                'response_type': (FetchResponse,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/vectors/fetch',
-                'operation_id': 'fetch',
-                'http_method': 'GET',
-                'servers': None,
+                "response_type": (FetchResponse,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/vectors/fetch",
+                "operation_id": "fetch",
+                "http_method": "GET",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'ids',
-                    'namespace',
+                "all": [
+                    "ids",
+                    "namespace",
                 ],
-                'required': [
-                    'ids',
+                "required": [
+                    "ids",
                 ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "ids": ([str],),
+                    "namespace": (str,),
                 },
-                'allowed_values': {
+                "attribute_map": {
+                    "ids": "ids",
+                    "namespace": "namespace",
                 },
-                'openapi_types': {
-                    'ids':
-                        ([str],),
-                    'namespace':
-                        (str,),
+                "location_map": {
+                    "ids": "query",
+                    "namespace": "query",
                 },
-                'attribute_map': {
-                    'ids': 'ids',
-                    'namespace': 'namespace',
+                "collection_format_map": {
+                    "ids": "multi",
                 },
-                'location_map': {
-                    'ids': 'query',
-                    'namespace': 'query',
-                },
-                'collection_format_map': {
-                    'ids': 'multi',
-                }
             },
             headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
+                "accept": ["application/json"],
+                "content_type": [],
             },
             api_client=api_client,
-            callable=__fetch
+            callable=__fetch,
         )
 
-        def __query(
-            self,
-            query_request,
-            **kwargs
-        ):
+        def __query(self, query_request, **kwargs):
             """Query  # noqa: E501
 
             The `Query` operation searches a namespace using a query vector. It retrieves the IDs of the most similar records in a namespace along with their similarity scores.  # noqa: E501
@@ -692,88 +530,54 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
-            kwargs['query_request'] = \
-                query_request
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs["query_request"] = query_request
             return self.call_with_http_info(**kwargs)
 
         self.query = _Endpoint(
             settings={
-                'response_type': (QueryResponse,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/query',
-                'operation_id': 'query',
-                'http_method': 'POST',
-                'servers': None,
+                "response_type": (QueryResponse,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/query",
+                "operation_id": "query",
+                "http_method": "POST",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'query_request',
+                "all": [
+                    "query_request",
                 ],
-                'required': [
-                    'query_request',
+                "required": [
+                    "query_request",
                 ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "query_request": (QueryRequest,),
                 },
-                'allowed_values': {
+                "attribute_map": {},
+                "location_map": {
+                    "query_request": "body",
                 },
-                'openapi_types': {
-                    'query_request':
-                        (QueryRequest,),
-                },
-                'attribute_map': {
-                },
-                'location_map': {
-                    'query_request': 'body',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
+            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__query
+            callable=__query,
         )
 
-        def __update(
-            self,
-            update_request,
-            **kwargs
-        ):
+        def __update(self, update_request, **kwargs):
             """Update  # noqa: E501
 
             The `Update` operation updates a vector in a namespace. If a value is included, it overwrites the previous value. If set_metadata is included, the values of the fields specified in it are added to or overwrite the previous values.  # noqa: E501
@@ -812,88 +616,54 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
-            kwargs['update_request'] = \
-                update_request
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs["update_request"] = update_request
             return self.call_with_http_info(**kwargs)
 
         self.update = _Endpoint(
             settings={
-                'response_type': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/vectors/update',
-                'operation_id': 'update',
-                'http_method': 'POST',
-                'servers': None,
+                "response_type": ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/vectors/update",
+                "operation_id": "update",
+                "http_method": "POST",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'update_request',
+                "all": [
+                    "update_request",
                 ],
-                'required': [
-                    'update_request',
+                "required": [
+                    "update_request",
                 ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "update_request": (UpdateRequest,),
                 },
-                'allowed_values': {
+                "attribute_map": {},
+                "location_map": {
+                    "update_request": "body",
                 },
-                'openapi_types': {
-                    'update_request':
-                        (UpdateRequest,),
-                },
-                'attribute_map': {
-                },
-                'location_map': {
-                    'update_request': 'body',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
+            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__update
+            callable=__update,
         )
 
-        def __upsert(
-            self,
-            upsert_request,
-            **kwargs
-        ):
+        def __upsert(self, upsert_request, **kwargs):
             """Upsert  # noqa: E501
 
             The `Upsert` operation writes vectors into a namespace. If a new value is upserted for an existing vector ID, it overwrites the previous value.  # noqa: E501
@@ -932,79 +702,49 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs['async_req'] = kwargs.get(
-                'async_req', False
-            )
-            kwargs['_return_http_data_only'] = kwargs.get(
-                '_return_http_data_only', True
-            )
-            kwargs['_preload_content'] = kwargs.get(
-                '_preload_content', True
-            )
-            kwargs['_request_timeout'] = kwargs.get(
-                '_request_timeout', None
-            )
-            kwargs['_check_input_type'] = kwargs.get(
-                '_check_input_type', True
-            )
-            kwargs['_check_return_type'] = kwargs.get(
-                '_check_return_type', True
-            )
-            kwargs['_host_index'] = kwargs.get('_host_index')
-            kwargs['upsert_request'] = \
-                upsert_request
+            kwargs["async_req"] = kwargs.get("async_req", False)
+            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs["upsert_request"] = upsert_request
             return self.call_with_http_info(**kwargs)
 
         self.upsert = _Endpoint(
             settings={
-                'response_type': (UpsertResponse,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/vectors/upsert',
-                'operation_id': 'upsert',
-                'http_method': 'POST',
-                'servers': None,
+                "response_type": (UpsertResponse,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/vectors/upsert",
+                "operation_id": "upsert",
+                "http_method": "POST",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'upsert_request',
+                "all": [
+                    "upsert_request",
                 ],
-                'required': [
-                    'upsert_request',
+                "required": [
+                    "upsert_request",
                 ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "upsert_request": (UpsertRequest,),
                 },
-                'allowed_values': {
+                "attribute_map": {},
+                "location_map": {
+                    "upsert_request": "body",
                 },
-                'openapi_types': {
-                    'upsert_request':
-                        (UpsertRequest,),
-                },
-                'attribute_map': {
-                },
-                'location_map': {
-                    'upsert_request': 'body',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
+            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__upsert
+            callable=__upsert,
         )

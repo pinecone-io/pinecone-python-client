@@ -8,6 +8,7 @@ import grpc
 
 import pinecone.core.grpc.protos.vector_column_service_pb2 as vector__column__service__pb2
 
+
 class VectorColumnServiceStub(object):
     """The `VectorColumnService` interface is exposed by Pinecone vector index services.
     The `Upsert` operation is for uploading the data (the vector ids and values) to be indexed.
@@ -20,30 +21,30 @@ class VectorColumnServiceStub(object):
             channel: A grpc.Channel.
         """
         self.Upsert = channel.unary_unary(
-                '/pinecone_columnar.VectorColumnService/Upsert',
-                request_serializer=vector__column__service__pb2.UpsertRequest.SerializeToString,
-                response_deserializer=vector__column__service__pb2.UpsertResponse.FromString,
-                )
+            "/pinecone_columnar.VectorColumnService/Upsert",
+            request_serializer=vector__column__service__pb2.UpsertRequest.SerializeToString,
+            response_deserializer=vector__column__service__pb2.UpsertResponse.FromString,
+        )
         self.Delete = channel.unary_unary(
-                '/pinecone_columnar.VectorColumnService/Delete',
-                request_serializer=vector__column__service__pb2.DeleteRequest.SerializeToString,
-                response_deserializer=vector__column__service__pb2.DeleteResponse.FromString,
-                )
+            "/pinecone_columnar.VectorColumnService/Delete",
+            request_serializer=vector__column__service__pb2.DeleteRequest.SerializeToString,
+            response_deserializer=vector__column__service__pb2.DeleteResponse.FromString,
+        )
         self.Fetch = channel.unary_unary(
-                '/pinecone_columnar.VectorColumnService/Fetch',
-                request_serializer=vector__column__service__pb2.FetchRequest.SerializeToString,
-                response_deserializer=vector__column__service__pb2.FetchResponse.FromString,
-                )
+            "/pinecone_columnar.VectorColumnService/Fetch",
+            request_serializer=vector__column__service__pb2.FetchRequest.SerializeToString,
+            response_deserializer=vector__column__service__pb2.FetchResponse.FromString,
+        )
         self.Query = channel.unary_unary(
-                '/pinecone_columnar.VectorColumnService/Query',
-                request_serializer=vector__column__service__pb2.QueryRequest.SerializeToString,
-                response_deserializer=vector__column__service__pb2.QueryResponse.FromString,
-                )
+            "/pinecone_columnar.VectorColumnService/Query",
+            request_serializer=vector__column__service__pb2.QueryRequest.SerializeToString,
+            response_deserializer=vector__column__service__pb2.QueryResponse.FromString,
+        )
         self.DescribeIndexStats = channel.unary_unary(
-                '/pinecone_columnar.VectorColumnService/DescribeIndexStats',
-                request_serializer=vector__column__service__pb2.DescribeIndexStatsRequest.SerializeToString,
-                response_deserializer=vector__column__service__pb2.DescribeIndexStatsResponse.FromString,
-                )
+            "/pinecone_columnar.VectorColumnService/DescribeIndexStats",
+            request_serializer=vector__column__service__pb2.DescribeIndexStatsRequest.SerializeToString,
+            response_deserializer=vector__column__service__pb2.DescribeIndexStatsResponse.FromString,
+        )
 
 
 class VectorColumnServiceServicer(object):
@@ -52,163 +53,219 @@ class VectorColumnServiceServicer(object):
     """
 
     def Upsert(self, request, context):
-        """If a user upserts a new value for an existing vector id, it overwrites the previous value.
-        """
+        """If a user upserts a new value for an existing vector id, it overwrites the previous value."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def Delete(self, request, context):
-        """The `Delete` operation deletes multiple vectors ids from a single namespace.  
+        """The `Delete` operation deletes multiple vectors ids from a single namespace.
         Specifying `delete_all` will delete all vectors from the default namespace.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def Fetch(self, request, context):
-        """The `Fetch` operation returns a vector value by id.
-        """
+        """The `Fetch` operation returns a vector value by id."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def Query(self, request, context):
         """The `Query` operation queries the index for the nearest stored vectors to one
         or more query vectors, and returns their ids and/or values.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def DescribeIndexStats(self, request, context):
-        """The `DescribeIndexStats` operation returns summary statistics about the index contents.
-        """
+        """The `DescribeIndexStats` operation returns summary statistics about the index contents."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
 
 def add_VectorColumnServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'Upsert': grpc.unary_unary_rpc_method_handler(
-                    servicer.Upsert,
-                    request_deserializer=vector__column__service__pb2.UpsertRequest.FromString,
-                    response_serializer=vector__column__service__pb2.UpsertResponse.SerializeToString,
-            ),
-            'Delete': grpc.unary_unary_rpc_method_handler(
-                    servicer.Delete,
-                    request_deserializer=vector__column__service__pb2.DeleteRequest.FromString,
-                    response_serializer=vector__column__service__pb2.DeleteResponse.SerializeToString,
-            ),
-            'Fetch': grpc.unary_unary_rpc_method_handler(
-                    servicer.Fetch,
-                    request_deserializer=vector__column__service__pb2.FetchRequest.FromString,
-                    response_serializer=vector__column__service__pb2.FetchResponse.SerializeToString,
-            ),
-            'Query': grpc.unary_unary_rpc_method_handler(
-                    servicer.Query,
-                    request_deserializer=vector__column__service__pb2.QueryRequest.FromString,
-                    response_serializer=vector__column__service__pb2.QueryResponse.SerializeToString,
-            ),
-            'DescribeIndexStats': grpc.unary_unary_rpc_method_handler(
-                    servicer.DescribeIndexStats,
-                    request_deserializer=vector__column__service__pb2.DescribeIndexStatsRequest.FromString,
-                    response_serializer=vector__column__service__pb2.DescribeIndexStatsResponse.SerializeToString,
-            ),
+        "Upsert": grpc.unary_unary_rpc_method_handler(
+            servicer.Upsert,
+            request_deserializer=vector__column__service__pb2.UpsertRequest.FromString,
+            response_serializer=vector__column__service__pb2.UpsertResponse.SerializeToString,
+        ),
+        "Delete": grpc.unary_unary_rpc_method_handler(
+            servicer.Delete,
+            request_deserializer=vector__column__service__pb2.DeleteRequest.FromString,
+            response_serializer=vector__column__service__pb2.DeleteResponse.SerializeToString,
+        ),
+        "Fetch": grpc.unary_unary_rpc_method_handler(
+            servicer.Fetch,
+            request_deserializer=vector__column__service__pb2.FetchRequest.FromString,
+            response_serializer=vector__column__service__pb2.FetchResponse.SerializeToString,
+        ),
+        "Query": grpc.unary_unary_rpc_method_handler(
+            servicer.Query,
+            request_deserializer=vector__column__service__pb2.QueryRequest.FromString,
+            response_serializer=vector__column__service__pb2.QueryResponse.SerializeToString,
+        ),
+        "DescribeIndexStats": grpc.unary_unary_rpc_method_handler(
+            servicer.DescribeIndexStats,
+            request_deserializer=vector__column__service__pb2.DescribeIndexStatsRequest.FromString,
+            response_serializer=vector__column__service__pb2.DescribeIndexStatsResponse.SerializeToString,
+        ),
     }
-    generic_handler = grpc.method_handlers_generic_handler(
-            'pinecone_columnar.VectorColumnService', rpc_method_handlers)
+    generic_handler = grpc.method_handlers_generic_handler("pinecone_columnar.VectorColumnService", rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
- # This class is part of an EXPERIMENTAL API.
+# This class is part of an EXPERIMENTAL API.
 class VectorColumnService(object):
     """The `VectorColumnService` interface is exposed by Pinecone vector index services.
     The `Upsert` operation is for uploading the data (the vector ids and values) to be indexed.
     """
 
     @staticmethod
-    def Upsert(request,
+    def Upsert(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_unary(
+            request,
             target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone_columnar.VectorColumnService/Upsert',
+            "/pinecone_columnar.VectorColumnService/Upsert",
             vector__column__service__pb2.UpsertRequest.SerializeToString,
             vector__column__service__pb2.UpsertResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+        )
 
     @staticmethod
-    def Delete(request,
+    def Delete(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_unary(
+            request,
             target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone_columnar.VectorColumnService/Delete',
+            "/pinecone_columnar.VectorColumnService/Delete",
             vector__column__service__pb2.DeleteRequest.SerializeToString,
             vector__column__service__pb2.DeleteResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+        )
 
     @staticmethod
-    def Fetch(request,
+    def Fetch(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_unary(
+            request,
             target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone_columnar.VectorColumnService/Fetch',
+            "/pinecone_columnar.VectorColumnService/Fetch",
             vector__column__service__pb2.FetchRequest.SerializeToString,
             vector__column__service__pb2.FetchResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+        )
 
     @staticmethod
-    def Query(request,
+    def Query(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_unary(
+            request,
             target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone_columnar.VectorColumnService/Query',
+            "/pinecone_columnar.VectorColumnService/Query",
             vector__column__service__pb2.QueryRequest.SerializeToString,
             vector__column__service__pb2.QueryResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+        )
 
     @staticmethod
-    def DescribeIndexStats(request,
+    def DescribeIndexStats(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_unary(
+            request,
             target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/pinecone_columnar.VectorColumnService/DescribeIndexStats',
+            "/pinecone_columnar.VectorColumnService/DescribeIndexStats",
             vector__column__service__pb2.DescribeIndexStatsRequest.SerializeToString,
             vector__column__service__pb2.DescribeIndexStatsResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+        )

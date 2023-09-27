@@ -11,9 +11,9 @@ from pinecone.core.utils import get_version
 
 
 class WhoAmIResponse(NamedTuple):
-    username: str = 'UNKNOWN'
-    user_label: str = 'UNKNOWN'
-    projectname: str = 'UNKNOWN'
+    username: str = "UNKNOWN"
+    user_label: str = "UNKNOWN"
+    projectname: str = "UNKNOWN"
 
 
 class VersionResponse(NamedTuple):
@@ -23,6 +23,7 @@ class VersionResponse(NamedTuple):
 
 class ActionAPI(BaseAPI):
     """User related API calls."""
+
     client_version = get_version()
 
     def whoami(self) -> WhoAmIResponse:
@@ -37,5 +38,4 @@ class ActionAPI(BaseAPI):
     def version(self) -> VersionResponse:
         """Returns version information."""
         response = self.get("/actions/version")
-        return VersionResponse(server=response.get("version", "UNKNOWN"),
-                               client=self.client_version)
+        return VersionResponse(server=response.get("version", "UNKNOWN"), client=self.client_version)

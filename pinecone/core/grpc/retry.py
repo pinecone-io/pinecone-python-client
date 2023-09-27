@@ -31,7 +31,7 @@ class ExponentialBackoff(SleepPolicy):
         self.multiplier = multiplier
 
     def sleep(self, try_i: int):
-        sleep_range = min(self.init_backoff * self.multiplier ** try_i, self.max_backoff)
+        sleep_range = min(self.init_backoff * self.multiplier**try_i, self.max_backoff)
         sleep_ms = random.randint(0, sleep_range)
         _logger.debug(f"gRPC retry. Sleeping for {sleep_ms}ms")
         time.sleep(sleep_ms / 1000)
@@ -48,7 +48,7 @@ class RetryOnRpcErrorClientInterceptor(
     Referece: https://github.com/grpc/grpc/issues/19514#issuecomment-531700657
     """
 
-    def __init__(self, retry_config: 'RetryConfig'):
+    def __init__(self, retry_config: "RetryConfig"):
         self.max_attempts = retry_config.max_attempts
         self.sleep_policy = retry_config.sleep_policy
         self.retryable_status = retry_config.retryable_status
@@ -56,9 +56,9 @@ class RetryOnRpcErrorClientInterceptor(
     def _is_retryable_error(self, response_or_error):
         """Determine if a response is a retryable error."""
         return (
-                isinstance(response_or_error, grpc.RpcError)
-                and "_MultiThreadedRendezvous" not in response_or_error.__class__.__name__
-                and response_or_error.code() in self.retryable_status
+            isinstance(response_or_error, grpc.RpcError)
+            and "_MultiThreadedRendezvous" not in response_or_error.__class__.__name__
+            and response_or_error.code() in self.retryable_status
         )
 
     def _intercept_call(self, continuation, client_call_details, request_or_iterator):

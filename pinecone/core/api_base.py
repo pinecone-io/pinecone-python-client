@@ -18,7 +18,7 @@ class BaseAPI:
         return {"api-key": self.api_key}
 
     def _send_request(self, request_handler, url, **kwargs):
-        response = request_handler('{0}{1}'.format(self.host, url), headers=self.headers, **kwargs)
+        response = request_handler("{0}{1}".format(self.host, url), headers=self.headers, **kwargs)
         try:
             response.raise_for_status()
         except HTTPError as e:
@@ -37,4 +37,3 @@ class BaseAPI:
 
     def delete(self, url: str):
         return self._send_request(requests.delete, url)
-
