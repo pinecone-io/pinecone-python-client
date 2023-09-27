@@ -42,14 +42,12 @@ setuptools.setup(
         'console_scripts': ['pinecone=pinecone.cli:main'],
     },
     classifiers=[
-        "Development Status :: 4 - Beta",
-        "Environment :: Console",
-        "Environment :: Other Environment",
+        "License :: OSI Approved :: Apache Software License",
+        "Development Status :: 5 - Production/Stable"
         "Intended Audience :: Developers",
         "Intended Audience :: Information Technology",
         "Intended Audience :: Science/Research",
         "Intended Audience :: System Administrators",
-        "License :: Other/Proprietary License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
