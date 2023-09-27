@@ -36,7 +36,8 @@ from pinecone.core.client.exceptions import ApiAttributeError
 
 def lazy_import():
     from pinecone.core.client.model.vector import Vector
-    globals()['Vector'] = Vector
+
+    globals()["Vector"] = Vector
 
 
 class UpsertRequest(ModelNormal):
@@ -63,12 +64,10 @@ class UpsertRequest(ModelNormal):
           as additional properties values.
     """
 
-    allowed_values = {
-    }
+    allowed_values = {}
 
     validations = {
-        ('vectors',): {
-        },
+        ("vectors",): {},
     }
 
     @cached_property
@@ -78,7 +77,17 @@ class UpsertRequest(ModelNormal):
         of type self, this must run after the class is loaded
         """
         lazy_import()
-        return (bool, date, datetime, dict, float, int, list, str, none_type,)  # noqa: E501
+        return (
+            bool,
+            date,
+            datetime,
+            dict,
+            float,
+            int,
+            list,
+            str,
+            none_type,
+        )  # noqa: E501
 
     _nullable = False
 
@@ -94,22 +103,20 @@ class UpsertRequest(ModelNormal):
         """
         lazy_import()
         return {
-            'vectors': ([Vector],),  # noqa: E501
-            'namespace': (str,),  # noqa: E501
+            "vectors": ([Vector],),  # noqa: E501
+            "namespace": (str,),  # noqa: E501
         }
 
     @cached_property
     def discriminator():
         return None
 
-
     attribute_map = {
-        'vectors': 'vectors',  # noqa: E501
-        'namespace': 'namespace',  # noqa: E501
+        "vectors": "vectors",  # noqa: E501
+        "namespace": "namespace",  # noqa: E501
     }
 
-    read_only_vars = {
-    }
+    read_only_vars = {}
 
     _composed_schemas = {}
 
@@ -155,17 +162,18 @@ class UpsertRequest(ModelNormal):
             namespace (str): This is the namespace name where you upsert vectors.. [optional]  # noqa: E501
         """
 
-        _check_type = kwargs.pop('_check_type', True)
-        _spec_property_naming = kwargs.pop('_spec_property_naming', False)
-        _path_to_item = kwargs.pop('_path_to_item', ())
-        _configuration = kwargs.pop('_configuration', None)
-        _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
+        _check_type = kwargs.pop("_check_type", True)
+        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
+        _path_to_item = kwargs.pop("_path_to_item", ())
+        _configuration = kwargs.pop("_configuration", None)
+        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
 
         self = super(OpenApiModel, cls).__new__(cls)
 
         if args:
             raise ApiTypeError(
-                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
+                % (
                     args,
                     self.__class__.__name__,
                 ),
@@ -182,23 +190,27 @@ class UpsertRequest(ModelNormal):
 
         self.vectors = vectors
         for var_name, var_value in kwargs.items():
-            if var_name not in self.attribute_map and \
-                        self._configuration is not None and \
-                        self._configuration.discard_unknown_keys and \
-                        self.additional_properties_type is None:
+            if (
+                var_name not in self.attribute_map
+                and self._configuration is not None
+                and self._configuration.discard_unknown_keys
+                and self.additional_properties_type is None
+            ):
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
         return self
 
-    required_properties = set([
-        '_data_store',
-        '_check_type',
-        '_spec_property_naming',
-        '_path_to_item',
-        '_configuration',
-        '_visited_composed_classes',
-    ])
+    required_properties = set(
+        [
+            "_data_store",
+            "_check_type",
+            "_spec_property_naming",
+            "_path_to_item",
+            "_configuration",
+            "_visited_composed_classes",
+        ]
+    )
 
     @convert_js_args_to_python_args
     def __init__(self, vectors, *args, **kwargs):  # noqa: E501
@@ -241,15 +253,16 @@ class UpsertRequest(ModelNormal):
             namespace (str): This is the namespace name where you upsert vectors.. [optional]  # noqa: E501
         """
 
-        _check_type = kwargs.pop('_check_type', True)
-        _spec_property_naming = kwargs.pop('_spec_property_naming', False)
-        _path_to_item = kwargs.pop('_path_to_item', ())
-        _configuration = kwargs.pop('_configuration', None)
-        _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
+        _check_type = kwargs.pop("_check_type", True)
+        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
+        _path_to_item = kwargs.pop("_path_to_item", ())
+        _configuration = kwargs.pop("_configuration", None)
+        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
 
         if args:
             raise ApiTypeError(
-                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
+                % (
                     args,
                     self.__class__.__name__,
                 ),
@@ -266,13 +279,17 @@ class UpsertRequest(ModelNormal):
 
         self.vectors = vectors
         for var_name, var_value in kwargs.items():
-            if var_name not in self.attribute_map and \
-                        self._configuration is not None and \
-                        self._configuration.discard_unknown_keys and \
-                        self.additional_properties_type is None:
+            if (
+                var_name not in self.attribute_map
+                and self._configuration is not None
+                and self._configuration.discard_unknown_keys
+                and self.additional_properties_type is None
+            ):
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
             if var_name in self.read_only_vars:
-                raise ApiAttributeError(f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
-                                     f"class with read only attributes.")
+                raise ApiAttributeError(
+                    f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
+                    f"class with read only attributes."
+                )
