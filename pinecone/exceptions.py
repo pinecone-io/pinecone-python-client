@@ -1,7 +1,3 @@
-#
-# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
-#
-
 from .core.exceptions import PineconeException, PineconeProtocolError
 from .core.client.exceptions import (
     OpenApiException,

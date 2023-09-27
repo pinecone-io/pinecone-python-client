@@ -1,7 +1,3 @@
-#
-# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
-#
-
 from pinecone.core.api_action import ActionAPI, VersionResponse, WhoAmIResponse
 from pinecone.config import Config
 
