@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-#
-# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
-#
+
 
 import os
 
@@ -21,7 +19,7 @@ setuptools.setup(
     name="pinecone-client",
     version=read("pinecone/__version__").strip(),
     description="Pinecone client and SDK",
-    license="Proprietary License",
+    license='Apache 2.0',
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
     url="https://www.pinecone.io/",
@@ -29,7 +27,6 @@ setuptools.setup(
         "Homepage": "https://www.pinecone.io",
         "Documentation": "https://pinecone.io/docs",
         "Contact": "https://www.pinecone.io/contact/",
-        "End-User License Agreement": "https://www.pinecone.io/thin-client-user-agreement/"
     },
     author="Pinecone Systems, Inc.",
     author_email="support@pinecone.io",
@@ -45,14 +42,12 @@ setuptools.setup(
         'console_scripts': ['pinecone=pinecone.cli:main'],
     },
     classifiers=[
-        "Development Status :: 4 - Beta",
-        "Environment :: Console",
-        "Environment :: Other Environment",
+        "License :: OSI Approved :: Apache Software License",
+        "Development Status :: 5 - Production/Stable"
         "Intended Audience :: Developers",
         "Intended Audience :: Information Technology",
         "Intended Audience :: Science/Research",
         "Intended Audience :: System Administrators",
-        "License :: Other/Proprietary License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",

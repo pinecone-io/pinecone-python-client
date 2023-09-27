@@ -1,6 +1,3 @@
-#
-# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
-#
 from tqdm.autonotebook import tqdm
 from importlib.util import find_spec
 import numbers

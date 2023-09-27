@@ -1,6 +1,3 @@
-#
-# Copyright (c) 2020-2021 Pinecone Systems Inc. All right reserved.
-#
 import logging
 import sys
 from typing import NamedTuple, List
