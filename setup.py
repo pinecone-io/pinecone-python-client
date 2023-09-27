@@ -27,7 +27,6 @@ setuptools.setup(
         "Homepage": "https://www.pinecone.io",
         "Documentation": "https://pinecone.io/docs",
         "Contact": "https://www.pinecone.io/contact/",
-        "End-User License Agreement": "https://www.pinecone.io/thin-client-user-agreement/"
     },
     author="Pinecone Systems, Inc.",
     author_email="support@pinecone.io",
