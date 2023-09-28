@@ -16,7 +16,7 @@ The Pinecone Python client therefore supports Poetry as its primary means of ena
 
 ### Step 1. Fork the Pinecone python client repository
 
-On the [GitHub repoository page](https://github.com/pinecone-io/pinecone-python-client) page, click the fork button at the top of the screen and create a personal fork of the repository: 
+On the [GitHub repository page](https://github.com/pinecone-io/pinecone-python-client) page, click the fork button at the top of the screen and create a personal fork of the repository: 
 
 ![Create a GitHub fork of the Pinecone Python client](./docs/pinecone-python-client-fork.png)
 
