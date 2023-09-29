@@ -13,11 +13,7 @@ jobs:
 
   build-docs:
     name: Build docs with pdoc
-    needs: run-tests
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v3
-
-      - name: pdoc
+      - name: Build docs with pdoc
         uses: "./.github/actions/build-docs"
