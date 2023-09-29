@@ -57,7 +57,7 @@ responses = ">=0.8.1"
 pandas = ">=1.3.5"
 
 # Poetry's concept of extras is what allows us to separate the gRPC dependencies, 
-# will will only be installed if you run `poetry install --extras "grpc"`,
+# which will only be installed if you run `poetry install --extras "grpc"`,
 # from the base dependencies. 
 #
 # Note that Poetry expects the dependencies defined in either tool.poetry.dependencies 
