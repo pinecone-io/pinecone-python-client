@@ -4,5 +4,6 @@ runs:
   using: "composite"
   steps:
     - name: Build html documentation
+      shell: bash
       run: |
         pdoc pinecone/ --docformat google -o ./docs
