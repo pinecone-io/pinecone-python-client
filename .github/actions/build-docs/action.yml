@@ -1,0 +1,8 @@
+name: "Build client documentation"
+description: "Generates client documentation using pdoc"
+runs:
+  using: "composite"
+  steps:
+    - name: Build html documentation
+      run: |
+        pdoc pinecone/ --docformat google -o ./docs

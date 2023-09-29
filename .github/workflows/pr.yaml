@@ -1,7 +1,20 @@
-name: Pull-request CI
+name: Pull Request
 
-on: pull_request
+on:
+  pull_request: {}
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
 
 jobs:
   run-tests:
-    uses: './.github/workflows/testing.yaml'
+    uses: "./.github/workflows/testing.yaml"
+
+  build-docs:
+    name: Build docs with pdoc
+    needs: run-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: pdoc
+        uses: "./.github/actions/build-docs"

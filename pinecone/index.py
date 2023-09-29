@@ -108,7 +108,7 @@ class Index(ApiClient):
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,
         show_progress: bool = True,
-        **kwargs
+        **kwargs,
     ) -> UpsertResponse:
         """
         The upsert operation writes vectors into a namespace.
@@ -279,9 +279,9 @@ class Index(ApiClient):
                 vectors=list(map(_vector_transform, vectors)),
                 **args_dict,
                 _check_type=_check_type,
-                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
+                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS},
             ),
-            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
+            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
         )
 
     @staticmethod
@@ -331,7 +331,7 @@ class Index(ApiClient):
         delete_all: Optional[bool] = None,
         namespace: Optional[str] = None,
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Any]:
         """
           The Delete operation deletes vectors from the index, from a single namespace.
@@ -377,9 +377,9 @@ class Index(ApiClient):
             DeleteRequest(
                 **args_dict,
                 **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS and v is not None},
-                _check_type=_check_type
+                _check_type=_check_type,
             ),
-            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
+            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
         )
 
     @validate_and_convert_errors
@@ -419,7 +419,7 @@ class Index(ApiClient):
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
         sparse_vector: Optional[Union[SparseValues, Dict[str, Union[List[float], List[int]]]]] = None,
-        **kwargs
+        **kwargs,
     ) -> QueryResponse:
         """
         The Query operation searches a namespace, using a query vector.
@@ -501,9 +501,9 @@ class Index(ApiClient):
             QueryRequest(
                 **args_dict,
                 _check_type=_check_type,
-                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
+                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS},
             ),
-            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
+            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
         )
         return parse_query_response(response, vector is not None or id)
 
@@ -515,7 +515,7 @@ class Index(ApiClient):
         set_metadata: Optional[Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]] = None,
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[SparseValues, Dict[str, Union[List[float], List[int]]]]] = None,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Any]:
         """
         The Update operation updates vector in a namespace.
@@ -563,9 +563,9 @@ class Index(ApiClient):
                 id=id,
                 **args_dict,
                 _check_type=_check_type,
-                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS}
+                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS},
             ),
-            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
+            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
         )
 
     @validate_and_convert_errors
@@ -596,9 +596,9 @@ class Index(ApiClient):
             DescribeIndexStatsRequest(
                 **args_dict,
                 **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS},
-                _check_type=_check_type
+                _check_type=_check_type,
             ),
-            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
+            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
         )
 
     @staticmethod

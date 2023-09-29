@@ -16,13 +16,13 @@ __all__ = [
     "describe_index",
     "list_indexes",
     "scale_index",
-    "IndexDescription",
     "create_collection",
     "describe_collection",
     "list_collections",
     "delete_collection",
     "configure_index",
     "CollectionDescription",
+    "IndexDescription",
 ]
 
 
@@ -84,12 +84,12 @@ def create_index(
     :param name: the name of the index.
     :type name: str
     :param dimension: the dimension of vectors that would be inserted in the index
-    :param index_type: type of index, one of {"approximated", "exact"}, defaults to "approximated".
+    :param index_type: type of index, one of `{"approximated", "exact"}`, defaults to "approximated".
         The "approximated" index uses fast approximate search algorithms developed by Pinecone.
         The "exact" index uses accurate exact search algorithms.
         It performs exhaustive searches and thus it is usually slower than the "approximated" index.
     :type index_type: str, optional
-    :param metric: type of metric used in the vector index, one of {"cosine", "dotproduct", "euclidean"}, defaults to "cosine".
+    :param metric: type of metric used in the vector index, one of `{"cosine", "dotproduct", "euclidean"}`, defaults to "cosine".
         Use "cosine" for cosine similarity,
         "dotproduct" for dot-product,
         and "euclidean" for euclidean distance.
@@ -111,7 +111,8 @@ def create_index(
     :param source_collection: Collection name to create the index from
     :type metadata_config: str, optional
     :type timeout: int, optional
-    :param timeout: Timeout for wait until index gets ready. If None, wait indefinitely; if >=0, time out after this many seconds; if -1, return immediately and do not wait. Default: None
+    :param timeout: Timeout for wait until index gets ready. If None, wait indefinitely; if >=0, time out after this many seconds;
+        if -1, return immediately and do not wait. Default: None
     """
     api_instance = _get_api_instance()
 
@@ -160,7 +161,8 @@ def delete_index(name: str, timeout: int = None):
 
     :param name: the name of the index.
     :type name: str
-    :param timeout: Timeout for wait until index gets ready. If None, wait indefinitely; if >=0, time out after this many seconds; if -1, return immediately and do not wait. Default: None
+    :param timeout: Timeout for wait until index gets ready. If None, wait indefinitely; if >=0, time out after this many seconds;
+        if -1, return immediately and do not wait. Default: None
     :type timeout: int, optional
     """
     api_instance = _get_api_instance()
@@ -199,8 +201,8 @@ def list_indexes():
 def describe_index(name: str):
     """Describes a Pinecone index.
 
-    :param: the name of the index
-    :return: Description of an index
+    :param name: the name of the index to describe.
+    :return: Returns an `IndexDescription` object
     """
     api_instance = _get_api_instance()
     response = api_instance.describe_index(name)
@@ -235,8 +237,8 @@ def scale_index(name: str, replicas: int):
 
 def create_collection(name: str, source: str):
     """Create a collection
-    :param: name: Name of the collection
-    :param: source: Name of the source index
+    :param name: Name of the collection
+    :param source: Name of the source index
     """
     api_instance = _get_api_instance()
     api_instance.create_collection(create_collection_request=CreateCollectionRequest(name=name, source=source))
