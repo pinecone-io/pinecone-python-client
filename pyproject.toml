@@ -23,7 +23,7 @@ exclude = '''
 
 [tool.poetry]
 name = "pinecone"
-version = "2.3.0"
+version = "2.2.4"
 description = "Pinecone client and SDK"
 authors = ["Pinecone Systems, Inc. <support@pinecone.io>"]
 license = "Apache-2.0"
