@@ -19,17 +19,30 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python -
+
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install tox==3.27.0
-        pip install tox tox-gh-actions==2.10.0
+        poetry install
+
+    # We separate the gRPC dependencies from the REST client's install 
+    # behavior, so we test installing the grpc dependencies here as well
+    # The dependencies that are specific to gRPC are defined in pyproject.toml
+    # under tool.poetry.extras
+    - name: Install gRPC dependencies 
+      run: |
+        poetry install --extras "grpc"
 
     - name: Run tests
-      run: make tests TOX_PARALLEL_NO_SPINNER=1
+      run: make tests
 
     - name: Build Python client
       run: make package
 
     - name: Build docs
       run: make docs
+
+    - name: Build Project
+      run: poetry build
