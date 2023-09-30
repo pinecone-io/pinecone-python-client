@@ -114,55 +114,44 @@ class Index(ApiClient):
         The upsert operation writes vectors into a namespace.
         If a new value is upserted for an existing vector id, it will overwrite the previous value.
 
-        API reference: https://docs.pinecone.io/reference/upsert
-
         To upsert in parallel follow: https://docs.pinecone.io/docs/insert-data#sending-upserts-in-parallel
 
+        A vector can be represented by a 1) Vector object, a 2) tuple or 3) a dictionary
+
+        If a tuple is used, it must be of the form `(id, values, metadata)` or `(id, values)`.
+        where id is a string, vector is a list of floats, metadata is a dict,
+        and sparse_values is a dict of the form `{'indices': List[int], 'values': List[float]}`.
+
         Examples:
-            >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}),
-                              ('id2', [1.0, 2.0, 3.0]),
-                              ])
+            >>> ('id1', [1.0, 2.0, 3.0], {'key': 'value'}, {'indices': [1, 2], 'values': [0.2, 0.4]})
+            >>> ('id1', [1.0, 2.0, 3.0], None, {'indices': [1, 2], 'values': [0.2, 0.4]})
+            >>> ('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])
+
+        If a Vector object is used, a Vector object must be of the form
+        `Vector(id, values, metadata, sparse_values)`, where metadata and sparse_values are optional
+        arguments.
+
+        Examples:
+            >>> Vector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'})
+            >>> Vector(id='id2', values=[1.0, 2.0, 3.0])
+            >>> Vector(id='id3', values=[1.0, 2.0, 3.0], sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))
+
+        **Note:** the dimension of each vector must match the dimension of the index.
+
+        If a dictionary is used, it must be in the form `{'id': str, 'values': List[float], 'sparse_values': {'indices': List[int], 'values': List[float]}, 'metadata': dict}`
+
+        Examples:
+            >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])])
+            >>>
             >>> index.upsert([{'id': 'id1', 'values': [1.0, 2.0, 3.0], 'metadata': {'key': 'value'}},
-                              {'id': 'id2',
-                                        'values': [1.0, 2.0, 3.0],
-                                        'sprase_values': {'indices': [1, 8], 'values': [0.2, 0.4]},
-                              ])
-            >>> index.upsert([Vector(id='id1',
-                                     values=[1.0, 2.0, 3.0],
-                                     metadata={'key': 'value'}),
-                              Vector(id='id2',
-                                     values=[1.0, 2.0, 3.0],
-                                     sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))])
+            >>>               {'id': 'id2', 'values': [1.0, 2.0, 3.0], 'sparse_values': {'indices': [1, 8], 'values': [0.2, 0.4]}])
+            >>> index.upsert([Vector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
+            >>>               Vector(id='id2', values=[1.0, 2.0, 3.0], sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))])
+
+        API reference: https://docs.pinecone.io/reference/upsert
 
         Args:
             vectors (Union[List[Vector], List[Tuple]]): A list of vectors to upsert.
-
-                     A vector can be represented by a 1) Vector object, a 2) tuple or 3) a dictionary
-                     1) if a tuple is used, it must be of the form (id, values, metadata) or (id, values).
-                        where id is a string, vector is a list of floats, metadata is a dict,
-                        and sparse_values is a dict of the form {'indices': List[int], 'values': List[float]}.
-                        Examples: ('id1', [1.0, 2.0, 3.0], {'key': 'value'}, {'indices': [1, 2], 'values': [0.2, 0.4]}),
-                                  ('id1', [1.0, 2.0, 3.0], None, {'indices': [1, 2], 'values': [0.2, 0.4]})
-                                  ('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0]),
-
-                    2) if a Vector object is used, a Vector object must be of the form
-                         Vector(id, values, metadata, sparse_values),
-                        where metadata and sparse_values are optional arguments
-                       Examples: Vector(id='id1',
-                                        values=[1.0, 2.0, 3.0],
-                                        metadata={'key': 'value'})
-                                 Vector(id='id2',
-                                        values=[1.0, 2.0, 3.0])
-                                 Vector(id='id3',
-                                        values=[1.0, 2.0, 3.0],
-                                        sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))
-
-                    Note: the dimension of each vector must match the dimension of the index.
-
-                3) if a dictionary is used, it must be in the form
-                   {'id': str, 'values': List[float], 'sparse_values': {'indices': List[int], 'values': List[float]},
-                    'metadata': dict}
-
             namespace (str): The namespace to write to. If not specified, the default namespace is used. [optional]
             batch_size (int): The number of vectors to upsert in each batch.
                                If not specified, all vectors will be upserted in a single batch. [optional]
@@ -334,33 +323,33 @@ class Index(ApiClient):
         **kwargs,
     ) -> Dict[str, Any]:
         """
-          The Delete operation deletes vectors from the index, from a single namespace.
-          No error raised if the vector id does not exist.
-          Note: for any delete call, if namespace is not specified, the default namespace is used.
+        The Delete operation deletes vectors from the index, from a single namespace.
+        No error raised if the vector id does not exist.
+        Note: for any delete call, if namespace is not specified, the default namespace is used.
 
-          Delete can occur in the following mutual exclusive ways:
-          1. Delete by ids from a single namespace
-          2. Delete all vectors from a single namespace by setting delete_all to True
-          3. Delete all vectors from a single namespace by specifying a metadata filter
-             (note that for this option delete all must be set to False)
+        Delete can occur in the following mutual exclusive ways:
+        1. Delete by ids from a single namespace
+        2. Delete all vectors from a single namespace by setting delete_all to True
+        3. Delete all vectors from a single namespace by specifying a metadata filter
+            (note that for this option delete all must be set to False)
 
-          API reference: https://docs.pinecone.io/reference/delete_post
+        API reference: https://docs.pinecone.io/reference/delete_post
 
-          Examples:
-              >>> index.delete(ids=['id1', 'id2'], namespace='my_namespace')
-              >>> index.delete(delete_all=True, namespace='my_namespace')
-              >>> index.delete(filter={'key': 'value'}, namespace='my_namespace')
+        Examples:
+            >>> index.delete(ids=['id1', 'id2'], namespace='my_namespace')
+            >>> index.delete(delete_all=True, namespace='my_namespace')
+            >>> index.delete(filter={'key': 'value'}, namespace='my_namespace')
 
-          Args:
-              ids (List[str]): Vector ids to delete [optional]
-              delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional]
-                                 Default is False.
-              namespace (str): The namespace to delete vectors from [optional]
-                               If not specified, the default namespace is used.
-              filter (Dict[str, Union[str, float, int, bool, List, dict]]):
-                      If specified, the metadata filter here will be used to select the vectors to delete.
-                      This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True.
-                       See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
+        Args:
+            ids (List[str]): Vector ids to delete [optional]
+            delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional]
+                                Default is False.
+            namespace (str): The namespace to delete vectors from [optional]
+                            If not specified, the default namespace is used.
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+                    If specified, the metadata filter here will be used to select the vectors to delete.
+                    This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True.
+                    See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
 
         Keyword Args:
           Supports OpenAPI client keyword arguments. See pinecone.core.client.models.DeleteRequest for more details.
