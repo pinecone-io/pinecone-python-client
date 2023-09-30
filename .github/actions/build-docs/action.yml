@@ -19,4 +19,4 @@ runs:
     - name: Build html documentation
       shell: bash
       run: |
-        pdoc pinecone/ --docformat google -o ./docs
+        poetry run pdoc pinecone/ --docformat google -o ./docs
