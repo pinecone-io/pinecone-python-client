@@ -9,7 +9,7 @@ on:
 
 jobs:
   run-tests:
-    uses: "./.github/workflows/testing.yaml"
+    uses: './.github/workflows/testing.yaml'
 
   build-docs:
     name: Build docs with pdoc
@@ -18,4 +18,4 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Build docs with pdoc
-        uses: "./.github/actions/build-docs"
+        uses: './.github/actions/build-docs'

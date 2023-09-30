@@ -7,7 +7,7 @@ on:
         description: 'Git ref to build (branch name or SHA)'
         required: true
         type: string
-        default: 'main' 
+        default: 'main'
       releaseLevel:
         description: 'Release level'
         required: true
