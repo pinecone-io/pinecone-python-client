@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-    
+
       - name: Get recent changes
         id: list-commits
         run: |
@@ -31,19 +31,19 @@ jobs:
       - name: Set dev version
         id: version
         run: |
-            versionFile="pinecone/__version__"
-            currentDate=$(date +%Y%m%d%H%M%S)
-            versionNumber=$(cat $versionFile)
-            devVersion="${versionNumber}.dev${currentDate}"
-            echo "$devVersion" > $versionFile
+          versionFile="pinecone/__version__"
+          currentDate=$(date +%Y%m%d%H%M%S)
+          versionNumber=$(cat $versionFile)
+          devVersion="${versionNumber}.dev${currentDate}"
+          echo "$devVersion" > $versionFile
 
       - name: Adjust module name
         run: |
-            sed -i 's/pinecone-client/pinecone-client-nightly/g' setup.py
-    
+          sed -i 's/pinecone-client/pinecone-client-nightly/g' pyproject.toml
+
       - name: Update README
         run: |
-            echo "This is a nightly developer build of the Pinecone Python client. It is not intended for production use." > README.md
+          echo "This is a nightly developer build of the Pinecone Python client. It is not intended for production use." > README.md
 
       - uses: actions/setup-python@v4
         with:
