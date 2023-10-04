@@ -49,6 +49,9 @@ jobs:
         with:
           python-version: 3.x
 
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+
       - name: Build Python client
         run: make package
 

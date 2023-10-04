@@ -1,6 +1,6 @@
 name: Testing
 
-on: 
+on:
   workflow_call: {}
 
 jobs:
@@ -12,37 +12,21 @@ jobs:
         python-version: [3.8, 3.9, '3.10', 3.11]
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Install Poetry
-      run: |
-        curl -sSL https://install.python-poetry.org | python -
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
 
-    - name: Install dependencies
-      run: |
-        poetry install
+      - name: Run tests
+        run: make tests
 
-    # We separate the gRPC dependencies from the REST client's install 
-    # behavior, so we test installing the grpc dependencies here as well
-    # The dependencies that are specific to gRPC are defined in pyproject.toml
-    # under tool.poetry.extras
-    - name: Install gRPC dependencies 
-      run: |
-        poetry install --extras "grpc"
+      - name: Build Python client
+        run: make package
 
-    - name: Run tests
-      run: make tests
-
-    - name: Build Python client
-      run: make package
-
-    - name: Build docs
-      run: make docs
-
-    - name: Build Project
-      run: poetry build
+      - name: Build docs
+        run: make docs

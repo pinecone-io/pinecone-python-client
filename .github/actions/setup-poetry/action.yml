@@ -1,0 +1,19 @@
+name: 'Setup Poetry'
+description: 'Installs Poetry and dependencies'
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+
+    - name: Install dependencies
+      run: |
+        poetry install
+
+    # We separate the gRPC dependencies from the REST client's install
+    # behavior, so we test installing the grpc dependencies here as well
+    # The dependencies that are specific to gRPC are defined in pyproject.toml
+    # under tool.poetry.extras
+    - name: Install gRPC dependencies
+      run: |
+        poetry install --extras "grpc"
