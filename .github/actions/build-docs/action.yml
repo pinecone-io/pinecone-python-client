@@ -14,4 +14,4 @@ runs:
     - name: Build html documentation
       shell: bash
       run: |
-        poetry run pdoc pinecone/ --docformat google -o ./docs
+        poetry run pdoc pinecone/ --favicon ./favicon-32x32.png --docformat google -o ./docs

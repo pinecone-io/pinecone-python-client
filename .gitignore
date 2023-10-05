@@ -137,8 +137,9 @@ venv.bak/
 .ropeproject
 
 # pdocs documentation
-docs/
+docs/*
 !docs/pinecone-python-client-fork.png
+!docs/favicon-32x32.png
 
 # mypy
 .mypy_cache/
