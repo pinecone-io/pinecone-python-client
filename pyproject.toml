@@ -85,8 +85,8 @@ pandas = ">=1.3.5"
 # which will only be installed if you run `poetry install --extras "grpc"`,
 # from the base dependencies. 
 #
-# Note that Poetry expects the dependencies defined in either tool.poetry.dependencies 
-# or tool.poetry.dev-dependencies, but they're only referenced by name in the grpc entry under 
+# Note that Poetry expects the dependencies to be defined in either tool.poetry.dependencies 
+# or tool.poetry.group.dev.dependencies, but they're only referenced by name in the grpc entry under 
 # tool.poetry.extras
 [tool.poetry.extras]
 grpc = ["grpcio", "grpc-gateway-protoc-gen-openapiv2", "googleapis-common-protos", "lz4", "protobuf"]
