@@ -136,8 +136,12 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
-# mkdocs documentation
-/site
+# pdocs documentation
+#   We want to exclude any locally generated artifacts, but we rely on 
+#   keeping documentation assets in the docs/ folder.
+docs/*
+!docs/pinecone-python-client-fork.png
+!docs/favicon-32x32.png
 
 # mypy
 .mypy_cache/

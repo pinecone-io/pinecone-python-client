@@ -1,3 +1,6 @@
+"""
+.. include:: ../README.md
+"""
 from pinecone.core.utils.constants import CLIENT_VERSION as __version__
 from .config import *
 from .exceptions import *
@@ -12,7 +15,12 @@ except ImportError:
 
 # Kept for backwards-compatibility
 UpsertResult = None
+"""@private"""
 DeleteResult = None
+"""@private"""
 QueryResult = None
+"""@private"""
 FetchResult = None
+"""@private"""
 InfoResult = None
+"""@private"""
