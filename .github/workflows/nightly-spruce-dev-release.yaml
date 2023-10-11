@@ -1,0 +1,66 @@
+name: 'Test PyPI Spruce Release: Nightly (pinecone-client-spruce-dev)'
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  run-tests:
+    uses: './.github/workflows/testing.yaml'
+
+  pypi-spruce-nightly:
+    needs: run-tests
+    timeout-minutes: 30
+    name: pypi-nightly
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: spruce
+
+      - name: Get recent changes
+        id: list-commits
+        run: |
+          recentCommits=$(git log --since=yesterday --oneline)
+          echo "commits=$recentCommits" >> "$GITHUB_OUTPUT"
+
+      - name: Abort if no recent changes
+        if: steps.list-commits.outputs.commits == ''
+        uses: andymckay/cancel-action@0.3
+
+      - name: Set spruce dev version
+        id: version
+        run: |
+          versionFile="pinecone/__version__"
+          currentDate=$(date +%Y%m%d%H%M%S)
+          versionNumber=$(cat $versionFile)
+          devVersion="${versionNumber}.dev${currentDate}.spruceDev"
+          echo "$devVersion" > $versionFile
+
+      - name: Adjust module name
+        run: |
+          sed -i 's/pinecone-client/pinecone-client-spruce-dev/g' pyproject.toml
+
+      - name: Update README
+        run: |
+          echo "This is a nightly Spruce developer build of the Pinecone Python client. It is not intended for production use." > README.md
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+
+      - name: Build Python client
+        run: make package
+
+      - name: Upload Python Spruce client to Test PyPI
+        id: pypi_upload
+        env:
+          TWINE_REPOSITORY: testpypi
+          PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
+          PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
+        run: make upload-spruce

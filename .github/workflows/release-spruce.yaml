@@ -1,0 +1,53 @@
+name: 'Test PyPI Release: Spruce build (pinecone-client-spruce)'
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  testing:
+    uses: './.github/workflows/testing.yaml'
+
+  version-and-release-spruce:
+    timeout-minutes: 30
+    name: Release Spruce dev build to test pypi
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Spruce
+        uses: actions/checkout@v4
+        with:
+          ref: spruce
+
+      - name: Set spruce dev version
+        id: version
+        run: |
+          versionFile="pinecone/__version__"
+          currentDate=$(date +%Y%m%d%H%M%S)
+          versionNumber=$(cat $versionFile)
+          devVersion="${versionNumber}.${currentDate}.spruce"
+          echo "$devVersion" > $versionFile
+
+      - name: Adjust module name
+        run: |
+          sed -i 's/pinecone-client/pinecone-client-spruce/g' pyproject.toml
+
+      - name: Update README
+        run: |
+          echo "This is Spruce build of the Pinecone Python client. It is not intended for production use." > README.md
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+
+      - name: Build Python client
+        run: make package
+
+      - name: Upload Python Spruce client to Test PyPI
+        id: pypi_upload
+        env:
+          TWINE_REPOSITORY: testpypi
+          PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
+          PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
+        run: make upload-spruce
