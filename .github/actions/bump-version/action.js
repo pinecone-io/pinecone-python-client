@@ -6,10 +6,10 @@ function bumpVersion(currentVersion, bumpType, prerelease) {
   if (prerelease) {
     newVersion = `${newVersion}.${prerelease}`;
   }
-  core.setOutput('previous_version', currentVersion)
-  core.setOutput('previous_version_tag', `v${currentVersion}`)
+  core.setOutput('previous_version', currentVersion);
+  core.setOutput('previous_version_tag', `v${currentVersion}`);
   core.setOutput('version', newVersion);
-  core.setOutput('version_tag', `v${newVersion}`)
+  core.setOutput('version_tag', `v${newVersion}`);
 
   return newVersion;
 }
@@ -35,4 +35,4 @@ function calculateNewVersion(currentVersion, bumpType) {
   return newVersion;
 }
 
-module.exports = { bumpVersion }
+module.exports = { bumpVersion };
