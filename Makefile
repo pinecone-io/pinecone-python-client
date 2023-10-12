@@ -1,4 +1,4 @@
-.PHONY: image develop tests tag-and-push docs version package upload license
+.PHONY: image develop tests tag-and-push docs version package upload upload-spruce license
 mkfile_path := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 PYPI_USERNAME ?= __token__

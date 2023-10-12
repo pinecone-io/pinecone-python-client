@@ -31,7 +31,6 @@ jobs:
         uses: andymckay/cancel-action@0.3
 
       - name: Set spruce dev version
-        id: version
         run: |
           versionFile="pinecone/__version__"
           currentDate=$(date +%Y%m%d%H%M%S)
@@ -58,7 +57,6 @@ jobs:
         run: make package
 
       - name: Upload Python Spruce client to Test PyPI
-        id: pypi_upload
         env:
           TWINE_REPOSITORY: testpypi
           PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
