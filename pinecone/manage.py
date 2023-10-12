@@ -53,6 +53,11 @@ def _get_api_instance():
     client_config.api_key = client_config.api_key or {}
     client_config.api_key["ApiKeyAuth"] = client_config.api_key.get("ApiKeyAuth", Config.API_KEY)
     client_config.server_variables = {**{"environment": Config.ENVIRONMENT}, **client_config.server_variables}
+
+    # If a custom host has been passed with initialization pass it to the client_config
+    if (Config.CONTROLLER_HOST):
+        client_config.host = Config.CONTROLLER_HOST
+
     api_client = ApiClient(configuration=client_config)
     api_client.user_agent = get_user_agent()
     api_instance = IndexOperationsApi(api_client)
