@@ -39,7 +39,7 @@ class TestGrpcIndex:
                sparse_values=SparseValues(indices=self.sparse_indices_2, values=self.sparse_values_2))
 
 
-        # region: upsert tests
+    # region: upsert tests
 
     def _assert_called_once(self, vectors, async_call=False):
         self.index._wrap_grpc_call.assert_called_once_with(

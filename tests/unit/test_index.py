@@ -37,6 +37,8 @@ class TestRestIndex:
         pinecone.init(api_key='example-key')
         self.index = pinecone.Index('example-name')
     
+    # region: upsert tests
+    
     def test_upsert_numpy_deprecation_warning(self, mocker):
         mocker.patch.object(self.index._vector_api, 'upsert', autospec=True)
         with pytest.warns(FutureWarning):
