@@ -11,9 +11,8 @@ import socket
 from urllib3.connection import HTTPConnection
 
 from pinecone.core.client.exceptions import ApiKeyError
-from pinecone.core.api_action import ActionAPI, WhoAmIResponse
-from pinecone.core.utils import warn_deprecated, check_kwargs
-from pinecone.core.utils.constants import (
+from pinecone.utils import warn_deprecated, check_kwargs
+from pinecone.utils.constants import (
     CLIENT_VERSION,
     PARENT_LOGGER_NAME,
     DEFAULT_PARENT_LOGGER_LEVEL,
@@ -90,21 +89,6 @@ class _CONFIG:
 
         # Set explicit config
         config = config._replace(**self._preprocess_and_validate_config(kwargs))
-
-        self._config = config
-
-        # load project_name etc. from whoami api
-        action_api = ActionAPI(host=config.controller_host, api_key=config.api_key)
-        try:
-            whoami_response = action_api.whoami()
-        except requests.exceptions.RequestException:
-            # proceed with default values; reset() may be called later w/ correct values
-            whoami_response = WhoAmIResponse()
-
-        if not self._config.project_name:
-            config = config._replace(
-                **self._preprocess_and_validate_config({"project_name": whoami_response.projectname})
-            )
 
         self._config = config
 
@@ -239,7 +223,6 @@ def init(
     api_key: str = None,
     host: str = None,
     environment: str = None,
-    project_name: str = None,
     log_level: str = None,
     openapi_config: OpenApiConfiguration = None,
     config: str = "~/.pinecone",
@@ -250,14 +233,12 @@ def init(
     :param api_key: Required if not set in config file or by environment variable ``PINECONE_API_KEY``.
     :param host: Optional. Controller host.
     :param environment: Optional. Deployment environment.
-    :param project_name: Optional. Pinecone project name. Overrides the value that is otherwise looked up and used from the Pinecone backend.
     :param openapi_config: Optional. Set OpenAPI client configuration.
     :param config: Optional. An INI configuration file.
     :param log_level: Deprecated since v2.0.2 [Will be removed in v3.0.0]; use the standard logging module to manage logger "pinecone" instead.
     """
     check_kwargs(init, kwargs)
     Config.reset(
-        project_name=project_name,
         api_key=api_key,
         controller_host=host,
         environment=environment,

@@ -5,10 +5,10 @@ import pinecone
 from pinecone.config import Config
 from pinecone.core.client.api.index_operations_api import IndexOperationsApi
 from pinecone.core.client.api_client import ApiClient
-from pinecone.core.client.model.create_request import CreateRequest
-from pinecone.core.client.model.patch_request import PatchRequest
-from pinecone.core.client.model.create_collection_request import CreateCollectionRequest
-from pinecone.core.utils import get_user_agent
+from pinecone.core.client.models.create_request import CreateRequest
+from pinecone.core.client.models.patch_request import PatchRequest
+from pinecone.core.client.models.create_collection_request import CreateCollectionRequest
+from pinecone.utils import get_user_agent
 
 __all__ = [
     "create_index",
@@ -73,6 +73,9 @@ def _get_status(name: str):
 def create_index(
     name: str,
     dimension: int,
+    cloud: str,
+    region: str,
+    capacity_mode: str,
     timeout: int = None,
     index_type: str = "approximated",
     metric: str = "cosine",
@@ -89,6 +92,9 @@ def create_index(
     :param name: the name of the index.
     :type name: str
     :param dimension: the dimension of vectors that would be inserted in the index
+    :param cloud: The cloud where you would like your index hosted. One of `{"aws", "gcp"}`.
+    :param region: The region where you would like your index hosted. 
+    :param capacity_mode: The capacity mode for the index. One of `{"pod"}`.
     :param index_type: type of index, one of `{"approximated", "exact"}`, defaults to "approximated".
         The "approximated" index uses fast approximate search algorithms developed by Pinecone.
         The "exact" index uses accurate exact search algorithms.
@@ -125,6 +131,9 @@ def create_index(
         create_request=CreateRequest(
             name=name,
             dimension=dimension,
+            cloud=cloud,
+            region=region,
+            capacity_mode=capacity_mode,
             index_type=index_type,
             metric=metric,
             replicas=replicas,

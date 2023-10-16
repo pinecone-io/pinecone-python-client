@@ -27,7 +27,7 @@ class TestManage:
         mocker.patch('pinecone.manage._get_status', side_effect=get_status_responses)
         mocker.patch('time.sleep')
 
-        pinecone.manage.create_index("my-index", 10, timeout=timeout_value)
+        pinecone.manage.create_index("my-index", 10, timeout=timeout_value, cloud="aws", region="us-west1", capacity_mode="pod")
 
         pinecone.manage._get_api_instance.assert_called_once()
         assert pinecone.manage._get_status.call_count == get_status_calls

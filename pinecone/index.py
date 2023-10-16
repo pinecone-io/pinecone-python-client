@@ -6,7 +6,7 @@ import numpy as np
 from collections.abc import Iterable, Mapping
 from typing import Union, List, Tuple, Optional, Dict, Any
 
-from .core.client.model.sparse_values import SparseValues
+from .core.client.models.sparse_values import SparseValues
 from pinecone import Config
 from pinecone.core.client import ApiClient
 from .core.client.models import (
@@ -28,7 +28,7 @@ from .core.client.models import (
     DescribeIndexStatsRequest,
 )
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
-from pinecone.core.utils import fix_tuple_length, get_user_agent, warn_deprecated
+from .utils import fix_tuple_length, get_user_agent, warn_deprecated
 import copy
 
 __all__ = [
@@ -52,8 +52,8 @@ __all__ = [
     "SparseValues",
 ]
 
-from .core.utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
-from .core.utils.error_handling import validate_and_convert_errors
+from .utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
+from .utils.error_handling import validate_and_convert_errors
 
 _OPENAPI_ENDPOINT_PARAMS = (
     "_return_http_data_only",
@@ -68,10 +68,10 @@ _OPENAPI_ENDPOINT_PARAMS = (
 
 def parse_query_response(response: QueryResponse, unary_query: bool):
     if unary_query:
-        response._data_store.pop("results", None)
+        response.results = None
     else:
-        response._data_store.pop("matches", None)
-        response._data_store.pop("namespace", None)
+        response.matches = None
+        response.namespace = None
     return response
 
 
