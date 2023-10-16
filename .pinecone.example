@@ -1,0 +1,4 @@
+# For testing purposes only
+[default]
+api_key=<add_your_api_key>
+environment=<add_your_environment>

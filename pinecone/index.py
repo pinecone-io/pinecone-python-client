@@ -82,10 +82,20 @@ def upsert_numpy_deprecation_notice(context):
 
 
 class Index(ApiClient):
+    """ A client for interacting with a Pinecone index via REST API.
+    
+    The ``Index`` class is used to perform data operations (upsert, query, etc) against Pinecone indexes. Usually it will 
+    be instantiated using the `pinecone` module after the required configuration values have been initialized.
 
-    """
-    A client for interacting with a Pinecone index via REST API.
-    For improved performance, use the Pinecone GRPC index client.
+    ```python
+    import pinecone
+    pinecone.init(api_key="my-api-key", environment="my-environment")
+    index = pinecone.Index("my-index")
+    ```
+    For improved performance, use the Pinecone GRPCIndex client. For more details, see (Performance tuning)[https://docs.pinecone.io/docs/performance-tuning].
+
+    Args:
+        index_name (str): The name of the index to interact with.
     """
 
     def __init__(self, index_name: str, pool_threads=1):
@@ -98,7 +108,9 @@ class Index(ApiClient):
             **openapi_client_config.server_variables,
         }
         super().__init__(configuration=openapi_client_config, pool_threads=pool_threads)
+
         self.user_agent = get_user_agent()
+        """@private"""
         self._vector_api = VectorOperationsApi(self)
 
     @validate_and_convert_errors
@@ -116,25 +128,29 @@ class Index(ApiClient):
 
         To upsert in parallel follow: https://docs.pinecone.io/docs/insert-data#sending-upserts-in-parallel
 
-        A vector can be represented by a 1) Vector object, a 2) tuple or 3) a dictionary
+        A vector can be represented by a 1) ``Vector`` object, a 2) tuple or 3) a dictionary
 
         If a tuple is used, it must be of the form `(id, values, metadata)` or `(id, values)`.
         where id is a string, vector is a list of floats, metadata is a dict,
         and sparse_values is a dict of the form `{'indices': List[int], 'values': List[float]}`.
 
         Examples:
-            >>> ('id1', [1.0, 2.0, 3.0], {'key': 'value'}, {'indices': [1, 2], 'values': [0.2, 0.4]})
-            >>> ('id1', [1.0, 2.0, 3.0], None, {'indices': [1, 2], 'values': [0.2, 0.4]})
-            >>> ('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])
+        ```python
+        ('id1', [1.0, 2.0, 3.0], {'key': 'value'}, {'indices': [1, 2], 'values': [0.2, 0.4]})
+        ('id1', [1.0, 2.0, 3.0], None, {'indices': [1, 2], 'values': [0.2, 0.4]})
+        ('id1', [1.0, 2.0, 3.0], {'key': 'value'}), ('id2', [1.0, 2.0, 3.0])
+        ```
 
         If a Vector object is used, a Vector object must be of the form
         `Vector(id, values, metadata, sparse_values)`, where metadata and sparse_values are optional
         arguments.
 
         Examples:
-            >>> Vector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'})
-            >>> Vector(id='id2', values=[1.0, 2.0, 3.0])
-            >>> Vector(id='id3', values=[1.0, 2.0, 3.0], sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))
+        ```python
+        Vector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'})
+        Vector(id='id2', values=[1.0, 2.0, 3.0])
+        Vector(id='id3', values=[1.0, 2.0, 3.0], sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))
+        ```
 
         **Note:** the dimension of each vector must match the dimension of the index.
 
@@ -145,6 +161,7 @@ class Index(ApiClient):
             >>>
             >>> index.upsert([{'id': 'id1', 'values': [1.0, 2.0, 3.0], 'metadata': {'key': 'value'}},
             >>>               {'id': 'id2', 'values': [1.0, 2.0, 3.0], 'sparse_values': {'indices': [1, 8], 'values': [0.2, 0.4]}])
+            >>>
             >>> index.upsert([Vector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
             >>>               Vector(id='id2', values=[1.0, 2.0, 3.0], sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]))])
 
@@ -158,7 +175,7 @@ class Index(ApiClient):
             show_progress (bool): Whether to show a progress bar using tqdm.
                                   Applied only if batch_size is provided. Default is True.
         Keyword Args:
-            Supports OpenAPI client keyword arguments. See pinecone.core.client.models.UpsertRequest for more details.
+            Supports OpenAPI client keyword arguments. See `UpsertRequest` for more details.
 
         Returns: UpsertResponse, includes the number of vectors upserted.
         """
@@ -450,9 +467,9 @@ class Index(ApiClient):
                             Expected to be either a SparseValues object or a dict of the form:
                              {'indices': List[int], 'values': List[float]}, where the lists each have the same length.
         Keyword Args:
-            Supports OpenAPI client keyword arguments. See pinecone.core.client.models.QueryRequest for more details.
+            Supports OpenAPI client keyword arguments. See `QueryRequest` for more details.
 
-        Returns: QueryResponse object which contains the list of the closest vectors as ScoredVector objects,
+        Returns: `QueryResponse` object which contains the list of the closest vectors as ScoredVector objects,
                  and namespace name.
         """
 
@@ -515,12 +532,12 @@ class Index(ApiClient):
         API reference: https://docs.pinecone.io/reference/update
 
         Examples:
-            >>> index.update(id='id1', values=[1, 2, 3], namespace='my_namespace')
-            >>> index.update(id='id1', set_metadata={'key': 'value'}, namespace='my_namespace')
-            >>> index.update(id='id1', values=[1, 2, 3], sparse_values={'indices': [1, 2], 'values': [0.2, 0.4]},
-            >>>              namespace='my_namespace')
-            >>> index.update(id='id1', values=[1, 2, 3], sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]),
-            >>>              namespace='my_namespace')
+        >>> index.update(id='id1', values=[1, 2, 3], namespace='my_namespace')
+        >>> index.update(id='id1', set_metadata={'key': 'value'}, namespace='my_namespace')
+        >>> index.update(id='id1', values=[1, 2, 3], sparse_values={'indices': [1, 2], 'values': [0.2, 0.4]},
+        >>>              namespace='my_namespace')
+        >>> index.update(id='id1', values=[1, 2, 3], sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]),
+        >>>              namespace='my_namespace')
 
         Args:
             id (str): Vector's unique id.

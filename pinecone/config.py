@@ -79,6 +79,7 @@ class _CONFIG:
 
         # Set INI file config
         config = config._replace(**self._preprocess_and_validate_config(file_config))
+        print("post init config: ", config)
 
         # Set environment config
         env_config = ConfigBase(
@@ -242,18 +243,71 @@ def init(
     project_name: str = None,
     log_level: str = None,
     openapi_config: OpenApiConfiguration = None,
-    config: str = "~/.pinecone",
+    config: str = "./.pinecone",
     **kwargs
 ):
-    """Initializes the Pinecone client.
+    """Initializes configuration for the Pinecone client.
 
-    :param api_key: Required if not set in config file or by environment variable ``PINECONE_API_KEY``.
-    :param host: Optional. Controller host.
-    :param environment: Optional. Deployment environment.
-    :param project_name: Optional. Pinecone project name. Overrides the value that is otherwise looked up and used from the Pinecone backend.
-    :param openapi_config: Optional. Set OpenAPI client configuration.
-    :param config: Optional. An INI configuration file.
-    :param log_level: Deprecated since v2.0.2 [Will be removed in v3.0.0]; use the standard logging module to manage logger "pinecone" instead.
+    The `pinecone` module is the main entrypoint to this sdk. You will use instances of it to create and manage indexes as well as 
+    perform data operations on those indexes after they are created.
+
+    **Initializing the client**
+
+    There are two pieces of configuration required to use the Pinecone client: an API key and environment value. These values can
+    be passed using environment variables, an INI configuration file, or explicitly as arguments to the ``init`` function. Find
+    your configuration values in the console dashboard at [https://app.pinecone.io](https://app.pinecone.io).
+    
+    **Using environment variables**
+
+    The environment variables used to configure the client are the following:
+    
+    ```python
+    export PINECONE_API_KEY="your_api_key"
+    export PINECONE_ENVIRONMENT="your_environment"
+    export PINECONE_PROJECT_NAME="your_project_name"
+    export PINECONE_CONTROLLER_HOST="your_controller_host"
+    ```
+
+    **Using an INI configuration file**
+
+    You can use an INI configuration file to configure the client. The default location for this file is `./.pinecone`.
+    You must place configuration values in the `default` group, and the keys must have the following format:
+
+    ```python
+    [default]
+    api_key=your_api_key
+    environment=your_environment
+    project_name=your_project_name
+    controller_host=your_controller_host
+    ```
+
+    When environment variables or a config file are provided, you do not need to initialize the client explicitly:
+
+    ```python
+    import pinecone
+    pinecone.list_indexes()
+    ```
+
+    *Passing configuration values*
+
+    If you prefer to pass configuration in code, the constructor accepts the following arguments. This could be useful if
+    your application needs to interact with multiple projects, each with a different configuration. Explicitly passed values
+    will override any existing environment or configuration file values.
+
+    ```python
+    pinecone.init(api_key="my-api-key", environment="my-environment")
+    ```
+    
+    Args:
+        api_key (str, optional): The API key for your Pinecone project. Required if not set in environment variables or the config file. 
+            You can find this in the [Pinecone console](https://app.pinecone.io).
+        host (str, optional): Custom controller host which will be used for API calls involving index operations.
+        environment (str, optional): The environment for your Pinecone project. Required if not set in environment variables or the config file.
+            You can find this in the [Pinecone console](https://app.pinecone.io).
+        project_name (str, optional): The Pinecone project name. Overrides the value that is otherwise looked up and used from the Pinecone backend.
+        openapi_config (`pinecone.core.client.configuration.Configuration`, optional): Sets a custom OpenAPI client configuration.
+        config (str, optional): The path to an INI configuration file. Defaults to `./.pinecone`.
+        log_level (str, optional): Deprecated since v2.0.2 [Will be removed in v3.0.0]; use the standard logging module to manage logger "pinecone" instead.
     """
     check_kwargs(init, kwargs)
     Config.reset(

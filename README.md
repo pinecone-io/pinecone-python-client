@@ -1,4 +1,5 @@
-# pinecone-client
+# pinecone-python-client
+
 The Pinecone python client
 
 For more information, see the docs at https://www.pinecone.io/docs/
@@ -6,6 +7,7 @@ For more information, see the docs at https://www.pinecone.io/docs/
 ## Installation
 
 Install a released version from pip:
+
 ```shell
 pip3 install pinecone-client
 ```
@@ -17,11 +19,13 @@ pip3 install "pinecone-client[grpc]"
 ```
 
 Or the latest development version:
+
 ```shell
 pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git
 ```
 
 Or a specific development version:
+
 ```shell
 pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git
 pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git@example-branch-name
@@ -120,7 +124,6 @@ index = pinecone.Index("example-index")
 index_stats_response = index.describe_index_stats()
 ```
 
-
 ## Upsert vectors
 
 The following example upserts vectors to `example-index`.
@@ -188,7 +191,6 @@ index = pinecone.Index("example-index")
 
 fetch_response = index.fetch(ids=["vec1", "vec2"], namespace="example-namespace")
 ```
-
 
 ## Update vectors
 
@@ -259,6 +261,6 @@ pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
 pinecone.delete_collection("example-collection")
 ```
 
-# Contributing 
+# Contributing
 
 If you'd like to make a contribution, or get setup locally to develop the Pinecone python client, please see our [contributing guide](./CONTRIBUTING.md)
