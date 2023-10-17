@@ -11,4 +11,4 @@ class IndexDescription(NamedTuple):
     pod_type: str
     status: None
     metadata_config: None
-    source_collection: None
+

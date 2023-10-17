@@ -25,8 +25,8 @@ class Pinecone:
         index_api: IndexOperationsApi = None,
         **kwargs,
     ):
-        if kwargs.get("config"):
-            self.config = kwargs.get("config")
+        if config or kwargs.get("config"):
+            self.config = config or kwargs.get("config")
         else:
             self.config = Config(api_key=api_key, host=host, **kwargs)
 
@@ -173,8 +173,7 @@ class Pinecone:
 
     def list_indexes(self):
         """Lists all indexes."""
-        api_instance = self.index_api
-        response = api_instance.list_indexes()
+        response = self.index_api.list_indexes()
         return response
 
     def describe_index(self, name: str):
@@ -185,20 +184,19 @@ class Pinecone:
         """
         api_instance = self.index_api
         response = api_instance.describe_index(name)
-        db = response["database"]
-        ready = response["status"]["ready"]
-        state = response["status"]["state"]
+        db = response.database
+        ready = response.status.ready
+        state = response.status.state
         return IndexDescription(
-            name=db["name"],
-            metric=db["metric"],
-            replicas=db["replicas"],
-            dimension=db["dimension"],
-            shards=db["shards"],
-            pods=db.get("pods", db["shards"] * db["replicas"]),
-            pod_type=db.get("pod_type", "p1"),
+            name=db.name,
+            metric=db.metric,
+            replicas=db.replicas,
+            dimension=db.dimension,
+            shards=db.shards,
+            pods=db.pods,
+            pod_type=db.pod_type,
             status={"ready": ready, "state": state},
-            metadata_config=db.get("metadata_config"),
-            source_collection=db.get("source_collection", ""),
+            metadata_config=db.metadata_config
         )
 
     def configure_index(self, name: str, replicas: Optional[int] = None, pod_type: Optional[str] = ""):
@@ -261,7 +259,7 @@ class Pinecone:
     def _get_status(self, name: str):
         api_instance = self.index_api
         response = api_instance.describe_index(name)
-        return response["status"]
+        return response.status
 
     def Index(self, name: str):
         return Index(self, name)
