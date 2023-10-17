@@ -79,7 +79,6 @@ class _CONFIG:
 
         # Set INI file config
         config = config._replace(**self._preprocess_and_validate_config(file_config))
-        print("post init config: ", config)
 
         # Set environment config
         env_config = ConfigBase(
