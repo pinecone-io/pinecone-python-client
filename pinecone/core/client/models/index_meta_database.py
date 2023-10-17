@@ -30,7 +30,7 @@ class IndexMetaDatabase(BaseModel):
     """
 
     name: StrictStr = Field(...)
-    dimension: StrictStr = Field(...)
+    dimension: StrictInt = Field(...)
     capacity_mode: StrictStr = Field(...)
     index_type: Optional[StrictStr] = None
     metric: StrictStr = Field(...)
