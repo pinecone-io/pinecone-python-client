@@ -1,5 +1,6 @@
 import time
 from typing import NamedTuple, Optional
+import copy
 
 import pinecone
 from pinecone.config import Config
@@ -49,7 +50,7 @@ class CollectionDescription(object):
 
 
 def _get_api_instance():
-    client_config = Config.OPENAPI_CONFIG
+    client_config = copy.deepcopy(Config.OPENAPI_CONFIG)
     client_config.api_key = client_config.api_key or {}
     client_config.api_key["ApiKeyAuth"] = client_config.api_key.get("ApiKeyAuth", Config.API_KEY)
     client_config.server_variables = {**{"environment": Config.ENVIRONMENT}, **client_config.server_variables}
