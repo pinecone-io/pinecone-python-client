@@ -14,7 +14,7 @@ from tqdm.autonotebook import tqdm
 import json
 
 from pinecone import FetchResponse, QueryResponse, ScoredVector, SingleQueryResults, DescribeIndexStatsResponse
-from pinecone.config import Config
+from pinecone.config.config import Config
 from pinecone.core.client.models.namespace_summary import NamespaceSummary
 from pinecone.core.client.models.vector import Vector as _Vector
 from pinecone.core.grpc.protos.vector_service_pb2 import (
