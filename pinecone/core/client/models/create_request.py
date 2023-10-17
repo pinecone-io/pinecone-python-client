@@ -35,7 +35,7 @@ class CreateRequest(BaseModel):
     dimension: StrictInt = Field(..., description="The dimensions of the vectors to be inserted in the index")
     region: StrictStr = Field(..., description="The region where you would like your index to be created")
     cloud: StrictStr = Field(..., description="The public cloud where you would like your index hosted")
-    capacity_mode: StrictStr = Field(..., description="The capacity mode for the index")
+    capacity_mode: StrictStr = Field(..., description="The capacity mode for the index.")
     index_type: Optional[StrictStr] = Field(
         "approximated", description="The type of vector index. Pinecone supports 'approximated'."
     )
