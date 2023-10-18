@@ -14,6 +14,7 @@ from pinecone.core.client.models.create_collection_request import CreateCollecti
 from pinecone.utils import get_user_agent
 
 from pinecone.index import Index
+from pinecone.grpc.index_grpc import GRPCIndex
 
 
 class Pinecone:
@@ -259,7 +260,10 @@ class Pinecone:
     def _get_status(self, name: str):
         api_instance = self.index_api
         response = api_instance.describe_index(name)
-        return response.status
+        return response['status']
 
     def Index(self, name: str):
-        return Index(self, name)
+        return Index(self.config, name)
+    
+    def GRPCIndex(self, name: str):
+        return GRPCIndex(self.config, name)

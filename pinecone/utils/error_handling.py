@@ -3,13 +3,9 @@ from functools import wraps
 
 from urllib3.exceptions import MaxRetryError, ProtocolError
 
-from pinecone import Config
-
-
 def validate_and_convert_errors(func):
     @wraps(func)
     def inner_func(*args, **kwargs):
-        Config.validate()  # raises exceptions in case of invalid config
         try:
             return func(*args, **kwargs)
         except MaxRetryError as e:

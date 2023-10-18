@@ -6,6 +6,8 @@ import numpy as np
 from collections.abc import Iterable, Mapping
 from typing import Union, List, Tuple, Optional, Dict, Any
 
+from pinecone.config.config import Config
+
 from .core.client.models.sparse_values import SparseValues
 from pinecone import Config
 from pinecone.core.client import ApiClient
@@ -88,13 +90,13 @@ class Index(ApiClient):
     For improved performance, use the Pinecone GRPC index client.
     """
 
-    def __init__(self, index_name: str, pool_threads=1):
-        openapi_client_config = copy.deepcopy(Config.OPENAPI_CONFIG)
+    def __init__(self, config: Config, index_name: str, pool_threads=1):
+        openapi_client_config = copy.deepcopy(config.OPENAPI_CONFIG)
         openapi_client_config.api_key = openapi_client_config.api_key or {}
         openapi_client_config.api_key["ApiKeyAuth"] = openapi_client_config.api_key.get("ApiKeyAuth", Config.API_KEY)
         openapi_client_config.server_variables = openapi_client_config.server_variables or {}
         openapi_client_config.server_variables = {
-            **{"environment": Config.ENVIRONMENT, "index_name": index_name, "project_name": Config.PROJECT_NAME},
+            **{"index_name": index_name},
             **openapi_client_config.server_variables,
         }
         super().__init__(configuration=openapi_client_config, pool_threads=pool_threads)

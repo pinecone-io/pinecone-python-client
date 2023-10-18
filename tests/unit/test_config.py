@@ -26,7 +26,7 @@ class TestConfig:
             if os.getenv(var):
                 del os.environ[var]
 
-    def test_init_with_environment_vars():
+    def test_init_with_environment_vars(self):
         os.environ["PINECONE_API_KEY"] = "test-api-key"
         os.environ["PINECONE_CONTROLLER_HOST"] = "test-controller-host"
 
@@ -35,7 +35,7 @@ class TestConfig:
         assert config.API_KEY == "test-api-key"
         assert config.CONTROLLER_HOST == "test-controller-host"
 
-    def test_init_with_positional_args():
+    def test_init_with_positional_args(self):
         api_key = "my-api-key"
         host = "my-controller-host"
         openapi_config = OpenApiConfiguration(api_key="openapi-api-key")
@@ -46,7 +46,7 @@ class TestConfig:
         assert config.CONTROLLER_HOST == host
         assert config.OPENAPI_CONFIG == openapi_config
 
-    def test_init_with_kwargs():
+    def test_init_with_kwargs(self):
         api_key = "my-api-key"
         controller_host = "my-controller-host"
         openapi_config = OpenApiConfiguration(api_key="openapi-api-key")
@@ -57,11 +57,11 @@ class TestConfig:
         assert config.CONTROLLER_HOST == controller_host
         assert config.OPENAPI_CONFIG == openapi_config
 
-    def test_init_with_mispelled_kwargs(caplog):
+    def test_init_with_mispelled_kwargs(self, caplog):
         Config(api_key='my-api-key', unknown_kwarg='bogus')
         assert "__init__ had unexpected keyword argument(s): unknown_kwarg" in caplog.text
 
-    def test_resolution_order_kwargs_over_env_vars():
+    def test_resolution_order_kwargs_over_env_vars(self):
         """
         Test that when config is present from multiple sources,
         the order of precedence is kwargs > env vars
@@ -77,6 +77,6 @@ class TestConfig:
         assert config.API_KEY == api_key
         assert config.CONTROLLER_HOST == controller_host
 
-    def test_errors_when_no_api_key_is_present():
+    def test_errors_when_no_api_key_is_present(self):
         with pytest.raises(ApiKeyError):
-            config = Config()
+            Config()
