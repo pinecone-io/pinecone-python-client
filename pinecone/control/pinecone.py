@@ -153,6 +153,7 @@ class Pinecone:
         """
         api_instance = self.index_api
         api_instance.delete_index(name)
+        self.index_host_store.delete_host(self.config, name)
 
         def get_remaining():
             return name in api_instance.list_indexes()
@@ -190,10 +191,6 @@ class Pinecone:
         api_instance = self.index_api
         response = api_instance.describe_index(name)
         db = response.database
-        ready = response.status.ready
-        state = response.status.state
-        print(response.status)
-
         host = response.status.host
 
         self.index_host_store.set_host(self.config, name, "https://" + host)
@@ -206,7 +203,7 @@ class Pinecone:
             shards=db.shards,
             pods=db.pods,
             pod_type=db.pod_type,
-            status={"ready": ready, "state": state},
+            status=response.status,
             metadata_config=db.metadata_config,
         )
 
