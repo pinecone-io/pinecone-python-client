@@ -18,7 +18,7 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     UpsertResponse,
     SparseValues,
 )
-from pinecone.utils import dict_to_proto_struct
+from pinecone.data.grpc.utils import dict_to_proto_struct
 
 class TestGrpcIndex:
     def setup_method(self):

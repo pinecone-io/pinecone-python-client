@@ -8,9 +8,10 @@ import grpc
 from grpc._channel import _InactiveRpcError
 import json
 
+from .retry import RetryConfig
+
 from pinecone import Config
-from pinecone.grpc.retry import RetryConfig
-from pinecone.utils import _generate_request_id, dict_to_proto_struct, fix_tuple_length
+from .utils import _generate_request_id
 from pinecone.utils.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSION
 from pinecone.exceptions import PineconeException
 

@@ -13,8 +13,8 @@ from pinecone.core.client.models.patch_request import PatchRequest
 from pinecone.core.client.models.create_collection_request import CreateCollectionRequest
 from pinecone.utils import get_user_agent
 
-from pinecone.index import Index
-from pinecone.grpc.index_grpc import GRPCIndex
+from pinecone.data import Index
+from pinecone.data import GRPCIndex
 
 
 class Pinecone:

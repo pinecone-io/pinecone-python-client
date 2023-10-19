@@ -1,3 +1,7 @@
+import uuid
+
+from google.protobuf.struct_pb2 import Struct
+
 from pinecone.core.client.models import (
     Vector as _Vector,
     ScoredVector,
@@ -9,6 +13,15 @@ from pinecone.core.client.models import (
     NamespaceSummary,
 )
 
+def _generate_request_id() -> str:
+    return str(uuid.uuid4())
+
+def dict_to_proto_struct(d: dict) -> "Struct":
+    if not d:
+        d = {}
+    s = Struct()
+    s.update(d)
+    return s
 
 def parse_sparse_values(sparse_values: dict):
     return (

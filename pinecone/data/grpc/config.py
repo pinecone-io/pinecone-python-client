@@ -1,4 +1,4 @@
-from pinecone.grpc.retry import RetryConfig
+from .retry import RetryConfig
 from typing import NamedTuple, Optional, Dict
 
 

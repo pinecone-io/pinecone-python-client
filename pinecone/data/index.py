@@ -6,12 +6,11 @@ import numpy as np
 from collections.abc import Iterable, Mapping
 from typing import Union, List, Tuple, Optional, Dict, Any
 
-from pinecone.config.config import Config
+from pinecone.config import Config
 
-from .core.client.models.sparse_values import SparseValues
-from pinecone import Config
+from pinecone.core.client.models.sparse_values import SparseValues
 from pinecone.core.client import ApiClient
-from .core.client.models import (
+from pinecone.core.client.models import (
     FetchResponse,
     ProtobufAny,
     QueryRequest,
@@ -30,7 +29,7 @@ from .core.client.models import (
     DescribeIndexStatsRequest,
 )
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
-from .utils import fix_tuple_length, get_user_agent, warn_deprecated
+from ..utils import fix_tuple_length, get_user_agent, warn_deprecated
 import copy
 
 __all__ = [
@@ -54,8 +53,8 @@ __all__ = [
     "SparseValues",
 ]
 
-from .utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
-from .utils.error_handling import validate_and_convert_errors
+from ..utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
+from ..utils.error_handling import validate_and_convert_errors
 
 _OPENAPI_ENDPOINT_PARAMS = (
     "_return_http_data_only",

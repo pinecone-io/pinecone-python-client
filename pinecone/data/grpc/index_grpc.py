@@ -4,19 +4,16 @@ from typing import Optional, Dict, Iterable, Union, List, Tuple, Any
 from collections.abc import Mapping
 
 from google.protobuf import json_format
+
 from tqdm.autonotebook import tqdm
 
-from .utils import parse_fetch_response, parse_query_response, parse_stats_response
+from .utils import dict_to_proto_struct, parse_fetch_response, parse_query_response, parse_stats_response
 
 from pinecone.core.client.models import (
     FetchResponse,
     QueryResponse,
-    ScoredVector,
-    SingleQueryResults,
     DescribeIndexStatsResponse,
 )
-from pinecone.core.client.models.namespace_summary import NamespaceSummary
-from pinecone.core.client.models.vector import Vector as _Vector
 from pinecone.core.grpc.protos.vector_service_pb2 import (
     Vector as GRPCVector,
     QueryVector as GRPCQueryVector,
@@ -31,16 +28,14 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     UpdateResponse,
     SparseValues as GRPCSparseValues,
 )
-from pinecone.core.client.models.sparse_values import SparseValues
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
-from pinecone.utils import dict_to_proto_struct, fix_tuple_length
+from pinecone.utils import fix_tuple_length
 from pinecone.utils.constants import (
     REQUIRED_VECTOR_FIELDS,
     OPTIONAL_VECTOR_FIELDS,
 )
-from pinecone.exceptions import PineconeException
-from pinecone.grpc.base import GRPCIndexBase
-from pinecone.grpc.future import PineconeGrpcFuture
+from pinecone.data.grpc.base import GRPCIndexBase
+from pinecone.data.grpc.future import PineconeGrpcFuture
 
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues"]
 

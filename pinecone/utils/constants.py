@@ -1,7 +1,7 @@
 import os
 import enum
 
-from pinecone.utils import get_environment, get_version
+from .environment import get_environment, get_version
 
 MAX_MSG_SIZE = 128 * 1024 * 1024
 
