@@ -10,7 +10,7 @@ from .index import *
 
 try:
     from .core.grpc.index_grpc import *
-except ImportError:
+except Exception:
     pass  # ignore for non-[grpc] installations
 
 # Kept for backwards-compatibility
