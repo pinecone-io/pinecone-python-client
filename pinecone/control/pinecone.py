@@ -193,7 +193,7 @@ class Pinecone:
         db = response.database
         host = response.status.host
 
-        self.index_host_store.set_host(self.config, name, "https://" + host)
+        self.index_host_store.set_host(self.config, name, host)
 
         return IndexDescription(
             name=db.name,

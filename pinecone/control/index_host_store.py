@@ -27,7 +27,7 @@ class IndexHostStore(metaclass=SingletonMeta):
     def set_host(self, config: Config, index_name: str, host: str):
         if host:
             key = self._key(config, index_name)
-            self._indexHosts[key] = host
+            self._indexHosts[key] = "https://" + host
 
     def get_host(self, api: IndexOperationsApi, config: Config, index_name: str) -> str:
         key = self._key(config, index_name)
@@ -35,5 +35,5 @@ class IndexHostStore(metaclass=SingletonMeta):
             return self._indexHosts[key]
         else:
             description = api.describe_index(index_name)
-            self._indexHosts[key] = description.status.host
+            self.set_host(config, index_name, description.status.host)
             return self._indexHosts[key]
