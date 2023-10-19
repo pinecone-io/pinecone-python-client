@@ -1,3 +1,5 @@
+import os 
+
 from tqdm.autonotebook import tqdm
 from importlib.util import find_spec
 import numbers
@@ -12,7 +14,6 @@ from pinecone.core.client.models.sparse_values import SparseValues
 from pinecone.core.client import ApiClient
 from pinecone.core.client.models import (
     FetchResponse,
-    ProtobufAny,
     QueryRequest,
     QueryResponse,
     QueryVector,
@@ -35,7 +36,6 @@ import copy
 __all__ = [
     "Index",
     "FetchResponse",
-    "ProtobufAny",
     "QueryRequest",
     "QueryResponse",
     "QueryVector",
@@ -82,25 +82,30 @@ def upsert_numpy_deprecation_notice(context):
     warn_deprecated(message, deprecated_in="2.2.1", removal_in="3.0.0")
 
 
-class Index(ApiClient):
+class Index():
 
     """
     A client for interacting with a Pinecone index via REST API.
     For improved performance, use the Pinecone GRPC index client.
     """
 
-    def __init__(self, config: Config, index_name: str, pool_threads=1):
-        openapi_client_config = copy.deepcopy(config.OPENAPI_CONFIG)
-        openapi_client_config.api_key = openapi_client_config.api_key or {}
-        openapi_client_config.api_key["ApiKeyAuth"] = openapi_client_config.api_key.get("ApiKeyAuth", Config.API_KEY)
-        openapi_client_config.server_variables = openapi_client_config.server_variables or {}
-        openapi_client_config.server_variables = {
-            **{"index_name": index_name},
-            **openapi_client_config.server_variables,
-        }
-        super().__init__(configuration=openapi_client_config, pool_threads=pool_threads)
-        self.user_agent = get_user_agent()
-        self._vector_api = VectorOperationsApi(self)
+    def __init__(self, api_key: str, host: str, pool_threads=1, **kwargs):
+        api_key = api_key or kwargs.get("api_key")
+        host = host or kwargs.get('host')
+        pool_threads = pool_threads or kwargs.get("pool_threads")
+
+        self._config = Config(api_key=api_key, host=host, **kwargs)
+        
+        api_client = ApiClient(configuration=self._config.OPENAPI_CONFIG, pool_threads=pool_threads)
+        api_client.user_agent = get_user_agent()
+        self._api_client = api_client
+        self._vector_api = VectorOperationsApi(api_client=api_client)
+    
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._api_client.close()
 
     @validate_and_convert_errors
     def upsert(

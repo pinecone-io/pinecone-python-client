@@ -1,7 +1,9 @@
 import time
 from typing import Optional
 
-from pinecone.config.config import Config
+from .index_host_store import IndexHostStore
+
+from pinecone.config import PineconeConfig, Config
 
 from pinecone.control.models.index_description import IndexDescription
 from pinecone.control.models.collection_description import CollectionDescription
@@ -29,7 +31,7 @@ class Pinecone:
         if config or kwargs.get("config"):
             self.config = config or kwargs.get("config")
         else:
-            self.config = Config(api_key=api_key, host=host, **kwargs)
+            self.config = PineconeConfig(api_key=api_key, host=host, **kwargs)
 
         if index_api:
             self.index_api = index_api
@@ -37,6 +39,8 @@ class Pinecone:
             api_client = ApiClient(configuration=self.config.OPENAPI_CONFIG)
             api_client.user_agent = get_user_agent()
             self.index_api = IndexOperationsApi(api_client)
+
+        self.index_host_store = IndexHostStore()
 
     def create_index(
         self,
@@ -188,6 +192,12 @@ class Pinecone:
         db = response.database
         ready = response.status.ready
         state = response.status.state
+        print(response.status)
+
+        host = response.status.host
+
+        self.index_host_store.set_host(self.config, name, "https://" + host)
+
         return IndexDescription(
             name=db.name,
             metric=db.metric,
@@ -197,7 +207,7 @@ class Pinecone:
             pods=db.pods,
             pod_type=db.pod_type,
             status={"ready": ready, "state": state},
-            metadata_config=db.metadata_config
+            metadata_config=db.metadata_config,
         )
 
     def configure_index(self, name: str, replicas: Optional[int] = None, pod_type: Optional[str] = ""):
@@ -260,10 +270,11 @@ class Pinecone:
     def _get_status(self, name: str):
         api_instance = self.index_api
         response = api_instance.describe_index(name)
-        return response['status']
+        return response["status"]
 
     def Index(self, name: str):
-        return Index(self.config, name)
-    
+        index_host = self.index_host_store.get_host(self.index_api, self.config, name)
+        return Index(api_key=self.config.API_KEY, host=index_host)
+
     def GRPCIndex(self, name: str):
         return GRPCIndex(self.config, name)
