@@ -1,12 +1,12 @@
 import pandas as pd
 import numpy as np
 import pytest
-import warnings
 
 import pinecone
+from pinecone.config import PineconeConfig
+from pinecone import Index
 from pinecone import UpsertRequest, Vector
 from pinecone import DescribeIndexStatsRequest, ScoredVector, QueryResponse, UpsertResponse, SparseValues
-
 
 class TestRestIndex:
     def setup_method(self):
@@ -29,8 +29,7 @@ class TestRestIndex:
         self.svv2 = [0.1, 0.2, 0.3]
         self.sv2 = {"indices": self.svi2, "values": self.svv2}
 
-        pinecone.init(api_key='example-key')
-        self.index = pinecone.Index('example-name')
+        self.index = Index(api_key='asdf', host='https://test.pinecone.io')
     
     # region: upsert tests
     
@@ -133,7 +132,7 @@ class TestRestIndex:
             [Vector(id="vec1", values=self.vals1, metadata=self.md1)],
             [Vector(id="vec2", values=self.vals2, metadata=self.md2)],
         ]
-        with pinecone.Index("example-index", pool_threads=30) as index:
+        with Index(api_key="asdf", host="https://test.pinecone.io", pool_threads=30) as index:
             mocker.patch.object(index._vector_api, "upsert", autospec=True)
 
             # Send requests in parallel

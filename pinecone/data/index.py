@@ -1,3 +1,5 @@
+import os 
+
 from tqdm.autonotebook import tqdm
 from importlib.util import find_spec
 import numbers
@@ -6,12 +8,12 @@ import numpy as np
 from collections.abc import Iterable, Mapping
 from typing import Union, List, Tuple, Optional, Dict, Any
 
-from .core.client.models.sparse_values import SparseValues
-from pinecone import Config
+from pinecone.config import Config
+
+from pinecone.core.client.models.sparse_values import SparseValues
 from pinecone.core.client import ApiClient
-from .core.client.models import (
+from pinecone.core.client.models import (
     FetchResponse,
-    ProtobufAny,
     QueryRequest,
     QueryResponse,
     QueryVector,
@@ -28,13 +30,12 @@ from .core.client.models import (
     DescribeIndexStatsRequest,
 )
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
-from .utils import fix_tuple_length, get_user_agent, warn_deprecated
+from ..utils import fix_tuple_length, get_user_agent, warn_deprecated
 import copy
 
 __all__ = [
     "Index",
     "FetchResponse",
-    "ProtobufAny",
     "QueryRequest",
     "QueryResponse",
     "QueryVector",
@@ -52,8 +53,8 @@ __all__ = [
     "SparseValues",
 ]
 
-from .utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
-from .utils.error_handling import validate_and_convert_errors
+from ..utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
+from ..utils.error_handling import validate_and_convert_errors
 
 _OPENAPI_ENDPOINT_PARAMS = (
     "_return_http_data_only",
@@ -81,25 +82,30 @@ def upsert_numpy_deprecation_notice(context):
     warn_deprecated(message, deprecated_in="2.2.1", removal_in="3.0.0")
 
 
-class Index(ApiClient):
+class Index():
 
     """
     A client for interacting with a Pinecone index via REST API.
     For improved performance, use the Pinecone GRPC index client.
     """
 
-    def __init__(self, index_name: str, pool_threads=1):
-        openapi_client_config = copy.deepcopy(Config.OPENAPI_CONFIG)
-        openapi_client_config.api_key = openapi_client_config.api_key or {}
-        openapi_client_config.api_key["ApiKeyAuth"] = openapi_client_config.api_key.get("ApiKeyAuth", Config.API_KEY)
-        openapi_client_config.server_variables = openapi_client_config.server_variables or {}
-        openapi_client_config.server_variables = {
-            **{"environment": Config.ENVIRONMENT, "index_name": index_name, "project_name": Config.PROJECT_NAME},
-            **openapi_client_config.server_variables,
-        }
-        super().__init__(configuration=openapi_client_config, pool_threads=pool_threads)
-        self.user_agent = get_user_agent()
-        self._vector_api = VectorOperationsApi(self)
+    def __init__(self, api_key: str, host: str, pool_threads=1, **kwargs):
+        api_key = api_key or kwargs.get("api_key")
+        host = host or kwargs.get('host')
+        pool_threads = pool_threads or kwargs.get("pool_threads")
+
+        self._config = Config(api_key=api_key, host=host, **kwargs)
+        
+        api_client = ApiClient(configuration=self._config.OPENAPI_CONFIG, pool_threads=pool_threads)
+        api_client.user_agent = get_user_agent()
+        self._api_client = api_client
+        self._vector_api = VectorOperationsApi(api_client=api_client)
+    
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._api_client.close()
 
     @validate_and_convert_errors
     def upsert(

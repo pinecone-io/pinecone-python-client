@@ -134,7 +134,7 @@ class IndexOperationsApi:
         :rtype: tuple(IndexMeta, status_code(int), headers(HTTPHeaderDict))
         """
 
-        _hosts = ["https://controller.{environment}.pinecone.io"]
+        _hosts = ["https://api.pinecone.io"]
         _host = _hosts[0]
         if kwargs.get("_host_index"):
             _host_index = int(kwargs.get("_host_index"))
@@ -294,7 +294,7 @@ class IndexOperationsApi:
         :rtype: tuple(str, status_code(int), headers(HTTPHeaderDict))
         """
 
-        _hosts = ["https://controller.{environment}.pinecone.io"]
+        _hosts = ["https://api.pinecone.io"]
         _host = _hosts[0]
         if kwargs.get("_host_index"):
             _host_index = int(kwargs.get("_host_index"))
@@ -450,7 +450,7 @@ class IndexOperationsApi:
         :rtype: tuple(IndexMeta, status_code(int), headers(HTTPHeaderDict))
         """
 
-        _hosts = ["https://controller.{environment}.pinecone.io"]
+        _hosts = ["https://api.pinecone.io"]
         _host = _hosts[0]
         if kwargs.get("_host_index"):
             _host_index = int(kwargs.get("_host_index"))
@@ -608,7 +608,7 @@ class IndexOperationsApi:
         :rtype: tuple(str, status_code(int), headers(HTTPHeaderDict))
         """
 
-        _hosts = ["https://controller.{environment}.pinecone.io"]
+        _hosts = ["https://api.pinecone.io"]
         _host = _hosts[0]
         if kwargs.get("_host_index"):
             _host_index = int(kwargs.get("_host_index"))
@@ -757,7 +757,7 @@ class IndexOperationsApi:
         :rtype: tuple(str, status_code(int), headers(HTTPHeaderDict))
         """
 
-        _hosts = ["https://controller.{environment}.pinecone.io"]
+        _hosts = ["https://api.pinecone.io"]
         _host = _hosts[0]
         if kwargs.get("_host_index"):
             _host_index = int(kwargs.get("_host_index"))
@@ -906,7 +906,7 @@ class IndexOperationsApi:
         :rtype: tuple(CollectionMeta, status_code(int), headers(HTTPHeaderDict))
         """
 
-        _hosts = ["https://controller.{environment}.pinecone.io"]
+        _hosts = ["https://api.pinecone.io"]
         _host = _hosts[0]
         if kwargs.get("_host_index"):
             _host_index = int(kwargs.get("_host_index"))
@@ -1055,7 +1055,7 @@ class IndexOperationsApi:
         :rtype: tuple(IndexMeta, status_code(int), headers(HTTPHeaderDict))
         """
 
-        _hosts = ["https://controller.{environment}.pinecone.io"]
+        _hosts = ["https://api.pinecone.io"]
         _host = _hosts[0]
         if kwargs.get("_host_index"):
             _host_index = int(kwargs.get("_host_index"))
@@ -1196,7 +1196,7 @@ class IndexOperationsApi:
         :rtype: tuple(List[str], status_code(int), headers(HTTPHeaderDict))
         """
 
-        _hosts = ["https://controller.{environment}.pinecone.io"]
+        _hosts = ["https://api.pinecone.io"]
         _host = _hosts[0]
         if kwargs.get("_host_index"):
             _host_index = int(kwargs.get("_host_index"))
@@ -1335,7 +1335,7 @@ class IndexOperationsApi:
         :rtype: tuple(ListIndexes200Response, status_code(int), headers(HTTPHeaderDict))
         """
 
-        _hosts = ["https://controller.{environment}.pinecone.io"]
+        _hosts = ["https://api.pinecone.io"]
         _host = _hosts[0]
         if kwargs.get("_host_index"):
             _host_index = int(kwargs.get("_host_index"))

@@ -17,7 +17,11 @@ class PineconeException(Exception):
 class PineconeProtocolError(PineconeException):
     """Raised when something unexpected happens mid-request/response."""
 
+class PineconeConfigurationError(PineconeException):
+    """Raised when a configuration error occurs."""
+
 __all__ = [
+    "PineconeConfigurationError",
     "PineconeException",
     "PineconeProtocolError",
     "OpenApiException",

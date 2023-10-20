@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-import pinecone
+from pinecone import Config, GRPCIndex
 from pinecone import DescribeIndexStatsRequest
 from pinecone.core.grpc.protos.vector_service_pb2 import (
     Vector,
@@ -18,8 +18,7 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     UpsertResponse,
     SparseValues,
 )
-from pinecone.utils import dict_to_proto_struct
-
+from pinecone.data.grpc.utils import dict_to_proto_struct
 
 class TestGrpcIndex:
     def setup_method(self):
@@ -35,8 +34,8 @@ class TestGrpcIndex:
         self.filter1 = {"genre": {"$in": ["action"]}}
         self.filter2 = {"year": {"$eq": 2020}}
 
-        pinecone.init(api_key="example-key")
-        self.index = pinecone.GRPCIndex("example-name")
+        self.config = Config(api_key='test-api-key', host='foo')
+        self.index = GRPCIndex(config=self.config, index_name="example-name", _endpoint_override="test-endpoint")
 
         self.expected_vec1 = Vector(id="vec1", values=self.vals1, metadata={})
         self.expected_vec2 = Vector(id="vec2", values=self.vals2, metadata={})
