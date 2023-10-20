@@ -30,13 +30,19 @@ jobs:
         if: steps.list-commits.outputs.commits == ''
         uses: andymckay/cancel-action@0.3
 
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+
       - name: Set spruce dev version
         run: |
-          versionFile="pinecone/__version__"
           currentDate=$(date +%Y%m%d%H%M%S)
-          versionNumber=$(cat $versionFile)
-          devVersion="${versionNumber}.dev${currentDate}.spruceDev"
-          echo "$devVersion" > $versionFile
+          versionNumber=$(poetry version -s)
+          devVersion="${versionNumber}.dev${currentDate}"
+          poetry version $devVersion
 
       - name: Adjust module name
         run: |
@@ -45,13 +51,6 @@ jobs:
       - name: Update README
         run: |
           echo "This is a nightly Spruce developer build of the Pinecone Python client. It is not intended for production use." > README.md
-
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.x
-
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
 
       - name: Build Python client
         run: make package
