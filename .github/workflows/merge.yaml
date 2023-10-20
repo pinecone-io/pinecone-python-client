@@ -22,4 +22,5 @@ jobs:
           REPO: self
           BRANCH: gh-pages
           FOLDER: docs
+          CLEAR_GLOBS_FILE: '.github/.clear-target-files'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
