@@ -27,4 +27,4 @@ jobs:
           user-email: clients@pinecone.io
           target-branch: main
           target-directory: python
-          commit-message: 'Python: automated documentation build - pinecone-python-client merge SHA: ${{ github.sha}}'
+          commit-message: 'Python: automated documentation build - pinecone-python-client merge SHA: ${{ github.sha }}'
