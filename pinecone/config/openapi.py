@@ -17,7 +17,7 @@ TCP_KEEPCNT = 4
 class OpenApiConfigFactory:
     @classmethod
     def build(cls, api_key: str, host: str = None, **kwargs):
-        openapi_config = OpenApiConfiguration.get_default()
+        openapi_config = OpenApiConfiguration()
         openapi_config.host = host
         openapi_config.ssl_ca_cert = certifi.where()
         openapi_config.socket_options = cls._get_socket_options()

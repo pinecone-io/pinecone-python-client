@@ -10,9 +10,7 @@ from pinecone.control.models.collection_description import CollectionDescription
 
 from pinecone.core.client.api.index_operations_api import IndexOperationsApi
 from pinecone.core.client.api_client import ApiClient
-from pinecone.core.client.models.create_request import CreateRequest
-from pinecone.core.client.models.patch_request import PatchRequest
-from pinecone.core.client.models.create_collection_request import CreateCollectionRequest
+from pinecone.core.client.models import CreateCollectionRequest, CreateRequest, PatchRequest
 from pinecone.utils import get_user_agent
 
 from pinecone.data import Index

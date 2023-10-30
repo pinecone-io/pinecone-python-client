@@ -3,7 +3,6 @@ import numpy as np
 import pytest
 
 import pinecone
-from pinecone.config import PineconeConfig
 from pinecone import Index
 from pinecone import UpsertRequest, Vector
 from pinecone import DescribeIndexStatsRequest, ScoredVector, QueryResponse, UpsertResponse, SparseValues
@@ -356,7 +355,6 @@ class TestRestIndex:
         response = QueryResponse(
             results=[], matches=[ScoredVector(id="1", score=0.9, values=[0.0], metadata={"a": 2})], namespace="test"
         )
-
         mocker.patch.object(self.index._vector_api, "query", autospec=True, return_value=response)
 
         actual = self.index.query(top_k=10, vector=self.vals1)
