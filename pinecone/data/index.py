@@ -10,7 +10,7 @@ from typing import Union, List, Tuple, Optional, Dict, Any
 
 from pinecone.config import Config
 
-from pinecone.core.client.models.sparse_values import SparseValues
+from pinecone.core.client.models import SparseValues
 from pinecone.core.client import ApiClient
 from pinecone.core.client.models import (
     FetchResponse,
@@ -69,10 +69,10 @@ _OPENAPI_ENDPOINT_PARAMS = (
 
 def parse_query_response(response: QueryResponse, unary_query: bool):
     if unary_query:
-        response.results = None
+        response._data_store.pop("results", None)
     else:
-        response.matches = None
-        response.namespace = None
+        response._data_store.pop("matches", None)
+        response._data_store.pop("namespace", None)
     return response
 
 
