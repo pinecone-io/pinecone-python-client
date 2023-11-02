@@ -14,14 +14,10 @@ jobs:
   build-docs:
     name: Build docs with pdoc
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [3.9, '3.10', 3.11, 3.12]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Build docs with pdoc
         uses: './.github/actions/build-docs'
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.11
