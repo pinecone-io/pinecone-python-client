@@ -60,9 +60,6 @@ _OPENAPI_ENDPOINT_PARAMS = (
     "async_req",
 )
 
-def is_numpy_array(obj):
-    return type(obj).__name__ == "ndarray" and type(obj).__module__ == "numpy"
-
 def parse_query_response(response: QueryResponse, unary_query: bool):
     if unary_query:
         response._data_store.pop("results", None)
