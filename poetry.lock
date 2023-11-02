@@ -1050,4 +1050,4 @@ grpc = ["googleapis-common-protos", "grpc-gateway-protoc-gen-openapiv2", "grpcio
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4.0"
-content-hash = "a533d1e09ab2ff0c50d91cf5d2ec52c1c112e6e11a79738f47c2a1847035782f"
+content-hash = "eb925f93e12e47feb53591724acc3a48b1f33d913798f610ce6506bda52aa38c"
