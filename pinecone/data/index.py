@@ -183,10 +183,11 @@ class Index():
         self, vectors: List[Vector], namespace: Optional[str], _check_type: bool, **kwargs
     ) -> UpsertResponse:
         args_dict = self._parse_non_empty_args([("namespace", namespace)])
+        vec_builder = lambda v: VectorFactory.build(v, check_type=_check_type)
 
         return self._vector_api.upsert(
             UpsertRequest(
-                vectors=list(map(VectorFactory.build, vectors)),
+                vectors=list(map(vec_builder, vectors)),
                 **args_dict,
                 _check_type=_check_type,
                 **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS},
