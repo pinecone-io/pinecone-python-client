@@ -51,6 +51,18 @@ class TestVectorFactory:
         expected = Vector(id='1', values=[0.1, 0.2, 0.3], metadata={'genre': 'comedy'})
         assert actual == expected
 
+    def test_build_when_dict_with_numpy_values(self):
+        d = { 'id': '1', 'values': np.array([0.1, 0.2, 0.3]), 'metadata': {'genre': 'comedy'}}
+        actual = VectorFactory.build(d)
+        expected = Vector(id='1', values=[0.1, 0.2, 0.3], metadata={'genre': 'comedy'})
+        assert actual == expected
+
+    def test_build_when_dict_with_pandas_values(self):
+        d = { 'id': '1', 'values': pd.array([0.1, 0.2, 0.3]), 'metadata': {'genre': 'comedy'}}
+        actual = VectorFactory.build(d)
+        expected = Vector(id='1', values=[0.1, 0.2, 0.3], metadata={'genre': 'comedy'})
+        assert actual == expected
+
     def test_build_when_dict_missing_required_fields(self):
         with pytest.raises(ValueError, match="Vector dictionary is missing required fields"):
             d = {'values': [0.1, 0.2, 0.3]}
@@ -100,6 +112,18 @@ class TestVectorFactory:
 
     def test_build_when_dict_sparse_values_when_values_is_ndarray(self):
         d = {'id': '1', 'values': [0.1, 0.2, 0.3], 'metadata': {'genre': 'comedy'}, 'sparse_values': {'indices': [0, 2], 'values': np.array([0.1, 0.3])}}
+        actual = VectorFactory.build(d)
+        expected = Vector(id='1', values=[0.1, 0.2, 0.3], metadata={'genre': 'comedy'}, sparse_values=SparseValues(indices=[0, 2], values=[0.1, 0.3]))
+        assert actual == expected
+
+    def test_build_when_dict_sparse_values_when_indices_is_pandas_IntegerArray(self):
+        d = {'id': '1', 'values': [0.1, 0.2, 0.3], 'metadata': {'genre': 'comedy'}, 'sparse_values': {'indices': pd.array([0, 2]), 'values': [0.1, 0.3]}}
+        actual = VectorFactory.build(d)
+        expected = Vector(id='1', values=[0.1, 0.2, 0.3], metadata={'genre': 'comedy'}, sparse_values=SparseValues(indices=[0, 2], values=[0.1, 0.3]))
+        assert actual == expected
+
+    def test_build_when_dict_sparse_values_when_values_is_pandas_FloatingArray(self):
+        d = {'id': '1', 'values': [0.1, 0.2, 0.3], 'metadata': {'genre': 'comedy'}, 'sparse_values': {'indices': [0, 2], 'values': pd.array([0.1, 0.3])}}
         actual = VectorFactory.build(d)
         expected = Vector(id='1', values=[0.1, 0.2, 0.3], metadata={'genre': 'comedy'}, sparse_values=SparseValues(indices=[0, 2], values=[0.1, 0.3]))
         assert actual == expected

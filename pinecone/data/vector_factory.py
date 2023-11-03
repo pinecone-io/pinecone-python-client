@@ -76,14 +76,17 @@ class VectorFactory:
         if len(excessive_keys) > 0:
             raise VectorDictionaryExcessKeysError(item)
 
+        values = item.get("values")
+        if "values" in item:
+            item["values"] = convert_to_list(values)
+
         sparse_values = item.get("sparse_values")
         if sparse_values and not isinstance(sparse_values, SparseValues):
             item["sparse_values"] = VectorFactory._dict_to_sparse_values(sparse_values, check_type)
 
-        if "metadata" in item:
-            metadata = item.get("metadata")
-            if not isinstance(metadata, Mapping):
-                raise MetadataDictionaryExpectedError(item)
+        metadata = item.get("metadata")
+        if metadata and not isinstance(metadata, Mapping):
+            raise MetadataDictionaryExpectedError(item)
 
         try:
             return Vector(**item, _check_type=check_type)
