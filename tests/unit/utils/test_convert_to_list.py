@@ -17,6 +17,13 @@ def test_convert_to_list_when_pandas_array():
     assert actual == expected
     assert actual[0].__class__ == expected[0].__class__
 
+def test_convert_to_list_when_pandas_float_array():
+    obj = pd.array([0.1, 0.2, 0.3])
+    actual = convert_to_list(obj)
+    expected = [0.1, 0.2, 0.3]
+    assert actual == expected
+    assert actual[0].__class__ == expected[0].__class__
+
 def test_convert_to_list_when_pandas_series():
     obj = pd.Series([1, 2, 3])
     actual = convert_to_list(obj)
