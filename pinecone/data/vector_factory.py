@@ -18,7 +18,8 @@ class VectorDictionaryMissingKeysError(ValueError):
 
 class VectorDictionaryExcessKeysError(ValueError):
     def __init__(self, item):
-        message = f"Found excess keys in the vector dictionary: {list(item.keys())}. The allowed keys are: {list(REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)}"
+        invalid_keys = list(set(item.keys()) - (REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS))
+        message = f"Found excess keys in the vector dictionary: {invalid_keys}. The allowed keys are: {list(REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)}"
         super().__init__(message)
 
 class VectorTupleLengthError(ValueError):
@@ -87,8 +88,6 @@ class VectorFactory:
         try:
             return Vector(**item, _check_type=check_type)
         except TypeError as e:
-            # if not isinstance(item['values'], Iterable) or not isinstance(item['values'][0], numbers.Real):
-            #     raise TypeError(f"Column `values` is expected to be a list of floats")
             if not isinstance(item["values"], Iterable) or not isinstance(item["values"][0], numbers.Real):
                 raise TypeError(f"Column `values` is expected to be a list of floats")
             raise e
