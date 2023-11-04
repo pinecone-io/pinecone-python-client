@@ -1,11 +1,6 @@
-import os 
-
 from tqdm.autonotebook import tqdm
-from importlib.util import find_spec
-import numbers
-import numpy as np
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable
 from typing import Union, List, Tuple, Optional, Dict, Any
 
 from pinecone.config import Config
@@ -30,8 +25,8 @@ from pinecone.core.client.models import (
     DescribeIndexStatsRequest,
 )
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
-from ..utils import fix_tuple_length, get_user_agent, warn_deprecated
-import copy
+from ..utils import get_user_agent, fix_tuple_length
+from .vector_factory import VectorFactory
 
 __all__ = [
     "Index",
@@ -53,7 +48,6 @@ __all__ = [
     "SparseValues",
 ]
 
-from ..utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
 from ..utils.error_handling import validate_and_convert_errors
 
 _OPENAPI_ENDPOINT_PARAMS = (
@@ -66,7 +60,6 @@ _OPENAPI_ENDPOINT_PARAMS = (
     "async_req",
 )
 
-
 def parse_query_response(response: QueryResponse, unary_query: bool):
     if unary_query:
         response._data_store.pop("results", None)
@@ -74,13 +67,6 @@ def parse_query_response(response: QueryResponse, unary_query: bool):
         response._data_store.pop("matches", None)
         response._data_store.pop("namespace", None)
     return response
-
-
-def upsert_numpy_deprecation_notice(context):
-    numpy_deprecataion_notice = "The ability to pass a numpy ndarray as part of a dictionary argument to upsert() will be removed in a future version of the pinecone client. To remove this warning, use the numpy.ndarray.tolist method to convert your ndarray into a python list before calling upsert()."
-    message = " ".join([context, numpy_deprecataion_notice])
-    warn_deprecated(message, deprecated_in="2.2.1", removal_in="3.0.0")
-
 
 class Index():
 
@@ -168,7 +154,7 @@ class Index():
 
         Returns: UpsertResponse, includes the number of vectors upserted.
         """
-        _check_type = kwargs.pop("_check_type", False)
+        _check_type = kwargs.pop("_check_type", True)
 
         if kwargs.get("async_req", False) and batch_size is not None:
             raise ValueError(
@@ -197,81 +183,11 @@ class Index():
         self, vectors: List[Vector], namespace: Optional[str], _check_type: bool, **kwargs
     ) -> UpsertResponse:
         args_dict = self._parse_non_empty_args([("namespace", namespace)])
-
-        def _dict_to_vector(item):
-            item_keys = set(item.keys())
-            if not item_keys.issuperset(REQUIRED_VECTOR_FIELDS):
-                raise ValueError(
-                    f"Vector dictionary is missing required fields: {list(REQUIRED_VECTOR_FIELDS - item_keys)}"
-                )
-
-            excessive_keys = item_keys - (REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)
-            if len(excessive_keys) > 0:
-                raise ValueError(
-                    f"Found excess keys in the vector dictionary: {list(excessive_keys)}. "
-                    f"The allowed keys are: {list(REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)}"
-                )
-
-            if "sparse_values" in item:
-                if not isinstance(item["sparse_values"], Mapping):
-                    raise ValueError(
-                        f"Column `sparse_values` is expected to be a dictionary, found {type(item['sparse_values'])}"
-                    )
-
-                indices = item["sparse_values"].get("indices", None)
-                values = item["sparse_values"].get("values", None)
-
-                if isinstance(values, np.ndarray):
-                    upsert_numpy_deprecation_notice("Deprecated type passed in sparse_values['values'].")
-                    values = values.tolist()
-                if isinstance(indices, np.ndarray):
-                    upsert_numpy_deprecation_notice("Deprecated type passed in sparse_values['indices'].")
-                    indices = indices.tolist()
-                try:
-                    item["sparse_values"] = SparseValues(indices=indices, values=values)
-                except TypeError as e:
-                    raise ValueError(
-                        "Found unexpected data in column `sparse_values`. "
-                        "Expected format is `'sparse_values': {'indices': List[int], 'values': List[float]}`."
-                    ) from e
-
-            if "metadata" in item:
-                metadata = item.get("metadata")
-                if not isinstance(metadata, Mapping):
-                    raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
-
-            if isinstance(item["values"], np.ndarray):
-                upsert_numpy_deprecation_notice("Deprecated type passed in 'values'.")
-                item["values"] = item["values"].tolist()
-
-            try:
-                return Vector(**item)
-            except TypeError as e:
-                # if not isinstance(item['values'], Iterable) or not isinstance(item['values'][0], numbers.Real):
-                #     raise TypeError(f"Column `values` is expected to be a list of floats")
-                if not isinstance(item["values"], Iterable) or not isinstance(item["values"][0], numbers.Real):
-                    raise TypeError(f"Column `values` is expected to be a list of floats")
-                raise
-
-        def _vector_transform(item: Union[Vector, Tuple]):
-            if isinstance(item, Vector):
-                return item
-            elif isinstance(item, tuple):
-                if len(item) > 3:
-                    raise ValueError(
-                        f"Found a tuple of length {len(item)} which is not supported. "
-                        f"Vectors can be represented as tuples either the form (id, values, metadata) or (id, values). "
-                        f"To pass sparse values please use either dicts or a Vector objects as inputs."
-                    )
-                id, values, metadata = fix_tuple_length(item, 3)
-                return Vector(id=id, values=values, metadata=metadata or {}, _check_type=_check_type)
-            elif isinstance(item, Mapping):
-                return _dict_to_vector(item)
-            raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
+        vec_builder = lambda v: VectorFactory.build(v, check_type=_check_type)
 
         return self._vector_api.upsert(
             UpsertRequest(
-                vectors=list(map(_vector_transform, vectors)),
+                vectors=list(map(vec_builder, vectors)),
                 **args_dict,
                 _check_type=_check_type,
                 **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS},
