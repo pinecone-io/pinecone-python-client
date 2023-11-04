@@ -91,7 +91,7 @@ class VectorFactory:
         try:
             return Vector(**item, _check_type=check_type)
         except TypeError as e:
-            if not isinstance(item["values"], Iterable) or not isinstance(item["values"][0], numbers.Real):
+            if not isinstance(item["values"], Iterable) or not isinstance(item["values"].__iter__().__next__(), numbers.Real):
                 raise TypeError(f"Column `values` is expected to be a list of floats")
             raise e
 

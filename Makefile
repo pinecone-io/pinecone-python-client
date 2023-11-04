@@ -17,6 +17,9 @@ test-grpc-unit:
 	@echo "Running tests..."
 	poetry run pytest --cov=pinecone --timeout=120 tests/unit_grpc
 
+make type-check:
+	poetry run mypy pinecone --exclude pinecone/core
+
 version:
 	poetry version
 
