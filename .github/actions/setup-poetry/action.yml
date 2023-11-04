@@ -1,5 +1,10 @@
 name: 'Setup Poetry'
 description: 'Installs Poetry and dependencies'
+inputs:
+  include_grpc:
+    description: 'Install gRPC dependencies'
+    required: true
+    default: 'true'
 runs:
   using: 'composite'
   steps:
@@ -16,6 +21,7 @@ runs:
     # The dependencies that are specific to gRPC are defined in pyproject.toml
     # under tool.poetry.extras
     - name: Install gRPC dependencies
+      if: ${{ inputs.include_grpc == 'true' }}
       shell: bash
       run: |
         poetry install --extras "grpc"
