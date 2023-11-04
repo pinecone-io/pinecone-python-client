@@ -1,5 +1,5 @@
 import sys
-from typing import List
+from typing import List, Optional
 
 import certifi
 import requests
@@ -16,7 +16,7 @@ TCP_KEEPCNT = 4
 
 class OpenApiConfigFactory:
     @classmethod
-    def build(cls, api_key: str, host: str = None, **kwargs):
+    def build(cls, api_key: str, host: Optional[str] = None, **kwargs):
         openapi_config = OpenApiConfiguration()
         openapi_config.host = host
         openapi_config.ssl_ca_cert = certifi.where()
@@ -26,6 +26,7 @@ class OpenApiConfigFactory:
 
     @classmethod
     def _get_socket_options(
+        self,
         do_keep_alive: bool = True,
         keep_alive_idle_sec: int = TCP_KEEPIDLE,
         keep_alive_interval_sec: int = TCP_KEEPINTVL,
