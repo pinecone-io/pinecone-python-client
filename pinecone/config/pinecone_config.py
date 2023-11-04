@@ -1,10 +1,12 @@
+from typing import Optional
 import os
-from .config import Config
+from .config import ConfigBuilder, Config
 
 DEFAULT_CONTROLLER_HOST = "https://api.pinecone.io"
 
 
-class PineconeConfig(Config):
-    def __init__(self, api_key: str = "", host: str = "", **kwargs):
+class PineconeConfig():
+    @staticmethod
+    def build(api_key: Optional[str] = None, host: Optional[str] = None, **kwargs) -> Config:
         host = host or kwargs.get("host") or os.getenv("PINECONE_CONTROLLER_HOST") or DEFAULT_CONTROLLER_HOST
-        super().__init__(api_key=api_key, host=host, **kwargs)
+        return ConfigBuilder.build(api_key=api_key, host=host, **kwargs)

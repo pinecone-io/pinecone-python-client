@@ -7,13 +7,13 @@ from pinecone.config.openapi import OpenApiConfigFactory
 from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
 
 
-class ConfigBase(NamedTuple):
+class Config(NamedTuple):
     api_key: str = ""
     host: str = ""
     openapi_config: Optional[OpenApiConfiguration] = None
 
 
-class Config:
+class ConfigBuilder:
     """
 
     Configurations are resolved in the following order:
@@ -30,19 +30,19 @@ class Config:
     :param openapi_config: Optional. Set OpenAPI client configuration.
     """
 
-    def __init__(
-        self,
+    @staticmethod
+    def build(
         api_key: Optional[str] = None,
         host: Optional[str] = None,
         openapi_config: Optional[OpenApiConfiguration] = None,
         **kwargs,
-    ):
+    ) -> Config:
         api_key = api_key or kwargs.pop("api_key", None) or os.getenv("PINECONE_API_KEY")
         host = host or kwargs.pop("host", None)
 
         if not api_key:
-            raise ApiKeyError("You haven't specified an Api-Key.")
-        if not self._config.host:
+            raise PineconeConfigurationError("You haven't specified an Api-Key.")
+        if not host:
             raise PineconeConfigurationError("You haven't specified a host.")
 
         openapi_config = (
@@ -51,16 +51,4 @@ class Config:
             or OpenApiConfigFactory.build(api_key=api_key, host=host)
         )
 
-        self._config: ConfigBase = ConfigBase(api_key, host, openapi_config)
-
-    @property
-    def API_KEY(self):
-        return self._config.api_key
-
-    @property
-    def HOST(self):
-        return self._config.host
-
-    @property
-    def OPENAPI_CONFIG(self):
-        return self._config.openapi_config
+        return Config(api_key, host, openapi_config)

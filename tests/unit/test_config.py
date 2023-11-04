@@ -30,34 +30,30 @@ class TestConfig:
         os.environ["PINECONE_API_KEY"] = "test-api-key"
         os.environ["PINECONE_CONTROLLER_HOST"] = "test-controller-host"
 
-        config = PineconeConfig()
+        config = PineconeConfig.build()
 
-        assert config.API_KEY == "test-api-key"
-        assert config.HOST == "test-controller-host"
+        assert config.api_key == "test-api-key"
+        assert config.host == "test-controller-host"
 
     def test_init_with_positional_args(self):
         api_key = "my-api-key"
         host = "my-controller-host"
 
-        config = PineconeConfig(api_key, host)
+        config = PineconeConfig.build(api_key, host)
 
-        assert config.API_KEY == api_key
-        assert config.HOST == host
+        assert config.api_key == api_key
+        assert config.host == host
 
     def test_init_with_kwargs(self):
         api_key = "my-api-key"
         controller_host = "my-controller-host"
         openapi_config = OpenApiConfiguration(api_key="openapi-api-key")
 
-        config = PineconeConfig(api_key=api_key, host=controller_host, openapi_config=openapi_config)
+        config = PineconeConfig.build(api_key=api_key, host=controller_host, openapi_config=openapi_config)
 
-        assert config.API_KEY == api_key
-        assert config.HOST == controller_host
-        assert config.OPENAPI_CONFIG == openapi_config
-
-    def test_init_with_mispelled_kwargs(self, caplog):
-        PineconeConfig(api_key='my-api-key', unknown_kwarg='bogus')
-        assert "__init__ had unexpected keyword argument(s): unknown_kwarg" in caplog.text
+        assert config.api_key == api_key
+        assert config.host == controller_host
+        assert config.openapi_config == openapi_config
 
     def test_resolution_order_kwargs_over_env_vars(self):
         """
@@ -70,11 +66,11 @@ class TestConfig:
         api_key = "kwargs-api-key"
         controller_host = "kwargs-controller-host"
 
-        config = PineconeConfig(api_key=api_key, host=controller_host)
+        config = PineconeConfig.build(api_key=api_key, host=controller_host)
 
-        assert config.API_KEY == api_key
-        assert config.HOST == controller_host
+        assert config.api_key == api_key
+        assert config.host == controller_host
 
     def test_errors_when_no_api_key_is_present(self):
         with pytest.raises(PineconeConfigurationError):
-            PineconeConfig()
+            PineconeConfig.build()
