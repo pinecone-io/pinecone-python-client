@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 import pinecone
-from pinecone import Index, ApiTypeError
+from pinecone import Index
 from pinecone import UpsertRequest, Vector
 from pinecone import DescribeIndexStatsRequest, ScoredVector, QueryResponse, UpsertResponse, SparseValues
 
