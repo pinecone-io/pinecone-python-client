@@ -34,8 +34,8 @@ from pinecone.utils.constants import (
     REQUIRED_VECTOR_FIELDS,
     OPTIONAL_VECTOR_FIELDS,
 )
-from pinecone.data.grpc.base import GRPCIndexBase
-from pinecone.data.grpc.future import PineconeGrpcFuture
+from .base import GRPCIndexBase
+from .future import PineconeGrpcFuture
 
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues"]
 
