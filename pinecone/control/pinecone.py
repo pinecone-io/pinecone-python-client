@@ -1,5 +1,5 @@
 import time
-from typing import Optional
+from typing import Optional, Dict, Any, cast
 
 from .index_host_store import IndexHostStore
 
@@ -18,21 +18,25 @@ from pinecone.data import Index
 class Pinecone:
     def __init__(
         self,
-        api_key: str = None,
-        host: str = None,
-        config: Config = None,
-        index_api: IndexOperationsApi = None,
+        api_key: Optional[str] = None,
+        host: Optional[str] = None,
+        config: Optional[Config] = None,
+        index_api: Optional[IndexOperationsApi] = None,
         **kwargs,
     ):
         if config or kwargs.get("config"):
-            self.config = config or kwargs.get("config")
+            configKwarg = config or kwargs.get("config")
+            if not isinstance(configKwarg, Config):
+                raise TypeError("config must be of type pinecone.config.Config")
+            else:
+                self.config = configKwarg
         else:
-            self.config = PineconeConfig(api_key=api_key, host=host, **kwargs)
-
+            self.config = PineconeConfig.build(api_key=api_key, host=host, **kwargs)
+        
         if index_api:
             self.index_api = index_api
         else:
-            api_client = ApiClient(configuration=self.config.OPENAPI_CONFIG)
+            api_client = ApiClient(configuration=self.config.openapi_config)
             api_client.user_agent = get_user_agent()
             self.index_api = IndexOperationsApi(api_client)
 
@@ -45,15 +49,15 @@ class Pinecone:
         cloud: str,
         region: str,
         capacity_mode: str,
-        timeout: int = None,
+        timeout: Optional[int] = None,
         index_type: str = "approximated",
         metric: str = "cosine",
         replicas: int = 1,
         shards: int = 1,
         pods: int = 1,
         pod_type: str = "p1",
-        index_config: dict = None,
-        metadata_config: dict = None,
+        index_config: Optional[dict] = None,
+        metadata_config: Optional[dict] = None,
         source_collection: str = "",
     ):
         """Creates a Pinecone index.
@@ -138,7 +142,7 @@ class Pinecone:
                 )
             )
 
-    def delete_index(self, name: str, timeout: int = None):
+    def delete_index(self, name: str, timeout: Optional[int] = None):
         """Deletes a Pinecone index.
 
         :param name: the name of the index.
@@ -210,7 +214,7 @@ class Pinecone:
         :param: pod_type: the new pod_type for the index.
         """
         api_instance = self.index_api
-        config_args = {}
+        config_args: Dict[str, Any] = {}
         if pod_type != "":
             config_args.update(pod_type=pod_type)
         if replicas:
@@ -267,4 +271,4 @@ class Pinecone:
 
     def Index(self, name: str):
         index_host = self.index_host_store.get_host(self.index_api, self.config, name)
-        return Index(api_key=self.config.API_KEY, host=index_host)
+        return Index(api_key=self.config.api_key, host=index_host)

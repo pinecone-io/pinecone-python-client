@@ -82,7 +82,7 @@ class Index():
 
         self._config = Config(api_key=api_key, host=host, **kwargs)
         
-        api_client = ApiClient(configuration=self._config.OPENAPI_CONFIG, pool_threads=pool_threads)
+        api_client = ApiClient(configuration=self._config.openapi_config, pool_threads=pool_threads)
         api_client.user_agent = get_user_agent()
         self._api_client = api_client
         self._vector_api = VectorOperationsApi(api_client=api_client)

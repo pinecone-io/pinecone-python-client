@@ -24,6 +24,15 @@ jobs:
 
       - name: Run unit tests
         run: poetry run pytest --cov=pinecone --timeout=120 tests/unit
+      
+      - name: mypy check
+        run: |
+          # Still lots of errors when running on the whole package (especially
+          # in the generated core module), but we can check these subpackages
+          # so we don't add new regressions.
+          poetry run mypy pinecone/config
+          poetry run mypy pinecone/control
+          poetry run mypy pinecone/utils
 
   units-grpc:
     name: Run tests (GRPC)
