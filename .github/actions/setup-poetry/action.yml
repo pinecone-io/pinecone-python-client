@@ -4,7 +4,7 @@ inputs:
   include_grpc:
     description: 'Install gRPC dependencies'
     required: true
-    default: 'true'
+    default: 'false'
 runs:
   using: 'composite'
   steps:

@@ -21,8 +21,6 @@ jobs:
 
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
-        with:
-          include_grpc: false
 
       - name: Run unit tests
         run: poetry run pytest --cov=pinecone --timeout=120 tests/unit
@@ -45,7 +43,7 @@ jobs:
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
         with:
-          include_grpc: false
+          include_grpc: true
 
       - name: Run unit tests (GRPC)
         run: poetry run pytest --cov=pinecone --timeout=120 tests/unit_grpc
