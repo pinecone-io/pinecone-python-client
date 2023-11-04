@@ -182,7 +182,7 @@ class GRPCIndex(GRPCIndexBase):
                         f"To pass sparse values please use either dicts or GRPCVector objects as inputs."
                     )
                 id, values, metadata = fix_tuple_length(item, 3)
-                return GRPCVector(id=id, values=values, metadata=dict_to_proto_struct(metadata) or None)
+                return GRPCVector(id=id, values=values, metadata=dict_to_proto_struct(metadata))
             elif isinstance(item, Mapping):
                 return _dict_to_grpc_vector(item)
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
@@ -314,6 +314,8 @@ class GRPCIndex(GRPCIndexBase):
 
         if filter is not None:
             filter_struct = dict_to_proto_struct(filter)
+        else:
+            filter_struct = None
 
         args_dict = self._parse_non_empty_args(
             [("ids", ids), ("delete_all", delete_all), ("namespace", namespace), ("filter", filter_struct)]
@@ -422,6 +424,8 @@ class GRPCIndex(GRPCIndexBase):
 
         if filter is not None:
             filter_struct = dict_to_proto_struct(filter)
+        else:
+            filter_struct = None
 
         sparse_vector = self._parse_sparse_values_arg(sparse_vector)
         args_dict = self._parse_non_empty_args(
@@ -487,8 +491,10 @@ class GRPCIndex(GRPCIndexBase):
         """
         if set_metadata is not None:
             set_metadata_struct = dict_to_proto_struct(set_metadata)
-        timeout = kwargs.pop("timeout", None)
+        else:
+            set_metadata_struct = None
 
+        timeout = kwargs.pop("timeout", None)
         sparse_values = self._parse_sparse_values_arg(sparse_values)
         args_dict = self._parse_non_empty_args(
             [
@@ -526,6 +532,8 @@ class GRPCIndex(GRPCIndexBase):
         """
         if filter is not None:
             filter_struct = dict_to_proto_struct(filter)
+        else:
+            filter_struct = None
         args_dict = self._parse_non_empty_args([("filter", filter_struct)])
         timeout = kwargs.pop("timeout", None)
 

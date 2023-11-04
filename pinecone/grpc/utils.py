@@ -91,10 +91,10 @@ def parse_query_response(response: dict, unary_query: bool, _check_type: bool = 
     if unary_query:
         namespace = response.get("namespace", "")
         matches = m
-        results = None
+        results = []
     else:
-        namespace = None
-        matches = None
+        namespace = ""
+        matches = []
         results = res
 
     kw = QueryResponseKwargs(_check_type, namespace, matches, results)
