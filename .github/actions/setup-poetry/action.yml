@@ -5,6 +5,7 @@ inputs:
     description: 'Install gRPC dependencies'
     required: true
     default: 'false'
+
 runs:
   using: 'composite'
   steps:
