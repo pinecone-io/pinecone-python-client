@@ -82,6 +82,7 @@ types-requests = "^2.31.0.10"
 types-urllib3 = "^1.26.25.14"
 grpc-stubs = "^1.53.0.3"
 pandas-stubs = "^2.1.1.230928"
+types-tqdm = "^4.66.0.3"
 
 [tool.poetry.extras]
 grpc = ["grpcio", "grpc-gateway-protoc-gen-openapiv2", "googleapis-common-protos", "lz4", "protobuf"]
