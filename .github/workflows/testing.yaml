@@ -30,9 +30,7 @@ jobs:
           # Still lots of errors when running on the whole package (especially
           # in the generated core module), but we can check these subpackages
           # so we don't add new regressions.
-          poetry run mypy pinecone/config
-          poetry run mypy pinecone/control
-          poetry run mypy pinecone/utils
+          poetry run mypy pinecone --exclude pinecone/core --exclude pinecone/grpc
 
   units-grpc:
     name: Run tests (GRPC)
@@ -62,7 +60,7 @@ jobs:
           # Still lots of errors when running on the whole package (especially
           # in the generated core module), but we can check these subpackages
           # so we don't add new regressions.
-          poetry run mypy pinecone/grpc
+          poetry run mypy pinecone --exclude pinecone/core
 
 
   package:
