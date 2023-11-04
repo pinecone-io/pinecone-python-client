@@ -13,10 +13,18 @@ from pinecone.core.client.models import (
     NamespaceSummary,
 )
 
+from typing import NamedTuple, Optional
+
+class QueryResponseKwargs(NamedTuple):
+    check_type: bool
+    namespace: Optional[str]
+    matches: Optional[list]
+    results: Optional[list]
+
 def _generate_request_id() -> str:
     return str(uuid.uuid4())
 
-def dict_to_proto_struct(d: dict) -> "Struct":
+def dict_to_proto_struct(d: Optional[dict]) -> "Struct":
     if not d:
         d = {}
     s = Struct()
@@ -80,13 +88,19 @@ def parse_query_response(response: dict, unary_query: bool, _check_type: bool = 
         )
         m.append(sc)
 
-    kwargs = {"_check_type": _check_type}
     if unary_query:
-        kwargs["namespace"] = response.get("namespace", "")
-        kwargs["matches"] = m
+        namespace = response.get("namespace", "")
+        matches = m
+        results = None
     else:
-        kwargs["results"] = res
-    return QueryResponse(**kwargs)
+        namespace = None
+        matches = None
+        results = res
+
+    kw = QueryResponseKwargs(_check_type, namespace, matches, results)
+    kw_dict = kw._asdict()
+    kw_dict["_check_type"] = kw.check_type
+    return QueryResponse(**kw._asdict())
 
 
 def parse_stats_response(response: dict):

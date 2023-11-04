@@ -25,7 +25,7 @@ class GRPCClientConfig(NamedTuple):
     conn_timeout: int = 1
     reuse_channel: bool = True
     retry_config: Optional[RetryConfig] = None
-    grpc_channel_options: Dict[str, str] = None
+    grpc_channel_options: Optional[Dict[str, str]] = None
 
     @classmethod
     def _from_dict(cls, kwargs: dict):

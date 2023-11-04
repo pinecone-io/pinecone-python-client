@@ -1,2 +1,2 @@
 from .index_grpc import GRPCIndex
-from .pinecone import Pinecone
+from .pinecone import PineconeGRPC
