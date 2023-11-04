@@ -12,6 +12,7 @@ runs:
       uses: snok/install-poetry@v1
 
     - name: Install dependencies
+      if: ${{ inputs.include_grpc == 'false' }}
       shell: bash
       run: |
         poetry install
