@@ -19,3 +19,5 @@ jobs:
         uses: actions/checkout@v3
       - name: Build docs with pdoc
         uses: './.github/actions/build-docs'
+        with:
+          python-version: 3.11

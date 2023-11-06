@@ -1,12 +1,17 @@
 name: 'Build client documentation'
 description: 'Generates client documentation using pdoc'
+inputs:
+  python-version:
+    description: 'Python version to use'
+    required: true
+    default: '3.x'
 runs:
   using: 'composite'
   steps:
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.x
+        python-version: ${{ inputs.python-version }}
 
     - name: Setup Poetry
       uses: ./.github/actions/setup-poetry
