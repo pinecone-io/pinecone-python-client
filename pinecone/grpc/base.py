@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import NamedTuple, Optional, Dict
+from typing import Dict
 
 import certifi
 import grpc

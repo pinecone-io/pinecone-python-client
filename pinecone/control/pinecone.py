@@ -14,8 +14,6 @@ from pinecone.core.client.models import CreateCollectionRequest, CreateRequest, 
 from pinecone.utils import get_user_agent
 
 from pinecone.data import Index
-from pinecone.data import GRPCIndex
-
 
 class Pinecone:
     def __init__(
@@ -270,6 +268,3 @@ class Pinecone:
     def Index(self, name: str):
         index_host = self.index_host_store.get_host(self.index_api, self.config, name)
         return Index(api_key=self.config.API_KEY, host=index_host)
-
-    def GRPCIndex(self, name: str):
-        return GRPCIndex(self.config, name)

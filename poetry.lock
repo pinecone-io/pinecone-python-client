@@ -236,7 +236,7 @@ wmi = ["wmi (>=1.5.1,<2.0.0)"]
 name = "googleapis-common-protos"
 version = "1.60.0"
 description = "Common protobufs used in Google APIs"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "googleapis-common-protos-1.60.0.tar.gz", hash = "sha256:e73ebb404098db405ba95d1e1ae0aa91c3e15a71da031a2eeb6b2e23e7bc3708"},
@@ -253,7 +253,7 @@ grpc = ["grpcio (>=1.44.0,<2.0.0.dev0)"]
 name = "grpc-gateway-protoc-gen-openapiv2"
 version = "0.1.0"
 description = "Provides the missing pieces for gRPC Gateway."
-optional = false
+optional = true
 python-versions = ">=3.6"
 files = [
     {file = "grpc-gateway-protoc-gen-openapiv2-0.1.0.tar.gz", hash = "sha256:03b8934080ae81f709af041e4f89694db586a95ff35abba05d033d499811d4f6"},
@@ -267,7 +267,7 @@ googleapis-common-protos = "*"
 name = "grpcio"
 version = "1.59.0"
 description = "HTTP/2-based RPC framework"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "grpcio-1.59.0-cp310-cp310-linux_armv7l.whl", hash = "sha256:225e5fa61c35eeaebb4e7491cd2d768cd8eb6ed00f2664fa83a58f29418b39fd"},
@@ -390,7 +390,7 @@ dev = ["Sphinx (>=2.2.1)", "black (>=19.10b0)", "codecov (>=2.0.15)", "colorama 
 name = "lz4"
 version = "4.3.2"
 description = "LZ4 Bindings for Python"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "lz4-4.3.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:1c4c100d99eed7c08d4e8852dd11e7d1ec47a3340f49e3a96f8dfbba17ffb300"},
@@ -657,7 +657,7 @@ dev = ["pre-commit", "tox"]
 name = "protobuf"
 version = "3.20.3"
 description = "Protocol Buffers"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "protobuf-3.20.3-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:f4bd856d702e5b0d96a00ec6b307b0f51c1982c2bf9c0052cf9019e9a544ba99"},
@@ -1050,4 +1050,4 @@ grpc = ["googleapis-common-protos", "grpc-gateway-protoc-gen-openapiv2", "grpcio
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4.0"
-content-hash = "eb925f93e12e47feb53591724acc3a48b1f33d913798f610ce6506bda52aa38c"
+content-hash = "de52f73dfd853e443fe764680dd9953775276f842470786873c3449457089cf9"

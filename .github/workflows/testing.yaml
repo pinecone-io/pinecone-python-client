@@ -4,8 +4,8 @@ on:
   workflow_call: {}
 
 jobs:
-  run-tests:
-    name: Run tests
+  units-no-grpc:
+    name: Run tests (REST)
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -22,11 +22,49 @@ jobs:
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
 
-      - name: Run tests
-        run: make tests
+      - name: Run unit tests
+        run: poetry run pytest --cov=pinecone --timeout=120 tests/unit
 
-      - name: Build Python client
-        run: make package
+  units-grpc:
+    name: Run tests (GRPC)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, '3.10', 3.11]
 
-      - name: Build docs
-        run: make docs
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+        with:
+          include_grpc: true
+
+      - name: Run unit tests (GRPC)
+        run: poetry run pytest --cov=pinecone --timeout=120 tests/unit_grpc
+
+  package:
+    name: Check packaging
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, '3.10', 3.11]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+
+      - name: Package
+        run: poetry build

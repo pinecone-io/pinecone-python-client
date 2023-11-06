@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from pinecone import Config, GRPCIndex
+from pinecone import Config
+from pinecone.grpc import GRPCIndex
 from pinecone import DescribeIndexStatsRequest
 from pinecone.core.grpc.protos.vector_service_pb2 import (
     Vector,
@@ -18,7 +19,7 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     UpsertResponse,
     SparseValues,
 )
-from pinecone.data.grpc.utils import dict_to_proto_struct
+from pinecone.grpc.utils import dict_to_proto_struct
 
 class TestGrpcIndex:
     def setup_method(self):
