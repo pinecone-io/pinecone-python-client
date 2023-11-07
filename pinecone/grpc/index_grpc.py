@@ -1,6 +1,6 @@
 import logging
 import numbers
-from typing import Optional, Dict, Iterable, Union, List, Tuple, Any
+from typing import Optional, Dict, Iterable, Union, List, Tuple, Any, TypedDict, cast
 from collections.abc import Mapping
 
 from google.protobuf import json_format
@@ -40,6 +40,10 @@ from .future import PineconeGrpcFuture
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues"]
 
 _logger = logging.getLogger(__name__)
+
+class SparseVectorTypedDict(TypedDict):
+    indices: List[int]
+    values: List[float]
 
 
 class GRPCIndex(GRPCIndexBase):
@@ -119,7 +123,7 @@ class GRPCIndex(GRPCIndexBase):
                 "https://docs.pinecone.io/docs/performance-tuning"
             )
 
-        def _dict_to_grpc_vector(item):
+        def _dict_to_grpc_vector(item) -> GRPCVector:
             item_keys = set(item.keys())
             if not item_keys.issuperset(REQUIRED_VECTOR_FIELDS):
                 raise ValueError(
@@ -150,7 +154,7 @@ class GRPCIndex(GRPCIndexBase):
                     ) from e
 
             metadata = item.get("metadata", None)
-            if metadata is not None and not isinstance(metadata, Mapping):
+            if metadata is not None and not isinstance(metadata, Dict):
                 raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
 
             try:
@@ -163,11 +167,11 @@ class GRPCIndex(GRPCIndexBase):
 
             except TypeError as e:
                 # No need to raise a dedicated error for `id` - protobuf's error message is clear enough
-                if not isinstance(item["values"], Iterable) or not isinstance(item["values"][0], numbers.Real):
+                if not isinstance(item["values"], Iterable) or not isinstance(item["values"].__iter__().__next__(), numbers.Real):
                     raise TypeError(f"Column `values` is expected to be a list of floats")
                 raise
 
-        def _vector_transform(item):
+        def _vector_transform(item) -> GRPCVector:
             if isinstance(item, GRPCVector):
                 return item
             elif isinstance(item, tuple):
@@ -178,7 +182,7 @@ class GRPCIndex(GRPCIndexBase):
                         f"To pass sparse values please use either dicts or GRPCVector objects as inputs."
                     )
                 id, values, metadata = fix_tuple_length(item, 3)
-                return GRPCVector(id=id, values=values, metadata=dict_to_proto_struct(metadata) or {})
+                return GRPCVector(id=id, values=values, metadata=dict_to_proto_struct(metadata))
             elif isinstance(item, Mapping):
                 return _dict_to_grpc_vector(item)
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
@@ -218,11 +222,11 @@ class GRPCIndex(GRPCIndexBase):
     def upsert_from_dataframe(
         self,
         df,
-        namespace: str = None,
+        namespace: str = "",
         batch_size: int = 500,
         use_async_requests: bool = True,
         show_progress: bool = True,
-    ) -> None:
+    ) -> UpsertResponse:
         """Upserts a dataframe into the index.
 
         Args:
@@ -251,11 +255,13 @@ class GRPCIndex(GRPCIndexBase):
             results.append(res)
 
         if use_async_requests:
-            results = [async_result.result() for async_result in tqdm(results, desc="collecting async responses")]
+            cast_results = cast(List[PineconeGrpcFuture], results)
+            results = [async_result.result() for async_result in tqdm(cast_results, desc="collecting async responses")]
 
         upserted_count = 0
         for res in results:
-            upserted_count += res.upserted_count
+            if hasattr(res, 'upserted_count') and isinstance(res.upserted_count, int):
+                upserted_count += res.upserted_count
 
         return UpsertResponse(upserted_count=upserted_count)
 
@@ -307,10 +313,12 @@ class GRPCIndex(GRPCIndexBase):
         """
 
         if filter is not None:
-            filter = dict_to_proto_struct(filter)
+            filter_struct = dict_to_proto_struct(filter)
+        else:
+            filter_struct = None
 
         args_dict = self._parse_non_empty_args(
-            [("ids", ids), ("delete_all", delete_all), ("namespace", namespace), ("filter", filter)]
+            [("ids", ids), ("delete_all", delete_all), ("namespace", namespace), ("filter", filter_struct)]
         )
         timeout = kwargs.pop("timeout", None)
 
@@ -356,7 +364,7 @@ class GRPCIndex(GRPCIndexBase):
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[GRPCSparseValues, Dict[str, Union[List[float], List[int]]]]] = None,
+        sparse_vector: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> QueryResponse:
         """
@@ -415,7 +423,9 @@ class GRPCIndex(GRPCIndexBase):
         queries = list(map(_query_transform, queries)) if queries is not None else None
 
         if filter is not None:
-            filter = dict_to_proto_struct(filter)
+            filter_struct = dict_to_proto_struct(filter)
+        else:
+            filter_struct = None
 
         sparse_vector = self._parse_sparse_values_arg(sparse_vector)
         args_dict = self._parse_non_empty_args(
@@ -425,7 +435,7 @@ class GRPCIndex(GRPCIndexBase):
                 ("queries", queries),
                 ("namespace", namespace),
                 ("top_k", top_k),
-                ("filter", filter),
+                ("filter", filter_struct),
                 ("include_values", include_values),
                 ("include_metadata", include_metadata),
                 ("sparse_vector", sparse_vector),
@@ -437,7 +447,8 @@ class GRPCIndex(GRPCIndexBase):
         timeout = kwargs.pop("timeout", None)
         response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
-        return parse_query_response(json_response, vector is not None or id, _check_type=False)
+        unary_query = True if vector is not None or id else False
+        return parse_query_response(json_response, unary_query, _check_type=False)
 
     def update(
         self,
@@ -446,7 +457,7 @@ class GRPCIndex(GRPCIndexBase):
         values: Optional[List[float]] = None,
         set_metadata: Optional[Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]] = None,
         namespace: Optional[str] = None,
-        sparse_values: Optional[Union[GRPCSparseValues, Dict[str, Union[List[float], List[int]]]]] = None,
+        sparse_values: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> Union[UpdateResponse, PineconeGrpcFuture]:
         """
@@ -479,14 +490,16 @@ class GRPCIndex(GRPCIndexBase):
         Returns: UpdateResponse (contains no data) or a PineconeGrpcFuture object if async_req is True.
         """
         if set_metadata is not None:
-            set_metadata = dict_to_proto_struct(set_metadata)
-        timeout = kwargs.pop("timeout", None)
+            set_metadata_struct = dict_to_proto_struct(set_metadata)
+        else:
+            set_metadata_struct = None
 
+        timeout = kwargs.pop("timeout", None)
         sparse_values = self._parse_sparse_values_arg(sparse_values)
         args_dict = self._parse_non_empty_args(
             [
                 ("values", values),
-                ("set_metadata", set_metadata),
+                ("set_metadata", set_metadata_struct),
                 ("namespace", namespace),
                 ("sparse_values", sparse_values),
             ]
@@ -518,8 +531,10 @@ class GRPCIndex(GRPCIndexBase):
         Returns: DescribeIndexStatsResponse object which contains stats about the index.
         """
         if filter is not None:
-            filter = dict_to_proto_struct(filter)
-        args_dict = self._parse_non_empty_args([("filter", filter)])
+            filter_struct = dict_to_proto_struct(filter)
+        else:
+            filter_struct = None
+        args_dict = self._parse_non_empty_args([("filter", filter_struct)])
         timeout = kwargs.pop("timeout", None)
 
         request = DescribeIndexStatsRequest(**args_dict)
@@ -533,7 +548,7 @@ class GRPCIndex(GRPCIndexBase):
 
     @staticmethod
     def _parse_sparse_values_arg(
-        sparse_values: Optional[Union[GRPCSparseValues, Dict[str, Union[List[float], List[int]]]]]
+        sparse_values: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]]
     ) -> Optional[GRPCSparseValues]:
         if sparse_values is None:
             return None

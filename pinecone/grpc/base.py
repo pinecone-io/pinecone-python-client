@@ -1,11 +1,11 @@
 import logging
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import Dict
+from typing import Dict, Optional
 
 import certifi
 import grpc
-from grpc._channel import _InactiveRpcError
+from grpc._channel import _InactiveRpcError, Channel
 import json
 
 from .retry import RetryConfig
@@ -29,15 +29,15 @@ class GRPCIndexBase(ABC):
         self,
         index_name: str,
         config: Config,
-        channel=None,
-        grpc_config: GRPCClientConfig = None,
-        _endpoint_override: str = None,
+        channel: Optional[Channel] =None,
+        grpc_config: Optional[GRPCClientConfig] = None,
+        _endpoint_override: Optional[str] = None,
     ):
         self.name = index_name
 
         self.grpc_client_config = grpc_config or GRPCClientConfig()
         self.retry_config = self.grpc_client_config.retry_config or RetryConfig()
-        self.fixed_metadata = {"api-key": config.API_KEY, "service-name": index_name, "client-version": CLIENT_VERSION}
+        self.fixed_metadata = {"api-key": config.api_key, "service-name": index_name, "client-version": CLIENT_VERSION}
         self._endpoint_override = _endpoint_override
 
         self.method_config = json.dumps(

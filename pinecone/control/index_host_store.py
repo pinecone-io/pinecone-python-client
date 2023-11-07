@@ -1,9 +1,10 @@
+from typing import Dict
 from pinecone.config import Config
 from pinecone.core.client.api.index_operations_api import IndexOperationsApi
 
 
 class SingletonMeta(type):
-    _instances = {}
+    _instances: Dict[str, str] = {}
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
@@ -17,7 +18,7 @@ class IndexHostStore(metaclass=SingletonMeta):
         self._indexHosts = {}
 
     def _key(self, config: Config, index_name: str) -> str:
-        return ":".join([config.API_KEY, index_name])
+        return ":".join([config.api_key, index_name])
 
     def delete_host(self, config: Config, index_name: str):
         key = self._key(config, index_name)

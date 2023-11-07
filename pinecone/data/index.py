@@ -3,7 +3,7 @@ from tqdm.autonotebook import tqdm
 from collections.abc import Iterable
 from typing import Union, List, Tuple, Optional, Dict, Any
 
-from pinecone.config import Config
+from pinecone.config import ConfigBuilder
 
 from pinecone.core.client.models import SparseValues
 from pinecone.core.client import ApiClient
@@ -76,13 +76,13 @@ class Index():
     """
 
     def __init__(self, api_key: str, host: str, pool_threads=1, **kwargs):
-        api_key = api_key or kwargs.get("api_key")
-        host = host or kwargs.get('host')
+        api_key = api_key or kwargs.get("api_key", None)
+        host = host or kwargs.get('host', None)
         pool_threads = pool_threads or kwargs.get("pool_threads")
 
-        self._config = Config(api_key=api_key, host=host, **kwargs)
+        self._config = ConfigBuilder.build(api_key=api_key, host=host, **kwargs)
         
-        api_client = ApiClient(configuration=self._config.OPENAPI_CONFIG, pool_threads=pool_threads)
+        api_client = ApiClient(configuration=self._config.openapi_config, pool_threads=pool_threads)
         api_client.user_agent = get_user_agent()
         self._api_client = api_client
         self._vector_api = VectorOperationsApi(api_client=api_client)
@@ -180,7 +180,7 @@ class Index():
         return UpsertResponse(upserted_count=total_upserted)
 
     def _upsert_batch(
-        self, vectors: List[Vector], namespace: Optional[str], _check_type: bool, **kwargs
+        self, vectors: Union[List[Vector], List[tuple], List[dict]], namespace: Optional[str], _check_type: bool, **kwargs
     ) -> UpsertResponse:
         args_dict = self._parse_non_empty_args([("namespace", namespace)])
         vec_builder = lambda v: VectorFactory.build(v, check_type=_check_type)
@@ -202,7 +202,7 @@ class Index():
             yield batch
 
     def upsert_from_dataframe(
-        self, df, namespace: str = None, batch_size: int = 500, show_progress: bool = True
+        self, df, namespace: Optional[str] = None, batch_size: int = 500, show_progress: bool = True
     ) -> UpsertResponse:
         """Upserts a dataframe into the index.
 
@@ -416,7 +416,8 @@ class Index():
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
         )
-        return parse_query_response(response, vector is not None or id)
+        unary_query = True if vector is not None or id else False
+        return parse_query_response(response, unary_query)
 
     @validate_and_convert_errors
     def update(
