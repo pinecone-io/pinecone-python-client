@@ -109,8 +109,15 @@ class CollectionMeta(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, name, size, status, dimension, vector_count, *args, **kwargs):  # noqa: E501
         """CollectionMeta - a model defined in OpenAPI
+
+        Args:
+            name (str):
+            size (int): The size of the collection in bytes.
+            status (str): The status of the collection.
+            dimension (int): The dimension of the records stored in the collection
+            vector_count (int): The number of records stored in the collection
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -143,11 +150,6 @@ class CollectionMeta(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            name (str): [optional]  # noqa: E501
-            size (int): The size of the collection in bytes.. [optional]  # noqa: E501
-            status (str): The status of the collection.. [optional]  # noqa: E501
-            dimension (int): [optional]  # noqa: E501
-            vector_count (int): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -175,6 +177,11 @@ class CollectionMeta(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.name = name
+        self.size = size
+        self.status = status
+        self.dimension = dimension
+        self.vector_count = vector_count
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
@@ -195,8 +202,15 @@ class CollectionMeta(ModelNormal):
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs):  # noqa: E501
+    def __init__(self, name, size, status, dimension, vector_count, *args, **kwargs):  # noqa: E501
         """CollectionMeta - a model defined in OpenAPI
+
+        Args:
+            name (str):
+            size (int): The size of the collection in bytes.
+            status (str): The status of the collection.
+            dimension (int): The dimension of the records stored in the collection
+            vector_count (int): The number of records stored in the collection
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -229,11 +243,6 @@ class CollectionMeta(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            name (str): [optional]  # noqa: E501
-            size (int): The size of the collection in bytes.. [optional]  # noqa: E501
-            status (str): The status of the collection.. [optional]  # noqa: E501
-            dimension (int): [optional]  # noqa: E501
-            vector_count (int): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -259,6 +268,11 @@ class CollectionMeta(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.name = name
+        self.size = size
+        self.status = status
+        self.dimension = dimension
+        self.vector_count = vector_count
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \

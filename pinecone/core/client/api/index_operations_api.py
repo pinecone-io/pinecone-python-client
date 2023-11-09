@@ -26,6 +26,7 @@ from pinecone.core.client.model.collection_meta import CollectionMeta
 from pinecone.core.client.model.create_collection_request import CreateCollectionRequest
 from pinecone.core.client.model.create_request import CreateRequest
 from pinecone.core.client.model.index_meta import IndexMeta
+from pinecone.core.client.model.inline_response200 import InlineResponse200
 from pinecone.core.client.model.patch_request import PatchRequest
 
 
@@ -81,7 +82,7 @@ class IndexOperationsApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                str
+                IndexMeta
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -110,7 +111,7 @@ class IndexOperationsApi(object):
 
         self.configure_index = _Endpoint(
             settings={
-                'response_type': (str,),
+                'response_type': (IndexMeta,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
@@ -119,7 +120,7 @@ class IndexOperationsApi(object):
                 'http_method': 'PATCH',
                 'servers': [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
+                        'url': "https://api.pinecone.io",
                         'description': "No description provided",
                         'variables': {
                             'environment': {
@@ -168,7 +169,7 @@ class IndexOperationsApi(object):
             },
             headers_map={
                 'accept': [
-                    'text/plain'
+                    'application/json'
                 ],
                 'content_type': [
                     'application/json'
@@ -251,7 +252,7 @@ class IndexOperationsApi(object):
                 'http_method': 'POST',
                 'servers': [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
+                        'url': "https://api.pinecone.io",
                         'description': "No description provided",
                         'variables': {
                             'environment': {
@@ -340,7 +341,7 @@ class IndexOperationsApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                str
+                IndexMeta
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -367,7 +368,7 @@ class IndexOperationsApi(object):
 
         self.create_index = _Endpoint(
             settings={
-                'response_type': (str,),
+                'response_type': (IndexMeta,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
@@ -376,7 +377,7 @@ class IndexOperationsApi(object):
                 'http_method': 'POST',
                 'servers': [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
+                        'url': "https://api.pinecone.io",
                         'description': "No description provided",
                         'variables': {
                             'environment': {
@@ -418,7 +419,7 @@ class IndexOperationsApi(object):
             },
             headers_map={
                 'accept': [
-                    'text/plain'
+                    'application/json'
                 ],
                 'content_type': [
                     'application/json'
@@ -505,7 +506,7 @@ class IndexOperationsApi(object):
                 'http_method': 'DELETE',
                 'servers': [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
+                        'url': "https://api.pinecone.io",
                         'description': "No description provided",
                         'variables': {
                             'environment': {
@@ -635,7 +636,7 @@ class IndexOperationsApi(object):
                 'http_method': 'DELETE',
                 'servers': [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
+                        'url': "https://api.pinecone.io",
                         'description': "No description provided",
                         'variables': {
                             'environment': {
@@ -765,7 +766,7 @@ class IndexOperationsApi(object):
                 'http_method': 'GET',
                 'servers': [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
+                        'url': "https://api.pinecone.io",
                         'description': "No description provided",
                         'variables': {
                             'environment': {
@@ -895,7 +896,7 @@ class IndexOperationsApi(object):
                 'http_method': 'GET',
                 'servers': [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
+                        'url': "https://api.pinecone.io",
                         'description': "No description provided",
                         'variables': {
                             'environment': {
@@ -1020,7 +1021,7 @@ class IndexOperationsApi(object):
                 'http_method': 'GET',
                 'servers': [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
+                        'url': "https://api.pinecone.io",
                         'description': "No description provided",
                         'variables': {
                             'environment': {
@@ -1102,7 +1103,7 @@ class IndexOperationsApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                [str]
+                InlineResponse200
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -1129,7 +1130,7 @@ class IndexOperationsApi(object):
 
         self.list_indexes = _Endpoint(
             settings={
-                'response_type': ([str],),
+                'response_type': (InlineResponse200,),
                 'auth': [
                     'ApiKeyAuth'
                 ],
@@ -1138,7 +1139,7 @@ class IndexOperationsApi(object):
                 'http_method': 'GET',
                 'servers': [
                     {
-                        'url': "https://controller.{environment}.pinecone.io",
+                        'url': "https://api.pinecone.io",
                         'description': "No description provided",
                         'variables': {
                             'environment': {
