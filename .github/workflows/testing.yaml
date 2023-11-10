@@ -57,6 +57,7 @@ jobs:
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
           TEST_CAPACITY_MODE_1: ${{ secrets.TEST_CAPACITY_MODE_1 }}
           TEST_CAPACITY_MODE_2: ${{ secrets.TEST_CAPACITY_MODE_2 }}
+          GITHUB_BUILD_NUMBER: "${{ github.run_number }}-${{ matrix.python-version}}"
 
   units-grpc:
     name: Run tests (GRPC)
