@@ -57,7 +57,7 @@ class Pinecone:
         shards: int = 1,
         pods: int = 1,
         pod_type: str = "p1",
-        index_config: Optional[dict] = None,
+        index_config: Optional[dict] = {},
         metadata_config: Optional[dict] = None,
         source_collection: str = "",
     ):
@@ -109,8 +109,6 @@ class Pinecone:
         del create_args["self"]
         if environment is None:
             del create_args["environment"]
-        if index_config is None:
-            create_args["index_config"] = {}
 
         api_instance = self.index_api
         api_instance.create_index(create_request=CreateRequest(**create_args))
