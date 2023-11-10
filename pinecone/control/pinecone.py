@@ -66,9 +66,15 @@ class Pinecone:
         :param name: the name of the index.
         :type name: str
         :param dimension: the dimension of vectors that would be inserted in the index
+        :type dimension: int
         :param cloud: The cloud where you would like your index hosted. One of `{"aws", "gcp"}`.
+        :type cloud: str
         :param region: The region where you would like your index hosted.
+        :type region: str
         :param capacity_mode: The capacity mode for the index. One of `{"pod"}`.
+        :type capacity_mode: str
+        :param environment: The environment where you would like your index hosted, e.g. 'us-east1-gcp'. Find this value in the Pinecone web console along with your API keys.
+        :type environment: str, optional
         :param index_type: type of index, one of `{"approximated", "exact"}`, defaults to "approximated".
             The "approximated" index uses fast approximate search algorithms developed by Pinecone.
             The "exact" index uses accurate exact search algorithms.
@@ -99,45 +105,15 @@ class Pinecone:
         :param timeout: Timeout for wait until index gets ready. If None, wait indefinitely; if >=0, time out after this many seconds;
             if -1, return immediately and do not wait. Default: None
         """
-        api_instance = self.index_api
-
+        create_args = locals()
+        del create_args["self"]
         if environment is None:
-            create_request=CreateRequest(
-                name=name,
-                dimension=dimension,
-                cloud=cloud,
-                region=region,
-                capacity_mode=capacity_mode,
-                index_type=index_type,
-                metric=metric,
-                replicas=replicas,
-                shards=shards,
-                pods=pods,
-                pod_type=pod_type,
-                index_config=index_config or {},
-                metadata_config=metadata_config,
-                source_collection=source_collection
-            )
-        else:
-            create_request=CreateRequest(
-                name=name,
-                dimension=dimension,
-                cloud=cloud,
-                region=region,
-                capacity_mode=capacity_mode,
-                environment=environment,
-                index_type=index_type,
-                metric=metric,
-                replicas=replicas,
-                shards=shards,
-                pods=pods,
-                pod_type=pod_type,
-                index_config=index_config or {},
-                metadata_config=metadata_config,
-                source_collection=source_collection,
-            )
-        
-        api_instance.create_index(create_request=create_request)
+            del create_args["environment"]
+        if index_config is None:
+            create_args["index_config"] = {}
+
+        api_instance = self.index_api
+        api_instance.create_index(create_request=CreateRequest(**create_args))
 
         def is_ready():
             status = self._get_status(name)
