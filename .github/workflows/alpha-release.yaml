@@ -26,6 +26,7 @@ on:
 jobs:
   testing:
     uses: './.github/workflows/testing.yaml'
+    secrets: inherit
 
   pypi:
     uses: './.github/workflows/publish-to-pypi.yaml'

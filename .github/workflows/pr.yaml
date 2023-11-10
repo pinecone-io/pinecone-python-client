@@ -10,6 +10,7 @@ on:
 jobs:
   run-tests:
     uses: './.github/workflows/testing.yaml'
+    secrets: inherit
 
   build-docs:
     name: Build docs with pdoc

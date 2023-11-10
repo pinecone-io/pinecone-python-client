@@ -6,6 +6,7 @@ on:
 jobs:
   testing:
     uses: './.github/workflows/testing.yaml'
+    secrets: inherit
 
   version-and-release-spruce:
     timeout-minutes: 30
