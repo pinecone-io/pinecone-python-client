@@ -108,7 +108,7 @@ class CreateCollectionRequest(ModelNormal):
 
         Args:
             name (str): The name of the collection to be created.
-            source (str): The name of the source index to be used as the source for the collection.
+            source (str): The name of the index to be used as the source for the collection.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -195,7 +195,7 @@ class CreateCollectionRequest(ModelNormal):
 
         Args:
             name (str): The name of the collection to be created.
-            source (str): The name of the source index to be used as the source for the collection.
+            source (str): The name of the index to be used as the source for the collection.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types

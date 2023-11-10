@@ -56,6 +56,11 @@ class CreateRequest(ModelNormal):
     """
 
     allowed_values = {
+        ('cloud',): {
+            'GCP': "gcp",
+            'AWS': "aws",
+            'AZURE': "azure",
+        },
     }
 
     validations = {
@@ -84,6 +89,10 @@ class CreateRequest(ModelNormal):
         return {
             'name': (str,),  # noqa: E501
             'dimension': (int,),  # noqa: E501
+            'region': (str,),  # noqa: E501
+            'cloud': (str,),  # noqa: E501
+            'capacity_mode': (str,),  # noqa: E501
+            'environment': (str,),  # noqa: E501
             'index_type': (str,),  # noqa: E501
             'metric': (str,),  # noqa: E501
             'pods': (int,),  # noqa: E501
@@ -103,6 +112,10 @@ class CreateRequest(ModelNormal):
     attribute_map = {
         'name': 'name',  # noqa: E501
         'dimension': 'dimension',  # noqa: E501
+        'region': 'region',  # noqa: E501
+        'cloud': 'cloud',  # noqa: E501
+        'capacity_mode': 'capacity_mode',  # noqa: E501
+        'environment': 'environment',  # noqa: E501
         'index_type': 'index_type',  # noqa: E501
         'metric': 'metric',  # noqa: E501
         'pods': 'pods',  # noqa: E501
@@ -121,12 +134,15 @@ class CreateRequest(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, name, dimension, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, name, dimension, region, cloud, capacity_mode, *args, **kwargs):  # noqa: E501
         """CreateRequest - a model defined in OpenAPI
 
         Args:
             name (str): The name of the index to be created. The maximum length is 45 characters.
             dimension (int): The dimensions of the vectors to be inserted in the index
+            region (str): The region where you would like your index to be created
+            cloud (str): The public cloud where you would like your index hosted
+            capacity_mode (str): The capacity mode for the index.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -159,6 +175,7 @@ class CreateRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            environment (str): The environment where you would like your index to be created. [optional]  # noqa: E501
             index_type (str): The type of vector index. Pinecone supports 'approximated'.. [optional] if omitted the server will use the default value of "approximated"  # noqa: E501
             metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'.. [optional] if omitted the server will use the default value of "cosine"  # noqa: E501
             pods (int): The number of pods for the index to use,including replicas.. [optional] if omitted the server will use the default value of 1  # noqa: E501
@@ -197,6 +214,9 @@ class CreateRequest(ModelNormal):
 
         self.name = name
         self.dimension = dimension
+        self.region = region
+        self.cloud = cloud
+        self.capacity_mode = capacity_mode
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
@@ -217,12 +237,15 @@ class CreateRequest(ModelNormal):
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, name, dimension, *args, **kwargs):  # noqa: E501
+    def __init__(self, name, dimension, region, cloud, capacity_mode, *args, **kwargs):  # noqa: E501
         """CreateRequest - a model defined in OpenAPI
 
         Args:
             name (str): The name of the index to be created. The maximum length is 45 characters.
             dimension (int): The dimensions of the vectors to be inserted in the index
+            region (str): The region where you would like your index to be created
+            cloud (str): The public cloud where you would like your index hosted
+            capacity_mode (str): The capacity mode for the index.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -255,6 +278,7 @@ class CreateRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            environment (str): The environment where you would like your index to be created. [optional]  # noqa: E501
             index_type (str): The type of vector index. Pinecone supports 'approximated'.. [optional] if omitted the server will use the default value of "approximated"  # noqa: E501
             metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'.. [optional] if omitted the server will use the default value of "cosine"  # noqa: E501
             pods (int): The number of pods for the index to use,including replicas.. [optional] if omitted the server will use the default value of 1  # noqa: E501
@@ -291,6 +315,9 @@ class CreateRequest(ModelNormal):
 
         self.name = name
         self.dimension = dimension
+        self.region = region
+        self.cloud = cloud
+        self.capacity_mode = capacity_mode
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \

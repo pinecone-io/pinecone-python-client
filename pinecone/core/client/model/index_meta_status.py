@@ -117,8 +117,14 @@ class IndexMetaStatus(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, ready, state, host, port, *args, **kwargs):  # noqa: E501
         """IndexMetaStatus - a model defined in OpenAPI
+
+        Args:
+            ready (bool):
+            state (str):
+            host (str):
+            port (int):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -151,10 +157,6 @@ class IndexMetaStatus(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            ready (bool): [optional]  # noqa: E501
-            state (str): [optional]  # noqa: E501
-            host (str): [optional]  # noqa: E501
-            port (int): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -182,6 +184,10 @@ class IndexMetaStatus(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.ready = ready
+        self.state = state
+        self.host = host
+        self.port = port
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
@@ -202,8 +208,14 @@ class IndexMetaStatus(ModelNormal):
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs):  # noqa: E501
+    def __init__(self, ready, state, host, port, *args, **kwargs):  # noqa: E501
         """IndexMetaStatus - a model defined in OpenAPI
+
+        Args:
+            ready (bool):
+            state (str):
+            host (str):
+            port (int):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -236,10 +248,6 @@ class IndexMetaStatus(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            ready (bool): [optional]  # noqa: E501
-            state (str): [optional]  # noqa: E501
-            host (str): [optional]  # noqa: E501
-            port (int): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -265,6 +273,10 @@ class IndexMetaStatus(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.ready = ready
+        self.state = state
+        self.host = host
+        self.port = port
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \

@@ -18,9 +18,11 @@ from pinecone.core.client.model.describe_index_stats_request import DescribeInde
 from pinecone.core.client.model.describe_index_stats_response import DescribeIndexStatsResponse
 from pinecone.core.client.model.fetch_response import FetchResponse
 from pinecone.core.client.model.hnsw_config import HnswConfig
+from pinecone.core.client.model.index_list_meta import IndexListMeta
 from pinecone.core.client.model.index_meta import IndexMeta
 from pinecone.core.client.model.index_meta_database import IndexMetaDatabase
 from pinecone.core.client.model.index_meta_status import IndexMetaStatus
+from pinecone.core.client.model.inline_response200 import InlineResponse200
 from pinecone.core.client.model.namespace_summary import NamespaceSummary
 from pinecone.core.client.model.patch_request import PatchRequest
 from pinecone.core.client.model.protobuf_any import ProtobufAny
