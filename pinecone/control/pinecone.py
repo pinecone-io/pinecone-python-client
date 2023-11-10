@@ -5,13 +5,12 @@ from .index_host_store import IndexHostStore
 
 from pinecone.config import PineconeConfig, Config
 
-from pinecone.control.models.index_description import IndexDescription
-from pinecone.control.models.collection_description import CollectionDescription
 
 from pinecone.core.client.api.index_operations_api import IndexOperationsApi
 from pinecone.core.client.api_client import ApiClient
 from pinecone.core.client.models import CreateCollectionRequest, CreateRequest, PatchRequest
 from pinecone.utils import get_user_agent
+from pinecone.models import ListIndexesResponse, ListIndexMeta, IndexDescription, IndexStatus, CollectionDescription
 
 from pinecone.data import Index
 
@@ -171,12 +170,12 @@ class Pinecone:
                 )
             )
 
-    def list_indexes(self):
+    def list_indexes(self) -> ListIndexesResponse:
         """Lists all indexes."""
         response = self.index_api.list_indexes()
-        return response
+        return ListIndexesResponse(databases=[ListIndexMeta(**index.to_dict()) for index in response.databases])
 
-    def describe_index(self, name: str):
+    def describe_index(self, name: str) -> IndexDescription:
         """Describes a Pinecone index.
 
         :param name: the name of the index to describe.
@@ -196,8 +195,9 @@ class Pinecone:
             dimension=db.dimension,
             shards=db.shards,
             pods=db.pods,
+            capacity_mode=db.capacity_mode,
             pod_type=db.pod_type,
-            status=response.status,
+            status=IndexStatus(ready=response.status.ready, state=response.status.state, host=response.status.host),
             metadata_config=db.metadata_config,
         )
 

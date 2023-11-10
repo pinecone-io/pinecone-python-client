@@ -12,7 +12,7 @@ jobs:
         python-version: [3.8, 3.9, '3.10', 3.11]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -32,6 +32,32 @@ jobs:
           # so we don't add new regressions.
           poetry run mypy pinecone --exclude pinecone/core --exclude pinecone/grpc
 
+  integration-rest:
+    name: Integration tests (REST)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.11]
+      max-parallel: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+
+      - name: Run integration tests (REST)
+        run: poetry run pytest tests/integration -s -v
+        env:
+          PINECONE_CONTROLLER_HOST: 'https://api.pinecone.io'
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          TEST_CAPACITY_MODE_1: ${{ secrets.TEST_CAPACITY_MODE_1 }}
+          TEST_CAPACITY_MODE_2: ${{ secrets.TEST_CAPACITY_MODE_2 }}
+
   units-grpc:
     name: Run tests (GRPC)
     runs-on: ubuntu-latest
@@ -40,7 +66,7 @@ jobs:
         python-version: [3.8, 3.9, '3.10', 3.11]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -71,7 +97,7 @@ jobs:
         python-version: [3.8, 3.9, '3.10', 3.11]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
