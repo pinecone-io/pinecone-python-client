@@ -49,6 +49,7 @@ class Pinecone:
         cloud: str,
         region: str,
         capacity_mode: str,
+        environment: Optional[str] = None,
         timeout: Optional[int] = None,
         index_type: str = "approximated",
         metric: str = "cosine",
@@ -100,7 +101,7 @@ class Pinecone:
         """
         api_instance = self.index_api
 
-        api_instance.create_index(
+        if environment is None:
             create_request=CreateRequest(
                 name=name,
                 dimension=dimension,
@@ -115,9 +116,28 @@ class Pinecone:
                 pod_type=pod_type,
                 index_config=index_config or {},
                 metadata_config=metadata_config,
+                source_collection=source_collection
+            )
+        else:
+            create_request=CreateRequest(
+                name=name,
+                dimension=dimension,
+                cloud=cloud,
+                region=region,
+                capacity_mode=capacity_mode,
+                environment=environment,
+                index_type=index_type,
+                metric=metric,
+                replicas=replicas,
+                shards=shards,
+                pods=pods,
+                pod_type=pod_type,
+                index_config=index_config or {},
+                metadata_config=metadata_config,
                 source_collection=source_collection,
             )
-        )
+        
+        api_instance.create_index(create_request=create_request)
 
         def is_ready():
             status = self._get_status(name)
