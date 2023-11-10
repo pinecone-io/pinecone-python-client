@@ -25,7 +25,7 @@ def generate_index_name(test_name: str) -> str:
     # Remove invalid characters
     replace_with_hyphen = re.compile(r'[\[\(_,\s]')
     index_name = re.sub(replace_with_hyphen, '-', index_name)
-    replace_with_empty = re.compile(r'[\]\)]\.')
+    replace_with_empty = re.compile(r'[\]\)\.]')
     index_name = re.sub(replace_with_empty, '', index_name)
 
     max_length = 45
