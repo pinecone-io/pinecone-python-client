@@ -40,6 +40,7 @@ jobs:
         python-version: [3.8, 3.11]
         pineconeEnv: ['prod', 'staging']
       max-parallel: 1
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4
 
@@ -65,7 +66,7 @@ jobs:
         if: matrix.pineconeEnv == 'staging'
         run: poetry run pytest tests/integration -s -v
         env:
-          PINECONE_CONTROLLER_HOST: 'https://api-staging.pinecone.io/databases'
+          PINECONE_CONTROLLER_HOST: 'https://api-staging.pinecone.io'
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY_STAGING }}
           TEST_CAPACITY_MODE_1: ${{ secrets.TEST_CAPACITY_MODE_1 }}
           TEST_CAPACITY_MODE_2: ${{ secrets.TEST_CAPACITY_MODE_2 }}
