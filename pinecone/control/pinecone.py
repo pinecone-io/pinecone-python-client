@@ -52,10 +52,10 @@ class Pinecone:
         timeout: Optional[int] = None,
         index_type: str = "approximated",
         metric: str = "cosine",
-        replicas: Optional[int] = None,
-        shards: Optional[int] = None,
-        pods: Optional[int] = None,
-        pod_type: Optional[str] = None,
+        replicas: Optional[int] = 1,
+        shards: Optional[int] = 1,
+        pods: Optional[int] = 1,
+        pod_type: Optional[str] = 'p1',
         metadata_config: Optional[dict] = None,
         source_collection: str = "",
     ):
@@ -107,12 +107,12 @@ class Pinecone:
         del create_args["self"]
         if environment is None:
             del create_args["environment"]
-        if capacity_mode is not "pod":
+        if capacity_mode != "pod":
             del create_args["replicas"]
             del create_args["shards"]
             del create_args["pods"]
             del create_args["pod_type"]
-            
+
 
         api_instance = self.index_api
         api_instance.create_index(create_request=CreateRequest(**create_args))
