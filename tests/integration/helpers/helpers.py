@@ -31,6 +31,10 @@ def generate_index_name(test_name: str) -> str:
     max_length = 45
     index_name = index_name[:max_length]
 
+    # Remove trailing underscore, if any
+    if test_name.endswith('_'):
+        test_name = test_name[:-1]
+
     return index_name.lower()
 
 def get_environment_var(name: str) -> str:
