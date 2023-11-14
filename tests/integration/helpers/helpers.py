@@ -31,6 +31,7 @@ def generate_index_name(test_name: str) -> str:
     max_length = 45
     index_name = index_name[:max_length]
 
+    print('Generated index name: ' + index_name)
     # Remove trailing underscore, if any
     if test_name.endswith('_'):
         test_name = test_name[:-1]
