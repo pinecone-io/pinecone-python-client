@@ -107,6 +107,12 @@ class Pinecone:
         del create_args["self"]
         if environment is None:
             del create_args["environment"]
+        if capacity_mode is not "pod":
+            del create_args["replicas"]
+            del create_args["shards"]
+            del create_args["pods"]
+            del create_args["pod_type"]
+            
 
         api_instance = self.index_api
         api_instance.create_index(create_request=CreateRequest(**create_args))
