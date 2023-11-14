@@ -13,7 +13,7 @@ def generate_index_name(test_name: str) -> str:
         test_name = test_name[5:]
 
     # Trim name length to save space for other info in name
-    test_name = test_name[:35]
+    test_name = test_name[:20]
 
     # Remove trailing underscore, if any
     if test_name.endswith('_'):
@@ -31,11 +31,11 @@ def generate_index_name(test_name: str) -> str:
     max_length = 45
     index_name = index_name[:max_length]
 
-    print('Generated index name: ' + index_name)
-    # Remove trailing underscore, if any
-    if test_name.endswith('_'):
+    # Trim final character if it is not alphanumeric
+    if test_name.endswith('_') or test_name.endswith('-'):
         test_name = test_name[:-1]
 
+    print('Generated index name: ' + index_name.lower())
     return index_name.lower()
 
 def get_environment_var(name: str) -> str:
