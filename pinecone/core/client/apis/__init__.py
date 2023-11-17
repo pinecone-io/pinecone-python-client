@@ -6,7 +6,7 @@
 # raise a `RecursionError`.
 # In order to avoid this, import only the API that you directly need like:
 #
-#   from .api.index_operations_api import IndexOperationsApi
+#   from .api.manage_pod_indexes_api import ManagePodIndexesApi
 #
 # or import this package, but before doing it, use:
 #
@@ -14,5 +14,6 @@
 #   sys.setrecursionlimit(n)
 
 # Import APIs into API package:
-from pinecone.core.client.api.index_operations_api import IndexOperationsApi
+from pinecone.core.client.api.manage_pod_indexes_api import ManagePodIndexesApi
+from pinecone.core.client.api.manage_serverless_indexes_api import ManageServerlessIndexesApi
 from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
