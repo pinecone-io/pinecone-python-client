@@ -110,10 +110,10 @@ class PodSpecShards(ModelSimple):
         Note that value can be passed either in args or in kwargs, but not in both.
 
         Args:
-            args[0] (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index.. if omitted defaults to 1  # noqa: E501
+            args[0] (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index..  # noqa: E501
 
         Keyword Args:
-            value (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index.. if omitted defaults to 1  # noqa: E501
+            value (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index..  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -154,7 +154,11 @@ class PodSpecShards(ModelSimple):
             args = list(args)
             value = args.pop(0)
         else:
-            value = 1
+            raise ApiTypeError(
+                "value is required, but not passed in args or kwargs and doesn't have default",
+                path_to_item=_path_to_item,
+                valid_classes=(self.__class__,),
+            )
 
         _check_type = kwargs.pop('_check_type', True)
         _spec_property_naming = kwargs.pop('_spec_property_naming', False)
@@ -196,10 +200,10 @@ class PodSpecShards(ModelSimple):
         Note that value can be passed either in args or in kwargs, but not in both.
 
         Args:
-            args[0] (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index.. if omitted defaults to 1  # noqa: E501
+            args[0] (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index..  # noqa: E501
 
         Keyword Args:
-            value (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index.. if omitted defaults to 1  # noqa: E501
+            value (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index..  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -242,7 +246,11 @@ class PodSpecShards(ModelSimple):
             args = list(args)
             value = args.pop(0)
         else:
-            value = 1
+            raise ApiTypeError(
+                "value is required, but not passed in args or kwargs and doesn't have default",
+                path_to_item=_path_to_item,
+                valid_classes=(self.__class__,),
+            )
 
         _check_type = kwargs.pop('_check_type', True)
         _spec_property_naming = kwargs.pop('_spec_property_naming', False)

@@ -117,8 +117,11 @@ class RESTClientObject(object):
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
         """
+        method = method.upper()
+        assert method in ['GET', 'HEAD', 'DELETE', 'POST', 'PUT',
+                          'PATCH', 'OPTIONS']
 
-        if os.environ.get('PINECONE_DEBUG'):
+        if os.environ.get('PINECONE_DEBUG_CURL'):
             formatted_headers = ' '.join(["-H '{0}: {1}'".format(k, v)
                             for k, v in headers.items()])
             formatted_query = urlencode(query_params)
@@ -129,11 +132,8 @@ class RESTClientObject(object):
             if body is None:
                 print("curl -X {method} '{url}' {formatted_headers}".format(method=method, url=formatted_url, formatted_headers=formatted_headers))
             else:
-                print("curl -X {method} '{url}' {formatted_headers} -d '{data}'".format(method=method, url=formatted_url, formatted_headers=formatted_headers, data=body))
-
-        method = method.upper()
-        assert method in ['GET', 'HEAD', 'DELETE', 'POST', 'PUT',
-                          'PATCH', 'OPTIONS']
+                formatted_body = json.dumps(body)
+                print("curl -X {method} '{url}' {formatted_headers} -d '{data}'".format(method=method, url=formatted_url, formatted_headers=formatted_headers, data=formatted_body))
 
         if post_params and body:
             raise ApiValueError(
@@ -218,8 +218,9 @@ class RESTClientObject(object):
             msg = "{0}\n{1}".format(type(e).__name__, str(e))
             raise ApiException(status=0, reason=msg)
 
-        if _preload_content:
+        if _preload_content or os.environ.get('PINECONE_DEBUG_CURL'):
             r = RESTResponse(r)
+            print(r.data)
 
             # log response body
             logger.debug("response body: %s", r.data)

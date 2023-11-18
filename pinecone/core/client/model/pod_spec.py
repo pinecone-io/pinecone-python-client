@@ -125,17 +125,13 @@ class PodSpec(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, environment, replicas, shards, pod_type, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, environment, *args, **kwargs):  # noqa: E501
         """PodSpec - a model defined in OpenAPI
 
         Args:
             environment (str): The environment where the index is hosted.
-            replicas (PodSpecReplicas):
-            shards (PodSpecShards):
-            pod_type (PodSpecPodType):
 
         Keyword Args:
-            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`.. defaults to 1  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -166,10 +162,13 @@ class PodSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            replicas (PodSpecReplicas): [optional]  # noqa: E501
+            shards (PodSpecShards): [optional]  # noqa: E501
+            pod_type (PodSpecPodType): [optional]  # noqa: E501
+            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`.. [optional]  # noqa: E501
             metadata_config (PodSpecMetadataConfig): [optional]  # noqa: E501
         """
 
-        pods = kwargs.get('pods', 1)
         _check_type = kwargs.pop('_check_type', True)
         _spec_property_naming = kwargs.pop('_spec_property_naming', False)
         _path_to_item = kwargs.pop('_path_to_item', ())
@@ -196,10 +195,6 @@ class PodSpec(ModelNormal):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         self.environment = environment
-        self.replicas = replicas
-        self.shards = shards
-        self.pod_type = pod_type
-        self.pods = pods
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
@@ -220,17 +215,13 @@ class PodSpec(ModelNormal):
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, environment, replicas, shards, pod_type, *args, **kwargs):  # noqa: E501
+    def __init__(self, environment, *args, **kwargs):  # noqa: E501
         """PodSpec - a model defined in OpenAPI
 
         Args:
             environment (str): The environment where the index is hosted.
-            replicas (PodSpecReplicas):
-            shards (PodSpecShards):
-            pod_type (PodSpecPodType):
 
         Keyword Args:
-            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`.. defaults to 1  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -261,10 +252,13 @@ class PodSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            replicas (PodSpecReplicas): [optional]  # noqa: E501
+            shards (PodSpecShards): [optional]  # noqa: E501
+            pod_type (PodSpecPodType): [optional]  # noqa: E501
+            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`.. [optional]  # noqa: E501
             metadata_config (PodSpecMetadataConfig): [optional]  # noqa: E501
         """
 
-        pods = kwargs.get('pods', 1)
         _check_type = kwargs.pop('_check_type', True)
         _spec_property_naming = kwargs.pop('_spec_property_naming', False)
         _path_to_item = kwargs.pop('_path_to_item', ())
@@ -289,10 +283,6 @@ class PodSpec(ModelNormal):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         self.environment = environment
-        self.replicas = replicas
-        self.shards = shards
-        self.pod_type = pod_type
-        self.pods = pods
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
