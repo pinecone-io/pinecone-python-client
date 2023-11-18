@@ -35,7 +35,6 @@ def generate_index_name(test_name: str) -> str:
     if test_name.endswith('_') or test_name.endswith('-'):
         test_name = test_name[:-1]
 
-    print('Generated index name: ' + index_name.lower())
     return index_name.lower()
 
 def get_environment_var(name: str) -> str:

@@ -1,14 +1,12 @@
-from pinecone import ListIndexesResponse, ListIndexMeta
+from pinecone import IndexModel
 
 class TestListIndexes():
     def test_list_indexes_includes_ready_indexes(self, client, ready_index, create_index_params):
         list_response = client.list_indexes()
-        assert type(list_response) == ListIndexesResponse
-        assert len(list_response.databases) != 0
-        assert type(list_response.databases[0]) == ListIndexMeta
+        assert len(list_response.indexes) != 0
+        assert type(list_response.indexes[0]) == IndexModel
         
-
-        created_index = [index for index in list_response.databases if index.name == ready_index][0]
+        created_index = [index for index in list_response.indexes if index.name == ready_index][0]
         assert created_index.name == ready_index
         assert created_index.dimension == create_index_params['dimension']
         assert created_index.metric == create_index_params['metric']
@@ -17,10 +15,9 @@ class TestListIndexes():
 
     def test_list_indexes_includes_not_ready_indexes(self, client, notready_index):
         list_response = client.list_indexes()
-        assert type(list_response) == ListIndexesResponse
-        assert len(list_response.databases) != 0
-        assert type(list_response.databases[0]) == ListIndexMeta
+        assert len(list_response.indexes) != 0
+        assert type(list_response.indexes[0]) == IndexModel
 
-        created_index = [index for index in list_response.databases if index.name == notready_index][0]
+        created_index = [index for index in list_response.indexes if index.name == notready_index][0]
         assert created_index.name == notready_index
         assert notready_index in created_index.name
