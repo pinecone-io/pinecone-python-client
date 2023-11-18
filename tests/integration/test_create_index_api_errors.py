@@ -12,11 +12,6 @@ class TestCreateIndexApiErrorCases:
         with pytest.raises(ApiException):
             client.create_index(**create_index_params)
 
-    def test_create_index_w_invalid_capacity_mode(self, client, create_index_params):
-        create_index_params['capacity_mode'] = 'fixed'
-        with pytest.raises(ApiException):
-            client.create_index(**create_index_params)
-
     def test_create_index_with_invalid_neg_dimension(self, client, create_index_params):
         create_index_params['dimension'] = -1
         with pytest.raises(ApiException):

@@ -430,6 +430,7 @@ class ApiClient(object):
                 post_params=None, body=None, _preload_content=True,
                 _request_timeout=None):
         """Makes the HTTP request using RESTClient."""
+
         if method == "GET":
             return self.rest_client.GET(url,
                                         query_params=query_params,

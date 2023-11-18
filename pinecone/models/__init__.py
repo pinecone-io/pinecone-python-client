@@ -1,12 +1,15 @@
-from .list_index_meta import ListIndexMeta
-from .list_indexes_response import ListIndexesResponse
-from .index_description import IndexDescription, IndexStatus
+
+from .index_list import IndexList
+from .index_description import IndexDescription, IndexStatus, PodSpec, PodSpecDefinition, ServerlessSpec, ServerlessSpecDefinition
 from .collection_description import CollectionDescription
 
 __all__ = [
     'CollectionDescription',
-    'ListIndexMeta',
-    'ListIndexesResponse',
+    'IndexList',
     'IndexDescription',
-    'IndexStatus'
+    'IndexStatus',
+    'PodSpec',
+    'PodSpecDefinition',
+    'ServerlessSpec',
+    'ServerlessSpecDefinition'
 ]

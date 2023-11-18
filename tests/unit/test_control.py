@@ -28,7 +28,7 @@ class TestControl:
         mocker.patch.object(p.index_api, 'create_index')
         mocker.patch('time.sleep')
 
-        p.create_index("my-index", 10, timeout=timeout_value, cloud="aws", region="us-west1", capacity_mode="pod")
+        p.create_serverless_index(name="my-index", dimension=10, cloud="aws", region="us-west1", timeout=timeout_value)
 
         assert p.index_api.create_index.call_count == 1
         assert p.index_api.describe_index.call_count == expected_describe_index_calls
@@ -43,4 +43,4 @@ class TestControl:
             mocker.patch.object(p.index_api, 'describe_index', side_effect=describe_index_response)
             mocker.patch('time.sleep')
 
-            p.create_index("my-index", 10, timeout=10, cloud="aws", region="us-west1", capacity_mode="pod")
+            p.create_pod_index(name="my-index", dimension=10, timeout=10, environment="us-west1-gcp")

@@ -13,6 +13,7 @@ import json
 import logging
 import re
 import ssl
+import os
 from urllib.parse import urlencode
 
 import urllib3
@@ -116,6 +117,20 @@ class RESTClientObject(object):
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
         """
+
+        if os.environ.get('PINECONE_DEBUG'):
+            formatted_headers = ' '.join(["-H '{0}: {1}'".format(k, v)
+                            for k, v in headers.items()])
+            formatted_query = urlencode(query_params)
+            if formatted_query:
+                formatted_url = f'{url}?{formatted_query}'
+            else:
+                formatted_url = url
+            if body is None:
+                print("curl -X {method} '{url}' {formatted_headers}".format(method=method, url=formatted_url, formatted_headers=formatted_headers))
+            else:
+                print("curl -X {method} '{url}' {formatted_headers} -d '{data}'".format(method=method, url=formatted_url, formatted_headers=formatted_headers, data=body))
+
         method = method.upper()
         assert method in ['GET', 'HEAD', 'DELETE', 'POST', 'PUT',
                           'PATCH', 'OPTIONS']

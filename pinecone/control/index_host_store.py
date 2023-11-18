@@ -1,7 +1,6 @@
 from typing import Dict
 from pinecone.config import Config
-from pinecone.core.client.api.index_operations_api import IndexOperationsApi
-
+from pinecone.core.client.api.manage_pod_indexes_api import ManagePodIndexesApi as IndexOperationsApi
 
 class SingletonMeta(type):
     _instances: Dict[str, str] = {}
