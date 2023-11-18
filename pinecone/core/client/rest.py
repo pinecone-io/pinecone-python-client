@@ -21,6 +21,17 @@ import urllib3
 from pinecone.core.client.exceptions import ApiException, UnauthorizedException, ForbiddenException, NotFoundException, ServiceException, ApiValueError
 
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 logger = logging.getLogger(__name__)
 
 
@@ -130,10 +141,10 @@ class RESTClientObject(object):
             else:
                 formatted_url = url
             if body is None:
-                print("curl -X {method} '{url}' {formatted_headers}".format(method=method, url=formatted_url, formatted_headers=formatted_headers))
+                print(bcolors.OKBLUE + "curl -X {method} '{url}' {formatted_headers}".format(method=method, url=formatted_url, formatted_headers=formatted_headers) + bcolors.ENDC)
             else:
                 formatted_body = json.dumps(body)
-                print("curl -X {method} '{url}' {formatted_headers} -d '{data}'".format(method=method, url=formatted_url, formatted_headers=formatted_headers, data=formatted_body))
+                print(bcolors.OKBLUE + "curl -X {method} '{url}' {formatted_headers} -d '{data}'".format(method=method, url=formatted_url, formatted_headers=formatted_headers, data=formatted_body) + bcolors.ENDC)
 
         if post_params and body:
             raise ApiValueError(
@@ -218,10 +229,18 @@ class RESTClientObject(object):
             msg = "{0}\n{1}".format(type(e).__name__, str(e))
             raise ApiException(status=0, reason=msg)
 
-        if _preload_content or os.environ.get('PINECONE_DEBUG_CURL'):
+        if os.environ.get('PINECONE_DEBUG_CURL'):
             r = RESTResponse(r)
-            print(r.data)
 
+            if r.status <= 300:
+                print(bcolors.OKGREEN + r.data.decode('utf-8') + bcolors.ENDC)
+            else:
+                print(bcolors.FAIL + r.data.decode('utf-8') + bcolors.ENDC)
+
+
+        if _preload_content:
+            r = RESTResponse(r)
+            
             # log response body
             logger.debug("response body: %s", r.data)
 
