@@ -43,7 +43,8 @@ class Pinecone:
         else:
             api_client = ApiClient(configuration=self.config.openapi_config)
             api_client.user_agent = get_user_agent()
-            for key, value in self.config.additional_headers.items():
+            extra_headers = self.config.additional_headers or {}
+            for key, value in extra_headers.items():
                 api_client.set_default_header(key, value)
             self.index_api = IndexOperationsApi(api_client)
 
