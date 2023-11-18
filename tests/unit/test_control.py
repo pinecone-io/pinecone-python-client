@@ -11,6 +11,12 @@ class TestControl:
         p = Pinecone(api_key="123-456-789", host="my-host")
         assert p.index_api.api_client.configuration.host == "my-host"
 
+    def test_passing_additional_headers(self):
+        extras = {"header1": "my-value", "header2": "my-value2"}
+        p = Pinecone(api_key="123-456-789", additional_headers=extras)
+
+        for key, value in extras.items():
+            assert p.index_api.api_client.default_headers[key] == value
 
     @pytest.mark.parametrize("timeout_value, describe_index_responses, expected_describe_index_calls, expected_sleep_calls", [
         # When timeout=None, describe_index is called until ready

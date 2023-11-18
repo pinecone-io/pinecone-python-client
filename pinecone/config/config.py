@@ -1,4 +1,4 @@
-from typing import NamedTuple, Optional
+from typing import NamedTuple, Optional, Dict
 import os
 
 from pinecone.exceptions import PineconeConfigurationError
@@ -11,7 +11,8 @@ class Config(NamedTuple):
     api_key: str = ""
     host: str = ""
     openapi_config: Optional[OpenApiConfiguration] = None
-
+    additional_headers: Optional[Dict[str, str]] = {}
+    
 
 class ConfigBuilder:
     """
@@ -35,6 +36,7 @@ class ConfigBuilder:
         api_key: Optional[str] = None,
         host: Optional[str] = None,
         openapi_config: Optional[OpenApiConfiguration] = None,
+        additional_headers: Optional[Dict[str, str]] = {},
         **kwargs,
     ) -> Config:
         api_key = api_key or kwargs.pop("api_key", None) or os.getenv("PINECONE_API_KEY")
@@ -51,4 +53,4 @@ class ConfigBuilder:
             or OpenApiConfigFactory.build(api_key=api_key, host=host)
         )
 
-        return Config(api_key, host, openapi_config)
+        return Config(api_key, host, openapi_config, additional_headers)
