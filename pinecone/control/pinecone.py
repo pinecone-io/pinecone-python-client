@@ -1,19 +1,23 @@
 import time
-from typing import Optional, Dict, Any, cast
+from typing import Optional, Dict, Any, Union, List, cast, NamedTuple
 
 from .index_host_store import IndexHostStore
 
 from pinecone.config import PineconeConfig, Config
 
-from pinecone.control.models.index_description import IndexDescription
-from pinecone.control.models.collection_description import CollectionDescription
-
-from pinecone.core.client.api.index_operations_api import IndexOperationsApi
+from pinecone.core.client.api.manage_pod_indexes_api import ManagePodIndexesApi as IndexOperationsApi
 from pinecone.core.client.api_client import ApiClient
-from pinecone.core.client.models import CreateCollectionRequest, CreateRequest, PatchRequest
 from pinecone.utils import get_user_agent
+from pinecone.core.client.models import (
+    CreateCollectionRequest,
+    CreateIndexRequest,
+    ConfigureIndexRequest,
+    IndexMetric,
+    IndexDimension
+)
 
 from pinecone.data import Index
+
 
 class Pinecone:
     def __init__(
@@ -32,7 +36,7 @@ class Pinecone:
                 self.config = configKwarg
         else:
             self.config = PineconeConfig.build(api_key=api_key, host=host, **kwargs)
-        
+
         if index_api:
             self.index_api = index_api
         else:
@@ -42,24 +46,52 @@ class Pinecone:
 
         self.index_host_store = IndexHostStore()
 
+    def create_serverless_index(
+        self,
+        name: str,
+        dimension: int,
+        region: str,
+        cloud: str,
+        metric: Optional[str] = "cosine",
+        timeout: Optional[int] = None,
+    ):
+        spec = {'serverless': dict(region=region, cloud=cloud)}
+        self.create_index(name=name, dimension=dimension, metric=metric, spec=spec, timeout=timeout)
+
+    def create_pod_index(
+        self,
+        name: str,
+        dimension: int,
+        environment: str,
+        metric: Optional[str] = "cosine",
+        replicas: Optional[int] = None,
+        shards: Optional[int] = None,
+        pods: Optional[int] = None,
+        pod_type: Optional[str] = "p1.x1",
+        metadata_config: Optional[Dict] = None,
+        source_collection: Optional[str] = None,
+        timeout: Optional[int] = None,
+    ):        
+        spec_inner = dict(
+            environment=environment,
+            replicas=replicas,
+            shards=shards,
+            pods=pods,
+            pod_type=pod_type,
+            metadata_config=metadata_config,
+            source_collection=source_collection,
+        )
+        filtered_spec_inner = {k: v for k, v in spec_inner.items() if v is not None}
+        spec = {'pod': filtered_spec_inner}
+        self.create_index(name=name, dimension=dimension, metric=metric, spec=spec, timeout=timeout)
+
     def create_index(
         self,
         name: str,
         dimension: int,
-        cloud: str,
-        region: str,
-        capacity_mode: str,
-        environment: Optional[str] = None,
+        spec: Dict,
+        metric: Optional[str] = "cosine",
         timeout: Optional[int] = None,
-        index_type: str = "approximated",
-        metric: str = "cosine",
-        replicas: int = 1,
-        shards: int = 1,
-        pods: int = 1,
-        pod_type: str = "p1",
-        index_config: Optional[dict] = {},
-        metadata_config: Optional[dict] = None,
-        source_collection: str = "",
     ):
         """Creates a Pinecone index.
 
@@ -67,51 +99,22 @@ class Pinecone:
         :type name: str
         :param dimension: the dimension of vectors that would be inserted in the index
         :type dimension: int
-        :param cloud: The cloud where you would like your index hosted. One of `{"aws", "gcp"}`.
-        :type cloud: str
-        :param region: The region where you would like your index hosted.
-        :type region: str
-        :param capacity_mode: The capacity mode for the index. One of `{"pod"}`.
-        :type capacity_mode: str
-        :param environment: The environment where you would like your index hosted, e.g. 'us-east1-gcp'. Find this value in the Pinecone web console along with your API keys.
-        :type environment: str, optional
-        :param index_type: type of index, one of `{"approximated", "exact"}`, defaults to "approximated".
-            The "approximated" index uses fast approximate search algorithms developed by Pinecone.
-            The "exact" index uses accurate exact search algorithms.
-            It performs exhaustive searches and thus it is usually slower than the "approximated" index.
-        :type index_type: str, optional
         :param metric: type of metric used in the vector index, one of `{"cosine", "dotproduct", "euclidean"}`, defaults to "cosine".
             Use "cosine" for cosine similarity,
             "dotproduct" for dot-product,
             and "euclidean" for euclidean distance.
         :type metric: str, optional
-        :param replicas: the number of replicas, defaults to 1.
-            Use at least 2 replicas if you need high availability (99.99% uptime) for querying.
-            For additional throughput (QPS) your index needs to support, provision additional replicas.
-        :type replicas: int, optional
-        :param shards: the number of shards per index, defaults to 1.
-            Use 1 shard per 1GB of vectors
-        :type shards: int,optional
-        :param pods: Total number of pods to be used by the index. pods = shard*replicas
-        :type pods: int,optional
-        :param pod_type: the pod type to be used for the index. can be one of p1 or s1.
-        :type pod_type: str,optional
-        :param index_config: Advanced configuration options for the index
-        :param metadata_config: Configuration related to the metadata index
-        :type metadata_config: dict, optional
-        :param source_collection: Collection name to create the index from
-        :type metadata_config: str, optional
+        :param spec: A dictionary containing configurations describing how the index should be deployed. For serverless indexes,
+            specify region and cloud. For pod indexes, specify replicas, shards, pods, pod_type, metadata_config, and source_collection.
+        :type spec: Dict
         :type timeout: int, optional
         :param timeout: Timeout for wait until index gets ready. If None, wait indefinitely; if >=0, time out after this many seconds;
             if -1, return immediately and do not wait. Default: None
         """
-        create_args = locals()
-        del create_args["self"]
-        if environment is None:
-            del create_args["environment"]
 
         api_instance = self.index_api
-        api_instance.create_index(create_request=CreateRequest(**create_args))
+
+        api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=IndexDimension(dimension), metric=IndexMetric(metric), spec=spec))
 
         def is_ready():
             status = self._get_status(name)
@@ -173,8 +176,7 @@ class Pinecone:
 
     def list_indexes(self):
         """Lists all indexes."""
-        response = self.index_api.list_indexes()
-        return response
+        return self.index_api.list_indexes()
 
     def describe_index(self, name: str):
         """Describes a Pinecone index.
@@ -183,25 +185,13 @@ class Pinecone:
         :return: Returns an `IndexDescription` object
         """
         api_instance = self.index_api
-        response = api_instance.describe_index(name)
-        db = response.database
-        host = response.status.host
-
+        description = api_instance.describe_index(name)
+        host = description.host
         self.index_host_store.set_host(self.config, name, host)
 
-        return IndexDescription(
-            name=db.name,
-            metric=db.metric,
-            replicas=db.replicas,
-            dimension=db.dimension,
-            shards=db.shards,
-            pods=db.pods,
-            pod_type=db.pod_type,
-            status=response.status,
-            metadata_config=db.metadata_config,
-        )
+        return description
 
-    def configure_index(self, name: str, replicas: Optional[int] = None, pod_type: Optional[str] = ""):
+    def configure_index(self, name: str, replicas: Optional[int] = None, pod_type: Optional[str] = None):
         """Changes current configuration of the index.
         :param: name: the name of the Index
         :param: replicas: the desired number of replicas, lowest value is 0.
@@ -209,23 +199,23 @@ class Pinecone:
         """
         api_instance = self.index_api
         config_args: Dict[str, Any] = {}
-        if pod_type != "":
+        if pod_type:
             config_args.update(pod_type=pod_type)
         if replicas:
             config_args.update(replicas=replicas)
-        patch_request = PatchRequest(**config_args)
-        api_instance.configure_index(name, patch_request=patch_request)
+        configure_index_request = ConfigureIndexRequest(**config_args)
+        api_instance.configure_index(name, configure_index_request=configure_index_request)
 
     def scale_index(self, name: str, replicas: int):
-        """Increases number of replicas for the index.
+        """Change the number of replicas for the index. Replicas may be scaled up or down.
 
         :param name: the name of the Index
         :type name: str
-        :param replicas: the number of replicas in the index now, lowest value is 0.
+        :param replicas: the number of replicas in the index now, lowest value is 1.
         :type replicas: int
         """
         api_instance = self.index_api
-        api_instance.configure_index(name, patch_request=PatchRequest(replicas=replicas, pod_type=""))
+        api_instance.configure_index(name, patch_request=ConfigureIndexRequest(replicas=replicas, pod_type=""))
 
     def create_collection(self, name: str, source: str):
         """Create a collection
@@ -254,9 +244,7 @@ class Pinecone:
         :return: Description of the collection
         """
         api_instance = self.index_api
-        response = api_instance.describe_collection(name).to_dict()
-        response_object = CollectionDescription(response.keys(), response.values())
-        return response_object
+        return api_instance.describe_collection(name).to_dict()
 
     def _get_status(self, name: str):
         api_instance = self.index_api

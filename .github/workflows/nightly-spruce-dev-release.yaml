@@ -8,6 +8,7 @@ on:
 jobs:
   run-tests:
     uses: './.github/workflows/testing.yaml'
+    secrets: inherit
 
   pypi-spruce-nightly:
     needs: run-tests
