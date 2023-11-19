@@ -25,6 +25,7 @@ class Pinecone:
         api_key: Optional[str] = None,
         host: Optional[str] = None,
         config: Optional[Config] = None,
+        additional_headers: Optional[Dict[str, str]] = {},
         index_api: Optional[IndexOperationsApi] = None,
         **kwargs,
     ):
@@ -35,13 +36,16 @@ class Pinecone:
             else:
                 self.config = configKwarg
         else:
-            self.config = PineconeConfig.build(api_key=api_key, host=host, **kwargs)
+            self.config = PineconeConfig.build(api_key=api_key, host=host, additional_headers=additional_headers, **kwargs)
 
         if index_api:
             self.index_api = index_api
         else:
             api_client = ApiClient(configuration=self.config.openapi_config)
             api_client.user_agent = get_user_agent()
+            extra_headers = self.config.additional_headers or {}
+            for key, value in extra_headers.items():
+                api_client.set_default_header(key, value)
             self.index_api = IndexOperationsApi(api_client)
 
         self.index_host_store = IndexHostStore()
