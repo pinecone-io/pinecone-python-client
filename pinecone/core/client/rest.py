@@ -230,12 +230,12 @@ class RESTClientObject(object):
             raise ApiException(status=0, reason=msg)
 
         if os.environ.get('PINECONE_DEBUG_CURL'):
-            r = RESTResponse(r)
+            o = RESTResponse(r)
 
-            if r.status <= 300:
-                print(bcolors.OKGREEN + r.data.decode('utf-8') + bcolors.ENDC)
+            if o.status <= 300:
+                print(bcolors.OKGREEN + o.data.decode('utf-8') + bcolors.ENDC)
             else:
-                print(bcolors.FAIL + r.data.decode('utf-8') + bcolors.ENDC)
+                print(bcolors.FAIL + o.data.decode('utf-8') + bcolors.ENDC)
 
 
         if _preload_content:
