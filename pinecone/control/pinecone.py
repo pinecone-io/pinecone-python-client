@@ -52,45 +52,6 @@ class Pinecone:
 
         self.index_host_store = IndexHostStore()
 
-    def create_serverless_index(
-        self,
-        name: str,
-        dimension: int,
-        region: str,
-        cloud: str,
-        metric: Optional[str] = "cosine",
-        timeout: Optional[int] = None,
-    ):
-        spec = {'serverless': dict(region=region, cloud=cloud)}
-        self.create_index(name=name, dimension=dimension, metric=metric, spec=spec, timeout=timeout)
-
-    def create_pod_index(
-        self,
-        name: str,
-        dimension: int,
-        environment: str,
-        metric: Optional[str] = "cosine",
-        replicas: Optional[int] = None,
-        shards: Optional[int] = None,
-        pods: Optional[int] = None,
-        pod_type: Optional[str] = "p1.x1",
-        metadata_config: Optional[Dict] = None,
-        source_collection: Optional[str] = None,
-        timeout: Optional[int] = None,
-    ):
-        spec_inner = dict(
-            environment=environment,
-            replicas=replicas,
-            shards=shards,
-            pods=pods,
-            pod_type=pod_type,
-            metadata_config=metadata_config,
-            source_collection=source_collection,
-        )
-        filtered_spec_inner = {k: v for k, v in spec_inner.items() if v is not None}
-        spec = {'pod': filtered_spec_inner}
-        self.create_index(name=name, dimension=dimension, metric=metric, spec=spec, timeout=timeout)
-
     def create_index(
         self,
         name: str,

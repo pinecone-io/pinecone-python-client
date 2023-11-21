@@ -24,6 +24,9 @@ class IndexHostStore(metaclass=SingletonMeta):
         if key in self._indexHosts:
             del self._indexHosts[key]
 
+    def key_exists(self, key: str) -> bool:
+        return key in self._indexHosts
+
     def set_host(self, config: Config, index_name: str, host: str):
         if host:
             key = self._key(config, index_name)
@@ -31,9 +34,11 @@ class IndexHostStore(metaclass=SingletonMeta):
 
     def get_host(self, api: IndexOperationsApi, config: Config, index_name: str) -> str:
         key = self._key(config, index_name)
-        if key in self._indexHosts:
+        if self.key_exists(key):
             return self._indexHosts[key]
         else:
             description = api.describe_index(index_name)
-            self.set_host(config, index_name, description.status.host)
+            self.set_host(config, index_name, description.host)
+            if not self.key_exists(key):
+                raise Exception(f"Could not get host for index: {index_name}. Call describe_index('{index_name}') to check the current status.")
             return self._indexHosts[key]
