@@ -86,7 +86,7 @@ jobs:
 
       - name: Poetry bump pyproject toml version
         run: |
-          poetry version ${{ inputs.releaseLevel }}
+          poetry version ${{ steps.bump.outputs.version }}
 
       - name: Build Python client
         run: make package
