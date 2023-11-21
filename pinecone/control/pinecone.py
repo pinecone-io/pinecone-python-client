@@ -13,8 +13,10 @@ from pinecone.core.client.models import (
     CreateIndexRequest,
     ConfigureIndexRequest,
     IndexMetric,
-    IndexDimension
+    IndexDimension,
 )
+from pinecone.models import ServerlessSpec, PodSpec
+
 
 from pinecone.data import Index
 
@@ -75,7 +77,7 @@ class Pinecone:
         metadata_config: Optional[Dict] = None,
         source_collection: Optional[str] = None,
         timeout: Optional[int] = None,
-    ):        
+    ):
         spec_inner = dict(
             environment=environment,
             replicas=replicas,
@@ -93,7 +95,7 @@ class Pinecone:
         self,
         name: str,
         dimension: int,
-        spec: Dict,
+        spec: Union[Dict, ServerlessSpec, PodSpec],
         metric: Optional[str] = "cosine",
         timeout: Optional[int] = None,
     ):
@@ -118,7 +120,12 @@ class Pinecone:
 
         api_instance = self.index_api
 
-        api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=IndexDimension(dimension), metric=IndexMetric(metric), spec=spec))
+        if isinstance(spec, dict):
+            api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=IndexDimension(dimension), metric=IndexMetric(metric), spec=spec))
+        elif isinstance(spec, ServerlessSpec):
+            api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=IndexDimension(dimension), metric=IndexMetric(metric), spec=spec.asdict()))
+        elif isinstance(spec, PodSpec):
+            api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=IndexDimension(dimension), metric=IndexMetric(metric), spec=spec.asdict()))
 
         def is_ready():
             status = self._get_status(name)
