@@ -15,11 +15,9 @@ from pinecone.core.client.models import (
     IndexMetric,
     IndexDimension,
 )
-from pinecone.models import ServerlessSpec, PodSpec
-
+from pinecone.models import ServerlessSpec, PodSpec, IterableIndexList
 
 from pinecone.data import Index
-
 
 class Pinecone:
     def __init__(
@@ -148,7 +146,8 @@ class Pinecone:
 
     def list_indexes(self):
         """Lists all indexes."""
-        return self.index_api.list_indexes()
+        response = self.index_api.list_indexes()
+        return IterableIndexList(response)
 
     def describe_index(self, name: str):
         """Describes a Pinecone index.
