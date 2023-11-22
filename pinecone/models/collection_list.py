@@ -1,7 +1,7 @@
-from pinecone.core.client.models import CollectionList
+from pinecone.core.client.models import CollectionList as OpenAPICollectionList
 
-class IterableCollectionList:
-    def __init__(self, collection_list: CollectionList):
+class CollectionList:
+    def __init__(self, collection_list: OpenAPICollectionList):
         self.collection_list = collection_list
         self.current = 0
 

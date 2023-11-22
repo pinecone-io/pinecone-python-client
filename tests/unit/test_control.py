@@ -1,13 +1,15 @@
 import pytest
 from pinecone import Pinecone, PodSpec, ServerlessSpec
 from pinecone.core.client.models import IndexList, IndexModel
-from pinecone.core.client.rest import RESTClientObject, RESTResponse
 import time
 
 @pytest.fixture
 def index_list_response():
     return IndexList(indexes=[
         IndexModel(name="index1", dimension=10, metric="euclidean", status={"ready": True}, spec={}, _check_type=False),
+        IndexModel(name="index2", dimension=10, metric="euclidean", status={"ready": True}, spec={}, _check_type=False),
+        IndexModel(name="index3", dimension=10, metric="euclidean", status={"ready": True}, spec={}, _check_type=False),
+
     ])
 
 class TestControl:
@@ -62,13 +64,7 @@ class TestControl:
     def test_list_indexes_returns_iterable(self, mocker, index_list_response):
         p = Pinecone(api_key="123-456-789")
        
-        mocker.patch.object(p.index_api, 'list_indexes', side_effect=index_list_response)
+        mocker.patch.object(p.index_api, 'list_indexes', side_effect=[index_list_response])
 
-        iteration_count = 0
         response = p.list_indexes()
-        print(response)
-        for item in response:
-            print(item)
-            iteration_count += 1
-
-        assert iteration_count == 3
+        assert [i.name for i in response] == ["index1", "index2", "index3"]

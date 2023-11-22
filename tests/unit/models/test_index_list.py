@@ -1,10 +1,10 @@
 import pytest
-from pinecone import IterableIndexList
-from pinecone.core.client.models import IndexList
+from pinecone import IndexList
+from pinecone.core.client.models import IndexList as OpenApiIndexList
 
 @pytest.fixture
 def index_list_response():
-    return IndexList(
+    return OpenApiIndexList(
             indexes=[
                 {
                     "name": "test-index-1",
@@ -31,21 +31,21 @@ def index_list_response():
             ], _check_type=False
         )
 
-class TestIterableIndexList:
-    def test_iterable_index_list_has_length(self, index_list_response):
-        assert len(IterableIndexList(index_list_response)) == 2
+class TestIndexList:
+    def test_index_list_has_length(self, index_list_response):
+        assert len(IndexList(index_list_response)) == 2
 
-    def test_iterable_index_list_is_iterable(self, index_list_response):
-        iil = IterableIndexList(index_list_response)
+    def test_index_list_is(self, index_list_response):
+        iil = IndexList(index_list_response)
         assert [i['name'] for i in iil] == ['test-index-1', 'test-index-2']
 
-    def test_iterable_index_list_getitem(self, index_list_response):
-        iil = IterableIndexList(index_list_response)
+    def test_index_list_getitem(self, index_list_response):
+        iil = IndexList(index_list_response)
         assert iil[0] == index_list_response.indexes[0]
         assert iil[1] == index_list_response.indexes[1]
 
-    def test_iterable_index_list_proxies_methods(self, index_list_response):
+    def test_index_list_proxies_methods(self, index_list_response):
         # Forward compatibility, in case we add more attributes to IndexList for pagination
-        assert IterableIndexList(index_list_response).index_list.indexes == index_list_response.indexes
+        assert IndexList(index_list_response).index_list.indexes == index_list_response.indexes
 
 

@@ -1,7 +1,7 @@
-from pinecone.core.client.models import IndexList
+from pinecone.core.client.models import IndexList as OpenAPIIndexList
 
-class IterableIndexList:
-    def __init__(self, index_list: IndexList):
+class IndexList:
+    def __init__(self, index_list: OpenAPIIndexList):
         self.index_list = index_list
         self.current = 0
 
