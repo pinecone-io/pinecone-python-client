@@ -15,11 +15,9 @@ from pinecone.core.client.models import (
     IndexMetric,
     IndexDimension,
 )
-from pinecone.models import ServerlessSpec, PodSpec
-
+from pinecone.models import ServerlessSpec, PodSpec, IndexList, CollectionList
 
 from pinecone.data import Index
-
 
 class Pinecone:
     def __init__(
@@ -146,9 +144,10 @@ class Pinecone:
                 )
             )
 
-    def list_indexes(self):
+    def list_indexes(self) -> IndexList:
         """Lists all indexes."""
-        return self.index_api.list_indexes()
+        response = self.index_api.list_indexes()
+        return IndexList(response)
 
     def describe_index(self, name: str):
         """Describes a Pinecone index.
@@ -197,11 +196,11 @@ class Pinecone:
         api_instance = self.index_api
         api_instance.create_collection(create_collection_request=CreateCollectionRequest(name=name, source=source))
 
-    def list_collections(self):
+    def list_collections(self) -> CollectionList:
         """List all collections"""
         api_instance = self.index_api
         response = api_instance.list_collections()
-        return response
+        return CollectionList(response)
 
     def delete_collection(self, name: str):
         """Deletes a collection.

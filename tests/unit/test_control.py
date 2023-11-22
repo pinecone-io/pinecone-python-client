@@ -1,6 +1,16 @@
 import pytest
 from pinecone import Pinecone, PodSpec, ServerlessSpec
+from pinecone.core.client.models import IndexList, IndexModel
 import time
+
+@pytest.fixture
+def index_list_response():
+    return IndexList(indexes=[
+        IndexModel(name="index1", dimension=10, metric="euclidean", status={"ready": True}, spec={}, _check_type=False),
+        IndexModel(name="index2", dimension=10, metric="euclidean", status={"ready": True}, spec={}, _check_type=False),
+        IndexModel(name="index3", dimension=10, metric="euclidean", status={"ready": True}, spec={}, _check_type=False),
+
+    ])
 
 class TestControl:
     def test_default_host(self):
@@ -50,3 +60,11 @@ class TestControl:
             mocker.patch('time.sleep')
 
             p.create_index(name="my-index", dimension=10, timeout=10, spec=PodSpec(environment="us-west1-gcp"))
+
+    def test_list_indexes_returns_iterable(self, mocker, index_list_response):
+        p = Pinecone(api_key="123-456-789")
+       
+        mocker.patch.object(p.index_api, 'list_indexes', side_effect=[index_list_response])
+
+        response = p.list_indexes()
+        assert [i.name for i in response] == ["index1", "index2", "index3"]
