@@ -10,23 +10,26 @@ def index_list_response():
                     "name": "test-index-1",
                     "dimension": 2,
                     "metric": "cosine",
-                    "capacity_mode": "serverless",
-                    "status": {
-                        "host": "test-index-1-host",
-                        "state": "Ready",
-                        "ready": True,
-                    },
+                    "spec": {
+                        "pod": {
+                            "environment": "us-west1-gcp",
+                            "pod_type": "p1.x1",
+                            "pods": 1,
+                            "replicas": 1,
+                            "shards": 1
+                        }
+                    }
                 },
                 {
                     "name": "test-index-2",
                     "dimension": 2,
                     "metric": "cosine",
-                    "capacity_mode": "serverless",
-                    "status": {
-                        "host": "test-index-2-host",
-                        "state": "Ready",
-                        "ready": True,
-                    },
+                    "spec": {
+                        "serverless": {
+                            "cloud": "aws",
+                            "region": "us-west-2"
+                        }
+                    }
                 },
             ], _check_type=False
         )
