@@ -38,7 +38,9 @@ jobs:
     strategy:
       matrix:
         python-version: [3.8, 3.11]
-        pineconeEnv: ['prod', 'staging']
+        pineconeEnv:
+          - prod
+          # - staging
       max-parallel: 1
       fail-fast: false
     steps:
