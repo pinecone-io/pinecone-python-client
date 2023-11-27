@@ -18,6 +18,7 @@ from pinecone.exceptions import PineconeException
 
 _logger = logging.getLogger(__name__)
 
+
 class GRPCIndexBase(ABC):
     """
     Base class for grpc-based interaction with Pinecone indexes
@@ -29,12 +30,13 @@ class GRPCIndexBase(ABC):
         self,
         index_name: str,
         config: Config,
-        channel: Optional[Channel] =None,
+        channel: Optional[Channel] = None,
         grpc_config: Optional[GRPCClientConfig] = None,
         _endpoint_override: Optional[str] = None,
     ):
         self.name = index_name
 
+        self.config = config
         self.grpc_client_config = grpc_config or GRPCClientConfig()
         self.retry_config = self.grpc_client_config.retry_config or RetryConfig()
         self.fixed_metadata = {"api-key": config.api_key, "service-name": index_name, "client-version": CLIENT_VERSION}
@@ -76,11 +78,8 @@ class GRPCIndexBase(ABC):
         pass
 
     def _endpoint(self):
-        return (
-            self._endpoint_override
-            if self._endpoint_override
-            else f"{self.name}-{Config.PROJECT_NAME}.svc.{Config.ENVIRONMENT}.pinecone.io:443"
-        )
+        grpcHost = self.config.host.replace("https://", "")
+        return self._endpoint_override if self._endpoint_override else f"{grpcHost}:443"
 
     def _gen_channel(self, options=None):
         target = self._endpoint()
