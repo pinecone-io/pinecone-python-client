@@ -2,7 +2,7 @@ import pytest
 
 class TestCreateIndexWithTimeout:
     def test_create_index_default_timeout(self, client, create_sl_index_params):
-        del create_sl_index_params['timeout']
+        create_sl_index_params['timeout'] = None
         client.create_index(**create_sl_index_params)
         # Waits infinitely for index to be ready
         desc = client.describe_index(create_sl_index_params['name'])

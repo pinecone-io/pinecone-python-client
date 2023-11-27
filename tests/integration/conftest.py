@@ -1,5 +1,6 @@
 import pytest
-from pinecone import Pinecone
+import time
+from pinecone import Pinecone, NotFoundException, ApiException
 from .helpers.helpers import generate_index_name, get_environment_var
 
 @pytest.fixture()
@@ -13,11 +14,11 @@ def environment():
 
 @pytest.fixture()
 def create_sl_index_params(index_name):
-    spec = {
+    spec = {"serverless": {
         'cloud': 'aws',
-        'region': 'us-east1'
-    }
-    return dict(name=index_name, dimension=10, metric='cosine', spec=spec, timeout=-1)
+        'region': 'us-west-2'
+    }}
+    return dict(name=index_name, dimension=10, metric='cosine', spec=spec)
 
 @pytest.fixture()
 def create_pod_index_params(index_name, environment):
@@ -33,35 +34,51 @@ def index_name(request):
 
 @pytest.fixture()
 def ready_sl_index(client, index_name, create_sl_index_params):
-    del create_sl_index_params['timeout']
+    create_sl_index_params['timeout'] = None
     client.create_index(**create_sl_index_params)
     yield index_name
     client.delete_index(index_name, -1)
 
 @pytest.fixture()
 def notready_sl_index(client, index_name, create_sl_index_params):
-    client.create_index(**create_sl_index_params)
+    client.create_index(**create_sl_index_params, timeout=-1)
     yield index_name
-    client.delete_index(index_name, -1)
 
 @pytest.fixture()
 def ready_pod_index(client, index_name, create_pod_index_params):
     del create_pod_index_params['timeout']
     client.create_index(**create_pod_index_params)
     yield index_name
-    client.delete_index(index_name, -1)
 
 @pytest.fixture()
 def notready_pod_index(client, index_name, create_pod_index_params):
     client.create_index(**create_pod_index_params)
     yield index_name
-    client.delete_index(index_name, -1)
+
+def delete_with_retry(client, index_name, retries=0, sleep_interval=5):
+    print('Deleting index ' + index_name + ', retry ' + str(retries) + ', next sleep interval ' + str(sleep_interval))
+    try:
+        client.delete_index(index_name, -1)
+    except NotFoundException:
+        pass
+    except ApiException as e:
+        if e.error.code == 'PRECONDITON_FAILED':
+            if retries > 5:
+                raise 'Unable to delete index ' + index_name
+            time.sleep(sleep_interval)
+            delete_with_retry(client, index_name, retries + 1, sleep_interval * 2)
+        else:
+            print(e.__class__)
+            print(e)
+            raise 'Unable to delete index ' + index_name
+    except Exception as e:
+        print(e.__class__)
+        print(e)
+        raise 'Unable to delete index ' + index_name
 
 @pytest.fixture(autouse=True)
 def cleanup(client, index_name):
     yield
-
-    client.delete_index(index_name, -1)
 
     try:
        client.delete_index(index_name, -1)
@@ -73,8 +90,8 @@ def cleanup_all():
     yield
 
     client = Pinecone()
-    for index in client.list_indexes().databases:
+    for index in client.list_indexes():
         try:
-            client.delete_index(index.name, -1)
+            delete_with_retry(client, index.name)
         except:
             pass
