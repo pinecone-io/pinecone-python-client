@@ -112,7 +112,7 @@ class ServerlessSpec(ModelNormal):
 
         Args:
             cloud (str): The public cloud where you would like your index hosted
-            region (str): The region where you would like your index to be created. Different cloud providers have different regions available.
+            region (str): The region where you would like your index to be created. Different cloud providers have different regions available.  See AwsRegions and GcpRegions for a list of available options.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -199,7 +199,7 @@ class ServerlessSpec(ModelNormal):
 
         Args:
             cloud (str): The public cloud where you would like your index hosted
-            region (str): The region where you would like your index to be created. Different cloud providers have different regions available.
+            region (str): The region where you would like your index to be created. Different cloud providers have different regions available.  See AwsRegions and GcpRegions for a list of available options.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
