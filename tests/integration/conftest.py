@@ -1,4 +1,5 @@
 import pytest
+import random
 import time
 from pinecone import Pinecone, NotFoundException, ApiException
 from .helpers.helpers import generate_index_name, get_environment_var
@@ -26,6 +27,10 @@ def create_pod_index_params(index_name, environment):
         'environment': environment
     }
     return dict(name=index_name, dimension=10, metric='cosine', spec=spec, timeout=-1)
+
+@pytest.fixture()
+def random_vector():
+    return [random.uniform(0, 1) for _ in range(10)]
 
 @pytest.fixture()
 def index_name(request):
