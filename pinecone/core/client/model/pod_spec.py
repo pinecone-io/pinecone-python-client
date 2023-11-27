@@ -31,13 +31,7 @@ from pinecone.core.client.exceptions import ApiAttributeError
 
 def lazy_import():
     from pinecone.core.client.model.pod_spec_metadata_config import PodSpecMetadataConfig
-    from pinecone.core.client.model.pod_spec_pod_type import PodSpecPodType
-    from pinecone.core.client.model.pod_spec_replicas import PodSpecReplicas
-    from pinecone.core.client.model.pod_spec_shards import PodSpecShards
     globals()['PodSpecMetadataConfig'] = PodSpecMetadataConfig
-    globals()['PodSpecPodType'] = PodSpecPodType
-    globals()['PodSpecReplicas'] = PodSpecReplicas
-    globals()['PodSpecShards'] = PodSpecShards
 
 
 class PodSpec(ModelNormal):
@@ -65,9 +59,29 @@ class PodSpec(ModelNormal):
     """
 
     allowed_values = {
+        ('pod_type',): {
+            'S1.X1': "s1.x1",
+            'S1.X2': "s1.x2",
+            'S1.X4': "s1.x4",
+            'S1.X8': "s1.x8",
+            'P1.X1': "p1.x1",
+            'P1.X2': "p1.x2",
+            'P1.X4': "p1.x4",
+            'P1.X8': "p1.x8",
+            'P2.X1': "p2.x1",
+            'P2.X2': "p2.x2",
+            'P2.X4': "p2.x4",
+            'P2.X8': "p2.x8",
+        },
     }
 
     validations = {
+        ('replicas',): {
+            'inclusive_minimum': 1,
+        },
+        ('shards',): {
+            'inclusive_minimum': 1,
+        },
         ('pods',): {
             'inclusive_minimum': 1,
         },
@@ -97,11 +111,12 @@ class PodSpec(ModelNormal):
         lazy_import()
         return {
             'environment': (str,),  # noqa: E501
-            'replicas': (PodSpecReplicas,),  # noqa: E501
-            'shards': (PodSpecShards,),  # noqa: E501
-            'pod_type': (PodSpecPodType,),  # noqa: E501
+            'replicas': (int,),  # noqa: E501
+            'shards': (int,),  # noqa: E501
+            'pod_type': (str,),  # noqa: E501
             'pods': (int,),  # noqa: E501
             'metadata_config': (PodSpecMetadataConfig,),  # noqa: E501
+            'source_collection': (str,),  # noqa: E501
         }
 
     @cached_property
@@ -116,6 +131,7 @@ class PodSpec(ModelNormal):
         'pod_type': 'pod_type',  # noqa: E501
         'pods': 'pods',  # noqa: E501
         'metadata_config': 'metadata_config',  # noqa: E501
+        'source_collection': 'source_collection',  # noqa: E501
     }
 
     read_only_vars = {
@@ -132,6 +148,10 @@ class PodSpec(ModelNormal):
             environment (str): The environment where the index is hosted.
 
         Keyword Args:
+            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change.. defaults to 1  # noqa: E501
+            shards (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index.. defaults to 1  # noqa: E501
+            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`.. defaults to "p1.x1", must be one of ["s1.x1", "s1.x2", "s1.x4", "s1.x8", "p1.x1", "p1.x2", "p1.x4", "p1.x8", "p2.x1", "p2.x2", "p2.x4", "p2.x8", ]  # noqa: E501
+            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`.. defaults to 1  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -162,13 +182,14 @@ class PodSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            replicas (PodSpecReplicas): [optional]  # noqa: E501
-            shards (PodSpecShards): [optional]  # noqa: E501
-            pod_type (PodSpecPodType): [optional]  # noqa: E501
-            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`.. [optional]  # noqa: E501
             metadata_config (PodSpecMetadataConfig): [optional]  # noqa: E501
+            source_collection (str): The name of the collection to be used as the source for the index.. [optional]  # noqa: E501
         """
 
+        replicas = kwargs.get('replicas', 1)
+        shards = kwargs.get('shards', 1)
+        pod_type = kwargs.get('pod_type', "p1.x1")
+        pods = kwargs.get('pods', 1)
         _check_type = kwargs.pop('_check_type', True)
         _spec_property_naming = kwargs.pop('_spec_property_naming', False)
         _path_to_item = kwargs.pop('_path_to_item', ())
@@ -195,6 +216,10 @@ class PodSpec(ModelNormal):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         self.environment = environment
+        self.replicas = replicas
+        self.shards = shards
+        self.pod_type = pod_type
+        self.pods = pods
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
@@ -222,6 +247,10 @@ class PodSpec(ModelNormal):
             environment (str): The environment where the index is hosted.
 
         Keyword Args:
+            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change.. defaults to 1  # noqa: E501
+            shards (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index.. defaults to 1  # noqa: E501
+            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`.. defaults to "p1.x1", must be one of ["s1.x1", "s1.x2", "s1.x4", "s1.x8", "p1.x1", "p1.x2", "p1.x4", "p1.x8", "p2.x1", "p2.x2", "p2.x4", "p2.x8", ]  # noqa: E501
+            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`.. defaults to 1  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -252,13 +281,14 @@ class PodSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            replicas (PodSpecReplicas): [optional]  # noqa: E501
-            shards (PodSpecShards): [optional]  # noqa: E501
-            pod_type (PodSpecPodType): [optional]  # noqa: E501
-            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`.. [optional]  # noqa: E501
             metadata_config (PodSpecMetadataConfig): [optional]  # noqa: E501
+            source_collection (str): The name of the collection to be used as the source for the index.. [optional]  # noqa: E501
         """
 
+        replicas = kwargs.get('replicas', 1)
+        shards = kwargs.get('shards', 1)
+        pod_type = kwargs.get('pod_type', "p1.x1")
+        pods = kwargs.get('pods', 1)
         _check_type = kwargs.pop('_check_type', True)
         _spec_property_naming = kwargs.pop('_spec_property_naming', False)
         _path_to_item = kwargs.pop('_path_to_item', ())
@@ -283,6 +313,10 @@ class PodSpec(ModelNormal):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         self.environment = environment
+        self.replicas = replicas
+        self.shards = shards
+        self.pod_type = pod_type
+        self.pods = pods
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \

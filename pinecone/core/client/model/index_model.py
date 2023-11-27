@@ -30,12 +30,8 @@ from pinecone.core.client.exceptions import ApiAttributeError
 
 
 def lazy_import():
-    from pinecone.core.client.model.index_dimension import IndexDimension
-    from pinecone.core.client.model.index_metric import IndexMetric
     from pinecone.core.client.model.index_model_spec import IndexModelSpec
     from pinecone.core.client.model.index_model_status import IndexModelStatus
-    globals()['IndexDimension'] = IndexDimension
-    globals()['IndexMetric'] = IndexMetric
     globals()['IndexModelSpec'] = IndexModelSpec
     globals()['IndexModelStatus'] = IndexModelStatus
 
@@ -65,9 +61,18 @@ class IndexModel(ModelNormal):
     """
 
     allowed_values = {
+        ('metric',): {
+            'COSINE': "cosine",
+            'EUCLIDEAN': "euclidean",
+            'DOTPRODUCT': "dotproduct",
+        },
     }
 
     validations = {
+        ('dimension',): {
+            'inclusive_maximum': 20000,
+            'inclusive_minimum': 1,
+        },
     }
 
     @cached_property
@@ -94,8 +99,9 @@ class IndexModel(ModelNormal):
         lazy_import()
         return {
             'name': (str,),  # noqa: E501
-            'dimension': (IndexDimension,),  # noqa: E501
-            'metric': (IndexMetric,),  # noqa: E501
+            'dimension': (int,),  # noqa: E501
+            'metric': (str,),  # noqa: E501
+            'host': (str,),  # noqa: E501
             'spec': (IndexModelSpec,),  # noqa: E501
             'status': (IndexModelStatus,),  # noqa: E501
         }
@@ -109,6 +115,7 @@ class IndexModel(ModelNormal):
         'name': 'name',  # noqa: E501
         'dimension': 'dimension',  # noqa: E501
         'metric': 'metric',  # noqa: E501
+        'host': 'host',  # noqa: E501
         'spec': 'spec',  # noqa: E501
         'status': 'status',  # noqa: E501
     }
@@ -120,13 +127,14 @@ class IndexModel(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, name, dimension, metric, spec, status, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, name, dimension, metric, host, spec, status, *args, **kwargs):  # noqa: E501
         """IndexModel - a model defined in OpenAPI
 
         Args:
             name (str): The name of the index. The maximum length is 45 characters.  It may contain lowercase alphanumeric characters or hyphens,  and must not begin or end with a hyphen.
-            dimension (IndexDimension):
-            metric (IndexMetric):
+            dimension (int): The dimensions of the vectors to be inserted in the index
+            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'.
+            host (str): The URL address where the index is hosted.
             spec (IndexModelSpec):
             status (IndexModelStatus):
 
@@ -191,6 +199,7 @@ class IndexModel(ModelNormal):
         self.name = name
         self.dimension = dimension
         self.metric = metric
+        self.host = host
         self.spec = spec
         self.status = status
         for var_name, var_value in kwargs.items():
@@ -213,13 +222,14 @@ class IndexModel(ModelNormal):
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, name, dimension, metric, spec, status, *args, **kwargs):  # noqa: E501
+    def __init__(self, name, dimension, metric, host, spec, status, *args, **kwargs):  # noqa: E501
         """IndexModel - a model defined in OpenAPI
 
         Args:
             name (str): The name of the index. The maximum length is 45 characters.  It may contain lowercase alphanumeric characters or hyphens,  and must not begin or end with a hyphen.
-            dimension (IndexDimension):
-            metric (IndexMetric):
+            dimension (int): The dimensions of the vectors to be inserted in the index
+            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'.
+            host (str): The URL address where the index is hosted.
             spec (IndexModelSpec):
             status (IndexModelStatus):
 
@@ -282,6 +292,7 @@ class IndexModel(ModelNormal):
         self.name = name
         self.dimension = dimension
         self.metric = metric
+        self.host = host
         self.spec = spec
         self.status = status
         for var_name, var_value in kwargs.items():

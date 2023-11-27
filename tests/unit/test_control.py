@@ -6,9 +6,9 @@ import time
 @pytest.fixture
 def index_list_response():
     return IndexList(indexes=[
-        IndexModel(name="index1", dimension=10, metric="euclidean", status={"ready": True}, spec={}, _check_type=False),
-        IndexModel(name="index2", dimension=10, metric="euclidean", status={"ready": True}, spec={}, _check_type=False),
-        IndexModel(name="index3", dimension=10, metric="euclidean", status={"ready": True}, spec={}, _check_type=False),
+        IndexModel(name="index1", dimension=10, metric="euclidean", host="asdf", status={"ready": True}, spec={}, _check_type=False),
+        IndexModel(name="index2", dimension=10, metric="euclidean", host="asdf", status={"ready": True}, spec={}, _check_type=False),
+        IndexModel(name="index3", dimension=10, metric="euclidean", host="asdf", status={"ready": True}, spec={}, _check_type=False),
 
     ])
 
