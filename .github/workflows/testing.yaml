@@ -38,7 +38,9 @@ jobs:
     strategy:
       matrix:
         python-version: [3.8, 3.11]
-        pineconeEnv: ['prod', 'staging']
+        pineconeEnv:
+          - prod
+          # - staging
       max-parallel: 1
       fail-fast: false
     steps:
@@ -58,8 +60,6 @@ jobs:
         env:
           PINECONE_CONTROLLER_HOST: 'https://api.pinecone.io'
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
-          TEST_CAPACITY_MODE_1: ${{ secrets.TEST_CAPACITY_MODE_1 }}
-          TEST_CAPACITY_MODE_2: ${{ secrets.TEST_CAPACITY_MODE_2 }}
           GITHUB_BUILD_NUMBER: "${{ github.run_number }}-p-${{ matrix.python-version}}"
 
       - name: Run integration tests (REST, staging)
@@ -68,8 +68,6 @@ jobs:
         env:
           PINECONE_CONTROLLER_HOST: 'https://api-staging.pinecone.io'
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY_STAGING }}
-          TEST_CAPACITY_MODE_1: ${{ secrets.TEST_CAPACITY_MODE_1 }}
-          TEST_CAPACITY_MODE_2: ${{ secrets.TEST_CAPACITY_MODE_2 }}
           GITHUB_BUILD_NUMBER: "${{ github.run_number }}-s-${{ matrix.python-version}}"
 
   units-grpc:

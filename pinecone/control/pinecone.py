@@ -83,6 +83,8 @@ class Pinecone:
             api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=dimension, metric=metric, spec=spec.asdict()))
         elif isinstance(spec, PodSpec):
             api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=dimension, metric=metric, spec=spec.asdict()))
+        else:
+            raise TypeError("spec must be of type dict, ServerlessSpec, or PodSpec")
 
         def is_ready():
             status = self._get_status(name)
