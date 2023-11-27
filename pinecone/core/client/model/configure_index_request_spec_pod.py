@@ -55,20 +55,6 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
     """
 
     allowed_values = {
-        ('pod_type',): {
-            'S1.X1': "s1.x1",
-            'S1.X2': "s1.x2",
-            'S1.X4': "s1.x4",
-            'S1.X8': "s1.x8",
-            'P1.X1': "p1.x1",
-            'P1.X2': "p1.x2",
-            'P1.X4': "p1.x4",
-            'P1.X8': "p1.x8",
-            'P2.X1': "p2.x1",
-            'P2.X2': "p2.x2",
-            'P2.X4': "p2.x4",
-            'P2.X8': "p2.x8",
-        },
     }
 
     validations = {

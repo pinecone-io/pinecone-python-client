@@ -59,20 +59,6 @@ class PodSpec(ModelNormal):
     """
 
     allowed_values = {
-        ('pod_type',): {
-            'S1.X1': "s1.x1",
-            'S1.X2': "s1.x2",
-            'S1.X4': "s1.x4",
-            'S1.X8': "s1.x8",
-            'P1.X1': "p1.x1",
-            'P1.X2': "p1.x2",
-            'P1.X4': "p1.x4",
-            'P1.X8': "p1.x8",
-            'P2.X1': "p2.x1",
-            'P2.X2': "p2.x2",
-            'P2.X4': "p2.x4",
-            'P2.X8': "p2.x8",
-        },
     }
 
     validations = {
@@ -150,7 +136,7 @@ class PodSpec(ModelNormal):
         Keyword Args:
             replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change.. defaults to 1  # noqa: E501
             shards (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index.. defaults to 1  # noqa: E501
-            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`.. defaults to "p1.x1", must be one of ["s1.x1", "s1.x2", "s1.x4", "s1.x8", "p1.x1", "p1.x2", "p1.x4", "p1.x8", "p2.x1", "p2.x2", "p2.x4", "p2.x8", ]  # noqa: E501
+            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`.. defaults to "p1.x1"  # noqa: E501
             pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`.. defaults to 1  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
@@ -249,7 +235,7 @@ class PodSpec(ModelNormal):
         Keyword Args:
             replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change.. defaults to 1  # noqa: E501
             shards (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index.. defaults to 1  # noqa: E501
-            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`.. defaults to "p1.x1", must be one of ["s1.x1", "s1.x2", "s1.x4", "s1.x8", "p1.x1", "p1.x2", "p1.x4", "p1.x8", "p2.x1", "p2.x2", "p2.x4", "p2.x8", ]  # noqa: E501
+            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`.. defaults to "p1.x1"  # noqa: E501
             pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`.. defaults to 1  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
