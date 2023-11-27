@@ -12,8 +12,6 @@ from pinecone.core.client.models import (
     CreateCollectionRequest,
     CreateIndexRequest,
     ConfigureIndexRequest,
-    IndexMetric,
-    IndexDimension,
 )
 from pinecone.models import ServerlessSpec, PodSpec, IndexList, CollectionList
 
@@ -80,11 +78,11 @@ class Pinecone:
         api_instance = self.index_api
 
         if isinstance(spec, dict):
-            api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=IndexDimension(dimension), metric=IndexMetric(metric), spec=spec))
+            api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=dimension, metric=metric, spec=spec))
         elif isinstance(spec, ServerlessSpec):
-            api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=IndexDimension(dimension), metric=IndexMetric(metric), spec=spec.asdict()))
+            api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=dimension, metric=metric, spec=spec.asdict()))
         elif isinstance(spec, PodSpec):
-            api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=IndexDimension(dimension), metric=IndexMetric(metric), spec=spec.asdict()))
+            api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=dimension, metric=metric, spec=spec.asdict()))
 
         def is_ready():
             status = self._get_status(name)
