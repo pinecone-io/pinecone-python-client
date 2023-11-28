@@ -1,18 +1,15 @@
 from .core.client.exceptions import (
-    OpenApiException,
-    ApiAttributeError,
-    ApiTypeError,
-    ApiValueError,
-    ApiKeyError,
-    ApiException,
+    PineconeException,
+    PineconeApiAttributeError,
+    PineconeApiTypeError,
+    PineconeApiValueError,
+    PineconeApiKeyError,
+    PineconeApiException,
     NotFoundException,
     UnauthorizedException,
     ForbiddenException,
     ServiceException,
 )
-
-class PineconeException(Exception):
-    """The base exception class for all Pinecone client exceptions."""
 
 class PineconeProtocolError(PineconeException):
     """Raised when something unexpected happens mid-request/response."""
@@ -22,14 +19,13 @@ class PineconeConfigurationError(PineconeException):
 
 __all__ = [
     "PineconeConfigurationError",
+    "PineconeProtocolError"
     "PineconeException",
-    "PineconeProtocolError",
-    "OpenApiException",
-    "ApiAttributeError",
-    "ApiTypeError",
-    "ApiValueError",
-    "ApiKeyError",
-    "ApiException",
+    "PineconeApiAttributeError",
+    "PineconeApiTypeError",
+    "PineconeApiValueError",
+    "PineconeApiKeyError",
+    "PineconeApiException",
     "NotFoundException",
     "UnauthorizedException",
     "ForbiddenException",

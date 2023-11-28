@@ -5,7 +5,7 @@ from urllib3_mock import Responses
 import responses as req_responses
 
 import pinecone
-from pinecone import ApiTypeError, ApiException
+from pinecone import PineconeApiTypeError, PineconeApiException
 
 responses_req = Responses()
 responses = Responses("requests.packages.urllib3")
@@ -38,7 +38,7 @@ def test_invalid_upsert_request_vector_value_type():
     )
 
     pinecone.init("example-api-key", environment="example-environment")
-    with pytest.raises(ApiException) as exc_info:
+    with pytest.raises(PineconeApiException) as exc_info:
         index = pinecone.Index("example-index")
         resp = index.upsert(vectors=[("vec1", [0.1] * 8), ("vec2", [0.2] * 8)])
 
@@ -133,6 +133,6 @@ def _test_invalid_delete_response_wrong_type():
 
     index = pinecone.Index("example-index")
 
-    with pytest.raises(ApiTypeError) as exc_info:
+    with pytest.raises(PineconeApiTypeError) as exc_info:
         resp = index.delete(ids=["vec1", "vec2"])
         assert resp.deleted_count == 2

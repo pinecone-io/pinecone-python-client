@@ -1,6 +1,7 @@
 from typing import Dict
 from pinecone.config import Config
 from pinecone.core.client.api.manage_pod_indexes_api import ManagePodIndexesApi as IndexOperationsApi
+from pinecone.core.client.exceptions import PineconeException
 
 class SingletonMeta(type):
     _instances: Dict[str, str] = {}
@@ -40,5 +41,5 @@ class IndexHostStore(metaclass=SingletonMeta):
             description = api.describe_index(index_name)
             self.set_host(config, index_name, description.host)
             if not self.key_exists(key):
-                raise Exception(f"Could not get host for index: {index_name}. Call describe_index('{index_name}') to check the current status.")
+                raise PineconeException(f"Could not get host for index: {index_name}. Call describe_index('{index_name}') to check the current status.")
             return self._indexHosts[key]
