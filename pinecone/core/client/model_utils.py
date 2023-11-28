@@ -19,10 +19,10 @@ import tempfile
 from dateutil.parser import parse
 
 from pinecone.core.client.exceptions import (
-    ApiKeyError,
-    ApiAttributeError,
-    ApiTypeError,
-    ApiValueError,
+    PineconeApiKeyError,
+    PineconeApiAttributeError,
+    PineconeApiTypeError,
+    PineconeApiValueError,
 )
 
 none_type = type(None)
@@ -129,7 +129,7 @@ class OpenApiModel(object):
         if name in self.openapi_types:
             required_types_mixed = self.openapi_types[name]
         elif self.additional_properties_type is None:
-            raise ApiAttributeError(
+            raise PineconeApiAttributeError(
                 "{0} has no attribute '{1}'".format(
                     type(self).__name__, name),
                 path_to_item
@@ -144,7 +144,7 @@ class OpenApiModel(object):
                 valid_classes=(str,),
                 key_type=True
             )
-            raise ApiTypeError(
+            raise PineconeApiTypeError(
                 error_msg,
                 path_to_item=path_to_item,
                 valid_classes=(str,),
@@ -238,7 +238,7 @@ class OpenApiModel(object):
         else:
             # The input data does not contain the discriminator property.
             path_to_item = kwargs.get('_path_to_item', ())
-            raise ApiValueError(
+            raise PineconeApiValueError(
                 "Cannot deserialize input data due to missing discriminator. "
                 "The discriminator property '%s' is missing at path: %s" %
                 (discr_propertyname_js, path_to_item)
@@ -254,7 +254,7 @@ class OpenApiModel(object):
             path_to_item = kwargs.get('_path_to_item', ())
             disc_prop_value = kwargs.get(
                 discr_propertyname_js, kwargs.get(discr_propertyname_py))
-            raise ApiValueError(
+            raise PineconeApiValueError(
                 "Cannot deserialize input data due to invalid discriminator "
                 "value. The OpenAPI document has no mapping for discriminator "
                 "property '%s'='%s' at path: %s" %
@@ -354,7 +354,7 @@ class OpenApiModel(object):
         else:
             # The input data does not contain the discriminator property.
             path_to_item = kwargs.get('_path_to_item', ())
-            raise ApiValueError(
+            raise PineconeApiValueError(
                 "Cannot deserialize input data due to missing discriminator. "
                 "The discriminator property '%s' is missing at path: %s" %
                 (discr_propertyname_js, path_to_item)
@@ -370,7 +370,7 @@ class OpenApiModel(object):
             path_to_item = kwargs.get('_path_to_item', ())
             disc_prop_value = kwargs.get(
                 discr_propertyname_js, kwargs.get(discr_propertyname_py))
-            raise ApiValueError(
+            raise PineconeApiValueError(
                 "Cannot deserialize input data due to invalid discriminator "
                 "value. The OpenAPI document has no mapping for discriminator "
                 "property '%s'='%s' at path: %s" %
@@ -439,7 +439,7 @@ class ModelSimple(OpenApiModel):
         if name in self:
             return self.get(name)
 
-        raise ApiAttributeError(
+        raise PineconeApiAttributeError(
             "{0} has no attribute '{1}'".format(
                 type(self).__name__, name),
             [e for e in [self._path_to_item, name] if e]
@@ -494,7 +494,7 @@ class ModelNormal(OpenApiModel):
         if name in self:
             return self.get(name)
 
-        raise ApiAttributeError(
+        raise PineconeApiAttributeError(
             "{0} has no attribute '{1}'".format(
                 type(self).__name__, name),
             [e for e in [self._path_to_item, name] if e]
@@ -589,7 +589,7 @@ class ModelComposed(OpenApiModel):
             - have additionalProperties set
             """
             if name not in self.openapi_types:
-                raise ApiAttributeError(
+                raise PineconeApiAttributeError(
                     "{0} has no attribute '{1}'".format(
                         type(self).__name__, name),
                     [e for e in [self._path_to_item, name] if e]
@@ -629,7 +629,7 @@ class ModelComposed(OpenApiModel):
         elif len_values == 1:
             return values[0]
         elif len_values > 1:
-            raise ApiValueError(
+            raise PineconeApiValueError(
                 "Values stored for property {0} in {1} differ when looking "
                 "at self and self's composed instances. All values must be "
                 "the same".format(name, type(self).__name__),
@@ -640,7 +640,7 @@ class ModelComposed(OpenApiModel):
         """get the value of an attribute using square-bracket notation: `instance[attr]`"""
         value = self.get(name, self.__unset_attribute_value__)
         if value is self.__unset_attribute_value__:
-            raise ApiAttributeError(
+            raise PineconeApiAttributeError(
                 "{0} has no attribute '{1}'".format(
                     type(self).__name__, name),
                     [e for e in [self._path_to_item, name] if e]
@@ -820,7 +820,7 @@ def check_allowed_values(allowed_values, input_variable_path, input_values):
                 set(these_allowed_values))):
         invalid_values = ", ".join(
             map(str, set(input_values) - set(these_allowed_values))),
-        raise ApiValueError(
+        raise PineconeApiValueError(
             "Invalid values for `%s` [%s], must be a subset of [%s]" %
             (
                 input_variable_path[0],
@@ -833,7 +833,7 @@ def check_allowed_values(allowed_values, input_variable_path, input_values):
                 input_values.keys()).issubset(set(these_allowed_values))):
         invalid_values = ", ".join(
             map(str, set(input_values.keys()) - set(these_allowed_values)))
-        raise ApiValueError(
+        raise PineconeApiValueError(
             "Invalid keys in `%s` [%s], must be a subset of [%s]" %
             (
                 input_variable_path[0],
@@ -843,7 +843,7 @@ def check_allowed_values(allowed_values, input_variable_path, input_values):
         )
     elif (not isinstance(input_values, (list, dict))
             and input_values not in these_allowed_values):
-        raise ApiValueError(
+        raise PineconeApiValueError(
             "Invalid value for `%s` (%s), must be one of %s" %
             (
                 input_variable_path[0],
@@ -890,7 +890,7 @@ def check_validations(
             isinstance(input_values, (int, float)) and
             not (float(input_values) / current_validations['multiple_of']).is_integer()):
         # Note 'multipleOf' will be as good as the floating point arithmetic.
-        raise ApiValueError(
+        raise PineconeApiValueError(
             "Invalid value for `%s`, value must be a multiple of "
             "`%s`" % (
                 input_variable_path[0],
@@ -901,7 +901,7 @@ def check_validations(
     if (is_json_validation_enabled('maxLength', configuration) and
             'max_length' in current_validations and
             len(input_values) > current_validations['max_length']):
-        raise ApiValueError(
+        raise PineconeApiValueError(
             "Invalid value for `%s`, length must be less than or equal to "
             "`%s`" % (
                 input_variable_path[0],
@@ -912,7 +912,7 @@ def check_validations(
     if (is_json_validation_enabled('minLength', configuration) and
             'min_length' in current_validations and
             len(input_values) < current_validations['min_length']):
-        raise ApiValueError(
+        raise PineconeApiValueError(
             "Invalid value for `%s`, length must be greater than or equal to "
             "`%s`" % (
                 input_variable_path[0],
@@ -923,7 +923,7 @@ def check_validations(
     if (is_json_validation_enabled('maxItems', configuration) and
             'max_items' in current_validations and
             len(input_values) > current_validations['max_items']):
-        raise ApiValueError(
+        raise PineconeApiValueError(
             "Invalid value for `%s`, number of items must be less than or "
             "equal to `%s`" % (
                 input_variable_path[0],
@@ -958,7 +958,7 @@ def check_validations(
     if (is_json_validation_enabled('exclusiveMaximum', configuration) and
             'exclusive_maximum' in current_validations and
             max_val >= current_validations['exclusive_maximum']):
-        raise ApiValueError(
+        raise PineconeApiValueError(
             "Invalid value for `%s`, must be a value less than `%s`" % (
                 input_variable_path[0],
                 current_validations['exclusive_maximum']
@@ -968,7 +968,7 @@ def check_validations(
     if (is_json_validation_enabled('maximum', configuration) and
             'inclusive_maximum' in current_validations and
             max_val > current_validations['inclusive_maximum']):
-        raise ApiValueError(
+        raise PineconeApiValueError(
             "Invalid value for `%s`, must be a value less than or equal to "
             "`%s`" % (
                 input_variable_path[0],
@@ -979,7 +979,7 @@ def check_validations(
     if (is_json_validation_enabled('exclusiveMinimum', configuration) and
             'exclusive_minimum' in current_validations and
             min_val <= current_validations['exclusive_minimum']):
-        raise ApiValueError(
+        raise PineconeApiValueError(
             "Invalid value for `%s`, must be a value greater than `%s`" %
             (
                 input_variable_path[0],
@@ -990,7 +990,7 @@ def check_validations(
     if (is_json_validation_enabled('minimum', configuration) and
             'inclusive_minimum' in current_validations and
             min_val < current_validations['inclusive_minimum']):
-        raise ApiValueError(
+        raise PineconeApiValueError(
             "Invalid value for `%s`, must be a value greater than or equal "
             "to `%s`" % (
                 input_variable_path[0],
@@ -1010,7 +1010,7 @@ def check_validations(
             # Don't print the regex flags if the flags are not
             # specified in the OAS document.
             err_msg = r"%s with flags=`%s`" % (err_msg, flags)
-        raise ApiValueError(err_msg)
+        raise PineconeApiValueError(err_msg)
 
 
 def order_response_types(required_types):
@@ -1041,7 +1041,7 @@ def order_response_types(required_types):
             return COERCION_INDEX_BY_TYPE[ModelSimple]
         elif class_or_instance in COERCION_INDEX_BY_TYPE:
             return COERCION_INDEX_BY_TYPE[class_or_instance]
-        raise ApiValueError("Unsupported type: %s" % class_or_instance)
+        raise PineconeApiValueError("Unsupported type: %s" % class_or_instance)
 
     sorted_types = sorted(
         required_types,
@@ -1196,7 +1196,7 @@ def get_type_error(var_value, path_to_item, valid_classes, key_type=False):
         valid_classes=valid_classes,
         key_type=key_type
     )
-    return ApiTypeError(
+    return PineconeApiTypeError(
         error_msg,
         path_to_item=path_to_item,
         valid_classes=valid_classes,
@@ -1248,7 +1248,7 @@ def deserialize_primitive(data, klass, path_to_item):
             return converted_value
     except (OverflowError, ValueError) as ex:
         # parse can raise OverflowError
-        raise ApiValueError(
+        raise PineconeApiValueError(
             "{0}Failed to parse {1} as {2}".format(
                 additional_message, repr(data), klass.__name__
             ),
@@ -1328,9 +1328,9 @@ def deserialize_model(model_data, model_class, path_to_item, check_type,
         model instance
 
     Raise:
-        ApiTypeError
-        ApiValueError
-        ApiKeyError
+        PineconeApiTypeError
+        PineconeApiValueError
+        PineconeApiKeyError
     """
 
     kw_args = dict(_check_type=check_type,
@@ -1408,9 +1408,9 @@ def attempt_convert_item(input_value, valid_classes, path_to_item,
         instance (any) the fixed item
 
     Raises:
-        ApiTypeError
-        ApiValueError
-        ApiKeyError
+        PineconeApiTypeError
+        PineconeApiValueError
+        PineconeApiKeyError
     """
     valid_classes_ordered = order_response_types(valid_classes)
     valid_classes_coercible = remove_uncoercible(
@@ -1431,7 +1431,7 @@ def attempt_convert_item(input_value, valid_classes, path_to_item,
                 return deserialize_file(input_value, configuration)
             return deserialize_primitive(input_value, valid_class,
                                          path_to_item)
-        except (ApiTypeError, ApiValueError, ApiKeyError) as conversion_exc:
+        except (PineconeApiTypeError, PineconeApiValueError, PineconeApiKeyError) as conversion_exc:
             if must_convert:
                 raise conversion_exc
             # if we have conversion errors when must_convert == False
@@ -1527,7 +1527,7 @@ def validate_and_convert_types(input_value, required_types_mixed, path_to_item,
         the correctly typed value
 
     Raises:
-        ApiTypeError
+        PineconeApiTypeError
     """
     results = get_required_type_classes(required_types_mixed, spec_property_naming)
     valid_classes, child_req_types_by_current_type = results
@@ -1750,7 +1750,7 @@ def get_allof_instances(self, model_args, constant_args):
             allof_instance = allof_class(**model_args, **constant_args)
             composed_instances.append(allof_instance)
         except Exception as ex:
-            raise ApiValueError(
+            raise PineconeApiValueError(
                 "Invalid inputs given to generate an instance of '%s'. The "
                 "input data was invalid for the allOf schema '%s' in the composed "
                 "schema '%s'. Error=%s" % (
@@ -1826,13 +1826,13 @@ def get_oneof_instance(cls, model_kwargs, constant_kwargs, model_arg=None):
         except Exception:
             pass
     if len(oneof_instances) == 0:
-        raise ApiValueError(
+        raise PineconeApiValueError(
             "Invalid inputs given to generate an instance of %s. None "
             "of the oneOf schemas matched the input data." %
             cls.__name__
         )
     elif len(oneof_instances) > 1:
-        raise ApiValueError(
+        raise PineconeApiValueError(
             "Invalid inputs given to generate an instance of %s. Multiple "
             "oneOf schemas matched the inputs, but a max of one is allowed." %
             cls.__name__
@@ -1872,7 +1872,7 @@ def get_anyof_instances(self, model_args, constant_args):
         except Exception:
             pass
     if len(anyof_instances) == 0:
-        raise ApiValueError(
+        raise PineconeApiValueError(
             "Invalid inputs given to generate an instance of %s. None of the "
             "anyOf schemas matched the inputs." %
             self.__class__.__name__

@@ -18,7 +18,7 @@ from urllib.parse import urlencode
 
 import urllib3
 
-from pinecone.core.client.exceptions import ApiException, UnauthorizedException, ForbiddenException, NotFoundException, ServiceException, ApiValueError
+from pinecone.core.client.exceptions import PineconeApiException, UnauthorizedException, ForbiddenException, NotFoundException, ServiceException, PineconeApiValueError
 
 
 class bcolors:
@@ -147,7 +147,7 @@ class RESTClientObject(object):
                 print(bcolors.OKBLUE + "curl -X {method} '{url}' {formatted_headers} -d '{data}'".format(method=method, url=formatted_url, formatted_headers=formatted_headers, data=formatted_body) + bcolors.ENDC)
 
         if post_params and body:
-            raise ApiValueError(
+            raise PineconeApiValueError(
                 "body parameter cannot be used with post_params parameter."
             )
 
@@ -217,7 +217,7 @@ class RESTClientObject(object):
                     msg = """Cannot prepare a request message for provided
                              arguments. Please check that your arguments match
                              declared content type."""
-                    raise ApiException(status=0, reason=msg)
+                    raise PineconeApiException(status=0, reason=msg)
             # For `GET`, `HEAD`
             else:
                 r = self.pool_manager.request(method, url,
@@ -227,7 +227,7 @@ class RESTClientObject(object):
                                               headers=headers)
         except urllib3.exceptions.SSLError as e:
             msg = "{0}\n{1}".format(type(e).__name__, str(e))
-            raise ApiException(status=0, reason=msg)
+            raise PineconeApiException(status=0, reason=msg)
 
         if os.environ.get('PINECONE_DEBUG_CURL'):
             o = RESTResponse(r)
@@ -257,7 +257,7 @@ class RESTClientObject(object):
             if 500 <= r.status <= 599:
                 raise ServiceException(http_resp=r)
 
-            raise ApiException(http_resp=r)
+            raise PineconeApiException(http_resp=r)
 
         return r
 

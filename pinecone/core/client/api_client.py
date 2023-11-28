@@ -22,7 +22,7 @@ from urllib3.fields import RequestField
 
 from pinecone.core.client import rest
 from pinecone.core.client.configuration import Configuration
-from pinecone.core.client.exceptions import ApiTypeError, ApiValueError, ApiException
+from pinecone.core.client.exceptions import PineconeApiTypeError, PineconeApiValueError, PineconeApiException
 from pinecone.core.client.model_utils import (
     ModelNormal,
     ModelSimple,
@@ -197,7 +197,7 @@ class ApiClient(object):
                 post_params=post_params, body=body,
                 _preload_content=_preload_content,
                 _request_timeout=_request_timeout)
-        except ApiException as e:
+        except PineconeApiException as e:
             e.body = e.body.decode('utf-8')
             raise e
 
@@ -284,7 +284,7 @@ class ApiClient(object):
             return [cls.sanitize_for_serialization(item) for item in obj]
         if isinstance(obj, dict):
             return {key: cls.sanitize_for_serialization(val) for key, val in obj.items()}
-        raise ApiValueError('Unable to prepare type {} for serialization'.format(obj.__class__.__name__))
+        raise PineconeApiValueError('Unable to prepare type {} for serialization'.format(obj.__class__.__name__))
 
     def deserialize(self, response, response_type, _check_type):
         """Deserializes response into an object.
@@ -482,7 +482,7 @@ class ApiClient(object):
                                            _request_timeout=_request_timeout,
                                            body=body)
         else:
-            raise ApiValueError(
+            raise PineconeApiValueError(
                 "http method must be `GET`, `HEAD`, `OPTIONS`,"
                 " `POST`, `PATCH`, `PUT` or `DELETE`."
             )
@@ -543,7 +543,7 @@ class ApiClient(object):
                     # if the file field is nullable, skip None values
                     continue
                 if file_instance.closed is True:
-                    raise ApiValueError(
+                    raise PineconeApiValueError(
                         "Cannot read a closed file. The passed in file_type "
                         "for %s must be open." % param_name
                     )
@@ -614,7 +614,7 @@ class ApiClient(object):
                 elif auth_setting['in'] == 'query':
                     querys.append((auth_setting['key'], auth_setting['value']))
                 else:
-                    raise ApiValueError(
+                    raise PineconeApiValueError(
                         'Authentication token must be in `query` or `header`'
                     )
 
@@ -784,7 +784,7 @@ class Endpoint(object):
             )
         except IndexError:
             if self.settings['servers']:
-                raise ApiValueError(
+                raise PineconeApiValueError(
                     "Invalid host index. Must be 0 <= index < %s" %
                     len(self.settings['servers'])
                 )
@@ -792,17 +792,17 @@ class Endpoint(object):
 
         for key, value in kwargs.items():
             if key not in self.params_map['all']:
-                raise ApiTypeError(
+                raise PineconeApiTypeError(
                     "Got an unexpected parameter '%s'"
                     " to method `%s`" %
                     (key, self.settings['operation_id'])
                 )
-            # only throw this nullable ApiValueError if _check_input_type
+            # only throw this nullable PineconeApiValueError if _check_input_type
             # is False, if _check_input_type==True we catch this case
             # in self.__validate_inputs
             if (key not in self.params_map['nullable'] and value is None
                     and kwargs['_check_input_type'] is False):
-                raise ApiValueError(
+                raise PineconeApiValueError(
                     "Value may not be None for non-nullable parameter `%s`"
                     " when calling `%s`" %
                     (key, self.settings['operation_id'])
@@ -810,7 +810,7 @@ class Endpoint(object):
 
         for key in self.params_map['required']:
             if key not in kwargs.keys():
-                raise ApiValueError(
+                raise PineconeApiValueError(
                     "Missing the required parameter `%s` when calling "
                     "`%s`" % (key, self.settings['operation_id'])
                 )
