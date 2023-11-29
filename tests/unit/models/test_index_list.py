@@ -42,6 +42,7 @@ class TestIndexList:
         iil = IndexList(index_list_response)
         assert [i['name'] for i in iil] == ['test-index-1', 'test-index-2']
         assert [i['dimension'] for i in iil] == [2, 3]
+        assert [i['metric'] for i in iil] == ['cosine', 'cosine']
 
     def test_index_list_names_syntactic_sugar(self, index_list_response):
         iil = IndexList(index_list_response)
