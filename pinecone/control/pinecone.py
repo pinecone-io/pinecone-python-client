@@ -123,7 +123,7 @@ class Pinecone:
         self.index_host_store.delete_host(self.config, name)
 
         def get_remaining():
-            return name in api_instance.list_indexes()
+            return name in api_instance.list_indexes().names()
 
         if timeout == -1:
             return
