@@ -19,7 +19,7 @@ class PineconeConfigurationError(PineconeException):
 
 __all__ = [
     "PineconeConfigurationError",
-    "PineconeProtocolError"
+    "PineconeProtocolError",
     "PineconeException",
     "PineconeApiAttributeError",
     "PineconeApiTypeError",
