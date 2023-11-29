@@ -2,7 +2,7 @@ from typing import NamedTuple, Optional, Dict
 import os
 
 from pinecone.exceptions import PineconeConfigurationError
-from pinecone.core.client.exceptions import ApiKeyError
+from pinecone.core.client.exceptions import PineconeApiKeyError
 from pinecone.config.openapi import OpenApiConfigFactory
 from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
 
