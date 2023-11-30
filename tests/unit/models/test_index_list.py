@@ -22,7 +22,7 @@ def index_list_response():
                 },
                 {
                     "name": "test-index-2",
-                    "dimension": 2,
+                    "dimension": 3,
                     "metric": "cosine",
                     "spec": {
                         "serverless": {
@@ -41,6 +41,12 @@ class TestIndexList:
     def test_index_list_is(self, index_list_response):
         iil = IndexList(index_list_response)
         assert [i['name'] for i in iil] == ['test-index-1', 'test-index-2']
+        assert [i['dimension'] for i in iil] == [2, 3]
+        assert [i['metric'] for i in iil] == ['cosine', 'cosine']
+
+    def test_index_list_names_syntactic_sugar(self, index_list_response):
+        iil = IndexList(index_list_response)
+        assert iil.names() == ['test-index-1', 'test-index-2']
 
     def test_index_list_getitem(self, index_list_response):
         iil = IndexList(index_list_response)

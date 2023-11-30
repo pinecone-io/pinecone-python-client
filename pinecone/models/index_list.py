@@ -5,6 +5,9 @@ class IndexList:
         self.index_list = index_list
         self.current = 0
 
+    def names(self):
+        return [i['name'] for i in self.index_list.indexes]
+
     def __getitem__(self, key):
         return self.index_list.indexes[key]
     
