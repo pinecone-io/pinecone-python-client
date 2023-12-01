@@ -57,4 +57,17 @@ class TestIndexList:
         # Forward compatibility, in case we add more attributes to IndexList for pagination
         assert IndexList(index_list_response).index_list.indexes == index_list_response.indexes
 
+    def test_when_results_are_empty(self):
+        iil = IndexList(OpenApiIndexList(indexes=[]))
+        assert len(iil) == 0
+        assert iil.index_list.indexes == []
+        assert iil.indexes == []
+        assert iil.names() == []
+
+    def test_when_results_are_none(self):
+        iil = IndexList(OpenApiIndexList(indexes=None))
+        assert len(iil) == 0
+        assert iil.index_list.indexes == []
+        assert iil.indexes == []
+        assert iil.names() == []
 
