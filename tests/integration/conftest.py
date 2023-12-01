@@ -1,7 +1,7 @@
 import pytest
 import random
 import time
-from pinecone import Pinecone, NotFoundException, ApiException
+from pinecone import Pinecone, NotFoundException, PineconeApiException
 from .helpers.helpers import generate_index_name, get_environment_var
 
 @pytest.fixture()
@@ -66,7 +66,7 @@ def delete_with_retry(client, index_name, retries=0, sleep_interval=5):
         client.delete_index(index_name, -1)
     except NotFoundException:
         pass
-    except ApiException as e:
+    except PineconeApiException as e:
         if e.error.code == 'PRECONDITON_FAILED':
             if retries > 5:
                 raise 'Unable to delete index ' + index_name

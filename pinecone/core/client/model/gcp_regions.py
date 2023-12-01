@@ -12,7 +12,7 @@ import re  # noqa: F401
 import sys  # noqa: F401
 
 from pinecone.core.client.model_utils import (  # noqa: F401
-    ApiTypeError,
+    PineconeApiTypeError,
     ModelComposed,
     ModelNormal,
     ModelSimple,
@@ -26,7 +26,7 @@ from pinecone.core.client.model_utils import (  # noqa: F401
     validate_get_composed_info,
 )
 from ..model_utils import OpenApiModel
-from pinecone.core.client.exceptions import ApiAttributeError
+from pinecone.core.client.exceptions import PineconeApiAttributeError
 
 
 
@@ -159,7 +159,7 @@ class GcpRegions(ModelSimple):
             args = list(args)
             value = args.pop(0)
         else:
-            raise ApiTypeError(
+            raise PineconeApiTypeError(
                 "value is required, but not passed in args or kwargs and doesn't have default",
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
@@ -171,7 +171,7 @@ class GcpRegions(ModelSimple):
         _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
 
         if args:
-            raise ApiTypeError(
+            raise PineconeApiTypeError(
                 "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
                     args,
                     self.__class__.__name__,
@@ -188,7 +188,7 @@ class GcpRegions(ModelSimple):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
         self.value = value
         if kwargs:
-            raise ApiTypeError(
+            raise PineconeApiTypeError(
                 "Invalid named arguments=%s passed to %s. Remove those invalid named arguments." % (
                     kwargs,
                     self.__class__.__name__,
@@ -251,7 +251,7 @@ class GcpRegions(ModelSimple):
             args = list(args)
             value = args.pop(0)
         else:
-            raise ApiTypeError(
+            raise PineconeApiTypeError(
                 "value is required, but not passed in args or kwargs and doesn't have default",
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
@@ -263,7 +263,7 @@ class GcpRegions(ModelSimple):
         _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
 
         if args:
-            raise ApiTypeError(
+            raise PineconeApiTypeError(
                 "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
                     args,
                     self.__class__.__name__,
@@ -280,7 +280,7 @@ class GcpRegions(ModelSimple):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
         self.value = value
         if kwargs:
-            raise ApiTypeError(
+            raise PineconeApiTypeError(
                 "Invalid named arguments=%s passed to %s. Remove those invalid named arguments." % (
                     kwargs,
                     self.__class__.__name__,

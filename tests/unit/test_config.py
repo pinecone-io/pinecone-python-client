@@ -1,5 +1,5 @@
 import pinecone
-from pinecone.exceptions import ApiKeyError, PineconeConfigurationError
+from pinecone.exceptions import PineconeApiKeyError, PineconeConfigurationError
 from pinecone.config import PineconeConfig
 from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
 

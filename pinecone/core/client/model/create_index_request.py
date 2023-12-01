@@ -12,7 +12,7 @@ import re  # noqa: F401
 import sys  # noqa: F401
 
 from pinecone.core.client.model_utils import (  # noqa: F401
-    ApiTypeError,
+    PineconeApiTypeError,
     ModelComposed,
     ModelNormal,
     ModelSimple,
@@ -26,7 +26,7 @@ from pinecone.core.client.model_utils import (  # noqa: F401
     validate_get_composed_info,
 )
 from ..model_utils import OpenApiModel
-from pinecone.core.client.exceptions import ApiAttributeError
+from pinecone.core.client.exceptions import PineconeApiAttributeError
 
 
 
@@ -166,7 +166,7 @@ class CreateIndexRequest(ModelNormal):
         self = super(OpenApiModel, cls).__new__(cls)
 
         if args:
-            raise ApiTypeError(
+            raise PineconeApiTypeError(
                 "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
                     args,
                     self.__class__.__name__,
@@ -255,7 +255,7 @@ class CreateIndexRequest(ModelNormal):
         _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
 
         if args:
-            raise ApiTypeError(
+            raise PineconeApiTypeError(
                 "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
                     args,
                     self.__class__.__name__,
@@ -284,5 +284,5 @@ class CreateIndexRequest(ModelNormal):
                 continue
             setattr(self, var_name, var_value)
             if var_name in self.read_only_vars:
-                raise ApiAttributeError(f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
+                raise PineconeApiAttributeError(f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
                                      f"class with read only attributes.")

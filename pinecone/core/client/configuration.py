@@ -15,7 +15,7 @@ import sys
 import urllib3
 
 from http import client as http_client
-from pinecone.core.client.exceptions import ApiValueError
+from pinecone.core.client.exceptions import PineconeApiValueError
 
 
 JSON_SCHEMA_VALIDATION_KEYWORDS = {
@@ -234,7 +234,7 @@ conf = pinecone.core.client.Configuration(
             s = set(filter(None, value.split(',')))
             for v in s:
                 if v not in JSON_SCHEMA_VALIDATION_KEYWORDS:
-                    raise ApiValueError(
+                    raise PineconeApiValueError(
                         "Invalid keyword: '{0}''".format(v))
             self._disabled_client_side_validations = s
 

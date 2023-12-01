@@ -9,11 +9,11 @@
 
 
 
-class OpenApiException(Exception):
-    """The base exception class for all OpenAPIExceptions"""
+class PineconeException(Exception):
+    """The base exception class for all exceptions in the Pinecone Python SDK"""
 
 
-class ApiTypeError(OpenApiException, TypeError):
+class PineconeApiTypeError(PineconeException, TypeError):
     def __init__(self, msg, path_to_item=None, valid_classes=None,
                  key_type=None):
         """ Raises an exception for TypeErrors
@@ -39,10 +39,10 @@ class ApiTypeError(OpenApiException, TypeError):
         full_msg = msg
         if path_to_item:
             full_msg = "{0} at {1}".format(msg, render_path(path_to_item))
-        super(ApiTypeError, self).__init__(full_msg)
+        super(PineconeApiTypeError, self).__init__(full_msg)
 
 
-class ApiValueError(OpenApiException, ValueError):
+class PineconeApiValueError(PineconeException, ValueError):
     def __init__(self, msg, path_to_item=None):
         """
         Args:
@@ -57,10 +57,10 @@ class ApiValueError(OpenApiException, ValueError):
         full_msg = msg
         if path_to_item:
             full_msg = "{0} at {1}".format(msg, render_path(path_to_item))
-        super(ApiValueError, self).__init__(full_msg)
+        super(PineconeApiValueError, self).__init__(full_msg)
 
 
-class ApiAttributeError(OpenApiException, AttributeError):
+class PineconeApiAttributeError(PineconeException, AttributeError):
     def __init__(self, msg, path_to_item=None):
         """
         Raised when an attribute reference or assignment fails.
@@ -76,10 +76,10 @@ class ApiAttributeError(OpenApiException, AttributeError):
         full_msg = msg
         if path_to_item:
             full_msg = "{0} at {1}".format(msg, render_path(path_to_item))
-        super(ApiAttributeError, self).__init__(full_msg)
+        super(PineconeApiAttributeError, self).__init__(full_msg)
 
 
-class ApiKeyError(OpenApiException, KeyError):
+class PineconeApiKeyError(PineconeException, KeyError):
     def __init__(self, msg, path_to_item=None):
         """
         Args:
@@ -93,10 +93,10 @@ class ApiKeyError(OpenApiException, KeyError):
         full_msg = msg
         if path_to_item:
             full_msg = "{0} at {1}".format(msg, render_path(path_to_item))
-        super(ApiKeyError, self).__init__(full_msg)
+        super(PineconeApiKeyError, self).__init__(full_msg)
 
 
-class ApiException(OpenApiException):
+class PineconeApiException(PineconeException):
 
     def __init__(self, status=None, reason=None, http_resp=None):
         if http_resp:
@@ -124,25 +124,25 @@ class ApiException(OpenApiException):
         return error_message
 
 
-class NotFoundException(ApiException):
+class NotFoundException(PineconeApiException):
 
     def __init__(self, status=None, reason=None, http_resp=None):
         super(NotFoundException, self).__init__(status, reason, http_resp)
 
 
-class UnauthorizedException(ApiException):
+class UnauthorizedException(PineconeApiException):
 
     def __init__(self, status=None, reason=None, http_resp=None):
         super(UnauthorizedException, self).__init__(status, reason, http_resp)
 
 
-class ForbiddenException(ApiException):
+class ForbiddenException(PineconeApiException):
 
     def __init__(self, status=None, reason=None, http_resp=None):
         super(ForbiddenException, self).__init__(status, reason, http_resp)
 
 
-class ServiceException(ApiException):
+class ServiceException(PineconeApiException):
 
     def __init__(self, status=None, reason=None, http_resp=None):
         super(ServiceException, self).__init__(status, reason, http_resp)
