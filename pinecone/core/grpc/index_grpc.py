@@ -398,7 +398,7 @@ class GRPCIndex(GRPCIndexBase):
                               Defaults to False. See: https://docs.pinecone.io/docs/performance-tuning [optional]
             namespace (str): The namespace to write to. If not specified, the default namespace is used. [optional]
             batch_size (int): The number of vectors to upsert in each batch.
-                                Cannot be used with async_req=Ture.
+                                Cannot be used with async_req=True.
                                If not specified, all vectors will be upserted in a single batch. [optional]
             show_progress (bool): Whether to show a progress bar using tqdm.
                                   Applied only if batch_size is provided. Default is True.
