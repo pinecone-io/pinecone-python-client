@@ -10,14 +10,26 @@ def client():
     return Pinecone(api_key=api_key)
 
 @pytest.fixture()
+def pod_environment():
+    return get_environment_var('POD_ENVIRONMENT', 'us-east1-gcp')
+
+@pytest.fixture()
+def serverless_cloud():
+    return get_environment_var('SERVERLESS_CLOUD', 'aws')
+
+@pytest.fixture()
+def serverless_region():
+    return get_environment_var('SERVERLESS_REGION', 'us-west-2')
+
+@pytest.fixture()
 def environment():
     return get_environment_var('PINECONE_ENVIRONMENT')
 
 @pytest.fixture()
-def create_sl_index_params(index_name):
+def create_sl_index_params(index_name, serverless_cloud, serverless_region):
     spec = {"serverless": {
-        'cloud': 'aws',
-        'region': 'us-west-2'
+        'cloud': serverless_cloud,
+        'region': serverless_region
     }}
     return dict(name=index_name, dimension=10, metric='cosine', spec=spec)
 

@@ -37,8 +37,8 @@ def generate_index_name(test_name: str) -> str:
 
     return index_name.lower()
 
-def get_environment_var(name: str) -> str:
-    val = os.getenv(name)
+def get_environment_var(name: str, defaultVal: None) -> str:
+    val = os.getenv(name, defaultVal)
     if (val is None):
         raise Exception('Expected environment variable '  + name + ' is not set')
     else:
