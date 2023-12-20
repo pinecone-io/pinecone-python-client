@@ -2,6 +2,7 @@ import re
 import os
 import random
 import string
+from typing import Any
 
 def random_string(length):
     return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
@@ -37,7 +38,7 @@ def generate_index_name(test_name: str) -> str:
 
     return index_name.lower()
 
-def get_environment_var(name: str, defaultVal: None) -> str:
+def get_environment_var(name: str, defaultVal: Any = None) -> str:
     val = os.getenv(name, defaultVal)
     if (val is None):
         raise Exception('Expected environment variable '  + name + ' is not set')
