@@ -16,8 +16,6 @@ import pprint
 import re
 import tempfile
 
-from dateutil.parser import parse
-
 from pinecone.core.client.exceptions import (
     PineconeApiKeyError,
     PineconeApiAttributeError,
@@ -63,7 +61,7 @@ class cached_property(object):
             return result
 
 
-PRIMITIVE_TYPES = (list, float, int, bool, datetime, date, str, file_type)
+PRIMITIVE_TYPES = (list, float, int, bool, str, file_type)
 
 def allows_single_value_input(cls):
     """
@@ -699,8 +697,8 @@ COERCION_INDEX_BY_TYPE = {
     float: 6,
     int: 7,
     bool: 8,
-    datetime: 9,
-    date: 10,
+    # datetime: 9,
+    # date: 10,
     str: 11,
     file_type: 12,   # 'file_type' is an alias for the built-in 'file' or 'io.IOBase' type.
 }
@@ -709,8 +707,8 @@ COERCION_INDEX_BY_TYPE = {
 # when we have a valid type already and we want to try converting
 # to another type
 UPCONVERSION_TYPE_PAIRS = (
-    (str, datetime),
-    (str, date),
+    # (str, datetime),
+    # (str, date),
     (int, float),             # A float may be serialized as an integer, e.g. '3' is a valid serialized float.
     (list, ModelComposed),
     (dict, ModelComposed),
@@ -754,8 +752,8 @@ COERCIBLE_TYPE_PAIRS = {
         (list, ModelSimple),
         # (str, int),
         # (str, float),
-        (str, datetime),
-        (str, date),
+        # (str, datetime),
+        # (str, date),
         # (int, str),
         # (float, str),
         (str, file_type)
@@ -794,12 +792,12 @@ def get_simple_class(input_value):
         return bool
     elif isinstance(input_value, int):
         return int
-    elif isinstance(input_value, datetime):
-        # this must be higher than the date check because
-        # isinstance(datetime_instance, date) == True
-        return datetime
-    elif isinstance(input_value, date):
-        return date
+    # elif isinstance(input_value, datetime):
+    #    # this must be higher than the date check because
+    #    # isinstance(datetime_instance, date) == True
+    #    return datetime
+    # elif isinstance(input_value, date):
+    #    return date
     elif isinstance(input_value, str):
         return str
     return type(input_value)
@@ -1210,42 +1208,42 @@ def deserialize_primitive(data, klass, path_to_item):
     :param data: str/int/float
     :param klass: str/class the class to convert to
 
-    :return: int, float, str, bool, date, datetime
+    :return: int, float, str, bool
     """
     additional_message = ""
     try:
-        if klass in {datetime, date}:
-            additional_message = (
-                "If you need your parameter to have a fallback "
-                "string value, please set its type as `type: {}` in your "
-                "spec. That allows the value to be any type. "
-            )
-            if klass == datetime:
-                if len(data) < 8:
-                    raise ValueError("This is not a datetime")
-                # The string should be in iso8601 datetime format.
-                parsed_datetime = parse(data)
-                date_only = (
-                    parsed_datetime.hour == 0 and
-                    parsed_datetime.minute == 0 and
-                    parsed_datetime.second == 0 and
-                    parsed_datetime.tzinfo is None and
-                    8 <= len(data) <= 10
-                )
-                if date_only:
-                    raise ValueError("This is a date, not a datetime")
-                return parsed_datetime
-            elif klass == date:
-                if len(data) < 8:
-                    raise ValueError("This is not a date")
-                return parse(data).date()
-        else:
-            converted_value = klass(data)
-            if isinstance(data, str) and klass == float:
-                if str(converted_value) != data:
-                    # '7' -> 7.0 -> '7.0' != '7'
-                    raise ValueError('This is not a float')
-            return converted_value
+        # if klass in {datetime, date}:
+        #     additional_message = (
+        #         "If you need your parameter to have a fallback "
+        #         "string value, please set its type as `type: {}` in your "
+        #         "spec. That allows the value to be any type. "
+        #     )
+        #     if klass == datetime:
+        #         if len(data) < 8:
+        #             raise ValueError("This is not a datetime")
+        #         # The string should be in iso8601 datetime format.
+        #         parsed_datetime = parse(data)
+        #         date_only = (
+        #             parsed_datetime.hour == 0 and
+        #             parsed_datetime.minute == 0 and
+        #             parsed_datetime.second == 0 and
+        #             parsed_datetime.tzinfo is None and
+        #             8 <= len(data) <= 10
+        #         )
+        #         if date_only:
+        #             raise ValueError("This is a date, not a datetime")
+        #         return parsed_datetime
+        #     elif klass == date:
+        #         if len(data) < 8:
+        #             raise ValueError("This is not a date")
+        #         return parse(data).date()
+        # else:
+        converted_value = klass(data)
+        if isinstance(data, str) and klass == float:
+            if str(converted_value) != data:
+                # '7' -> 7.0 -> '7.0' != '7'
+                raise ValueError('This is not a float')
+        return converted_value
     except (OverflowError, ValueError) as ex:
         # parse can raise OverflowError
         raise PineconeApiValueError(
@@ -1782,7 +1780,7 @@ def get_oneof_instance(cls, model_kwargs, constant_kwargs, model_arg=None):
             and path to item.
 
     Kwargs:
-        model_arg: (int, float, bool, str, date, datetime, ModelSimple, None):
+        model_arg: (int, float, bool, str, ModelSimple, None):
             the value to assign to a primitive class or ModelSimple class
             Notes:
             - this is only passed in when oneOf includes types which are not object
