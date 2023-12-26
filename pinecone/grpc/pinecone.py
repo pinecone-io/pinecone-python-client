@@ -7,5 +7,5 @@ class PineconeGRPC(Pinecone):
     def Index(self, name: str, host: Optional[str] = None):
         if host is None:
             host = self.index_host_store.get_host(self.index_api, self.config, name)
-        config = ConfigBuilder.build(api_key=self.config.api_key, host=host, pool_threads=self.pool_threads)
+        config = ConfigBuilder.build(api_key=self.config.api_key, host=host)
         return GRPCIndex(index_name=name, config=config)
