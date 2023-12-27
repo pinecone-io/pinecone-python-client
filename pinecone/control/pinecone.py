@@ -24,6 +24,7 @@ class Pinecone:
         host: Optional[str] = None,
         config: Optional[Config] = None,
         additional_headers: Optional[Dict[str, str]] = {},
+        pool_threads: Optional[int] = 1,
         index_api: Optional[IndexOperationsApi] = None,
         **kwargs,
     ):
@@ -39,7 +40,8 @@ class Pinecone:
         if index_api:
             self.index_api = index_api
         else:
-            api_client = ApiClient(configuration=self.config.openapi_config)
+            self.pool_threads = pool_threads
+            api_client = ApiClient(configuration=self.config.openapi_config, pool_threads=self.pool_threads)
             api_client.user_agent = get_user_agent()
             extra_headers = self.config.additional_headers or {}
             for key, value in extra_headers.items():
@@ -222,6 +224,7 @@ class Pinecone:
         response = api_instance.describe_index(name)
         return response["status"]
 
-    def Index(self, name: str):
-        index_host = self.index_host_store.get_host(self.index_api, self.config, name)
-        return Index(api_key=self.config.api_key, host=index_host)
+    def Index(self, name: str, host: Optional[str] = None):
+        if host is None:
+            host = self.index_host_store.get_host(self.index_api, self.config, name)
+        return Index(api_key=self.config.api_key, host=host, pool_threads=self.pool_threads)

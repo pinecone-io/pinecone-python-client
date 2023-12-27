@@ -1,5 +1,5 @@
-import pinecone
-from pinecone.exceptions import PineconeApiKeyError, PineconeConfigurationError
+from pinecone import Pinecone
+from pinecone.exceptions import PineconeConfigurationError
 from pinecone.config import PineconeConfig
 from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
 
@@ -74,3 +74,10 @@ class TestConfig:
     def test_errors_when_no_api_key_is_present(self):
         with pytest.raises(PineconeConfigurationError):
             PineconeConfig.build()
+    
+    def test_config_pool_threads(self):
+        pc = Pinecone(api_key="test-api-key", host="test-controller-host", pool_threads=10)
+        assert pc.index_api.api_client.pool_threads == 10
+        idx = pc.Index(host='my-index-host', name='my-index-name')
+        assert idx._api_client.pool_threads == 10
+        
