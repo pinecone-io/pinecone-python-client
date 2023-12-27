@@ -60,6 +60,6 @@ jobs:
         id: pypi_upload
         env:
           TWINE_REPOSITORY: pypi
-          PYPI_USERNAME: ${{ secrets.PROD_PYPI_USERNAME }}
-          PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PASSWORD }}
+          PYPI_USERNAME: __token__
+          PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PUBLISH_TOKEN }}
         run: make upload
