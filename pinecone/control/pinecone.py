@@ -41,7 +41,7 @@ class Pinecone:
             self.index_api = index_api
         else:
             self.pool_threads = pool_threads
-            api_client = ApiClient(configuration=self.config.openapi_config, pool_threads=pool_threads)
+            api_client = ApiClient(configuration=self.config.openapi_config, pool_threads=self.pool_threads)
             api_client.user_agent = get_user_agent()
             extra_headers = self.config.additional_headers or {}
             for key, value in extra_headers.items():
