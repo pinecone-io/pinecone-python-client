@@ -32,6 +32,49 @@ jobs:
           # so we don't add new regressions.
           poetry run mypy pinecone --exclude pinecone/core --exclude pinecone/grpc
 
+  dependency-matrix-rest:
+    name: Dependency testing (REST)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: 
+          - 3.8
+          - 3.11
+        urllib3-version: 
+          - 1.26.16
+          - 1.26.17
+          - 1.26.18
+          - 2.0.0
+          - 2.0.1
+          - 2.0.2
+          - 2.0.3
+          - 2.0.4
+          - 2.0.5
+          - 2.0.6
+          - 2.0.7
+          - 2.1.0
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+        with:
+          include_grpc: false
+
+      - name: Install urllib3 ${{ matrix.urllib3-version }}
+        run: poetry add urllib3==${{ matrix.urllib3-version }}
+
+      - name: Dependency testing
+        run: poetry run pytest tests/dependency/rest -s -v
+        env:
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+
   integration-rest:
     name: Integration tests (REST)
     runs-on: ubuntu-latest
