@@ -33,12 +33,16 @@ jobs:
           poetry run mypy pinecone --exclude pinecone/core --exclude pinecone/grpc
 
   dependency-matrix-rest:
+    # The dependency matrix is used to test the compatibility of the 
+    # SDK with different dependency versions customers might use.
+    # The test itself is a single integration test that creates an index,
+    # adds a few vectors, and runs one query.
     name: Dependency testing (REST)
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: 
-          - 3.8
+          - 3.9
           - 3.11
         urllib3-version: 
           - 1.26.16
@@ -65,6 +69,7 @@ jobs:
         uses: ./.github/actions/setup-poetry
         with:
           include_grpc: false
+          include_types: false
 
       - name: Install urllib3 ${{ matrix.urllib3-version }}
         run: poetry add urllib3==${{ matrix.urllib3-version }}

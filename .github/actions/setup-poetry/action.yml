@@ -5,6 +5,14 @@ inputs:
     description: 'Install gRPC dependencies'
     required: true
     default: 'false'
+  include_dev:
+    description: 'Install dev dependencies'
+    required: true
+    default: 'true'
+  include_types:
+    description: 'Install typing dependencies (mypy, type stubs, etc)'
+    required: true
+    default: 'true'
 
 runs:
   using: 'composite'
@@ -13,17 +21,9 @@ runs:
       uses: snok/install-poetry@v1
 
     - name: Install dependencies
-      if: ${{ inputs.include_grpc == 'false' }}
       shell: bash
       run: |
-        poetry install
-
-    # We separate the gRPC dependencies from the REST client's install
-    # behavior, so we test installing the grpc dependencies here as well
-    # The dependencies that are specific to gRPC are defined in pyproject.toml
-    # under tool.poetry.extras
-    - name: Install gRPC dependencies
-      if: ${{ inputs.include_grpc == 'true' }}
-      shell: bash
-      run: |
-        poetry install --extras "grpc"
+        GRPC_FLAG=${{ inputs.include_grpc == 'true' && '--extras "grpc"' || '' }}
+        DEV_FLAG=${{ inputs.include_dev == 'false' && '--without=dev' || '' }}
+        TYPING_FLAG=${{ inputs.include_types == 'true' && '--extras "types"' || '' }}
+        poetry install $DEV_FLAG $TYPING_FLAG $GRPC_FLAG
