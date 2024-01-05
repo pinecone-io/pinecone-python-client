@@ -3,6 +3,7 @@ name: Testing
 on:
   workflow_call: {}
 
+
 jobs:
   units-no-grpc:
     name: Unit tests (REST)
