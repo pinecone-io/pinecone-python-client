@@ -1,7 +1,7 @@
 import requests
 import urllib3
 
-from pinecone.utils import __version__
+from .version import __version__
 
 def get_user_agent():
     client_id = f"python-client-{__version__}"
