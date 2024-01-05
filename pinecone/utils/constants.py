@@ -1,7 +1,7 @@
 import os
 import enum
 
-from .environment import get_environment, get_version
+from .version import __version__
 
 MAX_MSG_SIZE = 128 * 1024 * 1024
 
@@ -23,8 +23,7 @@ class NodeType(str, enum.Enum):
     MEMORY4X = "MEMORY4X"
 
 
-PACKAGE_ENVIRONMENT = get_environment() or "development"
-CLIENT_VERSION = get_version()
+CLIENT_VERSION = __version__
 CLIENT_ID = f"python-client-{CLIENT_VERSION}"
 
 REQUIRED_VECTOR_FIELDS = {"id", "values"}
