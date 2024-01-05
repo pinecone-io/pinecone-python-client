@@ -29,5 +29,5 @@ runs:
       run: |
         GRPC_FLAG=$( [ "$INCLUDE_GRPC" = "true" ] && echo "--extras grpc" || echo "" )
         DEV_FLAG=$( [ "$INCLUDE_DEV" = "false" ] && echo "--without dev" || echo "" )
-        TYPING_FLAG=$( [ "$INCLUDE_TYPES" = "true" ] && echo "--extras types" || echo "" )
+        TYPING_FLAG=$( [ "$INCLUDE_TYPES" = "true" ] && echo "--with types" || echo "" )
         poetry install $DEV_FLAG $TYPING_FLAG $GRPC_FLAG
