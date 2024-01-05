@@ -101,6 +101,39 @@ class Index(ApiClient):
         self.user_agent = get_user_agent()
         self._vector_api = VectorOperationsApi(self)
 
+    def get_ids_from_query(self,input_vector):
+      "Helper function for get_all_ids_from_index()"
+      print("searching pinecone...")
+      results = self.query(vector=input_vector, top_k=10000,include_values=False)
+      ids = set()
+      print(type(results))
+      for result in results['matches']:
+        ids.add(result['id'])
+      return ids
+
+    def get_all_ids_from_index(self, num_dimensions, namespace=""):
+      """Get all ids for all vectors in the index.
+        
+        Example usage:
+        
+        all_ids = get_all_ids_from_index(self, num_dimensions=1536, namespace="")
+        print(all_ids)"""
+
+      num_vectors = self.describe_index_stats()["namespaces"][namespace]['vector_count']
+      all_ids = set()
+      while len(all_ids) < num_vectors:
+        print("Length of ids list is shorter than the number of total vectors...")
+        input_vector = np.random.rand(num_dimensions).tolist()
+        print("creating random vector...")
+        ids = get_ids_from_query(self, input_vector)
+        print("getting ids from a vector query...")
+        all_ids.update(ids)
+        print("updating ids set...")
+        print(f"Collected {len(all_ids)} ids out of {num_vectors}.")
+    
+      return all_ids
+
+
     @validate_and_convert_errors
     def upsert(
         self,

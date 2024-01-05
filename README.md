@@ -163,6 +163,19 @@ query_response = index.query(
 )
 ```
 
+## Get All Vector IDs
+
+The following example retrieves the ID for every vector in the Index.
+```python
+import pinecone
+
+pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
+index = pinecone.Index("example-index")
+
+all_ids = index.get_all_ids_from_index(num_dimensions=1536, namespace="")
+print(all_ids)
+```
+
 ## Delete vectors
 
 The following example deletes vectors by ID.
