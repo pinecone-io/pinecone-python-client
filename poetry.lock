@@ -1034,20 +1034,6 @@ files = [
 ]
 
 [[package]]
-name = "types-requests"
-version = "2.31.0.10"
-description = "Typing stubs for requests"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "types-requests-2.31.0.10.tar.gz", hash = "sha256:dc5852a76f1eaf60eafa81a2e50aefa3d1f015c34cf0cba130930866b1b22a92"},
-    {file = "types_requests-2.31.0.10-py3-none-any.whl", hash = "sha256:b32b9a86beffa876c0c3ac99a4cd3b8b51e973fb8e3bd4e0a6bb32c7efad80fc"},
-]
-
-[package.dependencies]
-urllib3 = ">=2"
-
-[[package]]
 name = "types-tqdm"
 version = "4.66.0.4"
 description = "Typing stubs for tqdm"
@@ -1128,4 +1114,4 @@ grpc = ["googleapis-common-protos", "grpc-gateway-protoc-gen-openapiv2", "grpcio
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.13"
-content-hash = "fa21fb00bcf8fcd723d09b08bf325f06e86b8af5cace9db8406b03ba5c715e21"
+content-hash = "34bef1f5b5b85266032bbeb4fac0b56473e854250dfa118a0035c5f0e58c1576"
