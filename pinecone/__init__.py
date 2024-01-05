@@ -9,3 +9,5 @@ from .models import *
 from .core.client.models import (
     IndexModel,
 )
+
+from .utils import __version__
