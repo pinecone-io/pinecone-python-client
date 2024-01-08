@@ -41,7 +41,7 @@ class TestSanityRest:
         ])
 
         # Wait for index freshness
-        time.sleep(30)
+        time.sleep(60)
 
         # Check the vector count reflects the upserted data
         description = idx.describe_index_stats()
