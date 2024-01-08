@@ -38,7 +38,7 @@ jobs:
     # SDK with different dependency versions customers might use.
     # The test itself is a single integration test that creates an index,
     # adds a few vectors, and runs one query.
-    name: Dependency testing (REST)
+    name: Dep matrix
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 3
