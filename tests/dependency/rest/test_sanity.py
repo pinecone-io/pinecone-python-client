@@ -1,11 +1,16 @@
 import pytest
 import os
 import time
+import random
+import string
 from pinecone import Pinecone, ServerlessSpec
+
+def random_string(length):
+    return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
 
 @pytest.fixture
 def index_name():
-    return 'test-sanity-rest'
+    return 'test-sanity-rest-' + random_string(20)
 
 @pytest.fixture
 def client():
