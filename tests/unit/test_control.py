@@ -19,7 +19,7 @@ class TestControl:
 
     def test_passing_host(self):
         p = Pinecone(api_key="123-456-789", host="my-host")
-        assert p.index_api.api_client.configuration.host == "my-host"
+        assert p.index_api.api_client.configuration.host == "https://my-host"
 
     def test_passing_additional_headers(self):
         extras = {"header1": "my-value", "header2": "my-value2"}
