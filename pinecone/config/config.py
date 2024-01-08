@@ -4,14 +4,13 @@ import os
 from pinecone.exceptions import PineconeConfigurationError
 from pinecone.config.openapi import OpenApiConfigFactory
 from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
-
+from pinecone.utils import normalize_host
 
 class Config(NamedTuple):
     api_key: str = ""
     host: str = ""
     openapi_config: Optional[OpenApiConfiguration] = None
     additional_headers: Optional[Dict[str, str]] = {}
-    
 
 class ConfigBuilder:
     """
@@ -40,6 +39,7 @@ class ConfigBuilder:
     ) -> Config:
         api_key = api_key or kwargs.pop("api_key", None) or os.getenv("PINECONE_API_KEY")
         host = host or kwargs.pop("host", None)
+        host = normalize_host(host)
 
         if not api_key:
             raise PineconeConfigurationError("You haven't specified an Api-Key.")

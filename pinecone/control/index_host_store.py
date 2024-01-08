@@ -2,6 +2,7 @@ from typing import Dict
 from pinecone.config import Config
 from pinecone.core.client.api.manage_pod_indexes_api import ManagePodIndexesApi as IndexOperationsApi
 from pinecone.core.client.exceptions import PineconeException
+from pinecone.utils import normalize_host
 
 class SingletonMeta(type):
     _instances: Dict[str, str] = {}
@@ -31,7 +32,7 @@ class IndexHostStore(metaclass=SingletonMeta):
     def set_host(self, config: Config, index_name: str, host: str):
         if host:
             key = self._key(config, index_name)
-            self._indexHosts[key] = "https://" + host
+            self._indexHosts[key] = normalize_host(host)
 
     def get_host(self, api: IndexOperationsApi, config: Config, index_name: str) -> str:
         key = self._key(config, index_name)
