@@ -24,6 +24,7 @@ def cleanup(index_name, client):
 
 class TestSanityRest:
     def test_sanity(self, index_name, client):
+        print('Index name: ' + index_name)
         if index_name not in client.list_indexes().names():
             client.create_index(
                 name=index_name, 
