@@ -88,7 +88,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9, '3.10', 3.11]
+        python-version: [3.8, 3.9, '3.10', 3.11]
 
     steps:
       - uses: actions/checkout@v4
@@ -150,8 +150,9 @@ jobs:
           - 3.9
           - "3.10"
           - 3.11
-          - 3.12
-          - 3.13
+          # Poetry doesn't yet work with 3.12 & 3.13
+          # - 3.12
+          # - 3.13
         urllib3-version:
           - 1.26.16
           - 1.26.18
@@ -180,7 +181,12 @@ jobs:
       - name: Install urllib3 ${{ matrix.urllib3-version }}
         run: poetry add urllib3==${{ matrix.urllib3-version }}
 
-      - name: Dependency testing
-        run: poetry run pytest tests/dependency/rest -s -v
+      - uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_on: error
+          command: poetry run pytest tests/dependency/rest -s -v
         env:
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+  
