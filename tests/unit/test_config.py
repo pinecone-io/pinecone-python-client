@@ -28,16 +28,16 @@ class TestConfig:
 
     def test_init_with_environment_vars(self):
         os.environ["PINECONE_API_KEY"] = "test-api-key"
-        os.environ["PINECONE_CONTROLLER_HOST"] = "test-controller-host"
+        os.environ["PINECONE_CONTROLLER_HOST"] = "https://test-controller-host"
 
         config = PineconeConfig.build()
 
         assert config.api_key == "test-api-key"
-        assert config.host == "test-controller-host"
+        assert config.host == "https://test-controller-host"
 
     def test_init_with_positional_args(self):
         api_key = "my-api-key"
-        host = "my-controller-host"
+        host = "https://my-controller-host"
 
         config = PineconeConfig.build(api_key, host)
 
@@ -52,7 +52,7 @@ class TestConfig:
         config = PineconeConfig.build(api_key=api_key, host=controller_host, openapi_config=openapi_config)
 
         assert config.api_key == api_key
-        assert config.host == controller_host
+        assert config.host == 'https://' + controller_host
         assert config.openapi_config == openapi_config
 
     def test_resolution_order_kwargs_over_env_vars(self):
@@ -69,7 +69,7 @@ class TestConfig:
         config = PineconeConfig.build(api_key=api_key, host=controller_host)
 
         assert config.api_key == api_key
-        assert config.host == controller_host
+        assert config.host == 'https://' + controller_host
 
     def test_errors_when_no_api_key_is_present(self):
         with pytest.raises(PineconeConfigurationError):
