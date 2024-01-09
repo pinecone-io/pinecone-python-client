@@ -46,7 +46,7 @@ jobs:
         uses: ./.github/actions/create-index
         timeout-minutes: 5
         with:
-          name_prefix: depstest-${{ github.run_number }}-grpc
+          name_prefix: depstest-grpc-${{ github.run_number }}
           dimension: 2
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
 
@@ -92,7 +92,7 @@ jobs:
           # - 4.1.0
           - 4.3.3
         protobuf-version:
-          - 3.20.0
+          - 3.20.3
         googleapis-common-protos-version:
           - 1.53.0
           - 1.62.0
