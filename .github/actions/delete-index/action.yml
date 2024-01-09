@@ -14,8 +14,6 @@ runs:
   steps:
     - name: Create index
       shell: bash
-      env:
-        PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
       run: |
         curl -X DELETE "https://api.pinecone.io/indexes/${{ inputs.index_name }}" \
           -H "Accept: application/json" \

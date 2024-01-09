@@ -35,8 +35,6 @@ runs:
   steps:
     - name: Create index
       shell: bash
-      env:
-        PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
       run: |
         random_string=$(cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | fold -w 8 | head -n 1)
         index_name=${{ inputs.name_prefix }}-${random_string}
