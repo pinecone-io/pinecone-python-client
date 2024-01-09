@@ -9,12 +9,21 @@ inputs:
     description: 'The Pinecone API key'
     required: true
 
+
 runs:
   using: 'composite'
   steps:
-    - name: Create index
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Setup Poetry
+      uses: ./.github/actions/setup-poetry
+
+    - name: Delete index
       shell: bash
-      run: |
-        curl -X DELETE "https://api.pinecone.io/indexes/${{ inputs.index_name }}" \
-          -H "Accept: application/json" \
-          -H "Api-Key: ${{ inputs.PINECONE_API_KEY }}"
+      run: poetry run python3 scripts/delete.py
+      env:
+        PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
+        INDEX_NAME: ${{ inputs.index_name }}

@@ -33,39 +33,21 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Setup Poetry
+      uses: ./.github/actions/setup-poetry
+
     - name: Create index
       shell: bash
-      run: |
-        set -x
-        # random_string=$(cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | fold -w 8 | head -n 1)
-        random_string="asdf"
-        index_name="${{ inputs.name_prefix }}-${random_string}"
-
-        echo "Index name is $index_name"
-
-        curl -X POST https://api.pinecone.io/indexes \
-          -H "Content-Type: application/json" \
-          -H "Api-Key: ${{ inputs.PINECONE_API_KEY }}"
-          -d "{
-            \"dimension\": ${{ inputs.dimension }},
-            \"metric\": \"${{ inputs.metric }}\",
-            \"name\": \"${index_name}\",
-            \"spec\": {
-              \"serverless\": {
-                \"cloud\": \"${{ inputs.cloud }}\",
-                \"region\": \"${{ inputs.region }}\"
-              }
-            }"
-
-        while true; do
-          status=$(curl -s -X GET https://api.pinecone.io/indexes/${index_name} \
-            -H "Content-Type: application/json" \
-            -H "Api-Key: ${{ inputs.PINECONE_API_KEY }}" \
-            | jq -r '.status.ready')
-          if [ "$status" = "true" ]; then
-            break
-          fi
-          sleep 5
-        done
-        
-        echo "index_name=${{ inputs.name_prefix }}-${random_string}" >> $GITHUB_OUTPUT
+      run: poetry run python3 scripts/create.py
+      env:
+        PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
+        NAME_PREFIX: ${{ inputs.name_prefix }}
+        REGION: ${{ inputs.region }}
+        CLOUD: ${{ inputs.cloud }}
+        DIMENSION: ${{ inputs.dimension }}
+        METRIC: ${{ inputs.metric }}
