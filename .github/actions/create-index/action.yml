@@ -57,8 +57,8 @@ runs:
           status=$(curl -s -X GET https://api.pinecone.io/indexes/${index_name} \
             -H "Content-Type: application/json" \
             -H "Api-Key: ${{ inputs.PINECONE_API_KEY }}" \
-            | jq -r '.status')
-          if [ "$status" = "READY" ]; then
+            | jq -r '.status.ready')
+          if [ "$status" = "true" ]; then
             break
           fi
           sleep 5

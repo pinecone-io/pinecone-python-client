@@ -200,6 +200,7 @@ jobs:
       - name: Create index
         id: setup-index
         uses: ./.github/actions/create-index
+        timeout-minutes: 5
         with:
           index_name: depstest-${{ github.run_number }}-grpc
           dimension: 2
