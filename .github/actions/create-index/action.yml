@@ -36,22 +36,23 @@ runs:
     - name: Create index
       shell: bash
       run: |
+        set -x
         random_string=$(cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | fold -w 8 | head -n 1)
         index_name=${{ inputs.name_prefix }}-${random_string}
 
         curl -X POST https://api.pinecone.io/indexes \
           -H "Content-Type: application/json" \
           -H "Api-Key: ${{ inputs.PINECONE_API_KEY }}"
-          -d '{
-            "dimension": ${{ inputs.dimension }}, 
-            "metric": "${{ inputs.metric }}", 
-            "name": "${index_name}", 
-            "spec": {
-              "serverless": {
-                "cloud": "${{ inputs.cloud }}", 
-                "region": "${{ inputs.region }}"
+          -d "{
+            \"dimension\": ${{ inputs.dimension }},
+            \"metric\": \"${{ inputs.metric }}\",
+            \"name\": \"${index_name}\",
+            \"spec\": {
+              \"serverless\": {
+                \"cloud\": \"${{ inputs.cloud }}\",
+                \"region\": \"${{ inputs.region }}\"
               }
-            }'
+            }"
 
         while true; do
           status=$(curl -s -X GET https://api.pinecone.io/indexes/${index_name} \
