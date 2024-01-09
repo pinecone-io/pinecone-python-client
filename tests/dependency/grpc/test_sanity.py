@@ -14,15 +14,10 @@ def index_name():
 def client():
     return PineconeGRPC(api_key=os.environ.get('PINECONE_API_KEY'))
 
-@pytest.fixture(autouse=True)
-def cleanup(index_name, client):
-    yield
-    if index_name in client.list_indexes().names():
-        client.delete_index(name=index_name)
-
 class TestSanityRest:
     def test_sanity(self, index_name, client):
         print('Testing with index name: ' + index_name)
+        assert index_name != ''
         
         # Verify index exists with expected properties
         assert index_name in client.list_indexes().names()

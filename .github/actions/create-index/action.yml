@@ -29,6 +29,7 @@ inputs:
 outputs:
   index_name:
     description: 'The name of the index, including randomized suffix'
+    value: ${{ steps.create-index.outputs.index_name }}
 
 runs:
   using: 'composite'
@@ -42,6 +43,7 @@ runs:
       uses: ./.github/actions/setup-poetry
 
     - name: Create index
+      id: create-index
       shell: bash
       run: poetry run python3 scripts/create.py
       env:
