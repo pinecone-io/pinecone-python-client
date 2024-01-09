@@ -37,8 +37,11 @@ runs:
       shell: bash
       run: |
         set -x
-        random_string=$(cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | fold -w 8 | head -n 1)
-        index_name=${{ inputs.name_prefix }}-${random_string}
+        # random_string=$(cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | fold -w 8 | head -n 1)
+        random_string="asdf"
+        index_name="${{ inputs.name_prefix }}-${random_string}"
+
+        echo "Index name is $index_name"
 
         curl -X POST https://api.pinecone.io/indexes \
           -H "Content-Type: application/json" \
