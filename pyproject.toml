@@ -3,18 +3,11 @@ line-length = 120
 target-version = ['py38']
 include = '\.pyi?$'
 exclude = '''
-
 (
   /(
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
-    | \.hg
-    | \.mypy_cache
-    | \.venv
-    | _build
-    | buck-out
-    | build
-    | dist
+      \.git         # exclude a few common directories in the
+    | \.mypy_cache  # root of the project
+    | \.pytest_cache
   )/
   | foo.py           # also separately exclude a file named foo.py in
                      # the root of the project

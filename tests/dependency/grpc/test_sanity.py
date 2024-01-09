@@ -1,12 +1,19 @@
 import pytest
 import os
 import time
+import random
+import string
 from pinecone import ServerlessSpec
 from pinecone.grpc import PineconeGRPC
 
+
+def random_string(length):
+    return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
+
 @pytest.fixture
 def index_name():
-    return 'test-sanity-rest'
+    return 'test-sanity-grpc-' + random_string(20)
+
 
 @pytest.fixture
 def client():
@@ -20,6 +27,7 @@ def cleanup(index_name, client):
 
 class TestSanityRest:
     def test_sanity(self, index_name, client):
+        print('Index name: ' + index_name)
         if index_name not in client.list_indexes().names():
             client.create_index(
                 name=index_name, 
@@ -37,7 +45,7 @@ class TestSanityRest:
         ])
 
         # Wait for index freshness
-        time.sleep(30)
+        time.sleep(60)
 
         # Check the vector count reflects the upserted data
         description = idx.describe_index_stats()
