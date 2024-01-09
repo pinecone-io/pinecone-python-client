@@ -83,6 +83,23 @@ jobs:
           SERVERLESS_CLOUD: ${{ matrix.testConfig.serverless.cloud }}
           SERVERLESS_REGION: ${{ matrix.testConfig.serverless.region }}
 
+  dependency-matrix-rest-setup:
+    name: Deps setup (REST)
+    runs-on: ubuntu-latest
+    outputs:
+        index_name: ${{ steps.setup-index.outputs.index_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create index
+        id: setup-index
+        uses: ./.github/actions/create-index
+        timeout-minutes: 5
+        with:
+          name_prefix: depstest-${{ github.run_number }}-rest
+          dimension: 2
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+
+
   dependency-matrix-rest:
     # The dependency matrix is used to test the compatibility of the 
     # SDK with different dependency versions customers might use.
@@ -90,8 +107,8 @@ jobs:
     # adds a few vectors, and runs one query.
     name: Deps (REST)
     runs-on: ubuntu-latest
+    needs: dependency-matrix-rest-setup
     strategy:
-      max-parallel: 5
       fail-fast: false
       matrix:
         python-version:
@@ -138,3 +155,4 @@ jobs:
           command: poetry run pytest tests/dependency/rest -s -v
         env:
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          INDEX_NAME: ${{ needs.dependency-matrix-rest-setup.outputs.index_name }}  
