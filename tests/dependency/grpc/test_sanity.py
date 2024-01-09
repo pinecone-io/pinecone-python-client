@@ -1,19 +1,14 @@
 import pytest
 import os
 import time
-import random
-import string
-from pinecone import ServerlessSpec
 from pinecone.grpc import PineconeGRPC
-
-
-def random_string(length):
-    return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
 
 @pytest.fixture
 def index_name():
-    return 'test-sanity-grpc-' + random_string(20)
-
+    name = os.environ.get('INDEX_NAME', None)
+    if name is None:
+        raise 'INDEX_NAME environment variable is not set'
+    return name
 
 @pytest.fixture
 def client():
@@ -27,16 +22,13 @@ def cleanup(index_name, client):
 
 class TestSanityRest:
     def test_sanity(self, index_name, client):
-        print('Index name: ' + index_name)
-        if index_name not in client.list_indexes().names():
-            client.create_index(
-                name=index_name, 
-                dimension=2, 
-                spec=ServerlessSpec(cloud="aws", region="us-west-2")
-            )
-        else:
-            pytest.fail('Index ' + index_name + ' already exists')
+        print('Testing with index name: ' + index_name)
         
+        # Verify index exists with expected properties
+        assert index_name in client.list_indexes().names()
+        description = client.describe_index(name=index_name)
+        assert description.dimension == 2
+
         idx = client.Index(index_name)
         idx.upsert(vectors=[
             ('1', [1.0, 2.0]), 
@@ -45,9 +37,9 @@ class TestSanityRest:
         ])
 
         # Wait for index freshness
-        time.sleep(60)
+        time.sleep(30)
 
-        # Check the vector count reflects the upserted data
+        # Check the vector count reflects some data has been upserted
         description = idx.describe_index_stats()
         assert description.dimension == 2
         assert description.total_vector_count == 3

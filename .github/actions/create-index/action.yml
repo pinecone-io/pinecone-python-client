@@ -1,0 +1,69 @@
+name: 'Create Index'
+description: 'Creates an index to be used in other tests'
+
+inputs:
+  region:
+    description: 'The region of the index'
+    required: false
+    default: 'us-east-2'
+  cloud:
+    description: 'The cloud of the index'
+    required: false
+    default: 'aws'
+  name_prefix:
+    description: 'The prefix of the index name'
+    required: false
+    default: 'index-name'
+  dimension:
+    description: 'The dimension of the index'
+    required: false
+    default: '3'
+  metric:
+    description: 'The metric of the index'
+    required: false
+    default: 'cosine'
+  PINECONE_API_KEY:
+    description: 'The Pinecone API key'
+    required: true
+
+outputs:
+  index_name:
+    description: 'The name of the index, including randomized suffix'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Create index
+      shell: bash
+      env:
+        PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+      run: |
+        random_string=$(cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | fold -w 8 | head -n 1)
+        index_name=${{ inputs.name_prefix }}-${random_string}
+
+        curl -X POST https://api.pinecone.io/indexes \
+          -H "Content-Type: application/json" \
+          -H "Api-Key: ${{ inputs.PINECONE_API_KEY }}"
+          -d '{
+            "dimension": ${{ inputs.dimension }}, 
+            "metric": "${{ inputs.metric }}", 
+            "name": "${index_name}", 
+            "spec": {
+              "serverless": {
+                "cloud": "${{ inputs.cloud }}", 
+                "region": "${{ inputs.region }}"
+              }
+            }'
+
+        while true; do
+          status=$(curl -s -X GET https://api.pinecone.io/indexes/${index_name} \
+            -H "Content-Type: application/json" \
+            -H "Api-Key: ${{ inputs.PINECONE_API_KEY }}" \
+            | jq -r '.status')
+          if [ "$status" = "READY" ]; then
+            break
+          fi
+          sleep 5
+        done
+        
+        echo "index_name=${{ inputs.name_prefix }}-${random_string}" >> $GITHUB_OUTPUT

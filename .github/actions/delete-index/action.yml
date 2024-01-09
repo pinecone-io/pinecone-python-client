@@ -1,0 +1,22 @@
+name: 'Delete Index'
+description: 'Deletes an index to be used in other tests'
+
+inputs:
+  index_name:
+    description: 'The name of the index to delete'
+    required: true
+  PINECONE_API_KEY:
+    description: 'The Pinecone API key'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Create index
+      shell: bash
+      env:
+        PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+      run: |
+        curl -X DELETE "https://api.pinecone.io/indexes/${{ inputs.index_name }}" \
+          -H "Accept: application/json" \
+          -H "Api-Key: ${{ inputs.PINECONE_API_KEY }}"

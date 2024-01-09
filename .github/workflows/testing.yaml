@@ -189,13 +189,29 @@ jobs:
           command: poetry run pytest tests/dependency/rest -s -v
         env:
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
-  
+
+  dependency-matrix-grpc-setup:
+    name: Deps setup (GRPC)
+    runs-on: ubuntu-latest
+    outputs:
+      index_name: ${{ steps.setup-index.outputs.index_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create index
+        id: setup-index
+        uses: ./.github/actions/create-index
+        with:
+          index_name: depstest-${{ github.run_number }}-grpc
+          dimension: 2
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+
   dependency-matrix-grpc:
     # The dependency matrix is used to test the compatibility of the 
     # SDK with different dependency versions customers might use.
-    # The test itself is a single integration test that creates an index,
-    # adds a few vectors, and runs one query.
+    # The test itself is a single integration test that describes an index,
+    # upserts a few vectors, and runs one query.
     name: Deps (GRPC)
+    needs: dependency-matrix-grpc-setup
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 5
@@ -257,8 +273,8 @@ jobs:
           include_grpc: false
           include_types: false
 
-      - name: Install urllib3 ${{ matrix.grpcio-version }}
-        run: poetry add urllib3==${{ matrix.grpcio-version }}
+      - name: Install grpcio ${{ matrix.grpcio-version }}
+        run: poetry add grpcio==${{ matrix.grpcio-version }}
       
       - name: Install lz4 ${{ matrix.lz4-version }}
         run: poetry add lz4==${{ matrix.lz4-version }}
@@ -277,3 +293,20 @@ jobs:
           command: poetry run pytest tests/dependency/grpc -s -v
         env:
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          INDEX_NAME: ${{ needs.dependency-matrix-grpc-setup.outputs.index_name }}  
+
+  dependency-matrix-grpc-cleanup:
+    name: Deps cleanup (GRPC)
+    needs: 
+      - dependency-matrix-grpc
+      - dependency-matrix-grpc-setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Delete index
+        id: cleanup-index
+        uses: ./.github/actions/delete-index
+        with:
+          index_name: ${{ needs.dependency-matrix-grpc-setup.outputs.index_name }}
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+        
