@@ -67,7 +67,7 @@ jobs:
         env:
           PINECONE_CONTROLLER_HOST: 'https://api.pinecone.io'
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
-          GITHUB_BUILD_NUMBER: "${{ github.run_number }}-p-${{ matrix.python-version}}"
+          GITHUB_BUILD_NUMBER: "${{ github.run_number }}-p-${{ matrix.testConfig.python-version}}"
           POD_ENVIRONMENT: ${{ matrix.testConfig.pod.environment }}
           SERVERLESS_CLOUD: ${{ matrix.testConfig.serverless.cloud }}
           SERVERLESS_REGION: ${{ matrix.testConfig.serverless.region }}
@@ -78,7 +78,7 @@ jobs:
         env:
           PINECONE_CONTROLLER_HOST: 'https://api-staging.pinecone.io'
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY_STAGING }}
-          GITHUB_BUILD_NUMBER: "${{ github.run_number }}-s-${{ matrix.python-version}}"
+          GITHUB_BUILD_NUMBER: "${{ github.run_number }}-s-${{ matrix.testConfig.python-version}}"
           POD_ENVIRONMENT: ${{ matrix.testConfig.pod.environment }}
           SERVERLESS_CLOUD: ${{ matrix.testConfig.serverless.cloud }}
           SERVERLESS_REGION: ${{ matrix.testConfig.serverless.region }}

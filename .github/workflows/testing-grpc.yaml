@@ -115,7 +115,7 @@ jobs:
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
         with:
-          include_grpc: false
+          include_grpc: true
           include_types: false
       - name: Install grpcio ${{ matrix.grpcio-version }}
         run: poetry add grpcio==${{ matrix.grpcio-version }}
