@@ -5,7 +5,7 @@ inputs:
   region:
     description: 'The region of the index'
     required: false
-    default: 'us-east-2'
+    default: 'us-west-2'
   cloud:
     description: 'The cloud of the index'
     required: false
