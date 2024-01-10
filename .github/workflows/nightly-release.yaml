@@ -6,12 +6,17 @@ on:
     - cron: '0 0 * * *'
 
 jobs:
-  run-tests:
-    uses: './.github/workflows/testing.yaml'
+  testing-rest:
+    uses: './.github/workflows/testing-rest.yaml'
+    secrets: inherit
+  testing-grpc:
+    uses: './.github/workflows/testing-grpc.yaml'
     secrets: inherit
 
   pypi-nightly:
-    needs: run-tests
+    needs: 
+      - testing-rest
+      - testing-grpc
     timeout-minutes: 30
     name: pypi-nightly
     runs-on: ubuntu-latest
