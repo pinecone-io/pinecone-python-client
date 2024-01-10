@@ -34,8 +34,8 @@ jobs:
           # so we don't add new regressions.
           poetry run mypy pinecone --exclude pinecone/core
 
-  integration-grpc-data-plane:
-    name: Data plane (GRPC) integration tests
+  data-plane-serverless-grpc:
+    name: Data plane serverless (GRPC) integration tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -45,7 +45,27 @@ jobs:
         spec:
           # These need to be json strings
           - '{ "serverless": { "region": "us-west-2", "cloud": "aws" }}'
-          - '{ "pod": { "environment": "us-east1-gcp" }}'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/test-data-plane
+        with:
+          include_grpc: true
+          metric: ${{ matrix.metric }}
+          spec: ${{ matrix.spec }}
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+
+  data-plane-pod-grpc:
+    name: Data plane pod (GRPC) integration tests
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        metric:
+          - cosine
+          - dotproduct
+        spec:
+          # These need to be json strings
+          - '{ "pod": { "environment": "us-east1-gcp", "pod_type": "p1" }}'
 
     steps:
       - uses: actions/checkout@v4
@@ -55,6 +75,7 @@ jobs:
           metric: ${{ matrix.metric }}
           spec: ${{ matrix.spec }}
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+        
 
   dependency-matrix-grpc-setup:
     name: Deps setup (GRPC)

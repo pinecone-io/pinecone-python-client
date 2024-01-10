@@ -15,7 +15,6 @@ from ..helpers import get_environment_var, random_string
 def api_key():
     return get_environment_var('PINECONE_API_KEY')
 
-@pytest.fixture(scope='session')
 def client(api_key):
     use_grpc = os.environ.get('USE_GRPC', 'false') == 'true'
     if use_grpc:
@@ -47,6 +46,15 @@ def index_host(client, index_name, metric, spec):
     )
     description = client.describe_index(name=index_name)
     return description.host
+
+@pytest.fixture(autouse=True)
+def cleanup(client, index_name):
+    yield
+
+    try:
+       client.delete_index(index_name, -1)
+    except:
+       pass
 
 # Namespaces not scoped to session; each test can have its own namespace
 # to avoid collisions
