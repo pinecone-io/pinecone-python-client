@@ -60,3 +60,6 @@ def poll_stats_for_namespace(idx, namespace, max_sleep=int(os.environ.get('FRESH
         else:
             total_time += delta_t
             time.sleep(delta_t)
+
+def fake_api_key():
+    return '-'.join([random_string(x) for x in [8, 4, 4, 4, 12]])

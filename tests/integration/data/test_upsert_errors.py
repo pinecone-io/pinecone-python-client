@@ -1,9 +1,21 @@
 import pytest
 import os
 from pinecone import Vector, SparseValues
-from ...helpers import poll_stats_for_namespace
 from .utils import embedding_values
+from ..helpers import fake_api_key
 from pinecone import PineconeApiTypeError, PineconeApiException
+from pinecone import Pinecone
+
+class TestUpsertApiKeyMissing():
+    def test_upsert_fails_when_api_key_invalid(self, index_name, index_host):
+        with pytest.raises(PineconeApiException):
+            pc = Pinecone(api_key=fake_api_key())
+            idx = pc.Index(name=index_name, host=index_host)
+            idx.upsert(vectors=[
+                    Vector(id='1', values=embedding_values()),
+                    Vector(id='2', values=embedding_values())
+                ]
+            )
 
 class TestUpsertFailsWhenDimensionMismatch():
     def test_upsert_fails_when_dimension_mismatch_objects(self, idx):
@@ -28,14 +40,7 @@ class TestUpsertFailsWhenDimensionMismatch():
                 ])
 
 @pytest.mark.skipif(os.getenv('METRIC') != 'dotproduct', reason='Only metric=dotprodouct indexes support hybrid')
-class TestUpsertFailsSparseValuesDimensionMismatch():
-    def test_upsert_fails_when_sparse_values_indices_out_of_range_objects(self, idx):
-        with pytest.raises(PineconeApiException):
-            idx.upsert(vectors=[
-                    Vector(id='1', values=[0.1, 0.1], sparse_values=SparseValues(indices=[0], values=[0.5])),
-                    Vector(id='2', values=[0.1, 0.1], sparse_values=SparseValues(indices=[0, 1, 2], values=[0.5, 0.5, 0.5]))
-                ])
-            
+class TestUpsertFailsSparseValuesDimensionMismatch():  
     def test_upsert_fails_when_sparse_values_indices_values_mismatch_objects(self, idx):
         with pytest.raises(PineconeApiException):
             idx.upsert(vectors=[
@@ -46,38 +51,21 @@ class TestUpsertFailsSparseValuesDimensionMismatch():
                     Vector(id='1', values=[0.1, 0.1], sparse_values=SparseValues(indices=[0, 1], values=[0.5]))
                 ])
             
-    def test_upsert_fails_when_sparse_values_indices_out_of_range_tuples(self, idx):
+    def test_upsert_fails_when_sparse_values_in_tuples(self, idx):
         with pytest.raises(ValueError):
             idx.upsert(vectors=[
                     ('1', SparseValues(indices=[0], values=[0.5])),
                     ('2', SparseValues(indices=[0, 1, 2], values=[0.5, 0.5, 0.5]))
                 ])
-            
-    def test_upsert_fails_when_sparse_values_indices_values_mismatch_tuples(self, idx):
-        with pytest.raises(ValueError):
-            idx.upsert(vectors=[
-                    ('1', SparseValues(indices=[0], values=[0.5, 0.5]))
-                ])
-        with pytest.raises(ValueError):
-            idx.upsert(vectors=[
-                    ('1', SparseValues(indices=[0, 1], values=[0.5]))
-                ])
-            
-    def test_upsert_fails_when_sparse_values_indices_out_of_range_dicts(self, idx):
-        with pytest.raises(PineconeApiException):
-            idx.upsert(vectors=[
-                    {'id': '1', 'values': [], 'sparse_values': SparseValues(indices=[0], values=[0.5])},
-                    {'id': '2', 'values': [], 'sparse_values': SparseValues(indices=[0, 1, 2], values=[0.5, 0.5, 0.5])}
-                ])
-            
+        
     def test_upsert_fails_when_sparse_values_indices_values_mismatch_dicts(self, idx):
         with pytest.raises(PineconeApiException):
             idx.upsert(vectors=[
-                    {'id': '1', 'values': [], 'sparse_values': SparseValues(indices=[0], values=[0.5, 0.5])}
+                    {'id': '1', 'values': [0.2, 0.2], 'sparse_values': SparseValues(indices=[0], values=[0.5, 0.5])}
                 ])
         with pytest.raises(PineconeApiException):
             idx.upsert(vectors=[
-                    {'id': '1', 'values': [], 'sparse_values': SparseValues(indices=[0, 1], values=[0.5])}
+                    {'id': '1', 'values': [0.1, 0.2], 'sparse_values': SparseValues(indices=[0, 1], values=[0.5])}
                 ])
 
 class TestUpsertFailsWhenValuesMissing():

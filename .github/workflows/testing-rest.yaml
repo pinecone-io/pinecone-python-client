@@ -84,7 +84,7 @@ jobs:
           SERVERLESS_REGION: ${{ matrix.testConfig.serverless.region }}
 
   integration-rest-data-plane:
-    name: Integration tests (GRPC, data plane)
+    name: Data plane (REST) integration tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -102,6 +102,7 @@ jobs:
             include_grpc: false
             metric: ${{ matrix.metric }}
             spec: ${{ matrix.spec }}
+            PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
 
   dependency-matrix-rest-setup:
     name: Deps setup (REST)

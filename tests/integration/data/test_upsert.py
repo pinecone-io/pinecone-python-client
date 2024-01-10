@@ -2,7 +2,7 @@ import pytest
 import os
 import random
 from pinecone import Vector, SparseValues
-from ...helpers import poll_stats_for_namespace
+from ..helpers import poll_stats_for_namespace
 
 @pytest.mark.parametrize('use_nondefault_namespace', [True, False]) 
 def test_upsert_to_namespace(
