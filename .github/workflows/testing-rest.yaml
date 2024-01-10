@@ -83,6 +83,26 @@ jobs:
           SERVERLESS_CLOUD: ${{ matrix.testConfig.serverless.cloud }}
           SERVERLESS_REGION: ${{ matrix.testConfig.serverless.region }}
 
+  integration-rest-data-plane:
+    name: Integration tests (GRPC, data plane)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        metric:
+          - cosine
+          - dotproduct
+        spec:
+          # These need to be json strings
+          - '{ "serverless": { "region": "us-west-2", "cloud": "aws" }}'
+          - '{ "pod": { "environment": "us-east1-gcp" }}'
+    steps:
+        - uses: actions/checkout@v4
+        - uses: ./.github/actions/test-data-plane
+          with:
+            include_grpc: false
+            metric: ${{ matrix.metric }}
+            spec: ${{ matrix.spec }}
+
   dependency-matrix-rest-setup:
     name: Deps setup (REST)
     runs-on: ubuntu-latest
