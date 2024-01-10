@@ -21,7 +21,7 @@ inputs:
     description: 'Whether to use gRPC or REST'
     required: false
     default: 'true'
-  freshness_sleep_seconds:
+  freshness_timeout_seconds:
     description: 'The number of seconds to wait for the index to become fresh'
     required: false
     default: '60'
@@ -54,4 +54,4 @@ runs:
         USE_GRPC: ${{ inputs.use_grpc }}
         METRIC: ${{ inputs.metric }}
         SPEC: ${{ inputs.spec }}
-        FRESHNESS_SLEEP_SECONDS: ${{ inputs.freshness_sleep_seconds }}
+        FRESHNESS_TIMEOUT_SECONDS: ${{ inputs.freshness_timeout_seconds }}

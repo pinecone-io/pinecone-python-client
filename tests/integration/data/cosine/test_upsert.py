@@ -1,54 +1,85 @@
 import pytest
-import time
-from pinecone import Vector
+import os
+import random
+from pinecone import Vector, SparseValues
+from ...helpers import poll_stats_for_namespace
 
-def test_upsert_to_default_namespace(client, index_name, sleep_t):
-    expected_dimension = 2
-    desc = client.describe_index(index_name)
-    assert desc.dimension == expected_dimension
-    assert desc.metric == 'cosine'
-
-    idx = client.Index(index_name)
+@pytest.mark.parametrize('use_nondefault_namespace', [True, False]) 
+def test_upsert_to_namespace(
+    idx, 
+    namespace,
+    use_nondefault_namespace
+):
+    target_namespace = namespace if use_nondefault_namespace else ''
     
     # Upsert with tuples
     idx.upsert(vectors=[
-        ('1', [1.0, 2.0]), 
-        ('2', [3.0, 4.0]),
-        ('3', [5.0, 6.0])
-    ])
+            ('1', embedding_values()), 
+            ('2', embedding_values()),
+            ('3', embedding_values())
+        ], 
+        namespace=target_namespace
+    )
 
     # Upsert with objects
     idx.upsert(vectors=[
-        Vector('4', [7.0, 8.0]),
-        Vector('5', [9.0, 10.0]),
-        Vector('6', [11.0, 12.0])
-    ])
+            Vector(id='4', values=embedding_values()),
+            Vector(id='5', values=embedding_values()),
+            Vector(id='6', values=embedding_values())
+        ], 
+        namespace=target_namespace
+    )
 
     # Upsert with dict
     idx.upsert(vectors=[
-        {'id': '7', 'values': [13.0, 14.0]},
-        {'id': '8', 'values': [15.0, 16.0]},
-        {'id': '9', 'values': [17.0, 18.0]}
-    ])
+            {'id': '7', 'values': embedding_values()},
+            {'id': '8', 'values': embedding_values()},
+            {'id': '9', 'values': embedding_values()}
+        ], 
+        namespace=target_namespace
+    )
 
-    time.sleep(sleep_t)
+    poll_stats_for_namespace(idx, target_namespace)
 
     # Check the vector count reflects some data has been upserted
     stats = idx.describe_index_stats()
-    assert stats.vector_count == 9
-    
+    assert stats.total_vector_count >= 9
+    assert stats.namespaces[target_namespace].vector_count == 9
 
-def test_upsert_to_custom_namespace(client, index_name, namespace):
-    expected_dimension = 2
-    assert client.describe_index(index_name).dimension == expected_dimension
+@pytest.mark.parametrize('use_nondefault_namespace', [True, False]) 
+@pytest.mark.skipif(os.getenv('METRIC') != 'dotproduct', reason='Only metric=dotprodouct indexes support hybrid')
+def test_upsert_to_namespace_with_sparse_embedding_values(
+    idx,
+    namespace,
+    use_nondefault_namespace
+):
+    target_namespace = namespace if use_nondefault_namespace else ''
 
-    idx = client.Index(index_name)
-    
-    # Upsert with tuples
+    # Upsert with sparse values object
     idx.upsert(vectors=[
-        ('1', [1.0, 2.0]), 
-        ('2', [3.0, 4.0]),
-        ('3', [5.0, 6.0])
-        ], 
-        namespace=namespace
+            Vector(
+                id='1', 
+                sparse_values=SparseValues(
+                    indices=[0,1], 
+                    values=embedding_values()
+                )
+            ),
+        ],
+        namespace=target_namespace
     )
+
+    # Upsert with sparse values dict
+    idx.upsert(vectors=[
+            {'id': '2', 'sparse_values': {'indices': [0,1], 'values': embedding_values()}},
+            {'id': '3', 'sparse_values': {'indices': [0,1], 'values': embedding_values()}}
+        ],
+        namespace=target_namespace
+    )
+
+    poll_stats_for_namespace(idx, target_namespace)
+
+    # Check the vector count reflects some data has been upserted
+    stats = idx.describe_index_stats()
+    assert stats.total_vector_count >= 9
+    assert stats.namespaces[target_namespace].vector_count == 9
+

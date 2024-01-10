@@ -64,7 +64,10 @@ class VectorFactory:
         if len(item) < 2 or len(item) > 3:
             raise VectorTupleLengthError(item)
         id, values, metadata = fix_tuple_length(item, 3)
-        return Vector(id=id, values=convert_to_list(values), metadata=metadata or {}, _check_type=check_type)
+        if isinstance(values, SparseValues):
+            raise ValueError("Sparse values are not supported in tuples. Please use either dicts or a Vector objects as inputs.")
+        else:
+            return Vector(id=id, values=convert_to_list(values), metadata=metadata or {}, _check_type=check_type)
 
     @staticmethod
     def _dict_to_vector(item, check_type: bool) -> Vector:
