@@ -12,15 +12,12 @@ inputs:
   metric:
     description: 'The metric of the index'
     required: true
-    default: 'cosine'
   spec:
     description: 'The deploy spec of the index'
-    required: false
-    default: ''
+    required: true
   use_grpc:
     description: 'Whether to use gRPC or REST'
-    required: false
-    default: 'true'
+    required: true
   freshness_timeout_seconds:
     description: 'The number of seconds to wait for the index to become fresh'
     required: false
