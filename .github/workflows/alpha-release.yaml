@@ -24,13 +24,18 @@ on:
         default: 'rc1'
 
 jobs:
-  testing:
-    uses: './.github/workflows/testing.yaml'
+  testing-rest:
+    uses: './.github/workflows/testing-rest.yaml'
+    secrets: inherit
+  testing-grpc:
+    uses: './.github/workflows/testing-grpc.yaml'
     secrets: inherit
 
   pypi:
     uses: './.github/workflows/publish-to-pypi.yaml'
-    needs: testing
+    needs: 
+      - testing-rest
+      - testing-grpc
     with:
       isPrerelease: true
       ref: ${{ inputs.ref }}
