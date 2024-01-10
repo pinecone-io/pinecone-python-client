@@ -101,10 +101,6 @@ jobs:
 
 
   dependency-matrix-rest:
-    # The dependency matrix is used to test the compatibility of the 
-    # SDK with different dependency versions customers might use.
-    # The test itself is a single integration test that creates an index,
-    # adds a few vectors, and runs one query.
     name: Deps (REST)
     runs-on: ubuntu-latest
     needs: dependency-matrix-rest-setup
