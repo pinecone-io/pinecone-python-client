@@ -2,7 +2,6 @@ import sys
 from typing import List, Optional
 
 import certifi
-import requests
 import socket
 
 from urllib3.connection import HTTPConnection

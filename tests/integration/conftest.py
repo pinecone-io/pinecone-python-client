@@ -1,3 +1,4 @@
+import os
 import pytest
 import random
 import time
@@ -108,7 +109,9 @@ def cleanup_all():
 
     client = Pinecone()
     for index in client.list_indexes():
-        try:
-            delete_with_retry(client, index.name)
-        except:
-            pass
+        buildNumber = os.getenv('GITHUB_BUILD_NUMBER')
+        if index.name.startswith(buildNumber):
+            try:
+                delete_with_retry(client, index.name)
+            except:
+                pass

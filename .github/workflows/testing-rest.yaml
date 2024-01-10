@@ -1,10 +1,11 @@
-name: Testing
+name: Testing REST
 
 on:
   workflow_call: {}
 
+
 jobs:
-  units-no-grpc:
+  units-rest:
     name: Unit tests (REST)
     runs-on: ubuntu-latest
     strategy:
@@ -66,7 +67,7 @@ jobs:
         env:
           PINECONE_CONTROLLER_HOST: 'https://api.pinecone.io'
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
-          GITHUB_BUILD_NUMBER: "${{ github.run_number }}-p-${{ matrix.python-version}}"
+          GITHUB_BUILD_NUMBER: "${{ github.run_number }}-p-${{ matrix.testConfig.python-version}}"
           POD_ENVIRONMENT: ${{ matrix.testConfig.pod.environment }}
           SERVERLESS_CLOUD: ${{ matrix.testConfig.serverless.cloud }}
           SERVERLESS_REGION: ${{ matrix.testConfig.serverless.region }}
@@ -77,18 +78,55 @@ jobs:
         env:
           PINECONE_CONTROLLER_HOST: 'https://api-staging.pinecone.io'
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY_STAGING }}
-          GITHUB_BUILD_NUMBER: "${{ github.run_number }}-s-${{ matrix.python-version}}"
+          GITHUB_BUILD_NUMBER: "${{ github.run_number }}-s-${{ matrix.testConfig.python-version}}"
           POD_ENVIRONMENT: ${{ matrix.testConfig.pod.environment }}
           SERVERLESS_CLOUD: ${{ matrix.testConfig.serverless.cloud }}
           SERVERLESS_REGION: ${{ matrix.testConfig.serverless.region }}
 
-  units-grpc:
-    name: Unit tests (GRPC)
+  dependency-matrix-rest-setup:
+    name: Deps setup (REST)
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.8, 3.9, '3.10', 3.11]
+    outputs:
+        index_name: ${{ steps.setup-index-rest.outputs.index_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create index
+        id: setup-index-rest
+        uses: ./.github/actions/create-index
+        timeout-minutes: 5
+        with:
+          name_prefix: depstest-rest-${{ github.run_number }}
+          dimension: 2
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
 
+
+  dependency-matrix-rest:
+    name: Deps (REST)
+    runs-on: ubuntu-latest
+    needs: dependency-matrix-rest-setup
+    strategy:
+      max-parallel: 5
+      fail-fast: false
+      matrix:
+        python-version:
+          - 3.8
+          - 3.9
+          - "3.10"
+          - 3.11
+          # Poetry doesn't yet work with 3.12 & 3.13
+          # - 3.12
+          # - 3.13
+        urllib3-version:
+          - 1.26.16
+          - 1.26.18
+          - 2.0.2
+          - 2.0.5
+          - 2.1.0
+          # - 1.26.17
+          # - 2.0.3
+          # - 2.0.4
+          # - 2.0.6
+          # - 2.0.7
     steps:
       - uses: actions/checkout@v4
 
@@ -100,36 +138,18 @@ jobs:
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
         with:
-          include_grpc: true
+          include_grpc: false
+          include_types: false
 
-      - name: Run unit tests (GRPC)
-        run: poetry run pytest --cov=pinecone --timeout=120 tests/unit_grpc
+      - name: Install urllib3 ${{ matrix.urllib3-version }}
+        run: poetry add urllib3==${{ matrix.urllib3-version }}
 
-      - name: mypy check
-        run: |
-          # Still lots of errors when running on the whole package (especially
-          # in the generated core module), but we can check these subpackages
-          # so we don't add new regressions.
-          poetry run mypy pinecone --exclude pinecone/core
-
-
-  package:
-    name: Check packaging
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.8, 3.9, '3.10', 3.11]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+      - uses: nick-fields/retry@v2
         with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
-
-      - name: Package
-        run: poetry build
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_on: error
+          command: poetry run pytest tests/dependency/rest -s -v
+        env:
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          INDEX_NAME: ${{ needs.dependency-matrix-rest-setup.outputs.index_name }}  
