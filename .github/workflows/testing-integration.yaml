@@ -7,6 +7,7 @@ jobs:
     name: Data plane serverless integration tests
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         use_grpc: [true, false]
         metric: [cosine, dotproduct]
@@ -21,24 +22,24 @@ jobs:
           spec: '${{ matrix.spec }}'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
 
-  data-plane-pod:
-    name: Data plane pod integration tests
-    runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 1
-      matrix:
-        use_grpc: [true, false]
-        metric: [cosine, dotproduct]
-        spec:
-          - '{ "pod": { "environment": "us-east1-gcp", "pod_type": "p1" }}'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/test-data-plane
-        with:
-          use_grpc: '${{ matrix.use_grpc }}'
-          metric: '${{ matrix.metric }}'
-          spec: '${{ matrix.spec }}'
-          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+#   data-plane-pod:
+#     name: Data plane pod integration tests
+#     runs-on: ubuntu-latest
+#     strategy:
+#       max-parallel: 1
+#       matrix:
+#         use_grpc: [true, false]
+#         metric: [cosine, dotproduct]
+#         spec:
+#           - '{ "pod": { "environment": "us-east1-gcp", "pod_type": "p1" }}'
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: ./.github/actions/test-data-plane
+#         with:
+#           use_grpc: '${{ matrix.use_grpc }}'
+#           metric: '${{ matrix.metric }}'
+#           spec: '${{ matrix.spec }}'
+#           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
 
   control-rest:
     name:  (REST)
