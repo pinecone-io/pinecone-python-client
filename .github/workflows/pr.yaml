@@ -8,11 +8,14 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  unit-and-integration-tests:
-    uses: './.github/workflows/testing-rest.yaml'
+  unit-tests:
+    uses: './.github/workflows/testing-unit.yaml'
     secrets: inherit
+  integration-tests:
+      uses: './.github/workflows/testing-integration.yaml'
+      secrets: inherit
   dependency-tests:
-    uses: './.github/workflows/testing-grpc.yaml'
+    uses: './.github/workflows/testing-dependency.yaml'
     secrets: inherit
   package:
     name: Check packaging
@@ -31,8 +34,6 @@ jobs:
       - name: Package
         run: poetry build
   
-  
-
   build-docs:
     name: Build docs with pdoc
     runs-on: ubuntu-latest

@@ -1,0 +1,37 @@
+name: "Unit Tests"
+'on':
+  workflow_call: {}
+
+jobs:
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - 3.8
+          - 3.9
+          - '3.10'
+          - 3.11
+        use_grpc:
+          - true
+          - false
+    steps:
+      - uses: actions/checkout@v4
+      - name: 'Set up Python ${{ matrix.python-version }}'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '${{ matrix.python-version }}'
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+        with:
+          include_grpc: '${{ matrix.use_grpc }}'
+          include_types: true
+      - name: Run unit tests
+        run: poetry run pytest --cov=pinecone --timeout=120 tests/unit
+      - name: mypy check
+        env:
+          INCLUDE_GRPC: '${{ matrix.use_grpc }}'
+        run: >
+          GRPC_FLAG=$( [ "$INCLUDE_GRPC" = "false" ] && echo "--exclude pinecone/grpc" || echo "" )
+          poetry run mypy pinecone --exclude pinecone/core $GRPC_FLAG
