@@ -15,6 +15,7 @@ from ..helpers import get_environment_var, random_string
 def api_key():
     return get_environment_var('PINECONE_API_KEY')
 
+@pytest.fixture
 def client(api_key):
     use_grpc = os.environ.get('USE_GRPC', 'false') == 'true'
     if use_grpc:
