@@ -3,6 +3,7 @@ import os
 import random
 from pinecone import Vector, SparseValues
 from ..helpers import poll_stats_for_namespace
+from .utils import embedding_values
 
 @pytest.mark.parametrize('use_nondefault_namespace', [True, False]) 
 def test_upsert_to_namespace(
