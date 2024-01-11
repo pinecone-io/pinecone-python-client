@@ -8,10 +8,10 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  run-tests-rest:
+  unit-and-integration-tests:
     uses: './.github/workflows/testing-rest.yaml'
     secrets: inherit
-  run-tests-grpc:
+  dependency-tests:
     uses: './.github/workflows/testing-grpc.yaml'
     secrets: inherit
   package:
