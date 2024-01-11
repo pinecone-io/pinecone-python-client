@@ -22,6 +22,9 @@ inputs:
     description: 'The number of seconds to wait for the index to become fresh'
     required: false
     default: '60'
+  PINECONE_API_KEY:
+    description: 'The Pinecone API key'
+    required: true
 
 outputs:
   index_name:

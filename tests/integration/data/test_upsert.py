@@ -1,6 +1,5 @@
 import pytest
 import os
-import random
 from pinecone import Vector, SparseValues
 from ..helpers import poll_stats_for_namespace
 from .utils import embedding_values
@@ -59,7 +58,8 @@ def test_upsert_to_namespace_with_sparse_embedding_values(
     # Upsert with sparse values object
     idx.upsert(vectors=[
             Vector(
-                id='1', 
+                id='1',
+                values=embedding_values(),
                 sparse_values=SparseValues(
                     indices=[0,1], 
                     values=embedding_values()
@@ -71,8 +71,8 @@ def test_upsert_to_namespace_with_sparse_embedding_values(
 
     # Upsert with sparse values dict
     idx.upsert(vectors=[
-            {'id': '2', 'sparse_values': {'indices': [0,1], 'values': embedding_values()}},
-            {'id': '3', 'sparse_values': {'indices': [0,1], 'values': embedding_values()}}
+            {'id': '2', 'values': embedding_values(),'sparse_values': {'indices': [0,1], 'values': embedding_values()}},
+            {'id': '3', 'values': embedding_values(), 'sparse_values': {'indices': [0,1], 'values': embedding_values()}}
         ],
         namespace=target_namespace
     )
