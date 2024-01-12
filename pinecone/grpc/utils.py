@@ -75,7 +75,7 @@ def parse_query_response(response: dict, unary_query: bool, _check_type: bool = 
                     score=item.get("score", 0.0),
                     values=item.get("values", []),
                     sparse_values=parse_sparse_values(item.get("sparseValues")),
-                    metadata=item.get("metadata", {}),
+                    metadata=item.get("metadata", None),
                 )
                 m.append(sc)
         res.append(SingleQueryResults(matches=m, namespace=namespace))
@@ -87,7 +87,7 @@ def parse_query_response(response: dict, unary_query: bool, _check_type: bool = 
             score=item.get("score", 0.0),
             values=item.get("values", []),
             sparse_values=parse_sparse_values(item.get("sparseValues")),
-            metadata=item.get("metadata", {}),
+            metadata=item.get("metadata", None),
             _check_type=_check_type,
         )
         m.append(sc)
