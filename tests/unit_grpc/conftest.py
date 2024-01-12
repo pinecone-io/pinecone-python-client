@@ -5,7 +5,6 @@ import pytest
 def vector_dim():
     return 8
 
-
 @pytest.fixture
 def vals1(vector_dim):
     return [0.1] * vector_dim

@@ -1,7 +1,9 @@
 import pytest
 import os
+import time
 import json
 from ..helpers import get_environment_var, random_string
+from .seed import setup_data
 
 # Test matrix needs to consider the following dimensions:
 # - pod vs serverless
@@ -25,7 +27,7 @@ def build_client():
         from pinecone import Pinecone
         return Pinecone(api_key=api_key())
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def client():
     return build_client()
     
@@ -39,13 +41,15 @@ def spec():
 
 @pytest.fixture(scope='session')
 def index_name():
+    # return 'dataplane-lol'
     return 'dataplane-' + random_string(20)
     
-@pytest.fixture
+@pytest.fixture(scope='session')
 def namespace():
+    # return 'banana'
     return random_string(10)
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def idx(client, index_name, index_host):
     return client.Index(name=index_name, host=index_host)
 
@@ -63,3 +67,17 @@ def index_host(index_name, metric, spec):
     yield description.host
     print('Deleting index with name: ' + index_name)
     pc.delete_index(index_name, -1)
+
+@pytest.fixture(scope='session', autouse=True)
+def seed_data(idx, namespace, index_host):
+    print('Seeding data in host ' + index_host)
+
+    print('Seeding data in namespace "' + namespace + '"')
+    setup_data(idx, namespace, False)
+
+    print('Seeding data in namespace ""')
+    setup_data(idx, '', True)
+
+    print('Waiting a bit more to ensure freshness')
+    time.sleep(60)
+    yield

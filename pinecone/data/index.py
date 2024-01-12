@@ -321,10 +321,10 @@ class Index():
     @validate_and_convert_errors
     def query(
         self,
+        top_k: int,
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
         queries: Optional[Union[List[QueryVector], List[Tuple]]] = None,
-        top_k: Optional[int] = None,
         namespace: Optional[str] = None,
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
