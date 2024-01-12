@@ -24,7 +24,7 @@ class VectorDictionaryExcessKeysError(ValueError):
 
 class VectorTupleLengthError(ValueError):
     def __init__(self, item):
-        message = f"Found a tuple of length {len(item)} which is not supported. Vectors can be represented as tuples either the form (id, values, metadata) or (id, values). To pass sparse values please use either dicts or a Vector objects as inputs."
+        message = f"Found a tuple of length {len(item)} which is not supported. Vectors can be represented as tuples either the form (id, values, metadata) or (id, values). To pass sparse values please use either dicts or Vector objects as inputs."
         super().__init__(message)
 
 class SparseValuesTypeError(ValueError):
@@ -65,7 +65,7 @@ class VectorFactory:
             raise VectorTupleLengthError(item)
         id, values, metadata = fix_tuple_length(item, 3)
         if isinstance(values, SparseValues):
-            raise ValueError("Sparse values are not supported in tuples. Please use either dicts or a Vector objects as inputs.")
+            raise ValueError("Sparse values are not supported in tuples. Please use either dicts or Vector objects as inputs.")
         else:
             return Vector(id=id, values=convert_to_list(values), metadata=metadata or {}, _check_type=check_type)
 

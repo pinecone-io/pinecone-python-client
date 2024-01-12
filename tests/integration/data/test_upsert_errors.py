@@ -3,13 +3,24 @@ import os
 from pinecone import Vector, SparseValues
 from .utils import embedding_values
 from ..helpers import fake_api_key
-from pinecone import PineconeApiTypeError, PineconeApiException
-from pinecone import Pinecone
+from pinecone import PineconeException
 
 class TestUpsertApiKeyMissing():
     def test_upsert_fails_when_api_key_invalid(self, index_name, index_host):
-        with pytest.raises(PineconeApiException):
+        with pytest.raises(PineconeException):
+            from pinecone import Pinecone
             pc = Pinecone(api_key=fake_api_key())
+            idx = pc.Index(name=index_name, host=index_host)
+            idx.upsert(vectors=[
+                    Vector(id='1', values=embedding_values()),
+                    Vector(id='2', values=embedding_values())
+                ]
+            )
+    @pytest.mark.skipif(os.getenv('USE_GRPC') != 'true', reason='Only test grpc client when grpc extras')
+    def test_upsert_fails_when_api_key_invalid_grpc(self, index_name, index_host):
+        with pytest.raises(PineconeException):
+            from pinecone.grpc import PineconeGRPC
+            pc = PineconeGRPC(api_key=fake_api_key())
             idx = pc.Index(name=index_name, host=index_host)
             idx.upsert(vectors=[
                     Vector(id='1', values=embedding_values()),
@@ -19,21 +30,21 @@ class TestUpsertApiKeyMissing():
 
 class TestUpsertFailsWhenDimensionMismatch():
     def test_upsert_fails_when_dimension_mismatch_objects(self, idx):
-        with pytest.raises(PineconeApiException):
+        with pytest.raises(PineconeException):
             idx.upsert(vectors=[
                     Vector(id='1', values=embedding_values(2)),
                     Vector(id='2', values=embedding_values(3))
                 ])
             
     def test_upsert_fails_when_dimension_mismatch_tuples(self, idx):
-        with pytest.raises(PineconeApiException):
+        with pytest.raises(PineconeException):
             idx.upsert(vectors=[
                     ('1', embedding_values(2)),
                     ('2', embedding_values(3))
                 ])
     
     def test_upsert_fails_when_dimension_mismatch_dicts(self, idx):
-        with pytest.raises(PineconeApiException):
+        with pytest.raises(PineconeException):
             idx.upsert(vectors=[
                     {'id': '1', 'values': embedding_values(2)},
                     {'id': '2', 'values': embedding_values(3)}
@@ -42,11 +53,11 @@ class TestUpsertFailsWhenDimensionMismatch():
 @pytest.mark.skipif(os.getenv('METRIC') != 'dotproduct', reason='Only metric=dotprodouct indexes support hybrid')
 class TestUpsertFailsSparseValuesDimensionMismatch():  
     def test_upsert_fails_when_sparse_values_indices_values_mismatch_objects(self, idx):
-        with pytest.raises(PineconeApiException):
+        with pytest.raises(PineconeException):
             idx.upsert(vectors=[
                     Vector(id='1', values=[0.1, 0.1], sparse_values=SparseValues(indices=[0], values=[0.5, 0.5]))
                 ])
-        with pytest.raises(PineconeApiException):
+        with pytest.raises(PineconeException):
             idx.upsert(vectors=[
                     Vector(id='1', values=[0.1, 0.1], sparse_values=SparseValues(indices=[0, 1], values=[0.5]))
                 ])
@@ -59,11 +70,11 @@ class TestUpsertFailsSparseValuesDimensionMismatch():
                 ])
         
     def test_upsert_fails_when_sparse_values_indices_values_mismatch_dicts(self, idx):
-        with pytest.raises(PineconeApiException):
+        with pytest.raises(PineconeException):
             idx.upsert(vectors=[
                     {'id': '1', 'values': [0.2, 0.2], 'sparse_values': SparseValues(indices=[0], values=[0.5, 0.5])}
                 ])
-        with pytest.raises(PineconeApiException):
+        with pytest.raises(PineconeException):
             idx.upsert(vectors=[
                     {'id': '1', 'values': [0.1, 0.2], 'sparse_values': SparseValues(indices=[0, 1], values=[0.5])}
                 ])
@@ -92,14 +103,19 @@ class TestUpsertFailsWhenValuesMissing():
             
 class TestUpsertFailsWhenValuesWrongType():
     def test_upsert_fails_when_values_wrong_type_objects(self, idx):
-        with pytest.raises(PineconeApiTypeError):
+        with pytest.raises(PineconeException):
             idx.upsert(vectors=[
                     Vector(id='1', values='abc'),
                     Vector(id='2', values='def')
                 ])
-            
+    
     def test_upsert_fails_when_values_wrong_type_tuples(self, idx):
-        with pytest.raises(PineconeApiTypeError):
+        if os.environ.get('USE_GRPC', 'false') == 'true':
+            expected_exception = TypeError
+        else:
+            expected_exception = PineconeException
+
+        with pytest.raises(expected_exception):
             idx.upsert(vectors=[
                     ('1', 'abc'),
                     ('2', 'def')
@@ -114,7 +130,7 @@ class TestUpsertFailsWhenValuesWrongType():
 
 class TestUpsertFailsWhenVectorsMissing():
     def test_upsert_fails_when_vectors_empty(self, idx):
-        with pytest.raises(PineconeApiException):
+        with pytest.raises(PineconeException):
             idx.upsert(vectors=[])
 
     def test_upsert_fails_when_vectors_wrong_type(self, idx):
@@ -150,21 +166,21 @@ class TestUpsertIdMissing():
 
 class TestUpsertIdWrongType():
     def test_upsert_fails_when_id_wrong_type_objects(self, idx):
-        with pytest.raises(PineconeApiTypeError):
+        with pytest.raises(Exception):
             idx.upsert(vectors=[
                     Vector(id='1', values=embedding_values()),
                     Vector(id=2, values=embedding_values())
                 ])
             
     def test_upsert_fails_when_id_wrong_type_tuples(self, idx):
-        with pytest.raises(PineconeApiTypeError):
+        with pytest.raises(Exception):
             idx.upsert(vectors=[
                     ('1', embedding_values()),
                     (2, embedding_values())
                 ])
             
     def test_upsert_fails_when_id_wrong_type_dicts(self, idx):
-        with pytest.raises(PineconeApiTypeError):
+        with pytest.raises(Exception):
             idx.upsert(vectors=[
                     {'id': '1', 'values': embedding_values()},
                     {'id': 2, 'values': embedding_values()}

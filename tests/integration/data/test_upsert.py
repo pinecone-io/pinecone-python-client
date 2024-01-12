@@ -39,7 +39,7 @@ def test_upsert_to_namespace(
         namespace=target_namespace
     )
 
-    poll_stats_for_namespace(idx, target_namespace)
+    poll_stats_for_namespace(idx, target_namespace, 9)
 
     # Check the vector count reflects some data has been upserted
     stats = idx.describe_index_stats()
@@ -77,7 +77,7 @@ def test_upsert_to_namespace_with_sparse_embedding_values(
         namespace=target_namespace
     )
 
-    poll_stats_for_namespace(idx, target_namespace)
+    poll_stats_for_namespace(idx, target_namespace, 9)
 
     # Check the vector count reflects some data has been upserted
     stats = idx.describe_index_stats()

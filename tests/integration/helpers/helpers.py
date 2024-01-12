@@ -46,14 +46,14 @@ def get_environment_var(name: str, defaultVal: Any = None) -> str:
     else:
         return val
 
-def poll_stats_for_namespace(idx, namespace, max_sleep=int(os.environ.get('FRESHNESS_TIMEOUT_SECONDS', 60))):
+def poll_stats_for_namespace(idx, namespace, expected_count, max_sleep=int(os.environ.get('FRESHNESS_TIMEOUT_SECONDS', 60))):
     delta_t = 5
     total_time=0
     done = False
     while not done:
         print(f'Waiting for namespace "{namespace}" to have vectors. Total time waited: {total_time} seconds')
         stats = idx.describe_index_stats()
-        if namespace in stats.namespaces and stats.namespaces[namespace].vector_count > 0:
+        if namespace in stats.namespaces and stats.namespaces[namespace].vector_count >= expected_count:
             done = True
         elif total_time > max_sleep:
             raise TimeoutError(f'Timed out waiting for namespace {namespace} to have vectors')

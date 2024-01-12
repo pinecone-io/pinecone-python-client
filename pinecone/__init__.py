@@ -3,9 +3,10 @@
 """
 from .config import *
 from .exceptions import *
-from .control.pinecone import Pinecone
-from .data.index import *
+from .control import *
+from .data import *
 from .models import *
+
 from .core.client.models import (
     IndexModel,
 )
