@@ -81,7 +81,7 @@ class Usage(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            'read_units': (str,),  # noqa: E501
+            'read_units': (int,),  # noqa: E501
         }
 
     @cached_property

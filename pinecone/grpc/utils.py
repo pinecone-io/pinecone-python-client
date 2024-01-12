@@ -4,6 +4,7 @@ from google.protobuf.struct_pb2 import Struct
 
 from pinecone.core.client.models import (
     Vector as _Vector,
+    Usage,
     ScoredVector,
     SparseValues,
     FetchResponse,
@@ -20,6 +21,7 @@ class QueryResponseKwargs(NamedTuple):
     namespace: Optional[str]
     matches: Optional[list]
     results: Optional[list]
+    usage: Usage
 
 def _generate_request_id() -> str:
     return str(uuid.uuid4())
@@ -52,13 +54,19 @@ def parse_fetch_response(response: dict):
             metadata=vec.get("metadata", None),
             _check_type=False,
         )
+
+    usage = parse_usage(response)
     
     return FetchResponse(
         vectors=vd, 
         namespace=namespace,
+        usage=u,
         _check_type=False
     )
 
+def parse_usage(response):
+    u = response.get("usage", {})
+    return Usage(read_units=int(u.get("readUnits", 0)))
 
 
 def parse_query_response(response: dict, unary_query: bool, _check_type: bool = False):
@@ -101,7 +109,10 @@ def parse_query_response(response: dict, unary_query: bool, _check_type: bool = 
         matches = []
         results = res
 
-    kw = QueryResponseKwargs(_check_type, namespace, matches, results)
+    usage = parse_usage(response)
+
+
+    kw = QueryResponseKwargs(_check_type, namespace, matches, results, usage)
     kw_dict = kw._asdict()
     kw_dict["_check_type"] = kw.check_type
     return QueryResponse(**kw._asdict())

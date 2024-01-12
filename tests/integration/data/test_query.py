@@ -18,8 +18,9 @@ class TestQuery:
         assert isinstance(results, QueryResponse) == True
         assert results.namespace == target_namespace
         
-        # TODO fix usage
-        # assert results.usage != None
+        assert results.usage != None
+        assert results.usage['read_units'] != None
+        assert results.usage['read_units'] > 0
 
         # By default, does not include values or metadata
         record_with_metadata = find_by_id(results.matches, '4')
