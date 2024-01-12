@@ -32,8 +32,10 @@ from pinecone.core.client.exceptions import PineconeApiAttributeError
 def lazy_import():
     from pinecone.core.client.model.scored_vector import ScoredVector
     from pinecone.core.client.model.single_query_results import SingleQueryResults
+    from pinecone.core.client.model.usage import Usage
     globals()['ScoredVector'] = ScoredVector
     globals()['SingleQueryResults'] = SingleQueryResults
+    globals()['Usage'] = Usage
 
 
 class QueryResponse(ModelNormal):
@@ -92,6 +94,7 @@ class QueryResponse(ModelNormal):
             'results': ([SingleQueryResults],),  # noqa: E501
             'matches': ([ScoredVector],),  # noqa: E501
             'namespace': (str,),  # noqa: E501
+            'usage': (Usage,),  # noqa: E501
         }
 
     @cached_property
@@ -103,6 +106,7 @@ class QueryResponse(ModelNormal):
         'results': 'results',  # noqa: E501
         'matches': 'matches',  # noqa: E501
         'namespace': 'namespace',  # noqa: E501
+        'usage': 'usage',  # noqa: E501
     }
 
     read_only_vars = {
@@ -149,6 +153,7 @@ class QueryResponse(ModelNormal):
             results ([SingleQueryResults]): DEPRECATED. The results of each query. The order is the same as `QueryRequest.queries`.. [optional]  # noqa: E501
             matches ([ScoredVector]): The matches for the vectors.. [optional]  # noqa: E501
             namespace (str): The namespace for the vectors.. [optional]  # noqa: E501
+            usage (Usage): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -233,6 +238,7 @@ class QueryResponse(ModelNormal):
             results ([SingleQueryResults]): DEPRECATED. The results of each query. The order is the same as `QueryRequest.queries`.. [optional]  # noqa: E501
             matches ([ScoredVector]): The matches for the vectors.. [optional]  # noqa: E501
             namespace (str): The namespace for the vectors.. [optional]  # noqa: E501
+            usage (Usage): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
