@@ -41,20 +41,24 @@ def parse_sparse_values(sparse_values: dict):
 
 def parse_fetch_response(response: dict):
     vd = {}
-    vectors = response.get("vectors")
-    if not vectors:
-        return None
+    vectors = response.get("vectors", {})
+    namespace = response.get("namespace", "")
+
     for id, vec in vectors.items():
-        v_obj = _Vector(
+        vd[id] = _Vector(
             id=vec["id"],
             values=vec["values"],
             sparse_values=parse_sparse_values(vec.get("sparseValues")),
             metadata=vec.get("metadata", None),
             _check_type=False,
         )
-        vd[id] = v_obj
-    namespace = response.get("namespace", "")
-    return FetchResponse(vectors=vd, namespace=namespace, _check_type=False)
+    
+    return FetchResponse(
+        vectors=vd, 
+        namespace=namespace,
+        _check_type=False
+    )
+
 
 
 def parse_query_response(response: dict, unary_query: bool, _check_type: bool = False):
@@ -71,7 +75,7 @@ def parse_query_response(response: dict, unary_query: bool, _check_type: bool = 
                     score=item.get("score", 0.0),
                     values=item.get("values", []),
                     sparse_values=parse_sparse_values(item.get("sparseValues")),
-                    metadata=item.get("metadata", {}),
+                    metadata=item.get("metadata", None),
                 )
                 m.append(sc)
         res.append(SingleQueryResults(matches=m, namespace=namespace))
@@ -83,7 +87,7 @@ def parse_query_response(response: dict, unary_query: bool, _check_type: bool = 
             score=item.get("score", 0.0),
             values=item.get("values", []),
             sparse_values=parse_sparse_values(item.get("sparseValues")),
-            metadata=item.get("metadata", {}),
+            metadata=item.get("metadata", None),
             _check_type=_check_type,
         )
         m.append(sc)

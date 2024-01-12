@@ -1,5 +1,6 @@
 import pytest
 from pinecone.utils import convert_to_list
+from pinecone import SparseValues
 import numpy as np
 import pandas as pd
 

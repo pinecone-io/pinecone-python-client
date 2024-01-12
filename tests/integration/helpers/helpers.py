@@ -1,5 +1,6 @@
 import re
 import os
+import time
 import random
 import string
 from typing import Any
@@ -44,3 +45,41 @@ def get_environment_var(name: str, defaultVal: Any = None) -> str:
         raise Exception('Expected environment variable '  + name + ' is not set')
     else:
         return val
+
+def poll_stats_for_namespace(idx, namespace, expected_count, max_sleep=int(os.environ.get('FRESHNESS_TIMEOUT_SECONDS', 60))):
+    delta_t = 5
+    total_time=0
+    done = False
+    while not done:
+        print(f'Waiting for namespace "{namespace}" to have vectors. Total time waited: {total_time} seconds')
+        stats = idx.describe_index_stats()
+        if namespace in stats.namespaces and stats.namespaces[namespace].vector_count >= expected_count:
+            done = True
+        elif total_time > max_sleep:
+            raise TimeoutError(f'Timed out waiting for namespace {namespace} to have vectors')
+        else:
+            total_time += delta_t
+            time.sleep(delta_t)
+
+def poll_fetch_for_ids_in_namespace(idx, ids, namespace):
+    max_sleep=int(os.environ.get('FRESHNESS_TIMEOUT_SECONDS', 60))
+    delta_t = 5
+    total_time=0
+    done = False
+    while not done:
+        print(f'Attempting to fetch from "{namespace}". Total time waited: {total_time} seconds')
+        results = idx.fetch(ids=ids, namespace=namespace)
+        print(results)
+
+        all_present = all(key in results.vectors for key in ids)
+        if all_present:
+            done = True
+
+        if total_time > max_sleep:
+            raise TimeoutError(f'Timed out waiting for namespace {namespace} to have vectors')
+        else:
+            total_time += delta_t
+            time.sleep(delta_t)
+
+def fake_api_key():
+    return '-'.join([random_string(x) for x in [8, 4, 4, 4, 12]])

@@ -1,0 +1,91 @@
+name: "Integration Tests"
+'on':
+  workflow_call: {}
+
+jobs:
+  data-plane-serverless:
+    name: Data plane serverless integration tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        use_grpc: [true, false]
+        metric: 
+          - cosine
+          # - euclidean
+          # - dotproduct
+        spec:
+          - '{ "serverless": { "region": "us-west-2", "cloud": "aws" }}'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/test-data-plane
+        with:
+          use_grpc: '${{ matrix.use_grpc }}'
+          metric: '${{ matrix.metric }}'
+          spec: '${{ matrix.spec }}'
+          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+          freshness_timeout_seconds: 600
+
+#   data-plane-pod:
+#     name: Data plane pod integration tests
+#     runs-on: ubuntu-latest
+#     strategy:
+#       max-parallel: 1
+#       matrix:
+#         use_grpc: [true, false]
+#         metric: [cosine, dotproduct]
+#         spec:
+#           - '{ "pod": { "environment": "us-east1-gcp", "pod_type": "p1" }}'
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: ./.github/actions/test-data-plane
+#         with:
+#           use_grpc: '${{ matrix.use_grpc }}'
+#           metric: '${{ matrix.metric }}'
+#           spec: '${{ matrix.spec }}'
+#           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+
+  control-rest:
+    name: control plane
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        pineconeEnv:
+          - prod
+        testConfig:
+          - python-version: 3.8 # Do one test run with 3.8 for sanity check
+            pod: { environment: 'us-east1-gcp'}
+            serverless: { cloud: 'aws', region: 'us-west-2'}
+          - python-version: 3.11
+            pod: { environment: 'us-east1-gcp'}
+            serverless: { cloud: 'aws', region: 'us-west-2'}
+      max-parallel: 1
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: 'Set up Python ${{ matrix.testConfig.python-version }}'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '${{ matrix.testConfig.python-version }}'
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+      - name: 'Run integration tests (REST, prod)'
+        if: matrix.pineconeEnv == 'prod'
+        run: poetry run pytest tests/integration/control -s -v
+        env:
+          PINECONE_CONTROLLER_HOST: 'https://api.pinecone.io'
+          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+          GITHUB_BUILD_NUMBER: '${{ github.run_number }}-p-${{ matrix.testConfig.python-version}}'
+          POD_ENVIRONMENT: '${{ matrix.testConfig.pod.environment }}'
+          SERVERLESS_CLOUD: '${{ matrix.testConfig.serverless.cloud }}'
+          SERVERLESS_REGION: '${{ matrix.testConfig.serverless.region }}'
+      - name: 'Run integration tests (REST, staging)'
+        if: matrix.pineconeEnv == 'staging'
+        run: poetry run pytest tests/integration -s -v
+        env:
+          PINECONE_CONTROLLER_HOST: 'https://api-staging.pinecone.io'
+          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY_STAGING }}'
+          GITHUB_BUILD_NUMBER: '${{ github.run_number }}-s-${{ matrix.testConfig.python-version}}'
+          POD_ENVIRONMENT: '${{ matrix.testConfig.pod.environment }}'
+          SERVERLESS_CLOUD: '${{ matrix.testConfig.serverless.cloud }}'
+          SERVERLESS_REGION: '${{ matrix.testConfig.serverless.region }}'

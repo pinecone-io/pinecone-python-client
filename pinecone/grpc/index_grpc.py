@@ -8,6 +8,7 @@ from google.protobuf import json_format
 from tqdm.autonotebook import tqdm
 
 from .utils import dict_to_proto_struct, parse_fetch_response, parse_query_response, parse_stats_response
+from .vector_factory_grpc import VectorFactoryGRPC
 
 from pinecone.core.client.models import (
     FetchResponse,
@@ -28,14 +29,12 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     UpdateResponse,
     SparseValues as GRPCSparseValues,
 )
+from pinecone import Vector as NonGRPCVector
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
 from pinecone.utils import fix_tuple_length
-from pinecone.utils.constants import (
-    REQUIRED_VECTOR_FIELDS,
-    OPTIONAL_VECTOR_FIELDS,
-)
 from .base import GRPCIndexBase
 from .future import PineconeGrpcFuture
+
 
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues"]
 
@@ -55,7 +54,7 @@ class GRPCIndex(GRPCIndexBase):
 
     def upsert(
         self,
-        vectors: Union[List[GRPCVector], List[tuple], List[dict]],
+        vectors: Union[List[GRPCVector], List[NonGRPCVector], List[tuple], List[dict]],
         async_req: bool = False,
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,
@@ -74,7 +73,7 @@ class GRPCIndex(GRPCIndexBase):
             >>> index.upsert([{'id': 'id1', 'values': [1.0, 2.0, 3.0], 'metadata': {'key': 'value'}},
                               {'id': 'id2',
                                         'values': [1.0, 2.0, 3.0],
-                                        'sprase_values': {'indices': [1, 8], 'values': [0.2, 0.4]},
+                                        'sparse_values': {'indices': [1, 8], 'values': [0.2, 0.4]},
                               ])
             >>> index.upsert([GRPCVector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
                               GRPCVector(id='id2', values=[1.0, 2.0, 3.0]),
@@ -123,73 +122,9 @@ class GRPCIndex(GRPCIndexBase):
                 "https://docs.pinecone.io/docs/performance-tuning"
             )
 
-        def _dict_to_grpc_vector(item) -> GRPCVector:
-            item_keys = set(item.keys())
-            if not item_keys.issuperset(REQUIRED_VECTOR_FIELDS):
-                raise ValueError(
-                    f"Vector dictionary is missing required fields: {list(REQUIRED_VECTOR_FIELDS - item_keys)}"
-                )
-
-            excessive_keys = item_keys - (REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)
-            if len(excessive_keys) > 0:
-                raise ValueError(
-                    f"Found excess keys in the vector dictionary: {list(excessive_keys)}. "
-                    f"The allowed keys are: {list(REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)}"
-                )
-
-            sparse_values = None
-            if "sparse_values" in item:
-                if not isinstance(item["sparse_values"], Mapping):
-                    raise TypeError(
-                        f"Column `sparse_values` is expected to be a dictionary, found {type(item['sparse_values'])}"
-                    )
-                indices = item["sparse_values"].get("indices", None)
-                values = item["sparse_values"].get("values", None)
-                try:
-                    sparse_values = GRPCSparseValues(indices=indices, values=values)
-                except TypeError as e:
-                    raise TypeError(
-                        "Found unexpected data in column `sparse_values`. "
-                        "Expected format is `'sparse_values': {'indices': List[int], 'values': List[float]}`."
-                    ) from e
-
-            metadata = item.get("metadata", None)
-            if metadata is not None and not isinstance(metadata, Dict):
-                raise TypeError(f"Column `metadata` is expected to be a dictionary, found {type(metadata)}")
-
-            try:
-                return GRPCVector(
-                    id=item["id"],
-                    values=item["values"],
-                    sparse_values=sparse_values,
-                    metadata=dict_to_proto_struct(metadata),
-                )
-
-            except TypeError as e:
-                # No need to raise a dedicated error for `id` - protobuf's error message is clear enough
-                if not isinstance(item["values"], Iterable) or not isinstance(item["values"].__iter__().__next__(), numbers.Real):
-                    raise TypeError(f"Column `values` is expected to be a list of floats")
-                raise
-
-        def _vector_transform(item) -> GRPCVector:
-            if isinstance(item, GRPCVector):
-                return item
-            elif isinstance(item, tuple):
-                if len(item) > 3:
-                    raise ValueError(
-                        f"Found a tuple of length {len(item)} which is not supported. "
-                        f"Vectors can be represented as tuples either the form (id, values, metadata) or (id, values). "
-                        f"To pass sparse values please use either dicts or GRPCVector objects as inputs."
-                    )
-                id, values, metadata = fix_tuple_length(item, 3)
-                return GRPCVector(id=id, values=values, metadata=dict_to_proto_struct(metadata))
-            elif isinstance(item, Mapping):
-                return _dict_to_grpc_vector(item)
-            raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
-
         timeout = kwargs.pop("timeout", None)
 
-        vectors = list(map(_vector_transform, vectors))
+        vectors = list(map(VectorFactoryGRPC.build, vectors))
         if async_req:
             args_dict = self._parse_non_empty_args([("namespace", namespace)])
             request = UpsertRequest(vectors=vectors, **args_dict, **kwargs)

@@ -3,7 +3,7 @@ import pytest
 import random
 import time
 from pinecone import Pinecone, NotFoundException, PineconeApiException
-from .helpers.helpers import generate_index_name, get_environment_var
+from ..helpers import generate_index_name, get_environment_var
 
 @pytest.fixture()
 def client():
