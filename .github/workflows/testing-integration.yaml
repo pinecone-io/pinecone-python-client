@@ -21,6 +21,7 @@ jobs:
           metric: '${{ matrix.metric }}'
           spec: '${{ matrix.spec }}'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+          freshness_timeout_seconds: 120
 
 #   data-plane-pod:
 #     name: Data plane pod integration tests
@@ -42,7 +43,7 @@ jobs:
 #           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
 
   control-rest:
-    name:  (REST)
+    name: control plane
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -67,7 +68,7 @@ jobs:
         uses: ./.github/actions/setup-poetry
       - name: 'Run integration tests (REST, prod)'
         if: matrix.pineconeEnv == 'prod'
-        run: poetry run pytest tests/integration -s -v
+        run: poetry run pytest tests/integration/control -s -v
         env:
           PINECONE_CONTROLLER_HOST: 'https://api.pinecone.io'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
