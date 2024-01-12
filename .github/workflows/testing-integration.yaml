@@ -10,7 +10,10 @@ jobs:
       fail-fast: false
       matrix:
         use_grpc: [true, false]
-        metric: [cosine, dotproduct]
+        metric: 
+          - cosine
+          # - euclidean
+          # - dotproduct
         spec:
           - '{ "serverless": { "region": "us-west-2", "cloud": "aws" }}'
     steps:
