@@ -27,7 +27,7 @@ class VectorTupleLengthError(ValueError):
         message = f"Found a tuple of length {len(item)} which is not supported. Vectors can be represented as tuples either the form (id, values, metadata) or (id, values). To pass sparse values please use either dicts or Vector objects as inputs."
         super().__init__(message)
 
-class SparseValuesTypeError(ValueError):
+class SparseValuesTypeError(ValueError, TypeError):
     def __init__(self):
         message = "Found unexpected data in column `sparse_values`. Expected format is `'sparse_values': {'indices': List[int], 'values': List[float]}`."
         super().__init__(message)
@@ -37,12 +37,12 @@ class SparseValuesMissingKeysError(ValueError):
         message = f"Missing required keys in data in column `sparse_values`. Expected format is `'sparse_values': {{'indices': List[int], 'values': List[float]}}`. Found keys {list(sparse_values_dict.keys())}"
         super().__init__(message)
 
-class SparseValuesDictionaryExpectedError(ValueError):
+class SparseValuesDictionaryExpectedError(ValueError, TypeError):
     def __init__(self, sparse_values_dict):
         message = f"Column `sparse_values` is expected to be a dictionary, found {type(sparse_values_dict)}"
         super().__init__(message)
 
-class MetadataDictionaryExpectedError(ValueError):
+class MetadataDictionaryExpectedError(ValueError, TypeError):
     def __init__(self, item):
         message = f"Column `metadata` is expected to be a dictionary, found {type(item['metadata'])}"
         super().__init__(message)

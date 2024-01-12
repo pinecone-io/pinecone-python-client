@@ -29,10 +29,12 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     UpdateResponse,
     SparseValues as GRPCSparseValues,
 )
+from pinecone import Vector as NonGRPCVector
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
 from pinecone.utils import fix_tuple_length
 from .base import GRPCIndexBase
 from .future import PineconeGrpcFuture
+
 
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues"]
 
@@ -52,7 +54,7 @@ class GRPCIndex(GRPCIndexBase):
 
     def upsert(
         self,
-        vectors: Union[List[GRPCVector], List[tuple], List[dict]],
+        vectors: Union[List[GRPCVector], List[NonGRPCVector], List[tuple], List[dict]],
         async_req: bool = False,
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,

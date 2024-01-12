@@ -68,7 +68,10 @@ class VectorFactoryGRPC:
 
         values = item.get("values")
         if "values" in item:
-            item["values"] = convert_to_list(values)
+            try:
+                item["values"] = convert_to_list(values)
+            except TypeError as e:
+                raise TypeError(f"Column `values` is expected to be a list of floats") from e
 
         sparse_values = item.get("sparse_values")
         if sparse_values and not isinstance(sparse_values, GRPCSparseValues):
@@ -76,10 +79,12 @@ class VectorFactoryGRPC:
 
         metadata = item.get("metadata")
         if metadata:
-            if isinstance(metadata, Mapping):
+            if isinstance(metadata, dict):
                 item["metadata"] = dict_to_proto_struct(metadata)
             elif not isinstance(metadata, Struct):
                 raise MetadataDictionaryExpectedError(item)
+        else:
+            item["metadata"] = dict_to_proto_struct({})
 
         try:
             return GRPCVector(**item)
@@ -100,10 +105,18 @@ class VectorFactoryGRPC:
         if not {"indices", "values"}.issubset(sparse_values_dict):
             raise SparseValuesMissingKeysError(sparse_values_dict)
 
-        indices = convert_to_list(sparse_values_dict.get("indices"))
-        values = convert_to_list(sparse_values_dict.get("values"))
+    
+        try:
+            indices = convert_to_list(sparse_values_dict.get("indices"))
+        except TypeError as e:
+            raise SparseValuesTypeError() from e
+  
+        try:
+            values = convert_to_list(sparse_values_dict.get("values"))
+        except TypeError as e:
+            raise SparseValuesTypeError() from e
 
         try:
             return GRPCSparseValues(indices=indices, values=values)
-        except TypeError:
-            raise SparseValuesTypeError()
+        except TypeError as e:
+            raise SparseValuesTypeError() from e
