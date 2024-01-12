@@ -2,7 +2,7 @@ import pytest
 from pinecone import Vector, PineconeException, FetchResponse
 from ..helpers import poll_fetch_for_ids_in_namespace
 from .utils import embedding_values
-2
+
 @pytest.mark.parametrize('use_nondefault_namespace', [True, False]) 
 def test_upsert_to_namespace(
     idx, 
