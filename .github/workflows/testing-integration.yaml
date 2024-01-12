@@ -21,7 +21,7 @@ jobs:
           metric: '${{ matrix.metric }}'
           spec: '${{ matrix.spec }}'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
-          freshness_timeout_seconds: 120
+          freshness_timeout_seconds: 600
 
 #   data-plane-pod:
 #     name: Data plane pod integration tests
