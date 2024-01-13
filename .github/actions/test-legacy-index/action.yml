@@ -5,7 +5,7 @@ inputs:
   pinecone_client_version:
     description: 'The version of the Pinecone client to use'
     required: false
-    default: '3.0.0.dev8'
+    default: '3.0.0.dev9'
   index_name:
     description: 'The name of the index'
     required: true
