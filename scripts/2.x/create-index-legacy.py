@@ -29,7 +29,7 @@ def main():
     metric = read_env_var('METRIC')
     vectors_to_upsert = int(read_env_var('VECTORS_TO_UPSERT'))
 
-    index_name = index_name_prefix + random_string(10)
+    index_name = index_name_prefix + '-' + random_string(10)
     write_gh_output('index_name', index_name)
 
     print(f'Beginning test with environment {environment} and index {index_name}')

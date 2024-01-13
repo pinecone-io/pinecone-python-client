@@ -53,7 +53,7 @@ runs:
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         PINECONE_ENVIRONMENT: ${{ inputs.PINECONE_ENVIRONMENT }}
-        INDEX_NAME_PREFIX: ${{ inputs.index_name }}
+        INDEX_NAME_PREFIX: ${{ inputs.index_name_prefix }}
         DIMENSION: ${{ inputs.dimension }}
         METRIC: ${{ inputs.metric }}
         VECTORS_TO_UPSERT: ${{ inputs.vectors_to_upsert }}

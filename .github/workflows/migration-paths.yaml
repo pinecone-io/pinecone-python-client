@@ -41,7 +41,7 @@ jobs:
           PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
           PINECONE_ENVIRONMENT: ${{ matrix.env }}
           pinecone_client_version: 2.2.4
-          index_name_prefix: migration-testing-index
+          index_name_prefix: py-migration
           dimension: 1536
           metric: cosine
 
