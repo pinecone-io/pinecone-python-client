@@ -46,4 +46,4 @@ runs:
         PINECONE_ENVIRONMENT: ${{ inputs.PINECONE_ENVIRONMENT }}
         INDEX_NAME: ${{ inputs.index_name }}
         DIMENSION: ${{ inputs.dimension }}
-        METRIC: ${{ inputs.metric }
+        METRIC: ${{ inputs.metric }}
