@@ -18,10 +18,15 @@ jobs:
         with:
           python-version: 3.11
 
-      - name: Deploy documentation to gh-pages
-        uses: s0/git-publish-subdir-action@develop
+      - name: Push documentation artifacts to sdk-docs
+        uses: cpina/github-action-push-to-another-repository@main
         env:
-          REPO: self
-          BRANCH: gh-pages
-          FOLDER: docs
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+        with:
+          source-directory: docs
+          destination-github-username: pinecone-io
+          destination-repository-name: sdk-docs
+          user-email: clients@pinecone.io
+          target-branch: main
+          target-directory: python
+          commit-message: 'Python: automated documentation build - pinecone-python-client merge SHA: ${{ github.sha }}'
