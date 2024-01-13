@@ -37,7 +37,7 @@ runs:
     - name: Create index
       id: create-index
       shell: bash
-      run: python3 .github/actions/test-legacy-index/test-index.py
+      run: python3 scripts/3.x/test-index.py
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         PINECONE_ENVIRONMENT: ${{ inputs.PINECONE_ENVIRONMENT }}

@@ -1,8 +1,6 @@
 import random
 import string
 import os
-import time
-import math
 from pinecone import Pinecone
 
 def read_env_var(name):
@@ -42,6 +40,23 @@ def main():
     assert description.spec.serverless == None
     assert description.spec.pod != None
     assert description.spec.pod.environment == environment
+    assert description.host != None
+    assert len(description.host) > 0
+    assert description.status != None
+    assert description.status.state == 'Ready'
+    assert description.status.ready == True
+
+    print(f'Index description looks correct.')
+
+    host_url = description.host
+
+    idx = pc.Index(name=index_name)
+
+    stats = idx.describe_index_stats()
+    print(f'Index stats: {stats}')
+
+
+
 
 if __name__ == '__main__':
     main()
