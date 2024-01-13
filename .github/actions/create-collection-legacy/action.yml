@@ -1,0 +1,49 @@
+name: 'Create Collection (Legacy / Regional Control Plane)'
+description: 'Creates a collection to be used in other tests'
+
+inputs:
+  pinecone_client_version:
+    description: 'The version of the Pinecone client to use'
+    required: false
+    default: '2.2.4'
+  collection_name_prefix:
+    description: 'The prefix for collection names'
+    required: true
+  index_name:
+    description: 'The name of the index to make the collection from'
+    required: true
+  PINECONE_ENVIRONMENT:
+    description: 'The environment of the collection'
+    required: true
+  PINECONE_API_KEY:
+    description: 'The Pinecone API key'
+    required: true
+
+outputs:
+  collection_name:
+    description: 'The name of the collection, including randomized suffix'
+    value: ${{ steps.create-collection.outputs.collection_name }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Install pinecone-client
+      shell: bash
+      run: |
+        pip install pinecone-client==${{ inputs.pinecone_client_version }}
+    
+    - name: Create collection
+      id: create-collection
+      shell: bash
+      run: python3 scripts/2.x/create-collection-legacy.py
+      env:
+        PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
+        PINECONE_ENVIRONMENT: ${{ inputs.PINECONE_ENVIRONMENT }}
+        COLLECTION_NAME_PREFIX: ${{ inputs.collection_name_prefix }}
+        INDEX_NAME: ${{ inputs.index_name }}
+

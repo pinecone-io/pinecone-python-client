@@ -12,13 +12,13 @@ def main():
    
     pc = Pinecone(api_key=api_key)
 
-    indexes = pc.list_indexes()
-    print(f'Found {len(indexes)} indexes.')
-    print(f'Indexes: {indexes}')
+    collections = pc.list_collections()
+    print(f'Found {len(indexes)} collections.')
+    print(f'Collections: {collections}')
 
-    for index in indexes:
-        print(f'Deleting index {index.name}...')
-        pc.delete_index(index.name)
+    for collection in collections:
+        print(f'Deleting collection {collection.name}...')
+        pc.delete_collection(collection.name)
 
 
 if __name__ == '__main__':
