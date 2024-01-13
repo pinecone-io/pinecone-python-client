@@ -363,28 +363,6 @@ class TestRestIndex:
             pinecone.QueryRequest(top_k=10, vector=self.vals1, filter=self.filter1, namespace="ns")
         )
 
-    def test_query_byTuplesNoFilter_queryVectorsNoFilter(self, mocker):
-        mocker.patch.object(self.index._vector_api, "query", autospec=True)
-        self.index.query(top_k=10, queries=[(self.vals1,), (self.vals2,)])
-        self.index._vector_api.query.assert_called_once_with(
-            pinecone.QueryRequest(
-                top_k=10, queries=[pinecone.QueryVector(values=self.vals1), pinecone.QueryVector(values=self.vals2)]
-            )
-        )
-
-    def test_query_byTuplesWithFilter_queryVectorsWithFilter(self, mocker):
-        mocker.patch.object(self.index._vector_api, "query", autospec=True)
-        self.index.query(top_k=10, queries=[(self.vals1, self.filter1), (self.vals2, self.filter2)])
-        self.index._vector_api.query.assert_called_once_with(
-            pinecone.QueryRequest(
-                top_k=10,
-                queries=[
-                    pinecone.QueryVector(values=self.vals1, filter=self.filter1),
-                    pinecone.QueryVector(values=self.vals2, filter=self.filter2),
-                ],
-            )
-        )
-
     def test_query_byVecId_queryByVecId(self, mocker):
         mocker.patch.object(self.index._vector_api, "query", autospec=True)
         self.index.query(top_k=10, id="vec1", include_metadata=True, include_values=False)

@@ -1,7 +1,5 @@
 import logging
-import numbers
-from typing import Optional, Dict, Iterable, Union, List, Tuple, Any, TypedDict, cast
-from collections.abc import Mapping
+from typing import Optional, Dict, Union, List, Tuple, Any, TypedDict, cast
 
 from google.protobuf import json_format
 
@@ -31,7 +29,6 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
 )
 from pinecone import Vector as NonGRPCVector
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
-from pinecone.utils import fix_tuple_length
 from .base import GRPCIndexBase
 from .future import PineconeGrpcFuture
 
@@ -293,7 +290,6 @@ class GRPCIndex(GRPCIndexBase):
         self,
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
-        queries: Optional[Union[List[GRPCQueryVector], List[Tuple]]] = None,
         namespace: Optional[str] = None,
         top_k: Optional[int] = None,
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
@@ -323,9 +319,6 @@ class GRPCIndex(GRPCIndexBase):
             id (str): The unique ID of the vector to be used as a query vector.
                       Each `query()` request can contain only one of the parameters
                       `queries`, `vector`, or  `id`.. [optional]
-            queries ([GRPCQueryVector]): DEPRECATED. The query vectors.
-                                     Each `query()` request can contain only one of the parameters
-                                     `queries`, `vector`, or  `id`.. [optional]
             top_k (int): The number of results to return for each query. Must be an integer greater than 1.
             namespace (str): The namespace to fetch vectors from.
                              If not specified, the default namespace is used. [optional]
@@ -344,18 +337,7 @@ class GRPCIndex(GRPCIndexBase):
                  and namespace name.
         """
 
-        def _query_transform(item):
-            if isinstance(item, GRPCQueryVector):
-                return item
-            if isinstance(item, tuple):
-                values, filter = fix_tuple_length(item, 2)
-                filter = dict_to_proto_struct(filter)
-                return GRPCQueryVector(values=values, filter=filter)
-            if isinstance(item, Iterable):
-                return GRPCQueryVector(values=item)
-            raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")
-
-        queries = list(map(_query_transform, queries)) if queries is not None else None
+        queries = None
 
         if filter is not None:
             filter_struct = dict_to_proto_struct(filter)
@@ -382,8 +364,7 @@ class GRPCIndex(GRPCIndexBase):
         timeout = kwargs.pop("timeout", None)
         response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
-        unary_query = True if vector is not None or id else False
-        return parse_query_response(json_response, unary_query, _check_type=False)
+        return parse_query_response(json_response, _check_type=False)
 
     def update(
         self,
