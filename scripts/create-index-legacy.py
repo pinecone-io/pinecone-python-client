@@ -55,7 +55,7 @@ def main():
     print(f'Done upserting.')
 
     print(f'Beginning query of index {index_name}...')
-    index.query(vector=random_embedding_values(dimension))
+    index.query(vector=random_embedding_values(dimension), top_k=10)
     print(f'Done querying.')
 
 if __name__ == '__main__':
