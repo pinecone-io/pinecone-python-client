@@ -40,7 +40,7 @@ runs:
     - name: Create index
       id: create-index
       shell: bash
-      run: ./python3 scripts/create-index-legacy.py
+      run: python3 scripts/create-index-legacy.py
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         PINECONE_ENVIRONMENT: ${{ inputs.PINECONE_ENVIRONMENT }}
