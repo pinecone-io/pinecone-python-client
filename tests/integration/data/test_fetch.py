@@ -16,6 +16,11 @@ class TestFetch:
 
         results = idx.fetch(ids=['1', '2', '4'], namespace=target_namespace)
         assert isinstance(results, FetchResponse) == True
+
+        assert results.usage != None
+        assert results.usage['read_units'] != None
+        assert results.usage['read_units'] > 0
+
         assert results.namespace == target_namespace
         assert len(results.vectors) == 3
         assert results.vectors['1'].id == '1'

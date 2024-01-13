@@ -44,4 +44,5 @@ from pinecone.core.client.model.sparse_values import SparseValues
 from pinecone.core.client.model.update_request import UpdateRequest
 from pinecone.core.client.model.upsert_request import UpsertRequest
 from pinecone.core.client.model.upsert_response import UpsertResponse
+from pinecone.core.client.model.usage import Usage
 from pinecone.core.client.model.vector import Vector

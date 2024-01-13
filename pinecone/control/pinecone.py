@@ -5,7 +5,7 @@ from .index_host_store import IndexHostStore
 
 from pinecone.config import PineconeConfig, Config
 
-from pinecone.core.client.api.manage_pod_indexes_api import ManagePodIndexesApi as IndexOperationsApi
+from pinecone.core.client.api.manage_indexes_api import ManageIndexesApi as IndexOperationsApi
 from pinecone.core.client.api_client import ApiClient
 from pinecone.utils import get_user_agent
 from pinecone.core.client.models import (
