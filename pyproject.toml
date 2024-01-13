@@ -51,6 +51,10 @@ python = ">=3.8,<3.13"
 typing-extensions = ">=3.7.4"
 urllib3 = ">=1.26.0"
 tqdm = ">=4.64.1"
+# certifi does not follow semver. Should always be 
+# on latest but setting a broad range to have maximum
+# compatibility with libraries that may pin version.
+certifi = ">=2019.11.17"
 grpcio = { version = ">=1.44.0", optional = true }
 grpc-gateway-protoc-gen-openapiv2 = { version = "0.1.0", optional = true }
 googleapis-common-protos = { version = ">=1.53.0", optional = true }
