@@ -2,29 +2,21 @@ import uuid
 
 from google.protobuf.struct_pb2 import Struct
 
+def _generate_request_id() -> str:
+    return str(uuid.uuid4())
+
 from pinecone.core.client.models import (
     Vector as _Vector,
     Usage,
     ScoredVector,
     SparseValues,
     FetchResponse,
-    SingleQueryResults,
     QueryResponse,
     DescribeIndexStatsResponse,
     NamespaceSummary,
 )
 
-from typing import NamedTuple, Optional
-
-class QueryResponseKwargs(NamedTuple):
-    check_type: bool
-    namespace: Optional[str]
-    matches: Optional[list]
-    results: Optional[list]
-    usage: Usage
-
-def _generate_request_id() -> str:
-    return str(uuid.uuid4())
+from typing import Optional
 
 def dict_to_proto_struct(d: Optional[dict]) -> "Struct":
     if not d:
@@ -54,13 +46,11 @@ def parse_fetch_response(response: dict):
             metadata=vec.get("metadata", None),
             _check_type=False,
         )
-
-    usage = parse_usage(response)
     
     return FetchResponse(
         vectors=vd, 
         namespace=namespace,
-        usage=usage,
+        usage=parse_usage(response),
         _check_type=False
     )
 
@@ -69,26 +59,8 @@ def parse_usage(response):
     return Usage(read_units=int(u.get("readUnits", 0)))
 
 
-def parse_query_response(response: dict, unary_query: bool, _check_type: bool = False):
-    res = []
-
-    # TODO: consider deleting this deprecated case
-    for match in response.get("results", []):
-        namespace = match.get("namespace", "")
-        m = []
-        if "matches" in match:
-            for item in match["matches"]:
-                sc = ScoredVector(
-                    id=item["id"],
-                    score=item.get("score", 0.0),
-                    values=item.get("values", []),
-                    sparse_values=parse_sparse_values(item.get("sparseValues")),
-                    metadata=item.get("metadata", None),
-                )
-                m.append(sc)
-        res.append(SingleQueryResults(matches=m, namespace=namespace))
-
-    m = []
+def parse_query_response(response: dict, _check_type: bool = False):
+    matches = []
     for item in response.get("matches", []):
         sc = ScoredVector(
             id=item["id"],
@@ -98,24 +70,14 @@ def parse_query_response(response: dict, unary_query: bool, _check_type: bool = 
             metadata=item.get("metadata", None),
             _check_type=_check_type,
         )
-        m.append(sc)
+        matches.append(sc)
 
-    if unary_query:
-        namespace = response.get("namespace", "")
-        matches = m
-        results = []
-    else:
-        namespace = ""
-        matches = []
-        results = res
-
-    usage = parse_usage(response)
-
-
-    kw = QueryResponseKwargs(_check_type, namespace, matches, results, usage)
-    kw_dict = kw._asdict()
-    kw_dict["_check_type"] = kw.check_type
-    return QueryResponse(**kw._asdict())
+    return QueryResponse(
+        namespace=response.get("namespace", ""), 
+        matches=matches,
+        usage = parse_usage(response),
+        _check_type=_check_type
+    )
 
 
 def parse_stats_response(response: dict):

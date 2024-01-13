@@ -20,7 +20,6 @@ from ..data import (
 
 from pinecone.core.grpc.protos.vector_service_pb2 import (
     Vector as GRPCVector,
-    QueryVector as GRPCQueryVector,
     SparseValues as GRPCSparseValues,
 )
 from pinecone import (
