@@ -15,17 +15,17 @@ jobs:
           - migration-testing-index
         env:
           - asia-southeast1-gcp
-        #   - asia-northeast1-gcp
-        #   - eu-west1-gcp
-        #   - eu-west4-gcp
-        #   - northamerica-northeast1-gcp
-        #   - us-central1-gcp
-        #   - us-east1-gcp
-        #   - us-east4-gcp
-        #   - us-west1-gcp
-        #   - us-west4-gcp
-        #   - eastus-azure
-        #   - us-east-1-aws
+          - asia-northeast1-gcp
+          - eu-west1-gcp
+          - eu-west4-gcp
+          - northamerica-northeast1-gcp
+          - us-central1-gcp
+          - us-east1-gcp
+          - us-east4-gcp
+          - us-west1-gcp
+          - us-west4-gcp
+          - eastus-azure
+          - us-east-1-aws
 
         # - gcp-starter
         # - asia-southeast1-gcp-free
