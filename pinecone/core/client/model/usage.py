@@ -134,7 +134,7 @@ class Usage(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            read_units (str): The number of read units consumed by this operation.. [optional]  # noqa: E501
+            read_units (int): The number of read units consumed by this operation.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -216,7 +216,7 @@ class Usage(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            read_units (str): The number of read units consumed by this operation.. [optional]  # noqa: E501
+            read_units (int): The number of read units consumed by this operation.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
