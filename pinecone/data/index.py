@@ -11,7 +11,6 @@ from pinecone.core.client.models import (
     FetchResponse,
     QueryRequest,
     QueryResponse,
-    QueryVector,
     RpcStatus,
     ScoredVector,
     SingleQueryResults,
@@ -33,7 +32,6 @@ __all__ = [
     "FetchResponse",
     "QueryRequest",
     "QueryResponse",
-    "QueryVector",
     "RpcStatus",
     "ScoredVector",
     "SingleQueryResults",
@@ -60,12 +58,8 @@ _OPENAPI_ENDPOINT_PARAMS = (
     "async_req",
 )
 
-def parse_query_response(response: QueryResponse, unary_query: bool):
-    if unary_query:
-        response._data_store.pop("results", None)
-    else:
-        response._data_store.pop("matches", None)
-        response._data_store.pop("namespace", None)
+def parse_query_response(response: QueryResponse):
+    response._data_store.pop("results", None)
     return response
 
 class Index():
@@ -324,7 +318,6 @@ class Index():
         top_k: int,
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
-        queries: Optional[Union[List[QueryVector], List[Tuple]]] = None,
         namespace: Optional[str] = None,
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
@@ -351,13 +344,10 @@ class Index():
         Args:
             vector (List[float]): The query vector. This should be the same length as the dimension of the index
                                   being queried. Each `query()` request can contain only one of the parameters
-                                  `queries`, `id` or `vector`.. [optional]
+                                  `id` or `vector`.. [optional]
             id (str): The unique ID of the vector to be used as a query vector.
                       Each `query()` request can contain only one of the parameters
-                      `queries`, `vector`, or  `id`.. [optional]
-            queries ([QueryVector]): DEPRECATED. The query vectors.
-                                     Each `query()` request can contain only one of the parameters
-                                     `queries`, `vector`, or  `id`.. [optional]
+                      `vector` or  `id`. [optional]
             top_k (int): The number of results to return for each query. Must be an integer greater than 1.
             namespace (str): The namespace to fetch vectors from.
                              If not specified, the default namespace is used. [optional]
@@ -371,35 +361,19 @@ class Index():
             sparse_vector: (Union[SparseValues, Dict[str, Union[List[float], List[int]]]]): sparse values of the query vector.
                             Expected to be either a SparseValues object or a dict of the form:
                              {'indices': List[int], 'values': List[float]}, where the lists each have the same length.
-        Keyword Args:
-            Supports OpenAPI client keyword arguments. See pinecone.core.client.models.QueryRequest for more details.
-
+        
         Returns: QueryResponse object which contains the list of the closest vectors as ScoredVector objects,
                  and namespace name.
         """
 
-        def _query_transform(item):
-            if isinstance(item, QueryVector):
-                return item
-            if isinstance(item, tuple):
-                values, filter = fix_tuple_length(item, 2)
-                if filter is None:
-                    return QueryVector(values=values, _check_type=_check_type)
-                else:
-                    return QueryVector(values=values, filter=filter, _check_type=_check_type)
-            if isinstance(item, Iterable):
-                return QueryVector(values=item, _check_type=_check_type)
-            raise ValueError(f"Invalid query vector value passed: cannot interpret type {type(item)}")
-
         _check_type = kwargs.pop("_check_type", False)
-        queries = list(map(_query_transform, queries)) if queries is not None else None
 
         sparse_vector = self._parse_sparse_values_arg(sparse_vector)
         args_dict = self._parse_non_empty_args(
             [
                 ("vector", vector),
                 ("id", id),
-                ("queries", queries),
+                ("queries", None),
                 ("top_k", top_k),
                 ("namespace", namespace),
                 ("filter", filter),
@@ -416,8 +390,7 @@ class Index():
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
         )
-        unary_query = True if vector is not None or id else False
-        return parse_query_response(response, unary_query)
+        return parse_query_response(response)
 
     @validate_and_convert_errors
     def update(
