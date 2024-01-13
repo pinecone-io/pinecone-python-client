@@ -8,6 +8,9 @@ on:
   workflow_dispatch: {}
 
 jobs:
+  migration-testing:
+    uses: './.github/workflows/testing-migration.yaml'
+    secrets: inherit
   unit-tests:
     uses: './.github/workflows/testing-unit.yaml'
     secrets: inherit

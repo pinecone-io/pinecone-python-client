@@ -15,6 +15,9 @@ def main():
     pc = Pinecone(api_key=api_key)
 
     indexes = pc.list_indexes()
+    print(f'Found {len(indexes)} indexes.')
+    print(f'Indexes: {indexes}')
+
     for index in indexes:
         print(f'Deleting index {index.name}...')
         pc.delete_index(index.name)
