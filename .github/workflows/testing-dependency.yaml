@@ -1,0 +1,142 @@
+name: Dependency Testing
+
+on:
+  workflow_call: {}
+
+jobs:
+  dependency-matrix-setup:
+    name: Deps setup
+    runs-on: ubuntu-latest
+    outputs:
+      index_name: ${{ steps.setup-index.outputs.index_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create index
+        id: setup-index
+        uses: ./.github/actions/create-index
+        timeout-minutes: 5
+        with:
+          name_prefix: depstest-${{ github.run_number }}
+          dimension: 2
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+
+  dependency-matrix-grpc:
+    name: Deps (GRPC)
+    needs: dependency-matrix-setup
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 5
+      fail-fast: false
+      matrix:
+        python-version:
+          - 3.8
+          # - 3.9
+          # - "3.10"
+          # - 3.11
+        grpcio-version:
+          - 1.44.0
+          # - 1.46.5
+          # - 1.47.5
+          # - 1.48.2
+          # - 1.49.1
+          - 1.50.0
+          # - 1.51.3
+          # - 1.53.2
+          # - 1.54.3
+          # - 1.55.3
+          - 1.56.2
+          # - 1.57.0
+          # - 1.58.0
+          # - 1.59.3
+          - 1.60.0
+        lz4-version:
+          - 3.1.3
+          # - 3.1.10
+          - 4.0.0
+          # - 4.0.1
+          # - 4.1.0
+          - 4.3.3
+        protobuf-version:
+          - 3.20.3
+        googleapis-common-protos-version:
+          - 1.53.0
+          - 1.62.0
+        grpc-gateway-protoc-gen-openapiv2-version:
+          - 0.1.0
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+        with:
+          include_grpc: true
+          include_types: false
+      - name: Install grpcio ${{ matrix.grpcio-version }}
+        run: poetry add grpcio==${{ matrix.grpcio-version }}
+      - name: Install lz4 ${{ matrix.lz4-version }}
+        run: poetry add lz4==${{ matrix.lz4-version }}
+      - name: Install protobuf ${{ matrix.protobuf-version }}
+        run: poetry add protobuf==${{ matrix.protobuf-version }}
+      - name: Install googleapis-common-protos ${{ matrix.googleapis-common-protos-version }}
+        run: poetry add googleapis-common-protos==${{ matrix.googleapis-common-protos-version }}
+
+      - uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_on: error
+          command: poetry run pytest tests/dependency/grpc -s -v
+        env:
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          INDEX_NAME: ${{ needs.dependency-matrix-setup.outputs.index_name }}  
+
+
+
+
+  dependency-matrix-rest:
+    name: Deps (REST)
+    runs-on: ubuntu-latest
+    needs: dependency-matrix-setup
+    strategy:
+      max-parallel: 5
+      fail-fast: false
+      matrix:
+        python-version:
+          - 3.8
+          - 3.9
+          - '3.10'
+          - 3.11
+        urllib3-version:
+          - 1.26.0
+          - 1.26.18
+          - 2.0.2
+          - 2.0.5
+          - 2.1.0
+    steps:
+      - uses: actions/checkout@v4
+      - name: 'Set up Python ${{ matrix.python-version }}'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '${{ matrix.python-version }}'
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+        with:
+          include_grpc: false
+          include_types: false
+      - name: 'Install urllib3 ${{ matrix.urllib3-version }}'
+        run: 'poetry add urllib3==${{ matrix.urllib3-version }}'
+      - uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_on: error
+          command: poetry run pytest tests/dependency/rest -s -v
+        env:
+          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+          INDEX_NAME: '${{ needs.dependency-matrix-setup.outputs.index_name }}'

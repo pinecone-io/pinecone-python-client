@@ -1,0 +1,47 @@
+name: 'Migration testing'
+
+on:
+  workflow_dispatch: {}
+
+
+jobs:
+  create-index-legacy-paid:
+    name: Create index
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        env:
+          - asia-southeast1-gcp
+        #   - asia-northeast1-gcp
+        #   - eu-west1-gcp
+        #   - eu-west4-gcp
+        #   - northamerica-northeast1-gcp
+        #   - us-central1-gcp
+        #   - us-east1-gcp
+        #   - us-east4-gcp
+        #   - us-west1-gcp
+        #   - us-west4-gcp
+        #   - eastus-azure
+        #   - us-east-1-aws
+
+        # - gcp-starter
+        # - asia-southeast1-gcp-free
+        # - us-west1-gcp-free
+        # - us-west4-gcp-free
+
+          
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create on legacy control plane
+        id: create-legacy
+        uses: ./.github/actions/create-index-legacy
+        with:
+          PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
+          PINECONE_ENVIRONMENT: ${{ matrix.env }}
+          pinecone_client_version: 2.2.4
+          index_name: migration-testing-index
+          dimension: 1536
+          metric: cosine

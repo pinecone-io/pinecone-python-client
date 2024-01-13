@@ -1,0 +1,49 @@
+name: 'Create Index (Legacy / Regional Control Plane)'
+description: 'Creates an index to be used in other tests'
+
+inputs:
+  pinecone_client_version:
+    description: 'The version of the Pinecone client to use'
+    required: false
+    default: '2.2.4'
+  index_name:
+    description: 'The name of the index'
+    required: true
+  dimension:
+    description: 'The dimension of the index'
+    required: false
+    default: '1536'
+  metric:
+    description: 'The metric of the index'
+    required: false
+    default: 'cosine'
+  PINECONE_ENVIRONMENT:
+    description: 'The environment of the index'
+    required: true
+  PINECONE_API_KEY:
+    description: 'The Pinecone API key'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Install pinecone-client
+      shell: bash
+      run: |
+        pip install pinecone-client==${{ inputs.pinecone_client_version }}
+    
+    - name: Create index
+      id: create-index
+      shell: bash
+      run: ./python3 scripts/create-index-legacy.py
+      env:
+        PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
+        PINECONE_ENVIRONMENT: ${{ inputs.PINECONE_ENVIRONMENT }}
+        INDEX_NAME: ${{ inputs.index_name }}
+        DIMENSION: ${{ inputs.dimension }}
+        METRIC: ${{ inputs.metric }

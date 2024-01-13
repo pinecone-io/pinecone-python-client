@@ -6,11 +6,21 @@ on:
     - cron: '0 0 * * *'
 
 jobs:
-  run-tests:
-    uses: './.github/workflows/testing.yaml'
+  unit-tests:
+    uses: './.github/workflows/testing-unit.yaml'
+    secrets: inherit
+  integration-tests:
+      uses: './.github/workflows/testing-integration.yaml'
+      secrets: inherit
+  dependency-tests:
+    uses: './.github/workflows/testing-dependency.yaml'
+    secrets: inherit
 
   pypi-nightly:
-    needs: run-tests
+    needs: 
+      - unit-tests
+      - integration-tests
+      - dependency-tests
     timeout-minutes: 30
     name: pypi-nightly
     runs-on: ubuntu-latest
@@ -58,6 +68,6 @@ jobs:
         id: pypi_upload
         env:
           TWINE_REPOSITORY: pypi
-          PYPI_USERNAME: ${{ secrets.PROD_PYPI_USERNAME }}
-          PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PASSWORD }}
+          PYPI_USERNAME: __token__
+          PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PUBLISH_TOKEN }}
         run: make upload

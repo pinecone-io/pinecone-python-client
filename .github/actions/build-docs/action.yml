@@ -15,6 +15,8 @@ runs:
 
     - name: Setup Poetry
       uses: ./.github/actions/setup-poetry
+      with:
+        include_grpc: 'true'
 
     - name: Build html documentation
       shell: bash

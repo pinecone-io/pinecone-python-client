@@ -1,26 +1,19 @@
 """
 .. include:: ../README.md
 """
-from pinecone.core.utils.constants import CLIENT_VERSION as __version__
+import warnings
+from tqdm import TqdmExperimentalWarning
+
+warnings.filterwarnings("ignore", category=TqdmExperimentalWarning)
+
 from .config import *
 from .exceptions import *
-from .info import *
-from .manage import *
-from .index import *
+from .control import *
+from .data import *
+from .models import *
 
-try:
-    from .core.grpc.index_grpc import *
-except ImportError:
-    pass  # ignore for non-[grpc] installations
+from .core.client.models import (
+    IndexModel,
+)
 
-# Kept for backwards-compatibility
-UpsertResult = None
-"""@private"""
-DeleteResult = None
-"""@private"""
-QueryResult = None
-"""@private"""
-FetchResult = None
-"""@private"""
-InfoResult = None
-"""@private"""
+from .utils import __version__
