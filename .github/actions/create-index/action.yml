@@ -1,0 +1,55 @@
+name: 'Create Index'
+description: 'Creates an index to be used in other tests'
+
+inputs:
+  region:
+    description: 'The region of the index'
+    required: false
+    default: 'us-west-2'
+  cloud:
+    description: 'The cloud of the index'
+    required: false
+    default: 'aws'
+  name_prefix:
+    description: 'The prefix of the index name'
+    required: false
+    default: 'index-name'
+  dimension:
+    description: 'The dimension of the index'
+    required: false
+    default: '3'
+  metric:
+    description: 'The metric of the index'
+    required: false
+    default: 'cosine'
+  PINECONE_API_KEY:
+    description: 'The Pinecone API key'
+    required: true
+
+outputs:
+  index_name:
+    description: 'The name of the index, including randomized suffix'
+    value: ${{ steps.create-index.outputs.index_name }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Setup Poetry
+      uses: ./.github/actions/setup-poetry
+
+    - name: Create index
+      id: create-index
+      shell: bash
+      run: poetry run python3 scripts/create.py
+      env:
+        PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
+        NAME_PREFIX: ${{ inputs.name_prefix }}
+        REGION: ${{ inputs.region }}
+        CLOUD: ${{ inputs.cloud }}
+        DIMENSION: ${{ inputs.dimension }}
+        METRIC: ${{ inputs.metric }}

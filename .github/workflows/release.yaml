@@ -18,17 +18,23 @@ on:
           - 'minor' # new features, backwards compatible
           - 'major' # breaking changes
 
-env:
-  PYPI_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
-  PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
-
 jobs:
-  testing:
-    uses: './.github/workflows/testing.yaml'
+  unit-tests:
+    uses: './.github/workflows/testing-unit.yaml'
+    secrets: inherit
+  integration-tests:
+      uses: './.github/workflows/testing-integration.yaml'
+      secrets: inherit
+  dependency-tests:
+    uses: './.github/workflows/testing-dependency.yaml'
+    secrets: inherit
 
   pypi:
     uses: './.github/workflows/publish-to-pypi.yaml'
-    needs: testing
+    needs: 
+      - unit-tests
+      - integration-tests
+      - dependency-tests
     with:
       isPrerelease: false
       ref: ${{ inputs.ref }}
@@ -36,5 +42,5 @@ jobs:
       TWINE_REPOSITORY: 'pypi'
       prereleaseSuffix: ''
     secrets:
-      PYPI_USERNAME: ${{ secrets.PROD_PYPI_USERNAME }}
-      PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PASSWORD }}
+      PYPI_USERNAME: __token__
+      PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PUBLISH_TOKEN }}

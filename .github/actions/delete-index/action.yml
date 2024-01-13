@@ -1,0 +1,29 @@
+name: 'Delete Index'
+description: 'Deletes an index to be used in other tests'
+
+inputs:
+  index_name:
+    description: 'The name of the index to delete'
+    required: true
+  PINECONE_API_KEY:
+    description: 'The Pinecone API key'
+    required: true
+
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Setup Poetry
+      uses: ./.github/actions/setup-poetry
+
+    - name: Delete index
+      shell: bash
+      run: poetry run python3 scripts/delete.py
+      env:
+        PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
+        INDEX_NAME: ${{ inputs.index_name }}

@@ -28,20 +28,36 @@ pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git@e
 pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git@259deff
 ```
 
-## Creating an index
+## Create a client
+The following example creates an authenticated client.
+
+```python
+import os
+from pinecone import Pinecone
+
+pc = Pinecone(api_key=os.environ.get('PINECONE_API_KEY'))
+```
+To use gRPC for interacting with an index, instantiate with `PineconeGRPC` 
+```python
+import os
+from pinecone.grpc import PineconeGRPC
+
+pc = PineconeGRPC(api_key=os.environ.get('PINECONE_API_KEY'))
+# Functionality matches non-gRPC client
+index = pc.Index('index-name')
+```
+
+## Create an index
 
 The following example creates an index without a metadata
 configuration. By default, Pinecone indexes all metadata.
 
 ```python
+from pinecone import Pinecone, PodSpec
 
-import pinecone
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+pc.create_index("example-index", dimension=1536, metric="cosine", spec=PodSpec(environment='us-west-2', pod_type='p1.x1'))
 
-
-pinecone.init(api_key="YOUR_API_KEY",
-              environment="us-west1-gcp")
-
-pinecone.create_index("example-index", dimension=1024)
 ```
 
 The following example creates an index that only indexes
@@ -49,12 +65,18 @@ the "color" metadata field. Queries against this index
 cannot filter based on any other metadata field.
 
 ```python
+from pinecone import Pinecone, PodSpec
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+
 metadata_config = {
     "indexed": ["color"]
 }
 
-pinecone.create_index("example-index-2", dimension=1024,
-                      metadata_config=metadata_config)
+pc.create_index(
+    "example-index-2",
+    dimension=1536,
+    spec=PodSpec(environment='us-west-2', pod_type='p1.x1', metadata_config=metadata_config)
+)
 ```
 
 ## List indexes
@@ -62,11 +84,11 @@ pinecone.create_index("example-index-2", dimension=1024,
 The following example returns all indexes in your project.
 
 ```python
-import pinecone
+from pinecone import Pinecone
 
-pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
-
-active_indexes = pinecone.list_indexes()
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+for index in pc.list_indexes():
+    print(index['name'])
 ```
 
 ## Describe index
@@ -74,12 +96,11 @@ active_indexes = pinecone.list_indexes()
 The following example returns information about the index `example-index`.
 
 ```python
-import pinecone
+from pinecone import Pinecone
 
-pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
 
-index_description = pinecone.describe_index("example-index")
-
+index_description = pc.describe_index("example-index")
 ```
 
 ## Delete an index
@@ -87,11 +108,11 @@ index_description = pinecone.describe_index("example-index")
 The following example deletes `example-index`.
 
 ```python
-import pinecone
+from pinecone import Pinecone
 
-pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
 
-pinecone.delete_index("example-index")
+pc.delete_index("example-index")
 ```
 
 ## Scale replicas
@@ -99,12 +120,12 @@ pinecone.delete_index("example-index")
 The following example changes the number of replicas for `example-index`.
 
 ```python
-import pinecone
+from pinecone import Pinecone
 
-pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
 
 new_number_of_replicas = 4
-pinecone.configure_index("example-index", replicas=new_number_of_replicas)
+pc.configure_index("example-index", replicas=new_number_of_replicas)
 ```
 
 ## Describe index statistics
@@ -112,10 +133,10 @@ pinecone.configure_index("example-index", replicas=new_number_of_replicas)
 The following example returns statistics about the index `example-index`.
 
 ```python
-import pinecone
+from pinecone import Pinecone
 
-pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
-index = pinecone.Index("example-index")
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+index = pc.Index("example-index")
 
 index_stats_response = index.describe_index_stats()
 ```
@@ -126,10 +147,10 @@ index_stats_response = index.describe_index_stats()
 The following example upserts vectors to `example-index`.
 
 ```python
-import pinecone
+from pinecone import Pinecone
 
-pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
-index = pinecone.Index("example-index")
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+index = pc.Index("example-index")
 
 upsert_response = index.upsert(
     vectors=[
@@ -146,10 +167,10 @@ The following example queries the index `example-index` with metadata
 filtering.
 
 ```python
-import pinecone
+from pinecone import Pinecone
 
-pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
-index = pinecone.Index("example-index")
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+index = pc.Index("example-index")
 
 query_response = index.query(
     namespace="example-namespace",
@@ -168,10 +189,10 @@ query_response = index.query(
 The following example deletes vectors by ID.
 
 ```python
-import pinecone
+from pinecone import Pinecone
 
-pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
-index = pinecone.Index("example-index")
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+index = pc.Index("example-index")
 
 delete_response = index.delete(ids=["vec1", "vec2"], namespace="example-namespace")
 ```
@@ -181,24 +202,23 @@ delete_response = index.delete(ids=["vec1", "vec2"], namespace="example-namespac
 The following example fetches vectors by ID.
 
 ```python
-import pinecone
+from pinecone import Pinecone
 
-pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
-index = pinecone.Index("example-index")
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+index = pc.Index("example-index")
 
 fetch_response = index.fetch(ids=["vec1", "vec2"], namespace="example-namespace")
 ```
-
 
 ## Update vectors
 
 The following example updates vectors by ID.
 
 ```python
-import pinecone
+from pinecone import Pinecone
 
-pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
-index = pinecone.Index("example-index")
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+index = pc.Index("example-index")
 
 update_response = index.update(
     id="vec1",
@@ -214,12 +234,11 @@ The following example creates the collection `example-collection` from
 `example-index`.
 
 ```python
-import pinecone
+from pinecone import Pinecone
 
-pinecone.init(api_key="YOUR_API_KEY",
-              environment="us-west1-gcp")
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
 
-pinecone.create_collection("example-collection", "example-index")
+pc.create_collection("example-collection", "example-index")
 ```
 
 ## List collections
@@ -227,11 +246,11 @@ pinecone.create_collection("example-collection", "example-index")
 The following example returns a list of the collections in the current project.
 
 ```python
-import pinecone
+from pinecone import Pinecone
 
-pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
 
-active_collections = pinecone.list_collections()
+active_collections = pc.list_collections()
 ```
 
 ## Describe a collection
@@ -240,11 +259,11 @@ The following example returns a description of the collection
 `example-collection`.
 
 ```python
-import pinecone
+from pinecone import Pinecone
 
-pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
 
-collection_description = pinecone.describe_collection("example-collection")
+collection_description = pc.describe_collection("example-collection")
 ```
 
 ## Delete a collection
@@ -252,11 +271,11 @@ collection_description = pinecone.describe_collection("example-collection")
 The following example deletes the collection `example-collection`.
 
 ```python
-import pinecone
+from pinecone import Pinecone
 
-pinecone.init(api_key="YOUR_API_KEY", environment="us-west1-gcp")
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
 
-pinecone.delete_collection("example-collection")
+pc.delete_collection("example-collection")
 ```
 
 # Contributing 

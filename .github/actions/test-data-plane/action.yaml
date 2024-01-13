@@ -1,0 +1,57 @@
+name: 'Test Data Plane'
+description: 'Runs tests on the Pinecone data plane'
+
+# - pod vs serverless
+# - grpc vs rest
+# - metric -> vector vs sparse vector
+# - namespace: default vs custom
+# - environment: free vs paid
+# - with metadata vs without metadata
+
+inputs:
+  metric:
+    description: 'The metric of the index'
+    required: true
+  spec:
+    description: 'The deploy spec of the index'
+    required: true
+  use_grpc:
+    description: 'Whether to use gRPC or REST'
+    required: true
+  freshness_timeout_seconds:
+    description: 'The number of seconds to wait for the index to become fresh'
+    required: false
+    default: '60'
+  PINECONE_API_KEY:
+    description: 'The Pinecone API key'
+    required: true
+
+outputs:
+  index_name:
+    description: 'The name of the index, including randomized suffix'
+    value: ${{ steps.create-index.outputs.index_name }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Setup Poetry
+      uses: ./.github/actions/setup-poetry
+      with:
+        include_grpc: ${{ inputs.use_grpc }}
+        include_dev: 'true'
+
+    - name: Run data plane tests
+      id: data-plane-tests
+      shell: bash
+      run: poetry run pytest tests/integration/data
+      env:
+        PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
+        USE_GRPC: ${{ inputs.use_grpc }}
+        METRIC: ${{ inputs.metric }}
+        SPEC: ${{ inputs.spec }}
+        FRESHNESS_TIMEOUT_SECONDS: ${{ inputs.freshness_timeout_seconds }}

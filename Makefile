@@ -9,11 +9,16 @@ image:
 develop:
 	poetry install -E grpc
 
-tests:
-	@echo "Installing dependencies..."
-	poetry install
+test-unit:
 	@echo "Running tests..."
 	poetry run pytest --cov=pinecone --timeout=120 tests/unit
+
+test-grpc-unit:
+	@echo "Running tests..."
+	poetry run pytest --cov=pinecone --timeout=120 tests/unit_grpc
+
+make type-check:
+	poetry run mypy pinecone --exclude pinecone/core
 
 version:
 	poetry version

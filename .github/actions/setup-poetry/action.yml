@@ -1,5 +1,19 @@
 name: 'Setup Poetry'
 description: 'Installs Poetry and dependencies'
+inputs:
+  include_grpc:
+    description: 'Install gRPC dependencies'
+    required: true
+    default: 'false'
+  include_dev:
+    description: 'Install dev dependencies'
+    required: true
+    default: 'true'
+  include_types:
+    description: 'Install typing dependencies (mypy, type stubs, etc)'
+    required: true
+    default: 'true'
+
 runs:
   using: 'composite'
   steps:
@@ -8,14 +22,12 @@ runs:
 
     - name: Install dependencies
       shell: bash
+      env:
+        INCLUDE_GRPC: ${{ inputs.include_grpc }}
+        INCLUDE_DEV: ${{ inputs.include_dev }}
+        INCLUDE_TYPES: ${{ inputs.include_types }}
       run: |
-        poetry install
-
-    # We separate the gRPC dependencies from the REST client's install
-    # behavior, so we test installing the grpc dependencies here as well
-    # The dependencies that are specific to gRPC are defined in pyproject.toml
-    # under tool.poetry.extras
-    - name: Install gRPC dependencies
-      shell: bash
-      run: |
-        poetry install --extras "grpc"
+        GRPC_FLAG=$( [ "$INCLUDE_GRPC" = "true" ] && echo "--extras grpc" || echo "" )
+        DEV_FLAG=$( [ "$INCLUDE_DEV" = "false" ] && echo "--without dev" || echo "" )
+        TYPING_FLAG=$( [ "$INCLUDE_TYPES" = "true" ] && echo "--with types" || echo "" )
+        poetry install $DEV_FLAG $TYPING_FLAG $GRPC_FLAG

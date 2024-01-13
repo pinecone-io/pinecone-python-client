@@ -1,26 +1,31 @@
-from .core.exceptions import PineconeException, PineconeProtocolError
 from .core.client.exceptions import (
-    OpenApiException,
-    ApiAttributeError,
-    ApiTypeError,
-    ApiValueError,
-    ApiKeyError,
-    ApiException,
+    PineconeException,
+    PineconeApiAttributeError,
+    PineconeApiTypeError,
+    PineconeApiValueError,
+    PineconeApiKeyError,
+    PineconeApiException,
     NotFoundException,
     UnauthorizedException,
     ForbiddenException,
     ServiceException,
 )
 
+class PineconeProtocolError(PineconeException):
+    """Raised when something unexpected happens mid-request/response."""
+
+class PineconeConfigurationError(PineconeException):
+    """Raised when a configuration error occurs."""
+
 __all__ = [
-    "PineconeException",
+    "PineconeConfigurationError",
     "PineconeProtocolError",
-    "OpenApiException",
-    "ApiAttributeError",
-    "ApiTypeError",
-    "ApiValueError",
-    "ApiKeyError",
-    "ApiException",
+    "PineconeException",
+    "PineconeApiAttributeError",
+    "PineconeApiTypeError",
+    "PineconeApiValueError",
+    "PineconeApiKeyError",
+    "PineconeApiException",
     "NotFoundException",
     "UnauthorizedException",
     "ForbiddenException",
