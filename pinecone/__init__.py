@@ -1,6 +1,11 @@
 """
 .. include:: ../README.md
 """
+import warnings
+from tqdm import TqdmExperimentalWarning
+
+warnings.filterwarnings("ignore", category=TqdmExperimentalWarning)
+
 from .config import *
 from .exceptions import *
 from .control import *
