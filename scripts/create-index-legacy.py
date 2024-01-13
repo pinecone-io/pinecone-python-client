@@ -3,6 +3,7 @@ import string
 import os
 import pinecone
 import time
+import math
 
 def read_env_var(name):
     value = os.environ.get(name)
@@ -22,6 +23,7 @@ def main():
     index_name = read_env_var('INDEX_NAME')
     dimension = int(read_env_var('DIMENSION'))
     metric = read_env_var('METRIC')
+    vectors_to_upsert = int(read_env_var('VECTORS_TO_UPSERT'))
 
     print(f'Beginning test with environment {environment} and index {index_name}')
 
@@ -46,11 +48,13 @@ def main():
     description = pinecone.describe_index(index_name)
     print(f'Index description: {description}')
 
-    print(f'Beginning upsert of 1000 vectors to index {index_name}...')
+    print(f'Beginning upsert of {vectors_to_upsert} vectors to index {index_name}...')
+    batch_size = 10
+    num_batches = math.floor(vectors_to_upsert / batch_size)
     index = pinecone.Index(index_name)
-    for _ in range(100):
+    for _ in range(num_batches):
         vector = random_embedding_values(dimension)
-        vecs = [{'id': random_string(10), 'values': vector} for i in range(10)]
+        vecs = [{'id': random_string(10), 'values': vector} for i in range(batch_size)]
         index.upsert(vectors=vecs)
     print(f'Done upserting.')
 

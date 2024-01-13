@@ -17,6 +17,10 @@ inputs:
     description: 'The metric of the index'
     required: false
     default: 'cosine'
+  vectors_to_upsert:
+    description: 'The number of vectors to upsert'
+    required: false
+    default: '1000'
   PINECONE_ENVIRONMENT:
     description: 'The environment of the index'
     required: true
@@ -47,3 +51,4 @@ runs:
         INDEX_NAME: ${{ inputs.index_name }}
         DIMENSION: ${{ inputs.dimension }}
         METRIC: ${{ inputs.metric }}
+        VECTORS_TO_UPSERT: ${{ inputs.vectors_to_upsert }}
