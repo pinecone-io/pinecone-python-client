@@ -8,7 +8,7 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  migration-testing:
+  migration-tests:
     uses: './.github/workflows/testing-migration.yaml'
     secrets: inherit
   unit-tests:
