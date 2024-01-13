@@ -60,7 +60,7 @@ def parse_fetch_response(response: dict):
     return FetchResponse(
         vectors=vd, 
         namespace=namespace,
-        usage=u,
+        usage=usage,
         _check_type=False
     )
 
