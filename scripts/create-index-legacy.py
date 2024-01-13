@@ -37,12 +37,11 @@ def main():
             dimension=dimension,
             metric=metric
         )
+        print(f'Waiting for index {index_name} to be ready...')
+        time.sleep(60)
+        print(f'Done waiting.')
     else:
         print(f'Index {index_name} already exists. Skipping create.')
-
-    print(f'Waiting for index {index_name} to be ready...')
-    time.sleep(60)
-    print(f'Done waiting.')
 
     description = pinecone.describe_index(index_name)
     print(f'Index description: {description}')
