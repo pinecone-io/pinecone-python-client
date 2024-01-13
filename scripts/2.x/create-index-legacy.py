@@ -11,19 +11,26 @@ def read_env_var(name):
         raise Exception('Environment variable {} is not set'.format(name))
     return value
 
+def random_string(length):
+    return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
+
 def random_embedding_values(dimension=2):
     return [random.random() for _ in range(dimension)]
 
-def random_string(length):
-    return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
+def write_gh_output(name, value):
+    with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+        print(f'{name}={value}', file=fh)
 
 def main():
     api_key = read_env_var('PINECONE_API_KEY')
     environment = read_env_var('PINECONE_ENVIRONMENT')
-    index_name = read_env_var('INDEX_NAME')
+    index_name_prefix = read_env_var('INDEX_NAME_PREFIX')
     dimension = int(read_env_var('DIMENSION'))
     metric = read_env_var('METRIC')
     vectors_to_upsert = int(read_env_var('VECTORS_TO_UPSERT'))
+
+    index_name = index_name_prefix + random_string(10)
+    write_gh_output('index_name', index_name)
 
     print(f'Beginning test with environment {environment} and index {index_name}')
 
