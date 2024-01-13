@@ -30,15 +30,15 @@ def main():
         environment=environment
     )
 
-    if index_name in pinecone.list_indexes():
-        print(f'Index {index_name} already exists')
-        pinecone.delete_index(index_name)
-    
-    pinecone.create_index(
-        name=index_name,
-        dimension=dimension,
-        metric=metric
-    )
+    if index_name not in pinecone.list_indexes():
+        print(f'Creating index {index_name}...')
+        pinecone.create_index(
+            name=index_name,
+            dimension=dimension,
+            metric=metric
+        )
+    else:
+        print(f'Index {index_name} already exists. Skipping create.')
 
     print(f'Waiting for index {index_name} to be ready...')
     time.sleep(60)
