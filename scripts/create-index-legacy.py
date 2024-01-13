@@ -48,7 +48,7 @@ def main():
     print(f'Index description: {description}')
 
     print(f'Beginning upsert of 1000 vectors to index {index_name}...')
-    index = pinecone.Index(name=index_name)
+    index = pinecone.Index(index_name)
     for _ in range(100):
         vector = random_embedding_values(dimension)
         vecs = [{'id': random_string(10), 'values': vector} for i in range(10)]
