@@ -1,0 +1,32 @@
+name: 'Delete all indexes owned by API key'
+description: 'Delete all indexes owned by API key'
+
+inputs:
+  pinecone_client_version:
+    description: 'The version of the Pinecone client to use'
+    required: false
+    default: '3.0.0.dev8'
+  PINECONE_API_KEY:
+    description: 'The Pinecone API key'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Install pinecone-client
+      shell: bash
+      run: |
+        pip install pinecone-client==${{ inputs.pinecone_client_version }}
+    
+    - name: Delete all indexes
+      id: delete-indexes
+      shell: bash
+      run: python3 scripts/3.x/delete-all-indexes.py
+      env:
+        PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
+

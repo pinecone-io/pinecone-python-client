@@ -53,4 +53,16 @@ jobs:
           PINECONE_ENVIRONMENT: ${{ matrix.env }}
           pinecone_client_version: 3.0.0.dev8
           index_name: ${{ steps.create-legacy.outputs.index_name }}
-        
+
+  cleanup:
+    if: always()
+    needs: [create-index-legacy-paid]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Delete all indexes
+        uses: ./.github/actions/delete-all-indexes
+        with:
+          PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
+          pinecone_client_version: 3.0.0.dev8
