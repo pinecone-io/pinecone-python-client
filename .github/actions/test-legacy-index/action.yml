@@ -1,32 +1,25 @@
-name: 'Create Index (Legacy / Regional Control Plane)'
-description: 'Creates an index to be used in other tests'
+name: 'Test legacy index on GCPS'
+description: 'Uses new client to interact with index created via legacy client'
 
 inputs:
   pinecone_client_version:
     description: 'The version of the Pinecone client to use'
     required: false
-    default: '2.2.4'
+    default: '3.0.0.dev8'
   index_name:
     description: 'The name of the index'
     required: true
-  dimension:
-    description: 'The dimension of the index'
-    required: false
-    default: '1536'
-  metric:
-    description: 'The metric of the index'
-    required: false
-    default: 'cosine'
-  vectors_to_upsert:
-    description: 'The number of vectors to upsert'
-    required: false
-    default: '1000'
   PINECONE_ENVIRONMENT:
     description: 'The environment of the index'
     required: true
   PINECONE_API_KEY:
     description: 'The Pinecone API key'
     required: true
+  vectors_to_upsert:
+    description: 'The number of vectors to upsert'
+    required: false
+    default: '1000'
+
 
 runs:
   using: 'composite'
@@ -44,11 +37,9 @@ runs:
     - name: Create index
       id: create-index
       shell: bash
-      run: python3 .github/actions/create-index-legacy/create-index-legacy.py
+      run: python3 .github/actions/test-legacy-index/test-index.py
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         PINECONE_ENVIRONMENT: ${{ inputs.PINECONE_ENVIRONMENT }}
         INDEX_NAME: ${{ inputs.index_name }}
-        DIMENSION: ${{ inputs.dimension }}
-        METRIC: ${{ inputs.metric }}
         VECTORS_TO_UPSERT: ${{ inputs.vectors_to_upsert }}

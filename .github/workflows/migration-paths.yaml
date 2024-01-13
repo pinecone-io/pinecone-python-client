@@ -6,11 +6,13 @@ on:
 
 jobs:
   create-index-legacy-paid:
-    name: Create index
+    name: Migration testing
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 1
       matrix:
+        index_name:
+          - migration-testing-index
         env:
           - asia-southeast1-gcp
         #   - asia-northeast1-gcp
@@ -42,6 +44,18 @@ jobs:
           PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
           PINECONE_ENVIRONMENT: ${{ matrix.env }}
           pinecone_client_version: 2.2.4
-          index_name: migration-testing-index
+          index_name: ${{ matrix.index_name }}
           dimension: 1536
           metric: cosine
+
+      - name: Inspect on GCPS
+        id: inspect-gcps
+        uses: ./.github/actions/test-legacy-index
+        with:
+          PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
+          PINECONE_ENVIRONMENT: ${{ matrix.env }}
+          pinecone_client_version: 3.0.0.dev8
+          index_name: ${{ matrix.index_name }}
+          dimension: 1536
+          metric: cosine
+        
