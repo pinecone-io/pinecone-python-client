@@ -52,7 +52,7 @@ def main():
     for _ in range(100):
         vector = random_embedding_values(dimension)
         vecs = [{'id': random_string(10), 'values': vector} for i in range(10)]
-        index.upsert(vectors=[vecs])
+        index.upsert(vectors=vecs)
     print(f'Done upserting.')
 
     print(f'Beginning query of index {index_name}...')
