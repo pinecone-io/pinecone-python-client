@@ -1,4 +1,9 @@
+import uuid
+
 from google.protobuf.struct_pb2 import Struct
+
+def _generate_request_id() -> str:
+    return str(uuid.uuid4())
 
 from pinecone.core.client.models import (
     Vector as _Vector,
