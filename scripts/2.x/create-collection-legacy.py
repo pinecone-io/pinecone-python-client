@@ -45,23 +45,25 @@ def main():
 
     print(f'Waiting for collection {collection_name} to be ready...')
     collection_ready = False
-    max_wait = 120
-    while not collection_ready and max_wait >= 0:
+    max_wait = 10*60
+    waited = 0
+    while not collection_ready and waited <= max_wait:
         try:
+            waited += 10
             collection_description = pinecone.describe_collection(collection_name)
             print(f'Collection description: {collection_description}')
-            if collection_description['status'] == 'Ready':
+            if collection_description.status == 'Ready':
                 collection_ready = True
             else:
-                print(f'Collection {collection_name} not ready yet. Waiting...')
-                max_wait -= 10
-                time.sleep(10)
+                print(f'Collection {collection_name} not after {waited} seconds. Waiting...')
         except Exception as e:
             print(f'Error while polling for collection {collection_name} status: {e}')
-            time.sleep(10)
+        time.sleep(10)
 
     if not collection_ready:
         raise Exception(f'Collection {collection_name} not ready after waiting for {max_wait} seconds.')
+    else:
+        print(f'Collection {collection_name} ready after waiting for {max_wait} seconds.')
         
 if __name__ == '__main__':
     main()

@@ -69,7 +69,7 @@ jobs:
           PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
           PINECONE_ENVIRONMENT: ${{ matrix.env }}
           pinecone_client_version: ${{ env.LEGACY_CLIENT_VERSION }}
-          collection_name: py-migration-collection
+          collection_name_prefix: py-coll
           index_name: ${{ steps.create-legacy.outputs.index_name }}
 
       - name: Inspect collection (new)
