@@ -25,6 +25,8 @@ def main():
     description = pc.describe_collection(collection_name)
     print(f'Collection description: {description}')
     
+    assert description.name == collection_name
+    assert description['status'] == 'Ready'
 
 
 

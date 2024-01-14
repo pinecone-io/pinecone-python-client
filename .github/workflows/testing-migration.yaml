@@ -85,9 +85,9 @@ jobs:
           pinecone_client_version: ${{ env.NEW_CLIENT_VERSION }}
           collection_name: ${{ needs.create-collection.outputs.collection_name }}
 
-  cleanup-index:
+  cleanup-first-index:
     if: always()
-    needs: [test-index-gcps, create-index]
+    needs: [test-index-gcps, create-index, create-collection]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -97,10 +97,42 @@ jobs:
         with:
           PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
           index_name: ${{ needs.create-index.outputs.index_name }}
+        
+  create-index-from-collection-new:
+    needs: [create-collection]
+    runs-on: ubuntu-latest
+    outputs:
+      index_name: ${{ steps.create-index-from-collection.outputs.index_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Create index from collection
+        id: create-index-from-collection
+        uses: ./.github/actions/create-index-from-collection
+        with:
+          PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
+          PINECONE_ENVIRONMENT: ${{ inputs.environment }}
+          pinecone_client_version: ${{ env.NEW_CLIENT_VERSION }}
+          index_name_prefix: py-migration
+          collection_name: ${{ needs.create-collection.outputs.collection_name }}
+          expected_vector_count: ${{ env.NUM_VECTORS }}
+
+  cleanup-second-index:
+    if: always()
+    needs: [create-index-from-collection-new]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Delete all indexes
+        uses: ./.github/actions/delete-index
+        with:
+          PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
+          index_name: ${{ needs.create-index-from-collection-new.outputs.index_name }}
 
   cleanup-collection:
     if: always()
-    needs: [test-collection-new, create-collection]
+    needs: [test-collection-new, create-collection, create-index-from-collection-new]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
