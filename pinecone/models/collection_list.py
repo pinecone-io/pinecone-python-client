@@ -5,6 +5,9 @@ class CollectionList:
         self.collection_list = collection_list
         self.current = 0
 
+    def names(self):
+        return [i['name'] for i in self.collection_list.collections]
+
     def __getitem__(self, key):
         return self.collection_list.collections[key]
     
