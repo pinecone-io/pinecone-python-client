@@ -10,6 +10,7 @@ on:
 jobs:
   migration-tests:
     strategy:
+      fail-fast: false
       matrix:
         test-env:
           - asia-southeast1-gcp
