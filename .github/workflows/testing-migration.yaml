@@ -106,7 +106,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Delete collection
-        uses: ./.github/actions/delete-all-collections
+        uses: ./.github/actions/delete-collections
         with:
           PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
           collection_name: ${{ needs.create-collection.outputs.collection_name }}
