@@ -63,7 +63,7 @@ def main():
     if not collection_ready:
         raise Exception(f'Collection {collection_name} not ready after waiting for {max_wait} seconds.')
     else:
-        print(f'Collection {collection_name} ready after waiting for {max_wait} seconds.')
+        print(f'Collection {collection_name} ready after waiting for {waited} seconds.')
         
 if __name__ == '__main__':
     main()
