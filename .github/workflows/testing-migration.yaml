@@ -130,15 +130,15 @@ jobs:
           PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
           index_name: ${{ needs.create-index-from-collection-new.outputs.index_name }}
 
-  cleanup-collection:
-    if: always()
-    needs: [test-collection-new, create-collection, create-index-from-collection-new]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Delete collection
-        uses: ./.github/actions/delete-collection
-        with:
-          PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
-          collection_name: ${{ needs.create-collection.outputs.collection_name }}
+  # cleanup-collection:
+  #   if: always()
+  #   needs: [test-collection-new, create-collection, create-index-from-collection-new]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Delete collection
+  #       uses: ./.github/actions/delete-collection
+  #       with:
+  #         PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
+  #         collection_name: ${{ needs.create-collection.outputs.collection_name }}
