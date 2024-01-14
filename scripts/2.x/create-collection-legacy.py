@@ -40,7 +40,7 @@ def main():
     
     pinecone.create_collection(
         name=collection_name,
-        index_name=index_name
+        source=index_name
     )
 
     print(f'Waiting for collection {collection_name} to be ready...')

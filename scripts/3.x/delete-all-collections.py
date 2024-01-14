@@ -13,7 +13,7 @@ def main():
     pc = Pinecone(api_key=api_key)
 
     collections = pc.list_collections()
-    print(f'Found {len(indexes)} collections.')
+    print(f'Found {len(collections)} collections.')
     print(f'Collections: {collections}')
 
     for collection in collections:
