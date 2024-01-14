@@ -74,6 +74,8 @@ jobs:
     needs: [create-collection]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Inspect collection (new)
         id: inspect-collection-new
         uses: ./.github/actions/test-collection
