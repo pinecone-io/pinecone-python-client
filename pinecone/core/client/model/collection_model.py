@@ -91,10 +91,10 @@ class CollectionModel(ModelNormal):
         """
         return {
             'name': (str,),  # noqa: E501
-            'size': (int,),  # noqa: E501
             'status': (str,),  # noqa: E501
+            'size': (int,),  # noqa: E501
             'dimension': (int,),  # noqa: E501
-            'record_count': (int,),  # noqa: E501
+            'vector_count': (int,),  # noqa: E501
             'environment': (str,),  # noqa: E501
         }
 
@@ -105,10 +105,10 @@ class CollectionModel(ModelNormal):
 
     attribute_map = {
         'name': 'name',  # noqa: E501
-        'size': 'size',  # noqa: E501
         'status': 'status',  # noqa: E501
+        'size': 'size',  # noqa: E501
         'dimension': 'dimension',  # noqa: E501
-        'record_count': 'record_count',  # noqa: E501
+        'vector_count': 'vector_count',  # noqa: E501
         'environment': 'environment',  # noqa: E501
     }
 
@@ -119,15 +119,12 @@ class CollectionModel(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, name, size, status, dimension, record_count, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, name, status, *args, **kwargs):  # noqa: E501
         """CollectionModel - a model defined in OpenAPI
 
         Args:
             name (str):
-            size (int): The size of the collection in bytes.
             status (str): The status of the collection.
-            dimension (int): The dimension of the vectors stored in each record held in the collection
-            record_count (int): The number of records stored in the collection
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -160,6 +157,9 @@ class CollectionModel(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            size (int): The size of the collection in bytes.. [optional]  # noqa: E501
+            dimension (int): The dimension of the vectors stored in each record held in the collection. [optional]  # noqa: E501
+            vector_count (int): The number of records stored in the collection. [optional]  # noqa: E501
             environment (str): The environment where the collection is hosted.. [optional]  # noqa: E501
         """
 
@@ -189,10 +189,7 @@ class CollectionModel(ModelNormal):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         self.name = name
-        self.size = size
         self.status = status
-        self.dimension = dimension
-        self.record_count = record_count
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
@@ -213,15 +210,12 @@ class CollectionModel(ModelNormal):
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, name, size, status, dimension, record_count, *args, **kwargs):  # noqa: E501
+    def __init__(self, name, status, *args, **kwargs):  # noqa: E501
         """CollectionModel - a model defined in OpenAPI
 
         Args:
             name (str):
-            size (int): The size of the collection in bytes.
             status (str): The status of the collection.
-            dimension (int): The dimension of the vectors stored in each record held in the collection
-            record_count (int): The number of records stored in the collection
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -254,6 +248,9 @@ class CollectionModel(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            size (int): The size of the collection in bytes.. [optional]  # noqa: E501
+            dimension (int): The dimension of the vectors stored in each record held in the collection. [optional]  # noqa: E501
+            vector_count (int): The number of records stored in the collection. [optional]  # noqa: E501
             environment (str): The environment where the collection is hosted.. [optional]  # noqa: E501
         """
 
@@ -281,10 +278,7 @@ class CollectionModel(ModelNormal):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         self.name = name
-        self.size = size
         self.status = status
-        self.dimension = dimension
-        self.record_count = record_count
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
