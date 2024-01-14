@@ -1,0 +1,40 @@
+name: 'Test legacy collection on GCPS'
+description: 'Uses new client to interact with collection created via legacy client'
+
+inputs:
+  pinecone_client_version:
+    description: 'The version of the Pinecone client to use'
+    required: false
+    default: '3.0.0.dev9'
+  collection_name:
+    description: 'The name of the collection'
+    required: true
+  PINECONE_ENVIRONMENT:
+    description: 'The environment of the index'
+    required: true
+  PINECONE_API_KEY:
+    description: 'The Pinecone API key'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Install pinecone-client
+      shell: bash
+      run: |
+        pip install pinecone-client==${{ inputs.pinecone_client_version }}
+    
+    - name: Test collection
+      id: test-collection
+      shell: bash
+      run: python3 scripts/3.x/test-collection.py
+      env:
+        PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
+        PINECONE_ENVIRONMENT: ${{ inputs.PINECONE_ENVIRONMENT }}
+        COLLECTION_NAME: ${{ inputs.collection_name }}
+        VECTORS_TO_UPSERT: ${{ inputs.vectors_to_upsert }}

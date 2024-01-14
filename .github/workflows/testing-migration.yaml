@@ -72,16 +72,16 @@ jobs:
           collection_name: py-migration-collection
           index_name: ${{ steps.create-legacy.outputs.index_name }}
 
-      # - name: Inspect collection (new)
-      #   id: inspect-collection-new
-      #   uses: ./.github/actions/test-collection
-      #   with:
-      #     PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
-      #     PINECONE_ENVIRONMENT: ${{ matrix.env }}
-      #     pinecone_client_version: ${{ env.NEW_CLIENT_VERSION }}
-      #     collection_name: py-migration-collection
+      - name: Inspect collection (new)
+        id: inspect-collection-new
+        uses: ./.github/actions/test-collection
+        with:
+          PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
+          PINECONE_ENVIRONMENT: ${{ matrix.env }}
+          pinecone_client_version: ${{ env.NEW_CLIENT_VERSION }}
+          collection_name: ${{ steps.create-collection-legacy.outputs.collection_name }}
 
-  cleanup:
+  cleanup-indexes:
     if: always()
     needs: [create-index-legacy-paid]
     runs-on: ubuntu-latest
@@ -92,10 +92,17 @@ jobs:
         uses: ./.github/actions/delete-all-indexes
         with:
           PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
-          pinecone_client_version: 3.0.0.dev9
+          pinecone_client_version: ${{ env.NEW_CLIENT_VERSION }}
 
+  cleanup-collections:
+    if: always()
+    needs: [create-index-legacy-paid]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Delete all collections
         uses: ./.github/actions/delete-all-collections
         with:
           PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
-          pinecone_client_version: 3.0.0.dev9
+          pinecone_client_version: ${{ env.NEW_CLIENT_VERSION }}
