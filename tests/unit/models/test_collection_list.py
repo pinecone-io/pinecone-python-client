@@ -28,3 +28,10 @@ class TestCollectionList:
     def test_collection_list_proxies_methods(self, collection_list_response):
         # Forward compatibility, in case we add more attributes to IndexList for pagination
         assert CollectionList(collection_list_response).collection_list.collections == collection_list_response.collections
+
+    def test_when_results_are_empty(self):
+        assert len(CollectionList(OpenApiCollectionList(collections=[]))) == 0
+
+    def test_collection_list_names_syntactic_sugar(self, collection_list_response):
+        icl = CollectionList(collection_list_response)
+        assert icl.names() == ['collection1', 'collection2']
