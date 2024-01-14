@@ -21,36 +21,10 @@ def main():
 
     pc = Pinecone(api_key=api_key)
 
-    print(f'Checking if collection {collection_name} exists...')
-    if collection_name not in pc.list_collections().names():
-        print(f'Index {index_name} does not exist. Creating...')
-        raise Exception('Index does not exist. Found indexes: {}'.format(pc.list_indexes().names()))
-
-    print(f'Checking index description...')
-    description = pc.describe_index(index_name)
-    print(f'Index description: {description}')
+    print(f'Checking collection description...')
+    description = pc.describe_collection(collection_name)
+    print(f'Collection description: {description}')
     
-    assert description.name == index_name
-    assert description.dimension > 0
-    assert description.metric != None
-    assert description.spec.serverless == None
-    assert description.spec.pod != None
-    assert description.spec.pod.environment == environment
-    assert description.host != None
-    assert len(description.host) > 0
-    assert description.status != None
-    assert description.status.state == 'Ready'
-    assert description.status.ready == True
-
-    print(f'Index description looks correct.')
-
-    host_url = description.host
-
-    idx = pc.Index(name=index_name)
-
-    stats = idx.describe_index_stats()
-    print(f'Index stats: {stats}')
-
 
 
 
