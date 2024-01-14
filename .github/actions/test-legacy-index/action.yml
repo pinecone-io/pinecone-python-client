@@ -4,8 +4,7 @@ description: 'Uses new client to interact with index created via legacy client'
 inputs:
   pinecone_client_version:
     description: 'The version of the Pinecone client to use'
-    required: false
-    default: '3.0.0.dev9'
+    required: true
   index_name:
     description: 'The name of the index'
     required: true
