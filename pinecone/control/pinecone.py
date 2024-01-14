@@ -179,17 +179,6 @@ class Pinecone:
         configure_index_request = ConfigureIndexRequest(**config_args)
         api_instance.configure_index(name, configure_index_request=configure_index_request)
 
-    def scale_index(self, name: str, replicas: int):
-        """Change the number of replicas for the index. Replicas may be scaled up or down.
-
-        :param name: the name of the Index
-        :type name: str
-        :param replicas: the number of replicas in the index now, lowest value is 1.
-        :type replicas: int
-        """
-        api_instance = self.index_api
-        api_instance.configure_index(name, patch_request=ConfigureIndexRequest(replicas=replicas, pod_type=""))
-
     def create_collection(self, name: str, source: str):
         """Create a collection
         :param name: Name of the collection
