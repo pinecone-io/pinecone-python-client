@@ -23,7 +23,7 @@ jobs:
           - us-east4-gcp
           - us-west1-gcp
           - us-west4-gcp
-          - eastus-azure
+          # - eastus-azure
           - us-east-1-aws
 
         # - gcp-starter
