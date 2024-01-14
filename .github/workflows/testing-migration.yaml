@@ -2,8 +2,13 @@ name: 'Migration Tests'
 
 on:
   workflow_dispatch: {}
-  workflow_call: {}
-
+  workflow_call: 
+    inputs:
+      environment: 
+        description: 'Environment to test'
+        required: true
+        type: string
+        
 env:
   NUM_VECTORS: 1000
   DIMENSION: 1536
@@ -12,78 +17,75 @@ env:
   NEW_CLIENT_VERSION: 3.0.0.dev10
 
 jobs:
-  create-index-legacy-paid:
-    name: Migration testing
+  create-index:
+    name: Create index
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        env:
-          - asia-southeast1-gcp
-          - asia-northeast1-gcp
-          - eu-west1-gcp
-          - eu-west4-gcp
-          - northamerica-northeast1-gcp
-          - us-central1-gcp
-          - us-east1-gcp
-          - us-east4-gcp
-          - us-west1-gcp
-          - us-west4-gcp
-          - eastus-azure
-          - us-east-1-aws
-
-        # - gcp-starter
-        # - asia-southeast1-gcp-free
-        # - us-west1-gcp-free
-        # - us-west4-gcp-free
-
-          
+    outputs:
+      index_name: ${{ steps.create-legacy.outputs.index_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Create index and upsert (legacy)
         id: create-legacy
         uses: ./.github/actions/create-index-legacy
         with:
           PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
-          PINECONE_ENVIRONMENT: ${{ matrix.env }}
+          PINECONE_ENVIRONMENT: ${{ inputs.environment }}
           pinecone_client_version: ${{ env.LEGACY_CLIENT_VERSION }}
           index_name_prefix: py-migration
           dimension: ${{ env.DIMENSION }}
           metric: ${{ env.METRIC }}
           vectors_to_upsert: ${{ ENV.NUM_VECTORS }}
 
-      - name: Test index (GCPS)
-        id: inspect-gcps
-        uses: ./.github/actions/test-legacy-index
-        with:
-          PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
-          PINECONE_ENVIRONMENT: ${{ matrix.env }}
-          pinecone_client_version: ${{ env.NEW_CLIENT_VERSION }}
-          index_name: ${{ steps.create-legacy.outputs.index_name }}
+  test-index-new:
+      needs: [create-index]
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+        - name: Test index (GCPS)
+          id: inspect-gcps
+          uses: ./.github/actions/test-legacy-index
+          with:
+            PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
+            PINECONE_ENVIRONMENT: ${{ inputs.environment }}
+            pinecone_client_version: ${{ env.NEW_CLIENT_VERSION }}
+            index_name: ${{ needs.create-index.outputs.index_name }}
 
+  create-collection:
+    needs: [create-index]
+    runs-on: ubuntu-latest
+    outputs:
+      collection_name: ${{ steps.create-collection-legacy.outputs.collection_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Create collection (legacy)
         id: create-collection-legacy
         uses: ./.github/actions/create-collection-legacy
         with:
           PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
-          PINECONE_ENVIRONMENT: ${{ matrix.env }}
+          PINECONE_ENVIRONMENT: ${{ inputs.environment }}
           pinecone_client_version: ${{ env.LEGACY_CLIENT_VERSION }}
           collection_name_prefix: py-coll
-          index_name: ${{ steps.create-legacy.outputs.index_name }}
+          index_name: ${{ needs.create-index.outputs.index_name }}
 
+  test-collection-new:
+    needs: [create-collection]
+    runs-on: ubuntu-latest
+    steps:
       - name: Inspect collection (new)
         id: inspect-collection-new
         uses: ./.github/actions/test-collection
         with:
           PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
-          PINECONE_ENVIRONMENT: ${{ matrix.env }}
+          PINECONE_ENVIRONMENT: ${{ inputs.environment }}
           pinecone_client_version: ${{ env.NEW_CLIENT_VERSION }}
-          collection_name: ${{ steps.create-collection-legacy.outputs.collection_name }}
+          collection_name: ${{ needs.create-collection.outputs.collection_name }}
 
   cleanup-indexes:
     if: always()
-    needs: [create-index-legacy-paid]
+    needs: [test-index-new]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -96,7 +98,7 @@ jobs:
 
   cleanup-collections:
     if: always()
-    needs: [create-index-legacy-paid]
+    needs: [test-collection-new]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

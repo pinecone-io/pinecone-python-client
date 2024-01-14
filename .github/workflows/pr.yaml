@@ -9,8 +9,32 @@ on:
 
 jobs:
   migration-tests:
+    strategy:
+      matrix:
+        test-env:
+          - asia-southeast1-gcp
+          - asia-northeast1-gcp
+          - eu-west1-gcp
+          - eu-west4-gcp
+          - northamerica-northeast1-gcp
+          - us-central1-gcp
+          - us-east1-gcp
+          - us-east4-gcp
+          - us-west1-gcp
+          - us-west4-gcp
+          - eastus-azure
+          - us-east-1-aws
+
+        # - gcp-starter
+        # - asia-southeast1-gcp-free
+        # - us-west1-gcp-free
+        # - us-west4-gcp-free
+    
+    
     uses: './.github/workflows/testing-migration.yaml'
     secrets: inherit
+    with:
+      environment: ${{ matrix.test-env }}
   # unit-tests:
   #   uses: './.github/workflows/testing-unit.yaml'
   #   secrets: inherit
