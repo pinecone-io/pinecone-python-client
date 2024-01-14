@@ -26,7 +26,8 @@ def main():
     print(f'Collection description: {description}')
     
     assert description.name == collection_name
-    assert description['status'] == 'Ready'
+    assert description.status.state == 'Ready'
+    assert description.status.ready == True
 
 
 
