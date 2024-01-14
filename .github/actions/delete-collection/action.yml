@@ -1,0 +1,19 @@
+name: 'Delete Collection'
+description: 'Deletes a collection'
+
+inputs:
+  collection_name:
+    description: 'The name of the collection to delete'
+    required: true
+  PINECONE_API_KEY:
+    description: 'The Pinecone API key'
+    required: true
+
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Delete collection
+      shell: bash
+      run: |
+       curl -X DELETE "https://api.pinecone.io/collections/${{ inputs.collection_name }}" -H "Api-Key: ${{ inputs.PINECONE_API_KEY }}"

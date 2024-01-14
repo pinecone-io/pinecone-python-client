@@ -37,7 +37,7 @@ jobs:
           metric: ${{ env.METRIC }}
           vectors_to_upsert: ${{ ENV.NUM_VECTORS }}
 
-  test-index-new:
+  test-index-gcps:
       needs: [create-index]
       runs-on: ubuntu-latest
       steps:
@@ -83,28 +83,28 @@ jobs:
           pinecone_client_version: ${{ env.NEW_CLIENT_VERSION }}
           collection_name: ${{ needs.create-collection.outputs.collection_name }}
 
-  cleanup-indexes:
+  cleanup-index:
     if: always()
-    needs: [test-index-new]
+    needs: [test-index-gcps, create-index]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Delete all indexes
-        uses: ./.github/actions/delete-all-indexes
+        uses: ./.github/actions/delete-index
         with:
           PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
-          pinecone_client_version: ${{ env.NEW_CLIENT_VERSION }}
+          index_name: ${{ needs.create-index.outputs.index_name }}
 
-  cleanup-collections:
+  cleanup-collection:
     if: always()
-    needs: [test-collection-new]
+    needs: [test-collection-new, create-collection]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Delete all collections
+      - name: Delete collection
         uses: ./.github/actions/delete-all-collections
         with:
           PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
-          pinecone_client_version: ${{ env.NEW_CLIENT_VERSION }}
+          collection_name: ${{ needs.create-collection.outputs.collection_name }}

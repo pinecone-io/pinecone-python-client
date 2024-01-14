@@ -35,6 +35,19 @@ jobs:
     secrets: inherit
     with:
       environment: ${{ matrix.test-env }}
+
+  cleanup-indexes:
+    if: always()
+    needs: [migration-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Delete all indexes
+        uses: ./.github/actions/delete-all-indexes
+        with:
+          PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
+          pinecone_client_version: 3.0.0.dev10
   # unit-tests:
   #   uses: './.github/workflows/testing-unit.yaml'
   #   secrets: inherit
