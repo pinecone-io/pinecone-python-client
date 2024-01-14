@@ -1,0 +1,60 @@
+name: 'Create Pod Index via GCPS'
+description: 'Creates an index to be used in other tests'
+
+inputs:
+  pinecone_client_version:
+    description: 'The version of the Pinecone client to use'
+    required: false
+    default: '3.0.0.dev10'
+  index_name_prefix:
+    description: 'The prefix for index names'
+    required: true
+  dimension:
+    description: 'The dimension of the index'
+    required: false
+    default: '1536'
+  metric:
+    description: 'The metric of the index'
+    required: false
+    default: 'cosine'
+  vectors_to_upsert:
+    description: 'The number of vectors to upsert'
+    required: false
+    default: '1000'
+  PINECONE_ENVIRONMENT:
+    description: 'The environment of the index'
+    required: true
+  PINECONE_API_KEY:
+    description: 'The Pinecone API key'
+    required: true
+
+outputs:
+  index_name:
+    description: 'The name of the index, including randomized suffix'
+    value: ${{ steps.create-index.outputs.index_name }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Install pinecone-client
+      shell: bash
+      run: |
+        pip install pinecone-client==${{ inputs.pinecone_client_version }}
+    
+    - name: Create index
+      id: create-index
+      shell: bash
+      run: python3 scripts/3.x/create-pod-index.py
+      env:
+        PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
+        PINECONE_ENVIRONMENT: ${{ inputs.PINECONE_ENVIRONMENT }}
+        INDEX_NAME_PREFIX: ${{ inputs.index_name_prefix }}
+        DIMENSION: ${{ inputs.dimension }}
+        METRIC: ${{ inputs.metric }}
+        VECTORS_TO_UPSERT: ${{ inputs.vectors_to_upsert }}
+
