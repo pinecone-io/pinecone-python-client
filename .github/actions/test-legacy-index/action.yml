@@ -1,0 +1,44 @@
+name: 'Test legacy index on GCPS'
+description: 'Uses new client to interact with index created via legacy client'
+
+inputs:
+  pinecone_client_version:
+    description: 'The version of the Pinecone client to use'
+    required: true
+  index_name:
+    description: 'The name of the index'
+    required: true
+  PINECONE_ENVIRONMENT:
+    description: 'The environment of the index'
+    required: true
+  PINECONE_API_KEY:
+    description: 'The Pinecone API key'
+    required: true
+  vectors_to_upsert:
+    description: 'The number of vectors to upsert'
+    required: false
+    default: '1000'
+
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Install pinecone-client
+      shell: bash
+      run: |
+        pip install pinecone-client==${{ inputs.pinecone_client_version }}
+    
+    - name: Create index
+      id: create-index
+      shell: bash
+      run: python3 scripts/3.x/test-index.py
+      env:
+        PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
+        PINECONE_ENVIRONMENT: ${{ inputs.PINECONE_ENVIRONMENT }}
+        INDEX_NAME: ${{ inputs.index_name }}
+        VECTORS_TO_UPSERT: ${{ inputs.vectors_to_upsert }}

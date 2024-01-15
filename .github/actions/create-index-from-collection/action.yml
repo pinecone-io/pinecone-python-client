@@ -1,32 +1,31 @@
-name: 'Create Index (Legacy / Regional Control Plane)'
-description: 'Creates an index to be used in other tests'
+name: 'Create Index from Collection'
+description: 'Creates a pod index from a collection'
 
 inputs:
-  pinecone_client_version:
-    description: 'The version of the Pinecone client to use'
-    required: false
-    default: '2.2.4'
   index_name_prefix:
-    description: 'The prefix for index names'
-    required: true
-  dimension:
-    description: 'The dimension of the index'
+    description: 'The prefix of the index name'
     required: false
-    default: '1536'
-  metric:
-    description: 'The metric of the index'
-    required: false
-    default: 'cosine'
-  vectors_to_upsert:
-    description: 'The number of vectors to upsert'
-    required: false
-    default: '1000'
-  PINECONE_ENVIRONMENT:
-    description: 'The environment of the index'
+    default: 'index-name'
+  collection_name:
+    description: 'The name of the collection to make the index from'
     required: true
   PINECONE_API_KEY:
     description: 'The Pinecone API key'
     required: true
+  PINECONE_ENVIRONMENT:
+    description: 'The environment of the collection'
+    required: true
+  dimension:
+    description: 'The dimension of the index'
+    required: false
+    default: '3'
+  metric:
+    description: 'The metric of the index'
+    required: false
+    default: 'cosine'
+  expected_vector_count:
+    description: 'The expected number of vectors in the index'
+    required: false
 
 outputs:
   index_name:
@@ -41,20 +40,19 @@ runs:
       with:
         python-version: 3.9
 
-    - name: Install pinecone-client
-      shell: bash
-      run: |
-        pip install pinecone-client==${{ inputs.pinecone_client_version }}
-    
+    - name: Setup Poetry
+      uses: ./.github/actions/setup-poetry
+
     - name: Create index
       id: create-index
       shell: bash
-      run: python3 scripts/2.x/create-index-legacy.py
+      run: poetry run python3 scripts/3.x/create-pod-index-from-collection.py
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         PINECONE_ENVIRONMENT: ${{ inputs.PINECONE_ENVIRONMENT }}
         INDEX_NAME_PREFIX: ${{ inputs.index_name_prefix }}
+        COLLECTION_NAME: ${{ inputs.collection_name }}
         DIMENSION: ${{ inputs.dimension }}
         METRIC: ${{ inputs.metric }}
-        VECTORS_TO_UPSERT: ${{ inputs.vectors_to_upsert }}
-
+        EXPECTED_VECTOR_COUNT: ${{ inputs.expected_vector_count }}
+        

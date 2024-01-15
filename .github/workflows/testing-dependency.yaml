@@ -1,4 +1,4 @@
-name: Dependency Testing
+name: 'Dependency Tests'
 
 on:
   workflow_call: {}

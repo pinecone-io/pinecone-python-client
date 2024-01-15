@@ -1,11 +1,11 @@
-name: 'Create Index (Legacy / Regional Control Plane)'
+name: 'Create Pod Index via GCPS'
 description: 'Creates an index to be used in other tests'
 
 inputs:
   pinecone_client_version:
     description: 'The version of the Pinecone client to use'
     required: false
-    default: '2.2.4'
+    default: '3.0.0.dev10'
   index_name_prefix:
     description: 'The prefix for index names'
     required: true
@@ -49,7 +49,7 @@ runs:
     - name: Create index
       id: create-index
       shell: bash
-      run: python3 scripts/2.x/create-index-legacy.py
+      run: python3 scripts/3.x/create-pod-index.py
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         PINECONE_ENVIRONMENT: ${{ inputs.PINECONE_ENVIRONMENT }}

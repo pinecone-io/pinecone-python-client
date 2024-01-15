@@ -8,31 +8,86 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  unit-tests:
-    uses: './.github/workflows/testing-unit.yaml'
-    secrets: inherit
-  integration-tests:
-      uses: './.github/workflows/testing-integration.yaml'
-      secrets: inherit
-  dependency-tests:
-    uses: './.github/workflows/testing-dependency.yaml'
-    secrets: inherit
-  package:
-    name: Check packaging
-    runs-on: ubuntu-latest
+  migration-tests:
     strategy:
+      fail-fast: false
       matrix:
-        python-version: [3.8, 3.9, '3.10', 3.11]
+        test-env:
+          - asia-southeast1-gcp
+          - asia-northeast1-gcp
+          - eu-west1-gcp
+          - eu-west4-gcp
+          - northamerica-northeast1-gcp
+          - us-central1-gcp
+          - us-east1-gcp
+          - us-east4-gcp
+          - us-west1-gcp
+          - us-west4-gcp
+          # - eastus-azure
+          - us-east-1-aws
+
+        # - gcp-starter
+        # - asia-southeast1-gcp-free
+        # - us-west1-gcp-free
+        # - us-west4-gcp-free
+    
+    
+    uses: './.github/workflows/testing-migration.yaml'
+    secrets: inherit
+    with:
+      environment: ${{ matrix.test-env }}
+
+  cleanup-indexes:
+    if: always()
+    needs: [migration-tests]
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Delete all indexes
+        uses: ./.github/actions/delete-all-indexes
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
-      - name: Package
-        run: poetry build
+          PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
+          pinecone_client_version: 3.0.0.dev10
+
+  # cleanup-collections:
+  #   if: always()
+  #   needs: [migration-tests]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Delete all collections
+  #       uses: ./.github/actions/delete-all-collections
+  #       with:
+  #         PINECONE_API_KEY: ${{ secrets.V3MIGRATION_API_KEY__ONE_KEY_MANY_ENVS }}
+  #         pinecone_client_version: 3.0.0.dev10
+
+  # unit-tests:
+  #   uses: './.github/workflows/testing-unit.yaml'
+  #   secrets: inherit
+  # integration-tests:
+  #     uses: './.github/workflows/testing-integration.yaml'
+  #     secrets: inherit
+  # dependency-tests:
+  #   uses: './.github/workflows/testing-dependency.yaml'
+  #   secrets: inherit
+  # package:
+  #   name: Check packaging
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       python-version: [3.8, 3.9, '3.10', 3.11]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Set up Python ${{ matrix.python-version }}
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #     - name: Setup Poetry
+  #       uses: ./.github/actions/setup-poetry
+  #     - name: Package
+  #       run: poetry build
   
   build-docs:
     name: Build docs with pdoc
