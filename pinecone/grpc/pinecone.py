@@ -1,7 +1,6 @@
 from ..control.pinecone import Pinecone
 from ..config.config import ConfigBuilder
 from .index_grpc import GRPCIndex
-from typing import Optional
 
 class PineconeGRPC(Pinecone):
     def Index(self, name: str = '', host: str = ''):
@@ -9,7 +8,7 @@ class PineconeGRPC(Pinecone):
             raise ValueError("Either name or host must be specified")
 
         if host != '':
-            # Use host url if it is provided
+            # Use host if it is provided
             config = ConfigBuilder.build(api_key=self.config.api_key, host=host)
             return GRPCIndex(index_name=name, config=config)
 

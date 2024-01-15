@@ -7,7 +7,7 @@ from pinecone.config import PineconeConfig, Config
 
 from pinecone.core.client.api.manage_indexes_api import ManageIndexesApi as IndexOperationsApi
 from pinecone.core.client.api_client import ApiClient
-from pinecone.utils import get_user_agent
+from pinecone.utils import get_user_agent, normalize_host
 from pinecone.core.client.models import (
     CreateCollectionRequest,
     CreateIndexRequest,
@@ -219,7 +219,7 @@ class Pinecone:
 
         if host != '':
             # Use host url if it is provided
-            return Index(api_key=self.config.api_key, host=host, pool_threads=self.pool_threads)
+            return Index(api_key=self.config.api_key, host=normalize_host(host), pool_threads=self.pool_threads)
 
         if name != '':
             # Otherwise, get host url from describe_index using the index name
