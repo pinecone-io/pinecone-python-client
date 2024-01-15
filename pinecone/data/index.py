@@ -315,6 +315,7 @@ class Index():
     @validate_and_convert_errors
     def query(
         self,
+        *,
         top_k: int,
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,

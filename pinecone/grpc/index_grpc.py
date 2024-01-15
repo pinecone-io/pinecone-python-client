@@ -288,6 +288,7 @@ class GRPCIndex(GRPCIndexBase):
 
     def query(
         self,
+        *,
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
         namespace: Optional[str] = None,
