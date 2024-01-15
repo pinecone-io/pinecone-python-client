@@ -12,6 +12,8 @@ from pinecone.core.client.models import (
     CreateCollectionRequest,
     CreateIndexRequest,
     ConfigureIndexRequest,
+    ConfigureIndexRequestSpec,
+    ConfigureIndexRequestSpecPod
 )
 from pinecone.models import ServerlessSpec, PodSpec, IndexList, CollectionList
 
@@ -176,7 +178,11 @@ class Pinecone:
             config_args.update(pod_type=pod_type)
         if replicas:
             config_args.update(replicas=replicas)
-        configure_index_request = ConfigureIndexRequest(**config_args)
+        configure_index_request = ConfigureIndexRequest(
+            spec=ConfigureIndexRequestSpec(
+                pod=ConfigureIndexRequestSpecPod(**config_args)
+            )
+        )
         api_instance.configure_index(name, configure_index_request=configure_index_request)
 
     def create_collection(self, name: str, source: str):

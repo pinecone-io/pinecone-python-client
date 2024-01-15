@@ -35,9 +35,12 @@ def create_sl_index_params(index_name, serverless_cloud, serverless_region):
     return dict(name=index_name, dimension=10, metric='cosine', spec=spec)
 
 @pytest.fixture()
-def create_pod_index_params(index_name, environment):
-    spec = {
-        'environment': environment
+def create_pod_index_params(index_name, pod_environment):
+    spec = { 
+        'pod': {
+            'environment': pod_environment,
+            'pod_type': 'p1.x1'
+        }
     }
     return dict(name=index_name, dimension=10, metric='cosine', spec=spec, timeout=-1)
 
