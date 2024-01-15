@@ -150,7 +150,7 @@ class Pinecone:
 
     def list_indexes(self) -> IndexList:
         """Lists all indexes."""
-        response = self.index_api.list_indexes()
+        response = self.index_api.list_indexes(_check_return_type=False, _check_input_type=False)
         return IndexList(response)
 
     def describe_index(self, name: str):
@@ -160,7 +160,7 @@ class Pinecone:
         :return: Returns an `IndexDescription` object
         """
         api_instance = self.index_api
-        description = api_instance.describe_index(name)
+        description = api_instance.describe_index(name, _check_return_type=False, _check_input_type=False)
         host = description.host
         self.index_host_store.set_host(self.config, name, host)
 
