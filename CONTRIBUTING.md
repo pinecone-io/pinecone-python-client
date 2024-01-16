@@ -1,5 +1,22 @@
 # Contributing 
 
+## Installing development versions
+
+If you want to explore a potential code change, investigate
+a bug, or just want to try unreleased features, you can also install
+specific git shas.
+
+Some example commands:
+
+```shell
+pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git
+pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git@example-branch-name
+pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git@44fc7ed
+
+poetry add git+https://github.com/pinecone-io/pinecone-python-client.git@44fc7ed
+```
+
+
 ## Developing locally with Poetry 
 
 [Poetry](https://python-poetry.org/) is a tool that combines [virtualenv](https://virtualenv.pypa.io/en/latest/) usage with dependency management, to provide a consistent experience for project maintainers and contributors who need to develop the pinecone-python-client

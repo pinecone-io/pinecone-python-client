@@ -1,6 +1,10 @@
 from pinecone.core.client.models import CollectionList as OpenAPICollectionList
 
 class CollectionList:
+    """
+    A list of collections.
+    """
+    
     def __init__(self, collection_list: OpenAPICollectionList):
         self.collection_list = collection_list
         self.current = 0
