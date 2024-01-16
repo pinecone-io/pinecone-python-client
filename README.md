@@ -1,4 +1,4 @@
-# Pinecone Python Client &middot; ![License](https://img.shields.io/github/license/pinecone-io/pinecone-python-client?color=orange) ![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/pinecone-io/pinecone-python-client/merge.yml?label=CI&link=https%3A%2F%2Fgithub.com%2Fpinecone-io%2Fpinecone-ts-client%2Factions%2Fworkflows%2Fmerge.yml)
+# Pinecone Python Client &middot; ![License](https://img.shields.io/github/license/pinecone-io/pinecone-python-client?color=orange) [![CI](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/merge.yaml/badge.svg)](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/merge.yaml)
 
 
 The official Pinecone Python client.
