@@ -229,10 +229,11 @@ pc.configure_index("example-index", replicas=new_number_of_replicas)
 The following example returns statistics about the index `example-index`.
 
 ```python
+import os
 from pinecone import Pinecone
 
 pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-index = pc.Index("example-index")
+index = pc.Index(host=os.environ.get('INDEX_HOST'))
 
 index_stats_response = index.describe_index_stats()
 ```
@@ -243,10 +244,11 @@ index_stats_response = index.describe_index_stats()
 The following example upserts vectors to `example-index`.
 
 ```python
+import os
 from pinecone import Pinecone
 
 pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-index = pc.Index("example-index")
+index = pc.Index(host=os.environ.get('INDEX_HOST'))
 
 upsert_response = index.upsert(
     vectors=[
@@ -263,10 +265,14 @@ The following example queries the index `example-index` with metadata
 filtering.
 
 ```python
+import os
 from pinecone import Pinecone
 
 pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-index = pc.Index("example-index")
+
+# Find your index host by calling describe_index
+# through the Pinecone web console
+index = pc.Index(host=os.environ.get('INDEX_HOST'))
 
 query_response = index.query(
     namespace="example-namespace",
@@ -285,10 +291,14 @@ query_response = index.query(
 The following example deletes vectors by ID.
 
 ```python
+import os
 from pinecone import Pinecone
 
 pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-index = pc.Index("example-index")
+
+# Find your index host by calling describe_index
+# through the Pinecone web console
+index = pc.Index(host=os.environ.get('INDEX_HOST'))
 
 delete_response = index.delete(ids=["vec1", "vec2"], namespace="example-namespace")
 ```
@@ -298,10 +308,14 @@ delete_response = index.delete(ids=["vec1", "vec2"], namespace="example-namespac
 The following example fetches vectors by ID.
 
 ```python
+import os
 from pinecone import Pinecone
 
 pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-index = pc.Index("example-index")
+
+# Find your index host by calling describe_index
+# through the Pinecone web console
+index = pc.Index(host=os.environ.get('INDEX_HOST'))
 
 fetch_response = index.fetch(ids=["vec1", "vec2"], namespace="example-namespace")
 ```
@@ -314,7 +328,10 @@ The following example updates vectors by ID.
 from pinecone import Pinecone
 
 pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-index = pc.Index("example-index")
+
+# Find your index host by calling describe_index
+# through the Pinecone web console
+index = pc.Index(host=os.environ.get('INDEX_HOST'))
 
 update_response = index.update(
     id="vec1",
