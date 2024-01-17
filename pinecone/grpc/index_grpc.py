@@ -315,10 +315,10 @@ class GRPCIndex(GRPCIndexBase):
         Args:
             vector (List[float]): The query vector. This should be the same length as the dimension of the index
                                   being queried. Each `query()` request can contain only one of the parameters
-                                  `queries`, `id` or `vector`.. [optional]
+                                  `id` or `vector`.. [optional]
             id (str): The unique ID of the vector to be used as a query vector.
                       Each `query()` request can contain only one of the parameters
-                      `queries`, `vector`, or  `id`.. [optional]
+                      `vector` or  `id`.. [optional]
             top_k (int): The number of results to return for each query. Must be an integer greater than 1.
             namespace (str): The namespace to fetch vectors from.
                              If not specified, the default namespace is used. [optional]
@@ -337,7 +337,8 @@ class GRPCIndex(GRPCIndexBase):
                  and namespace name.
         """
 
-        queries = None
+        if vector is not None and id is not None:
+            raise ValueError("Cannot specify both `id` and `vector`")
 
         if filter is not None:
             filter_struct = dict_to_proto_struct(filter)
@@ -349,7 +350,6 @@ class GRPCIndex(GRPCIndexBase):
             [
                 ("vector", vector),
                 ("id", id),
-                ("queries", queries),
                 ("namespace", namespace),
                 ("top_k", top_k),
                 ("filter", filter_struct),

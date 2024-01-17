@@ -42,3 +42,7 @@ class TestGrpcIndexQuery:
             QueryRequest(top_k=10, id="vec1", include_metadata=True, include_values=False),
             timeout=None,
         )
+
+    def test_query_rejects_both_id_and_vector(self):
+        with pytest.raises(ValueError, match="Cannot specify both `id` and `vector`"):
+            self.index.query(top_k=10, id="vec1", vector=[1, 2, 3])
