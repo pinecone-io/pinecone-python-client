@@ -368,6 +368,9 @@ class Index():
 
         _check_type = kwargs.pop("_check_type", False)
 
+        if vector is not None and id is not None:
+            raise ValueError("Cannot specify both `id` and `vector`")
+
         sparse_vector = self._parse_sparse_values_arg(sparse_vector)
         args_dict = self._parse_non_empty_args(
             [
