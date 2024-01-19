@@ -11,6 +11,7 @@ from .exceptions import *
 from .control import *
 from .data import *
 from .models import *
+from .deprecation_warnings import *
 
 from .core.client.models import (
     IndexModel,
