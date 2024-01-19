@@ -315,6 +315,7 @@ class Index():
     @validate_and_convert_errors
     def query(
         self,
+        *args,
         top_k: int,
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
@@ -366,10 +367,13 @@ class Index():
                  and namespace name.
         """
 
-        _check_type = kwargs.pop("_check_type", False)
+        if len(args) > 0:
+            raise ValueError("The argument order for `query()` has changed; please use keyword arguments instead of positional arguments. Example: index.query(vector=[0.1, 0.2, 0.3], top_k=10, namespace='my_namespace')")
 
         if vector is not None and id is not None:
             raise ValueError("Cannot specify both `id` and `vector`")
+
+        _check_type = kwargs.pop("_check_type", False)
 
         sparse_vector = self._parse_sparse_values_arg(sparse_vector)
         args_dict = self._parse_non_empty_args(
