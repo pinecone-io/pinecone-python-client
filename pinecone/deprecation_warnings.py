@@ -1,7 +1,7 @@
 def _build_class_migration_message(method_name: str, example: str):
     return f"""The {method_name} method is no longer top-level attribute of the pinecone package.
 
-To use this method, please create a client instance and call the method.
+To use {method_name}, please create a client instance and call the method there instead.
 
 Example:
 {example}
