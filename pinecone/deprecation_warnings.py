@@ -1,6 +1,5 @@
 def _build_class_migration_message(method_name: str, example: str):
-    return f"""
-The {method_name} method is no longer top-level attribute of the pinecone package.
+    return f"""The {method_name} method is no longer top-level attribute of the pinecone package.
 
 To use this method, please create a client instance and call the method.
 
@@ -65,8 +64,7 @@ def scale_index(*args, **kwargs):
     pc.configure_index('my_index', replicas=2)
 """
 
-    msg = f"""
-The scale_index method is no longer top-level attribute of the pinecone package.
+    msg = f"""The scale_index method is no longer top-level attribute of the pinecone package.
 
 Please create a client instance and call the configure_index method instead.
 
