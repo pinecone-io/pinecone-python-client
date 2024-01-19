@@ -374,6 +374,11 @@ class TestRestIndex:
         with pytest.raises(ValueError, match="Cannot specify both `id` and `vector`"):
             self.index.query(top_k=10, id="vec1", vector=[1, 2, 3])
 
+    def test_query_with_positional_args(self, mocker):
+        with pytest.raises(ValueError) as e:
+            self.index.query([0.1, 0.2, 0.3], top_k=10)
+        assert "The argument order for `query()` has changed; please use keyword arguments instead of positional arguments" in str(e.value)
+
     # endregion
 
     # region: delete tests
