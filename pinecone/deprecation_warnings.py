@@ -1,11 +1,41 @@
 def _build_class_migration_message(method_name: str, example: str):
-    return f"""{method_name} is no longer top-level attribute of the pinecone package.
+    return f"""{method_name} is no longer a top-level attribute of the pinecone package.
 
 To use {method_name}, please create a client instance and call the method there instead.
 
 Example:
 {example}
 """
+
+def init(*args, **kwargs):
+    example = """
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index', 
+            dimension=1536, 
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+"""
+    msg = f"""init is no longer a top-level attribute of the pinecone package.
+
+Please create an instance of the Pinecone class instead.
+
+Example:
+{example}
+"""
+    raise AttributeError(msg)
 
 def list_indexes(*args, **kwargs):
     example = """
@@ -64,7 +94,7 @@ def scale_index(*args, **kwargs):
     pc.configure_index('my_index', replicas=2)
 """
 
-    msg = f"""scale_index is no longer top-level attribute of the pinecone package.
+    msg = f"""scale_index is no longer a top-level attribute of the pinecone package.
 
 Please create a client instance and call the configure_index method instead.
 

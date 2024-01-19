@@ -6,12 +6,12 @@ from tqdm import TqdmExperimentalWarning
 
 warnings.filterwarnings("ignore", category=TqdmExperimentalWarning)
 
+from .deprecation_warnings import *
 from .config import *
 from .exceptions import *
 from .control import *
 from .data import *
 from .models import *
-from .deprecation_warnings import *
 
 from .core.client.models import (
     IndexModel,
