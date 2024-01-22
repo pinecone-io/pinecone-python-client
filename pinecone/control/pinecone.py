@@ -446,7 +446,7 @@ class Pinecone:
         response = api_instance.describe_index(name)
         return response["status"]
 
-    def Index(self, name: str = '', host: str = ''):
+    def Index(self, name: str = '', host: str = '', pool_threads: Optional[int] = None, **kwargs):
         """
         Target an index for data operations.
 
@@ -518,12 +518,14 @@ class Pinecone:
         """
         if name == '' and host == '':
             raise ValueError("Either name or host must be specified")
+        
+        pt = pool_threads or self.pool_threads
 
         if host != '':
             # Use host url if it is provided
-            return Index(api_key=self.config.api_key, host=normalize_host(host), pool_threads=self.pool_threads)
+            return Index(api_key=self.config.api_key, host=normalize_host(host), pool_threads=pt, **kwargs)
 
         if name != '':
             # Otherwise, get host url from describe_index using the index name
             index_host = self.index_host_store.get_host(self.index_api, self.config, name)
-            return Index(api_key=self.config.api_key, host=index_host, pool_threads=self.pool_threads)
+            return Index(api_key=self.config.api_key, host=index_host, pool_threads=pt, **kwargs)

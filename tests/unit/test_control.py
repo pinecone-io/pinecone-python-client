@@ -68,3 +68,25 @@ class TestControl:
 
         response = p.list_indexes()
         assert [i.name for i in response] == ["index1", "index2", "index3"]
+
+
+class TestIndexConfig:
+    def test_default_pool_threads(self):
+        pc = Pinecone(api_key="123-456-789")
+        index = pc.Index(host='my-host.svg.pinecone.io')
+        assert index._api_client.pool_threads == 1
+
+    def test_target_index_with_pool_threads_inherited(self):
+        pc = Pinecone(api_key="123-456-789", pool_threads=10, foo='bar')
+        index = pc.Index(host='my-host.svg.pinecone.io')
+        assert index._api_client.pool_threads == 10
+
+    def test_target_index_with_pool_threads_kwarg(self):
+        pc = Pinecone(api_key="123-456-789", pool_threads=10)
+        index = pc.Index(host='my-host.svg.pinecone.io', pool_threads=5)
+        assert index._api_client.pool_threads == 5
+
+    def test_target_index_with_pool_threads_positional(self):
+        pc = Pinecone(api_key="123-456-789", pool_threads=10)
+        index = pc.Index('foo', 'my-host.svg.pinecone.io', 5)
+        assert index._api_client.pool_threads == 5
