@@ -46,7 +46,7 @@ class PineconeGRPC(Pinecone):
 
     """
     
-    def Index(self, name: str = '', host: str = ''):
+    def Index(self, name: str = '', host: str = '', **kwargs):
         """
         Target an index for data operations.
 
@@ -129,4 +129,4 @@ class PineconeGRPC(Pinecone):
             # Otherwise, get host url from describe_index using the index name
             index_host = self.index_host_store.get_host(self.index_api, self.config, name)
             config = ConfigBuilder.build(api_key=self.config.api_key, host=index_host)
-            return GRPCIndex(index_name=name, config=config)
+            return GRPCIndex(index_name=name, config=config, **kwargs)
