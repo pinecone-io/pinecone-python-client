@@ -77,11 +77,14 @@ class TestIndexConfig:
         index = pc.Index(host='my-host.svg.pinecone.io')
         assert index._api_client.pool_threads == 1
 
+<<<<<<< HEAD
     def test_pool_threads_when_indexapi_passed(self):
         pc = Pinecone(api_key="123-456-789", pool_threads=2, index_api=ManageIndexesApi())
         index = pc.Index(host='my-host.svg.pinecone.io')
         assert index._api_client.pool_threads == 2
 
+=======
+>>>>>>> 0ad7790 (pc.Index() accepts pool_threads config)
     def test_target_index_with_pool_threads_inherited(self):
         pc = Pinecone(api_key="123-456-789", pool_threads=10, foo='bar')
         index = pc.Index(host='my-host.svg.pinecone.io')
@@ -92,3 +95,7 @@ class TestIndexConfig:
         index = pc.Index(host='my-host.svg.pinecone.io', pool_threads=5)
         assert index._api_client.pool_threads == 5
 
+    def test_target_index_with_pool_threads_positional(self):
+        pc = Pinecone(api_key="123-456-789", pool_threads=10)
+        index = pc.Index('foo', 'my-host.svg.pinecone.io', 5)
+        assert index._api_client.pool_threads == 5

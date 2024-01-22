@@ -446,7 +446,11 @@ class Pinecone:
         response = api_instance.describe_index(name)
         return response["status"]
 
+<<<<<<< HEAD
     def Index(self, name: str = '', host: str = '', **kwargs):
+=======
+    def Index(self, name: str = '', host: str = '', pool_threads: Optional[int] = None, **kwargs):
+>>>>>>> 0ad7790 (pc.Index() accepts pool_threads config)
         """
         Target an index for data operations.
 
@@ -519,7 +523,7 @@ class Pinecone:
         if name == '' and host == '':
             raise ValueError("Either name or host must be specified")
         
-        pt = kwargs.pop('pool_threads', None) or self.pool_threads
+        pt = pool_threads or self.pool_threads
 
         if host != '':
             # Use host url if it is provided
