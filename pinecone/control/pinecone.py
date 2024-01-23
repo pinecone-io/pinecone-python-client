@@ -94,10 +94,10 @@ class Pinecone:
         else:
             self.config = PineconeConfig.build(api_key=api_key, host=host, additional_headers=additional_headers, **kwargs)
 
+        self.pool_threads = pool_threads
         if index_api:
             self.index_api = index_api
         else:
-            self.pool_threads = pool_threads
             api_client = ApiClient(configuration=self.config.openapi_config, pool_threads=self.pool_threads)
             api_client.user_agent = get_user_agent()
             extra_headers = self.config.additional_headers or {}
