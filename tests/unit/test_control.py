@@ -28,6 +28,16 @@ class TestControl:
 
         for key, value in extras.items():
             assert p.index_api.api_client.default_headers[key] == value
+        assert 'User-Agent' in p.index_api.api_client.default_headers
+        assert len(p.index_api.api_client.default_headers) == 3
+
+    def test_overwrite_useragent(self):
+        # This doesn't seem like a common use case, but we may want to allow this
+        # when embedding the client in other pinecone tools such as canopy.
+        extras = {"User-Agent": "test-user-agent"}
+        p = Pinecone(api_key="123-456-789", additional_headers=extras)
+        assert p.index_api.api_client.default_headers['User-Agent'] == 'test-user-agent'
+        assert len(p.index_api.api_client.default_headers) == 1
 
     @pytest.mark.parametrize("timeout_value, describe_index_responses, expected_describe_index_calls, expected_sleep_calls", [
         # When timeout=None, describe_index is called until ready
