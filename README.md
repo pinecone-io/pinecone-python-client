@@ -35,7 +35,7 @@ If you are aiming to maximimize performance, you can install additional gRPC dep
 pip3 install pinecone-client
 
 # Install the latest version, with extra grpc dependencies
-pip3 install pinecone-client[grpc]
+pip3 install "pinecone-client[grpc]"
 
 # Install a specific version
 pip3 install pinecone-client==3.0.0
