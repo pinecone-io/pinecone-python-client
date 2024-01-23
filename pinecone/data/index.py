@@ -69,15 +69,25 @@ class Index():
     For improved performance, use the Pinecone GRPC index client.
     """
 
-    def __init__(self, api_key: str, host: str, pool_threads=1, **kwargs):
-        api_key = api_key or kwargs.get("api_key", None)
-        host = host or kwargs.get('host', None)
-        pool_threads = pool_threads or kwargs.get("pool_threads")
-
+    def __init__(
+            self,
+            api_key: str,
+            host: str,
+            pool_threads: Optional[int] = 1,
+            additional_headers: Optional[Dict[str, str]] = {},
+            **kwargs
+        ):
         self._config = ConfigBuilder.build(api_key=api_key, host=host, **kwargs)
         
-        api_client = ApiClient(configuration=self._config.openapi_config, pool_threads=pool_threads)
+        api_client = ApiClient(configuration=self._config.openapi_config, 
+                               pool_threads=pool_threads)
+
+        # Configure request headers
         api_client.user_agent = get_user_agent()
+        extra_headers = additional_headers or {}
+        for key, value in extra_headers.items():
+            api_client.set_default_header(key, value)
+
         self._api_client = api_client
         self._vector_api = VectorOperationsApi(api_client=api_client)
     
