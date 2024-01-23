@@ -60,6 +60,11 @@ class PodSpec(NamedTuple):
     {'indexed': ['field1', 'field2']}
     """
 
+    source_collection: Optional[str] = None
+    """
+    The name of the collection to use as the source for the pod index. This configuration is only used when creating a pod index from an existing collection.
+    """
+
     def asdict(self):
         """
         Returns the PodSpec as a dictionary.

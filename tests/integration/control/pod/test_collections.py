@@ -1,7 +1,6 @@
 import pytest
 from pinecone import CollectionDescription
 
-@pytest.mark.skip()
 class TestCollection:
     def test_create_collection_from_ready_index_w_data(self, client, ready_index):
         index = client.Index(ready_index)

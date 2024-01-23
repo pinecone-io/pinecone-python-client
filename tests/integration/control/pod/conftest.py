@@ -3,7 +3,7 @@ import pytest
 import random
 import time
 from pinecone import Pinecone, NotFoundException, PineconeApiException
-from ..helpers import generate_index_name, get_environment_var
+from ...helpers import generate_index_name, get_environment_var
 
 @pytest.fixture()
 def client():
@@ -25,14 +25,6 @@ def serverless_region():
 @pytest.fixture()
 def environment():
     return get_environment_var('PINECONE_ENVIRONMENT')
-
-@pytest.fixture()
-def create_sl_index_params(index_name, serverless_cloud, serverless_region):
-    spec = {"serverless": {
-        'cloud': serverless_cloud,
-        'region': serverless_region
-    }}
-    return dict(name=index_name, dimension=10, metric='cosine', spec=spec)
 
 @pytest.fixture()
 def create_pod_index_params(index_name, pod_environment):
@@ -105,16 +97,3 @@ def cleanup(client, index_name):
        client.delete_index(index_name, -1)
     except:
        pass
-
-@pytest.fixture(autouse=True, scope='session')
-def cleanup_all():
-    yield
-
-    client = Pinecone()
-    for index in client.list_indexes():
-        buildNumber = os.getenv('GITHUB_BUILD_NUMBER')
-        if index.name.startswith(buildNumber):
-            try:
-                delete_with_retry(client, index.name)
-            except:
-                pass
