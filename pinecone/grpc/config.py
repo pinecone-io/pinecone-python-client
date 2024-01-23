@@ -7,7 +7,7 @@ class GRPCClientConfig(NamedTuple):
     GRPC client configuration options.
 
     :param secure: Whether to use encrypted protocol (SSL). defaults to True.
-    :type traceroute: bool, optional
+    :type secure: bool, optional
     :param timeout: defaults to 2 seconds. Fail if gateway doesn't receive response within timeout.
     :type timeout: int, optional
     :param conn_timeout: defaults to 1. Timeout to retry connection if gRPC is unavailable. 0 is no retry.

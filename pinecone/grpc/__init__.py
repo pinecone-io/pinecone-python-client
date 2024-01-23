@@ -46,6 +46,7 @@ index.query(vector=[...], top_k=10)
 
 from .index_grpc import GRPCIndex
 from .pinecone import PineconeGRPC
+from .config import GRPCClientConfig
 
 from pinecone.core.grpc.protos.vector_service_pb2 import (
     Vector as GRPCVector,
