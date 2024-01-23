@@ -123,7 +123,7 @@ class PineconeGRPC(Pinecone):
         if host != '':
             # Use host if it is provided
             config = ConfigBuilder.build(api_key=self.config.api_key, host=host)
-            return GRPCIndex(index_name=name, config=config)
+            return GRPCIndex(index_name=name, config=config, **kwargs)
 
         if name != '':
             # Otherwise, get host url from describe_index using the index name
