@@ -73,7 +73,7 @@ def index_exists(index_name, client):
 def random_string():
     return ''.join(random.choice(string.ascii_lowercase) for i in range(10))
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope='session')
 def reusable_collection():
     pc = Pinecone(
         api_key=get_environment_var('PINECONE_API_KEY'),

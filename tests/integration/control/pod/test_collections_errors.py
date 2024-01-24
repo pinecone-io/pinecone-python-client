@@ -8,6 +8,21 @@ def random_string():
     return ''.join(random.choice(string.ascii_lowercase) for i in range(10))
 
 class TestCollectionErrorCases:
+    def test_create_index_with_nonexistent_source_collection(self, client, dimension, metric, environment):
+        with pytest.raises(Exception) as e:
+            index_name = 'from-nonexistent-coll-' + random_string()
+            client.create_index(
+                name=index_name,
+                dimension=dimension,
+                metric=metric,
+                spec=PodSpec(
+                    environment=environment,
+                    source_collection='doesnotexist'
+                )
+            )
+            client.delete_index(index_name, -1)
+        assert 'Resource doesnotexist not found' in str(e.value)
+
     def test_create_index_in_mismatched_environment(self, client, dimension, metric, environment, reusable_collection):
         envs = [
             'eastus-azure',
