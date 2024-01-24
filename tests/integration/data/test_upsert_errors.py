@@ -9,7 +9,10 @@ class TestUpsertApiKeyMissing():
     def test_upsert_fails_when_api_key_invalid(self, index_name, index_host):
         with pytest.raises(PineconeException):
             from pinecone import Pinecone
-            pc = Pinecone(api_key=fake_api_key())
+            pc = Pinecone(
+                api_key=fake_api_key(), 
+                additional_headers={'sdk-test-suite': 'pinecone-python-client'}
+            )
             idx = pc.Index(name=index_name, host=index_host)
             idx.upsert(vectors=[
                     Vector(id='1', values=embedding_values()),

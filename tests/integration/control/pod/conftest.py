@@ -1,44 +1,51 @@
-import os
 import pytest
 import random
+import string
 import time
-from pinecone import Pinecone, NotFoundException, PineconeApiException
+from pinecone import Pinecone, PodSpec
 from ...helpers import generate_index_name, get_environment_var
 
 @pytest.fixture()
 def client():
     api_key = get_environment_var('PINECONE_API_KEY')
-    return Pinecone(api_key=api_key)
-
-@pytest.fixture()
-def pod_environment():
-    return get_environment_var('POD_ENVIRONMENT', 'us-east1-gcp')
-
-@pytest.fixture()
-def serverless_cloud():
-    return get_environment_var('SERVERLESS_CLOUD', 'aws')
-
-@pytest.fixture()
-def serverless_region():
-    return get_environment_var('SERVERLESS_REGION', 'us-west-2')
+    return Pinecone(
+        api_key=api_key,
+        additional_headers={'sdk-test-suite': 'pinecone-python-client'}
+    )
 
 @pytest.fixture()
 def environment():
     return get_environment_var('PINECONE_ENVIRONMENT')
 
 @pytest.fixture()
-def create_pod_index_params(index_name, pod_environment):
+def dimension():
+    return int(get_environment_var('DIMENSION'))
+
+@pytest.fixture()
+def create_index_params(index_name, environment, dimension, metric):
     spec = { 
         'pod': {
-            'environment': pod_environment,
+            'environment': environment,
             'pod_type': 'p1.x1'
         }
     }
-    return dict(name=index_name, dimension=10, metric='cosine', spec=spec, timeout=-1)
+    return dict(
+        name=index_name, 
+        dimension=dimension, 
+        metric=metric, 
+        spec=spec, 
+        timeout=-1
+    )
 
 @pytest.fixture()
-def random_vector():
-    return [random.uniform(0, 1) for _ in range(10)]
+def metric():
+    return get_environment_var('METRIC')
+
+@pytest.fixture()
+def random_vector(dimension):
+    def _random_vector():
+        return [random.uniform(0, 1) for _ in range(dimension)]
+    return _random_vector
 
 @pytest.fixture()
 def index_name(request):
@@ -46,54 +53,97 @@ def index_name(request):
     return generate_index_name(test_name)
 
 @pytest.fixture()
-def ready_sl_index(client, index_name, create_sl_index_params):
-    create_sl_index_params['timeout'] = None
-    client.create_index(**create_sl_index_params)
+def ready_index(client, index_name, create_index_params):
+    create_index_params['timeout'] = None
+    client.create_index(**create_index_params)
+    time.sleep(10) # Extra wait, since status is sometimes inaccurate
     yield index_name
     client.delete_index(index_name, -1)
 
 @pytest.fixture()
-def notready_sl_index(client, index_name, create_sl_index_params):
-    client.create_index(**create_sl_index_params, timeout=-1)
+def notready_index(client, index_name, create_index_params):
+    create_index_params.update({'timeout': -1 })
+    client.create_index(**create_index_params)
     yield index_name
 
-@pytest.fixture()
-def ready_pod_index(client, index_name, create_pod_index_params):
-    del create_pod_index_params['timeout']
-    client.create_index(**create_pod_index_params)
-    yield index_name
+def index_exists(index_name, client):
+    return index_name in client.list_indexes().names()
 
-@pytest.fixture()
-def notready_pod_index(client, index_name, create_pod_index_params):
-    client.create_index(**create_pod_index_params)
-    yield index_name
 
-def delete_with_retry(client, index_name, retries=0, sleep_interval=5):
-    print('Deleting index ' + index_name + ', retry ' + str(retries) + ', next sleep interval ' + str(sleep_interval))
-    try:
-        client.delete_index(index_name, -1)
-    except NotFoundException:
-        pass
-    except PineconeApiException as e:
-        if e.error.code == 'PRECONDITON_FAILED':
-            if retries > 5:
-                raise 'Unable to delete index ' + index_name
-            time.sleep(sleep_interval)
-            delete_with_retry(client, index_name, retries + 1, sleep_interval * 2)
-        else:
-            print(e.__class__)
-            print(e)
-            raise 'Unable to delete index ' + index_name
-    except Exception as e:
-        print(e.__class__)
-        print(e)
-        raise 'Unable to delete index ' + index_name
+def random_string():
+    return ''.join(random.choice(string.ascii_lowercase) for i in range(10))
+
+@pytest.fixture(scope='session', autouse=True)
+def reusable_collection():
+    pc = Pinecone(
+        api_key=get_environment_var('PINECONE_API_KEY'),
+        additional_headers={'sdk-test-suite': 'pinecone-python-client'}
+    )
+    index_name = 'temp-index-' + random_string()
+    dimension = int(get_environment_var('DIMENSION'))
+    print(f"Creating index {index_name} to prepare a collection...")
+    pc.create_index(
+        name=index_name,
+        dimension=dimension,
+        metric=get_environment_var('METRIC'),
+        spec=PodSpec(
+            environment=get_environment_var('PINECONE_ENVIRONMENT'),
+        )
+    )
+    print(f"Created index {index_name}. Waiting 10 seconds to make sure it's ready...")
+    time.sleep(10)
+    
+    num_vectors = 10
+    vectors = [ 
+        (str(i), [random.uniform(0, 1) for _ in range(dimension)]) for i in range(num_vectors) ]
+    
+    index = pc.Index(index_name)
+    index.upsert(vectors=vectors)
+
+    collection_name = 'reused-coll-' + random_string()
+    pc.create_collection(
+        name=collection_name, 
+        source=index_name
+    )
+    
+    time_waited = 0
+    desc = pc.describe_collection(collection_name)
+    collection_ready = desc['status']
+    while collection_ready.lower() != 'ready' and time_waited < 120:
+        print(f"Waiting for collection {collection_name} to be ready. Waited {time_waited} seconds...")
+        time.sleep(5)
+        time_waited += 5
+        desc = pc.describe_collection(collection_name)
+        collection_ready = desc['status']
+
+    if time_waited >= 120:
+        raise Exception(f"Collection {collection_name} is not ready after 120 seconds")
+
+    print(f"Collection {collection_name} is ready. Deleting index {index_name}...")
+    pc.delete_index(index_name)
+
+    yield collection_name
+
+    print(f"Deleting collection {collection_name}...")
+    pc.delete_collection(collection_name)
 
 @pytest.fixture(autouse=True)
 def cleanup(client, index_name):
     yield
 
-    try:
-       client.delete_index(index_name, -1)
-    except:
-       pass
+    time_waited = 0
+    while index_exists(index_name, client) and time_waited < 120:
+        print(f"Waiting for index {index_name} to be ready to delete. Waited {time_waited} seconds..")
+        time_waited += 5
+        time.sleep(5)
+        try:
+            print(f"Attempting delete of index {index_name}")
+            client.delete_index(index_name, -1)
+            print(f"Deleted index {index_name}")
+            break
+        except Exception as e:
+            print(f"Unable to delete index {index_name}: {e}")
+            pass
+
+    if time_waited >= 120:
+        raise Exception(f"Index {index_name} is not ready to delete after 120 seconds")

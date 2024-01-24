@@ -45,8 +45,55 @@ jobs:
 #           spec: '${{ matrix.spec }}'
 #           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
 
-  control-rest:
-    name: control plane
+  control-rest-pod:
+    name: control plane pod/collection tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        pineconeEnv:
+          - prod
+        testConfig:
+          - python-version: 3.8
+            pod: { environment: 'us-east1-gcp'}
+          - python-version: 3.11
+            pod: { environment: 'us-east4-gcp'}
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: 'Set up Python ${{ matrix.testConfig.python-version }}'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '${{ matrix.testConfig.python-version }}'
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+      - name: 'Run integration tests (REST, prod)'
+        if: matrix.pineconeEnv == 'prod'
+        run: poetry run pytest tests/integration/control/serverless -s -v
+        env:
+          PINECONE_DEBUG_CURL: 'true'
+          PINECONE_CONTROLLER_HOST: 'https://api.pinecone.io'
+          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+          PINECONE_ENVIRONMENT: '${{ matrix.testConfig.pod.environment }}'
+          GITHUB_BUILD_NUMBER: '${{ github.run_number }}-s-${{ matrix.testConfig.python-version}}'
+          DIMENSION: '1536'
+          METRIC: 'cosine'
+      - name: 'Run integration tests (REST, staging)'
+        if: matrix.pineconeEnv == 'staging'
+        run: poetry run pytest tests/integration/control/serverless -s -v
+        env:
+          PINECONE_DEBUG_CURL: 'true'
+          PINECONE_CONTROLLER_HOST: 'https://api-staging.pinecone.io'
+          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY_STAGING }}'
+          PINECONE_ENVIRONMENT: '${{ matrix.testConfig.pod.environment }}'
+          GITHUB_BUILD_NUMBER: '${{ github.run_number }}-p-${{ matrix.testConfig.python-version}}'
+          DIMENSION: '1536'
+          METRIC: 'cosine'
+
+
+
+
+  control-rest-serverless:
+    name: control plane serverless
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -59,7 +106,6 @@ jobs:
           - python-version: 3.11
             pod: { environment: 'us-east1-gcp'}
             serverless: { cloud: 'aws', region: 'us-west-2'}
-      max-parallel: 1
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -71,21 +117,20 @@ jobs:
         uses: ./.github/actions/setup-poetry
       - name: 'Run integration tests (REST, prod)'
         if: matrix.pineconeEnv == 'prod'
-        run: poetry run pytest tests/integration/control -s -v
+        run: poetry run pytest tests/integration/control/serverless -s -vv
         env:
-          PINECONE_CONTROLLER_HOST: 'https://api.pinecone.io'
+          PINECONE_DEBUG_CURL: 'true'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
           GITHUB_BUILD_NUMBER: '${{ github.run_number }}-p-${{ matrix.testConfig.python-version}}'
-          POD_ENVIRONMENT: '${{ matrix.testConfig.pod.environment }}'
           SERVERLESS_CLOUD: '${{ matrix.testConfig.serverless.cloud }}'
           SERVERLESS_REGION: '${{ matrix.testConfig.serverless.region }}'
       - name: 'Run integration tests (REST, staging)'
         if: matrix.pineconeEnv == 'staging'
-        run: poetry run pytest tests/integration -s -v
+        run: poetry run pytest tests/integration/control/serverless -s -vv
         env:
+          PINECONE_DEBUG_CURL: 'true'
           PINECONE_CONTROLLER_HOST: 'https://api-staging.pinecone.io'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY_STAGING }}'
           GITHUB_BUILD_NUMBER: '${{ github.run_number }}-s-${{ matrix.testConfig.python-version}}'
-          POD_ENVIRONMENT: '${{ matrix.testConfig.pod.environment }}'
           SERVERLESS_CLOUD: '${{ matrix.testConfig.serverless.cloud }}'
           SERVERLESS_REGION: '${{ matrix.testConfig.serverless.region }}'

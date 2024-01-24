@@ -51,6 +51,33 @@ class TestControl:
         assert p.index_api.describe_index.call_count == expected_describe_index_calls
         assert time.sleep.call_count == expected_sleep_calls
 
+    @pytest.mark.parametrize("timeout_value, describe_index_responses, expected_describe_index_calls, expected_sleep_calls", [
+        # When timeout=None, describe_index is called until ready
+        (None, [{ "status": {"ready": False}}, {"status": {"ready": True}}], 2, 1),
+
+        # Timeout of 10 seconds, describe_index called 3 times, sleep twice
+        (10, [{"status": {"ready": False}}, {"status": {"ready": False}}, {"status": {"ready": True}}], 3, 2),
+
+        # When timeout=-1, create_index returns immediately without calling describe_index or sleep
+        (-1, [{"status": {"ready": False}}], 0, 0),
+    ])
+    def test_create_index_from_source_collection(self, mocker, timeout_value, describe_index_responses, expected_describe_index_calls, expected_sleep_calls):
+        p = Pinecone(api_key="123-456-789")
+        mocker.patch.object(p.index_api, 'describe_index', side_effect=describe_index_responses)
+        mocker.patch.object(p.index_api, 'create_index')
+        mocker.patch('time.sleep')
+
+        p.create_index(
+            name="my-index", 
+            dimension=10, 
+            spec=PodSpec(environment='us-east1-gcp', source_collection="my-collection"), 
+            timeout=timeout_value
+        )
+
+        assert p.index_api.create_index.call_count == 1
+        assert p.index_api.describe_index.call_count == expected_describe_index_calls
+        assert time.sleep.call_count == expected_sleep_calls
+
     def test_create_index_when_timeout_exceeded(self, mocker):
         with pytest.raises(TimeoutError):
             p = Pinecone(api_key="123-456-789")
