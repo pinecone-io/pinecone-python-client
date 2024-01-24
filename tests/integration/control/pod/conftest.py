@@ -146,4 +146,4 @@ def cleanup(client, index_name):
             pass
 
     if time_waited >= 120:
-        raise Exception(f"Index {index_name} is not ready to delete after 120 seconds")
+        raise Exception(f"Index {index_name} could not be deleted after 120 seconds")

@@ -71,11 +71,10 @@ jobs:
         run: poetry run pytest tests/integration/control/serverless -s -v
         env:
           PINECONE_DEBUG_CURL: 'true'
-          PINECONE_CONTROLLER_HOST: 'https://api.pinecone.io'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
           PINECONE_ENVIRONMENT: '${{ matrix.testConfig.pod.environment }}'
           GITHUB_BUILD_NUMBER: '${{ github.run_number }}-s-${{ matrix.testConfig.python-version}}'
-          DIMENSION: '1536'
+          DIMENSION: 1536
           METRIC: 'cosine'
       - name: 'Run integration tests (REST, staging)'
         if: matrix.pineconeEnv == 'staging'
@@ -86,7 +85,7 @@ jobs:
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY_STAGING }}'
           PINECONE_ENVIRONMENT: '${{ matrix.testConfig.pod.environment }}'
           GITHUB_BUILD_NUMBER: '${{ github.run_number }}-p-${{ matrix.testConfig.python-version}}'
-          DIMENSION: '1536'
+          DIMENSION: 1536
           METRIC: 'cosine'
 
 
