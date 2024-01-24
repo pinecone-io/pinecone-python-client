@@ -3,16 +3,15 @@ import pytest
 import random
 import time
 from pinecone import Pinecone, NotFoundException, PineconeApiException
-from ..helpers import generate_index_name, get_environment_var
+from ...helpers import generate_index_name, get_environment_var
 
 @pytest.fixture()
 def client():
     api_key = get_environment_var('PINECONE_API_KEY')
-    return Pinecone(api_key=api_key)
-
-@pytest.fixture()
-def pod_environment():
-    return get_environment_var('POD_ENVIRONMENT', 'us-east1-gcp')
+    return Pinecone(
+        api_key=api_key, 
+        additional_headers={'sdk-test-suite': 'pinecone-python-client'}
+    )
 
 @pytest.fixture()
 def serverless_cloud():
@@ -23,26 +22,12 @@ def serverless_region():
     return get_environment_var('SERVERLESS_REGION', 'us-west-2')
 
 @pytest.fixture()
-def environment():
-    return get_environment_var('PINECONE_ENVIRONMENT')
-
-@pytest.fixture()
 def create_sl_index_params(index_name, serverless_cloud, serverless_region):
     spec = {"serverless": {
         'cloud': serverless_cloud,
         'region': serverless_region
     }}
     return dict(name=index_name, dimension=10, metric='cosine', spec=spec)
-
-@pytest.fixture()
-def create_pod_index_params(index_name, pod_environment):
-    spec = { 
-        'pod': {
-            'environment': pod_environment,
-            'pod_type': 'p1.x1'
-        }
-    }
-    return dict(name=index_name, dimension=10, metric='cosine', spec=spec, timeout=-1)
 
 @pytest.fixture()
 def random_vector():
@@ -110,7 +95,7 @@ def cleanup(client, index_name):
 def cleanup_all():
     yield
 
-    client = Pinecone()
+    client = Pinecone(additional_headers={'sdk-test-suite': 'pinecone-python-client'})
     for index in client.list_indexes():
         buildNumber = os.getenv('GITHUB_BUILD_NUMBER')
         if index.name.startswith(buildNumber):

@@ -25,7 +25,7 @@ def build_client():
         return PineconeGRPC(api_key=api_key())
     else:
         from pinecone import Pinecone
-        return Pinecone(api_key=api_key())
+        return Pinecone(api_key=api_key(), additional_headers={'sdk-test-suite': 'pinecone-python-client'})
 
 @pytest.fixture(scope='session')
 def client():
