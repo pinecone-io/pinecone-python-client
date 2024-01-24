@@ -18,6 +18,10 @@ class GRPCClientConfig(NamedTuple):
     :type retry_config: RetryConfig, optional
     :param grpc_channel_options: A dict of gRPC channel arguments
     :type grpc_channel_options: Dict[str, str]
+    :param additional_metadata: Additional metadata to be sent to the server with each request. Note that this
+        metadata refers to [gRPC metadata](https://grpc.io/docs/guides/metadata/) which is a concept similar
+        to HTTP headers. This is unrelated to the metadata can be stored with a vector in the index.
+    :type additional_metadata: Dict[str, str]
     """
 
     secure: bool = True
@@ -26,6 +30,7 @@ class GRPCClientConfig(NamedTuple):
     reuse_channel: bool = True
     retry_config: Optional[RetryConfig] = None
     grpc_channel_options: Optional[Dict[str, str]] = None
+    additional_metadata: Optional[Dict[str, str]] = None
 
     @classmethod
     def _from_dict(cls, kwargs: dict):

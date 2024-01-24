@@ -446,6 +446,7 @@ class Pinecone:
         response = api_instance.describe_index(name)
         return response["status"]
 
+
     def Index(self, name: str = '', host: str = '', **kwargs):
         """
         Target an index for data operations.
