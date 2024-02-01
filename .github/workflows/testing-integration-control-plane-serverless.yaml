@@ -32,7 +32,7 @@ name: "Python Integration Tests (Control/Serverless)"
         required: true
 
 jobs:
-  control-serverless:
+  python-control-serverless:
     name: control plane
     runs-on: ubuntu-latest
     steps:

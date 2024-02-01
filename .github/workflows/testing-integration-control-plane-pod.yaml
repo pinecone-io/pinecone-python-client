@@ -27,7 +27,7 @@ name: "Python Integration Tests (Control/Pod)"
         required: true
 
 jobs:
-  control-serverless:
+  python-control-pod:
     name: control plane
     runs-on: ubuntu-latest
     steps:
@@ -44,5 +44,5 @@ jobs:
           PINECONE_CONTROLLER_HOST: ${{ inputs.PINECONE_CONTROLLER_HOST }}
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
           GITHUB_BUILD_NUMBER: '${{ github.run_number }}-p-${{ inputs.python-version}}'
-          POD_ENVIRONMENT: '${{ inputs.environment }}'
+          PINECONE_ENVIRONMENT: '${{ inputs.environment }}'
           ADDITIONAL_HEADERS_JSON: '${{ inputs.additional-headers-json}}'
