@@ -2,16 +2,21 @@ import pytest
 import random
 import string
 import time
+import json
 from pinecone import Pinecone, PodSpec
 from ...helpers import generate_index_name, get_environment_var
 
 @pytest.fixture()
-def client():
+def client(additional_headers):
     api_key = get_environment_var('PINECONE_API_KEY')
     return Pinecone(
         api_key=api_key,
-        additional_headers={'sdk-test-suite': 'pinecone-python-client'}
+        additional_headers=additional_headers
     )
+
+@pytest.fixture()
+def additional_headers():
+    return json.loads(get_environment_var('ADDITIONAL_HEADERS_JSON'))
 
 @pytest.fixture()
 def environment():
