@@ -1,0 +1,54 @@
+name: "Python Integration Tests (Control/Serverless)"
+'on':
+  workflow_call:
+    inputs:
+      python-version:
+        description: 'The version of python to install'
+        required: false
+        type: string
+        default: '3.8'
+      cloud:
+        description: 'The cloud where serverless indexes will be created'
+        required: false
+        default: 'aws'
+        type: string
+      region:
+        description: 'The region where serverless indexes will be created'
+        required: false
+        default: 'us-west-2'
+        type: string  
+      additional-headers-json:
+        description: 'A json representation of additional headers you want passed with every request'
+        required: false
+        type: string
+        # default: '{ "x-environment": "foo" }'
+      PINECONE_CONTROLLER_HOST:
+        description: 'The control plane host. For staging, pass https://api-staging.pinecone.io'
+        required: false
+        default: 'https://api.pinecone.io'
+        type: string
+    secrets:
+      PINECONE_API_KEY:
+        required: true
+
+jobs:
+  control-serverless:
+    name: control plane
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 'Set up Python ${{ inputs.python-version }}'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '${{ inputs.python-version }}'
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+      - name: 'Run integration tests (REST, prod)'
+        run: poetry run pytest tests/integration/control/serverless -s -v
+        env:
+          PINECONE_CONTROLLER_HOST: ${{ inputs.PINECONE_CONTROLLER_HOST }}
+          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+          GITHUB_BUILD_NUMBER: '${{ github.run_number }}-p-${{ inputs.python-version}}'
+          SERVERLESS_CLOUD: '${{ inputs.cloud }}'
+          SERVERLESS_REGION: '${{ inputs.region }}'
+          ADDITIONAL_HEADERS_JSON: '${{ inputs.additional-headers-json}}'
