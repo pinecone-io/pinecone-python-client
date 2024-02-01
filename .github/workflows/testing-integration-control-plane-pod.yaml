@@ -17,6 +17,16 @@ name: "Python Integration Tests (Control/Pod)"
         required: false
         type: string
         # default: '{ "x-environment": "foo" }'
+      dimension:
+        description: 'The dimension of the index to create'
+        required: false
+        default: 1536
+        type: number
+      metric:
+        description: 'The metric of the index to create'
+        type: string
+        required: false
+        default: 'cosine'
       PINECONE_CONTROLLER_HOST:
         description: 'The control plane host. For staging, pass https://api-staging.pinecone.io'
         required: false
@@ -46,3 +56,5 @@ jobs:
           GITHUB_BUILD_NUMBER: '${{ github.run_number }}-p-${{ inputs.python-version}}'
           PINECONE_ENVIRONMENT: '${{ inputs.environment }}'
           ADDITIONAL_HEADERS_JSON: '${{ inputs.additional-headers-json}}'
+          DIMENSION: ${{ inputs.dimension }}
+          METRIC: ${{ inputs.metric }}
