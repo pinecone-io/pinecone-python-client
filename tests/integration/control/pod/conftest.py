@@ -16,7 +16,7 @@ def client(additional_headers):
 
 @pytest.fixture()
 def additional_headers():
-    return json.loads(get_environment_var('ADDITIONAL_HEADERS_JSON'))
+    return json.loads(get_environment_var('ADDITIONAL_HEADERS_JSON', '{}'))
 
 @pytest.fixture()
 def environment():
@@ -24,7 +24,7 @@ def environment():
 
 @pytest.fixture()
 def dimension():
-    return int(get_environment_var('DIMENSION'))
+    return int(get_environment_var('DIMENSION', 1536))
 
 @pytest.fixture()
 def create_index_params(index_name, environment, dimension, metric):
@@ -44,7 +44,7 @@ def create_index_params(index_name, environment, dimension, metric):
 
 @pytest.fixture()
 def metric():
-    return get_environment_var('METRIC')
+    return get_environment_var('METRIC', 'cosine')
 
 @pytest.fixture()
 def random_vector(dimension):
@@ -82,7 +82,7 @@ def random_string():
 def reusable_collection():
     pc = Pinecone(
         api_key=get_environment_var('PINECONE_API_KEY'),
-        additional_headers={'sdk-test-suite': 'pinecone-python-client'}
+        additional_headers=json.loads(get_environment_var('ADDITIONAL_HEADERS_JSON', '{}'))
     )
     index_name = 'temp-index-' + random_string()
     dimension = int(get_environment_var('DIMENSION'))
