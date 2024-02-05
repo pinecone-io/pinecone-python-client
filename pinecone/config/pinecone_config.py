@@ -18,6 +18,6 @@ class PineconeConfig():
           headers = json.loads(headers_json)
           additional_headers = additional_headers or headers
         except json.decoder.JSONDecodeError as e:
-          logger.warn(f'Ignoring PINECONE_ADDITIONAL_HEADERS: {}', e)
+          logger.warn(f'Ignoring PINECONE_ADDITIONAL_HEADERS: {e}')
 
         return ConfigBuilder.build(api_key=api_key, host=host, additional_headers=additional_headers, **kwargs)
