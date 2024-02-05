@@ -50,13 +50,13 @@ def parse_fetch_response(response: dict):
     return FetchResponse(
         vectors=vd, 
         namespace=namespace,
-        usage=parse_usage(response),
+        usage=parse_usage(response.get("usage", {})),
         _check_type=False
     )
 
-def parse_usage(response):
-    u = response.get("usage", {})
-    return Usage(read_units=int(u.get("readUnits", 0)))
+
+def parse_usage(usage: dict):
+    return Usage(read_units=int(usage.get("readUnits", 0)))
 
 
 def parse_query_response(response: dict, _check_type: bool = False):
@@ -72,13 +72,16 @@ def parse_query_response(response: dict, _check_type: bool = False):
         )
         matches.append(sc)
 
-    return QueryResponse(
-        namespace=response.get("namespace", ""), 
-        matches=matches,
-        usage = parse_usage(response),
-        _check_type=_check_type
-    )
-
+    # Due to OpenAPI model classes / actual parsing cost, we want to avoid
+    # creating empty `Usage` objects and then passing them into QueryResponse
+    # when they are not actually present in the response from the server.
+    args = {'namespace': response.get("namespace", ""),
+            'matches': matches,
+            '_check_type': _check_type}
+    usage = response.get("usage")
+    if usage:
+        args['usage'] = parse_usage(usage)
+    return QueryResponse(**args)
 
 def parse_stats_response(response: dict):
     fullness = response.get("indexFullness", 0.0)
