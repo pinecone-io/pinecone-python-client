@@ -70,7 +70,7 @@ class TestConfig:
         controller_host = "kwargs-controller-host"
         additional_headers = {"header": "value2"}
 
-        config = PineconeConfig.build(api_key=api_key, host=controller_host, additional_headers)
+        config = PineconeConfig.build(api_key=api_key, host=controller_host, additional_headers=additional_headers)
 
         assert config.api_key == api_key
         assert config.host == 'https://' + controller_host
