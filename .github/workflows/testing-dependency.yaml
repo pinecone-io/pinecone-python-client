@@ -146,7 +146,6 @@ jobs:
       - dependency-matrix-rest
       - dependency-matrix-setup
     steps:
-      - uses: xxxxxxxxxxxxxxxx@xx
       - name: Delete index
         uses: ./.github/actions/delete-index
         with:
