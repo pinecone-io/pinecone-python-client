@@ -23,12 +23,14 @@ jobs:
         environment:
           - 'us-east1-gcp'
           - 'us-east4-gcp'
+        client-version: ['dev', '3.0.2']
     secrets:
       PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
     with:
       PINECONE_CONTROLLER_HOST: 'https://api.pinecone.io'
       additional-headers-json: '{}'
       environment: ${{ matrix.environment }}
+      client-version: ${{ matrix.client-version}}
 
   integration-tests-serverless:
     uses: './.github/workflows/testing-integration-control-plane-serverless.yaml'

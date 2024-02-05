@@ -7,6 +7,10 @@ name: "Python Integration Tests (Control/Serverless)"
         required: false
         type: string
         default: '3.8'
+      client-version:
+        description: 'The version of the client to test with. Default is "dev" which runs tests with the head of main. But you can also specify published versions such as 3.0.2 to test with.'
+        type: string
+        default: dev
       cloud:
         description: 'The cloud where serverless indexes will be created'
         required: false
@@ -43,6 +47,11 @@ jobs:
           python-version: '${{ inputs.python-version }}'
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
+      - name: Install client
+        if: ${{ inputs.client-version != 'dev' }}
+        run: |
+          rm -rf pinecone
+          poetry add pinecone-client==${{ inputs.client-version }}
       - name: 'Run integration tests (REST, prod)'
         run: poetry run pytest tests/integration/control/serverless -s -v
         env:
