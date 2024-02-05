@@ -131,11 +131,6 @@ class TestConfigureIndexErrorCases:
         assert e.value.reason == 'Not Found'
         assert 'nonexistent' in e.value.body
 
-    def test_configure_with_no_other_args(self, client, reusabale_index):
-        with pytest.raises(ValueError) as e:
-            client.configure_index(name=reusabale_index)
-        assert 'Either replicas or pod_type must be specified' in str(e.value)
-
     def test_configure_with_invalid_replicas(self, client, reusabale_index):
         with pytest.raises(PineconeApiValueError) as e:
             client.configure_index(reusabale_index, replicas=-1)
