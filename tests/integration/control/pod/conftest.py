@@ -97,8 +97,21 @@ def reusabale_index():
     print(f"Created index {index_name}. Waiting 10 seconds to make sure it's ready...")
     time.sleep(10)
     yield index_name
-    print(f"Deleting reusable index {index_name}")
-    pc.delete_index(index_name)
+    print(f"Beginning delete attempts on reusable index {index_name}")
+    
+    time_waited = 0
+    while index_exists(index_name, pc) and time_waited < 120:
+        print(f"Waiting for index {index_name} to be ready to delete. Waited {time_waited} seconds..")
+        time_waited += 5
+        time.sleep(5)
+        try:
+            print(f"Attempting delete of index {index_name}")
+            pc.delete_index(index_name, -1)
+            print(f"Deleted index {index_name}")
+            break
+        except Exception as e:
+            print(f"Unable to delete index {index_name}: {e}")
+            pass
 
 @pytest.fixture(scope='session')
 def reusable_collection(reusabale_index):

@@ -31,6 +31,7 @@ jobs:
       additional-headers-json: '{}'
       environment: ${{ matrix.environment }}
       client-version: ${{ matrix.client-version}}
+      dimension: 10
 
   integration-tests-serverless:
     uses: './.github/workflows/testing-integration-control-plane-serverless.yaml'
