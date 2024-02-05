@@ -146,6 +146,7 @@ jobs:
       - dependency-matrix-rest
       - dependency-matrix-setup
     steps:
+      - uses: actions/checkout@v4
       - name: Delete index
         uses: ./.github/actions/delete-index
         with:

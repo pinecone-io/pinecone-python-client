@@ -18,7 +18,7 @@ jobs:
   integration-tests-pod:
     uses: './.github/workflows/testing-integration-control-plane-pod.yaml'
     strategy:
-      fail-fast: false
+      max-parallel: 1
       matrix:
         environment:
           - 'us-east1-gcp'
