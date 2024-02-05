@@ -50,15 +50,33 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '${{ inputs.python-version }}'
+
+      # Running integration tests with development version of the client
       - name: Setup Poetry
+        if: ${{ inputs.client-version == 'dev' }}
         uses: ./.github/actions/setup-poetry
+      - name: 'Run integration tests (REST, prod)'
+        if: ${{ inputs.client-version == 'dev' }}
+        run: poetry run pytest tests/integration/control/pod -s -v
+        env:
+          PINECONE_CONTROLLER_HOST: ${{ inputs.PINECONE_CONTROLLER_HOST }}
+          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+          GITHUB_BUILD_NUMBER: '${{ github.run_number }}-p-${{ inputs.python-version}}'
+          PINECONE_ENVIRONMENT: '${{ inputs.environment }}'
+          ADDITIONAL_HEADERS_JSON: '${{ inputs.additional-headers-json}}'
+          DIMENSION: ${{ inputs.dimension }}
+          METRIC: ${{ inputs.metric }}
+
+      # Running integration tests with a published release of the client
       - name: Install client
         if: ${{ inputs.client-version != 'dev' }}
         run: |
           rm -rf pinecone
-          poetry add pinecone-client==${{ inputs.client-version }}
+          pip install pinecone-client==${{ inputs.client-version }}
+          pip install pytest
       - name: 'Run integration tests (REST, prod)'
-        run: poetry run pytest tests/integration/control/pod -s -v
+        if: ${{ inputs.client-version != 'dev' }}
+        run: pytest tests/integration/control/pod -s -v
         env:
           PINECONE_CONTROLLER_HOST: ${{ inputs.PINECONE_CONTROLLER_HOST }}
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
