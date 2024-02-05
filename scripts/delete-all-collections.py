@@ -15,6 +15,12 @@ def main():
         if collection != "":
             pc.delete_collection(collection)
 
+    for index in pc.list_indexes().names():
+        try:
+            pc.delete_index(index)
+        except:
+            pass
+
 if __name__ == '__main__':
     main()
 

@@ -365,6 +365,9 @@ class Pinecone:
             config_args.update(pod_type=pod_type)
         if replicas:
             config_args.update(replicas=replicas)
+        if replicas is None and pod_type is None:
+            raise ValueError("Either replicas or pod_type must be specified")
+        
         configure_index_request = ConfigureIndexRequest(
             spec=ConfigureIndexRequestSpec(
                 pod=ConfigureIndexRequestSpecPod(**config_args)
