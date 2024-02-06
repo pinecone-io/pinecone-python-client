@@ -119,16 +119,16 @@ class ApiClient(object):
         self,
         resource_path: str,
         method: str,
-        path_params: typing.Optional[typing.Dict[str, typing.Any]] = None,
-        query_params: typing.Optional[typing.List[typing.Tuple[str, typing.Any]]] = None,
-        header_params: typing.Optional[typing.Dict[str, typing.Any]] = None,
+        path_params: typing.Optional[typing.Mapping[str, typing.Any]] = None,
+        query_params: typing.Optional[typing.Sequence[typing.Tuple[str, typing.Any]]] = None,
+        header_params: typing.Optional[typing.Mapping[str, typing.Any]] = None,
         body: typing.Optional[typing.Any] = None,
-        post_params: typing.Optional[typing.List[typing.Tuple[str, typing.Any]]] = None,
-        files: typing.Optional[typing.Dict[str, typing.List[io.IOBase]]] = None,
+        post_params: typing.Optional[typing.Sequence[typing.Tuple[str, typing.Any]]] = None,
+        files: typing.Optional[typing.Mapping[str, typing.Sequence[io.IOBase]]] = None,
         response_type: typing.Optional[typing.Tuple[typing.Any]] = None,
-        auth_settings: typing.Optional[typing.List[str]] = None,
+        auth_settings: typing.Optional[typing.Sequence[str]] = None,
         _return_http_data_only: typing.Optional[bool] = None,
-        collection_formats: typing.Optional[typing.Dict[str, str]] = None,
+        collection_formats: typing.Optional[typing.Mapping[str, str]] = None,
         _preload_content: bool = True,
         _request_timeout: typing.Optional[typing.Union[int, float, typing.Tuple]] = None,
         _host: typing.Optional[str] = None,
@@ -281,9 +281,9 @@ class ApiClient(object):
             return obj.isoformat()
         elif isinstance(obj, ModelSimple):
             return cls.sanitize_for_serialization(obj.value)
-        elif isinstance(obj, (list, tuple)):
+        elif isinstance(obj, typing.Sequence):
             return [cls.sanitize_for_serialization(item) for item in obj]
-        if isinstance(obj, dict):
+        if isinstance(obj, typing.Mapping):
             return {key: cls.sanitize_for_serialization(val) for key, val in obj.items()}
         raise PineconeApiValueError('Unable to prepare type {} for serialization'.format(obj.__class__.__name__))
 
@@ -336,17 +336,17 @@ class ApiClient(object):
         self,
         resource_path: str,
         method: str,
-        path_params: typing.Optional[typing.Dict[str, typing.Any]] = None,
-        query_params: typing.Optional[typing.List[typing.Tuple[str, typing.Any]]] = None,
-        header_params: typing.Optional[typing.Dict[str, typing.Any]] = None,
+        path_params: typing.Optional[typing.Mapping[str, typing.Any]] = None,
+        query_params: typing.Optional[typing.Sequence[typing.Tuple[str, typing.Any]]] = None,
+        header_params: typing.Optional[typing.Mapping[str, typing.Any]] = None,
         body: typing.Optional[typing.Any] = None,
-        post_params: typing.Optional[typing.List[typing.Tuple[str, typing.Any]]] = None,
-        files: typing.Optional[typing.Dict[str, typing.List[io.IOBase]]] = None,
+        post_params: typing.Optional[typing.Sequence[typing.Tuple[str, typing.Any]]] = None,
+        files: typing.Optional[typing.Mapping[str, typing.Sequence[io.IOBase]]] = None,
         response_type: typing.Optional[typing.Tuple[typing.Any]] = None,
-        auth_settings: typing.Optional[typing.List[str]] = None,
+        auth_settings: typing.Optional[typing.Sequence[str]] = None,
         async_req: typing.Optional[bool] = None,
         _return_http_data_only: typing.Optional[bool] = None,
-        collection_formats: typing.Optional[typing.Dict[str, str]] = None,
+        collection_formats: typing.Optional[typing.Mapping[str, str]] = None,
         _preload_content: bool = True,
         _request_timeout: typing.Optional[typing.Union[int, float, typing.Tuple]] = None,
         _host: typing.Optional[str] = None,
@@ -498,7 +498,7 @@ class ApiClient(object):
         new_params = []
         if collection_formats is None:
             collection_formats = {}
-        for k, v in params.items() if isinstance(params, dict) else params:  # noqa: E501
+        for k, v in params.items() if isinstance(params, typing.Mapping) else params:  # noqa: E501
             if k in collection_formats:
                 collection_format = collection_formats[k]
                 if collection_format == 'multi':
@@ -524,7 +524,7 @@ class ApiClient(object):
         file_instance.close()
         return file_data
 
-    def files_parameters(self, files: typing.Optional[typing.Dict[str, typing.List[io.IOBase]]] = None):
+    def files_parameters(self, files: typing.Optional[typing.Mapping[str, typing.Sequence[io.IOBase]]] = None):
         """Builds form parameters.
 
         :param files: None or a dict with key=param_name and

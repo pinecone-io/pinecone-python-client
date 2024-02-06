@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Dict, Union, List, Tuple, Any, TypedDict, cast
+from typing import Mapping, Optional, Dict, Union, List, Tuple, Any, TypedDict, cast
 
 from google.protobuf import json_format
 
@@ -209,7 +209,7 @@ class GRPCIndex(GRPCIndexBase):
         ids: Optional[List[str]] = None,
         delete_all: Optional[bool] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[Mapping[str, Union[str, float, int, bool, List, dict]]] = None,
         async_req: bool = False,
         **kwargs,
     ) -> Union[DeleteResponse, PineconeGrpcFuture]:
@@ -235,7 +235,7 @@ class GRPCIndex(GRPCIndexBase):
                                Default is False.
             namespace (str): The namespace to delete vectors from [optional]
                              If not specified, the default namespace is used.
-            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+            filter (Mapping[str, Union[str, float, int, bool, List, dict]]):
                     If specified, the metadata filter here will be used to select the vectors to delete.
                     This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True.
                      See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
@@ -293,7 +293,7 @@ class GRPCIndex(GRPCIndexBase):
         id: Optional[str] = None,
         namespace: Optional[str] = None,
         top_k: Optional[int] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[Mapping[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
         sparse_vector: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
@@ -323,7 +323,7 @@ class GRPCIndex(GRPCIndexBase):
             top_k (int): The number of results to return for each query. Must be an integer greater than 1.
             namespace (str): The namespace to fetch vectors from.
                              If not specified, the default namespace is used. [optional]
-            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+            filter (Mapping[str, Union[str, float, int, bool, List, dict]]):
                     The filter to apply. You can use vector metadata to limit your search.
                     See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
             include_values (bool): Indicates whether vector values are included in the response.
@@ -372,7 +372,7 @@ class GRPCIndex(GRPCIndexBase):
         id: str,
         async_req: bool = False,
         values: Optional[List[float]] = None,
-        set_metadata: Optional[Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]] = None,
+        set_metadata: Optional[Mapping[str, Union[str, float, int, bool, List[int], List[float], List[str]]]] = None,
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
@@ -396,7 +396,7 @@ class GRPCIndex(GRPCIndexBase):
             async_req (bool): If True, the update operation will be performed asynchronously.
                               Defaults to False. [optional]
             values (List[float]): vector values to set. [optional]
-            set_metadata (Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]]):
+            set_metadata (Mapping[str, Union[str, float, int, bool, List[int], List[float], List[str]]]]):
                 metadata to set for vector. [optional]
             namespace (str): Namespace name where to update the vector.. [optional]
             sparse_values: (Dict[str, Union[List[float], List[int]]]): sparse values to update for the vector.
@@ -430,7 +430,7 @@ class GRPCIndex(GRPCIndexBase):
             return self._wrap_grpc_call(self.stub.Update, request, timeout=timeout)
 
     def describe_index_stats(
-        self, filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None, **kwargs
+        self, filter: Optional[Mapping[str, Union[str, float, int, bool, List, dict]]] = None, **kwargs
     ) -> DescribeIndexStatsResponse:
         """
         The DescribeIndexStats operation returns statistics about the index's contents.
@@ -441,7 +441,7 @@ class GRPCIndex(GRPCIndexBase):
             >>> index.describe_index_stats(filter={'key': 'value'})
 
         Args:
-            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+            filter (Mapping[str, Union[str, float, int, bool, List, dict]]):
             If this parameter is present, the operation only returns statistics for vectors that satisfy the filter.
             See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
 
