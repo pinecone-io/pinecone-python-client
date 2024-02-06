@@ -14,7 +14,7 @@ class TestConfig:
         # Defend against unexpected env vars. Since we clear these variables below
         # after each test execution, these should only be raised if there is
         # test pollution in the environment coming from some other test file/setup.
-        known_env_vars = ["PINECONE_API_KEY", "PINECONE_ENVIRONMENT", "PINECONE_CONTROLLER_HOST"]
+        known_env_vars = ["PINECONE_API_KEY", "PINECONE_ENVIRONMENT", "PINECONE_CONTROLLER_HOST", "PINECONE_ADDITIONAL_HEADERS"]
         for var in known_env_vars:
             if os.getenv(var):
                 raise ValueError(f"Unexpected env var {var} found in environment. Check for test pollution.")
@@ -29,11 +29,13 @@ class TestConfig:
     def test_init_with_environment_vars(self):
         os.environ["PINECONE_API_KEY"] = "test-api-key"
         os.environ["PINECONE_CONTROLLER_HOST"] = "https://test-controller-host"
+        os.environ["PINECONE_ADDITIONAL_HEADERS"] = '{"header": "value"}'
 
         config = PineconeConfig.build()
 
         assert config.api_key == "test-api-key"
         assert config.host == "https://test-controller-host"
+        assert config.additional_headers == {"header": "value"}
 
     def test_init_with_positional_args(self):
         api_key = "my-api-key"
@@ -62,14 +64,17 @@ class TestConfig:
         """
         os.environ["PINECONE_API_KEY"] = "env-var-api-key"
         os.environ["PINECONE_CONTROLLER_HOST"] = "env-var-controller-host"
+        os.environ["PINECONE_ADDITIONAL_HEADERS"] = '{"header": "value1"}'
 
         api_key = "kwargs-api-key"
         controller_host = "kwargs-controller-host"
+        additional_headers = {"header": "value2"}
 
-        config = PineconeConfig.build(api_key=api_key, host=controller_host)
+        config = PineconeConfig.build(api_key=api_key, host=controller_host, additional_headers=additional_headers)
 
         assert config.api_key == api_key
         assert config.host == 'https://' + controller_host
+        assert config.additional_headers == additional_headers
 
     def test_errors_when_no_api_key_is_present(self):
         with pytest.raises(PineconeConfigurationError):
