@@ -30,6 +30,11 @@ class VectorServiceStub(object):
                 request_serializer=vector__service__pb2.FetchRequest.SerializeToString,
                 response_deserializer=vector__service__pb2.FetchResponse.FromString,
                 )
+        self.List = channel.unary_unary(
+                '/VectorService/List',
+                request_serializer=vector__service__pb2.ListRequest.SerializeToString,
+                response_deserializer=vector__service__pb2.ListResponse.FromString,
+                )
         self.Query = channel.unary_unary(
                 '/VectorService/Query',
                 request_serializer=vector__service__pb2.QueryRequest.SerializeToString,
@@ -77,6 +82,22 @@ class VectorServiceServicer(object):
 
         The `Fetch` operation looks up and returns vectors, by ID, from a single namespace.
         The returned vectors include the vector data and/or metadata.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def List(self, request, context):
+        """List
+
+        The `List` operations lists the IDs of vectors in a single namespace.
+        An optional prefix can be passed to limit the listing to those ids that start
+        with the given prefix.
+        Ids are returned in sorted order (bitwise/"C" collation).
+        A maximum of 100 ids are returned at a time.
+        A pagination token is also returned to allow the client to list the next 100.
+        The absence of the pagination token indicates that there are no more ids that
+        match the given parameters.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -134,6 +155,11 @@ def add_VectorServiceServicer_to_server(servicer, server):
                     servicer.Fetch,
                     request_deserializer=vector__service__pb2.FetchRequest.FromString,
                     response_serializer=vector__service__pb2.FetchResponse.SerializeToString,
+            ),
+            'List': grpc.unary_unary_rpc_method_handler(
+                    servicer.List,
+                    request_deserializer=vector__service__pb2.ListRequest.FromString,
+                    response_serializer=vector__service__pb2.ListResponse.SerializeToString,
             ),
             'Query': grpc.unary_unary_rpc_method_handler(
                     servicer.Query,
@@ -210,6 +236,23 @@ class VectorService(object):
         return grpc.experimental.unary_unary(request, target, '/VectorService/Fetch',
             vector__service__pb2.FetchRequest.SerializeToString,
             vector__service__pb2.FetchResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def List(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/VectorService/List',
+            vector__service__pb2.ListRequest.SerializeToString,
+            vector__service__pb2.ListResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
