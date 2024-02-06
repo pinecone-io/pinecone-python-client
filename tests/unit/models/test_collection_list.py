@@ -6,8 +6,8 @@ from pinecone.core.client.models import CollectionList as OpenApiCollectionList,
 def collection_list_response():
     return OpenApiCollectionList(
             collections=[
-               CollectionModel(name='collection1', size=10000, status='Ready', dimension=1536, record_count=1000),
-               CollectionModel(name='collection2', size=20000, status='Ready', dimension=256, record_count=2000),
+               CollectionModel(name='collection1', size=10000, status='Ready', dimension=1536, record_count=1000, environment='us-west1-gcp'),
+               CollectionModel(name='collection2', size=20000, status='Ready', dimension=256, record_count=2000, environment='us-west1-gcp'),
             ],
         )
 
