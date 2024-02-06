@@ -15,6 +15,10 @@ def client(additional_headers):
     )
 
 @pytest.fixture()
+def timeout():
+    return int(get_environment_var('COLLECTION_CREATION_TIMEOUT_SECONDS', 300))
+
+@pytest.fixture()
 def additional_headers():
     return json.loads(get_environment_var('ADDITIONAL_HEADERS_JSON', '{}'))
 

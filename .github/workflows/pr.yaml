@@ -35,6 +35,9 @@ jobs:
 
   integration-tests-serverless:
     uses: './.github/workflows/testing-integration-control-plane-serverless.yaml'
+    strategy:
+      matrix:
+        client-version: ['dev', '3.0.2']
     secrets:
       PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
     with:
@@ -42,6 +45,7 @@ jobs:
       additional-headers-json: '{}'
       cloud: 'aws'
       region: 'us-west-2'
+      client-version: ${{ matrix.client-version}}
 
   dependency-tests:
     uses: './.github/workflows/testing-dependency.yaml'

@@ -8,7 +8,7 @@ def random_string():
     return ''.join(random.choice(string.ascii_lowercase) for i in range(10))
 
 class TestCollectionsHappyPath:
-    def test_index_to_collection_to_index_happy_path(self, client, environment, dimension, metric, ready_index, random_vector):
+    def test_index_to_collection_to_index_happy_path(self, client, environment, dimension, metric, ready_index, random_vector, timeout):
         index = client.Index(ready_index)
         num_vectors = 10
         vectors = [ (str(i), random_vector()) for i in range(num_vectors) ]
@@ -23,7 +23,7 @@ class TestCollectionsHappyPath:
 
         time_waited = 0
         collection_ready = desc['status']
-        while collection_ready.lower() != 'ready' and time_waited < 120:
+        while collection_ready.lower() != 'ready' and time_waited < timeout:
             print(f"Waiting for collection {collection_name} to be ready. Waited {time_waited} seconds...")
             time.sleep(5)
             time_waited += 5
@@ -32,8 +32,8 @@ class TestCollectionsHappyPath:
 
         assert collection_name in client.list_collections().names()
 
-        if time_waited >= 120:
-            raise Exception(f"Collection {collection_name} is not ready after 120 seconds")
+        if time_waited >= timeout:
+            raise Exception(f"Collection {collection_name} is not ready after {time_waited} seconds")
 
         # After collection ready, these should all be defined
         assert desc['name'] == collection_name
