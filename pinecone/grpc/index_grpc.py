@@ -13,6 +13,10 @@ from pinecone.core.client.models import (
     QueryResponse,
     DescribeIndexStatsResponse,
 )
+from pinecone.models.list_response import (
+    ListResponse as SimpleListResponse,
+    Pagination
+)
 from pinecone.core.grpc.protos.vector_service_pb2 import (
     Vector as GRPCVector,
     QueryVector as GRPCQueryVector,
@@ -22,6 +26,8 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     QueryRequest,
     FetchRequest,
     UpdateRequest,
+    ListRequest,
+    ListResponse,
     DescribeIndexStatsRequest,
     DeleteResponse,
     UpdateResponse,
@@ -40,7 +46,6 @@ _logger = logging.getLogger(__name__)
 class SparseVectorTypedDict(TypedDict):
     indices: List[int]
     values: List[float]
-
 
 class GRPCIndex(GRPCIndexBase):
     """A client for interacting with a Pinecone index via GRPC API."""
@@ -427,6 +432,53 @@ class GRPCIndex(GRPCIndexBase):
             return PineconeGrpcFuture(future)
         else:
             return self._wrap_grpc_call(self.stub.Update, request, timeout=timeout)
+
+    def list_paginated(
+            self,
+            prefix: Optional[str] = None,
+            limit: Optional[int] = None,
+            pagination_token: Optional[str] = None,
+            namespace: Optional[str] = None,
+            timeout: Optional[float] = None,
+            **kwargs
+        ) -> SimpleListResponse:
+        args_dict = self._parse_non_empty_args(
+            [
+                ("prefix", prefix),
+                ("limit", limit),
+                ("namespace", namespace),
+                ("pagination_token", pagination_token),
+            ]
+        )
+        request = ListRequest(**args_dict, **kwargs)
+        response = self._wrap_grpc_call(self.stub.List, request, timeout=timeout)
+        
+        if response.pagination and response.pagination.next != '':
+            pagination = Pagination(next=response.pagination.next)
+        else:
+            pagination = None
+        
+        return SimpleListResponse(
+            namespace=response.get('namespace', ''),
+            vectors=response.get('vectors'),
+            pagination=pagination,
+        )
+    
+    def list(self, **kwargs):
+        done = False
+        while not done:
+            try:
+                results = self.list_paginated(**kwargs)
+            except Exception as e:
+                raise e
+            
+            if len(results.vectors) > 0:
+                yield [v.id for v in results.vectors]
+            
+            if results.pagination and results.pagination.next:
+                kwargs.update({"pagination_token": results.pagination.next})
+            else:
+                done = True
 
     def describe_index_stats(
         self, filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None, **kwargs
