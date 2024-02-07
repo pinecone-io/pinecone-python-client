@@ -1,0 +1,15 @@
+name: 'Cleanup All Indexes/Collections'
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  cleanup-all:
+    name: Cleanupu all indexes/collections
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cleanup all
+        uses: ./.github/actions/cleanup-all
+        with:
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
