@@ -38,7 +38,7 @@ jobs:
         if: steps.list-commits.outputs.commits == ''
         uses: andymckay/cancel-action@0.3
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.x
 
