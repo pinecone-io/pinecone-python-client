@@ -88,6 +88,6 @@ def seed_data(idx, namespace, index_host, list_namespace):
     setup_data(idx, '', True)
 
     print('Waiting a bit more to ensure freshness')
-    time.sleep(60)
+    time.sleep(120)
 
     yield
