@@ -68,7 +68,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -86,7 +86,7 @@ jobs:
       - name: Install googleapis-common-protos ${{ matrix.googleapis-common-protos-version }}
         run: poetry add googleapis-common-protos==${{ matrix.googleapis-common-protos-version }}
 
-      - uses: nick-fields/retry@v2
+      - uses: nick-fields/retry@v3
         with:
           timeout_minutes: 5
           max_attempts: 3
@@ -121,7 +121,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: 'Set up Python ${{ matrix.python-version }}'
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '${{ matrix.python-version }}'
       - name: Setup Poetry
@@ -131,7 +131,7 @@ jobs:
           include_types: false
       - name: 'Install urllib3 ${{ matrix.urllib3-version }}'
         run: 'poetry add urllib3==${{ matrix.urllib3-version }}'
-      - uses: nick-fields/retry@v2
+      - uses: nick-fields/retry@v3
         with:
           timeout_minutes: 5
           max_attempts: 3
