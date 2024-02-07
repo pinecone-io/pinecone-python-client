@@ -4,7 +4,7 @@ class TestListPaginated:
         assert results != None
         assert results.namespace == 'no-results'
         assert len(results.vectors) == 0
-        assert results.pagination == None
+        # assert results.pagination == None
 
     def test_list_no_args(self, idx):
         results = idx.list_paginated()

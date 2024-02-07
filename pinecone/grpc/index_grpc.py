@@ -465,6 +465,7 @@ class GRPCIndex(GRPCIndexBase):
         )
     
     def list(self, **kwargs):
+        limit = kwargs.get("limit", 100)
         done = False
         while not done:
             try:
@@ -475,7 +476,8 @@ class GRPCIndex(GRPCIndexBase):
             if len(results.vectors) > 0:
                 yield [v.id for v in results.vectors]
             
-            if results.pagination and results.pagination.next:
+            full_page = len(results.vectors) == limit
+            if results.pagination and results.pagination.next and full_page:
                 kwargs.update({"pagination_token": results.pagination.next})
             else:
                 done = True

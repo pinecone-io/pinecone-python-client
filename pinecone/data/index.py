@@ -524,13 +524,15 @@ class Index():
 
     @validate_and_convert_errors
     def list(self, **kwargs):
+        limit = kwargs.get("limit", 100)
         done = False
         while not done:
             results = self.list_paginated(**kwargs)
             if len(results.vectors) > 0:
                 yield [v.id for v in results.vectors]
             
-            if results.pagination:
+            full_page = len(results.vectors) == limit
+            if results.pagination and full_page:
                 kwargs.update({"pagination_token": results.pagination.next})
             else:
                 done = True
