@@ -459,8 +459,8 @@ class GRPCIndex(GRPCIndexBase):
             pagination = None
         
         return SimpleListResponse(
-            namespace=response.get('namespace', ''),
-            vectors=response.get('vectors'),
+            namespace=response.namespace,
+            vectors=response.vectors,
             pagination=pagination,
         )
     
