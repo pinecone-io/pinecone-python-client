@@ -3,7 +3,7 @@ from pinecone import PineconeApiException, PineconeApiValueError
 
 class TestCreateIndexApiErrorCases:
     def test_create_index_with_invalid_name(self, client, create_sl_index_params):
-        create_sl_index_params['name'] = '-invalid-name'
+        create_sl_index_params['name'] = 'Invalid-name'
         with pytest.raises(PineconeApiException):
             client.create_index(**create_sl_index_params)
 
