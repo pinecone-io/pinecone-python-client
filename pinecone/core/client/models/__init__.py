@@ -9,7 +9,6 @@
 # import sys
 # sys.setrecursionlimit(n)
 
-from pinecone.core.client.model.aws_regions import AwsRegions
 from pinecone.core.client.model.collection_list import CollectionList
 from pinecone.core.client.model.collection_model import CollectionModel
 from pinecone.core.client.model.configure_index_request import ConfigureIndexRequest
@@ -23,12 +22,14 @@ from pinecone.core.client.model.describe_index_stats_response import DescribeInd
 from pinecone.core.client.model.error_response import ErrorResponse
 from pinecone.core.client.model.error_response_error import ErrorResponseError
 from pinecone.core.client.model.fetch_response import FetchResponse
-from pinecone.core.client.model.gcp_regions import GcpRegions
 from pinecone.core.client.model.index_list import IndexList
 from pinecone.core.client.model.index_model import IndexModel
 from pinecone.core.client.model.index_model_spec import IndexModelSpec
 from pinecone.core.client.model.index_model_status import IndexModelStatus
+from pinecone.core.client.model.list_item import ListItem
+from pinecone.core.client.model.list_response import ListResponse
 from pinecone.core.client.model.namespace_summary import NamespaceSummary
+from pinecone.core.client.model.pagination import Pagination
 from pinecone.core.client.model.pod_spec import PodSpec
 from pinecone.core.client.model.pod_spec_metadata_config import PodSpecMetadataConfig
 from pinecone.core.client.model.protobuf_any import ProtobufAny
