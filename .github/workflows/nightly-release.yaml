@@ -9,9 +9,39 @@ jobs:
   unit-tests:
     uses: './.github/workflows/testing-unit.yaml'
     secrets: inherit
-  integration-tests:
-      uses: './.github/workflows/testing-integration.yaml'
+  integration-tests-data:
+      uses: './.github/workflows/testing-integration-data-plane.yaml'
       secrets: inherit
+  integration-tests-pod:
+    uses: './.github/workflows/testing-integration-control-plane-pod.yaml'
+    strategy:
+      max-parallel: 1
+      matrix:
+        environment:
+          - 'us-east1-gcp'
+        client-version: ['dev', '3.0.2']
+    secrets:
+      PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+    with:
+      PINECONE_CONTROLLER_HOST: 'https://api.pinecone.io'
+      additional-headers-json: '{}'
+      environment: ${{ matrix.environment }}
+      client-version: ${{ matrix.client-version}}
+      dimension: 10
+  integration-tests-serverless:
+    uses: './.github/workflows/testing-integration-control-plane-serverless.yaml'
+    strategy:
+      matrix:
+        client-version: ['dev', '3.0.2']
+    secrets:
+      PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+    with:
+      PINECONE_CONTROLLER_HOST: 'https://api.pinecone.io'
+      additional-headers-json: '{}'
+      cloud: 'aws'
+      region: 'us-west-2'
+      client-version: ${{ matrix.client-version}}
+
   dependency-tests:
     uses: './.github/workflows/testing-dependency.yaml'
     secrets: inherit
@@ -19,7 +49,9 @@ jobs:
   pypi-nightly:
     needs: 
       - unit-tests
-      - integration-tests
+      - integration-tests-data
+      - integration-tests-pod
+      - integration-tests-serverless
       - dependency-tests
     timeout-minutes: 30
     name: pypi-nightly
