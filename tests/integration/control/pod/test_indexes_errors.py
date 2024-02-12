@@ -17,20 +17,34 @@ class TestCreateIndexErrorCases:
             client.create_index(**create_index_params)
         assert property_to_delete in e.value.body
 
+
+
     @pytest.mark.parametrize(
         "property_name, property_value",
         [
             ("name", ""),
-            ("name", "invalid_name"),
             ("name", "invalid-"),
             ("name", "-invalid"),
-            ("name", "toolong" * 10),
+            ("name", "toolong" * 10)
+        ],
+    )
+    def test_create_index_invalid_property_value(self, client, create_index_params, property_name, property_value):
+        with pytest.raises(PineconeApiValueError) as e:
+            create_index_params[property_name] = property_value
+            client.create_index(**create_index_params)
+        assert property_name in str(e.value)
+
+    @pytest.mark.parametrize(
+        "property_name, property_value",
+        [
+            ("name", "invalid_name"),
+            ("name", "Invalid-Name"),
             ("name", "in.valid"),
             ("name", "in#valid"),
             ("spec", {})
         ],
     )
-    def test_create_index_invalid_property_value(self, client, create_index_params, property_name, property_value):
+    def test_create_index_invalid_property_value_serverside(self, client, create_index_params, property_name, property_value):
         with pytest.raises(PineconeApiException) as e:
             create_index_params[property_name] = property_value
             client.create_index(**create_index_params)
