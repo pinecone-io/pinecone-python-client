@@ -23,7 +23,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\021io.pinecone.protoP\001Z/github.com/pinecone-io/new-go-pinecone/pinecone\222A\366\002\022K\n\014Pinecone API\";\n\017Pinecone.io Ops\022\023https://pinecone.io\032\023support@pinecone.io\0329{index_name}-{project_name}.svc.{environment}.pinecone.io*\001\0022\020application/json:\020application/jsonZx\nv\n\nApiKeyAuth\022h\010\002\022YAn API Key is required to call Pinecone APIs. Get yours at https://www.pinecone.io/start/\032\007Api-Key \002b\020\n\016\n\nApiKeyAuth\022\000r9\n\031More Pinecone.io API docs\022\034https://www.pinecone.io/docs',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x14vector_service.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"~\n\x0cSparseValues\x12\x35\n\x07indices\x18\x01 \x03(\rB$\x92\x41\x1eJ\x16[1, 312, 822, 14, 980]x\xe8\x07\x80\x01\x01\xe0\x41\x02\x12\x37\n\x06values\x18\x02 \x03(\x02\x42\'\x92\x41!J\x19[0.1, 0.2, 0.3, 0.4, 0.5]x\xe8\x07\x80\x01\x01\xe0\x41\x02\"\xfd\x01\n\x06Vector\x12,\n\x02id\x18\x01 \x01(\tB \x92\x41\x1aJ\x12\"example-vector-1\"x\x80\x04\x80\x01\x01\xe0\x41\x02\x12G\n\x06values\x18\x02 \x03(\x02\x42\x37\x92\x41\x31J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\xa0\x9c\x01\x80\x01\x01\xe0\x41\x02\x12$\n\rsparse_values\x18\x04 \x01(\x0b\x32\r.SparseValues\x12V\n\x08metadata\x18\x03 \x01(\x0b\x32\x17.google.protobuf.StructB+\x92\x41(J&{\"genre\": \"documentary\", \"year\": 2019}\"\x93\x02\n\x0cScoredVector\x12,\n\x02id\x18\x01 \x01(\tB \x92\x41\x1aJ\x12\"example-vector-1\"x\x80\x04\x80\x01\x01\xe0\x41\x02\x12\x18\n\x05score\x18\x02 \x01(\x02\x42\t\x92\x41\x06J\x04\x30.08\x12=\n\x06values\x18\x03 \x03(\x02\x42-\x92\x41*J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]\x12$\n\rsparse_values\x18\x05 \x01(\x0b\x32\r.SparseValues\x12V\n\x08metadata\x18\x04 \x01(\x0b\x32\x17.google.protobuf.StructB+\x92\x41(J&{\"genre\": \"documentary\", \"year\": 2019}\"d\n\rUpsertRequest\x12&\n\x07vectors\x18\x01 \x03(\x0b\x32\x07.VectorB\x0c\x92\x41\x06x\xe8\x07\x80\x01\x01\xe0\x41\x02\x12+\n\tnamespace\x18\x02 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\"1\n\x0eUpsertResponse\x12\x1f\n\x0eupserted_count\x18\x01 \x01(\rB\x07\x92\x41\x04J\x02\x31\x30\"\xb6\x01\n\rDeleteRequest\x12(\n\x03ids\x18\x01 \x03(\tB\x1b\x92\x41\x18J\x10[\"id-0\", \"id-1\"]x\xe8\x07\x80\x01\x01\x12%\n\ndelete_all\x18\x02 \x01(\x08\x42\x11\x92\x41\x0e:\x05\x66\x61lseJ\x05\x66\x61lse\x12+\n\tnamespace\x18\x03 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\x12\'\n\x06\x66ilter\x18\x04 \x01(\x0b\x32\x17.google.protobuf.Struct\"\x10\n\x0e\x44\x65leteResponse\"h\n\x0c\x46\x65tchRequest\x12+\n\x03ids\x18\x01 \x03(\tB\x1e\x92\x41\x18J\x10[\"id-0\", \"id-1\"]x\xe8\x07\x80\x01\x01\xe0\x41\x02\x12+\n\tnamespace\x18\x02 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\"\xe1\x01\n\rFetchResponse\x12,\n\x07vectors\x18\x01 \x03(\x0b\x32\x1b.FetchResponse.VectorsEntry\x12+\n\tnamespace\x18\x02 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\x12\x32\n\x05usage\x18\x03 \x01(\x0b\x32\x06.UsageB\x16\x92\x41\x13J\x11{\"read_units\": 5}H\x00\x88\x01\x01\x1a\x37\n\x0cVectorsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x16\n\x05value\x18\x02 \x01(\x0b\x32\x07.Vector:\x02\x38\x01\x42\x08\n\x06_usage\"\xd0\x02\n\x0bQueryVector\x12G\n\x06values\x18\x01 \x03(\x02\x42\x37\x92\x41\x31J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\xa0\x9c\x01\x80\x01\x01\xe0\x41\x02\x12$\n\rsparse_values\x18\x05 \x01(\x0b\x32\r.SparseValues\x12(\n\x05top_k\x18\x02 \x01(\rB\x19\x92\x41\x16J\x02\x31\x30Y\x00\x00\x00\x00\x00\x88\xc3@i\x00\x00\x00\x00\x00\x00\xf0?\x12+\n\tnamespace\x18\x03 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\x12{\n\x06\x66ilter\x18\x04 \x01(\x0b\x32\x17.google.protobuf.StructBR\x92\x41OJM{\"genre\": {\"$in\": [\"comedy\", \"documentary\", \"drama\"]}, \"year\": {\"$eq\": 2019}}\"\xfa\x03\n\x0cQueryRequest\x12+\n\tnamespace\x18\x01 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\x12+\n\x05top_k\x18\x02 \x01(\rB\x1c\x92\x41\x16J\x02\x31\x30Y\x00\x00\x00\x00\x00\x88\xc3@i\x00\x00\x00\x00\x00\x00\xf0?\xe0\x41\x02\x12{\n\x06\x66ilter\x18\x03 \x01(\x0b\x32\x17.google.protobuf.StructBR\x92\x41OJM{\"genre\": {\"$in\": [\"comedy\", \"documentary\", \"drama\"]}, \"year\": {\"$eq\": 2019}}\x12(\n\x0einclude_values\x18\x04 \x01(\x08\x42\x10\x92\x41\r:\x05\x66\x61lseJ\x04true\x12*\n\x10include_metadata\x18\x05 \x01(\x08\x42\x10\x92\x41\r:\x05\x66\x61lseJ\x04true\x12)\n\x07queries\x18\x06 \x03(\x0b\x32\x0c.QueryVectorB\n\x18\x01\x92\x41\x05x\n\x80\x01\x01\x12\x44\n\x06vector\x18\x07 \x03(\x02\x42\x34\x92\x41\x31J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\xa0\x9c\x01\x80\x01\x01\x12$\n\rsparse_vector\x18\t \x01(\x0b\x32\r.SparseValues\x12&\n\x02id\x18\x08 \x01(\tB\x1a\x92\x41\x17J\x12\"example-vector-1\"x\x80\x04\"a\n\x12SingleQueryResults\x12\x1e\n\x07matches\x18\x01 \x03(\x0b\x32\r.ScoredVector\x12+\n\tnamespace\x18\x02 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\"\xaa\x01\n\rQueryResponse\x12(\n\x07results\x18\x01 \x03(\x0b\x32\x13.SingleQueryResultsB\x02\x18\x01\x12\x1e\n\x07matches\x18\x02 \x03(\x0b\x32\r.ScoredVector\x12\x11\n\tnamespace\x18\x03 \x01(\t\x12\x32\n\x05usage\x18\x04 \x01(\x0b\x32\x06.UsageB\x16\x92\x41\x13J\x11{\"read_units\": 5}H\x00\x88\x01\x01\x42\x08\n\x06_usage\"G\n\x05Usage\x12/\n\nread_units\x18\x01 \x01(\rB\x16\x92\x41\x13J\x11{\"read_units\": 5}H\x00\x88\x01\x01\x42\r\n\x0b_read_units\"\xb2\x02\n\rUpdateRequest\x12,\n\x02id\x18\x01 \x01(\tB \x92\x41\x1aJ\x12\"example-vector-1\"x\x80\x04\x80\x01\x01\xe0\x41\x02\x12\x44\n\x06values\x18\x02 \x03(\x02\x42\x34\x92\x41\x31J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\xa0\x9c\x01\x80\x01\x01\x12$\n\rsparse_values\x18\x05 \x01(\x0b\x32\r.SparseValues\x12Z\n\x0cset_metadata\x18\x03 \x01(\x0b\x32\x17.google.protobuf.StructB+\x92\x41(J&{\"genre\": \"documentary\", \"year\": 2019}\x12+\n\tnamespace\x18\x04 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\"\x10\n\x0eUpdateResponse\"D\n\x19\x44\x65scribeIndexStatsRequest\x12\'\n\x06\x66ilter\x18\x01 \x01(\x0b\x32\x17.google.protobuf.Struct\"4\n\x10NamespaceSummary\x12 \n\x0cvector_count\x18\x01 \x01(\rB\n\x92\x41\x07J\x05\x35\x30\x30\x30\x30\"\x9a\x03\n\x1a\x44\x65scribeIndexStatsResponse\x12?\n\nnamespaces\x18\x01 \x03(\x0b\x32+.DescribeIndexStatsResponse.NamespacesEntry\x12\x1c\n\tdimension\x18\x02 \x01(\rB\t\x92\x41\x06J\x04\x31\x30\x32\x34\x12 \n\x0eindex_fullness\x18\x03 \x01(\x02\x42\x08\x92\x41\x05J\x03\x30.4\x12&\n\x12total_vector_count\x18\x04 \x01(\rB\n\x92\x41\x07J\x05\x38\x30\x30\x30\x30\x1a\x44\n\x0fNamespacesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12 \n\x05value\x18\x02 \x01(\x0b\x32\x11.NamespaceSummary:\x02\x38\x01:\x8c\x01\x92\x41\x88\x01\x32\x85\x01{\"namespaces\": {\"\": {\"vectorCount\": 50000}, \"example-namespace-2\": {\"vectorCount\": 30000}}, \"dimension\": 1024, \"index_fullness\": 0.4}2\xbd\x05\n\rVectorService\x12\x63\n\x06Upsert\x12\x0e.UpsertRequest\x1a\x0f.UpsertResponse\"8\x82\xd3\xe4\x93\x02\x14\"\x0f/vectors/upsert:\x01*\x92\x41\x1b\n\x11Vector Operations*\x06upsert\x12v\n\x06\x44\x65lete\x12\x0e.DeleteRequest\x1a\x0f.DeleteResponse\"K\x82\xd3\xe4\x93\x02\'\"\x0f/vectors/delete:\x01*Z\x11*\x0f/vectors/delete\x92\x41\x1b\n\x11Vector Operations*\x06\x64\x65lete\x12[\n\x05\x46\x65tch\x12\r.FetchRequest\x1a\x0e.FetchResponse\"3\x82\xd3\xe4\x93\x02\x10\x12\x0e/vectors/fetch\x92\x41\x1a\n\x11Vector Operations*\x05\x66\x65tch\x12V\n\x05Query\x12\r.QueryRequest\x1a\x0e.QueryResponse\".\x82\xd3\xe4\x93\x02\x0b\"\x06/query:\x01*\x92\x41\x1a\n\x11Vector Operations*\x05query\x12\x63\n\x06Update\x12\x0e.UpdateRequest\x1a\x0f.UpdateResponse\"8\x82\xd3\xe4\x93\x02\x14\"\x0f/vectors/update:\x01*\x92\x41\x1b\n\x11Vector Operations*\x06update\x12\xb4\x01\n\x12\x44\x65scribeIndexStats\x12\x1a.DescribeIndexStatsRequest\x1a\x1b.DescribeIndexStatsResponse\"e\x82\xd3\xe4\x93\x02\x33\"\x15/describe_index_stats:\x01*Z\x17\x12\x15/describe_index_stats\x92\x41)\n\x11Vector Operations*\x14\x64\x65scribe_index_statsB\xc0\x03\n\x11io.pinecone.protoP\x01Z/github.com/pinecone-io/new-go-pinecone/pinecone\x92\x41\xf6\x02\x12K\n\x0cPinecone API\";\n\x0fPinecone.io Ops\x12\x13https://pinecone.io\x1a\x13support@pinecone.io\x1a\x39{index_name}-{project_name}.svc.{environment}.pinecone.io*\x01\x02\x32\x10\x61pplication/json:\x10\x61pplication/jsonZx\nv\n\nApiKeyAuth\x12h\x08\x02\x12YAn API Key is required to call Pinecone APIs. Get yours at https://www.pinecone.io/start/\x1a\x07\x41pi-Key \x02\x62\x10\n\x0e\n\nApiKeyAuth\x12\x00r9\n\x19More Pinecone.io API docs\x12\x1chttps://www.pinecone.io/docsb\x06proto3'
+  serialized_pb=b'\n\x14vector_service.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"~\n\x0cSparseValues\x12\x35\n\x07indices\x18\x01 \x03(\rB$\x92\x41\x1eJ\x16[1, 312, 822, 14, 980]x\xe8\x07\x80\x01\x01\xe0\x41\x02\x12\x37\n\x06values\x18\x02 \x03(\x02\x42\'\x92\x41!J\x19[0.1, 0.2, 0.3, 0.4, 0.5]x\xe8\x07\x80\x01\x01\xe0\x41\x02\"\xfd\x01\n\x06Vector\x12,\n\x02id\x18\x01 \x01(\tB \x92\x41\x1aJ\x12\"example-vector-1\"x\x80\x04\x80\x01\x01\xe0\x41\x02\x12G\n\x06values\x18\x02 \x03(\x02\x42\x37\x92\x41\x31J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\xa0\x9c\x01\x80\x01\x01\xe0\x41\x02\x12$\n\rsparse_values\x18\x04 \x01(\x0b\x32\r.SparseValues\x12V\n\x08metadata\x18\x03 \x01(\x0b\x32\x17.google.protobuf.StructB+\x92\x41(J&{\"genre\": \"documentary\", \"year\": 2019}\"\x93\x02\n\x0cScoredVector\x12,\n\x02id\x18\x01 \x01(\tB \x92\x41\x1aJ\x12\"example-vector-1\"x\x80\x04\x80\x01\x01\xe0\x41\x02\x12\x18\n\x05score\x18\x02 \x01(\x02\x42\t\x92\x41\x06J\x04\x30.08\x12=\n\x06values\x18\x03 \x03(\x02\x42-\x92\x41*J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]\x12$\n\rsparse_values\x18\x05 \x01(\x0b\x32\r.SparseValues\x12V\n\x08metadata\x18\x04 \x01(\x0b\x32\x17.google.protobuf.StructB+\x92\x41(J&{\"genre\": \"documentary\", \"year\": 2019}\"d\n\rUpsertRequest\x12&\n\x07vectors\x18\x01 \x03(\x0b\x32\x07.VectorB\x0c\x92\x41\x06x\xe8\x07\x80\x01\x01\xe0\x41\x02\x12+\n\tnamespace\x18\x02 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\"1\n\x0eUpsertResponse\x12\x1f\n\x0eupserted_count\x18\x01 \x01(\rB\x07\x92\x41\x04J\x02\x31\x30\"\xb6\x01\n\rDeleteRequest\x12(\n\x03ids\x18\x01 \x03(\tB\x1b\x92\x41\x18J\x10[\"id-0\", \"id-1\"]x\xe8\x07\x80\x01\x01\x12%\n\ndelete_all\x18\x02 \x01(\x08\x42\x11\x92\x41\x0e:\x05\x66\x61lseJ\x05\x66\x61lse\x12+\n\tnamespace\x18\x03 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\x12\'\n\x06\x66ilter\x18\x04 \x01(\x0b\x32\x17.google.protobuf.Struct\"\x10\n\x0e\x44\x65leteResponse\"h\n\x0c\x46\x65tchRequest\x12+\n\x03ids\x18\x01 \x03(\tB\x1e\x92\x41\x18J\x10[\"id-0\", \"id-1\"]x\xe8\x07\x80\x01\x01\xe0\x41\x02\x12+\n\tnamespace\x18\x02 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\"\xe1\x01\n\rFetchResponse\x12,\n\x07vectors\x18\x01 \x03(\x0b\x32\x1b.FetchResponse.VectorsEntry\x12+\n\tnamespace\x18\x02 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\x12\x32\n\x05usage\x18\x03 \x01(\x0b\x32\x06.UsageB\x16\x92\x41\x13J\x11{\"read_units\": 5}H\x00\x88\x01\x01\x1a\x37\n\x0cVectorsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x16\n\x05value\x18\x02 \x01(\x0b\x32\x07.Vector:\x02\x38\x01\x42\x08\n\x06_usage\"\xf6\x01\n\x0bListRequest\x12,\n\x06prefix\x18\x01 \x01(\tB\x17\x92\x41\x14J\x0c\"document1#\"x\xe8\x07\x80\x01\x01H\x00\x88\x01\x01\x12 \n\x05limit\x18\x02 \x01(\rB\x0c\x92\x41\t:\x03\x31\x30\x30J\x02\x31\x32H\x01\x88\x01\x01\x12@\n\x10pagination_token\x18\x03 \x01(\tB!\x92\x41\x1eJ\x1cTm90aGluZyB0byBzZWUgaGVyZQo=H\x02\x88\x01\x01\x12+\n\tnamespace\x18\x04 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"B\t\n\x07_prefixB\x08\n\x06_limitB\x13\n\x11_pagination_token\"?\n\nPagination\x12\x31\n\x04next\x18\x01 \x01(\tB#\x92\x41 J\x1e\"Tm90aGluZyB0byBzZWUgaGVyZQo=\"\",\n\x08ListItem\x12 \n\x02id\x18\x01 \x01(\tB\x14\x92\x41\x11J\x0f\"document1#abb\"\"\xc5\x01\n\x0cListResponse\x12S\n\x07vectors\x18\x01 \x03(\x0b\x32\t.ListItemB7\x92\x41\x34J2[{\"id\": \"document1#abb\"}, {\"id\": \"document1#abc\"}]\x12$\n\npagination\x18\x02 \x01(\x0b\x32\x0b.PaginationH\x00\x88\x01\x01\x12+\n\tnamespace\x18\x03 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"B\r\n\x0b_pagination\"\xd0\x02\n\x0bQueryVector\x12G\n\x06values\x18\x01 \x03(\x02\x42\x37\x92\x41\x31J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\xa0\x9c\x01\x80\x01\x01\xe0\x41\x02\x12$\n\rsparse_values\x18\x05 \x01(\x0b\x32\r.SparseValues\x12(\n\x05top_k\x18\x02 \x01(\rB\x19\x92\x41\x16J\x02\x31\x30Y\x00\x00\x00\x00\x00\x88\xc3@i\x00\x00\x00\x00\x00\x00\xf0?\x12+\n\tnamespace\x18\x03 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\x12{\n\x06\x66ilter\x18\x04 \x01(\x0b\x32\x17.google.protobuf.StructBR\x92\x41OJM{\"genre\": {\"$in\": [\"comedy\", \"documentary\", \"drama\"]}, \"year\": {\"$eq\": 2019}}\"\xfa\x03\n\x0cQueryRequest\x12+\n\tnamespace\x18\x01 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\x12+\n\x05top_k\x18\x02 \x01(\rB\x1c\x92\x41\x16J\x02\x31\x30Y\x00\x00\x00\x00\x00\x88\xc3@i\x00\x00\x00\x00\x00\x00\xf0?\xe0\x41\x02\x12{\n\x06\x66ilter\x18\x03 \x01(\x0b\x32\x17.google.protobuf.StructBR\x92\x41OJM{\"genre\": {\"$in\": [\"comedy\", \"documentary\", \"drama\"]}, \"year\": {\"$eq\": 2019}}\x12(\n\x0einclude_values\x18\x04 \x01(\x08\x42\x10\x92\x41\r:\x05\x66\x61lseJ\x04true\x12*\n\x10include_metadata\x18\x05 \x01(\x08\x42\x10\x92\x41\r:\x05\x66\x61lseJ\x04true\x12)\n\x07queries\x18\x06 \x03(\x0b\x32\x0c.QueryVectorB\n\x18\x01\x92\x41\x05x\n\x80\x01\x01\x12\x44\n\x06vector\x18\x07 \x03(\x02\x42\x34\x92\x41\x31J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\xa0\x9c\x01\x80\x01\x01\x12$\n\rsparse_vector\x18\t \x01(\x0b\x32\r.SparseValues\x12&\n\x02id\x18\x08 \x01(\tB\x1a\x92\x41\x17J\x12\"example-vector-1\"x\x80\x04\"a\n\x12SingleQueryResults\x12\x1e\n\x07matches\x18\x01 \x03(\x0b\x32\r.ScoredVector\x12+\n\tnamespace\x18\x02 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\"\xaa\x01\n\rQueryResponse\x12(\n\x07results\x18\x01 \x03(\x0b\x32\x13.SingleQueryResultsB\x02\x18\x01\x12\x1e\n\x07matches\x18\x02 \x03(\x0b\x32\r.ScoredVector\x12\x11\n\tnamespace\x18\x03 \x01(\t\x12\x32\n\x05usage\x18\x04 \x01(\x0b\x32\x06.UsageB\x16\x92\x41\x13J\x11{\"read_units\": 5}H\x00\x88\x01\x01\x42\x08\n\x06_usage\"G\n\x05Usage\x12/\n\nread_units\x18\x01 \x01(\rB\x16\x92\x41\x13J\x11{\"read_units\": 5}H\x00\x88\x01\x01\x42\r\n\x0b_read_units\"\xb2\x02\n\rUpdateRequest\x12,\n\x02id\x18\x01 \x01(\tB \x92\x41\x1aJ\x12\"example-vector-1\"x\x80\x04\x80\x01\x01\xe0\x41\x02\x12\x44\n\x06values\x18\x02 \x03(\x02\x42\x34\x92\x41\x31J([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]x\xa0\x9c\x01\x80\x01\x01\x12$\n\rsparse_values\x18\x05 \x01(\x0b\x32\r.SparseValues\x12Z\n\x0cset_metadata\x18\x03 \x01(\x0b\x32\x17.google.protobuf.StructB+\x92\x41(J&{\"genre\": \"documentary\", \"year\": 2019}\x12+\n\tnamespace\x18\x04 \x01(\tB\x18\x92\x41\x15J\x13\"example-namespace\"\"\x10\n\x0eUpdateResponse\"D\n\x19\x44\x65scribeIndexStatsRequest\x12\'\n\x06\x66ilter\x18\x01 \x01(\x0b\x32\x17.google.protobuf.Struct\"4\n\x10NamespaceSummary\x12 \n\x0cvector_count\x18\x01 \x01(\rB\n\x92\x41\x07J\x05\x35\x30\x30\x30\x30\"\x9a\x03\n\x1a\x44\x65scribeIndexStatsResponse\x12?\n\nnamespaces\x18\x01 \x03(\x0b\x32+.DescribeIndexStatsResponse.NamespacesEntry\x12\x1c\n\tdimension\x18\x02 \x01(\rB\t\x92\x41\x06J\x04\x31\x30\x32\x34\x12 \n\x0eindex_fullness\x18\x03 \x01(\x02\x42\x08\x92\x41\x05J\x03\x30.4\x12&\n\x12total_vector_count\x18\x04 \x01(\rB\n\x92\x41\x07J\x05\x38\x30\x30\x30\x30\x1a\x44\n\x0fNamespacesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12 \n\x05value\x18\x02 \x01(\x0b\x32\x11.NamespaceSummary:\x02\x38\x01:\x8c\x01\x92\x41\x88\x01\x32\x85\x01{\"namespaces\": {\"\": {\"vectorCount\": 50000}, \"example-namespace-2\": {\"vectorCount\": 30000}}, \"dimension\": 1024, \"index_fullness\": 0.4}2\x95\x06\n\rVectorService\x12\x63\n\x06Upsert\x12\x0e.UpsertRequest\x1a\x0f.UpsertResponse\"8\x82\xd3\xe4\x93\x02\x14\"\x0f/vectors/upsert:\x01*\x92\x41\x1b\n\x11Vector Operations*\x06upsert\x12v\n\x06\x44\x65lete\x12\x0e.DeleteRequest\x1a\x0f.DeleteResponse\"K\x82\xd3\xe4\x93\x02\'\"\x0f/vectors/delete:\x01*Z\x11*\x0f/vectors/delete\x92\x41\x1b\n\x11Vector Operations*\x06\x64\x65lete\x12[\n\x05\x46\x65tch\x12\r.FetchRequest\x1a\x0e.FetchResponse\"3\x82\xd3\xe4\x93\x02\x10\x12\x0e/vectors/fetch\x92\x41\x1a\n\x11Vector Operations*\x05\x66\x65tch\x12V\n\x04List\x12\x0c.ListRequest\x1a\r.ListResponse\"1\x82\xd3\xe4\x93\x02\x0f\x12\r/vectors/list\x92\x41\x19\n\x11Vector Operations*\x04list\x12V\n\x05Query\x12\r.QueryRequest\x1a\x0e.QueryResponse\".\x82\xd3\xe4\x93\x02\x0b\"\x06/query:\x01*\x92\x41\x1a\n\x11Vector Operations*\x05query\x12\x63\n\x06Update\x12\x0e.UpdateRequest\x1a\x0f.UpdateResponse\"8\x82\xd3\xe4\x93\x02\x14\"\x0f/vectors/update:\x01*\x92\x41\x1b\n\x11Vector Operations*\x06update\x12\xb4\x01\n\x12\x44\x65scribeIndexStats\x12\x1a.DescribeIndexStatsRequest\x1a\x1b.DescribeIndexStatsResponse\"e\x82\xd3\xe4\x93\x02\x33\"\x15/describe_index_stats:\x01*Z\x17\x12\x15/describe_index_stats\x92\x41)\n\x11Vector Operations*\x14\x64\x65scribe_index_statsB\xc0\x03\n\x11io.pinecone.protoP\x01Z/github.com/pinecone-io/new-go-pinecone/pinecone\x92\x41\xf6\x02\x12K\n\x0cPinecone API\";\n\x0fPinecone.io Ops\x12\x13https://pinecone.io\x1a\x13support@pinecone.io\x1a\x39{index_name}-{project_name}.svc.{environment}.pinecone.io*\x01\x02\x32\x10\x61pplication/json:\x10\x61pplication/jsonZx\nv\n\nApiKeyAuth\x12h\x08\x02\x12YAn API Key is required to call Pinecone APIs. Get yours at https://www.pinecone.io/start/\x1a\x07\x41pi-Key \x02\x62\x10\n\x0e\n\nApiKeyAuth\x12\x00r9\n\x19More Pinecone.io API docs\x12\x1chttps://www.pinecone.io/docsb\x06proto3'
   ,
   dependencies=[google_dot_protobuf_dot_struct__pb2.DESCRIPTOR,google_dot_api_dot_annotations__pb2.DESCRIPTOR,google_dot_api_dot_field__behavior__pb2.DESCRIPTOR,protoc__gen__openapiv2_dot_options_dot_annotations__pb2.DESCRIPTOR,])
 
@@ -459,6 +459,189 @@ _FETCHRESPONSE = _descriptor.Descriptor(
 )
 
 
+_LISTREQUEST = _descriptor.Descriptor(
+  name='ListRequest',
+  full_name='ListRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='prefix', full_name='ListRequest.prefix', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222A\024J\014\"document1#\"x\350\007\200\001\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='limit', full_name='ListRequest.limit', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222A\t:\003100J\00212', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='pagination_token', full_name='ListRequest.pagination_token', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222A\036J\034Tm90aGluZyB0byBzZWUgaGVyZQo=', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='namespace', full_name='ListRequest.namespace', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222A\025J\023\"example-namespace\"', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='_prefix', full_name='ListRequest._prefix',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_limit', full_name='ListRequest._limit',
+      index=1, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_pagination_token', full_name='ListRequest._pagination_token',
+      index=2, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=1518,
+  serialized_end=1764,
+)
+
+
+_PAGINATION = _descriptor.Descriptor(
+  name='Pagination',
+  full_name='Pagination',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='next', full_name='Pagination.next', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222A J\036\"Tm90aGluZyB0byBzZWUgaGVyZQo=\"', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1766,
+  serialized_end=1829,
+)
+
+
+_LISTITEM = _descriptor.Descriptor(
+  name='ListItem',
+  full_name='ListItem',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='ListItem.id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222A\021J\017\"document1#abb\"', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1831,
+  serialized_end=1875,
+)
+
+
+_LISTRESPONSE = _descriptor.Descriptor(
+  name='ListResponse',
+  full_name='ListResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='vectors', full_name='ListResponse.vectors', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222A4J2[{\"id\": \"document1#abb\"}, {\"id\": \"document1#abc\"}]', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='pagination', full_name='ListResponse.pagination', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='namespace', full_name='ListResponse.namespace', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222A\025J\023\"example-namespace\"', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='_pagination', full_name='ListResponse._pagination',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=1878,
+  serialized_end=2075,
+)
+
+
 _QUERYVECTOR = _descriptor.Descriptor(
   name='QueryVector',
   full_name='QueryVector',
@@ -514,8 +697,8 @@ _QUERYVECTOR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1518,
-  serialized_end=1854,
+  serialized_start=2078,
+  serialized_end=2414,
 )
 
 
@@ -602,8 +785,8 @@ _QUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1857,
-  serialized_end=2363,
+  serialized_start=2417,
+  serialized_end=2923,
 )
 
 
@@ -641,8 +824,8 @@ _SINGLEQUERYRESULTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2365,
-  serialized_end=2462,
+  serialized_start=2925,
+  serialized_end=3022,
 )
 
 
@@ -699,8 +882,8 @@ _QUERYRESPONSE = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=2465,
-  serialized_end=2635,
+  serialized_start=3025,
+  serialized_end=3195,
 )
 
 
@@ -736,8 +919,8 @@ _USAGE = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=2637,
-  serialized_end=2708,
+  serialized_start=3197,
+  serialized_end=3268,
 )
 
 
@@ -796,8 +979,8 @@ _UPDATEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2711,
-  serialized_end=3017,
+  serialized_start=3271,
+  serialized_end=3577,
 )
 
 
@@ -821,8 +1004,8 @@ _UPDATERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3019,
-  serialized_end=3035,
+  serialized_start=3579,
+  serialized_end=3595,
 )
 
 
@@ -853,8 +1036,8 @@ _DESCRIBEINDEXSTATSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3037,
-  serialized_end=3105,
+  serialized_start=3597,
+  serialized_end=3665,
 )
 
 
@@ -885,8 +1068,8 @@ _NAMESPACESUMMARY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3107,
-  serialized_end=3159,
+  serialized_start=3667,
+  serialized_end=3719,
 )
 
 
@@ -924,8 +1107,8 @@ _DESCRIBEINDEXSTATSRESPONSE_NAMESPACESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3361,
-  serialized_end=3429,
+  serialized_start=3921,
+  serialized_end=3989,
 )
 
 _DESCRIBEINDEXSTATSRESPONSE = _descriptor.Descriptor(
@@ -976,8 +1159,8 @@ _DESCRIBEINDEXSTATSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3162,
-  serialized_end=3572,
+  serialized_start=3722,
+  serialized_end=4132,
 )
 
 _VECTOR.fields_by_name['sparse_values'].message_type = _SPARSEVALUES
@@ -993,6 +1176,20 @@ _FETCHRESPONSE.fields_by_name['usage'].message_type = _USAGE
 _FETCHRESPONSE.oneofs_by_name['_usage'].fields.append(
   _FETCHRESPONSE.fields_by_name['usage'])
 _FETCHRESPONSE.fields_by_name['usage'].containing_oneof = _FETCHRESPONSE.oneofs_by_name['_usage']
+_LISTREQUEST.oneofs_by_name['_prefix'].fields.append(
+  _LISTREQUEST.fields_by_name['prefix'])
+_LISTREQUEST.fields_by_name['prefix'].containing_oneof = _LISTREQUEST.oneofs_by_name['_prefix']
+_LISTREQUEST.oneofs_by_name['_limit'].fields.append(
+  _LISTREQUEST.fields_by_name['limit'])
+_LISTREQUEST.fields_by_name['limit'].containing_oneof = _LISTREQUEST.oneofs_by_name['_limit']
+_LISTREQUEST.oneofs_by_name['_pagination_token'].fields.append(
+  _LISTREQUEST.fields_by_name['pagination_token'])
+_LISTREQUEST.fields_by_name['pagination_token'].containing_oneof = _LISTREQUEST.oneofs_by_name['_pagination_token']
+_LISTRESPONSE.fields_by_name['vectors'].message_type = _LISTITEM
+_LISTRESPONSE.fields_by_name['pagination'].message_type = _PAGINATION
+_LISTRESPONSE.oneofs_by_name['_pagination'].fields.append(
+  _LISTRESPONSE.fields_by_name['pagination'])
+_LISTRESPONSE.fields_by_name['pagination'].containing_oneof = _LISTRESPONSE.oneofs_by_name['_pagination']
 _QUERYVECTOR.fields_by_name['sparse_values'].message_type = _SPARSEVALUES
 _QUERYVECTOR.fields_by_name['filter'].message_type = google_dot_protobuf_dot_struct__pb2._STRUCT
 _QUERYREQUEST.fields_by_name['filter'].message_type = google_dot_protobuf_dot_struct__pb2._STRUCT
@@ -1023,6 +1220,10 @@ DESCRIPTOR.message_types_by_name['DeleteRequest'] = _DELETEREQUEST
 DESCRIPTOR.message_types_by_name['DeleteResponse'] = _DELETERESPONSE
 DESCRIPTOR.message_types_by_name['FetchRequest'] = _FETCHREQUEST
 DESCRIPTOR.message_types_by_name['FetchResponse'] = _FETCHRESPONSE
+DESCRIPTOR.message_types_by_name['ListRequest'] = _LISTREQUEST
+DESCRIPTOR.message_types_by_name['Pagination'] = _PAGINATION
+DESCRIPTOR.message_types_by_name['ListItem'] = _LISTITEM
+DESCRIPTOR.message_types_by_name['ListResponse'] = _LISTRESPONSE
 DESCRIPTOR.message_types_by_name['QueryVector'] = _QUERYVECTOR
 DESCRIPTOR.message_types_by_name['QueryRequest'] = _QUERYREQUEST
 DESCRIPTOR.message_types_by_name['SingleQueryResults'] = _SINGLEQUERYRESULTS
@@ -1105,6 +1306,34 @@ FetchResponse = _reflection.GeneratedProtocolMessageType('FetchResponse', (_mess
   })
 _sym_db.RegisterMessage(FetchResponse)
 _sym_db.RegisterMessage(FetchResponse.VectorsEntry)
+
+ListRequest = _reflection.GeneratedProtocolMessageType('ListRequest', (_message.Message,), {
+  'DESCRIPTOR' : _LISTREQUEST,
+  '__module__' : 'vector_service_pb2'
+  # @@protoc_insertion_point(class_scope:ListRequest)
+  })
+_sym_db.RegisterMessage(ListRequest)
+
+Pagination = _reflection.GeneratedProtocolMessageType('Pagination', (_message.Message,), {
+  'DESCRIPTOR' : _PAGINATION,
+  '__module__' : 'vector_service_pb2'
+  # @@protoc_insertion_point(class_scope:Pagination)
+  })
+_sym_db.RegisterMessage(Pagination)
+
+ListItem = _reflection.GeneratedProtocolMessageType('ListItem', (_message.Message,), {
+  'DESCRIPTOR' : _LISTITEM,
+  '__module__' : 'vector_service_pb2'
+  # @@protoc_insertion_point(class_scope:ListItem)
+  })
+_sym_db.RegisterMessage(ListItem)
+
+ListResponse = _reflection.GeneratedProtocolMessageType('ListResponse', (_message.Message,), {
+  'DESCRIPTOR' : _LISTRESPONSE,
+  '__module__' : 'vector_service_pb2'
+  # @@protoc_insertion_point(class_scope:ListResponse)
+  })
+_sym_db.RegisterMessage(ListResponse)
 
 QueryVector = _reflection.GeneratedProtocolMessageType('QueryVector', (_message.Message,), {
   'DESCRIPTOR' : _QUERYVECTOR,
@@ -1206,6 +1435,14 @@ _FETCHREQUEST.fields_by_name['namespace']._options = None
 _FETCHRESPONSE_VECTORSENTRY._options = None
 _FETCHRESPONSE.fields_by_name['namespace']._options = None
 _FETCHRESPONSE.fields_by_name['usage']._options = None
+_LISTREQUEST.fields_by_name['prefix']._options = None
+_LISTREQUEST.fields_by_name['limit']._options = None
+_LISTREQUEST.fields_by_name['pagination_token']._options = None
+_LISTREQUEST.fields_by_name['namespace']._options = None
+_PAGINATION.fields_by_name['next']._options = None
+_LISTITEM.fields_by_name['id']._options = None
+_LISTRESPONSE.fields_by_name['vectors']._options = None
+_LISTRESPONSE.fields_by_name['namespace']._options = None
 _QUERYVECTOR.fields_by_name['values']._options = None
 _QUERYVECTOR.fields_by_name['top_k']._options = None
 _QUERYVECTOR.fields_by_name['namespace']._options = None
@@ -1240,8 +1477,8 @@ _VECTORSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=3575,
-  serialized_end=4276,
+  serialized_start=4135,
+  serialized_end=4924,
   methods=[
   _descriptor.MethodDescriptor(
     name='Upsert',
@@ -1274,9 +1511,19 @@ _VECTORSERVICE = _descriptor.ServiceDescriptor(
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
+    name='List',
+    full_name='VectorService.List',
+    index=3,
+    containing_service=None,
+    input_type=_LISTREQUEST,
+    output_type=_LISTRESPONSE,
+    serialized_options=b'\202\323\344\223\002\017\022\r/vectors/list\222A\031\n\021Vector Operations*\004list',
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
     name='Query',
     full_name='VectorService.Query',
-    index=3,
+    index=4,
     containing_service=None,
     input_type=_QUERYREQUEST,
     output_type=_QUERYRESPONSE,
@@ -1286,7 +1533,7 @@ _VECTORSERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='Update',
     full_name='VectorService.Update',
-    index=4,
+    index=5,
     containing_service=None,
     input_type=_UPDATEREQUEST,
     output_type=_UPDATERESPONSE,
@@ -1296,7 +1543,7 @@ _VECTORSERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='DescribeIndexStats',
     full_name='VectorService.DescribeIndexStats',
-    index=5,
+    index=6,
     containing_service=None,
     input_type=_DESCRIBEINDEXSTATSREQUEST,
     output_type=_DESCRIBEINDEXSTATSRESPONSE,
