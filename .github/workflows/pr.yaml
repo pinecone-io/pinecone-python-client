@@ -14,7 +14,6 @@ jobs:
   integration-tests-data:
       uses: './.github/workflows/testing-integration-data-plane.yaml'
       secrets: inherit
-  
   integration-tests-pod:
     uses: './.github/workflows/testing-integration-control-plane-pod.yaml'
     strategy:
@@ -31,7 +30,6 @@ jobs:
       environment: ${{ matrix.environment }}
       client-version: ${{ matrix.client-version}}
       dimension: 10
-
   integration-tests-serverless:
     uses: './.github/workflows/testing-integration-control-plane-serverless.yaml'
     strategy:
@@ -45,7 +43,6 @@ jobs:
       cloud: 'aws'
       region: 'us-west-2'
       client-version: ${{ matrix.client-version}}
-
   dependency-tests:
     uses: './.github/workflows/testing-dependency.yaml'
     secrets: inherit
