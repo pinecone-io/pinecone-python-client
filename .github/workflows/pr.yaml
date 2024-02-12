@@ -22,7 +22,6 @@ jobs:
       matrix:
         environment:
           - 'us-east1-gcp'
-          - 'us-east4-gcp'
         client-version: ['dev', '3.0.2']
     secrets:
       PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
