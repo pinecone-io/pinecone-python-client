@@ -188,7 +188,8 @@ class GRPCIndex(GRPCIndexBase):
 
         if use_async_requests:
             cast_results = cast(List[PineconeGrpcFuture], results)
-            results = [async_result.result() for async_result in tqdm(cast_results, desc="collecting async responses")]
+            results = [async_result.result() for async_result in
+                       tqdm(cast_results, disable=not show_progress, desc="collecting async responses")]
 
         upserted_count = 0
         for res in results:
