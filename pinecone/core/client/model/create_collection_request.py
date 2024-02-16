@@ -63,7 +63,7 @@ class CreateCollectionRequest(ModelNormal):
             'max_length': 45,
             'min_length': 1,
             'regex': {
-                'pattern': r'^[A-Za-z0-9].*[A-Za-z0-9]$',  # noqa: E501
+                'pattern': r'^[A-Za-z0-9]+(-?[A-Za-z0-9]+)*$',  # noqa: E501
             },
         },
     }
