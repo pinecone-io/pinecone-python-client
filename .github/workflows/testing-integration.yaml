@@ -55,7 +55,7 @@ jobs:
         testConfig:
           - python-version: 3.8
             pod: { environment: 'us-east1-gcp'}
-          - python-version: 3.11
+          - python-version: 3.12
             pod: { environment: 'us-east4-gcp'}
       fail-fast: false
     steps:
