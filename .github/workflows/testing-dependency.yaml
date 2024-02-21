@@ -64,7 +64,7 @@ jobs:
           - 0.1.0
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/test-data-plane
+      - uses: ./.github/actions/test-dependency-grpc
         with:
           python_version: '${{ matrix.python_version }}'
           index_name: '${{ needs.dependency-matrix-setup.outputs.index_name }}'
@@ -100,7 +100,7 @@ jobs:
           - 0.1.0
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/test-data-plane
+      - uses: ./.github/actions/test-dependency-grpc
         with:
           python_version: '${{ matrix.python_version }}'
           index_name: '${{ needs.dependency-matrix-setup.outputs.index_name }}'
@@ -128,7 +128,7 @@ jobs:
           - 2.2.1
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/test-data-plane
+      - uses: ./.github/actions/test-dependency-rest
         with:
           python_version: '${{ matrix.python_version }}'
           index_name: '${{ needs.dependency-matrix-setup.outputs.index_name }}'
@@ -152,7 +152,7 @@ jobs:
           - 2.2.1
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/test-data-plane
+      - uses: ./.github/actions/test-dependency-rest
         with:
           python_version: '${{ matrix.python_version }}'
           index_name: '${{ needs.dependency-matrix-setup.outputs.index_name }}'
