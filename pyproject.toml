@@ -61,8 +61,8 @@ tqdm = ">=4.64.1"
 # compatibility with libraries that may pin version.
 certifi = ">=2019.11.17"
 grpcio = [
-  { version = ">=1.44.0", optional = true, python = "^3.8,<3.12" },
-  { version = "^1.59.0", optional = true, python = "^3.12" }
+  { version = ">=1.44.0", optional = true, python = "^3.8,<3.11" },
+  { version = "^1.59.0", optional = true, python = "^3.11" }
 ]
 grpc-gateway-protoc-gen-openapiv2 = { version = "0.1.0", optional = true }
 googleapis-common-protos = { version = ">=1.53.0", optional = true }

@@ -9,6 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        python_version: [3.8, 3.12]
         use_grpc: [true, false]
         metric: 
           - cosine
@@ -20,6 +21,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/test-data-plane
         with:
+          python-version: '${{ matrix.python_version }}'
           use_grpc: '${{ matrix.use_grpc }}'
           metric: '${{ matrix.metric }}'
           spec: '${{ matrix.spec }}'
@@ -88,9 +90,6 @@ jobs:
           DIMENSION: 1536
           METRIC: 'cosine'
 
-
-
-
   control-rest-serverless:
     name: control plane serverless
     runs-on: ubuntu-latest
@@ -102,7 +101,7 @@ jobs:
           - python-version: 3.8 # Do one test run with 3.8 for sanity check
             pod: { environment: 'us-east1-gcp'}
             serverless: { cloud: 'aws', region: 'us-west-2'}
-          - python-version: 3.11
+          - python-version: 3.12
             pod: { environment: 'us-east1-gcp'}
             serverless: { cloud: 'aws', region: 'us-west-2'}
       fail-fast: false

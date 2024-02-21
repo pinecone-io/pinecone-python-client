@@ -669,8 +669,8 @@ files = [
 [package.dependencies]
 numpy = [
     {version = ">=1.20.3", markers = "python_version < \"3.10\""},
-    {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
     {version = ">=1.21.0", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
+    {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
@@ -1179,4 +1179,4 @@ grpc = ["googleapis-common-protos", "grpc-gateway-protoc-gen-openapiv2", "grpcio
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "86ee4df93f986b3294a0393718559e29f61e9cab511e2f4d98ee87355964bce6"
+content-hash = "5ed8ae420a559ebdacd7b2ec758a8ecea3eebb8980f4289018235a7ac74ebd29"
