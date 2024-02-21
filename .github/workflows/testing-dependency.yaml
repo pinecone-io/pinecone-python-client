@@ -30,9 +30,8 @@ jobs:
       matrix:
         python-version:
           - 3.8
-          # - 3.9
-          # - "3.10"
-          - 3.11
+          - 3.9
+          - "3.10"
         grpcio-version:
           - 1.44.0
           # - 1.46.5
@@ -101,6 +100,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
+          - 3.11
           - 3.12
         grpcio-version:
           - 1.59.3
