@@ -28,11 +28,11 @@ jobs:
       max-parallel: 5
       fail-fast: false
       matrix:
-        python-version:
+        python_version:
           - 3.8
           - 3.9
           - "3.10"
-        grpcio-version:
+        grpcio_version:
           - 1.44.0
           # - 1.46.5
           # - 1.47.5
@@ -48,48 +48,31 @@ jobs:
           # - 1.58.0
           # - 1.59.3
           - 1.60.0
-        lz4-version:
+        lz4_version:
           - 3.1.3
           # - 3.1.10
           - 4.0.0
           # - 4.0.1
           # - 4.1.0
           - 4.3.3
-        protobuf-version:
+        protobuf_version:
           - 3.20.3
-        googleapis-common-protos-version:
+        googleapis_common_protos_version:
           - 1.53.0
           - 1.62.0
-        grpc-gateway-protoc-gen-openapiv2-version:
+        grpc_gateway_protoc_gen_openapiv2_version:
           - 0.1.0
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: ./.github/actions/test-data-plane
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
-        with:
-          include_grpc: true
-          include_types: false
-      - name: Install grpcio ${{ matrix.grpcio-version }}
-        run: poetry add grpcio==${{ matrix.grpcio-version }}
-      - name: Install lz4 ${{ matrix.lz4-version }}
-        run: poetry add lz4==${{ matrix.lz4-version }}
-      - name: Install protobuf ${{ matrix.protobuf-version }}
-        run: poetry add protobuf==${{ matrix.protobuf-version }}
-      - name: Install googleapis-common-protos ${{ matrix.googleapis-common-protos-version }}
-        run: poetry add googleapis-common-protos==${{ matrix.googleapis-common-protos-version }}
-      - uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 5
-          max_attempts: 3
-          retry_on: error
-          command: poetry run pytest tests/dependency/grpc -s -v
-        env:
-          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
-          INDEX_NAME: ${{ needs.dependency-matrix-setup.outputs.index_name }}  
+          python_version: '${{ matrix.python_version }}'
+          index_name: '${{ needs.dependency-matrix-setup.outputs.index_name }}'
+          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+          grpcio_version: '${{ matrix.grpcio_version }}'
+          lz4_version: '${{ matrix.lz4_version }}'
+          protobuf_version: '${{ matrix.protobuf_version }}'
+          googleapis_common_protos_version: '${{ matrix.googleapis_common_protos_version }}'
 
   dependency-matrix-grpc-312:
     name: Deps (GRPC)
@@ -99,50 +82,33 @@ jobs:
       max-parallel: 5
       fail-fast: false
       matrix:
-        python-version:
+        python_version:
           - 3.11
           - 3.12
-        grpcio-version:
+        grpcio_version:
           - 1.59.3
           - 1.60.0
-        lz4-version:
+        lz4_version:
           - 3.1.3
           - 4.3.3
-        protobuf-version:
+        protobuf_version:
           - 3.20.3
-        googleapis-common-protos-version:
+        googleapis_common_protos_version:
           - 1.53.0
           - 1.62.0
-        grpc-gateway-protoc-gen-openapiv2-version:
+        grpc_gateway_protoc_gen_openapiv2_version:
           - 0.1.0
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: ./.github/actions/test-data-plane
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
-        with:
-          include_grpc: true
-          include_types: false
-      - name: Install grpcio ${{ matrix.grpcio-version }}
-        run: poetry add grpcio==${{ matrix.grpcio-version }}
-      - name: Install lz4 ${{ matrix.lz4-version }}
-        run: poetry add lz4==${{ matrix.lz4-version }}
-      - name: Install protobuf ${{ matrix.protobuf-version }}
-        run: poetry add protobuf==${{ matrix.protobuf-version }}
-      - name: Install googleapis-common-protos ${{ matrix.googleapis-common-protos-version }}
-        run: poetry add googleapis-common-protos==${{ matrix.googleapis-common-protos-version }}
-      - uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 5
-          max_attempts: 3
-          retry_on: error
-          command: poetry run pytest tests/dependency/grpc -s -v
-        env:
-          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
-          INDEX_NAME: ${{ needs.dependency-matrix-setup.outputs.index_name }}  
+          python_version: '${{ matrix.python_version }}'
+          index_name: '${{ needs.dependency-matrix-setup.outputs.index_name }}'
+          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+          grpcio_version: '${{ matrix.grpcio_version }}'
+          lz4_version: '${{ matrix.lz4_version }}'
+          protobuf_version: '${{ matrix.protobuf_version }}'
+          googleapis_common_protos_version: '${{ matrix.googleapis_common_protos_version }}'
 
   dependency-matrix-rest:
     name: Deps (REST)
@@ -152,37 +118,23 @@ jobs:
       max-parallel: 5
       fail-fast: false
       matrix:
-        python-version:
+        python_version:
           - 3.8
           - 3.11
-        urllib3-version:
+        urllib3_version:
           - 1.26.0
           - 1.26.18
           - 2.0.2
           - 2.2.1
     steps:
       - uses: actions/checkout@v4
-      - name: 'Set up Python ${{ matrix.python-version }}'
-        uses: actions/setup-python@v5
+      - uses: ./.github/actions/test-data-plane
         with:
-          python-version: '${{ matrix.python-version }}'
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
-        with:
-          include_grpc: false
-          include_types: false
-      - name: 'Install urllib3 ${{ matrix.urllib3-version }}'
-        run: 'poetry add urllib3==${{ matrix.urllib3-version }}'
-      - uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 5
-          max_attempts: 3
-          retry_on: error
-          command: poetry run pytest tests/dependency/rest -s -v
-        env:
+          python_version: '${{ matrix.python_version }}'
+          index_name: '${{ needs.dependency-matrix-setup.outputs.index_name }}'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
-          INDEX_NAME: '${{ needs.dependency-matrix-setup.outputs.index_name }}'
-        
+          urllib3_version: '${{ matrix.urllib3_version }}'
+      
   dependency-matrix-rest-312:
     name: Deps (REST)
     runs-on: ubuntu-latest
@@ -191,32 +143,18 @@ jobs:
       max-parallel: 5
       fail-fast: false
       matrix:
-        python-version:
+        python_version:
           - 3.12
-        urllib3-version:
+        urllib3_version:
           - 1.26.5
           - 1.26.18
           - 2.0.2
           - 2.2.1
     steps:
       - uses: actions/checkout@v4
-      - name: 'Set up Python ${{ matrix.python-version }}'
-        uses: actions/setup-python@v5
+      - uses: ./.github/actions/test-data-plane
         with:
-          python-version: '${{ matrix.python-version }}'
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
-        with:
-          include_grpc: false
-          include_types: false
-      - name: 'Install urllib3 ${{ matrix.urllib3-version }}'
-        run: 'poetry add urllib3==${{ matrix.urllib3-version }}'
-      - uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 5
-          max_attempts: 3
-          retry_on: error
-          command: poetry run pytest tests/dependency/rest -s -v
-        env:
+          python_version: '${{ matrix.python_version }}'
+          index_name: '${{ needs.dependency-matrix-setup.outputs.index_name }}'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
-          INDEX_NAME: '${{ needs.dependency-matrix-setup.outputs.index_name }}'
+          urllib3_version: '${{ matrix.urllib3_version }}'
