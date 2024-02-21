@@ -74,7 +74,7 @@ class IndexModel(ModelNormal):
             'max_length': 45,
             'min_length': 1,
             'regex': {
-                'pattern': r'^[A-Za-z0-9].*[A-Za-z0-9]$',  # noqa: E501
+                'pattern': r'^[a-z0-9]+(-?[a-z0-9]+)*$',  # noqa: E501
             },
         },
         ('dimension',): {
@@ -109,9 +109,9 @@ class IndexModel(ModelNormal):
             'name': (str,),  # noqa: E501
             'dimension': (int,),  # noqa: E501
             'metric': (str,),  # noqa: E501
+            'host': (str,),  # noqa: E501
             'spec': (IndexModelSpec,),  # noqa: E501
             'status': (IndexModelStatus,),  # noqa: E501
-            'host': (str,),  # noqa: E501
         }
 
     @cached_property
@@ -123,9 +123,9 @@ class IndexModel(ModelNormal):
         'name': 'name',  # noqa: E501
         'dimension': 'dimension',  # noqa: E501
         'metric': 'metric',  # noqa: E501
+        'host': 'host',  # noqa: E501
         'spec': 'spec',  # noqa: E501
         'status': 'status',  # noqa: E501
-        'host': 'host',  # noqa: E501
     }
 
     read_only_vars = {
@@ -135,12 +135,13 @@ class IndexModel(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, name, dimension, spec, status, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, name, dimension, host, spec, status, *args, **kwargs):  # noqa: E501
         """IndexModel - a model defined in OpenAPI
 
         Args:
             name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'. 
             dimension (int): The dimensions of the vectors to be inserted in the index.
+            host (str): The URL address where the index is hosted.
             spec (IndexModelSpec):
             status (IndexModelStatus):
 
@@ -176,7 +177,6 @@ class IndexModel(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            host (str): The URL address where the index is hosted.. [optional]  # noqa: E501
         """
 
         metric = kwargs.get('metric', "cosine")
@@ -208,6 +208,7 @@ class IndexModel(ModelNormal):
         self.name = name
         self.dimension = dimension
         self.metric = metric
+        self.host = host
         self.spec = spec
         self.status = status
         for var_name, var_value in kwargs.items():
@@ -230,12 +231,13 @@ class IndexModel(ModelNormal):
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, name, dimension, spec, status, *args, **kwargs):  # noqa: E501
+    def __init__(self, name, dimension, host, spec, status, *args, **kwargs):  # noqa: E501
         """IndexModel - a model defined in OpenAPI
 
         Args:
             name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'. 
             dimension (int): The dimensions of the vectors to be inserted in the index.
+            host (str): The URL address where the index is hosted.
             spec (IndexModelSpec):
             status (IndexModelStatus):
 
@@ -271,7 +273,6 @@ class IndexModel(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            host (str): The URL address where the index is hosted.. [optional]  # noqa: E501
         """
 
         metric = kwargs.get('metric', "cosine")
@@ -301,6 +302,7 @@ class IndexModel(ModelNormal):
         self.name = name
         self.dimension = dimension
         self.metric = metric
+        self.host = host
         self.spec = spec
         self.status = status
         for var_name, var_value in kwargs.items():

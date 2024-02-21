@@ -58,81 +58,83 @@ class VectorServiceServicer(object):
     """
 
     def Upsert(self, request, context):
-        """Upsert
+        """Upsert vectors
 
-        The `Upsert` operation writes vectors into a namespace.
-        If a new value is upserted for an existing vector id, it will overwrite the previous value.
+        The `upsert` operation writes vectors into a namespace. If a new value is upserted for an existing vector ID, it will overwrite the previous value.
+
+        For guidance and examples, see [Upsert data](https://docs.pinecone.io/docs/upsert-data).
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Delete(self, request, context):
-        """Delete
+        """Delete vectors
 
-        The `Delete` operation deletes vectors, by id, from a single namespace.
-        You can delete items by their id, from a single namespace.
+        The `delete` operation deletes vectors, by id, from a single namespace.
+
+        For guidance and examples, see [Delete data](https://docs.pinecone.io/docs/delete-data).
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Fetch(self, request, context):
-        """Fetch
+        """Fetch vectors
 
-        The `Fetch` operation looks up and returns vectors, by ID, from a single namespace.
-        The returned vectors include the vector data and/or metadata.
+        The `fetch` operation looks up and returns vectors, by ID, from a single namespace. The returned vectors include the vector data and/or metadata.
+
+        For guidance and examples, see [Fetch data](https://docs.pinecone.io/reference/fetch).
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def List(self, request, context):
-        """List
+        """List vector IDs
 
-        The `List` operations lists the IDs of vectors in a single namespace.
-        An optional prefix can be passed to limit the listing to those ids that start
-        with the given prefix.
-        Ids are returned in sorted order (bitwise/"C" collation).
-        A maximum of 100 ids are returned at a time.
-        A pagination token is also returned to allow the client to list the next 100.
-        The absence of the pagination token indicates that there are no more ids that
-        match the given parameters.
+        The `list` operation lists the IDs of vectors in a single namespace of a serverless index. An optional prefix can be passed to limit the results to IDs with a common prefix.
+
+        `list` returns up to 100 IDs at a time by default in sorted order (bitwise/"C" collation). If the `limit` parameter is set, `list` returns up to that number of IDs instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of IDs. When the response does not include a `pagination_token`, there are no more IDs to return.
+
+        For guidance and examples, see [Get record IDs](https://docs.pinecone.io/docs/get-record-ids).
+
+        **Note:** `list` is supported only for serverless indexes.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Query(self, request, context):
-        """Query
+        """Query vectors
 
-        The `Query` operation searches a namespace, using a query vector.
-        It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
+        The `query` operation searches a namespace, using a query vector. It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
+
+        For guidance and examples, see [Query data](https://docs.pinecone.io/docs/query-data).
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Update(self, request, context):
-        """Update
+        """Update a vector
 
-        The `Update` operation updates vector in a namespace.
-        If a value is included, it will overwrite the previous value.
-        If a set_metadata is included, the values of the fields specified in it will be added or overwrite the previous value.
+        The `update` operation updates a vector in a namespace. If a value is included, it will overwrite the previous value. If a `set_metadata` is included, the values of the fields specified in it will be added or overwrite the previous value.
+
+        For guidance and examples, see [Update data](https://docs.pinecone.io/reference/update).
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def DescribeIndexStats(self, request, context):
-        """DescribeIndexStats
+        """Get index stats
 
-        The `DescribeIndexStats` operation returns statistics about the index's
-        contents, including the vector count per namespace, the number of
-        dimensions, and the index fullness. The index fullness result  may be
-        inaccurate during pod resizing; to get the status of a pod resizing
-        process, use
-        [`describe_index`](https://www.pinecone.io/docs/api/operation/describe_index/).
+        The `describe_index_stats` operation returns statistics about the contents of an index, including the vector count per namespace and the number of dimensions, and the index fullness.
+
+        Serverless indexes scale automatically as needed, so index fullness is relevant only for pod-based indexes.
+
+        For pod-based indexes, the index fullness result may be inaccurate during pod resizing; to get the status of a pod resizing process, use [`describe_index`](https://www.pinecone.io/docs/api/operation/describe_index/).
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')

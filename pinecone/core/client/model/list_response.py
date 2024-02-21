@@ -33,8 +33,10 @@ from pinecone.core.client.exceptions import PineconeApiAttributeError
 def lazy_import():
     from pinecone.core.client.model.list_item import ListItem
     from pinecone.core.client.model.pagination import Pagination
+    from pinecone.core.client.model.usage import Usage
     globals()['ListItem'] = ListItem
     globals()['Pagination'] = Pagination
+    globals()['Usage'] = Usage
 
 
 class ListResponse(ModelNormal):
@@ -93,6 +95,7 @@ class ListResponse(ModelNormal):
             'vectors': ([ListItem],),  # noqa: E501
             'pagination': (Pagination,),  # noqa: E501
             'namespace': (str,),  # noqa: E501
+            'usage': (Usage,),  # noqa: E501
         }
 
     @cached_property
@@ -104,6 +107,7 @@ class ListResponse(ModelNormal):
         'vectors': 'vectors',  # noqa: E501
         'pagination': 'pagination',  # noqa: E501
         'namespace': 'namespace',  # noqa: E501
+        'usage': 'usage',  # noqa: E501
     }
 
     read_only_vars = {
@@ -150,6 +154,7 @@ class ListResponse(ModelNormal):
             vectors ([ListItem]): [optional]  # noqa: E501
             pagination (Pagination): [optional]  # noqa: E501
             namespace (str): The namespace of the vectors.. [optional]  # noqa: E501
+            usage (Usage): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -234,6 +239,7 @@ class ListResponse(ModelNormal):
             vectors ([ListItem]): [optional]  # noqa: E501
             pagination (Pagination): [optional]  # noqa: E501
             namespace (str): The namespace of the vectors.. [optional]  # noqa: E501
+            usage (Usage): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)

@@ -111,8 +111,8 @@ class SparseValues(ModelNormal):
         """SparseValues - a model defined in OpenAPI
 
         Args:
-            indices ([int]): The indices of the sparse data.
-            values ([float]): The corresponding values of the sparse data, which must be with the same length as the indices.
+            indices ([int]):
+            values ([float]):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -198,8 +198,8 @@ class SparseValues(ModelNormal):
         """SparseValues - a model defined in OpenAPI
 
         Args:
-            indices ([int]): The indices of the sparse data.
-            values ([float]): The corresponding values of the sparse data, which must be with the same length as the indices.
+            indices ([int]):
+            values ([float]):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types

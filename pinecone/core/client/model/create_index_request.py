@@ -68,7 +68,7 @@ class CreateIndexRequest(ModelNormal):
             'max_length': 45,
             'min_length': 1,
             'regex': {
-                'pattern': r'^[A-Za-z0-9].*[A-Za-z0-9]$',  # noqa: E501
+                'pattern': r'^[a-z0-9]+(-?[a-z0-9]+)*$',  # noqa: E501
             },
         },
         ('dimension',): {
@@ -129,7 +129,7 @@ class CreateIndexRequest(ModelNormal):
         Args:
             name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'. 
             dimension (int): The dimensions of the vectors to be inserted in the index.
-            spec (dict): The spec object defines how the index should be deployed. For serverless indexes, you define only the cloud and region where the index should be hosted. For pod-based indexes, you define the environment where the index should be hosted, the pod type and size to use, and other index characteristics. Serverless indexes are in public preview and are available only on AWS in the us-west-2 region. Test thoroughly before using serverless indexes in production. 
+            spec (dict): The spec object defines how the index should be deployed.  For serverless indexes, you define only the cloud and region where the index should be hosted. For pod-based indexes, you define the environment where the index should be hosted, the pod type and size to use, and other index characteristics.  Serverless indexes are in public preview and are available only on AWS in the us-west-2 region. Test thoroughly before using serverless indexes in production. 
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -219,7 +219,7 @@ class CreateIndexRequest(ModelNormal):
         Args:
             name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'. 
             dimension (int): The dimensions of the vectors to be inserted in the index.
-            spec (dict): The spec object defines how the index should be deployed. For serverless indexes, you define only the cloud and region where the index should be hosted. For pod-based indexes, you define the environment where the index should be hosted, the pod type and size to use, and other index characteristics. Serverless indexes are in public preview and are available only on AWS in the us-west-2 region. Test thoroughly before using serverless indexes in production. 
+            spec (dict): The spec object defines how the index should be deployed.  For serverless indexes, you define only the cloud and region where the index should be hosted. For pod-based indexes, you define the environment where the index should be hosted, the pod type and size to use, and other index characteristics.  Serverless indexes are in public preview and are available only on AWS in the us-west-2 region. Test thoroughly before using serverless indexes in production. 
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types

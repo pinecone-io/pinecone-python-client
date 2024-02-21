@@ -311,7 +311,7 @@ class ManageIndexesApi(object):
         ):
             """Create an index  # noqa: E501
 
-            This operation deploys a Pinecone index. This is where you specify the measure of similarity, the dimension of vectors to be stored in the index, which cloud provider you would like to deploy with, and more.  # noqa: E501
+            This operation deploys a Pinecone index. This is where you specify the measure of similarity, the dimension of vectors to be stored in the index, which cloud provider you would like to deploy with, and more.  For guidance and examples, see [Create an index](https://docs.pinecone.io/docs/manage-indexes#create-a-serverless-index).   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -436,7 +436,7 @@ class ManageIndexesApi(object):
         ):
             """Delete a collection  # noqa: E501
 
-            This operation deletes an existing collection. Serverless and starter indexes do not support collections.   # noqa: E501
+            This operation deletes an existing collection.  Serverless and starter indexes do not support collections.   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -685,7 +685,7 @@ class ManageIndexesApi(object):
         ):
             """Describe a collection  # noqa: E501
 
-            This operation gets a description of a collection. Serverless and starter indexes do not support collections.   # noqa: E501
+            This operation gets a description of a collection.  Serverless and starter indexes do not support collections.   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -932,7 +932,7 @@ class ManageIndexesApi(object):
         ):
             """List collections  # noqa: E501
 
-            This operation returns a list of your Pinecone collections. Serverless and starter indexes do not support collections.   # noqa: E501
+            This operation returns a list of all collections in a project. Serverless and starter indexes do not support collections.   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
