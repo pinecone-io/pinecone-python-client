@@ -41,5 +41,5 @@ runs:
         retry_on: error
         command: poetry run pytest tests/dependency/rest -s -v
       env:
-        PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+        PINECONE_API_KEY: '${{ inputs.PINECONE_API_KEY }}'
         INDEX_NAME: '${{ inputs.index_name }}'
