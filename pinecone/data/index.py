@@ -1,6 +1,5 @@
 from tqdm.autonotebook import tqdm
 
-from collections.abc import Iterable
 from typing import Union, List, Tuple, Optional, Dict, Any
 
 from pinecone.config import ConfigBuilder
@@ -22,9 +21,10 @@ from pinecone.core.client.models import (
     DeleteRequest,
     UpdateRequest,
     DescribeIndexStatsRequest,
+    ListResponse
 )
 from pinecone.core.client.api.data_plane_api import DataPlaneApi
-from ..utils import get_user_agent, fix_tuple_length
+from ..utils import get_user_agent
 from .vector_factory import VectorFactory
 
 __all__ = [
@@ -502,6 +502,40 @@ class Index():
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
         )
+    
+    @validate_and_convert_errors
+    def list_paginated(
+        self,
+        prefix: Optional[str] = None,
+        limit: Optional[int] = None,
+        pagination_token: Optional[str] = None,
+        namespace: Optional[str] = None,
+        **kwargs
+    ) ->  ListResponse:
+        args_dict = self._parse_non_empty_args(
+            [
+                ("prefix", prefix),
+                ("limit", limit),
+                ("namespace", namespace),
+                ("pagination_token", pagination_token),
+            ]
+        )
+        return self._vector_api.list(**args_dict, **kwargs)
+
+    @validate_and_convert_errors
+    def list(self, **kwargs):
+        limit = kwargs.get("limit", 100)
+        done = False
+        while not done:
+            results = self.list_paginated(**kwargs)
+            if len(results.vectors) > 0:
+                yield [v.id for v in results.vectors]
+            
+            full_page = len(results.vectors) == limit
+            if results.pagination and full_page:
+                kwargs.update({"pagination_token": results.pagination.next})
+            else:
+                done = True
 
     @staticmethod
     def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
