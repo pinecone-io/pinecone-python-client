@@ -2,16 +2,25 @@ import pytest
 import random
 import string
 import time
+import json
 from pinecone import Pinecone, PodSpec
 from ...helpers import generate_index_name, get_environment_var
 
 @pytest.fixture()
-def client():
+def client(additional_headers):
     api_key = get_environment_var('PINECONE_API_KEY')
     return Pinecone(
         api_key=api_key,
-        additional_headers={'sdk-test-suite': 'pinecone-python-client'}
+        additional_headers=additional_headers
     )
+
+@pytest.fixture()
+def timeout():
+    return int(get_environment_var('COLLECTION_CREATION_TIMEOUT_SECONDS', 300))
+
+@pytest.fixture()
+def additional_headers():
+    return json.loads(get_environment_var('ADDITIONAL_HEADERS_JSON', '{}'))
 
 @pytest.fixture()
 def environment():
@@ -19,7 +28,7 @@ def environment():
 
 @pytest.fixture()
 def dimension():
-    return int(get_environment_var('DIMENSION'))
+    return int(get_environment_var('DIMENSION', 1536))
 
 @pytest.fixture()
 def create_index_params(index_name, environment, dimension, metric):
@@ -39,7 +48,7 @@ def create_index_params(index_name, environment, dimension, metric):
 
 @pytest.fixture()
 def metric():
-    return get_environment_var('METRIC')
+    return get_environment_var('METRIC', 'cosine')
 
 @pytest.fixture()
 def random_vector(dimension):
@@ -69,41 +78,64 @@ def notready_index(client, index_name, create_index_params):
 def index_exists(index_name, client):
     return index_name in client.list_indexes().names()
 
-
 def random_string():
     return ''.join(random.choice(string.ascii_lowercase) for i in range(10))
 
 @pytest.fixture(scope='session')
-def reusable_collection():
+def reusabale_index():
     pc = Pinecone(
         api_key=get_environment_var('PINECONE_API_KEY'),
-        additional_headers={'sdk-test-suite': 'pinecone-python-client'}
+        additional_headers=json.loads(get_environment_var('ADDITIONAL_HEADERS_JSON', '{}'))
     )
     index_name = 'temp-index-' + random_string()
-    dimension = int(get_environment_var('DIMENSION'))
+    dimension = int(get_environment_var('DIMENSION', 1536))
     print(f"Creating index {index_name} to prepare a collection...")
     pc.create_index(
         name=index_name,
         dimension=dimension,
-        metric=get_environment_var('METRIC'),
+        metric=get_environment_var('METRIC', 'cosine'),
         spec=PodSpec(
             environment=get_environment_var('PINECONE_ENVIRONMENT'),
         )
     )
     print(f"Created index {index_name}. Waiting 10 seconds to make sure it's ready...")
     time.sleep(10)
+    yield index_name
+    print(f"Beginning delete attempts on reusable index {index_name}")
+    
+    time_waited = 0
+    while index_exists(index_name, pc) and time_waited < 120:
+        print(f"Waiting for index {index_name} to be ready to delete. Waited {time_waited} seconds..")
+        time_waited += 5
+        time.sleep(5)
+        try:
+            print(f"Attempting delete of index {index_name}")
+            pc.delete_index(index_name, -1)
+            print(f"Deleted index {index_name}")
+            break
+        except Exception as e:
+            print(f"Unable to delete index {index_name}: {e}")
+            pass
+
+@pytest.fixture(scope='session')
+def reusable_collection(reusabale_index):
+    dimension = int(get_environment_var('DIMENSION', 1536))
+    pc = Pinecone(
+        api_key=get_environment_var('PINECONE_API_KEY'),
+        additional_headers=json.loads(get_environment_var('ADDITIONAL_HEADERS_JSON', '{}'))
+    )
     
     num_vectors = 10
     vectors = [ 
         (str(i), [random.uniform(0, 1) for _ in range(dimension)]) for i in range(num_vectors) ]
     
-    index = pc.Index(index_name)
+    index = pc.Index(reusabale_index)
     index.upsert(vectors=vectors)
 
     collection_name = 'reused-coll-' + random_string()
     pc.create_collection(
         name=collection_name, 
-        source=index_name
+        source=reusabale_index
     )
     
     time_waited = 0
@@ -118,9 +150,6 @@ def reusable_collection():
 
     if time_waited >= 120:
         raise Exception(f"Collection {collection_name} is not ready after 120 seconds")
-
-    print(f"Collection {collection_name} is ready. Deleting index {index_name}...")
-    pc.delete_index(index_name)
 
     yield collection_name
 
