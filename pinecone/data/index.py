@@ -23,7 +23,7 @@ from pinecone.core.client.models import (
     UpdateRequest,
     DescribeIndexStatsRequest,
 )
-from pinecone.core.client.api.vector_operations_api import VectorOperationsApi
+from pinecone.core.client.api.data_plane_api import DataPlaneApi
 from ..utils import get_user_agent, fix_tuple_length
 from .vector_factory import VectorFactory
 
@@ -89,7 +89,7 @@ class Index():
             api_client.set_default_header(key, value)
 
         self._api_client = api_client
-        self._vector_api = VectorOperationsApi(api_client=api_client)
+        self._vector_api = DataPlaneApi(api_client=api_client)
     
     def __enter__(self):
         return self

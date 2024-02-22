@@ -762,11 +762,11 @@ class Endpoint(object):
         """ This method is invoked when endpoints are called
         Example:
 
-        api_instance = ManageIndexesApi()
-        api_instance.configure_index  # this is an instance of the class Endpoint
-        api_instance.configure_index()  # this invokes api_instance.configure_index.__call__()
+        api_instance = DataPlaneApi()
+        api_instance.alt_delete  # this is an instance of the class Endpoint
+        api_instance.alt_delete()  # this invokes api_instance.alt_delete.__call__()
         which then invokes the callable functions stored in that endpoint at
-        api_instance.configure_index.callable or self.callable in this class
+        api_instance.alt_delete.callable or self.callable in this class
 
         """
         return self.callable(self, *args, **kwargs)

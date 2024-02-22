@@ -63,7 +63,6 @@ class IndexModelStatus(ModelNormal):
             'SCALINGDOWN': "ScalingDown",
             'SCALINGUPPODSIZE': "ScalingUpPodSize",
             'SCALINGDOWNPODSIZE': "ScalingDownPodSize",
-            'UPGRADING': "Upgrading",
             'TERMINATING': "Terminating",
             'READY': "Ready",
         },
