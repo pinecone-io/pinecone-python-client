@@ -1,7 +1,7 @@
 from tqdm.autonotebook import tqdm
 
 from collections.abc import Iterable
-from typing import Union, List, Tuple, Optional, Dict, Any
+from typing import Mapping, Union, List, Tuple, Optional, Dict, Any
 
 from pinecone.config import ConfigBuilder
 
@@ -74,12 +74,12 @@ class Index():
             api_key: str,
             host: str,
             pool_threads: Optional[int] = 1,
-            additional_headers: Optional[Dict[str, str]] = {},
+            additional_headers: Optional[Mapping[str, str]] = {},
             **kwargs
         ):
         self._config = ConfigBuilder.build(api_key=api_key, host=host, **kwargs)
-        
-        api_client = ApiClient(configuration=self._config.openapi_config, 
+
+        api_client = ApiClient(configuration=self._config.openapi_config,
                                pool_threads=pool_threads)
 
         # Configure request headers
@@ -90,7 +90,7 @@ class Index():
 
         self._api_client = api_client
         self._vector_api = VectorOperationsApi(api_client=api_client)
-    
+
     def __enter__(self):
         return self
 
@@ -245,7 +245,7 @@ class Index():
         ids: Optional[List[str]] = None,
         delete_all: Optional[bool] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[Mapping[str, Union[str, float, int, bool, List, dict]]] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """
@@ -272,7 +272,7 @@ class Index():
                                 Default is False.
             namespace (str): The namespace to delete vectors from [optional]
                             If not specified, the default namespace is used.
-            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+            filter (Mapping[str, Union[str, float, int, bool, List, dict]]):
                     If specified, the metadata filter here will be used to select the vectors to delete.
                     This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True.
                     See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
@@ -330,10 +330,10 @@ class Index():
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[Mapping[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[SparseValues, Dict[str, Union[List[float], List[int]]]]] = None,
+        sparse_vector: Optional[Union[SparseValues, Mapping[str, Union[List[float], List[int]]]]] = None,
         **kwargs,
     ) -> QueryResponse:
         """
@@ -362,17 +362,17 @@ class Index():
             top_k (int): The number of results to return for each query. Must be an integer greater than 1.
             namespace (str): The namespace to fetch vectors from.
                              If not specified, the default namespace is used. [optional]
-            filter (Dict[str, Union[str, float, int, bool, List, dict]):
+            filter (Mapping[str, Union[str, float, int, bool, List, dict]):
                     The filter to apply. You can use vector metadata to limit your search.
                     See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
             include_values (bool): Indicates whether vector values are included in the response.
                                    If omitted the server will use the default value of False [optional]
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.
                                      If omitted the server will use the default value of False  [optional]
-            sparse_vector: (Union[SparseValues, Dict[str, Union[List[float], List[int]]]]): sparse values of the query vector.
+            sparse_vector: (Union[SparseValues, Mapping[str, Union[List[float], List[int]]]]): sparse values of the query vector.
                             Expected to be either a SparseValues object or a dict of the form:
                              {'indices': List[int], 'values': List[float]}, where the lists each have the same length.
-        
+
         Returns: QueryResponse object which contains the list of the closest vectors as ScoredVector objects,
                  and namespace name.
         """
@@ -414,9 +414,9 @@ class Index():
         self,
         id: str,
         values: Optional[List[float]] = None,
-        set_metadata: Optional[Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]] = None,
+        set_metadata: Optional[Mapping[str, Union[str, float, int, bool, List[int], List[float], List[str]]]] = None,
         namespace: Optional[str] = None,
-        sparse_values: Optional[Union[SparseValues, Dict[str, Union[List[float], List[int]]]]] = None,
+        sparse_values: Optional[Union[SparseValues, Mapping[str, Union[List[float], List[int]]]]] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """
@@ -438,10 +438,10 @@ class Index():
         Args:
             id (str): Vector's unique id.
             values (List[float]): vector values to set. [optional]
-            set_metadata (Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]]):
+            set_metadata (Mapping[str, Union[str, float, int, bool, List[int], List[float], List[str]]]]):
                 metadata to set for vector. [optional]
             namespace (str): Namespace name where to update the vector.. [optional]
-            sparse_values: (Dict[str, Union[List[float], List[int]]]): sparse values to update for the vector.
+            sparse_values: (Mapping[str, Union[List[float], List[int]]]): sparse values to update for the vector.
                            Expected to be either a SparseValues object or a dict of the form:
                            {'indices': List[int], 'values': List[float]} where the lists each have the same length.
 
@@ -472,7 +472,7 @@ class Index():
 
     @validate_and_convert_errors
     def describe_index_stats(
-        self, filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None, **kwargs
+        self, filter: Optional[Mapping[str, Union[str, float, int, bool, List, dict]]] = None, **kwargs
     ) -> DescribeIndexStatsResponse:
         """
         The DescribeIndexStats operation returns statistics about the index's contents.
@@ -485,7 +485,7 @@ class Index():
             >>> index.describe_index_stats(filter={'key': 'value'})
 
         Args:
-            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+            filter (Mapping[str, Union[str, float, int, bool, List, dict]]):
             If this parameter is present, the operation only returns statistics for vectors that satisfy the filter.
             See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
 
@@ -509,7 +509,7 @@ class Index():
 
     @staticmethod
     def _parse_sparse_values_arg(
-        sparse_values: Optional[Union[SparseValues, Dict[str, Union[List[float], List[int]]]]]
+        sparse_values: Optional[Union[SparseValues, Mapping[str, Union[List[float], List[int]]]]]
     ) -> Optional[SparseValues]:
         if sparse_values is None:
             return None
@@ -517,7 +517,7 @@ class Index():
         if isinstance(sparse_values, SparseValues):
             return sparse_values
 
-        if not isinstance(sparse_values, dict) or "indices" not in sparse_values or "values" not in sparse_values:
+        if not isinstance(sparse_values, Mapping) or "indices" not in sparse_values or "values" not in sparse_values:
             raise ValueError(
                 "Invalid sparse values argument. Expected a dict of: {'indices': List[int], 'values': List[float]}."
                 f"Received: {sparse_values}"
