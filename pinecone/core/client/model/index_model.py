@@ -73,9 +73,6 @@ class IndexModel(ModelNormal):
         ('name',): {
             'max_length': 45,
             'min_length': 1,
-            'regex': {
-                'pattern': r'^[a-z0-9]+(-?[a-z0-9]+)*$',  # noqa: E501
-            },
         },
         ('dimension',): {
             'inclusive_maximum': 20000,
