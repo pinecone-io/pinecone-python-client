@@ -39,6 +39,7 @@ classifiers=[
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Topic :: Database",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",
@@ -47,15 +48,21 @@ classifiers=[
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.13"
+python = "^3.8"
 typing-extensions = ">=3.7.4"
-urllib3 = ">=1.26.0"
+urllib3 = [
+  { version = ">=1.26.0", python = ">=3.8,<3.12" },
+  { version = ">=1.26.5", python = "^3.12" }
+]
 tqdm = ">=4.64.1"
 # certifi does not follow semver. Should always be 
 # on latest but setting a broad range to have maximum
 # compatibility with libraries that may pin version.
 certifi = ">=2019.11.17"
-grpcio = { version = ">=1.44.0", optional = true }
+grpcio = [
+  { version = ">=1.44.0", optional = true, python = "^3.8,<3.11" },
+  { version = ">=1.59.0", optional = true, python = "^3.11" }
+]
 grpc-gateway-protoc-gen-openapiv2 = { version = "0.1.0", optional = true }
 googleapis-common-protos = { version = ">=1.53.0", optional = true }
 lz4 = { version = ">=3.1.3", optional = true }
@@ -82,11 +89,11 @@ numpy = [
 ]
 pandas = ">=1.3.5"
 pdoc = "^14.1.0"
-pytest = "7.2.0"
+pytest = "8.0.0"
 pytest-asyncio = "0.15.1"
 pytest-cov = "2.10.1"
 pytest-mock = "3.6.1"
-pytest-timeout = ">=1.4.2"
+pytest-timeout = "2.2.0"
 urllib3_mock = "0.3.3"
 responses = ">=0.8.1"
 
