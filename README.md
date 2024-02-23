@@ -339,6 +339,53 @@ update_response = index.update(
 )
 ```
 
+## List vectors
+
+The `list` and `list_paginated` methods can be used to list vector ids matching a particular id prefix. 
+With clever assignment of vector ids, this can be used to help model hierarchical relationships between
+different vectors such as when there are embeddings for multiple chunks or fragments related to the 
+same document.
+
+The `list` method returns a generator that handles pagination on your behalf.
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone(api_key='xxx')
+index = pc.Index(host='hosturl')
+
+# To iterate over all result pages using a generator function
+namespace = 'foo-namespace'
+for ids in index.list(prefix='pref', limit=3, namespace=namespace):
+    print(ids) # ['pref1', 'pref2', 'pref3']
+
+    # Now you can pass this id array to other methods, such as fetch or delete.
+    vectors = index.fetch(ids=ids, namespace=namespace)
+```
+
+There is also an option to fetch each page of results yourself with `list_paginated`.
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone(api_key='xxx')
+index = pc.Index(host='hosturl')
+
+# For manual control over pagination
+results = index.list_paginated(
+    prefix='pref',
+    limit=3,
+    namespace='foo',
+    pagination_token='eyJza2lwX3Bhc3QiOiI5IiwicHJlZml4IjpudWxsfQ=='
+)
+print(results.namespace) # 'foo'
+print([v.id for v in results.vectors]) # ['pref1', 'pref2', 'pref3']
+print(results.pagination.next) # 'eyJza2lwX3Bhc3QiOiI5IiwicHJlZml4IjpudWxsfQ=='
+print(results.usage) # { 'read_units': 1 }
+```
+
+# Collections
+
 ## Create collection
 
 The following example creates the collection `example-collection` from

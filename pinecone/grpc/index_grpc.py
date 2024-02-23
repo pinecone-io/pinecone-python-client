@@ -13,6 +13,10 @@ from pinecone.core.client.models import (
     QueryResponse,
     DescribeIndexStatsResponse,
 )
+from pinecone.models.list_response import (
+    ListResponse as SimpleListResponse,
+    Pagination
+)
 from pinecone.core.grpc.protos.vector_service_pb2 import (
     Vector as GRPCVector,
     QueryVector as GRPCQueryVector,
@@ -22,6 +26,8 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     QueryRequest,
     FetchRequest,
     UpdateRequest,
+    ListRequest,
+    ListResponse,
     DescribeIndexStatsRequest,
     DeleteResponse,
     UpdateResponse,
@@ -40,7 +46,6 @@ _logger = logging.getLogger(__name__)
 class SparseVectorTypedDict(TypedDict):
     indices: List[int]
     values: List[float]
-
 
 class GRPCIndex(GRPCIndexBase):
     """A client for interacting with a Pinecone index via GRPC API."""
@@ -428,6 +433,98 @@ class GRPCIndex(GRPCIndexBase):
             return PineconeGrpcFuture(future)
         else:
             return self._wrap_grpc_call(self.stub.Update, request, timeout=timeout)
+
+    def list_paginated(
+            self,
+            prefix: Optional[str] = None,
+            limit: Optional[int] = None,
+            pagination_token: Optional[str] = None,
+            namespace: Optional[str] = None,
+            **kwargs
+        ) -> SimpleListResponse:
+        """
+        The list_paginated operation finds vectors based on an id prefix within a single namespace.
+        It returns matching ids in a paginated form, with a pagination token to fetch the next page of results.
+        This id list can then be passed to fetch or delete operations, depending on your use case.
+        
+        Consider using the `list` method to avoid having to handle pagination tokens manually.
+
+        Examples:
+            >>> results = index.list_paginated(prefix='99', limit=5, namespace='my_namespace')
+            >>> [v.id for v in results.vectors]
+            ['99', '990', '991', '992', '993']
+            >>> results.pagination.next
+            eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
+            >>> next_results = index.list_paginated(prefix='99', limit=5, namespace='my_namespace', pagination_token=results.pagination.next)
+
+        Args:
+            prefix (Optional[str]): The id prefix to match. If unspecified, an empty string prefix will 
+                                    be used with the effect of listing all ids in a namespace [optional]
+            limit (Optional[int]): The maximum number of ids to return. If unspecified, the server will use a default value. [optional]
+            pagination_token (Optional[str]): A token needed to fetch the next page of results. This token is returned 
+                in the response if additional results are available. [optional]
+            namespace (Optional[str]): The namespace to fetch vectors from. If not specified, the default namespace is used. [optional]
+        
+        Returns: SimpleListResponse object which contains the list of ids, the namespace name, pagination information, and usage showing the number of read_units consumed.
+        """
+        args_dict = self._parse_non_empty_args(
+            [
+                ("prefix", prefix),
+                ("limit", limit),
+                ("namespace", namespace),
+                ("pagination_token", pagination_token),
+            ]
+        )
+        request = ListRequest(**args_dict, **kwargs)
+        timeout = kwargs.pop("timeout", None)
+        response = self._wrap_grpc_call(self.stub.List, request, timeout=timeout)
+        
+        if response.pagination and response.pagination.next != '':
+            pagination = Pagination(next=response.pagination.next)
+        else:
+            pagination = None
+        
+        return SimpleListResponse(
+            namespace=response.namespace,
+            vectors=response.vectors,
+            pagination=pagination,
+        )
+    
+    def list(self, **kwargs):
+        """
+        The list operation accepts all of the same arguments as list_paginated, and returns a generator that yields
+        a list of the matching vector ids in each page of results. It automatically handles pagination tokens on your
+        behalf.
+
+        Examples:
+            >>> for ids in index.list(prefix='99', limit=5, namespace='my_namespace'):
+            >>>     print(ids)
+            ['99', '990', '991', '992', '993']
+            ['994', '995', '996', '997', '998']
+            ['999']
+
+        Args:
+            prefix (Optional[str]): The id prefix to match. If unspecified, an empty string prefix will 
+                                    be used with the effect of listing all ids in a namespace [optional]
+            limit (Optional[int]): The maximum number of ids to return. If unspecified, the server will use a default value. [optional]
+            pagination_token (Optional[str]): A token needed to fetch the next page of results. This token is returned 
+                in the response if additional results are available. [optional]
+            namespace (Optional[str]): The namespace to fetch vectors from. If not specified, the default namespace is used. [optional]
+        """
+        done = False
+        while not done:
+            try:
+                results = self.list_paginated(**kwargs)
+            except Exception as e:
+                raise e
+            
+            if len(results.vectors) > 0:
+                yield [v.id for v in results.vectors]
+            
+            if results.pagination and results.pagination.next:
+                kwargs.update({"pagination_token": results.pagination.next})
+            else:
+                done = True
 
     def describe_index_stats(
         self, filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None, **kwargs
