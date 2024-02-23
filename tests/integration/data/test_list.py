@@ -1,3 +1,5 @@
+from pinecone import Vector
+
 class TestListPaginated:
     def test_list_when_no_results(self, idx):
         results = idx.list_paginated(namespace='no-results')
@@ -98,3 +100,14 @@ class TestList:
         assert pages[0] == ['99', '990', '991', '992', '993']
         assert pages[1] == ['994', '995', '996', '997', '998']
         assert pages[2] == ['999']
+
+    def test_list_then_fetch(self, idx, list_namespace):
+        vectors = []
+
+        for ids in idx.list(prefix='99', limit=5, namespace=list_namespace):
+            result = idx.fetch(ids=ids, namespace=list_namespace)
+            vectors.extend([v for _, v in result.vectors.items()])
+
+        assert len(vectors) == 11
+        assert isinstance(vectors[0], Vector)
+        assert set([v.id for v in vectors]) == set(['99', '990', '991', '992', '993', '994', '995', '996', '997', '998', '999'])

@@ -512,6 +512,31 @@ class Index():
         namespace: Optional[str] = None,
         **kwargs
     ) ->  ListResponse:
+        """
+        The list_paginated operation finds vectors based on an id prefix within a single namespace.
+        It returns matching ids in a paginated form, with a pagination token to fetch the next page of results.
+        This id list can then be passed to fetch or delete operations, depending on your use case.
+        
+        Consider using the `list` method to avoid having to handle pagination tokens manually.
+
+        Examples:
+            >>> results = index.list_paginated(prefix='99', limit=5, namespace='my_namespace')
+            >>> [v.id for v in results.vectors]
+            ['99', '990', '991', '992', '993']
+            >>> results.pagination.next
+            eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
+            >>> next_results = index.list_paginated(prefix='99', limit=5, namespace='my_namespace', pagination_token=results.pagination.next)
+
+        Args:
+            prefix (Optional[str]): The id prefix to match. If unspecified, an empty string prefix will 
+                                    be used with the effect of listing all ids in a namespace [optional]
+            limit (Optional[int]): The maximum number of ids to return. If unspecified, the server will use a default value. [optional]
+            pagination_token (Optional[str]): A token needed to fetch the next page of results. This token is returned 
+                in the response if additional results are available. [optional]
+            namespace (Optional[str]): The namespace to fetch vectors from. If not specified, the default namespace is used. [optional]
+        
+        Returns: ListResponse object which contains the list of ids, the namespace name, pagination information, and usage showing the number of read_units consumed.
+        """
         args_dict = self._parse_non_empty_args(
             [
                 ("prefix", prefix),
@@ -524,15 +549,33 @@ class Index():
 
     @validate_and_convert_errors
     def list(self, **kwargs):
-        limit = kwargs.get("limit", 100)
+        """
+        The list operation accepts all of the same arguments as list_paginated, and returns a generator that yields
+        a list of the matching vector ids in each page of results. It automatically handles pagination tokens on your
+        behalf.
+
+        Examples:
+            >>> for ids in index.list(prefix='99', limit=5, namespace='my_namespace'):
+            >>>     print(ids)
+            ['99', '990', '991', '992', '993']
+            ['994', '995', '996', '997', '998']
+            ['999']
+
+        Args:
+            prefix (Optional[str]): The id prefix to match. If unspecified, an empty string prefix will 
+                                    be used with the effect of listing all ids in a namespace [optional]
+            limit (Optional[int]): The maximum number of ids to return. If unspecified, the server will use a default value. [optional]
+            pagination_token (Optional[str]): A token needed to fetch the next page of results. This token is returned 
+                in the response if additional results are available. [optional]
+            namespace (Optional[str]): The namespace to fetch vectors from. If not specified, the default namespace is used. [optional]
+        """
         done = False
         while not done:
             results = self.list_paginated(**kwargs)
             if len(results.vectors) > 0:
                 yield [v.id for v in results.vectors]
             
-            full_page = len(results.vectors) == limit
-            if results.pagination and full_page:
+            if results.pagination:
                 kwargs.update({"pagination_token": results.pagination.next})
             else:
                 done = True
