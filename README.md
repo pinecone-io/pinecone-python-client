@@ -1,6 +1,5 @@
 # Pinecone Python Client &middot; ![License](https://img.shields.io/github/license/pinecone-io/pinecone-python-client?color=orange) [![CI](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/merge.yaml/badge.svg)](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/merge.yaml)
 
-
 The official Pinecone Python client.
 
 For more information, see the docs at https://www.pinecone.io/docs/
@@ -10,23 +9,19 @@ For more information, see the docs at https://www.pinecone.io/docs/
 - If you are upgrading from a `2.2.x` version of the client, check out the [**v3 Migration Guide**](https://canyon-quilt-082.notion.site/Pinecone-Python-SDK-v3-0-0-Migration-Guide-056d3897d7634bf7be399676a4757c7b#a21aff70b403416ba352fd30e300bce3).
 - [**Reference Documentation**](https://sdk.pinecone.io/python/index.html)
 
-
 ### Example code
 
 Many of the brief examples shown in this README are using very small vectors to keep the documentation concise, but most real world usage will involve much larger embedding vectors. To see some more realistic examples of how this client can be used, explore some of our many Jupyter notebooks in the [examples](https://github.com/pinecone-io/examples) repository.
 
-
 ## Prerequisites
 
 The Pinecone Python client is compatible with Python 3.8 and greater.
-
 
 ## Installation
 
 There are two flavors of the Pinecone python client. The default client installed from PyPI as `pinecone-client` has a minimal set of dependencies and interacts with Pinecone via HTTP requests.
 
 If you are aiming to maximimize performance, you can install additional gRPC dependencies to access an alternate client implementation that relies on gRPC for data operations. See the guide on [tuning performance](https://docs.pinecone.io/docs/performance-tuning).
-
 
 ### Installing with pip
 
@@ -78,9 +73,9 @@ pc = Pinecone() # This reads the PINECONE_API_KEY env var
 
 #### Using a configuration object
 
-If you prefer to pass configuration in code, for example if you have a complex application that needs to interact with multiple different Pinecone projects, the constructor accepts a keyword argument for `api_key`. 
+If you prefer to pass configuration in code, for example if you have a complex application that needs to interact with multiple different Pinecone projects, the constructor accepts a keyword argument for `api_key`.
 
-If you pass configuration in this way, you can have full control over what name to use for the environment variable, sidestepping any issues that would result 
+If you pass configuration in this way, you can have full control over what name to use for the environment variable, sidestepping any issues that would result
 from two different client instances both needing to read the same `PINECONE_API_KEY` variable that the client implicitly checks for.
 
 Configuration passed with keyword arguments takes precedent over environment variables.
@@ -109,15 +104,15 @@ index.upsert(vectors=[])
 index.query(vector=[...], top_key=10)
 ```
 
-## Indexes
+# Indexes
 
-### Create Index
+## Create Index
 
-#### Create a serverless index
+### Create a serverless index
 
 > [!WARNING]  
 > Serverless indexes are in **public preview** and are available only on AWS in the
->  `us-west-2` region. Check the [current limitations](https://docs.pinecone.io/docs/limits#serverless-index-limitations) and test thoroughly before using it in production.
+> `us-west-2` region. Check the [current limitations](https://docs.pinecone.io/docs/limits#serverless-index-limitations) and test thoroughly before using it in production.
 
 ```python
 from pinecone import Pinecone, ServerlessSpec
@@ -134,7 +129,7 @@ pc.create_index(
 )
 ```
 
-## Create a pod index
+### Create a pod index
 
 The following example creates an index without a metadata
 configuration. By default, Pinecone indexes all metadata.
@@ -144,17 +139,17 @@ from pinecone import Pinecone, PodSpec
 
 pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
 pc.create_index(
-    name="example-index", 
-    dimension=1536, 
-    metric="cosine", 
+    name="example-index",
+    dimension=1536,
+    metric="cosine",
     spec=PodSpec(
-        environment='us-west-2', 
+        environment='us-west-2',
         pod_type='p1.x1'
     )
 )
 ```
 
-Pod indexes support many optional configuration fields. For example, 
+Pod indexes support many optional configuration fields. For example,
 the following example creates an index that only indexes
 the "color" metadata field. Queries against this index
 cannot filter based on any other metadata field.
@@ -172,8 +167,8 @@ pc.create_index(
     "example-index-2",
     dimension=1536,
     spec=PodSpec(
-        environment='us-west-2', 
-        pod_type='p1.x1', 
+        environment='us-west-2',
+        pod_type='p1.x1',
         metadata_config=metadata_config
     )
 )
@@ -241,7 +236,6 @@ index = pc.Index(host=os.environ.get('INDEX_HOST'))
 
 index_stats_response = index.describe_index_stats()
 ```
-
 
 ## Upsert vectors
 
@@ -356,7 +350,7 @@ from pinecone import Pinecone
 pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
 
 pc.create_collection(
-    name="example-collection", 
+    name="example-collection",
     source="example-index"
 )
 ```
@@ -398,7 +392,6 @@ pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
 pc.delete_collection("example-collection")
 ```
 
-# Contributing 
+# Contributing
 
-If you'd like to make a contribution, or get setup locally to develop the Pinecone python client, please see our [contributing guide](./CONTRIBUTING.md)
-
+If you'd like to make a contribution, or get setup locally to develop the Pinecone python client, please see our [contributing guide](https://github.com/pinecone-io/pinecone-python-client/blob/main/CONTRIBUTING.md)
