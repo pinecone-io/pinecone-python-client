@@ -78,7 +78,7 @@ class Index():
             **kwargs
         ):
         self._config = ConfigBuilder.build(api_key=api_key, host=host, **kwargs)
-        
+        self._config.openapi_config.host = host
         api_client = ApiClient(configuration=self._config.openapi_config, 
                                pool_threads=pool_threads)
 
