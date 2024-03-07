@@ -2,7 +2,8 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import pinecone.core.grpc.protos.vector_service_pb2 as vector__service__pb2
+from pinecone.core.grpc.protos import vector_service_pb2 as pinecone_dot_data_dot_v1_dot_vector__service__pb2
+
 
 class VectorServiceStub(object):
     """The `VectorService` interface is exposed by Pinecone's vector index services.
