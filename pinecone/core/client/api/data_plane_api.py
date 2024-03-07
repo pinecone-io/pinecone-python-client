@@ -33,7 +33,6 @@ from pinecone.core.client.model.rpc_status import RpcStatus
 from pinecone.core.client.model.update_request import UpdateRequest
 from pinecone.core.client.model.upsert_request import UpsertRequest
 from pinecone.core.client.model.upsert_response import UpsertResponse
-# from pinecone.core.client.model.str_bool_date_datetime_dict_float_int_list_str_none_type import StrBoolDateDatetimeDictFloatIntListStrNoneType
 
 
 class DataPlaneApi(object):
@@ -66,7 +65,6 @@ class DataPlaneApi(object):
                 ids ([str]): Vectors to delete.. [optional]
                 delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional] if omitted the server will use the default value of False
                 namespace (str): The namespace to delete vectors from, if applicable.. [optional]
-                filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True. See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -129,7 +127,6 @@ class DataPlaneApi(object):
                     'ids',
                     'delete_all',
                     'namespace',
-                    'filter',
                 ],
                 'required': [],
                 'nullable': [
@@ -151,20 +148,16 @@ class DataPlaneApi(object):
                         (bool,),
                     'namespace':
                         (str,),
-                    'filter':
-                        ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
                 },
                 'attribute_map': {
                     'ids': 'ids',
                     'delete_all': 'deleteAll',
                     'namespace': 'namespace',
-                    'filter': 'filter',
                 },
                 'location_map': {
                     'ids': 'query',
                     'delete_all': 'query',
                     'namespace': 'query',
-                    'filter': 'query',
                 },
                 'collection_format_map': {
                     'ids': 'multi',
@@ -195,7 +188,6 @@ class DataPlaneApi(object):
 
 
             Keyword Args:
-                filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): If this parameter is present, the operation only returns statistics for vectors that satisfy the filter. See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -255,7 +247,6 @@ class DataPlaneApi(object):
             },
             params_map={
                 'all': [
-                    'filter',
                 ],
                 'required': [],
                 'nullable': [
@@ -271,14 +262,10 @@ class DataPlaneApi(object):
                 'allowed_values': {
                 },
                 'openapi_types': {
-                    'filter':
-                        ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
                 },
                 'attribute_map': {
-                    'filter': 'filter',
                 },
                 'location_map': {
-                    'filter': 'query',
                 },
                 'collection_format_map': {
                 }
