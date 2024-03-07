@@ -12,6 +12,10 @@ clean:
 regenerate: clean
 	mkdir downloads
 	gcloud storage cp gs://api-codegen/_latest downloads --recursive
+
+	# Remove problematic query param
+	jq 'walk(if type == "array" then map(if type == "object" then select(.name != "filter") else . end) else . end)' downloads/_latest/openapi/pinecone_api.json > tmp.json
+	mv tmp.json downloads/_latest/openapi/pinecone_api.json
 	
 	# Generate new openapi rest client
 	rm -rf pinecone/core
