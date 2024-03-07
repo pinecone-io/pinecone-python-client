@@ -31,4 +31,4 @@ regenerate: clean
 	# Update grpc client
 	mkdir -p pinecone/core/grpc/protos
 	cp -r ${mkfile_path}downloads/_latest/python/pinecone/data/v1/* ${mkfile_path}pinecone/core/grpc/protos
-	${mkfile_path}codegen/grpc.sh
+	sed -i '' 's|pinecone\.data\.v1|pinecone.core.grpc.protos|g' pinecone/core/grpc/protos/vector_service_pb2_grpc.py
