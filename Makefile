@@ -1,48 +1,30 @@
-.PHONY: image develop tests tag-and-push docs version package upload upload-spruce license
+SHELL = /bin/bash
 mkfile_path := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-PYPI_USERNAME ?= __token__
+gcloud-auth:
+	gcloud auth login
+	gcloud config set project development-pinecone
 
-image:
-	MODULE=pinecone ../scripts/build.sh ./
+clean:
+	rm -rf downloads
+	rm -rf gen
 
-develop:
-	poetry install -E grpc
-
-test-unit:
-	@echo "Running tests..."
-	poetry run pytest --cov=pinecone --timeout=120 tests/unit
-
-test-grpc-unit:
-	@echo "Running tests..."
-	poetry run pytest --cov=pinecone --timeout=120 tests/unit_grpc
-
-make type-check:
-	poetry run mypy pinecone --exclude pinecone/core
-
-version:
-	poetry version
-
-package:
-	poetry build
-
-upload:
-	poetry publish --verbose --username ${PYPI_USERNAME} --password ${PYPI_PASSWORD}
-
-upload-spruce:
-	# Configure Poetry for publishing to testpypi
-	poetry config repositories.test-pypi https://test.pypi.org/legacy/
-	poetry publish --verbose -r test-pypi --username ${PYPI_USERNAME} --password ${PYPI_PASSWORD}
+regenerate: clean
+	mkdir downloads
+	gcloud storage cp gs://api-codegen/_latest downloads --recursive
 	
-license:
-	# Add license header using https://github.com/google/addlicense.
-	# If the license header already exists in a file, re-running this command has no effect.
-	pushd ${mkfile_path}/pinecone && \
-		docker run --rm -it -v ${mkfile_path}/pinecone:/src ghcr.io/google/addlicense:latest -f ./license_header.txt *.py */*.py */*/*.py */*/*/*.py */*/*/*/*.py */*/*/*/*/*.py */*/*/*/*/*/*.py; \
-		popd
-
-set-production:
-	echo "production" > pinecone/__environment__
-
-set-development:
-	echo "" > pinecone/__environment__
+	# Generate new openapi rest client
+	rm -rf pinecone/core
+	mkdir -p pinecone/core
+	docker run --rm -v ${mkfile_path}:/workspace openapitools/openapi-generator-cli:v5.2.0 generate \
+		--input-spec /workspace/downloads/_latest/openapi/pinecone_api.json \
+		--config /workspace/codegen/openapi/openapi-generator-args.python.json \
+		--generator-name python \
+		--template-dir /workspace/codegen/openapi/templates5.2.0 \
+		--output /workspace/gen/python
+	cp -r ${mkfile_path}gen/python/pinecone/core/* ${mkfile_path}pinecone/core/
+	
+	# Update grpc client
+	mkdir -p pinecone/core/grpc/protos
+	cp -r ${mkfile_path}downloads/_latest/python/pinecone/data/v1/* ${mkfile_path}pinecone/core/grpc/protos
+	${mkfile_path}codegen/grpc.sh

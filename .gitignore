@@ -154,3 +154,7 @@ dmypy.json
 # Datasets
 *.hdf5
 *~
+
+# Code generation files
+gen/
+downloads/
