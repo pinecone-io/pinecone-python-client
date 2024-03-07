@@ -17,38 +17,38 @@ class VectorServiceStub(object):
         """
         self.Upsert = channel.unary_unary(
                 '/VectorService/Upsert',
-                request_serializer=vector__service__pb2.UpsertRequest.SerializeToString,
-                response_deserializer=vector__service__pb2.UpsertResponse.FromString,
+                request_serializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.UpsertRequest.SerializeToString,
+                response_deserializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.UpsertResponse.FromString,
                 )
         self.Delete = channel.unary_unary(
                 '/VectorService/Delete',
-                request_serializer=vector__service__pb2.DeleteRequest.SerializeToString,
-                response_deserializer=vector__service__pb2.DeleteResponse.FromString,
+                request_serializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.DeleteRequest.SerializeToString,
+                response_deserializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.DeleteResponse.FromString,
                 )
         self.Fetch = channel.unary_unary(
                 '/VectorService/Fetch',
-                request_serializer=vector__service__pb2.FetchRequest.SerializeToString,
-                response_deserializer=vector__service__pb2.FetchResponse.FromString,
+                request_serializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.FetchRequest.SerializeToString,
+                response_deserializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.FetchResponse.FromString,
                 )
         self.List = channel.unary_unary(
                 '/VectorService/List',
-                request_serializer=vector__service__pb2.ListRequest.SerializeToString,
-                response_deserializer=vector__service__pb2.ListResponse.FromString,
+                request_serializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.ListRequest.SerializeToString,
+                response_deserializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.ListResponse.FromString,
                 )
         self.Query = channel.unary_unary(
                 '/VectorService/Query',
-                request_serializer=vector__service__pb2.QueryRequest.SerializeToString,
-                response_deserializer=vector__service__pb2.QueryResponse.FromString,
+                request_serializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.QueryRequest.SerializeToString,
+                response_deserializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.QueryResponse.FromString,
                 )
         self.Update = channel.unary_unary(
                 '/VectorService/Update',
-                request_serializer=vector__service__pb2.UpdateRequest.SerializeToString,
-                response_deserializer=vector__service__pb2.UpdateResponse.FromString,
+                request_serializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.UpdateRequest.SerializeToString,
+                response_deserializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.UpdateResponse.FromString,
                 )
         self.DescribeIndexStats = channel.unary_unary(
                 '/VectorService/DescribeIndexStats',
-                request_serializer=vector__service__pb2.DescribeIndexStatsRequest.SerializeToString,
-                response_deserializer=vector__service__pb2.DescribeIndexStatsResponse.FromString,
+                request_serializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.DescribeIndexStatsRequest.SerializeToString,
+                response_deserializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.DescribeIndexStatsResponse.FromString,
                 )
 
 
@@ -84,7 +84,7 @@ class VectorServiceServicer(object):
 
         The `fetch` operation looks up and returns vectors, by ID, from a single namespace. The returned vectors include the vector data and/or metadata.
 
-        For guidance and examples, see [Fetch data](https://docs.pinecone.io/reference/fetch).
+        For guidance and examples, see [Fetch data](https://docs.pinecone.io/docs/fetch-data).
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -121,7 +121,7 @@ class VectorServiceServicer(object):
 
         The `update` operation updates a vector in a namespace. If a value is included, it will overwrite the previous value. If a `set_metadata` is included, the values of the fields specified in it will be added or overwrite the previous value.
 
-        For guidance and examples, see [Update data](https://docs.pinecone.io/reference/update).
+        For guidance and examples, see [Update data](https://docs.pinecone.io/docs/update-data).
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -145,38 +145,38 @@ def add_VectorServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Upsert': grpc.unary_unary_rpc_method_handler(
                     servicer.Upsert,
-                    request_deserializer=vector__service__pb2.UpsertRequest.FromString,
-                    response_serializer=vector__service__pb2.UpsertResponse.SerializeToString,
+                    request_deserializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.UpsertRequest.FromString,
+                    response_serializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.UpsertResponse.SerializeToString,
             ),
             'Delete': grpc.unary_unary_rpc_method_handler(
                     servicer.Delete,
-                    request_deserializer=vector__service__pb2.DeleteRequest.FromString,
-                    response_serializer=vector__service__pb2.DeleteResponse.SerializeToString,
+                    request_deserializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.DeleteRequest.FromString,
+                    response_serializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.DeleteResponse.SerializeToString,
             ),
             'Fetch': grpc.unary_unary_rpc_method_handler(
                     servicer.Fetch,
-                    request_deserializer=vector__service__pb2.FetchRequest.FromString,
-                    response_serializer=vector__service__pb2.FetchResponse.SerializeToString,
+                    request_deserializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.FetchRequest.FromString,
+                    response_serializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.FetchResponse.SerializeToString,
             ),
             'List': grpc.unary_unary_rpc_method_handler(
                     servicer.List,
-                    request_deserializer=vector__service__pb2.ListRequest.FromString,
-                    response_serializer=vector__service__pb2.ListResponse.SerializeToString,
+                    request_deserializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.ListRequest.FromString,
+                    response_serializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.ListResponse.SerializeToString,
             ),
             'Query': grpc.unary_unary_rpc_method_handler(
                     servicer.Query,
-                    request_deserializer=vector__service__pb2.QueryRequest.FromString,
-                    response_serializer=vector__service__pb2.QueryResponse.SerializeToString,
+                    request_deserializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.QueryRequest.FromString,
+                    response_serializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.QueryResponse.SerializeToString,
             ),
             'Update': grpc.unary_unary_rpc_method_handler(
                     servicer.Update,
-                    request_deserializer=vector__service__pb2.UpdateRequest.FromString,
-                    response_serializer=vector__service__pb2.UpdateResponse.SerializeToString,
+                    request_deserializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.UpdateRequest.FromString,
+                    response_serializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.UpdateResponse.SerializeToString,
             ),
             'DescribeIndexStats': grpc.unary_unary_rpc_method_handler(
                     servicer.DescribeIndexStats,
-                    request_deserializer=vector__service__pb2.DescribeIndexStatsRequest.FromString,
-                    response_serializer=vector__service__pb2.DescribeIndexStatsResponse.SerializeToString,
+                    request_deserializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.DescribeIndexStatsRequest.FromString,
+                    response_serializer=pinecone_dot_data_dot_v1_dot_vector__service__pb2.DescribeIndexStatsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -202,8 +202,8 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/Upsert',
-            vector__service__pb2.UpsertRequest.SerializeToString,
-            vector__service__pb2.UpsertResponse.FromString,
+            pinecone_dot_data_dot_v1_dot_vector__service__pb2.UpsertRequest.SerializeToString,
+            pinecone_dot_data_dot_v1_dot_vector__service__pb2.UpsertResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -219,8 +219,8 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/Delete',
-            vector__service__pb2.DeleteRequest.SerializeToString,
-            vector__service__pb2.DeleteResponse.FromString,
+            pinecone_dot_data_dot_v1_dot_vector__service__pb2.DeleteRequest.SerializeToString,
+            pinecone_dot_data_dot_v1_dot_vector__service__pb2.DeleteResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -236,8 +236,8 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/Fetch',
-            vector__service__pb2.FetchRequest.SerializeToString,
-            vector__service__pb2.FetchResponse.FromString,
+            pinecone_dot_data_dot_v1_dot_vector__service__pb2.FetchRequest.SerializeToString,
+            pinecone_dot_data_dot_v1_dot_vector__service__pb2.FetchResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -253,8 +253,8 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/List',
-            vector__service__pb2.ListRequest.SerializeToString,
-            vector__service__pb2.ListResponse.FromString,
+            pinecone_dot_data_dot_v1_dot_vector__service__pb2.ListRequest.SerializeToString,
+            pinecone_dot_data_dot_v1_dot_vector__service__pb2.ListResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -270,8 +270,8 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/Query',
-            vector__service__pb2.QueryRequest.SerializeToString,
-            vector__service__pb2.QueryResponse.FromString,
+            pinecone_dot_data_dot_v1_dot_vector__service__pb2.QueryRequest.SerializeToString,
+            pinecone_dot_data_dot_v1_dot_vector__service__pb2.QueryResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -287,8 +287,8 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/Update',
-            vector__service__pb2.UpdateRequest.SerializeToString,
-            vector__service__pb2.UpdateResponse.FromString,
+            pinecone_dot_data_dot_v1_dot_vector__service__pb2.UpdateRequest.SerializeToString,
+            pinecone_dot_data_dot_v1_dot_vector__service__pb2.UpdateResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -304,7 +304,7 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/DescribeIndexStats',
-            vector__service__pb2.DescribeIndexStatsRequest.SerializeToString,
-            vector__service__pb2.DescribeIndexStatsResponse.FromString,
+            pinecone_dot_data_dot_v1_dot_vector__service__pb2.DescribeIndexStatsRequest.SerializeToString,
+            pinecone_dot_data_dot_v1_dot_vector__service__pb2.DescribeIndexStatsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

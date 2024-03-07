@@ -63,8 +63,6 @@ class QueryVector(ModelNormal):
     }
 
     validations = {
-        ('values',): {
-        },
         ('top_k',): {
             'inclusive_maximum': 10000,
             'inclusive_minimum': 1,

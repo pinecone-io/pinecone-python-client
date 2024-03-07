@@ -67,8 +67,6 @@ class UpdateRequest(ModelNormal):
             'max_length': 512,
             'min_length': 1,
         },
-        ('values',): {
-        },
     }
 
     @cached_property

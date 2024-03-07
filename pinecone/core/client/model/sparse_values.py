@@ -59,10 +59,6 @@ class SparseValues(ModelNormal):
     }
 
     validations = {
-        ('indices',): {
-        },
-        ('values',): {
-        },
     }
 
     @cached_property

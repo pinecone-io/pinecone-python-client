@@ -33,6 +33,7 @@ from pinecone.core.client.model.rpc_status import RpcStatus
 from pinecone.core.client.model.update_request import UpdateRequest
 from pinecone.core.client.model.upsert_request import UpsertRequest
 from pinecone.core.client.model.upsert_response import UpsertResponse
+from pinecone.core.client.model.str_bool_date_datetime_dict_float_int_list_str_none_type import StrBoolDateDatetimeDictFloatIntListStrNoneType
 
 
 class DataPlaneApi(object):
@@ -65,6 +66,7 @@ class DataPlaneApi(object):
                 ids ([str]): Vectors to delete.. [optional]
                 delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional] if omitted the server will use the default value of False
                 namespace (str): The namespace to delete vectors from, if applicable.. [optional]
+                filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True. See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -127,6 +129,7 @@ class DataPlaneApi(object):
                     'ids',
                     'delete_all',
                     'namespace',
+                    'filter',
                 ],
                 'required': [],
                 'nullable': [
@@ -148,16 +151,20 @@ class DataPlaneApi(object):
                         (bool,),
                     'namespace':
                         (str,),
+                    'filter':
+                        ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
                 },
                 'attribute_map': {
                     'ids': 'ids',
                     'delete_all': 'deleteAll',
                     'namespace': 'namespace',
+                    'filter': 'filter',
                 },
                 'location_map': {
                     'ids': 'query',
                     'delete_all': 'query',
                     'namespace': 'query',
+                    'filter': 'query',
                 },
                 'collection_format_map': {
                     'ids': 'multi',
@@ -188,6 +195,7 @@ class DataPlaneApi(object):
 
 
             Keyword Args:
+                filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): If this parameter is present, the operation only returns statistics for vectors that satisfy the filter. See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -247,6 +255,7 @@ class DataPlaneApi(object):
             },
             params_map={
                 'all': [
+                    'filter',
                 ],
                 'required': [],
                 'nullable': [
@@ -262,10 +271,14 @@ class DataPlaneApi(object):
                 'allowed_values': {
                 },
                 'openapi_types': {
+                    'filter':
+                        ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
                 },
                 'attribute_map': {
+                    'filter': 'filter',
                 },
                 'location_map': {
+                    'filter': 'query',
                 },
                 'collection_format_map': {
                 }
@@ -295,7 +308,7 @@ class DataPlaneApi(object):
             >>> result = thread.get()
 
             Args:
-                delete_request (DeleteRequest):
+                delete_request (DeleteRequest): The request for the `Delete` operation.
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -415,7 +428,7 @@ class DataPlaneApi(object):
             >>> result = thread.get()
 
             Args:
-                describe_index_stats_request (DescribeIndexStatsRequest):
+                describe_index_stats_request (DescribeIndexStatsRequest): The request for the `describe_index_stats` operation.
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -527,7 +540,7 @@ class DataPlaneApi(object):
         ):
             """Fetch vectors  # noqa: E501
 
-            The `fetch` operation looks up and returns vectors, by ID, from a single namespace. The returned vectors include the vector data and/or metadata.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/reference/fetch).  # noqa: E501
+            The `fetch` operation looks up and returns vectors, by ID, from a single namespace. The returned vectors include the vector data and/or metadata.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/docs/fetch-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -662,7 +675,7 @@ class DataPlaneApi(object):
 
             Keyword Args:
                 prefix (str): The vector IDs to fetch. Does not accept values containing spaces.. [optional]
-                limit (int): Max number of ids to return.. [optional]
+                limit (int): Max number of IDs to return per page.. [optional]
                 pagination_token (str): Pagination token to continue a previous listing operation.. [optional]
                 namespace (str): [optional]
                 _return_http_data_only (bool): response data without head status
@@ -792,7 +805,7 @@ class DataPlaneApi(object):
             >>> result = thread.get()
 
             Args:
-                query_request (QueryRequest):
+                query_request (QueryRequest): The request for the `query` operation.
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -904,7 +917,7 @@ class DataPlaneApi(object):
         ):
             """Update a vector  # noqa: E501
 
-            The `update` operation updates a vector in a namespace. If a value is included, it will overwrite the previous value. If a `set_metadata` is included, the values of the fields specified in it will be added or overwrite the previous value.  For guidance and examples, see [Update data](https://docs.pinecone.io/reference/update).  # noqa: E501
+            The `update` operation updates a vector in a namespace. If a value is included, it will overwrite the previous value. If a `set_metadata` is included, the values of the fields specified in it will be added or overwrite the previous value.  For guidance and examples, see [Update data](https://docs.pinecone.io/docs/update-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -912,7 +925,7 @@ class DataPlaneApi(object):
             >>> result = thread.get()
 
             Args:
-                update_request (UpdateRequest):
+                update_request (UpdateRequest): The request for the `update` operation.
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1032,7 +1045,7 @@ class DataPlaneApi(object):
             >>> result = thread.get()
 
             Args:
-                upsert_request (UpsertRequest):
+                upsert_request (UpsertRequest): The request for the `upsert` operation.
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
