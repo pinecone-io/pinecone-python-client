@@ -33,7 +33,7 @@ from pinecone.core.client.model.rpc_status import RpcStatus
 from pinecone.core.client.model.update_request import UpdateRequest
 from pinecone.core.client.model.upsert_request import UpsertRequest
 from pinecone.core.client.model.upsert_response import UpsertResponse
-from pinecone.core.client.model.str_bool_date_datetime_dict_float_int_list_str_none_type import StrBoolDateDatetimeDictFloatIntListStrNoneType
+# from pinecone.core.client.model.str_bool_date_datetime_dict_float_int_list_str_none_type import StrBoolDateDatetimeDictFloatIntListStrNoneType
 
 
 class DataPlaneApi(object):
