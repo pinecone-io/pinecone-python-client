@@ -1,18 +1,32 @@
 SHELL = /bin/bash
 mkfile_path := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+test-unit:
+	poetry run pytest --cov=pinecone --timeout=120 tests/unit
+
+test-grpc-unit:
+	poetry run pytest --cov=pinecone --timeout=120 tests/unit_grpc
+
+make type-check:
+	poetry run mypy pinecone --exclude pinecone/core
+
 gcloud-auth:
-	gcloud auth login
-	gcloud config set project development-pinecone
+	docker run -ti --name gcloud-config gcr.io/google.com/cloudsdktool/google-cloud-cli gcloud auth login
 
 clean:
 	rm -rf downloads
 	rm -rf gen
 
-regenerate: clean
+download:
 	mkdir downloads
-	gcloud storage cp gs://api-codegen/_latest downloads --recursive
+	docker run --rm \
+		--volumes-from gcloud-config \
+		-v ${mkfile_path}:/workspace \
+		-w /workspace \
+		gcr.io/google.com/cloudsdktool/google-cloud-cli \
+		gcloud storage cp gs://api-codegen/_latest downloads --recursive
 
+regenerate: clean download
 	# Remove problematic query param
 	jq 'walk(if type == "array" then map(if type == "object" then select(.name != "filter") else . end) else . end)' downloads/_latest/openapi/pinecone_api.json > tmp.json
 	mv tmp.json downloads/_latest/openapi/pinecone_api.json
