@@ -515,12 +515,26 @@ class Pinecone:
             raise ValueError("Either name or host must be specified")
         
         pt = kwargs.pop('pool_threads', None) or self.pool_threads
+        api_key = self.config.api_key
+        openapi_config = self.config.openapi_config
 
         if host != '':
             # Use host url if it is provided
-            return Index(api_key=self.config.api_key, host=normalize_host(host), pool_threads=pt, **kwargs)
+            return Index(
+                host=normalize_host(host),
+                api_key=api_key,
+                pool_threads=pt,
+                openapi_config=openapi_config,
+                **kwargs
+            )
 
         if name != '':
             # Otherwise, get host url from describe_index using the index name
             index_host = self.index_host_store.get_host(self.index_api, self.config, name)
-            return Index(api_key=self.config.api_key, host=index_host, pool_threads=pt, **kwargs)
+            return Index(
+                host=index_host,
+                api_key=api_key,
+                pool_threads=pt,
+                openapi_config=openapi_config,
+                **kwargs
+            )

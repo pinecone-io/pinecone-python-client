@@ -75,12 +75,14 @@ class Index():
             host: str,
             pool_threads: Optional[int] = 1,
             additional_headers: Optional[Dict[str, str]] = {},
+            openapi_config = None,
             **kwargs
         ):
         self._config = ConfigBuilder.build(
             api_key=api_key, 
             host=host, 
-            additional_headers=additional_headers, 
+            additional_headers=additional_headers,
+            openapi_config=openapi_config,
             **kwargs
         )
         self._vector_api = setup_openapi_client(DataPlaneApi, self._config, pool_threads)

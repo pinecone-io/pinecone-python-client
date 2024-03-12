@@ -6,6 +6,8 @@ from pinecone.core.client.configuration import Configuration as OpenApiConfigura
 import pytest
 import os
 
+from urllib3 import make_headers
+
 class TestConfig:
     @pytest.fixture(autouse=True)
     def run_before_and_after_tests(tmpdir):
@@ -87,6 +89,21 @@ class TestConfig:
         assert idx._vector_api.api_client.pool_threads == 10
         
     def test_config_when_openapi_config_is_passed_merges_api_key(self):
-        oai_config = OpenApiConfiguration.get_default_copy()
+        oai_config = OpenApiConfiguration()
         pc = Pinecone(api_key='asdf', openapi_config=oai_config)
         assert pc.config.openapi_config.api_key == {'ApiKeyAuth': 'asdf'}
+
+    def test_ssl_config_passed_to_index_client(self):
+        oai_config = OpenApiConfiguration()
+        oai_config.ssl_ca_cert = 'path/to/cert'
+        proxy_headers = make_headers(proxy_basic_auth='asdf')
+        oai_config.proxy_headers = proxy_headers
+        
+        pc = Pinecone(api_key='key', openapi_config=oai_config)
+
+        assert pc.config.openapi_config.ssl_ca_cert == 'path/to/cert'
+        assert pc.config.openapi_config.proxy_headers == proxy_headers
+
+        idx = pc.Index(host='host')
+        assert idx._vector_api.api_client.configuration.ssl_ca_cert == 'path/to/cert'
+        assert idx._vector_api.api_client.configuration.proxy_headers == proxy_headers
