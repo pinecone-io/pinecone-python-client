@@ -46,10 +46,10 @@ class ConfigBuilder:
         if not host:
             raise PineconeConfigurationError("You haven't specified a host.")
 
-        openapi_config = (
-            openapi_config
-            or kwargs.pop("openapi_config", None)
-            or OpenApiConfigFactory.build(api_key=api_key, host=host)
-        )
+        if openapi_config:
+            openapi_config.host = host
+            openapi_config.api_key = {"ApiKeyAuth": api_key}
+        else:
+            openapi_config = OpenApiConfigFactory.build(api_key=api_key, host=host)
 
         return Config(api_key, host, openapi_config, additional_headers)

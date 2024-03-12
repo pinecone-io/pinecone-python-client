@@ -6,8 +6,7 @@ from .index_host_store import IndexHostStore
 from pinecone.config import PineconeConfig, Config
 
 from pinecone.core.client.api.manage_indexes_api import ManageIndexesApi
-from pinecone.core.client.api_client import ApiClient
-from pinecone.utils import get_user_agent, normalize_host
+from pinecone.utils import normalize_host, setup_openapi_client
 from pinecone.core.client.models import (
     CreateCollectionRequest,
     CreateIndexRequest,
@@ -85,25 +84,20 @@ class Pinecone:
         or share with Pinecone support. **Be very careful with this option, as it will print out 
         your API key** which forms part of a required authentication header. Default: `false`
         """
-        if config or kwargs.get("config"):
-            configKwarg = config or kwargs.get("config")
-            if not isinstance(configKwarg, Config):
+        if config:
+            if not isinstance(config, Config):
                 raise TypeError("config must be of type pinecone.config.Config")
             else:
-                self.config = configKwarg
+                self.config = config
         else:
             self.config = PineconeConfig.build(api_key=api_key, host=host, additional_headers=additional_headers, **kwargs)
 
         self.pool_threads = pool_threads
+
         if index_api:
             self.index_api = index_api
         else:
-            api_client = ApiClient(configuration=self.config.openapi_config, pool_threads=self.pool_threads)
-            api_client.user_agent = get_user_agent()
-            extra_headers = self.config.additional_headers or {}
-            for key, value in extra_headers.items():
-                api_client.set_default_header(key, value)
-            self.index_api = ManageIndexesApi(api_client)
+            self.index_api = setup_openapi_client(ManageIndexesApi, self.config, pool_threads)
 
         self.index_host_store = IndexHostStore()
         """ @private """

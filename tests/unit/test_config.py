@@ -84,5 +84,9 @@ class TestConfig:
         pc = Pinecone(api_key="test-api-key", host="test-controller-host", pool_threads=10)
         assert pc.index_api.api_client.pool_threads == 10
         idx = pc.Index(host='my-index-host', name='my-index-name')
-        assert idx._api_client.pool_threads == 10
+        assert idx._vector_api.api_client.pool_threads == 10
         
+    def test_config_when_openapi_config_is_passed_merges_api_key(self):
+        oai_config = OpenApiConfiguration.get_default_copy()
+        pc = Pinecone(api_key='asdf', openapi_config=oai_config)
+        assert pc.config.openapi_config.api_key == {'ApiKeyAuth': 'asdf'}
