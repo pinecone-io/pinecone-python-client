@@ -24,7 +24,7 @@ from pinecone.core.client.models import (
     ListResponse
 )
 from pinecone.core.client.api.data_plane_api import DataPlaneApi
-from ..utils import get_user_agent
+from ..utils import setup_openapi_client
 from .vector_factory import VectorFactory
 
 __all__ = [
@@ -75,27 +75,23 @@ class Index():
             host: str,
             pool_threads: Optional[int] = 1,
             additional_headers: Optional[Dict[str, str]] = {},
+            openapi_config = None,
             **kwargs
         ):
-        self._config = ConfigBuilder.build(api_key=api_key, host=host, **kwargs)
-        
-        api_client = ApiClient(configuration=self._config.openapi_config, 
-                               pool_threads=pool_threads)
-
-        # Configure request headers
-        api_client.user_agent = get_user_agent()
-        extra_headers = additional_headers or {}
-        for key, value in extra_headers.items():
-            api_client.set_default_header(key, value)
-
-        self._api_client = api_client
-        self._vector_api = DataPlaneApi(api_client=api_client)
+        self._config = ConfigBuilder.build(
+            api_key=api_key, 
+            host=host, 
+            additional_headers=additional_headers,
+            openapi_config=openapi_config,
+            **kwargs
+        )
+        self._vector_api = setup_openapi_client(DataPlaneApi, self._config, pool_threads)
     
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self._api_client.close()
+        self._vector_api.api_client.close()
 
     @validate_and_convert_errors
     def upsert(
