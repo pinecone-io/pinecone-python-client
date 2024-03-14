@@ -520,21 +520,15 @@ class Pinecone:
 
         if host != '':
             # Use host url if it is provided
-            return Index(
-                host=normalize_host(host),
-                api_key=api_key,
-                pool_threads=pt,
-                openapi_config=openapi_config,
-                **kwargs
-            )
-
-        if name != '':
+            index_host=normalize_host(host)
+        else:
             # Otherwise, get host url from describe_index using the index name
             index_host = self.index_host_store.get_host(self.index_api, self.config, name)
-            return Index(
-                host=index_host,
-                api_key=api_key,
-                pool_threads=pt,
-                openapi_config=openapi_config,
-                **kwargs
-            )
+
+        return Index(
+            host=index_host,
+            api_key=api_key,
+            pool_threads=pt,
+            openapi_config=openapi_config,
+            **kwargs
+        )
