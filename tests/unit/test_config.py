@@ -51,13 +51,14 @@ class TestConfig:
     def test_init_with_kwargs(self):
         api_key = "my-api-key"
         controller_host = "my-controller-host"
-        openapi_config = OpenApiConfiguration(api_key="openapi-api-key")
+        openapi_config = OpenApiConfiguration()
+        openapi_config.ssl_ca_cert = 'path/to/cert'
 
         config = PineconeConfig.build(api_key=api_key, host=controller_host, openapi_config=openapi_config)
 
         assert config.api_key == api_key
         assert config.host == 'https://' + controller_host
-        assert config.openapi_config == openapi_config
+        assert config.openapi_config.ssl_ca_cert == 'path/to/cert'
 
     def test_resolution_order_kwargs_over_env_vars(self):
         """
