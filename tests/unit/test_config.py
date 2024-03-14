@@ -107,3 +107,22 @@ class TestConfig:
         idx = pc.Index(host='host')
         assert idx._vector_api.api_client.configuration.ssl_ca_cert == 'path/to/cert'
         assert idx._vector_api.api_client.configuration.proxy_headers == proxy_headers
+
+    def test_host_config_not_clobbered_by_index(self):
+        oai_config = OpenApiConfiguration()
+        oai_config.ssl_ca_cert = 'path/to/cert'
+        proxy_headers = make_headers(proxy_basic_auth='asdf')
+        oai_config.proxy_headers = proxy_headers
+        
+        pc = Pinecone(api_key='key', openapi_config=oai_config)
+
+        assert pc.config.openapi_config.ssl_ca_cert == 'path/to/cert'
+        assert pc.config.openapi_config.proxy_headers == proxy_headers
+        assert pc.config.openapi_config.host == 'https://api.pinecone.io'
+
+        idx = pc.Index(host='host')
+        assert idx._vector_api.api_client.configuration.ssl_ca_cert == 'path/to/cert'
+        assert idx._vector_api.api_client.configuration.proxy_headers == proxy_headers
+        assert idx._vector_api.api_client.configuration.host == 'https://host'
+
+        assert pc.config.openapi_config.host == 'https://api.pinecone.io'

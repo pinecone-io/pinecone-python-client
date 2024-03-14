@@ -1,5 +1,6 @@
 from typing import NamedTuple, Optional, Dict
 import os
+import copy
 
 from pinecone.exceptions import PineconeConfigurationError
 from pinecone.config.openapi import OpenApiConfigFactory
@@ -47,6 +48,7 @@ class ConfigBuilder:
             raise PineconeConfigurationError("You haven't specified a host.")
 
         if openapi_config:
+            openapi_config = copy.deepcopy(openapi_config)
             openapi_config.host = host
             openapi_config.api_key = {"ApiKeyAuth": api_key}
         else:
