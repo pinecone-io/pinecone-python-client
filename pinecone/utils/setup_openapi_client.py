@@ -6,7 +6,7 @@ def setup_openapi_client(api_klass, config, openapi_config, pool_threads):
         configuration=openapi_config, 
         pool_threads=pool_threads
     )
-    api_client.user_agent = get_user_agent()
+    api_client.user_agent = get_user_agent(config)
     extra_headers = config.additional_headers or {}
     for key, value in extra_headers.items():
         api_client.set_default_header(key, value)

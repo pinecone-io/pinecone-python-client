@@ -14,6 +14,7 @@ class Config(NamedTuple):
     ssl_ca_certs: Optional[str] = None
     ssl_verify: Optional[bool] = None
     additional_headers: Optional[Dict[str, str]] = {}
+    source_partner: Optional[str] = None
 
 class ConfigBuilder:
     """
@@ -46,13 +47,14 @@ class ConfigBuilder:
         api_key = api_key or kwargs.pop("api_key", None) or os.getenv("PINECONE_API_KEY")
         host = host or kwargs.pop("host", None)
         host = normalize_host(host)
+        source_partner = kwargs.pop("source_partner", None)
 
         if not api_key:
             raise PineconeConfigurationError("You haven't specified an Api-Key.")
         if not host:
             raise PineconeConfigurationError("You haven't specified a host.")
 
-        return Config(api_key, host, proxy_url, proxy_headers, ssl_ca_certs, ssl_verify, additional_headers)
+        return Config(api_key, host, proxy_url, proxy_headers, ssl_ca_certs, ssl_verify, additional_headers, source_partner)
     
     @staticmethod
     def build_openapi_config(
