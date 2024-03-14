@@ -63,8 +63,6 @@ class UpsertRequest(ModelNormal):
     }
 
     validations = {
-        ('vectors',): {
-        },
     }
 
     @cached_property

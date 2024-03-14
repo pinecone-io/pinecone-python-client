@@ -59,8 +59,6 @@ class DeleteRequest(ModelNormal):
     }
 
     validations = {
-        ('ids',): {
-        },
     }
 
     @cached_property

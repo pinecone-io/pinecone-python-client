@@ -82,8 +82,7 @@ class ProtobufAny(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            'type_url': (str,),  # noqa: E501
-            'value': (str,),  # noqa: E501
+            'type': (str,),  # noqa: E501
         }
 
     @cached_property
@@ -92,8 +91,7 @@ class ProtobufAny(ModelNormal):
 
 
     attribute_map = {
-        'type_url': 'typeUrl',  # noqa: E501
-        'value': 'value',  # noqa: E501
+        'type': '@type',  # noqa: E501
     }
 
     read_only_vars = {
@@ -137,8 +135,7 @@ class ProtobufAny(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            type_url (str): [optional]  # noqa: E501
-            value (str): [optional]  # noqa: E501
+            type (str): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -220,8 +217,7 @@ class ProtobufAny(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            type_url (str): [optional]  # noqa: E501
-            value (str): [optional]  # noqa: E501
+            type (str): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)

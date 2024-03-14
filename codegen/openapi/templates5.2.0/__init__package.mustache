@@ -1,0 +1,26 @@
+# flake8: noqa
+
+{{>partial_header}}
+
+__version__ = "{{packageVersion}}"
+
+# import ApiClient
+from {{packageName}}.api_client import ApiClient
+
+# import Configuration
+from {{packageName}}.configuration import Configuration
+{{#hasHttpSignatureMethods}}
+from {{packageName}}.signing import HttpSigningConfiguration
+{{/hasHttpSignatureMethods}}
+
+# import exceptions
+from {{packageName}}.exceptions import PineconeException
+from {{packageName}}.exceptions import PineconeApiAttributeError
+from {{packageName}}.exceptions import PineconeApiTypeError
+from {{packageName}}.exceptions import PineconeApiValueError
+from {{packageName}}.exceptions import PineconeApiKeyError
+from {{packageName}}.exceptions import PineconeApiException
+{{#recursionLimit}}
+
+__import__('sys').setrecursionlimit({{{.}}})
+{{/recursionLimit}}

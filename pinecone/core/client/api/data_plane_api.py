@@ -295,7 +295,7 @@ class DataPlaneApi(object):
             >>> result = thread.get()
 
             Args:
-                delete_request (DeleteRequest):
+                delete_request (DeleteRequest): The request for the `Delete` operation.
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -415,7 +415,7 @@ class DataPlaneApi(object):
             >>> result = thread.get()
 
             Args:
-                describe_index_stats_request (DescribeIndexStatsRequest):
+                describe_index_stats_request (DescribeIndexStatsRequest): The request for the `describe_index_stats` operation.
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -527,7 +527,7 @@ class DataPlaneApi(object):
         ):
             """Fetch vectors  # noqa: E501
 
-            The `fetch` operation looks up and returns vectors, by ID, from a single namespace. The returned vectors include the vector data and/or metadata.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/reference/fetch).  # noqa: E501
+            The `fetch` operation looks up and returns vectors, by ID, from a single namespace. The returned vectors include the vector data and/or metadata.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/docs/fetch-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -662,7 +662,7 @@ class DataPlaneApi(object):
 
             Keyword Args:
                 prefix (str): The vector IDs to fetch. Does not accept values containing spaces.. [optional]
-                limit (int): Max number of ids to return.. [optional]
+                limit (int): Max number of IDs to return per page.. [optional]
                 pagination_token (str): Pagination token to continue a previous listing operation.. [optional]
                 namespace (str): [optional]
                 _return_http_data_only (bool): response data without head status
@@ -792,7 +792,7 @@ class DataPlaneApi(object):
             >>> result = thread.get()
 
             Args:
-                query_request (QueryRequest):
+                query_request (QueryRequest): The request for the `query` operation.
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -904,7 +904,7 @@ class DataPlaneApi(object):
         ):
             """Update a vector  # noqa: E501
 
-            The `update` operation updates a vector in a namespace. If a value is included, it will overwrite the previous value. If a `set_metadata` is included, the values of the fields specified in it will be added or overwrite the previous value.  For guidance and examples, see [Update data](https://docs.pinecone.io/reference/update).  # noqa: E501
+            The `update` operation updates a vector in a namespace. If a value is included, it will overwrite the previous value. If a `set_metadata` is included, the values of the fields specified in it will be added or overwrite the previous value.  For guidance and examples, see [Update data](https://docs.pinecone.io/docs/update-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -912,7 +912,7 @@ class DataPlaneApi(object):
             >>> result = thread.get()
 
             Args:
-                update_request (UpdateRequest):
+                update_request (UpdateRequest): The request for the `update` operation.
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1032,7 +1032,7 @@ class DataPlaneApi(object):
             >>> result = thread.get()
 
             Args:
-                upsert_request (UpsertRequest):
+                upsert_request (UpsertRequest): The request for the `upsert` operation.
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status

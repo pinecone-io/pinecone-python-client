@@ -69,10 +69,6 @@ class QueryRequest(ModelNormal):
             'inclusive_maximum': 10000,
             'inclusive_minimum': 1,
         },
-        ('queries',): {
-        },
-        ('vector',): {
-        },
         ('id',): {
             'max_length': 512,
         },
