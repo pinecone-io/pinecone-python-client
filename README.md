@@ -43,10 +43,10 @@ pip3 install "pinecone-client[grpc]"==3.0.0
 
 ```shell
 # Install the latest version
-poetry add pinecone
+poetry add pinecone-client
 
 # Install the latest version, with grpc extras
-poetry add pinecone --extras grpc
+poetry add pinecone-client --extras grpc
 
 # Install a specific version
 poetry add pinecone-client==3.0.0
