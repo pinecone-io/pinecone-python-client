@@ -15,7 +15,7 @@ jobs:
         uses: ./.github/actions/create-index
         with:
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
-          NAME_PREFIX: 'proxyconfig'
+          NAME_PREFIX: 'proxyconfig-'
           REGION: 'us-west-2'
           CLOUD: 'aws'
           DIMENSION: 1536
@@ -40,6 +40,8 @@ jobs:
           WORKDIR: ${{ github.workspace }}
       - name: 'debug'
         run: netstat -lt
+      - name: 'configs'
+        run: ls ${{ github.workspace }}/.mitm
       - name: 'Run integration tests (proxy config)'
         run: poetry run pytest tests/integration/proxy_config -s -v
         env:
