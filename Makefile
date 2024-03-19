@@ -52,4 +52,4 @@ prepare-proxy-config:
 	mkdir -p .mitm/proxy2
 
 proxy-up: prepare-proxy-config
-	WORKDIR=${mkfile_path} docker-compose up
+	WORKDIR=${mkfile_path} docker-compose up -d

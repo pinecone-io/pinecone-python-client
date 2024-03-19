@@ -32,15 +32,15 @@ jobs:
           python-version: 3.9
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
-      - name: Start MITM proxy instances
-        run: |
-          make prepare-proxy-config
-        env:
-          WORKDIR: ${{ github.workspace }}
       - name: 'Run integration tests (proxy config)'
         run: |
+          make prepare-proxy-config
+          ls -l ./.mitm
+          ls -l ./pinecone
+
           docker-compose up -d
           docker-compose ps
+          
           ls ${{ github.workspace }}/.mitm/proxy1
           poetry run pytest tests/integration/proxy_config -s -v
         env:
