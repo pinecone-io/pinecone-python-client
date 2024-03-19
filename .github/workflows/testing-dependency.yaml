@@ -169,6 +169,7 @@ jobs:
       - dependency-matrix-rest
       - dependency-matrix-rest-312
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/delete-index
         with:
           index_name: '${{ needs.dependency-matrix-setup.outputs.index_name }}'
