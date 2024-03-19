@@ -41,7 +41,10 @@ jobs:
       - name: 'debug'
         run: netstat -lt
       - name: 'configs'
-        run: ls ${{ github.workspace }}/.mitm
+        run: |
+          ls ${{ github.workspace }}/.mitm
+          ls ${{ github.workspace }}/.mitm/proxy1
+          cat ${{ github.workspace }}/.mitm/proxy1/mitmproxy-ca-cert.pem
       - name: 'Run integration tests (proxy config)'
         run: poetry run pytest tests/integration/proxy_config -s -v
         env:
