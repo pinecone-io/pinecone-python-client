@@ -154,3 +154,6 @@ dmypy.json
 # Datasets
 *.hdf5
 *~
+
+# MITM proxy config test, generated configs
+.mitm

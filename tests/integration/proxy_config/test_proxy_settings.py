@@ -23,7 +23,7 @@ class TestProxyConfig:
         pc = Pinecone(
             api_key=api_key, 
             proxy_url=PROXY_URL_HTTPS,
-            ssl_ca_certs='~/.mitmproxy/mitmproxy-ca-cert.pem',
+            ssl_ca_certs='./.mitm/proxy1/mitmproxy-ca-cert.pem',
         )
         exercise_all_apis(pc, index_name)
 
@@ -31,7 +31,7 @@ class TestProxyConfig:
         pc = Pinecone(
             api_key=api_key, 
             proxy_url=PROXY_URL_HTTP,
-            ssl_ca_certs='~/.mitmproxy/mitmproxy-ca-cert.pem',
+            ssl_ca_certs='./.mitm/proxy1/mitmproxy-ca-cert.pem',
         )
         exercise_all_apis(pc, index_name)
 
@@ -61,7 +61,7 @@ class TestProxyConfig:
             pc = Pinecone(
                 api_key=api_key,
                 proxy_url=PROXY_URL_HTTPS,
-                ssl_ca_certs='~/.mitmproxy2/mitmproxy-ca-cert.pem',
+                ssl_ca_certs='./.mitm/proxy2/mitmproxy-ca-cert.pem',
             )
             pc.list_indexes()
 
@@ -72,7 +72,7 @@ class TestProxyConfig:
             api_key=api_key,
             proxy_url=PROXY_W_PROXY_AUTH,
             proxy_headers=make_headers(proxy_basic_auth=PROXY_AUTH_CREDS),
-            ssl_ca_certs='~/.mitmproxy2/mitmproxy-ca-cert.pem'
+            ssl_ca_certs='./.mitm/proxy2/mitmproxy-ca-cert.pem'
         )
         exercise_all_apis(pc, index_name)
 

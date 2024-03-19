@@ -6,7 +6,7 @@ services:
       - 8080:8080
     volumes:
       - type: bind
-        source: ~/.mitmproxy
+        source: $WORKDIR/.mitm/proxy1
         target: /home/mitmproxy/.mitmproxy
 
   proxy-w-auth:
@@ -16,5 +16,5 @@ services:
       - 8081:8080
     volumes:
       - type: bind
-        source: ~/.mitmproxy2
+        source: $WORKDIR/.mitm/proxy2
         target: /home/mitmproxy/.mitmproxy

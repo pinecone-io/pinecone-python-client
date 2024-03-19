@@ -46,3 +46,10 @@ set-production:
 
 set-development:
 	echo "" > pinecone/__environment__
+
+prepare-proxy-config:
+	mkdir -p .mitm/proxy1
+	mkdir -p .mitm/proxy2
+
+proxy-up: prepare-proxy-config
+	WORKDIR=${mkfile_path} docker-compose up
