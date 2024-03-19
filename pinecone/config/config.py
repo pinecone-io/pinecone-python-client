@@ -10,7 +10,10 @@ from pinecone.utils import normalize_host
 class Config(NamedTuple):
     api_key: str = ""
     host: str = ""
-    openapi_config: Optional[OpenApiConfiguration] = None
+    proxy_url: Optional[str] = None
+    proxy_headers: Optional[Dict[str, str]] = None
+    ssl_ca_certs: Optional[str] = None
+    ssl_verify: Optional[bool] = None
     additional_headers: Optional[Dict[str, str]] = {}
 
 class ConfigBuilder:
@@ -34,7 +37,10 @@ class ConfigBuilder:
     def build(
         api_key: Optional[str] = None,
         host: Optional[str] = None,
-        openapi_config: Optional[OpenApiConfiguration] = None,
+        proxy_url: Optional[str] = None,
+        proxy_headers: Optional[Dict[str, str]] = None,
+        ssl_ca_certs: Optional[str] = None,
+        ssl_verify: Optional[bool] = None,
         additional_headers: Optional[Dict[str, str]] = {},
         **kwargs,
     ) -> Config:
@@ -47,11 +53,29 @@ class ConfigBuilder:
         if not host:
             raise PineconeConfigurationError("You haven't specified a host.")
 
+        return Config(api_key, host, proxy_url, proxy_headers, ssl_ca_certs, ssl_verify, additional_headers)
+    
+    @staticmethod
+    def build_openapi_config(
+        config: Config, openapi_config: Optional[OpenApiConfiguration] = None, **kwargs
+    ) -> OpenApiConfiguration:
         if openapi_config:
             openapi_config = copy.deepcopy(openapi_config)
-            openapi_config.host = host
-            openapi_config.api_key = {"ApiKeyAuth": api_key}
-        else:
-            openapi_config = OpenApiConfigFactory.build(api_key=api_key, host=host)
+        elif openapi_config is None:
+            openapi_config = OpenApiConfigFactory.build(api_key=config.api_key, host=config.host)
 
-        return Config(api_key, host, openapi_config, additional_headers)
+        openapi_config.host = config.host
+        openapi_config.api_key = {"ApiKeyAuth": config.api_key}
+
+        # Check if value passed before overriding any values present
+        # in the openapi_config
+        if (config.proxy_url):
+            openapi_config.proxy = config.proxy_url
+        if (config.proxy_headers):
+            openapi_config.proxy_headers = config.proxy_headers
+        if (config.ssl_ca_certs):
+            openapi_config.ssl_ca_cert = config.ssl_ca_certs
+        if (config.ssl_verify != None):
+            openapi_config.verify_ssl = config.ssl_verify
+    
+        return openapi_config

@@ -1,0 +1,20 @@
+services:
+  proxy:
+    image: mitmproxy/mitmproxy
+    command: mitmdump
+    ports:
+      - 8080:8080
+    volumes:
+      - type: bind
+        source: ~/.mitmproxy
+        target: /home/mitmproxy/.mitmproxy
+
+  proxy-w-auth:
+    image: mitmproxy/mitmproxy
+    command: mitmdump --set proxyauth=testuser:testpassword
+    ports:
+      - 8081:8080
+    volumes:
+      - type: bind
+        source: ~/.mitmproxy2
+        target: /home/mitmproxy/.mitmproxy

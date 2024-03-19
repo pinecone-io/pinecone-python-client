@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any, Union, List, cast, NamedTuple
 
 from .index_host_store import IndexHostStore
 
-from pinecone.config import PineconeConfig, Config
+from pinecone.config import PineconeConfig, Config, ConfigBuilder
 
 from pinecone.core.client.api.manage_indexes_api import ManageIndexesApi
 from pinecone.utils import normalize_host, setup_openapi_client
@@ -24,6 +24,10 @@ class Pinecone:
         self,
         api_key: Optional[str] = None,
         host: Optional[str] = None,
+        proxy_url: Optional[str] = None,
+        proxy_headers: Optional[Dict[str, str]] = None,
+        ssl_ca_certs: Optional[str] = None,
+        ssl_verify: Optional[bool] = None,
         config: Optional[Config] = None,
         additional_headers: Optional[Dict[str, str]] = {},
         pool_threads: Optional[int] = 1,
@@ -83,6 +87,36 @@ class Pinecone:
         request parameters to print out an equivalent curl command that you can run yourself
         or share with Pinecone support. **Be very careful with this option, as it will print out 
         your API key** which forms part of a required authentication header. Default: `false`
+        
+        
+        ### SSL and proxy configuration
+
+        By default the Pinecone python client will perform SSL certificate verification 
+        using the CA bundle maintained by Mozilla in the [certifi](https://pypi.org/project/certifi/) package. 
+
+        If your network setup requires you to interact with Pinecone via a proxy, you will need
+        to pass additional configuration using optional keyword parameters. These optional parameters
+        are forwarded to urllib3, which is the underlying library used by the Pinecone client to
+        make HTTP requests. 
+        
+        You may find it helpful to refer to the 
+        [urllib3 documentation on working with proxies](https://urllib3.readthedocs.io/en/stable/advanced-usage.html#http-and-https-proxies) 
+        while troubleshooting these settings. The example below also uses the 
+        [make_headers](https://urllib3.readthedocs.io/en/stable/reference/urllib3.util.html#urllib3.util.make_headers)
+        utility to create a header with basic authentication.
+
+        ```python
+        from pinecone import Pinecone
+        import urllib3 import make_headers
+
+        pc = Pinecone(
+            api_key="YOUR_API_KEY",            
+            proxy_url='https://your-proxy.com',
+            proxy_headers=make_headers(proxy_basic_auth='username:password')
+            ssl_ca_certs='path/to/cert-bundle.pem'
+        )
+
+        pc.list_indexes()
         """
         if config:
             if not isinstance(config, Config):
@@ -90,14 +124,24 @@ class Pinecone:
             else:
                 self.config = config
         else:
-            self.config = PineconeConfig.build(api_key=api_key, host=host, additional_headers=additional_headers, **kwargs)
+            self.config = PineconeConfig.build(
+                api_key=api_key, 
+                host=host,
+                additional_headers=additional_headers,
+                proxy_url=proxy_url,
+                proxy_headers=proxy_headers,
+                ssl_ca_certs=ssl_ca_certs,
+                ssl_verify=ssl_verify,
+                **kwargs
+            )
 
+        self.openapi_config = ConfigBuilder.build_openapi_config(self.config, **kwargs)
         self.pool_threads = pool_threads
 
         if index_api:
             self.index_api = index_api
         else:
-            self.index_api = setup_openapi_client(ManageIndexesApi, self.config, pool_threads)
+            self.index_api = setup_openapi_client(ManageIndexesApi, self.config, self.openapi_config, pool_threads)
 
         self.index_host_store = IndexHostStore()
         """ @private """
@@ -516,7 +560,7 @@ class Pinecone:
         
         pt = kwargs.pop('pool_threads', None) or self.pool_threads
         api_key = self.config.api_key
-        openapi_config = self.config.openapi_config
+        openapi_config = self.openapi_config
 
         if host != '':
             # Use host url if it is provided

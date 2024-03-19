@@ -3,6 +3,51 @@ name: "Integration Tests"
   workflow_call: {}
 
 jobs:
+  setup-index:
+    name: Setup proxyconfig test index
+    runs-on: ubuntu-latest
+    outputs:
+      index_name: ${{ steps.create-index.outputs.index_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create index
+        id: create-index
+        uses: ./.github/actions/create-index
+        with:
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          NAME_PREFIX: 'proxyconfig'
+          REGION: 'us-west-2'
+          CLOUD: 'aws'
+          DIMENSION: 1536
+          METRIC: 'cosine'
+
+  proxy-config:
+    name: Proxy config tests
+    needs: [setup-index]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+      - name: Start MITM proxy instances
+        uses: isbang/compose-action@v1.5.1
+        with:
+          compose-file: compose.yaml
+      - name: 'Run integration tests (proxy config)'
+        run: poetry run pytest tests/integration/proxy_config -s -v
+        env:
+          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+          PINECONE_INDEX_NAME: ${{ needs.setup-index.outputs.index_name }}
+      - name: Cleanup index
+        if: always()
+        uses: ./.github/actions/delete-index
+        with:
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          INDEX_NAME: ${{ needs.setup-index.outputs.index_name }}
+
   data-plane-serverless:
     name: Data plane serverless integration tests
     runs-on: ubuntu-latest
@@ -27,7 +72,6 @@ jobs:
           spec: '${{ matrix.spec }}'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
           freshness_timeout_seconds: 600
-
 #   data-plane-pod:
 #     name: Data plane pod integration tests
 #     runs-on: ubuntu-latest
