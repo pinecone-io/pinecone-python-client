@@ -38,7 +38,7 @@ jobs:
           ls -l ./.mitm
           ls -l ./pinecone
 
-          docker-compose up -d
+          docker-compose up
           docker-compose ps
           
           ls ${{ github.workspace }}/.mitm/proxy1
