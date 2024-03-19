@@ -1,7 +1,5 @@
 version: "3.8"
 
-name: proxy-test-deps
-
 services:
   proxy:
     image: mitmproxy/mitmproxy
