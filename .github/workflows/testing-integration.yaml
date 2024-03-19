@@ -38,6 +38,10 @@ jobs:
           docker-compose up -d
         env:
           WORKDIR: ${{ github.workspace }}
+      
+      - name: 'docker ps'
+        run: |
+          docker-compose ps
       - name: 'debug'
         run: netstat -lt
       - name: 'configs'
@@ -45,6 +49,7 @@ jobs:
           ls ${{ github.workspace }}/.mitm
           ls ${{ github.workspace }}/.mitm/proxy1
           cat ${{ github.workspace }}/.mitm/proxy1/mitmproxy-ca-cert.pem
+      
       - name: 'Run integration tests (proxy config)'
         run: poetry run pytest tests/integration/proxy_config -s -v
         env:
