@@ -35,7 +35,7 @@ jobs:
       - name: Start MITM proxy instances
         run: |
           make prepare-proxy-config
-          docker-compose up -d
+          docker-compose --verbose up -d
         env:
           WORKDIR: ${{ github.workspace }}
       
