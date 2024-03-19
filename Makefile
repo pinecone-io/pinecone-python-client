@@ -52,4 +52,7 @@ prepare-proxy-config:
 	mkdir -p .mitm/proxy2
 
 proxy-up: prepare-proxy-config
-	WORKDIR=${mkfile_path} docker-compose up -d
+	DOCKER_GID=$$(python -c "import os; print(os.getgid())") DOCKER_UID=$$(python -c "import os; print(os.getuid())") docker-compose up -d --remove-orphans
+
+proxy-stop:
+	DOCKER_GID=$$(python -c "import os; print(os.getgid())") DOCKER_UID=$$(python -c "import os; print(os.getuid())") docker-compose stop

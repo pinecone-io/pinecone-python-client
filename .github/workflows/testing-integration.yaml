@@ -35,10 +35,10 @@ jobs:
       - name: 'Run integration tests (proxy config)'
         run: |
           make prepare-proxy-config
-          ls -l ./.mitm
-          ls -l ./pinecone
+          
+          set -x
 
-          docker-compose up
+          DOCKER_GID=$(python -c "import os; print(os.getgid())") DOCKER_UID=$(python -c "import os; print(os.getuid())") docker-compose up -d
           docker-compose ps
           
           ls ${{ github.workspace }}/.mitm/proxy1

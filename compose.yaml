@@ -2,17 +2,19 @@ version: "3.8"
 
 services:
   proxy:
+    user: "${DOCKER_UID}:${DOCKER_GID}"
     image: mitmproxy/mitmproxy
     command: mitmdump
     ports:
       - 8080:8080
     volumes:
-      - ./pinecone:/home/mitmproxy/.mitmproxy
+      - ./mitm/proxy1:/home/mitmproxy/.mitmproxy
 
   proxy-w-auth:
+    user: "${DOCKER_UID}:${DOCKER_GID}"
     image: mitmproxy/mitmproxy
     command: mitmdump --set proxyauth=testuser:testpassword
     ports:
       - 8081:8080
     volumes:
-      - ./pinecone:/home/mitmproxy/.mitmproxy
+      - ./mitm/proxy2:/home/mitmproxy/.mitmproxy
