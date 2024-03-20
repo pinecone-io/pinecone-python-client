@@ -40,7 +40,7 @@ jobs:
           PINECONE_INDEX_NAME: ${{ needs.setup-index.outputs.index_name }}
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: proxy_config_test_logs
           path: tests/integration/proxy_config/logs
