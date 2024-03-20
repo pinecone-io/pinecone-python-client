@@ -37,9 +37,15 @@ def docker_command(proxy):
 @pytest.fixture(scope='session', autouse=True)
 def start_docker():
     with open("tests/integration/proxy_config/logs/proxyconfig-docker-start.log", "a") as output:
+        output.write("cert path: " + PROXIES['proxy1']['ssl_ca_certs'] + "\n\n")
+        subprocess.call("ls -l " + PROXIES['proxy1']['ssl_ca_certs'], shell=True, stdout=output, stderr=output)
+
+        output.write("\n\nStarting docker containers\n")
+        output.write("Going to run: " + docker_command(PROXIES['proxy1']) + "\n")
         subprocess.call(docker_command(PROXIES['proxy1']), shell=True, stdout=output, stderr=output)
+        output.write("Going to run: " + docker_command(PROXIES['proxy2']) + "\n")
         subprocess.call(docker_command(PROXIES['proxy2']), shell=True, stdout=output, stderr=output)
-    time.sleep(60)
+    time.sleep(30)
     with open("tests/integration/proxy_config/logs/proxyconfig-docker-ps.log", "a") as output:
         subprocess.call("docker ps --all", shell=True, stdout=output, stderr=output)
 
