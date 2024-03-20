@@ -34,14 +34,6 @@ jobs:
         uses: ./.github/actions/setup-poetry
       - name: 'Run integration tests (proxy config)'
         run: |
-          make prepare-proxy-config
-          
-          set -x
-
-          DOCKER_GID=$(python -c "import os; print(os.getgid())") DOCKER_UID=$(python -c "import os; print(os.getuid())") docker-compose up -d
-          docker-compose ps
-          
-          ls ${{ github.workspace }}/.mitm/proxy1
           poetry run pytest tests/integration/proxy_config -s -v
         env:
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'

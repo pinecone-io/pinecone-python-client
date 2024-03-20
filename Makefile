@@ -46,13 +46,3 @@ set-production:
 
 set-development:
 	echo "" > pinecone/__environment__
-
-prepare-proxy-config:
-	mkdir -p .mitm/proxy1
-	mkdir -p .mitm/proxy2
-
-proxy-up: prepare-proxy-config
-	DOCKER_GID=$$(python -c "import os; print(os.getgid())") DOCKER_UID=$$(python -c "import os; print(os.getuid())") docker-compose up -d --remove-orphans
-
-proxy-stop:
-	DOCKER_GID=$$(python -c "import os; print(os.getgid())") DOCKER_UID=$$(python -c "import os; print(os.getuid())") docker-compose stop

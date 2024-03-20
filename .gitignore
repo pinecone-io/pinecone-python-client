@@ -155,5 +155,3 @@ dmypy.json
 *.hdf5
 *~
 
-# MITM proxy config test, generated configs
-.mitm
