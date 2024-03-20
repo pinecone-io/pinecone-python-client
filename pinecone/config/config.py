@@ -5,6 +5,7 @@ from pinecone.exceptions import PineconeConfigurationError
 from pinecone.config.openapi import OpenApiConfigFactory
 from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
 from pinecone.utils import normalize_host
+from pinecone.utils.constants import SOURCE_INTEGRATION_NAME, SOURCE_INTEGRATION_VERSION
 
 class Config(NamedTuple):
     api_key: str = ""
@@ -14,7 +15,8 @@ class Config(NamedTuple):
     ssl_ca_certs: Optional[str] = None
     ssl_verify: Optional[bool] = None
     additional_headers: Optional[Dict[str, str]] = {}
-    source_partner: Optional[str] = None
+    source_integration_name: Optional[str] = None
+    source_integration_version: Optional[str] = None
 
 class ConfigBuilder:
     """
@@ -47,14 +49,15 @@ class ConfigBuilder:
         api_key = api_key or kwargs.pop("api_key", None) or os.getenv("PINECONE_API_KEY")
         host = host or kwargs.pop("host", None)
         host = normalize_host(host)
-        source_partner = kwargs.pop("source_partner", None)
+        source_integration_name = kwargs.pop(SOURCE_INTEGRATION_NAME, None)
+        source_integration_version = kwargs.pop(SOURCE_INTEGRATION_VERSION, None)
 
         if not api_key:
             raise PineconeConfigurationError("You haven't specified an Api-Key.")
         if not host:
             raise PineconeConfigurationError("You haven't specified a host.")
 
-        return Config(api_key, host, proxy_url, proxy_headers, ssl_ca_certs, ssl_verify, additional_headers, source_partner)
+        return Config(api_key, host, proxy_url, proxy_headers, ssl_ca_certs, ssl_verify, additional_headers, source_integration_name, source_integration_version)
     
     @staticmethod
     def build_openapi_config(
