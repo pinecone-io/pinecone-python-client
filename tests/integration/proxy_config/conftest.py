@@ -22,7 +22,7 @@ PROXIES = {
 def docker_command(proxy):
     cmd = [
         "docker", "run", "-d", # detach to run in background
-        "--rm", # remove container when stopped
+        # "--rm", # remove container when stopped
         "--name", proxy['name'],  # name the container
         "-p", f"{proxy['port']}:8080", # map the port
         "-v", f"{proxy['ssl_ca_certs']}:/home/mitmproxy/.mitmproxy", # mount config as volume 
