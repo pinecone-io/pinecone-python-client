@@ -40,6 +40,9 @@ def start_docker():
         subprocess.call(docker_command(PROXIES['proxy1']), shell=True, stdout=output, stderr=output)
         subprocess.call(docker_command(PROXIES['proxy2']), shell=True, stdout=output, stderr=output)
     time.sleep(2)
+    with open("tests/integration/proxy_config/logs/proxyconfig-docker-ps.log", "a") as output:
+        subprocess.call("docker ps", shell=True, stdout=output, stderr=output)
+
     yield
     with open("tests/integration/proxy_config/logs/proxyconfig-docker-stop.log", "a") as output:
         subprocess.call("docker stop proxy1", shell=True, stdout=output, stderr=output)
