@@ -36,12 +36,12 @@ def docker_command(proxy):
     
 @pytest.fixture(scope='session', autouse=True)
 def start_docker():
-    with open("/tmp/proxyconfig-docker-start.log", "a") as output:
+    with open("tests/integration/proxy_config/logs/proxyconfig-docker-start.log", "a") as output:
         subprocess.call(docker_command(PROXIES['proxy1']), shell=True, stdout=output, stderr=output)
         subprocess.call(docker_command(PROXIES['proxy2']), shell=True, stdout=output, stderr=output)
     time.sleep(2)
     yield
-    with open("/tmp/proxyconfig-docker-stop.log", "a") as output:
+    with open("tests/integration/proxy_config/logs/proxyconfig-docker-stop.log", "a") as output:
         subprocess.call("docker stop proxy1", shell=True, stdout=output, stderr=output)
         subprocess.call("docker stop proxy2", shell=True, stdout=output, stderr=output)
 

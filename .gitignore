@@ -155,3 +155,4 @@ dmypy.json
 *.hdf5
 *~
 
+tests/integration/proxy_config/logs

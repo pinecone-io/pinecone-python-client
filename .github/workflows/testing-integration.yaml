@@ -38,6 +38,12 @@ jobs:
         env:
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
           PINECONE_INDEX_NAME: ${{ needs.setup-index.outputs.index_name }}
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: proxy_config_test_logs
+          path: tests/integration/proxy_config/logs
       - name: Cleanup index
         if: always()
         uses: ./.github/actions/delete-index
