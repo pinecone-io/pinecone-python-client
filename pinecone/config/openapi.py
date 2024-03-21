@@ -3,6 +3,8 @@ from typing import List, Optional
 
 import certifi
 import socket
+import copy
+import warnings
 
 from urllib3.connection import HTTPConnection
 
@@ -17,11 +19,35 @@ class OpenApiConfigFactory:
     @classmethod
     def build(cls, api_key: str, host: Optional[str] = None, **kwargs):
         openapi_config = OpenApiConfiguration()
+        openapi_config.api_key = {"ApiKeyAuth": api_key}
         openapi_config.host = host
         openapi_config.ssl_ca_cert = certifi.where()
         openapi_config.socket_options = cls._get_socket_options()
-        openapi_config.api_key = {"ApiKeyAuth": api_key}
         return openapi_config
+    
+    @classmethod
+    def copy(cls, openapi_config: OpenApiConfiguration, api_key: str, host: str) -> OpenApiConfiguration:
+        '''
+        Copy a user-supplied openapi configuration and update it with the user's api key and host. 
+        If they have not specified other socket configuration, we will use the default values.
+        We expect these objects are being passed mainly a vehicle for proxy configuration, so 
+        we don't modify those settings.
+        '''
+        copied = copy.deepcopy(openapi_config)
+        warnings.warn("Passing openapi_config is deprecated and will be removed in a future release. Please pass settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at https://github.com/pinecone-io/pinecone-python-client for examples.", DeprecationWarning)
+
+        copied.api_key = {"ApiKeyAuth": api_key}
+        copied.host = host
+
+        # Set sensible defaults if the user hasn't set them
+        if not copied.socket_options:
+            copied.socket_options = cls._get_socket_options()
+
+        # We specifically do not modify the user's ssl_ca_cert or proxy settings, as
+        # they may have set them intentionally. This is the main reason somebody would
+        # pass an openapi_config in the first place.
+
+        return copied
 
     @classmethod
     def _get_socket_options(
