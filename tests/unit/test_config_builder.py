@@ -21,6 +21,19 @@ class TestConfigBuilder:
         assert config.host == "https://my-controller-host"
         assert config.additional_headers == {}
 
+    def test_build_with_source_tag(self):
+        config = ConfigBuilder.build(
+            api_key="my-api-key", 
+            host="https://my-controller-host", 
+            source_tag="my-source-tag",
+        )
+        assert config.api_key == "my-api-key"
+        assert config.host == "https://my-controller-host"
+        assert config.additional_headers == {}
+        assert config.openapi_config.host == "https://my-controller-host"
+        assert config.openapi_config.api_key == {"ApiKeyAuth": "my-api-key"}
+        assert config.source_tag == "my-source-tag"
+
     def test_build_errors_when_no_api_key_is_present(self):
         with pytest.raises(PineconeConfigurationError) as e:
             ConfigBuilder.build()
