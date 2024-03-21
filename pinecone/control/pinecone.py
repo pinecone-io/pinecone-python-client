@@ -633,7 +633,6 @@ class Pinecone:
             api_key=api_key,
             pool_threads=pt,
             openapi_config=openapi_config,
-            source_integration_name=self.config.source_integration_name,
-            source_integration_version=self.config.source_integration_version,
+            source_tag=self.config.source_tag,
             **kwargs
         )
