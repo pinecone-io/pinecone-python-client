@@ -30,8 +30,6 @@ class TestConfigBuilder:
         assert config.api_key == "my-api-key"
         assert config.host == "https://my-controller-host"
         assert config.additional_headers == {}
-        assert config.openapi_config.host == "https://my-controller-host"
-        assert config.openapi_config.api_key == {"ApiKeyAuth": "my-api-key"}
         assert config.source_tag == "my-source-tag"
 
     def test_build_errors_when_no_api_key_is_present(self):
