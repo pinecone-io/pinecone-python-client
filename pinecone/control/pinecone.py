@@ -96,7 +96,6 @@ class Pinecone:
         or share with Pinecone support. **Be very careful with this option, as it will print out 
         your API key** which forms part of a required authentication header. Default: `false`
         
-        
         ### Proxy configuration
 
         If your network setup requires you to interact with Pinecone via a proxy, you will need
