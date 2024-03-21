@@ -4,10 +4,10 @@ from pinecone import Pinecone
 from urllib3 import make_headers
 from urllib3.exceptions import InsecureRequestWarning
 
-PROXY1_URL_HTTPS = 'https://127.0.0.1:8080'
-PROXY1_URL_HTTP = 'http://127.0.0.1:8080'
+PROXY1_URL_HTTPS = 'https://localhost:8080'
+PROXY1_URL_HTTP = 'http://localhost:8080'
 
-PROXY2_URL = 'https://127.0.0.1:8081'
+PROXY2_URL = 'https://localhost:8081'
 
 def exercise_all_apis(client, index_name):
     # Control plane

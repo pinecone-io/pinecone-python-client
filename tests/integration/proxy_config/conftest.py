@@ -22,7 +22,7 @@ PROXIES = {
 def docker_command(proxy):
     cmd = [
         "docker", "run", "-d", # detach to run in background
-        # "--rm", # remove container when stopped
+        "--rm", # remove container when stopped
         "--name", proxy['name'],  # name the container
         "-p", f"{proxy['port']}:8080", # map the port
         "-v", f"{proxy['ssl_ca_certs']}:/home/mitmproxy/.mitmproxy", # mount config as volume 
@@ -33,26 +33,27 @@ def docker_command(proxy):
         cmd.append(f"--set proxyauth={proxy['auth'][0]}:{proxy['auth'][1]}")
     print(" ".join(cmd))
     return " ".join(cmd)
-    
+
+def run_cmd(cmd, output):
+    output.write("Going to run: " + cmd + "\n")
+    exit_code = subprocess.call(cmd, shell=True, stdout=output, stderr=output)
+    if exit_code != 0:
+        raise Exception(f"Failed to run command: {cmd}")
+
 @pytest.fixture(scope='session', autouse=True)
 def start_docker():
     with open("tests/integration/proxy_config/logs/proxyconfig-docker-start.log", "a") as output:
-        output.write("cert path: " + PROXIES['proxy1']['ssl_ca_certs'] + "\n\n")
-        subprocess.call("ls -l " + PROXIES['proxy1']['ssl_ca_certs'], shell=True, stdout=output, stderr=output)
+        run_cmd(docker_command(PROXIES['proxy1']), output)
+        run_cmd(docker_command(PROXIES['proxy2']), output)
 
-        output.write("\n\nStarting docker containers\n")
-        output.write("Going to run: " + docker_command(PROXIES['proxy1']) + "\n")
-        subprocess.call(docker_command(PROXIES['proxy1']), shell=True, stdout=output, stderr=output)
-        output.write("Going to run: " + docker_command(PROXIES['proxy2']) + "\n")
-        subprocess.call(docker_command(PROXIES['proxy2']), shell=True, stdout=output, stderr=output)
-    time.sleep(30)
+    time.sleep(5)
     with open("tests/integration/proxy_config/logs/proxyconfig-docker-ps.log", "a") as output:
-        subprocess.call("docker ps --all", shell=True, stdout=output, stderr=output)
+        run_cmd("docker ps --all", output)
 
     yield
     with open("tests/integration/proxy_config/logs/proxyconfig-docker-stop.log", "a") as output:
-        subprocess.call("docker stop proxy1", shell=True, stdout=output, stderr=output)
-        subprocess.call("docker stop proxy2", shell=True, stdout=output, stderr=output)
+        run_cmd("docker stop proxy1", output)
+        run_cmd("docker stop proxy2", output)
 
 @pytest.fixture()
 def proxy1():
