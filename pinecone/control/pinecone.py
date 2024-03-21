@@ -111,7 +111,7 @@ class Pinecone:
         from pinecone import Pinecone
 
         pc = Pinecone(
-            api_key="YOUR_API_KEY",
+            api_key='YOUR_API_KEY',
             proxy_url='https://your-proxy.com'
         )
 
@@ -125,7 +125,7 @@ class Pinecone:
         import urllib3 import make_headers
 
         pc = Pinecone(
-            api_key="YOUR_API_KEY",
+            api_key='YOUR_API_KEY',
             proxy_url='https://your-proxy.com',
             proxy_headers=make_headers(proxy_basic_auth='username:password')
         )
@@ -145,14 +145,36 @@ class Pinecone:
         import urllib3 import make_headers
 
         pc = Pinecone(
-            api_key="YOUR_API_KEY",
+            api_key='YOUR_API_KEY',
             proxy_url='https://your-proxy.com',
-            proxy_headers=make_headers(proxy_basic_auth='username:password')
+            proxy_headers=make_headers(proxy_basic_auth='username:password'),
             ssl_ca_certs='path/to/cert-bundle.pem'
         )
 
         pc.list_indexes()
         ```
+
+        ### Disabling SSL verification
+
+        If you would like to disable SSL verification, you can pass the `ssl_verify` 
+        parameter with a value of `False`. We do not recommend going to production with SSL verification disabled.
+
+        ```python
+        from pinecone import Pinecone
+        import urllib3 import make_headers
+
+        pc = Pinecone(
+            api_key='YOUR_API_KEY',
+            proxy_url='https://your-proxy.com',
+            proxy_headers=make_headers(proxy_basic_auth='username:password'),
+            ssl_ca_certs='path/to/cert-bundle.pem',
+            ssl_verify=False
+        )
+
+        pc.list_indexes()
+
+        ```
+        
 
         """
         if config:
