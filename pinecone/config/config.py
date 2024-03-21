@@ -1,6 +1,5 @@
 from typing import NamedTuple, Optional, Dict
 import os
-import copy
 
 from pinecone.exceptions import PineconeConfigurationError
 from pinecone.config.openapi import OpenApiConfigFactory
@@ -60,15 +59,14 @@ class ConfigBuilder:
         config: Config, openapi_config: Optional[OpenApiConfiguration] = None, **kwargs
     ) -> OpenApiConfiguration:
         if openapi_config:
-            openapi_config = copy.deepcopy(openapi_config)
+            openapi_config = OpenApiConfigFactory.copy(openapi_config=openapi_config, api_key=config.api_key, host=config.host)
         elif openapi_config is None:
             openapi_config = OpenApiConfigFactory.build(api_key=config.api_key, host=config.host)
 
-        openapi_config.host = config.host
-        openapi_config.api_key = {"ApiKeyAuth": config.api_key}
-
         # Check if value passed before overriding any values present
-        # in the openapi_config
+        # in the openapi_config. This means if the user has passed 
+        # an openapi_config object and a kwarg for the same setting,
+        # the kwarg will take precedence.
         if (config.proxy_url):
             openapi_config.proxy = config.proxy_url
         if (config.proxy_headers):
@@ -77,5 +75,5 @@ class ConfigBuilder:
             openapi_config.ssl_ca_cert = config.ssl_ca_certs
         if (config.ssl_verify != None):
             openapi_config.verify_ssl = config.ssl_verify
-    
+        
         return openapi_config
