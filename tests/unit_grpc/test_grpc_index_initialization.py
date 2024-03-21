@@ -1,4 +1,6 @@
+import re
 from pinecone.grpc import PineconeGRPC, GRPCClientConfig
+from pinecone import ConfigBuilder
 
 class TestGRPCIndexInitialization:
     def test_init_with_default_config(self):
@@ -85,3 +87,14 @@ class TestGRPCIndexInitialization:
         # Unset fields still get default values
         assert index.grpc_client_config.reuse_channel == True
         assert index.grpc_client_config.conn_timeout == 1
+
+    def test_config_passes_source_tag_when_set(self):
+        pc = PineconeGRPC(api_key='YOUR_API_KEY', source_tag='my_source_tag')
+        index = pc.Index(name='my-index', host='host')
+        assert re.search(r"source_tag=my_source_tag", pc.index_api.api_client.user_agent) is not None
+
+    def test_config_passes_source_tag_when_set_via_config(self):
+        config = ConfigBuilder.build(api_key='YOUR_API_KEY', source_tag='my_source_tag')
+        pc = PineconeGRPC(config=config)
+        index = pc.Index(name='my-index', host='host')
+        assert re.search(r"source_tag=my_source_tag", pc.index_api.api_client.user_agent) is not None

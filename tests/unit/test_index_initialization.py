@@ -1,5 +1,6 @@
 import pytest
-from pinecone import Pinecone
+import re
+from pinecone import ConfigBuilder, Pinecone
 
 class TestIndexClientInitialization():
     @pytest.mark.parametrize(
@@ -51,3 +52,14 @@ class TestIndexClientInitialization():
         assert len(index._vector_api.api_client.default_headers) == 1
         assert 'User-Agent' in index._vector_api.api_client.default_headers
         assert index._vector_api.api_client.default_headers['User-Agent'] == 'test-user-agent'
+
+    def test_set_source_tag(self):
+        pc = Pinecone(api_key="123-456-789", source_tag="test_source_tag")
+        index = pc.Index(host='myhost')
+        assert re.search(r"source_tag=test_source_tag", pc.index_api.api_client.user_agent) is not None
+
+    def test_set_source_tag_via_config(self):
+        config = ConfigBuilder.build(api_key='YOUR_API_KEY', host='https://my-host', source_tag='my_source_tag')
+        pc = Pinecone(config=config)
+        index = pc.Index(host='myhost')
+        assert re.search(r"source_tag=my_source_tag", pc.index_api.api_client.user_agent) is not None
