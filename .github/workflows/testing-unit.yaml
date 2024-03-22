@@ -31,7 +31,7 @@ jobs:
       - name: Run unit tests (REST)
         run: poetry run pytest --cov=pinecone --timeout=120 tests/unit
       - name: Run unit tests (GRPC)
-        if: ${{ matrix.use_grpc == 'true' }}
+        if: ${{ matrix.use_grpc == true }}
         run: poetry run pytest --cov=pinecone/grpc --timeout=120 tests/unit_grpc
       - name: mypy check
         env:
