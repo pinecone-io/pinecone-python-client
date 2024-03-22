@@ -14,6 +14,7 @@ from pinecone import Config
 from .utils import _generate_request_id
 from .config import GRPCClientConfig
 from pinecone.utils.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSION
+from pinecone.utils.user_agent import get_user_agent_grpc
 from pinecone.exceptions import PineconeException
 
 _logger = logging.getLogger(__name__)
@@ -77,7 +78,8 @@ class GRPCIndexBase(ABC):
             }
         )
 
-        self._channel = channel or self._gen_channel()
+        options = {"grpc.primary_user_agent": get_user_agent_grpc(config)}
+        self._channel = channel or self._gen_channel(options=options)
         self.stub = self.stub_class(self._channel)
 
     @property

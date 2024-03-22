@@ -15,9 +15,14 @@ def _build_source_tag_field(source_tag):
     tag = re.sub(r'[^a-z0-9_]', '', tag)
     return f"{SOURCE_TAG}={tag}"
 
-def get_user_agent(config):
-    client_id = f"python-client-{__version__}"
+def _get_user_agent(client_id, config):
     user_agent_details = {"urllib3": urllib3.__version__}
     user_agent = "{} ({})".format(client_id, ", ".join([f"{k}:{v}" for k, v in user_agent_details.items()]))
     user_agent += f"; {_build_source_tag_field(config.source_tag)}" if config.source_tag else ""
     return user_agent
+
+def get_user_agent(config):
+    return _get_user_agent(f"python-client-{__version__}", config)
+
+def get_user_agent_grpc(config):
+    return _get_user_agent(f"python-client[grpc]-{__version__}", config)
