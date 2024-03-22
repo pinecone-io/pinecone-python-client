@@ -28,8 +28,11 @@ jobs:
         with:
           include_grpc: '${{ matrix.use_grpc }}'
           include_types: true
-      - name: Run unit tests
+      - name: Run unit tests (REST)
         run: poetry run pytest --cov=pinecone --timeout=120 tests/unit
+      - name: Run unit tests (GRPC)
+        if: ${{ matrix.use_grpc == 'true' }}
+        run: poetry run pytest --cov=pinecone/grpc --timeout=120 tests/unit_grpc
       - name: mypy check
         env:
           INCLUDE_GRPC: '${{ matrix.use_grpc }}'
