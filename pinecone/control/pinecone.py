@@ -633,5 +633,6 @@ class Pinecone:
             api_key=api_key,
             pool_threads=pt,
             openapi_config=openapi_config,
+            source_tag=self.config.source_tag,
             **kwargs
         )

@@ -1,5 +1,6 @@
 import pytest
-from pinecone import Pinecone, PodSpec, ServerlessSpec
+import re
+from pinecone import ConfigBuilder, Pinecone, PodSpec, ServerlessSpec
 from pinecone.core.client.models import IndexList, IndexModel
 from pinecone.core.client.api.manage_indexes_api import ManageIndexesApi
 from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
@@ -40,6 +41,15 @@ class TestControl:
         p = Pinecone(api_key="123-456-789", additional_headers=extras)
         assert p.index_api.api_client.default_headers['User-Agent'] == 'test-user-agent'
         assert len(p.index_api.api_client.default_headers) == 1
+
+    def test_set_source_tag_in_useragent(self):
+        p = Pinecone(api_key="123-456-789", source_tag="test_source_tag")
+        assert re.search(r"source_tag=test_source_tag", p.index_api.api_client.user_agent) is not None
+
+    def test_set_source_tag_in_useragent_via_config(self):
+        config = ConfigBuilder.build(api_key='YOUR_API_KEY', host='https://my-host', source_tag='my_source_tag')
+        p = Pinecone(config=config)
+        assert re.search(r"source_tag=my_source_tag", p.index_api.api_client.user_agent) is not None
 
     @pytest.mark.parametrize("timeout_value, describe_index_responses, expected_describe_index_calls, expected_sleep_calls", [
         # When timeout=None, describe_index is called until ready
