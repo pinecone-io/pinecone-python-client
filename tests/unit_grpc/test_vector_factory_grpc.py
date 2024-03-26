@@ -48,6 +48,19 @@ class TestVectorFactoryGRPC:
         expected = Vector(id="1", values=[0.1, 0.2, 0.3], metadata=dict_to_proto_struct({}))
         assert actual == expected
 
+    @pytest.mark.parametrize("vector_tup", [
+        ("1", 'not an array'),
+        ("1", {}),
+        ("1", 'not an array', {"genre": "comedy"}),
+        ("1", {}, {"genre": "comedy"})
+    ])
+    def test_build_when_tuple_values_must_be_list(self, vector_tup):
+        with pytest.raises(
+            TypeError,
+            match="Expected a list or list-like data structure",
+        ):
+            VectorFactoryGRPC.build(vector_tup)
+
     @pytest.mark.parametrize("values_array", [
         [0.1, 0.2, 0.3],
         np.array([0.1, 0.2, 0.3]), 
@@ -209,7 +222,7 @@ class TestVectorFactoryGRPC:
         [0.1, 0.2],
         {}
     ])
-    def test_build_when_dict_sparse_values_errors_when_values_not_list(self, bogus_sparse_indices):
+    def test_build_when_dict_sparse_values_errors_when_indices_not_valid_list(self, bogus_sparse_indices):
         with pytest.raises(ValueError, match="Found unexpected data in column `sparse_values`"):
             d = {
                 "id": "1",

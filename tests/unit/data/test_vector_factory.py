@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 
 from pinecone.data.vector_factory import VectorFactory
-from pinecone import Vector, SparseValues
+from pinecone import Vector, SparseValues, ListConversionException
 
 class TestVectorFactory:
     def test_build_when_returns_vector_unmodified(self):
@@ -32,6 +32,22 @@ class TestVectorFactory:
         actual = VectorFactory.build(tup)
         expected = Vector(id='1', values=[0.1, 0.2, 0.3], metadata={'genre': 'comedy'})
         assert actual == expected
+
+    @pytest.mark.parametrize("vector_tup", [
+        ("1", 'not an array'),
+        ("1", {}),
+        ("1", None),
+        ("1", 'not an array', {"genre": "comedy"}),
+        ("1", {}, {"genre": "comedy"}),
+        ("1", None, {"genre": "comedy"}),
+    ])
+    def test_build_when_tuple_values_must_be_list(self, vector_tup):
+        with pytest.raises(
+            ListConversionException,
+            match="Expected a list or list-like data structure",
+        ):
+            VectorFactory.build(vector_tup)
+
 
     def test_build_when_tuple_errors_when_additional_fields(self):
         with pytest.raises(ValueError, match="Found a tuple of length 4 which is not supported"):
