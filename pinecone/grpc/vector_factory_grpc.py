@@ -12,11 +12,9 @@ from ..data import (
     VectorDictionaryMissingKeysError, 
     VectorDictionaryExcessKeysError, 
     VectorTupleLengthError, 
-    SparseValuesTypeError, 
-    SparseValuesMissingKeysError, 
-    SparseValuesDictionaryExpectedError, 
     MetadataDictionaryExpectedError 
 )
+from .sparse_values_factory import SparseValuesFactory
 
 from pinecone.core.grpc.protos.vector_service_pb2 import (
     Vector as GRPCVector,
@@ -73,8 +71,8 @@ class VectorFactoryGRPC:
                 raise TypeError(f"Column `values` is expected to be a list of floats") from e
 
         sparse_values = item.get("sparse_values")
-        if sparse_values and not isinstance(sparse_values, GRPCSparseValues):
-            item["sparse_values"] = VectorFactoryGRPC._dict_to_sparse_values(sparse_values)
+        if sparse_values != None and not isinstance(sparse_values, GRPCSparseValues):
+            item["sparse_values"] = SparseValuesFactory.build(sparse_values)
 
         metadata = item.get("metadata")
         if metadata:
@@ -91,31 +89,3 @@ class VectorFactoryGRPC:
             if not isinstance(item["values"], Iterable) or not isinstance(item["values"].__iter__().__next__(), numbers.Real):
                 raise TypeError(f"Column `values` is expected to be a list of floats")
             raise e
-
-    @staticmethod
-    def _dict_to_sparse_values(sparse_values_dict: Union[Dict, GRPCSparseValues, NonGRPCSparseValues]) -> GRPCSparseValues:
-        if isinstance(sparse_values_dict, GRPCSparseValues):
-            return sparse_values_dict
-        if isinstance(sparse_values_dict, NonGRPCSparseValues):
-            return GRPCSparseValues(indices=sparse_values_dict.indices, values=sparse_values_dict.values)
-
-        if not isinstance(sparse_values_dict, Mapping):
-            raise SparseValuesDictionaryExpectedError(sparse_values_dict)
-        if not {"indices", "values"}.issubset(sparse_values_dict):
-            raise SparseValuesMissingKeysError(sparse_values_dict)
-
-    
-        try:
-            indices = convert_to_list(sparse_values_dict.get("indices"))
-        except TypeError as e:
-            raise SparseValuesTypeError() from e
-  
-        try:
-            values = convert_to_list(sparse_values_dict.get("values"))
-        except TypeError as e:
-            raise SparseValuesTypeError() from e
-
-        try:
-            return GRPCSparseValues(indices=indices, values=values)
-        except TypeError as e:
-            raise SparseValuesTypeError() from e

@@ -5,47 +5,19 @@ from typing import Union, Tuple, Dict
 
 from ..utils import fix_tuple_length, convert_to_list
 from ..utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
+from .sparse_vector_factory import SparseValuesFactory
 
 from pinecone.core.client.models import (
     Vector,
     SparseValues
 )
 
-class VectorDictionaryMissingKeysError(ValueError):
-    def __init__(self, item):
-        message = f"Vector dictionary is missing required fields: {list(REQUIRED_VECTOR_FIELDS - set(item.keys()))}"
-        super().__init__(message)
-
-class VectorDictionaryExcessKeysError(ValueError):
-    def __init__(self, item):
-        invalid_keys = list(set(item.keys()) - (REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS))
-        message = f"Found excess keys in the vector dictionary: {invalid_keys}. The allowed keys are: {list(REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)}"
-        super().__init__(message)
-
-class VectorTupleLengthError(ValueError):
-    def __init__(self, item):
-        message = f"Found a tuple of length {len(item)} which is not supported. Vectors can be represented as tuples either the form (id, values, metadata) or (id, values). To pass sparse values please use either dicts or Vector objects as inputs."
-        super().__init__(message)
-
-class SparseValuesTypeError(ValueError, TypeError):
-    def __init__(self):
-        message = "Found unexpected data in column `sparse_values`. Expected format is `'sparse_values': {'indices': List[int], 'values': List[float]}`."
-        super().__init__(message)
-
-class SparseValuesMissingKeysError(ValueError):
-    def __init__(self, sparse_values_dict):
-        message = f"Missing required keys in data in column `sparse_values`. Expected format is `'sparse_values': {{'indices': List[int], 'values': List[float]}}`. Found keys {list(sparse_values_dict.keys())}"
-        super().__init__(message)
-
-class SparseValuesDictionaryExpectedError(ValueError, TypeError):
-    def __init__(self, sparse_values_dict):
-        message = f"Column `sparse_values` is expected to be a dictionary, found {type(sparse_values_dict)}"
-        super().__init__(message)
-
-class MetadataDictionaryExpectedError(ValueError, TypeError):
-    def __init__(self, item):
-        message = f"Column `metadata` is expected to be a dictionary, found {type(item['metadata'])}"
-        super().__init__(message)
+from .errors import (
+    VectorDictionaryMissingKeysError,
+    VectorDictionaryExcessKeysError,
+    VectorTupleLengthError,
+    MetadataDictionaryExpectedError,
+)
 
 class VectorFactory:
     @staticmethod
@@ -84,8 +56,10 @@ class VectorFactory:
             item["values"] = convert_to_list(values)
 
         sparse_values = item.get("sparse_values")
-        if sparse_values and not isinstance(sparse_values, SparseValues):
-            item["sparse_values"] = VectorFactory._dict_to_sparse_values(sparse_values, check_type)
+        if sparse_values is None:
+            item.pop("sparse_values", None)
+        else:
+            item["sparse_values"] = SparseValuesFactory.build(sparse_values)
 
         metadata = item.get("metadata")
         if metadata and not isinstance(metadata, Mapping):
@@ -97,18 +71,3 @@ class VectorFactory:
             if not isinstance(item["values"], Iterable) or not isinstance(item["values"].__iter__().__next__(), numbers.Real):
                 raise TypeError(f"Column `values` is expected to be a list of floats")
             raise e
-
-    @staticmethod
-    def _dict_to_sparse_values(sparse_values_dict: Dict, check_type: bool) -> SparseValues:
-        if not isinstance(sparse_values_dict, Mapping):
-            raise SparseValuesDictionaryExpectedError(sparse_values_dict)
-        if not {"indices", "values"}.issubset(sparse_values_dict):
-            raise SparseValuesMissingKeysError(sparse_values_dict)
-
-        indices = convert_to_list(sparse_values_dict.get("indices"))
-        values = convert_to_list(sparse_values_dict.get("values"))
-
-        try:
-            return SparseValues(indices=indices, values=values, _check_type=check_type)
-        except TypeError:
-            raise SparseValuesTypeError()
