@@ -106,7 +106,7 @@ class TestUpsertFailsWhenValuesMissing():
             
 class TestUpsertFailsWhenValuesWrongType():
     def test_upsert_fails_when_values_wrong_type_objects(self, idx):
-        with pytest.raises(Exception):
+        with pytest.raises(PineconeException):
             idx.upsert(vectors=[
                     Vector(id='1', values='abc'),
                     Vector(id='2', values='def')
