@@ -1,5 +1,5 @@
 from .index import *
-from .vector_factory import (
+from .errors import (
     VectorDictionaryMissingKeysError,
     VectorDictionaryExcessKeysError, 
     VectorTupleLengthError, 
