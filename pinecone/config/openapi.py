@@ -4,7 +4,6 @@ from typing import List, Optional
 import certifi
 import socket
 import copy
-import warnings
 
 from urllib3.connection import HTTPConnection
 
@@ -34,7 +33,6 @@ class OpenApiConfigFactory:
         we don't modify those settings.
         '''
         copied = copy.deepcopy(openapi_config)
-        warnings.warn("Passing openapi_config is deprecated and will be removed in a future release. Please pass settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at https://github.com/pinecone-io/pinecone-python-client for examples.", DeprecationWarning)
 
         copied.api_key = {"ApiKeyAuth": api_key}
         copied.host = host

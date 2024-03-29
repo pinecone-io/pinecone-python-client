@@ -1,4 +1,5 @@
 import time
+import warnings
 from typing import Optional, Dict, Any, Union, List, cast, NamedTuple
 
 from .index_host_store import IndexHostStore
@@ -174,8 +175,6 @@ class Pinecone:
         pc.list_indexes()
 
         ```
-        
-
         """
         if config:
             if not isinstance(config, Config):
@@ -193,6 +192,9 @@ class Pinecone:
                 ssl_verify=ssl_verify,
                 **kwargs
             )
+
+        if kwargs.get("openapi_config", None):
+            warnings.warn("Passing openapi_config is deprecated and will be removed in a future release. Please pass settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at https://github.com/pinecone-io/pinecone-python-client for examples.", DeprecationWarning)
 
         self.openapi_config = ConfigBuilder.build_openapi_config(self.config, **kwargs)
         self.pool_threads = pool_threads
