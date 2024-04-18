@@ -185,10 +185,6 @@ index.query(vector=[...], top_key=10)
 
 ### Create a serverless index
 
-> [!WARNING]  
-> Serverless indexes are in **public preview** and are available only on AWS in the
-> `us-west-2` region. Check the [current limitations](https://docs.pinecone.io/docs/limits#serverless-index-limitations) and test thoroughly before using it in production.
-
 ```python
 from pinecone import Pinecone, ServerlessSpec
 
