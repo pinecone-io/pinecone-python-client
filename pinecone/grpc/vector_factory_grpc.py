@@ -86,6 +86,11 @@ class VectorFactoryGRPC:
         try:
             return GRPCVector(**item)
         except TypeError as e:
+            # Where possible raise a more specific error to the user.
+            vid = item.get("id")
+            if not isinstance(vid, bytes) and not isinstance(vid, str):
+                raise TypeError(f"Cannot set Vector.id to {vid}: {vid} has type {type(vid)}, "
+                                "but expected one of: (<class 'bytes'>, <class 'str'>) for field Vector.id")
             if not isinstance(item["values"], Iterable) or not isinstance(item["values"].__iter__().__next__(), numbers.Real):
                 raise TypeError(f"Column `values` is expected to be a list of floats")
             raise e
