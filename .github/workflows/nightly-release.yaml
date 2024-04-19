@@ -1,4 +1,4 @@
-name: 'PyPI Release: Nightly (pinecone-client-nightly)'
+name: 'PyPI Release: Nightly (pinecone-nightly)'
 
 on:
   workflow_dispatch:
@@ -55,7 +55,7 @@ jobs:
 
       - name: Adjust module name
         run: |
-          sed -i 's/pinecone-client/pinecone-client-nightly/g' pyproject.toml
+          sed -i 's/pinecone/pinecone-nightly/g' pyproject.toml
 
       - name: Update README
         run: |
