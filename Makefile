@@ -29,6 +29,10 @@ package:
 upload:
 	poetry publish --verbose --username ${PYPI_USERNAME} --password ${PYPI_PASSWORD}
 
+upload-test:
+	poetry config repositories.test-pypi https://test.pypi.org/legacy/
+	poetry publish --verbose -r test-pypi --username ${TEST_PYPI_USERNAME} --password ${TEST_PYPI_PASSWORD}
+
 upload-spruce:
 	# Configure Poetry for publishing to testpypi
 	poetry config repositories.test-pypi https://test.pypi.org/legacy/
