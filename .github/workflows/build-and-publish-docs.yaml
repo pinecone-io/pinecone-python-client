@@ -1,10 +1,11 @@
-name: 'CI (main)'
+name: "Build and publish documentation to sdk-docs"
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch: {}
+  workflow_call:
+    secrets:
+      SSH_DEPLOY_KEY:
+        required: true
 
 jobs:
   build-and-deploy-documentation:
@@ -29,4 +30,4 @@ jobs:
           user-email: clients@pinecone.io
           target-branch: main
           target-directory: python
-          commit-message: 'Python: automated documentation build - pinecone-python-client merge SHA: ${{ github.sha }}'
+          commit-message: "Python: automated documentation build - pinecone-python-client merge SHA: ${{ github.sha }}"
