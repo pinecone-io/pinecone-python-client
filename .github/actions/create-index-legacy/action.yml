@@ -32,10 +32,10 @@ runs:
       with:
         python-version: 3.9
 
-    - name: Install pinecone-client
+    - name: Install pinecone
       shell: bash
       run: |
-        pip install pinecone-client==${{ inputs.pinecone_client_version }}
+        pip install pinecone==${{ inputs.pinecone_client_version }}
     
     - name: Create index
       id: create-index

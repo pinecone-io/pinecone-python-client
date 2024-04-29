@@ -13,20 +13,20 @@ You must install extra dependencies in order to install the GRPC client.
 
 ```bash
 # Install the latest version
-pip3 install pinecone-client[grpc]
+pip3 install pinecone[grpc]
 
 # Install a specific version
-pip3 install "pinecone-client[grpc]"==3.0.0
+pip3 install "pinecone[grpc]"==3.0.0
 ```
 
 #### Installing with poetry
 
 ```bash
 # Install the latest version
-poetry add pinecone-client --extras grpc
+poetry add pinecone --extras grpc
 
 # Install a specific version
-poetry add pinecone-client==3.0.0 --extras grpc
+poetry add pinecone==3.0.0 --extras grpc
 ```
 
 ### Using the gRPC client
