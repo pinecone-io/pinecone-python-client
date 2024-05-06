@@ -1,0 +1,6 @@
+files:
+  pinecone/features/delete_index/generated/__init__.py: ad4b238278b6d97ee37833dfdf7126d41beb5a03e5d03a2f3691d1d3eb111337
+  pinecone/features/delete_index/generated/endpoint.py: 2ffa6759749a04c1ab8307d54b529fc8e5770fcd763a19cc2c72a388b61b9a72
+  pinecone/features/delete_index/spec.yaml: 35c5dcfdbe35c83a8236132f03d898f922eb1a3e99f707b58f6ffe21995c9c20
+generated_at: '2024-05-03 07:09:29'
+generated_by: jhamon

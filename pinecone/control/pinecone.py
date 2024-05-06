@@ -1,21 +1,21 @@
 import time
+import httpx
 import warnings
-from typing import Optional, Dict, Any, Union, List, cast, NamedTuple
+from typing import Optional, Dict
 
+from ..utils import get_user_agent
 from .index_host_store import IndexHostStore
 
 from pinecone.config import PineconeConfig, Config, ConfigBuilder
 
 from pinecone.core.client.api.manage_indexes_api import ManageIndexesApi
 from pinecone.utils import normalize_host, setup_openapi_client
+from pinecone.models import (
+    CollectionList
+)
 from pinecone.core.client.models import (
     CreateCollectionRequest,
-    CreateIndexRequest,
-    ConfigureIndexRequest,
-    ConfigureIndexRequestSpec,
-    ConfigureIndexRequestSpecPod
 )
-from pinecone.models import ServerlessSpec, PodSpec, IndexList, CollectionList
 
 from pinecone.data import Index
 
@@ -193,6 +193,13 @@ class Pinecone:
                 **kwargs
             )
 
+        self.http_client = httpx.Client(
+            headers={
+                'User-Agent': get_user_agent(config),
+            },
+            base_url=self.config.host
+        )
+
         if kwargs.get("openapi_config", None):
             warnings.warn("Passing openapi_config is deprecated and will be removed in a future release. Please pass settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at https://github.com/pinecone-io/pinecone-python-client for examples.", DeprecationWarning)
 
@@ -207,269 +214,6 @@ class Pinecone:
         self.index_host_store = IndexHostStore()
         """ @private """
 
-    def create_index(
-        self,
-        name: str,
-        dimension: int,
-        spec: Union[Dict, ServerlessSpec, PodSpec],
-        metric: Optional[str] = "cosine",
-        timeout: Optional[int] = None,
-    ):
-        """Creates a Pinecone index.
-
-        :param name: The name of the index to create. Must be unique within your project and 
-            cannot be changed once created. Allowed characters are lowercase letters, numbers, 
-            and hyphens and the name may not begin or end with hyphens. Maximum length is 45 characters.
-        :type name: str
-        :param dimension: The dimension of vectors that will be inserted in the index. This should
-            match the dimension of the embeddings you will be inserting. For example, if you are using
-            OpenAI's CLIP model, you should use `dimension=1536`.
-        :type dimension: int
-        :param metric: Type of metric used in the vector index when querying, one of `{"cosine", "dotproduct", "euclidean"}`. Defaults to `"cosine"`.
-            Defaults to `"cosine"`.
-        :type metric: str, optional
-        :param spec: A dictionary containing configurations describing how the index should be deployed. For serverless indexes,
-            specify region and cloud. For pod indexes, specify replicas, shards, pods, pod_type, metadata_config, and source_collection.
-        :type spec: Dict
-        :type timeout: int, optional
-        :param timeout: Specify the number of seconds to wait until index gets ready. If None, wait indefinitely; if >=0, time out after this many seconds;
-            if -1, return immediately and do not wait. Default: None
-
-        ### Creating a serverless index
-        
-        ```python
-        import os
-        from pinecone import Pinecone, ServerlessSpec
-
-        client = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
-
-        client.create_index(
-            name="my_index", 
-            dimension=1536, 
-            metric="cosine", 
-            spec=ServerlessSpec(cloud="aws", region="us-west-2")
-        )
-        ```
-
-        ### Creating a pod index
-
-        ```python
-        import os
-        from pinecone import Pinecone, PodSpec
-
-        client = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
-
-        client.create_index(
-            name="my_index",
-            dimension=1536,
-            metric="cosine",
-            spec=PodSpec(
-                environment="us-east1-gcp", 
-                pod_type="p1.x1"
-            )
-        )
-        ```
-        """
-
-        api_instance = self.index_api
-
-        if isinstance(spec, dict):
-            api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=dimension, metric=metric, spec=spec))
-        elif isinstance(spec, ServerlessSpec):
-            api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=dimension, metric=metric, spec=spec.asdict()))
-        elif isinstance(spec, PodSpec):
-            api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=dimension, metric=metric, spec=spec.asdict()))
-        else:
-            raise TypeError("spec must be of type dict, ServerlessSpec, or PodSpec")
-
-        def is_ready():
-            status = self._get_status(name)
-            ready = status["ready"]
-            return ready
-
-        if timeout == -1:
-            return
-        if timeout is None:
-            while not is_ready():
-                time.sleep(5)
-        else:
-            while (not is_ready()) and timeout >= 0:
-                time.sleep(5)
-                timeout -= 5
-        if timeout and timeout < 0:
-            raise (
-                TimeoutError(
-                    "Please call the describe_index API ({}) to confirm index status.".format(
-                        "https://www.pinecone.io/docs/api/operation/describe_index/"
-                    )
-                )
-            )
-
-    def delete_index(self, name: str, timeout: Optional[int] = None):
-        """Deletes a Pinecone index.
-
-        Deleting an index is an irreversible operation. All data in the index will be lost.
-        When you use this command, a request is sent to the Pinecone control plane to delete 
-        the index, but the termination is not synchronous because resources take a few moments to
-        be released. 
-        
-        You can check the status of the index by calling the `describe_index()` command.
-        With repeated polling of the describe_index command, you will see the index transition to a 
-        `Terminating` state before eventually resulting in a 404 after it has been removed.
-
-        :param name: the name of the index.
-        :type name: str
-        :param timeout: Number of seconds to poll status checking whether the index has been deleted. If None, 
-            wait indefinitely; if >=0, time out after this many seconds;
-            if -1, return immediately and do not wait. Default: None
-        :type timeout: int, optional
-        """
-        api_instance = self.index_api
-        api_instance.delete_index(name)
-        self.index_host_store.delete_host(self.config, name)
-
-        def get_remaining():
-            return name in self.list_indexes().names()
-
-        if timeout == -1:
-            return
-
-        if timeout is None:
-            while get_remaining():
-                time.sleep(5)
-        else:
-            while get_remaining() and timeout >= 0:
-                time.sleep(5)
-                timeout -= 5
-        if timeout and timeout < 0:
-            raise (
-                TimeoutError(
-                    "Please call the list_indexes API ({}) to confirm if index is deleted".format(
-                        "https://www.pinecone.io/docs/api/operation/list_indexes/"
-                    )
-                )
-            )
-
-    def list_indexes(self) -> IndexList:
-        """Lists all indexes.
-        
-        The results include a description of all indexes in your project, including the 
-        index name, dimension, metric, status, and spec.
-
-        :return: Returns an `IndexList` object, which is iterable and contains a 
-            list of `IndexDescription` objects. It also has a convenience method `names()`
-            which returns a list of index names.
-
-        ```python
-        from pinecone import Pinecone
-
-        client = Pinecone()
-
-        index_name = "my_index"
-        if index_name not in client.list_indexes().names():
-            print("Index does not exist, creating...")
-            client.create_index(
-                name=index_name,
-                dimension=768,
-                metric="cosine",
-                spec=ServerlessSpec(cloud="aws", region="us-west-2")
-            )
-        ```
-        
-        You can also use the `list_indexes()` method to iterate over all indexes in your project
-        and get other information besides just names.
-
-        ```python
-        from pinecone import Pinecone
-
-        client = Pinecone()
-
-        for index in client.list_indexes():
-            print(index.name)
-            print(index.dimension)
-            print(index.metric)
-            print(index.status)
-            print(index.host)
-            print(index.spec)
-        ```
-
-        """
-        response = self.index_api.list_indexes()
-        return IndexList(response)
-
-    def describe_index(self, name: str):
-        """Describes a Pinecone index.
-
-        :param name: the name of the index to describe.
-        :return: Returns an `IndexDescription` object
-        which gives access to properties such as the 
-        index name, dimension, metric, host url, status, 
-        and spec.
-
-        ### Getting your index host url
-
-        In a real production situation, you probably want to
-        store the host url in an environment variable so you
-        don't have to call describe_index and re-fetch it 
-        every time you want to use the index. But this example
-        shows how to get the value from the API using describe_index.
-
-        ```python
-        from pinecone import Pinecone, Index
-
-        client = Pinecone()
-
-        description = client.describe_index("my_index")
-        
-        host = description.host
-        print(f"Your index is hosted at {description.host}")
-
-        index = client.Index(name="my_index", host=host)
-        index.upsert(vectors=[...])
-        ```
-        """
-        api_instance = self.index_api
-        description = api_instance.describe_index(name)
-        host = description.host
-        self.index_host_store.set_host(self.config, name, host)
-
-        return description
-
-    def configure_index(self, name: str, replicas: Optional[int] = None, pod_type: Optional[str] = None):
-        """This method is used to scale configuration fields for your pod-based Pinecone index. 
-
-        :param: name: the name of the Index
-        :param: replicas: the desired number of replicas, lowest value is 0.
-        :param: pod_type: the new pod_type for the index. To learn more about the
-            available pod types, please see [Understanding Indexes](https://docs.pinecone.io/docs/indexes)
-        
-        
-        ```python
-        from pinecone import Pinecone
-
-        client = Pinecone()
-
-        # Make a configuration change
-        client.configure_index(name="my_index", replicas=4)
-
-        # Call describe_index to see the index status as the 
-        # change is applied.
-        client.describe_index("my_index")
-        ```
-
-        """
-        api_instance = self.index_api
-        config_args: Dict[str, Any] = {}
-        if pod_type:
-            config_args.update(pod_type=pod_type)
-        if replicas:
-            config_args.update(replicas=replicas)
-        configure_index_request = ConfigureIndexRequest(
-            spec=ConfigureIndexRequestSpec(
-                pod=ConfigureIndexRequestSpecPod(**config_args)
-            )
-        )
-        api_instance.configure_index(name, configure_index_request=configure_index_request)
 
     def create_collection(self, name: str, source: str):
         """Create a collection from a pod-based index

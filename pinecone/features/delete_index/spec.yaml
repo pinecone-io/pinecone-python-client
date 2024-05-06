@@ -1,0 +1,283 @@
+"/indexes/{index_name}":
+  delete:
+    operationId: delete_index
+    summary: 'Delete an index'
+    description: This operation deletes an existing index.
+    parameters:
+        - name: index_name
+          required: true
+          in: path
+          schema:
+            type: string
+          example: 'test-index'
+          description: The name of the index to delete.
+    responses:
+        '202':
+            description: The request to delete the index has been accepted.
+        '401':
+            description: 'Unauthorized. Possible causes: Invalid API key.'
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        description: The response shape used for all error responses.
+                        required:
+                            - status
+                            - error
+                        properties:
+                            status:
+                                type: integer
+                                description: The HTTP status code of the error.
+                                example: 500
+                            error:
+                                type: object
+                                description: Detailed information about the error that occurred.
+                                required:
+                                    - code
+                                    - message
+                                properties:
+                                    code:
+                                        type: string
+                                        enum:
+                                            - OK
+                                            - UNKNOWN
+                                            - INVALID_ARGUMENT
+                                            - DEADLINE_EXCEEDED
+                                            - QUOTA_EXCEEDED
+                                            - NOT_FOUND
+                                            - ALREADY_EXISTS
+                                            - PERMISSION_DENIED
+                                            - UNAUTHENTICATED
+                                            - RESOURCE_EXHAUSTED
+                                            - FAILED_PRECONDITION
+                                            - ABORTED
+                                            - OUT_OF_RANGE
+                                            - UNIMPLEMENTED
+                                            - INTERNAL
+                                            - UNAVAILABLE
+                                            - DATA_LOSS
+                                            - FORBIDDEN
+                                    message:
+                                        type: string
+                                        example: Index name must contain only lowercase alphanumeric characters or hyphens, and must not begin or end with a hyphen.
+                                    details:
+                                        description: >-
+                                            Additional information about the error. This field is not guaranteed to be present.
+                                        type: object
+                                example:
+                                    code: 'INVALID_ARGUMENT'
+                                    message: 'Index name must contain only lowercase alphanumeric characters or hyphens, and must not begin or end with a hyphen.'
+                        example:
+                            status: 429
+                            error:
+                                code: 'QUOTA_EXCEEDED'
+                                message: 'The index exceeds the project quota of 5 pods by 2 pods. Upgrade your account or change the project settings to increase the quota.'
+                    examples:
+                        unauthorized:
+                            summary: 'Unauthorized'
+                            value:
+                                status: 401
+                                error:
+                                    code: 'UNAUTHENTICATED'
+                                    message: 'Invalid API key.'
+        '404':
+            description: Index not found.
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        description: The response shape used for all error responses.
+                        required:
+                            - status
+                            - error
+                        properties:
+                            status:
+                                type: integer
+                                description: The HTTP status code of the error.
+                                example: 500
+                            error:
+                                type: object
+                                description: Detailed information about the error that occurred.
+                                required:
+                                    - code
+                                    - message
+                                properties:
+                                    code:
+                                        type: string
+                                        enum:
+                                            - OK
+                                            - UNKNOWN
+                                            - INVALID_ARGUMENT
+                                            - DEADLINE_EXCEEDED
+                                            - QUOTA_EXCEEDED
+                                            - NOT_FOUND
+                                            - ALREADY_EXISTS
+                                            - PERMISSION_DENIED
+                                            - UNAUTHENTICATED
+                                            - RESOURCE_EXHAUSTED
+                                            - FAILED_PRECONDITION
+                                            - ABORTED
+                                            - OUT_OF_RANGE
+                                            - UNIMPLEMENTED
+                                            - INTERNAL
+                                            - UNAVAILABLE
+                                            - DATA_LOSS
+                                            - FORBIDDEN
+                                    message:
+                                        type: string
+                                        example: Index name must contain only lowercase alphanumeric characters or hyphens, and must not begin or end with a hyphen.
+                                    details:
+                                        description: >-
+                                            Additional information about the error. This field is not guaranteed to be present.
+                                        type: object
+                                example:
+                                    code: 'INVALID_ARGUMENT'
+                                    message: 'Index name must contain only lowercase alphanumeric characters or hyphens, and must not begin or end with a hyphen.'
+                        example:
+                            status: 429
+                            error:
+                                code: 'QUOTA_EXCEEDED'
+                                message: 'The index exceeds the project quota of 5 pods by 2 pods. Upgrade your account or change the project settings to increase the quota.'
+                    examples:
+                        index-not-found:
+                            summary: 'Index not found'
+                            value:
+                                status: 404
+                                error:
+                                    code: 'NOT_FOUND'
+                                    message: 'Index example-index not found.'
+        '412':
+            description: There is a pending collection created from this index.
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        description: The response shape used for all error responses.
+                        required:
+                            - status
+                            - error
+                        properties:
+                            status:
+                                type: integer
+                                description: The HTTP status code of the error.
+                                example: 500
+                            error:
+                                type: object
+                                description: Detailed information about the error that occurred.
+                                required:
+                                    - code
+                                    - message
+                                properties:
+                                    code:
+                                        type: string
+                                        enum:
+                                            - OK
+                                            - UNKNOWN
+                                            - INVALID_ARGUMENT
+                                            - DEADLINE_EXCEEDED
+                                            - QUOTA_EXCEEDED
+                                            - NOT_FOUND
+                                            - ALREADY_EXISTS
+                                            - PERMISSION_DENIED
+                                            - UNAUTHENTICATED
+                                            - RESOURCE_EXHAUSTED
+                                            - FAILED_PRECONDITION
+                                            - ABORTED
+                                            - OUT_OF_RANGE
+                                            - UNIMPLEMENTED
+                                            - INTERNAL
+                                            - UNAVAILABLE
+                                            - DATA_LOSS
+                                            - FORBIDDEN
+                                    message:
+                                        type: string
+                                        example: Index name must contain only lowercase alphanumeric characters or hyphens, and must not begin or end with a hyphen.
+                                    details:
+                                        description: >-
+                                            Additional information about the error. This field is not guaranteed to be present.
+                                        type: object
+                                example:
+                                    code: 'INVALID_ARGUMENT'
+                                    message: 'Index name must contain only lowercase alphanumeric characters or hyphens, and must not begin or end with a hyphen.'
+                        example:
+                            status: 429
+                            error:
+                                code: 'QUOTA_EXCEEDED'
+                                message: 'The index exceeds the project quota of 5 pods by 2 pods. Upgrade your account or change the project settings to increase the quota.'
+                    examples:
+                        pending-collection:
+                            summary: 'There is a pending collection from this index.'
+                            value:
+                                status: 412
+                                error:
+                                    code: 'FAILED_PRECONDITION'
+                                    message: >-
+                                        Unable to delete an index. There are pending collections for this index: ['test-collection']
+        '500':
+            description: Internal server error.
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        description: The response shape used for all error responses.
+                        required:
+                            - status
+                            - error
+                        properties:
+                            status:
+                                type: integer
+                                description: The HTTP status code of the error.
+                                example: 500
+                            error:
+                                type: object
+                                description: Detailed information about the error that occurred.
+                                required:
+                                    - code
+                                    - message
+                                properties:
+                                    code:
+                                        type: string
+                                        enum:
+                                            - OK
+                                            - UNKNOWN
+                                            - INVALID_ARGUMENT
+                                            - DEADLINE_EXCEEDED
+                                            - QUOTA_EXCEEDED
+                                            - NOT_FOUND
+                                            - ALREADY_EXISTS
+                                            - PERMISSION_DENIED
+                                            - UNAUTHENTICATED
+                                            - RESOURCE_EXHAUSTED
+                                            - FAILED_PRECONDITION
+                                            - ABORTED
+                                            - OUT_OF_RANGE
+                                            - UNIMPLEMENTED
+                                            - INTERNAL
+                                            - UNAVAILABLE
+                                            - DATA_LOSS
+                                            - FORBIDDEN
+                                    message:
+                                        type: string
+                                        example: Index name must contain only lowercase alphanumeric characters or hyphens, and must not begin or end with a hyphen.
+                                    details:
+                                        description: >-
+                                            Additional information about the error. This field is not guaranteed to be present.
+                                        type: object
+                                example:
+                                    code: 'INVALID_ARGUMENT'
+                                    message: 'Index name must contain only lowercase alphanumeric characters or hyphens, and must not begin or end with a hyphen.'
+                        example:
+                            status: 429
+                            error:
+                                code: 'QUOTA_EXCEEDED'
+                                message: 'The index exceeds the project quota of 5 pods by 2 pods. Upgrade your account or change the project settings to increase the quota.'
+                    examples:
+                        internal-server-error:
+                            summary: 'Internal server error'
+                            value:
+                                status: 500
+                                error:
+                                    code: 'UNKNOWN'
+                                    message: 'Internal server error'
+    tags:
+        - Manage Indexes

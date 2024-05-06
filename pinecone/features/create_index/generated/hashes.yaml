@@ -1,0 +1,6 @@
+files:
+  pinecone/features/create_index/generated/__init__.py: b5a3046ae65b2f265794fbaa0fe20eb42b3a3a309d0c273da89a203a063eb981
+  pinecone/features/create_index/generated/endpoint.py: 8108d3c32369b492436ddeebeb7235256df070ff66256c6f48ac8c96b4920574
+  pinecone/features/create_index/spec.yaml: 471171f1ffb3b7eeb92f40e2f7dae5e2f433275d560c68f6169dfb31ac4abfd7
+generated_at: '2024-05-03 07:09:29'
+generated_by: jhamon
