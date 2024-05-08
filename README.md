@@ -186,7 +186,7 @@ index.query(vector=[...], top_key=10)
 ### Create a serverless index
 
 The following example creates a serverless index in the `us-west-2`
-region of AWS.
+region of AWS. For more information on serverless and regional availability, see [Understanding indexes](https://docs.pinecone.io/guides/indexes/understanding-indexes#serverless-indexes).
 
 ```python
 from pinecone import Pinecone, ServerlessSpec
