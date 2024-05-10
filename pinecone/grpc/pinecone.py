@@ -125,5 +125,7 @@ class PineconeGRPC(Pinecone):
 
         config = ConfigBuilder.build(api_key=self.config.api_key,
                                      host=index_host,
-                                     source_tag=self.config.source_tag)
+                                     source_tag=self.config.source_tag,
+                                     proxy_url=self.config.proxy_url,
+                                     ssl_ca_certs=self.config.ssl_ca_certs)
         return GRPCIndex(index_name=name, config=config, **kwargs)
