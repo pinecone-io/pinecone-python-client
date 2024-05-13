@@ -40,6 +40,9 @@ def run_cmd(cmd, output):
     if exit_code != 0:
         raise Exception(f"Failed to run command: {cmd}")
 
+def use_grpc():
+    return os.environ.get('USE_GRPC', 'false') == 'true'
+
 @pytest.fixture(scope='session', autouse=True)
 def start_docker():
     with open("tests/integration/proxy_config/logs/proxyconfig-docker-start.log", "a") as output:
@@ -62,6 +65,15 @@ def proxy1():
 @pytest.fixture()
 def proxy2():
     return PROXIES['proxy2']
+
+@pytest.fixture()
+def client_cls():
+    if use_grpc():
+        from pinecone.grpc import PineconeGRPC
+        return PineconeGRPC
+    else:
+        from pinecone import Pinecone
+        return Pinecone
 
 @pytest.fixture()
 def api_key():

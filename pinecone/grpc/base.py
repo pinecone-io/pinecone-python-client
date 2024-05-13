@@ -101,6 +101,8 @@ class GRPCIndexBase(ABC):
         }
         if self.grpc_client_config.secure:
             default_options["grpc.ssl_target_name_override"] = target.split(":")[0]
+        if self.config.proxy_url:
+            default_options["grpc.http_proxy"] = self.config.proxy_url
         user_provided_options = options or {}
         _options = tuple((k, v) for k, v in {**default_options, **user_provided_options}.items())
         _logger.debug(
@@ -109,7 +111,8 @@ class GRPCIndexBase(ABC):
         if not self.grpc_client_config.secure:
             channel = grpc.insecure_channel(target, options=_options)
         else:
-            root_cas = open(certifi.where(), "rb").read()
+            ca_certs = self.config.ssl_ca_certs if self.config.ssl_ca_certs else certifi.where()
+            root_cas = open(ca_certs, "rb").read()
             tls = grpc.ssl_channel_credentials(root_certificates=root_cas)
             channel = grpc.secure_channel(target, tls, options=_options)
 
