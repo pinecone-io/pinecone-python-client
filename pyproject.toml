@@ -16,7 +16,7 @@ exclude = '''
 
 [tool.poetry]
 name = "pinecone-client"
-version = "4.0.0"
+version = "4.1.0"
 packages = [
     { include="pinecone", from="." },
 ]
