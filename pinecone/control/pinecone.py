@@ -16,6 +16,7 @@ from pinecone.core.client.models import (
     ConfigureIndexRequestSpecPod
 )
 from pinecone.models import ServerlessSpec, PodSpec, IndexList, CollectionList
+from .langchain_import_warnings import _build_langchain_attribute_error_message
 
 from pinecone.data import Index
 
@@ -545,6 +546,13 @@ class Pinecone:
         response = api_instance.describe_index(name)
         return response["status"]
 
+    @staticmethod
+    def from_texts(*args, **kwargs):
+        raise AttributeError(_build_langchain_attribute_error_message("from_texts"))
+    
+    @staticmethod
+    def from_documents(*args, **kwargs):
+        raise AttributeError(_build_langchain_attribute_error_message("from_documents"))
 
     def Index(self, name: str = '', host: str = '', **kwargs):
         """
