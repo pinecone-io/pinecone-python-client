@@ -17,6 +17,10 @@ class PineconeProtocolError(PineconeException):
 class PineconeConfigurationError(PineconeException):
     """Raised when a configuration error occurs."""
 
+class ListConversionException(PineconeException, TypeError):
+    def __init__(self, message):
+        super().__init__(message)
+
 __all__ = [
     "PineconeConfigurationError",
     "PineconeProtocolError",
@@ -30,4 +34,5 @@ __all__ = [
     "UnauthorizedException",
     "ForbiddenException",
     "ServiceException",
+    "ListConversionException"
 ]

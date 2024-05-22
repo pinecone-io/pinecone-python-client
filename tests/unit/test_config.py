@@ -6,6 +6,8 @@ from pinecone.core.client.configuration import Configuration as OpenApiConfigura
 import pytest
 import os
 
+from urllib3 import make_headers
+
 class TestConfig:
     @pytest.fixture(autouse=True)
     def run_before_and_after_tests(tmpdir):
@@ -49,13 +51,15 @@ class TestConfig:
     def test_init_with_kwargs(self):
         api_key = "my-api-key"
         controller_host = "my-controller-host"
-        openapi_config = OpenApiConfiguration(api_key="openapi-api-key")
+        ssl_ca_cert = 'path/to/cert-bundle.pem'
 
-        config = PineconeConfig.build(api_key=api_key, host=controller_host, openapi_config=openapi_config)
+        openapi_config = OpenApiConfiguration()
+
+        config = PineconeConfig.build(api_key=api_key, host=controller_host, ssl_ca_certs=ssl_ca_cert, openapi_config=openapi_config)
 
         assert config.api_key == api_key
         assert config.host == 'https://' + controller_host
-        assert config.openapi_config == openapi_config
+        assert config.ssl_ca_certs == 'path/to/cert-bundle.pem'
 
     def test_resolution_order_kwargs_over_env_vars(self):
         """
@@ -84,5 +88,60 @@ class TestConfig:
         pc = Pinecone(api_key="test-api-key", host="test-controller-host", pool_threads=10)
         assert pc.index_api.api_client.pool_threads == 10
         idx = pc.Index(host='my-index-host', name='my-index-name')
-        assert idx._api_client.pool_threads == 10
+        assert idx._vector_api.api_client.pool_threads == 10
+        
+    def test_config_when_openapi_config_is_passed_merges_api_key(self):
+        oai_config = OpenApiConfiguration()
+        pc = Pinecone(api_key='asdf', openapi_config=oai_config)
+        assert pc.openapi_config.api_key == {'ApiKeyAuth': 'asdf'}
+
+    def test_ssl_config_passed_to_index_client(self):
+        oai_config = OpenApiConfiguration()
+        oai_config.ssl_ca_cert = 'path/to/cert'
+        proxy_headers = make_headers(proxy_basic_auth='asdf')
+        oai_config.proxy_headers = proxy_headers
+        
+        pc = Pinecone(api_key='key', openapi_config=oai_config)
+
+        assert pc.openapi_config.ssl_ca_cert == 'path/to/cert'
+        assert pc.openapi_config.proxy_headers == proxy_headers
+
+        idx = pc.Index(host='host')
+        assert idx._vector_api.api_client.configuration.ssl_ca_cert == 'path/to/cert'
+        assert idx._vector_api.api_client.configuration.proxy_headers == proxy_headers
+
+    def test_host_config_not_clobbered_by_index(self):
+        oai_config = OpenApiConfiguration()
+        oai_config.ssl_ca_cert = 'path/to/cert'
+        proxy_headers = make_headers(proxy_basic_auth='asdf')
+        oai_config.proxy_headers = proxy_headers
+        
+        pc = Pinecone(api_key='key', openapi_config=oai_config)
+
+        assert pc.openapi_config.ssl_ca_cert == 'path/to/cert'
+        assert pc.openapi_config.proxy_headers == proxy_headers
+        assert pc.openapi_config.host == 'https://api.pinecone.io'
+
+        idx = pc.Index(host='host')
+        assert idx._vector_api.api_client.configuration.ssl_ca_cert == 'path/to/cert'
+        assert idx._vector_api.api_client.configuration.proxy_headers == proxy_headers
+        assert idx._vector_api.api_client.configuration.host == 'https://host'
+
+        assert pc.openapi_config.host == 'https://api.pinecone.io'
+
+    def test_proxy_config(self):
+        pc = Pinecone(
+            api_key='asdf', 
+            proxy_url='http://localhost:8080',
+            ssl_ca_certs='path/to/cert-bundle.pem',
+        )
+
+        assert pc.config.proxy_url == 'http://localhost:8080'
+        assert pc.config.ssl_ca_certs == 'path/to/cert-bundle.pem'
+
+        assert pc.openapi_config.proxy == 'http://localhost:8080'
+        assert pc.openapi_config.ssl_ca_cert == 'path/to/cert-bundle.pem'
+
+        assert pc.index_api.api_client.configuration.proxy == 'http://localhost:8080'
+        assert pc.index_api.api_client.configuration.ssl_ca_cert == 'path/to/cert-bundle.pem'
         

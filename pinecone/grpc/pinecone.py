@@ -120,13 +120,12 @@ class PineconeGRPC(Pinecone):
         if name == '' and host == '':
             raise ValueError("Either name or host must be specified")
 
-        if host != '':
-            # Use host if it is provided
-            config = ConfigBuilder.build(api_key=self.config.api_key, host=host)
-            return GRPCIndex(index_name=name, config=config, **kwargs)
+        # Use host if it is provided, otherwise get host from describe_index
+        index_host = host or self.index_host_store.get_host(self.index_api, self.config, name)
 
-        if name != '':
-            # Otherwise, get host url from describe_index using the index name
-            index_host = self.index_host_store.get_host(self.index_api, self.config, name)
-            config = ConfigBuilder.build(api_key=self.config.api_key, host=index_host)
-            return GRPCIndex(index_name=name, config=config, **kwargs)
+        config = ConfigBuilder.build(api_key=self.config.api_key,
+                                     host=index_host,
+                                     source_tag=self.config.source_tag,
+                                     proxy_url=self.config.proxy_url,
+                                     ssl_ca_certs=self.config.ssl_ca_certs)
+        return GRPCIndex(index_name=name, config=config, **kwargs)

@@ -1,13 +1,13 @@
 import time
+import warnings
 from typing import Optional, Dict, Any, Union, List, cast, NamedTuple
 
 from .index_host_store import IndexHostStore
 
-from pinecone.config import PineconeConfig, Config
+from pinecone.config import PineconeConfig, Config, ConfigBuilder
 
 from pinecone.core.client.api.manage_indexes_api import ManageIndexesApi
-from pinecone.core.client.api_client import ApiClient
-from pinecone.utils import get_user_agent, normalize_host
+from pinecone.utils import normalize_host, setup_openapi_client
 from pinecone.core.client.models import (
     CreateCollectionRequest,
     CreateIndexRequest,
@@ -16,6 +16,7 @@ from pinecone.core.client.models import (
     ConfigureIndexRequestSpecPod
 )
 from pinecone.models import ServerlessSpec, PodSpec, IndexList, CollectionList
+from .langchain_import_warnings import _build_langchain_attribute_error_message
 
 from pinecone.data import Index
 
@@ -25,6 +26,10 @@ class Pinecone:
         self,
         api_key: Optional[str] = None,
         host: Optional[str] = None,
+        proxy_url: Optional[str] = None,
+        proxy_headers: Optional[Dict[str, str]] = None,
+        ssl_ca_certs: Optional[str] = None,
+        ssl_verify: Optional[bool] = None,
         config: Optional[Config] = None,
         additional_headers: Optional[Dict[str, str]] = {},
         pool_threads: Optional[int] = 1,
@@ -39,6 +44,14 @@ class Pinecone:
         :type api_key: str, optional
         :param host: The control plane host to connect to.
         :type host: str, optional
+        :param proxy_url: The URL of the proxy to use for the connection. Default: `None`
+        :type proxy_url: str, optional
+        :param proxy_headers: Additional headers to pass to the proxy. Use this if your proxy setup requires authentication. Default: `{}`
+        :type proxy_headers: Dict[str, str], optional
+        :param ssl_ca_certs: The path to the SSL CA certificate bundle to use for the connection. This path should point to a file in PEM format. Default: `None`
+        :type ssl_ca_certs: str, optional   
+        :param ssl_verify: SSL verification is performed by default, but can be disabled using the boolean flag. Default: `True`
+        :type ssl_verify: bool, optional
         :param config: A `pinecone.config.Config` object. If passed, the `api_key` and `host` parameters will be ignored.
         :type config: pinecone.config.Config, optional
         :param additional_headers: Additional headers to pass to the API. Default: `{}`
@@ -84,26 +97,113 @@ class Pinecone:
         request parameters to print out an equivalent curl command that you can run yourself
         or share with Pinecone support. **Be very careful with this option, as it will print out 
         your API key** which forms part of a required authentication header. Default: `false`
+        
+        ### Proxy configuration
+
+        If your network setup requires you to interact with Pinecone via a proxy, you will need
+        to pass additional configuration using optional keyword parameters. These optional parameters
+        are forwarded to `urllib3`, which is the underlying library currently used by the Pinecone client to
+        make HTTP requests. You may find it helpful to refer to the 
+        [urllib3 documentation on working with proxies](https://urllib3.readthedocs.io/en/stable/advanced-usage.html#http-and-https-proxies) 
+        while troubleshooting these settings. 
+        
+        Here is a basic example:
+
+        ```python
+        from pinecone import Pinecone
+
+        pc = Pinecone(
+            api_key='YOUR_API_KEY',
+            proxy_url='https://your-proxy.com'
+        )
+
+        pc.list_indexes()
+        ```
+
+        If your proxy requires authentication, you can pass those values in a header dictionary using the `proxy_headers` parameter.
+
+        ```python
+        from pinecone import Pinecone
+        import urllib3 import make_headers
+
+        pc = Pinecone(
+            api_key='YOUR_API_KEY',
+            proxy_url='https://your-proxy.com',
+            proxy_headers=make_headers(proxy_basic_auth='username:password')
+        )
+
+        pc.list_indexes()
+        ```
+
+        ### Using proxies with self-signed certificates
+
+        By default the Pinecone Python client will perform SSL certificate verification 
+        using the CA bundle maintained by Mozilla in the [certifi](https://pypi.org/project/certifi/) package. 
+        If your proxy server is using a self-signed certificate, you will need to pass the path to the certificate
+        in PEM format using the `ssl_ca_certs` parameter.
+
+        ```python
+        from pinecone import Pinecone
+        import urllib3 import make_headers
+
+        pc = Pinecone(
+            api_key='YOUR_API_KEY',
+            proxy_url='https://your-proxy.com',
+            proxy_headers=make_headers(proxy_basic_auth='username:password'),
+            ssl_ca_certs='path/to/cert-bundle.pem'
+        )
+
+        pc.list_indexes()
+        ```
+
+        ### Disabling SSL verification
+
+        If you would like to disable SSL verification, you can pass the `ssl_verify` 
+        parameter with a value of `False`. We do not recommend going to production with SSL verification disabled.
+
+        ```python
+        from pinecone import Pinecone
+        import urllib3 import make_headers
+
+        pc = Pinecone(
+            api_key='YOUR_API_KEY',
+            proxy_url='https://your-proxy.com',
+            proxy_headers=make_headers(proxy_basic_auth='username:password'),
+            ssl_ca_certs='path/to/cert-bundle.pem',
+            ssl_verify=False
+        )
+
+        pc.list_indexes()
+
+        ```
         """
-        if config or kwargs.get("config"):
-            configKwarg = config or kwargs.get("config")
-            if not isinstance(configKwarg, Config):
+        if config:
+            if not isinstance(config, Config):
                 raise TypeError("config must be of type pinecone.config.Config")
             else:
-                self.config = configKwarg
+                self.config = config
         else:
-            self.config = PineconeConfig.build(api_key=api_key, host=host, additional_headers=additional_headers, **kwargs)
+            self.config = PineconeConfig.build(
+                api_key=api_key, 
+                host=host,
+                additional_headers=additional_headers,
+                proxy_url=proxy_url,
+                proxy_headers=proxy_headers,
+                ssl_ca_certs=ssl_ca_certs,
+                ssl_verify=ssl_verify,
+                **kwargs
+            )
 
+        if kwargs.get("openapi_config", None):
+            warnings.warn("Passing openapi_config is deprecated and will be removed in a future release. Please pass settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at https://github.com/pinecone-io/pinecone-python-client for examples.", DeprecationWarning)
+
+        self.openapi_config = ConfigBuilder.build_openapi_config(self.config, **kwargs)
         self.pool_threads = pool_threads
+
         if index_api:
             self.index_api = index_api
         else:
-            api_client = ApiClient(configuration=self.config.openapi_config, pool_threads=self.pool_threads)
-            api_client.user_agent = get_user_agent()
-            extra_headers = self.config.additional_headers or {}
-            for key, value in extra_headers.items():
-                api_client.set_default_header(key, value)
-            self.index_api = ManageIndexesApi(api_client)
+            self.index_api = setup_openapi_client(ManageIndexesApi, self.config, self.openapi_config, pool_threads)
 
         self.index_host_store = IndexHostStore()
         """ @private """
@@ -446,6 +546,13 @@ class Pinecone:
         response = api_instance.describe_index(name)
         return response["status"]
 
+    @staticmethod
+    def from_texts(*args, **kwargs):
+        raise AttributeError(_build_langchain_attribute_error_message("from_texts"))
+    
+    @staticmethod
+    def from_documents(*args, **kwargs):
+        raise AttributeError(_build_langchain_attribute_error_message("from_documents"))
 
     def Index(self, name: str = '', host: str = '', **kwargs):
         """
@@ -521,12 +628,21 @@ class Pinecone:
             raise ValueError("Either name or host must be specified")
         
         pt = kwargs.pop('pool_threads', None) or self.pool_threads
+        api_key = self.config.api_key
+        openapi_config = self.openapi_config
 
         if host != '':
             # Use host url if it is provided
-            return Index(api_key=self.config.api_key, host=normalize_host(host), pool_threads=pt, **kwargs)
-
-        if name != '':
+            index_host=normalize_host(host)
+        else:
             # Otherwise, get host url from describe_index using the index name
             index_host = self.index_host_store.get_host(self.index_api, self.config, name)
-            return Index(api_key=self.config.api_key, host=index_host, pool_threads=pt, **kwargs)
+
+        return Index(
+            host=index_host,
+            api_key=api_key,
+            pool_threads=pt,
+            openapi_config=openapi_config,
+            source_tag=self.config.source_tag,
+            **kwargs
+        )

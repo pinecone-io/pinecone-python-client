@@ -84,7 +84,7 @@ class VectorServiceServicer(object):
 
         The `fetch` operation looks up and returns vectors, by ID, from a single namespace. The returned vectors include the vector data and/or metadata.
 
-        For guidance and examples, see [Fetch data](https://docs.pinecone.io/reference/fetch).
+        For guidance and examples, see [Fetch data](https://docs.pinecone.io/docs/fetch-data).
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -121,7 +121,7 @@ class VectorServiceServicer(object):
 
         The `update` operation updates a vector in a namespace. If a value is included, it will overwrite the previous value. If a `set_metadata` is included, the values of the fields specified in it will be added or overwrite the previous value.
 
-        For guidance and examples, see [Update data](https://docs.pinecone.io/reference/update).
+        For guidance and examples, see [Update data](https://docs.pinecone.io/docs/update-data).
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')

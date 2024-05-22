@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 
 from pinecone.data.vector_factory import VectorFactory
-from pinecone import Vector, SparseValues
+from pinecone import Vector, SparseValues, ListConversionException
 
 class TestVectorFactory:
     def test_build_when_returns_vector_unmodified(self):
@@ -11,29 +11,43 @@ class TestVectorFactory:
         assert VectorFactory.build(vec) == vec
         assert VectorFactory.build(vec).__class__ == Vector
 
-    def test_build_when_tuple_with_two_values(self):
-        tup = ('1', [0.1, 0.2, 0.3])
+    @pytest.mark.parametrize('values_array', [
+        [0.1, 0.2, 0.3],
+        np.array([0.1, 0.2, 0.3]),
+        pd.array([0.1, 0.2, 0.3])
+    ])
+    def test_build_when_tuple_with_two_values(self, values_array):
+        tup = ('1', values_array)
         actual = VectorFactory.build(tup)
         expected = Vector(id='1', values=[0.1, 0.2, 0.3], metadata={})
         assert actual == expected 
     
-    def test_build_when_tuple_with_three_values(self):
-        tup = ('1', [0.1, 0.2, 0.3], {'genre': 'comedy'})
+    @pytest.mark.parametrize('values_array', [
+        [0.1, 0.2, 0.3],
+        np.array([0.1, 0.2, 0.3]),
+        pd.array([0.1, 0.2, 0.3])
+    ])
+    def test_build_when_tuple_with_three_values(self, values_array):
+        tup = ('1', values_array, {'genre': 'comedy'})
         actual = VectorFactory.build(tup)
         expected = Vector(id='1', values=[0.1, 0.2, 0.3], metadata={'genre': 'comedy'})
         assert actual == expected
 
-    def test_build_when_tuple_with_numpy_array(self):
-        tup = ('1', np.array([0.1, 0.2, 0.3]), {'genre': 'comedy'})
-        actual = VectorFactory.build(tup)
-        expected = Vector(id='1', values=[0.1, 0.2, 0.3], metadata={'genre': 'comedy'})
-        assert actual == expected
+    @pytest.mark.parametrize("vector_tup", [
+        ("1", 'not an array'),
+        ("1", {}),
+        ("1", None),
+        ("1", 'not an array', {"genre": "comedy"}),
+        ("1", {}, {"genre": "comedy"}),
+        ("1", None, {"genre": "comedy"}),
+    ])
+    def test_build_when_tuple_values_must_be_list(self, vector_tup):
+        with pytest.raises(
+            ListConversionException,
+            match="Expected a list or list-like data structure",
+        ):
+            VectorFactory.build(vector_tup)
 
-    def test_build_when_tuple_with_pandas_array(self):
-        tup = ('1', pd.array([0.1, 0.2, 0.3]))
-        actual = VectorFactory.build(tup)
-        expected = Vector(id='1', values=[0.1, 0.2, 0.3], metadata={})
-        assert actual == expected
 
     def test_build_when_tuple_errors_when_additional_fields(self):
         with pytest.raises(ValueError, match="Found a tuple of length 4 which is not supported"):
@@ -45,20 +59,13 @@ class TestVectorFactory:
             tup = ('1',)
             VectorFactory.build(tup)
 
-    def test_build_when_dict(self):
-        d = { 'id': '1', 'values': [0.1, 0.2, 0.3], 'metadata': {'genre': 'comedy'}}
-        actual = VectorFactory.build(d)
-        expected = Vector(id='1', values=[0.1, 0.2, 0.3], metadata={'genre': 'comedy'})
-        assert actual == expected
-
-    def test_build_when_dict_with_numpy_values(self):
-        d = { 'id': '1', 'values': np.array([0.1, 0.2, 0.3]), 'metadata': {'genre': 'comedy'}}
-        actual = VectorFactory.build(d)
-        expected = Vector(id='1', values=[0.1, 0.2, 0.3], metadata={'genre': 'comedy'})
-        assert actual == expected
-
-    def test_build_when_dict_with_pandas_values(self):
-        d = { 'id': '1', 'values': pd.array([0.1, 0.2, 0.3]), 'metadata': {'genre': 'comedy'}}
+    @pytest.mark.parametrize('values_array', [
+        [0.1, 0.2, 0.3],
+        np.array([0.1, 0.2, 0.3]),
+        pd.array([0.1, 0.2, 0.3])
+    ])
+    def test_build_when_dict(self, values_array):
+        d = { 'id': '1', 'values': values_array, 'metadata': {'genre': 'comedy'}}
         actual = VectorFactory.build(d)
         expected = Vector(id='1', values=[0.1, 0.2, 0.3], metadata={'genre': 'comedy'})
         assert actual == expected
@@ -137,3 +144,14 @@ class TestVectorFactory:
     def test_build_when_errors_when_other_type(self):
         with pytest.raises(ValueError, match="Invalid vector value passed: cannot interpret type"):
             VectorFactory.build(1)
+
+    def test_build_when_sparse_values_is_None(self):
+        d = {
+            'id': '1',
+            'values': [0.1, 0.2, 0.3],
+            'metadata': {'genre': 'comedy'},
+            'sparse_values': None
+        }
+        actual = VectorFactory.build(d)
+        expected = Vector(id='1', values=[0.1, 0.2, 0.3], metadata={'genre': 'comedy'})
+        assert actual == expected

@@ -28,3 +28,5 @@ CLIENT_ID = f"python-client-{CLIENT_VERSION}"
 
 REQUIRED_VECTOR_FIELDS = {"id", "values"}
 OPTIONAL_VECTOR_FIELDS = {"sparse_values", "metadata"}
+
+SOURCE_TAG = "source_tag"

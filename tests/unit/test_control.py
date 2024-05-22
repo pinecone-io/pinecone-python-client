@@ -1,7 +1,10 @@
 import pytest
-from pinecone import Pinecone, PodSpec, ServerlessSpec
+import re
+from pinecone import ConfigBuilder, Pinecone, PodSpec, ServerlessSpec
 from pinecone.core.client.models import IndexList, IndexModel
 from pinecone.core.client.api.manage_indexes_api import ManageIndexesApi
+from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
+
 import time
 
 @pytest.fixture
@@ -38,6 +41,15 @@ class TestControl:
         p = Pinecone(api_key="123-456-789", additional_headers=extras)
         assert p.index_api.api_client.default_headers['User-Agent'] == 'test-user-agent'
         assert len(p.index_api.api_client.default_headers) == 1
+
+    def test_set_source_tag_in_useragent(self):
+        p = Pinecone(api_key="123-456-789", source_tag="test_source_tag")
+        assert re.search(r"source_tag=test_source_tag", p.index_api.api_client.user_agent) is not None
+
+    def test_set_source_tag_in_useragent_via_config(self):
+        config = ConfigBuilder.build(api_key='YOUR_API_KEY', host='https://my-host', source_tag='my_source_tag')
+        p = Pinecone(config=config)
+        assert re.search(r"source_tag=my_source_tag", p.index_api.api_client.user_agent) is not None
 
     @pytest.mark.parametrize("timeout_value, describe_index_responses, expected_describe_index_calls, expected_sleep_calls", [
         # When timeout=None, describe_index is called until ready
@@ -107,25 +119,29 @@ class TestControl:
         response = p.list_indexes()
         assert [i.name for i in response] == ["index1", "index2", "index3"]
 
+    def test_api_key_and_openapi_config(self, mocker):
+        p = Pinecone(api_key="123", openapi_config=OpenApiConfiguration.get_default_copy())
+        assert p.config.api_key == "123"
 
 class TestIndexConfig:
     def test_default_pool_threads(self):
         pc = Pinecone(api_key="123-456-789")
         index = pc.Index(host='my-host.svg.pinecone.io')
-        assert index._api_client.pool_threads == 1
+        assert index._vector_api.api_client.pool_threads == 1
 
     def test_pool_threads_when_indexapi_passed(self):
         pc = Pinecone(api_key="123-456-789", pool_threads=2, index_api=ManageIndexesApi())
         index = pc.Index(host='my-host.svg.pinecone.io')
-        assert index._api_client.pool_threads == 2
+        assert index._vector_api.api_client.pool_threads == 2
 
     def test_target_index_with_pool_threads_inherited(self):
         pc = Pinecone(api_key="123-456-789", pool_threads=10, foo='bar')
         index = pc.Index(host='my-host.svg.pinecone.io')
-        assert index._api_client.pool_threads == 10
+        assert index._vector_api.api_client.pool_threads == 10
 
     def test_target_index_with_pool_threads_kwarg(self):
         pc = Pinecone(api_key="123-456-789", pool_threads=10)
         index = pc.Index(host='my-host.svg.pinecone.io', pool_threads=5)
-        assert index._api_client.pool_threads == 5
+        assert index._vector_api.api_client.pool_threads == 5
+
 

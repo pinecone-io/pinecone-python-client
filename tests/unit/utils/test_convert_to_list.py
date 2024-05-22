@@ -37,3 +37,23 @@ def test_convert_to_list_when_already_list():
     actual = convert_to_list(obj)
     expected = [1, 2, 3]
     assert actual == expected
+
+@pytest.mark.parametrize("input", [
+    "",
+    "not a list",
+    {}
+])
+def test_invalid_iterable_inputs(input):
+    with pytest.raises(TypeError, match="Expected a list or list-like data structure"):
+        convert_to_list(input)
+
+@pytest.mark.parametrize("invalid_input", [
+    None,
+    1,
+    0,
+    1.0,
+    True
+])
+def test_invalid_non_iterable_input(invalid_input):
+    with pytest.raises(TypeError, match="Expected a list or list-like data structure"):
+        convert_to_list(invalid_input)

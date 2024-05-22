@@ -14,6 +14,7 @@ from pinecone import Config
 from .utils import _generate_request_id
 from .config import GRPCClientConfig
 from pinecone.utils.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSION
+from pinecone.utils.user_agent import get_user_agent_grpc
 from pinecone.exceptions import PineconeException
 
 _logger = logging.getLogger(__name__)
@@ -77,7 +78,8 @@ class GRPCIndexBase(ABC):
             }
         )
 
-        self._channel = channel or self._gen_channel()
+        options = {"grpc.primary_user_agent": get_user_agent_grpc(config)}
+        self._channel = channel or self._gen_channel(options=options)
         self.stub = self.stub_class(self._channel)
 
     @property
@@ -99,6 +101,8 @@ class GRPCIndexBase(ABC):
         }
         if self.grpc_client_config.secure:
             default_options["grpc.ssl_target_name_override"] = target.split(":")[0]
+        if self.config.proxy_url:
+            default_options["grpc.http_proxy"] = self.config.proxy_url
         user_provided_options = options or {}
         _options = tuple((k, v) for k, v in {**default_options, **user_provided_options}.items())
         _logger.debug(
@@ -107,7 +111,8 @@ class GRPCIndexBase(ABC):
         if not self.grpc_client_config.secure:
             channel = grpc.insecure_channel(target, options=_options)
         else:
-            root_cas = open(certifi.where(), "rb").read()
+            ca_certs = self.config.ssl_ca_certs if self.config.ssl_ca_certs else certifi.where()
+            root_cas = open(ca_certs, "rb").read()
             tls = grpc.ssl_channel_credentials(root_certificates=root_cas)
             channel = grpc.secure_channel(target, tls, options=_options)
 
