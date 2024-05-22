@@ -27,6 +27,9 @@ class PineconeGrpcFuture:
         except _MultiThreadedRendezvous as e:
             raise PineconeException(e._state.debug_error_string) from e
 
+    # The normal client uses get() for async results.
+    get = result
+
     def exception(self, timeout=None):
         return self._delegate.exception(timeout=timeout)
 
