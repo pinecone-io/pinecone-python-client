@@ -7,11 +7,11 @@ import re
 def _build_source_tag_field(source_tag):
     # normalize source tag
     # 1. Lowercase
-    # 2. Limit charset to [a-z0-9_ ]
+    # 2. Limit charset to [a-z0-9_ :]
     # 3. Trim left/right whitespace
     # 4. Condense multiple spaces to one, and replace with underscore
     tag = source_tag.lower()
-    tag = re.sub(r'[^a-z0-9_ ]', '', tag)
+    tag = re.sub(r'[^a-z0-9_ :]', '', tag)
     tag = tag.strip()
     tag = "_".join(tag.split())
     return f"{SOURCE_TAG}={tag}"
