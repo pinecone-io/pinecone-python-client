@@ -98,6 +98,7 @@ class GRPCIndexBase(ABC):
             "grpc.max_receive_message_length": MAX_MSG_SIZE,
             "grpc.service_config": self.method_config,
             "grpc.enable_retries": True,
+            "grpc.per_rpc_retry_buffer_size": MAX_MSG_SIZE,
         }
         if self.grpc_client_config.secure:
             default_options["grpc.ssl_target_name_override"] = target.split(":")[0]
