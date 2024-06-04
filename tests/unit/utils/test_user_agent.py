@@ -33,6 +33,10 @@ class TestUserAgent():
         useragent = get_user_agent(config)
         assert re.search(r"source_tag=my_source_tag_123", useragent) is not None
 
+        config = ConfigBuilder.build(api_key="my-api-key", host="https://my-controller-host", source_tag="colon:allowed")
+        useragent = get_user_agent(config)
+        assert re.search(r"source_tag=colon:allowed", useragent) is not None
+
     def test_user_agent_grpc(self):
         config = ConfigBuilder.build(api_key="my-api-key", host="https://my-controller-host")
         useragent = get_user_agent_grpc(config)
