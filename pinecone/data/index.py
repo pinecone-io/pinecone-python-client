@@ -86,7 +86,13 @@ class Index():
         )
         openapi_config = ConfigBuilder.build_openapi_config(self._config, openapi_config)
         
-        self._vector_api = setup_openapi_client(DataPlaneApi, self._config, openapi_config, pool_threads)
+        self._vector_api = setup_openapi_client(
+            api_client_klass=ApiClient,
+            api_klass=DataPlaneApi,
+            config=self._config,
+            openapi_config=openapi_config,
+            pool_threads=pool_threads
+        )
     
     def __enter__(self):
         return self
