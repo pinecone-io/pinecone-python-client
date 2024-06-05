@@ -1,5 +1,6 @@
 import time
 import warnings
+import logging
 from typing import Optional, Dict, Any, Union, List, cast, NamedTuple
 
 from .index_host_store import IndexHostStore
@@ -7,7 +8,9 @@ from .index_host_store import IndexHostStore
 from pinecone.config import PineconeConfig, Config, ConfigBuilder
 
 from pinecone.core.client.api.manage_indexes_api import ManageIndexesApi
-from pinecone.utils import normalize_host, setup_openapi_client
+from pinecone.core.client.api_client import ApiClient
+
+from pinecone.utils import normalize_host, setup_openapi_client, build_plugin_setup_client
 from pinecone.core.client.models import (
     CreateCollectionRequest,
     CreateIndexRequest,
@@ -19,6 +22,10 @@ from pinecone.models import ServerlessSpec, PodSpec, IndexList, CollectionList
 from .langchain_import_warnings import _build_langchain_attribute_error_message
 
 from pinecone.data import Index
+
+from pinecone_plugin_interface import load_and_install as install_plugins
+
+logger = logging.getLogger(__name__)
 
 class Pinecone:
 
@@ -203,10 +210,33 @@ class Pinecone:
         if index_api:
             self.index_api = index_api
         else:
-            self.index_api = setup_openapi_client(ManageIndexesApi, self.config, self.openapi_config, pool_threads)
+            self.index_api = setup_openapi_client(
+                api_client_klass=ApiClient,
+                api_klass=ManageIndexesApi,
+                config=self.config,
+                openapi_config=self.openapi_config,
+                pool_threads=pool_threads
+            )
 
         self.index_host_store = IndexHostStore()
         """ @private """
+
+        self.load_plugins()
+
+    def load_plugins(self):
+        """ @private """
+        try:
+            # I don't expect this to ever throw, but wrapping this in a
+            # try block just in case to make sure a bad plugin doesn't
+            # halt client initialization.
+            openapi_client_builder = build_plugin_setup_client(
+                config=self.config,
+                openapi_config=self.openapi_config,
+                pool_threads=self.pool_threads
+            )
+            install_plugins(self, openapi_client_builder)
+        except Exception as e:
+            logger.error(f"Error loading plugins: {e}")
 
     def create_index(
         self,
