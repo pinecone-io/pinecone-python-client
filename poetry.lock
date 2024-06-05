@@ -736,13 +736,13 @@ dev = ["black", "hypothesis", "mypy", "pygments (>=2.14.0)", "pytest", "pytest-c
 
 [[package]]
 name = "pinecone-plugin-interface"
-version = "0.0.6"
+version = "0.0.7"
 description = "Plugin interface for the Pinecone python client"
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "pinecone_plugin_interface-0.0.6-py3-none-any.whl", hash = "sha256:19588e58cba21efa3c922fef7b8a50fd8b89a044492b904174df729376b39ea3"},
-    {file = "pinecone_plugin_interface-0.0.6.tar.gz", hash = "sha256:2c0cb69ea78df16d7c5bea03483cec1d8c9cfee3ae5055e967b6d0852403d29e"},
+    {file = "pinecone_plugin_interface-0.0.7-py3-none-any.whl", hash = "sha256:875857ad9c9fc8bbc074dbe780d187a2afd21f5bfe0f3b08601924a61ef1bba8"},
+    {file = "pinecone_plugin_interface-0.0.7.tar.gz", hash = "sha256:b8e6675e41847333aa13923cc44daa3f85676d7157324682dc1640588a982846"},
 ]
 
 [[package]]
@@ -1181,4 +1181,4 @@ grpc = ["googleapis-common-protos", "grpcio", "grpcio", "lz4", "protobuf", "prot
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "5e233f9d523d7d87468471ef0389a099659eeef541c728c0a4513563d3751e0d"
+content-hash = "3f06d23e45560281fcd773e7bde9a5d3be62db0de27456d8b8ca332187e8e031"
