@@ -461,7 +461,7 @@ print(results.usage) # { 'read_units': 1 }
 New in version 5.0.0
 
 ## Generate embeddings
-
+The following examples creates embeddings for input text using the `multilingual-e5-large` model.
 ```python
 from pinecone import Pinecone
 
