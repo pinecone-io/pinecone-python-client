@@ -33,10 +33,10 @@ pip3 install pinecone-client
 pip3 install "pinecone-client[grpc]"
 
 # Install a specific version
-pip3 install pinecone-client==3.0.0
+pip3 install pinecone-client==5.0.0
 
 # Install a specific version, with grpc extras
-pip3 install "pinecone-client[grpc]"==3.0.0
+pip3 install "pinecone-client[grpc]"==5.0.0
 ```
 
 ### Installing with poetry
@@ -49,10 +49,10 @@ poetry add pinecone-client
 poetry add pinecone-client --extras grpc
 
 # Install a specific version
-poetry add pinecone-client==3.0.0
+poetry add pinecone-client==5.0.0
 
 # Install a specific version, with grpc extras
-poetry add pinecone-client==3.0.0 --extras grpc
+poetry add pinecone-client==5.0.0 --extras grpc
 ```
 
 ## Usage

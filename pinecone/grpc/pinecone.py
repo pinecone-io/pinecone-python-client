@@ -19,7 +19,7 @@ class PineconeGRPC(Pinecone):
     pip3 install pinecone[grpc]
 
     # Install a specific version
-    pip3 install "pinecone-client[grpc]"==3.0.0
+    pip3 install "pinecone-client[grpc]"==5.0.0
     ```
 
     #### Installing with poetry
@@ -29,7 +29,7 @@ class PineconeGRPC(Pinecone):
     poetry add pinecone --extras grpc
 
     # Install a specific version
-    poetry add pinecone-client==3.0.0 --extras grpc
+    poetry add pinecone-client==5.0.0 --extras grpc
     ```
 
     ### Using the gRPC client
