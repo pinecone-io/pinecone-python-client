@@ -90,7 +90,7 @@ class TestBuildPluginSetupClient():
         assert isinstance(plugin_client, plugin_api)
 
         # We want requests from plugins to have a user-agent matching the host SDK.
-        user_agent_regex = re.compile(r"python-client-\d+\.\d+\.\d+ \(urllib3\:\d+\.\d+\.\d+\)")
+        user_agent_regex = re.compile(r"python-client-\\d+\\.\\d+\\.\\d+([a-z]+\\d+)? \\(urllib3\\:\\d+\\.\\d+\\.\\d+\\)")
         assert re.match(user_agent_regex, plugin_client.api_client.user_agent)
         assert re.match(user_agent_regex, plugin_client.api_client.default_headers['User-Agent'])
 
