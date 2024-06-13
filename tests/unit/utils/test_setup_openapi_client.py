@@ -18,7 +18,7 @@ class TestSetupOpenAPIClient():
         assert openapi_config.host == "https://my-controller-host"
 
         control_plane_client = setup_openapi_client(ApiClient, ManageIndexesApi, config=config, openapi_config=openapi_config, pool_threads=2)
-        user_agent_regex = re.compile(r"python-client-\\d+\\.\\d+\\.\\d+([a-z]+\\d+)? \\(urllib3\\:\\d+\\.\\d+\\.\\d+\\)")
+        user_agent_regex = re.compile(r"python-client-\d+\.\d+\.\d+([a-z]*\d*)? \(urllib3:\d+\.\d+\.\d+\).*")
         assert re.match(user_agent_regex, control_plane_client.api_client.user_agent)
         assert re.match(user_agent_regex, control_plane_client.api_client.default_headers['User-Agent'])
 
@@ -31,7 +31,7 @@ class TestSetupOpenAPIClient():
         assert openapi_config.host == "https://my-controller-host"
 
         control_plane_client = setup_openapi_client(ApiClient, ManageIndexesApi, config=config, openapi_config=openapi_config, pool_threads=2, api_version="2024-07")
-        user_agent_regex = re.compile(r"python-client-\\d+\\.\\d+\\.\\d+([a-z]+\\d+)? \\(urllib3\\:\\d+\\.\\d+\\.\\d+\\)")
+        user_agent_regex = re.compile(r"python-client-\d+\.\d+\.\d+([a-z]*\d*)? \(urllib3:\d+\.\d+\.\d+\).*")
         assert re.match(user_agent_regex, control_plane_client.api_client.user_agent)
         assert re.match(user_agent_regex, control_plane_client.api_client.default_headers['User-Agent'])
         assert control_plane_client.api_client.default_headers['X-Pinecone-API-Version'] == "2024-07"
@@ -90,7 +90,7 @@ class TestBuildPluginSetupClient():
         assert isinstance(plugin_client, plugin_api)
 
         # We want requests from plugins to have a user-agent matching the host SDK.
-        user_agent_regex = re.compile(r"python-client-\\d+\\.\\d+\\.\\d+([a-z]+\\d+)? \\(urllib3\\:\\d+\\.\\d+\\.\\d+\\)")
+        user_agent_regex = re.compile(r"python-client-\d+\.\d+\.\d+([a-z]*\d*)? \(urllib3:\d+\.\d+\.\d+\).*")
         assert re.match(user_agent_regex, plugin_client.api_client.user_agent)
         assert re.match(user_agent_regex, plugin_client.api_client.default_headers['User-Agent'])
 
