@@ -457,6 +457,22 @@ print([v.id for v in results.vectors]) # ['pref1', 'pref2', 'pref3']
 print(results.pagination.next) # 'eyJza2lwX3Bhc3QiOiI5IiwicHJlZml4IjpudWxsfQ=='
 print(results.usage) # { 'read_units': 1 }
 ```
+# Inference
+New in version 5.0.0
+
+## Generate embeddings
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+inputs = ["Who created the first computer?"]
+outputs = pc.inference.embed(
+    model="multilingual-e5-large",
+    inputs=inputs,
+    parameters={"input_type": "passage", "truncate": "END"}
+)
+```
 
 # Collections
 
