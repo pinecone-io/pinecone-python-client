@@ -2,6 +2,7 @@ from ..control.pinecone import Pinecone
 from ..config.config import ConfigBuilder
 from .index_grpc import GRPCIndex
 
+
 class PineconeGRPC(Pinecone):
     """
     An alternative version of the Pinecone client that uses gRPC instead of HTTP for
@@ -18,7 +19,7 @@ class PineconeGRPC(Pinecone):
     pip3 install pinecone[grpc]
 
     # Install a specific version
-    pip3 install "pinecone-client[grpc]"==3.0.0
+    pip3 install "pinecone-client[grpc]"==5.0.0
     ```
 
     #### Installing with poetry
@@ -28,7 +29,7 @@ class PineconeGRPC(Pinecone):
     poetry add pinecone --extras grpc
 
     # Install a specific version
-    poetry add pinecone-client==3.0.0 --extras grpc
+    poetry add pinecone-client==5.0.0 --extras grpc
     ```
 
     ### Using the gRPC client
@@ -45,8 +46,8 @@ class PineconeGRPC(Pinecone):
     ```
 
     """
-    
-    def Index(self, name: str = '', host: str = '', **kwargs):
+
+    def Index(self, name: str = "", host: str = "", **kwargs):
         """
         Target an index for data operations.
 
@@ -54,7 +55,7 @@ class PineconeGRPC(Pinecone):
 
         In production situations, you want to uspert or query your data as quickly
         as possible. If you know in advance the host url of your index, you can
-        eliminate a round trip to the Pinecone control plane by specifying the 
+        eliminate a round trip to the Pinecone control plane by specifying the
         host of the index.
 
         ```python
@@ -63,7 +64,7 @@ class PineconeGRPC(Pinecone):
 
         api_key = os.environ.get("PINECONE_API_KEY")
         index_host = os.environ.get("PINECONE_INDEX_HOST")
-        
+
         pc = PineconeGRPC(api_key=api_key)
         index = pc.Index(host=index_host)
 
@@ -90,11 +91,11 @@ class PineconeGRPC(Pinecone):
 
         For more casual usage, such as when you are playing and exploring with Pinecone
         in a notebook setting, you can also target an index by name. If you use this
-        approach, the client may need to perform an extra call to the Pinecone control 
+        approach, the client may need to perform an extra call to the Pinecone control
         plane to get the host url on your behalf to get the index host.
 
-        The client will cache the index host for future use whenever it is seen, so you 
-        will only incur the overhead of only one call. But this approach is not 
+        The client will cache the index host for future use whenever it is seen, so you
+        will only incur the overhead of only one call. But this approach is not
         recommended for production usage.
 
         ```python
@@ -103,7 +104,7 @@ class PineconeGRPC(Pinecone):
         from pinecone.grpc import PineconeGRPC
 
         api_key = os.environ.get("PINECONE_API_KEY")
-        
+
         pc = PineconeGRPC(api_key=api_key)
         pc.create_index(
             name='my-index',
@@ -117,15 +118,17 @@ class PineconeGRPC(Pinecone):
         index.query(vector=[...], top_k=10)
         ```
         """
-        if name == '' and host == '':
+        if name == "" and host == "":
             raise ValueError("Either name or host must be specified")
 
         # Use host if it is provided, otherwise get host from describe_index
         index_host = host or self.index_host_store.get_host(self.index_api, self.config, name)
 
-        config = ConfigBuilder.build(api_key=self.config.api_key,
-                                     host=index_host,
-                                     source_tag=self.config.source_tag,
-                                     proxy_url=self.config.proxy_url,
-                                     ssl_ca_certs=self.config.ssl_ca_certs)
+        config = ConfigBuilder.build(
+            api_key=self.config.api_key,
+            host=index_host,
+            source_tag=self.config.source_tag,
+            proxy_url=self.config.proxy_url,
+            ssl_ca_certs=self.config.ssl_ca_certs,
+        )
         return GRPCIndex(index_name=name, config=config, **kwargs)
