@@ -49,13 +49,11 @@ class Vector(google.protobuf.message.Message):
     @property
     def values(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
         """This is the vector data included in the request."""
-
     @property
     def sparse_values(self) -> global___SparseValues: ...
     @property
     def metadata(self) -> google.protobuf.struct_pb2.Struct:
         """This is the metadata included in the request."""
-
     def __init__(
         self,
         *,
@@ -64,8 +62,15 @@ class Vector(google.protobuf.message.Message):
         sparse_values: global___SparseValues | None = ...,
         metadata: google.protobuf.struct_pb2.Struct | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["metadata", b"metadata", "sparse_values", b"sparse_values"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["id", b"id", "metadata", b"metadata", "sparse_values", b"sparse_values", "values", b"values"]) -> None: ...
+    def HasField(
+        self, field_name: typing.Literal["metadata", b"metadata", "sparse_values", b"sparse_values"]
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing.Literal[
+            "id", b"id", "metadata", b"metadata", "sparse_values", b"sparse_values", "values", b"values"
+        ],
+    ) -> None: ...
 
 global___Vector = Vector
 
@@ -85,15 +90,12 @@ class ScoredVector(google.protobuf.message.Message):
     @property
     def values(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
         """This is the vector data, if it is requested."""
-
     @property
     def sparse_values(self) -> global___SparseValues:
         """This is the sparse data, if it is requested."""
-
     @property
     def metadata(self) -> google.protobuf.struct_pb2.Struct:
         """This is the metadata, if it is requested."""
-
     def __init__(
         self,
         *,
@@ -103,8 +105,24 @@ class ScoredVector(google.protobuf.message.Message):
         sparse_values: global___SparseValues | None = ...,
         metadata: google.protobuf.struct_pb2.Struct | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["metadata", b"metadata", "sparse_values", b"sparse_values"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["id", b"id", "metadata", b"metadata", "score", b"score", "sparse_values", b"sparse_values", "values", b"values"]) -> None: ...
+    def HasField(
+        self, field_name: typing.Literal["metadata", b"metadata", "sparse_values", b"sparse_values"]
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing.Literal[
+            "id",
+            b"id",
+            "metadata",
+            b"metadata",
+            "score",
+            b"score",
+            "sparse_values",
+            b"sparse_values",
+            "values",
+            b"values",
+        ],
+    ) -> None: ...
 
 global___ScoredVector = ScoredVector
 
@@ -132,9 +150,21 @@ class RequestUnion(google.protobuf.message.Message):
         delete: global___DeleteRequest | None = ...,
         update: global___UpdateRequest | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["RequestUnionInner", b"RequestUnionInner", "delete", b"delete", "update", b"update", "upsert", b"upsert"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["RequestUnionInner", b"RequestUnionInner", "delete", b"delete", "update", b"update", "upsert", b"upsert"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["RequestUnionInner", b"RequestUnionInner"]) -> typing.Literal["upsert", "delete", "update"] | None: ...
+    def HasField(
+        self,
+        field_name: typing.Literal[
+            "RequestUnionInner", b"RequestUnionInner", "delete", b"delete", "update", b"update", "upsert", b"upsert"
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing.Literal[
+            "RequestUnionInner", b"RequestUnionInner", "delete", b"delete", "update", b"update", "upsert", b"upsert"
+        ],
+    ) -> None: ...
+    def WhichOneof(
+        self, oneof_group: typing.Literal["RequestUnionInner", b"RequestUnionInner"]
+    ) -> typing.Literal["upsert", "delete", "update"] | None: ...
 
 global___RequestUnion = RequestUnion
 
@@ -151,7 +181,6 @@ class UpsertRequest(google.protobuf.message.Message):
     @property
     def vectors(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Vector]:
         """An array containing the vectors to upsert. Recommended batch limit is 100 vectors."""
-
     def __init__(
         self,
         *,
@@ -197,14 +226,12 @@ class DeleteRequest(google.protobuf.message.Message):
     @property
     def ids(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
         """Vectors to delete."""
-
     @property
     def filter(self) -> google.protobuf.struct_pb2.Struct:
         """If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive
         with specifying ids to delete in the ids param or using delete_all=True.
         See https://www.pinecone.io/docs/metadata-filtering/.
         """
-
     def __init__(
         self,
         *,
@@ -214,7 +241,12 @@ class DeleteRequest(google.protobuf.message.Message):
         filter: google.protobuf.struct_pb2.Struct | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["filter", b"filter"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["delete_all", b"delete_all", "filter", b"filter", "ids", b"ids", "namespace", b"namespace"]) -> None: ...
+    def ClearField(
+        self,
+        field_name: typing.Literal[
+            "delete_all", b"delete_all", "filter", b"filter", "ids", b"ids", "namespace", b"namespace"
+        ],
+    ) -> None: ...
 
 global___DeleteRequest = DeleteRequest
 
@@ -242,7 +274,6 @@ class FetchRequest(google.protobuf.message.Message):
     @property
     def ids(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
         """The vector IDs to fetch. Does not accept values containing spaces."""
-
     def __init__(
         self,
         *,
@@ -285,11 +316,9 @@ class FetchResponse(google.protobuf.message.Message):
     @property
     def vectors(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___Vector]:
         """The fetched vectors, in the form of a map between the fetched ids and the fetched vectors"""
-
     @property
     def usage(self) -> global___Usage:
-        """ The usage for this operation."""
-
+        """The usage for this operation."""
     def __init__(
         self,
         *,
@@ -298,7 +327,12 @@ class FetchResponse(google.protobuf.message.Message):
         usage: global___Usage | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["_usage", b"_usage", "usage", b"usage"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["_usage", b"_usage", "namespace", b"namespace", "usage", b"usage", "vectors", b"vectors"]) -> None: ...
+    def ClearField(
+        self,
+        field_name: typing.Literal[
+            "_usage", b"_usage", "namespace", b"namespace", "usage", b"usage", "vectors", b"vectors"
+        ],
+    ) -> None: ...
     def WhichOneof(self, oneof_group: typing.Literal["_usage", b"_usage"]) -> typing.Literal["usage"] | None: ...
 
 global___FetchResponse = FetchResponse
@@ -328,12 +362,48 @@ class ListRequest(google.protobuf.message.Message):
         pagination_token: builtins.str | None = ...,
         namespace: builtins.str = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["_limit", b"_limit", "_pagination_token", b"_pagination_token", "_prefix", b"_prefix", "limit", b"limit", "pagination_token", b"pagination_token", "prefix", b"prefix"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["_limit", b"_limit", "_pagination_token", b"_pagination_token", "_prefix", b"_prefix", "limit", b"limit", "namespace", b"namespace", "pagination_token", b"pagination_token", "prefix", b"prefix"]) -> None: ...
+    def HasField(
+        self,
+        field_name: typing.Literal[
+            "_limit",
+            b"_limit",
+            "_pagination_token",
+            b"_pagination_token",
+            "_prefix",
+            b"_prefix",
+            "limit",
+            b"limit",
+            "pagination_token",
+            b"pagination_token",
+            "prefix",
+            b"prefix",
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing.Literal[
+            "_limit",
+            b"_limit",
+            "_pagination_token",
+            b"_pagination_token",
+            "_prefix",
+            b"_prefix",
+            "limit",
+            b"limit",
+            "namespace",
+            b"namespace",
+            "pagination_token",
+            b"pagination_token",
+            "prefix",
+            b"prefix",
+        ],
+    ) -> None: ...
     @typing.overload
     def WhichOneof(self, oneof_group: typing.Literal["_limit", b"_limit"]) -> typing.Literal["limit"] | None: ...
     @typing.overload
-    def WhichOneof(self, oneof_group: typing.Literal["_pagination_token", b"_pagination_token"]) -> typing.Literal["pagination_token"] | None: ...
+    def WhichOneof(
+        self, oneof_group: typing.Literal["_pagination_token", b"_pagination_token"]
+    ) -> typing.Literal["pagination_token"] | None: ...
     @typing.overload
     def WhichOneof(self, oneof_group: typing.Literal["_prefix", b"_prefix"]) -> typing.Literal["prefix"] | None: ...
 
@@ -384,15 +454,12 @@ class ListResponse(google.protobuf.message.Message):
     @property
     def vectors(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ListItem]:
         """A list of ids"""
-
     @property
     def pagination(self) -> global___Pagination:
         """Pagination token to continue past this listing"""
-
     @property
     def usage(self) -> global___Usage:
-        """ The usage for this operation."""
-
+        """The usage for this operation."""
     def __init__(
         self,
         *,
@@ -401,10 +468,33 @@ class ListResponse(google.protobuf.message.Message):
         namespace: builtins.str = ...,
         usage: global___Usage | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["_pagination", b"_pagination", "_usage", b"_usage", "pagination", b"pagination", "usage", b"usage"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["_pagination", b"_pagination", "_usage", b"_usage", "namespace", b"namespace", "pagination", b"pagination", "usage", b"usage", "vectors", b"vectors"]) -> None: ...
+    def HasField(
+        self,
+        field_name: typing.Literal[
+            "_pagination", b"_pagination", "_usage", b"_usage", "pagination", b"pagination", "usage", b"usage"
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing.Literal[
+            "_pagination",
+            b"_pagination",
+            "_usage",
+            b"_usage",
+            "namespace",
+            b"namespace",
+            "pagination",
+            b"pagination",
+            "usage",
+            b"usage",
+            "vectors",
+            b"vectors",
+        ],
+    ) -> None: ...
     @typing.overload
-    def WhichOneof(self, oneof_group: typing.Literal["_pagination", b"_pagination"]) -> typing.Literal["pagination"] | None: ...
+    def WhichOneof(
+        self, oneof_group: typing.Literal["_pagination", b"_pagination"]
+    ) -> typing.Literal["pagination"] | None: ...
     @typing.overload
     def WhichOneof(self, oneof_group: typing.Literal["_usage", b"_usage"]) -> typing.Literal["usage"] | None: ...
 
@@ -428,15 +518,12 @@ class QueryVector(google.protobuf.message.Message):
     @property
     def values(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
         """The query vector values. This should be the same length as the dimension of the index being queried."""
-
     @property
     def sparse_values(self) -> global___SparseValues:
         """The query sparse values."""
-
     @property
     def filter(self) -> google.protobuf.struct_pb2.Struct:
         """An override for the metadata filter to apply. This replaces the request-level filter."""
-
     def __init__(
         self,
         *,
@@ -446,8 +533,24 @@ class QueryVector(google.protobuf.message.Message):
         namespace: builtins.str = ...,
         filter: google.protobuf.struct_pb2.Struct | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["filter", b"filter", "sparse_values", b"sparse_values"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["filter", b"filter", "namespace", b"namespace", "sparse_values", b"sparse_values", "top_k", b"top_k", "values", b"values"]) -> None: ...
+    def HasField(
+        self, field_name: typing.Literal["filter", b"filter", "sparse_values", b"sparse_values"]
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing.Literal[
+            "filter",
+            b"filter",
+            "namespace",
+            b"namespace",
+            "sparse_values",
+            b"sparse_values",
+            "top_k",
+            b"top_k",
+            "values",
+            b"values",
+        ],
+    ) -> None: ...
 
 global___QueryVector = QueryVector
 
@@ -479,19 +582,15 @@ class QueryRequest(google.protobuf.message.Message):
     @property
     def filter(self) -> google.protobuf.struct_pb2.Struct:
         """The filter to apply. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/."""
-
     @property
     def queries(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___QueryVector]:
         """DEPRECATED. The query vectors. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`."""
-
     @property
     def vector(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
         """The query vector. This should be the same length as the dimension of the index being queried. Each `query()` request can contain only one of the parameters `id` or `vector`."""
-
     @property
     def sparse_vector(self) -> global___SparseValues:
         """The query sparse values."""
-
     def __init__(
         self,
         *,
@@ -505,8 +604,32 @@ class QueryRequest(google.protobuf.message.Message):
         sparse_vector: global___SparseValues | None = ...,
         id: builtins.str = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["filter", b"filter", "sparse_vector", b"sparse_vector"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["filter", b"filter", "id", b"id", "include_metadata", b"include_metadata", "include_values", b"include_values", "namespace", b"namespace", "queries", b"queries", "sparse_vector", b"sparse_vector", "top_k", b"top_k", "vector", b"vector"]) -> None: ...
+    def HasField(
+        self, field_name: typing.Literal["filter", b"filter", "sparse_vector", b"sparse_vector"]
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing.Literal[
+            "filter",
+            b"filter",
+            "id",
+            b"id",
+            "include_metadata",
+            b"include_metadata",
+            "include_values",
+            b"include_values",
+            "namespace",
+            b"namespace",
+            "queries",
+            b"queries",
+            "sparse_vector",
+            b"sparse_vector",
+            "top_k",
+            b"top_k",
+            "vector",
+            b"vector",
+        ],
+    ) -> None: ...
 
 global___QueryRequest = QueryRequest
 
@@ -523,7 +646,6 @@ class SingleQueryResults(google.protobuf.message.Message):
     @property
     def matches(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ScoredVector]:
         """The matches for the vectors."""
-
     def __init__(
         self,
         *,
@@ -547,17 +669,16 @@ class QueryResponse(google.protobuf.message.Message):
     namespace: builtins.str
     """The namespace for the vectors."""
     @property
-    def results(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___SingleQueryResults]:
+    def results(
+        self,
+    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___SingleQueryResults]:
         """DEPRECATED. The results of each query. The order is the same as `QueryRequest.queries`."""
-
     @property
     def matches(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ScoredVector]:
         """The matches for the vectors."""
-
     @property
     def usage(self) -> global___Usage:
         """The usage for this operation."""
-
     def __init__(
         self,
         *,
@@ -567,7 +688,21 @@ class QueryResponse(google.protobuf.message.Message):
         usage: global___Usage | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["_usage", b"_usage", "usage", b"usage"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["_usage", b"_usage", "matches", b"matches", "namespace", b"namespace", "results", b"results", "usage", b"usage"]) -> None: ...
+    def ClearField(
+        self,
+        field_name: typing.Literal[
+            "_usage",
+            b"_usage",
+            "matches",
+            b"matches",
+            "namespace",
+            b"namespace",
+            "results",
+            b"results",
+            "usage",
+            b"usage",
+        ],
+    ) -> None: ...
     def WhichOneof(self, oneof_group: typing.Literal["_usage", b"_usage"]) -> typing.Literal["usage"] | None: ...
 
 global___QueryResponse = QueryResponse
@@ -584,9 +719,15 @@ class Usage(google.protobuf.message.Message):
         *,
         read_units: builtins.int | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["_read_units", b"_read_units", "read_units", b"read_units"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["_read_units", b"_read_units", "read_units", b"read_units"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["_read_units", b"_read_units"]) -> typing.Literal["read_units"] | None: ...
+    def HasField(
+        self, field_name: typing.Literal["_read_units", b"_read_units", "read_units", b"read_units"]
+    ) -> builtins.bool: ...
+    def ClearField(
+        self, field_name: typing.Literal["_read_units", b"_read_units", "read_units", b"read_units"]
+    ) -> None: ...
+    def WhichOneof(
+        self, oneof_group: typing.Literal["_read_units", b"_read_units"]
+    ) -> typing.Literal["read_units"] | None: ...
 
 global___Usage = Usage
 
@@ -608,13 +749,11 @@ class UpdateRequest(google.protobuf.message.Message):
     @property
     def values(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
         """Vector data."""
-
     @property
     def sparse_values(self) -> global___SparseValues: ...
     @property
     def set_metadata(self) -> google.protobuf.struct_pb2.Struct:
         """Metadata to *set* for the vector."""
-
     def __init__(
         self,
         *,
@@ -624,8 +763,24 @@ class UpdateRequest(google.protobuf.message.Message):
         set_metadata: google.protobuf.struct_pb2.Struct | None = ...,
         namespace: builtins.str = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["set_metadata", b"set_metadata", "sparse_values", b"sparse_values"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["id", b"id", "namespace", b"namespace", "set_metadata", b"set_metadata", "sparse_values", b"sparse_values", "values", b"values"]) -> None: ...
+    def HasField(
+        self, field_name: typing.Literal["set_metadata", b"set_metadata", "sparse_values", b"sparse_values"]
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing.Literal[
+            "id",
+            b"id",
+            "namespace",
+            b"namespace",
+            "set_metadata",
+            b"set_metadata",
+            "sparse_values",
+            b"sparse_values",
+            "values",
+            b"values",
+        ],
+    ) -> None: ...
 
 global___UpdateRequest = UpdateRequest
 
@@ -654,7 +809,6 @@ class DescribeIndexStatsRequest(google.protobuf.message.Message):
         for vectors that satisfy the filter.
         See https://www.pinecone.io/docs/metadata-filtering/.
         """
-
     def __init__(
         self,
         *,
@@ -725,7 +879,6 @@ class DescribeIndexStatsResponse(google.protobuf.message.Message):
         summary of its contents. If a metadata filter expression is present, the
         summary will reflect only vectors matching that expression.
         """
-
     def __init__(
         self,
         *,
@@ -734,6 +887,18 @@ class DescribeIndexStatsResponse(google.protobuf.message.Message):
         index_fullness: builtins.float = ...,
         total_vector_count: builtins.int = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["dimension", b"dimension", "index_fullness", b"index_fullness", "namespaces", b"namespaces", "total_vector_count", b"total_vector_count"]) -> None: ...
+    def ClearField(
+        self,
+        field_name: typing.Literal[
+            "dimension",
+            b"dimension",
+            "index_fullness",
+            b"index_fullness",
+            "namespaces",
+            b"namespaces",
+            "total_vector_count",
+            b"total_vector_count",
+        ],
+    ) -> None: ...
 
 global___DescribeIndexStatsResponse = DescribeIndexStatsResponse

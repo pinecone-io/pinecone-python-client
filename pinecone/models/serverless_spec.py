@@ -1,5 +1,6 @@
 from typing import NamedTuple
 
+
 class ServerlessSpec(NamedTuple):
     cloud: str
     region: str

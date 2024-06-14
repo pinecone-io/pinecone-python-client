@@ -9,15 +9,13 @@
 """
 
 
-
 class PineconeException(Exception):
     """The base exception class for all exceptions in the Pinecone Python SDK"""
 
 
 class PineconeApiTypeError(PineconeException, TypeError):
-    def __init__(self, msg, path_to_item=None, valid_classes=None,
-                 key_type=None):
-        """ Raises an exception for TypeErrors
+    def __init__(self, msg, path_to_item=None, valid_classes=None, key_type=None):
+        """Raises an exception for TypeErrors
 
         Args:
             msg (str): the exception message
@@ -98,7 +96,6 @@ class PineconeApiKeyError(PineconeException, KeyError):
 
 
 class PineconeApiException(PineconeException):
-
     def __init__(self, status=None, reason=None, http_resp=None):
         if http_resp:
             self.status = http_resp.status
@@ -113,11 +110,9 @@ class PineconeApiException(PineconeException):
 
     def __str__(self):
         """Custom error messages for exception"""
-        error_message = "({0})\n"\
-                        "Reason: {1}\n".format(self.status, self.reason)
+        error_message = "({0})\n" "Reason: {1}\n".format(self.status, self.reason)
         if self.headers:
-            error_message += "HTTP response headers: {0}\n".format(
-                self.headers)
+            error_message += "HTTP response headers: {0}\n".format(self.headers)
 
         if self.body:
             error_message += "HTTP response body: {0}\n".format(self.body)
@@ -126,25 +121,21 @@ class PineconeApiException(PineconeException):
 
 
 class NotFoundException(PineconeApiException):
-
     def __init__(self, status=None, reason=None, http_resp=None):
         super(NotFoundException, self).__init__(status, reason, http_resp)
 
 
 class UnauthorizedException(PineconeApiException):
-
     def __init__(self, status=None, reason=None, http_resp=None):
         super(UnauthorizedException, self).__init__(status, reason, http_resp)
 
 
 class ForbiddenException(PineconeApiException):
-
     def __init__(self, status=None, reason=None, http_resp=None):
         super(ForbiddenException, self).__init__(status, reason, http_resp)
 
 
 class ServiceException(PineconeApiException):
-
     def __init__(self, status=None, reason=None, http_resp=None):
         super(ServiceException, self).__init__(status, reason, http_resp)
 

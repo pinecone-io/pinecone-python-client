@@ -4,6 +4,7 @@ from pinecone.core.client.api.manage_indexes_api import ManageIndexesApi as Inde
 from pinecone.core.client.exceptions import PineconeException
 from pinecone.utils import normalize_host
 
+
 class SingletonMeta(type):
     _instances: Dict[str, str] = {}
 
@@ -42,5 +43,7 @@ class IndexHostStore(metaclass=SingletonMeta):
             description = api.describe_index(index_name)
             self.set_host(config, index_name, description.host)
             if not self.key_exists(key):
-                raise PineconeException(f"Could not get host for index: {index_name}. Call describe_index('{index_name}') to check the current status.")
+                raise PineconeException(
+                    f"Could not get host for index: {index_name}. Call describe_index('{index_name}') to check the current status."
+                )
             return self._indexHosts[key]

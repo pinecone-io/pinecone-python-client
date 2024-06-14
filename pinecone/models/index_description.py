@@ -1,10 +1,14 @@
 from typing import NamedTuple, Dict, Optional, Union, Literal
 
+
 class IndexStatus(NamedTuple):
     state: str
     ready: bool
 
-PodKey = Literal['pod']
+
+PodKey = Literal["pod"]
+
+
 class PodSpecDefinition(NamedTuple):
     replicas: int
     shards: int
@@ -13,18 +17,23 @@ class PodSpecDefinition(NamedTuple):
     environment: str
     metadata_config: Optional[Dict]
 
+
 PodSpec = Dict[PodKey, PodSpecDefinition]
 
-ServerlessKey = Literal['serverless']
+ServerlessKey = Literal["serverless"]
+
+
 class ServerlessSpecDefinition(NamedTuple):
     cloud: str
     region: str
 
+
 ServerlessSpec = Dict[ServerlessKey, ServerlessSpecDefinition]
+
 
 class IndexDescription(NamedTuple):
     """
-    The description of an index. This object is returned from the `describe_index()` method. 
+    The description of an index. This object is returned from the `describe_index()` method.
     """
 
     name: str

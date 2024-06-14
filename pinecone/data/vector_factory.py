@@ -7,10 +7,7 @@ from ..utils import fix_tuple_length, convert_to_list
 from ..utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
 from .sparse_vector_factory import SparseValuesFactory
 
-from pinecone.core.client.models import (
-    Vector,
-    SparseValues
-)
+from pinecone.core.client.models import Vector, SparseValues
 
 from .errors import (
     VectorDictionaryMissingKeysError,
@@ -18,6 +15,7 @@ from .errors import (
     VectorTupleLengthError,
     MetadataDictionaryExpectedError,
 )
+
 
 class VectorFactory:
     @staticmethod
@@ -37,7 +35,9 @@ class VectorFactory:
             raise VectorTupleLengthError(item)
         id, values, metadata = fix_tuple_length(item, 3)
         if isinstance(values, SparseValues):
-            raise ValueError("Sparse values are not supported in tuples. Please use either dicts or Vector objects as inputs.")
+            raise ValueError(
+                "Sparse values are not supported in tuples. Please use either dicts or Vector objects as inputs."
+            )
         else:
             return Vector(id=id, values=convert_to_list(values), metadata=metadata or {}, _check_type=check_type)
 
@@ -46,7 +46,7 @@ class VectorFactory:
         item_keys = set(item.keys())
         if not item_keys.issuperset(REQUIRED_VECTOR_FIELDS):
             raise VectorDictionaryMissingKeysError(item)
-        
+
         excessive_keys = item_keys - (REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)
         if len(excessive_keys) > 0:
             raise VectorDictionaryExcessKeysError(item)
@@ -68,6 +68,8 @@ class VectorFactory:
         try:
             return Vector(**item, _check_type=check_type)
         except TypeError as e:
-            if not isinstance(item["values"], Iterable) or not isinstance(item["values"].__iter__().__next__(), numbers.Real):
+            if not isinstance(item["values"], Iterable) or not isinstance(
+                item["values"].__iter__().__next__(), numbers.Real
+            ):
                 raise TypeError(f"Column `values` is expected to be a list of floats")
             raise e

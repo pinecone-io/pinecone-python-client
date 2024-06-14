@@ -7,6 +7,7 @@ from pinecone import Index
 from pinecone import UpsertRequest, Vector
 from pinecone import DescribeIndexStatsRequest, ScoredVector, QueryResponse, UpsertResponse, SparseValues
 
+
 class TestRestIndex:
     def setup_method(self):
         self.vector_dim = 8
@@ -28,10 +29,10 @@ class TestRestIndex:
         self.svv2 = [0.1, 0.2, 0.3]
         self.sv2 = {"indices": self.svi2, "values": self.svv2}
 
-        self.index = Index(api_key='asdf', host='https://test.pinecone.io')
-    
+        self.index = Index(api_key="asdf", host="https://test.pinecone.io")
+
     # region: upsert tests
-    
+
     def test_upsert_tuplesOfIdVec_UpserWithoutMD(self, mocker):
         mocker.patch.object(self.index._vector_api, "upsert", autospec=True)
         self.index.upsert([("vec1", self.vals1), ("vec2", self.vals2)], namespace="ns")
@@ -377,7 +378,10 @@ class TestRestIndex:
     def test_query_with_positional_args(self, mocker):
         with pytest.raises(ValueError) as e:
             self.index.query([0.1, 0.2, 0.3], top_k=10)
-        assert "The argument order for `query()` has changed; please use keyword arguments instead of positional arguments" in str(e.value)
+        assert (
+            "The argument order for `query()` has changed; please use keyword arguments instead of positional arguments"
+            in str(e.value)
+        )
 
     # endregion
 

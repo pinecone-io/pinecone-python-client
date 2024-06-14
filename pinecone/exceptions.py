@@ -11,15 +11,19 @@ from .core.client.exceptions import (
     ServiceException,
 )
 
+
 class PineconeProtocolError(PineconeException):
     """Raised when something unexpected happens mid-request/response."""
+
 
 class PineconeConfigurationError(PineconeException):
     """Raised when a configuration error occurs."""
 
+
 class ListConversionException(PineconeException, TypeError):
     def __init__(self, message):
         super().__init__(message)
+
 
 __all__ = [
     "PineconeConfigurationError",
@@ -34,5 +38,5 @@ __all__ = [
     "UnauthorizedException",
     "ForbiddenException",
     "ServiceException",
-    "ListConversionException"
+    "ListConversionException",
 ]

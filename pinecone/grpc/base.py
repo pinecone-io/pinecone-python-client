@@ -41,11 +41,7 @@ class GRPCIndexBase(ABC):
         self.grpc_client_config = grpc_config or GRPCClientConfig()
         self.retry_config = self.grpc_client_config.retry_config or RetryConfig()
 
-        self.fixed_metadata = {
-            "api-key": config.api_key, 
-            "service-name": index_name, 
-            "client-version": CLIENT_VERSION
-        }
+        self.fixed_metadata = {"api-key": config.api_key, "service-name": index_name, "client-version": CLIENT_VERSION}
         if self.grpc_client_config.additional_metadata:
             self.fixed_metadata.update(self.grpc_client_config.additional_metadata)
 

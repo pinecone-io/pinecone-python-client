@@ -9,10 +9,10 @@ from .utils import dict_to_proto_struct
 from ..utils import fix_tuple_length, convert_to_list
 from ..utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
 from ..data import (
-    VectorDictionaryMissingKeysError, 
-    VectorDictionaryExcessKeysError, 
-    VectorTupleLengthError, 
-    MetadataDictionaryExpectedError 
+    VectorDictionaryMissingKeysError,
+    VectorDictionaryExcessKeysError,
+    VectorTupleLengthError,
+    MetadataDictionaryExpectedError,
 )
 from .sparse_values_factory import SparseValuesFactory
 
@@ -20,10 +20,8 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     Vector as GRPCVector,
     SparseValues as GRPCSparseValues,
 )
-from pinecone import (
-    Vector as NonGRPCVector, 
-    SparseValues as NonGRPCSparseValues
-)
+from pinecone import Vector as NonGRPCVector, SparseValues as NonGRPCSparseValues
+
 
 class VectorFactoryGRPC:
     @staticmethod
@@ -33,7 +31,9 @@ class VectorFactoryGRPC:
         elif isinstance(item, NonGRPCVector):
             if item.sparse_values:
                 sv = GRPCSparseValues(indices=item.sparse_values.indices, values=item.sparse_values.values)
-                return GRPCVector(id=item.id, values=item.values, metadata=dict_to_proto_struct(item.metadata or {}), sparse_values=sv)
+                return GRPCVector(
+                    id=item.id, values=item.values, metadata=dict_to_proto_struct(item.metadata or {}), sparse_values=sv
+                )
             else:
                 return GRPCVector(id=item.id, values=item.values, metadata=dict_to_proto_struct(item.metadata or {}))
         elif isinstance(item, tuple):
@@ -49,7 +49,9 @@ class VectorFactoryGRPC:
             raise VectorTupleLengthError(item)
         id, values, metadata = fix_tuple_length(item, 3)
         if isinstance(values, GRPCSparseValues) or isinstance(values, NonGRPCSparseValues):
-            raise ValueError("Sparse values are not supported in tuples. Please use either dicts or Vector objects as inputs.")
+            raise ValueError(
+                "Sparse values are not supported in tuples. Please use either dicts or Vector objects as inputs."
+            )
         else:
             return GRPCVector(id=id, values=convert_to_list(values), metadata=dict_to_proto_struct(metadata or {}))
 
@@ -58,7 +60,7 @@ class VectorFactoryGRPC:
         item_keys = set(item.keys())
         if not item_keys.issuperset(REQUIRED_VECTOR_FIELDS):
             raise VectorDictionaryMissingKeysError(item)
-        
+
         excessive_keys = item_keys - (REQUIRED_VECTOR_FIELDS | OPTIONAL_VECTOR_FIELDS)
         if len(excessive_keys) > 0:
             raise VectorDictionaryExcessKeysError(item)
@@ -89,8 +91,12 @@ class VectorFactoryGRPC:
             # Where possible raise a more specific error to the user.
             vid = item.get("id")
             if not isinstance(vid, bytes) and not isinstance(vid, str):
-                raise TypeError(f"Cannot set Vector.id to {vid}: {vid} has type {type(vid)}, "
-                                "but expected one of: (<class 'bytes'>, <class 'str'>) for field Vector.id")
-            if not isinstance(item["values"], Iterable) or not isinstance(item["values"].__iter__().__next__(), numbers.Real):
+                raise TypeError(
+                    f"Cannot set Vector.id to {vid}: {vid} has type {type(vid)}, "
+                    "but expected one of: (<class 'bytes'>, <class 'str'>) for field Vector.id"
+                )
+            if not isinstance(item["values"], Iterable) or not isinstance(
+                item["values"].__iter__().__next__(), numbers.Real
+            ):
                 raise TypeError(f"Column `values` is expected to be a list of floats")
             raise e

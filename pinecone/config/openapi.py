@@ -23,15 +23,15 @@ class OpenApiConfigFactory:
         openapi_config.ssl_ca_cert = certifi.where()
         openapi_config.socket_options = cls._get_socket_options()
         return openapi_config
-    
+
     @classmethod
     def copy(cls, openapi_config: OpenApiConfiguration, api_key: str, host: str) -> OpenApiConfiguration:
-        '''
-        Copy a user-supplied openapi configuration and update it with the user's api key and host. 
+        """
+        Copy a user-supplied openapi configuration and update it with the user's api key and host.
         If they have not specified other socket configuration, we will use the default values.
-        We expect these objects are being passed mainly a vehicle for proxy configuration, so 
+        We expect these objects are being passed mainly a vehicle for proxy configuration, so
         we don't modify those settings.
-        '''
+        """
         copied = copy.deepcopy(openapi_config)
 
         copied.api_key = {"ApiKeyAuth": api_key}

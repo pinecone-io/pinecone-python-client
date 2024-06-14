@@ -7,6 +7,7 @@ from pinecone.core.client.configuration import Configuration as OpenApiConfigura
 from pinecone.utils import normalize_host
 from pinecone.utils.constants import SOURCE_TAG
 
+
 class Config(NamedTuple):
     api_key: str = ""
     host: str = ""
@@ -16,6 +17,7 @@ class Config(NamedTuple):
     ssl_verify: Optional[bool] = None
     additional_headers: Optional[Dict[str, str]] = {}
     source_tag: Optional[str] = None
+
 
 class ConfigBuilder:
     """
@@ -56,27 +58,29 @@ class ConfigBuilder:
             raise PineconeConfigurationError("You haven't specified a host.")
 
         return Config(api_key, host, proxy_url, proxy_headers, ssl_ca_certs, ssl_verify, additional_headers, source_tag)
-    
+
     @staticmethod
     def build_openapi_config(
         config: Config, openapi_config: Optional[OpenApiConfiguration] = None, **kwargs
     ) -> OpenApiConfiguration:
         if openapi_config:
-            openapi_config = OpenApiConfigFactory.copy(openapi_config=openapi_config, api_key=config.api_key, host=config.host)
+            openapi_config = OpenApiConfigFactory.copy(
+                openapi_config=openapi_config, api_key=config.api_key, host=config.host
+            )
         elif openapi_config is None:
             openapi_config = OpenApiConfigFactory.build(api_key=config.api_key, host=config.host)
 
         # Check if value passed before overriding any values present
-        # in the openapi_config. This means if the user has passed 
+        # in the openapi_config. This means if the user has passed
         # an openapi_config object and a kwarg for the same setting,
         # the kwarg will take precedence.
-        if (config.proxy_url):
+        if config.proxy_url:
             openapi_config.proxy = config.proxy_url
-        if (config.proxy_headers):
+        if config.proxy_headers:
             openapi_config.proxy_headers = config.proxy_headers
-        if (config.ssl_ca_certs):
+        if config.ssl_ca_certs:
             openapi_config.ssl_ca_cert = config.ssl_ca_certs
-        if (config.ssl_verify != None):
+        if config.ssl_verify != None:
             openapi_config.verify_ssl = config.ssl_verify
-        
+
         return openapi_config

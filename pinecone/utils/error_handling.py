@@ -3,6 +3,7 @@ from functools import wraps
 
 from urllib3.exceptions import MaxRetryError, ProtocolError
 
+
 def validate_and_convert_errors(func):
     @wraps(func)
     def inner_func(*args, **kwargs):
