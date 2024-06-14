@@ -28,9 +28,9 @@ _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "vector_service_pb2", _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
     _globals["DESCRIPTOR"]._options = None
-    _globals[
-        "DESCRIPTOR"
-    ]._serialized_options = b'\n\021io.pinecone.protoP\001Z+github.com/pinecone-io/go-pinecone/pinecone\222A\311\002\022K\n\014Pinecone API";\n\017Pinecone.io Ops\022\023https://pinecone.io\032\023support@pinecone.io\032\014{index_host}*\001\0022\020application/json:\020application/jsonZx\nv\n\nApiKeyAuth\022h\010\002\022YAn API Key is required to call Pinecone APIs. Get yours at https://www.pinecone.io/start/\032\007Api-Key \002b\020\n\016\n\nApiKeyAuth\022\000r9\n\031More Pinecone.io API docs\022\034https://www.pinecone.io/docs'
+    _globals["DESCRIPTOR"]._serialized_options = (
+        b'\n\021io.pinecone.protoP\001Z+github.com/pinecone-io/go-pinecone/pinecone\222A\311\002\022K\n\014Pinecone API";\n\017Pinecone.io Ops\022\023https://pinecone.io\032\023support@pinecone.io\032\014{index_host}*\001\0022\020application/json:\020application/jsonZx\nv\n\nApiKeyAuth\022h\010\002\022YAn API Key is required to call Pinecone APIs. Get yours at https://www.pinecone.io/start/\032\007Api-Key \002b\020\n\016\n\nApiKeyAuth\022\000r9\n\031More Pinecone.io API docs\022\034https://www.pinecone.io/docs'
+    )
     _globals["_SPARSEVALUES"].fields_by_name["indices"]._options = None
     _globals["_SPARSEVALUES"].fields_by_name[
         "indices"
@@ -190,9 +190,9 @@ if _descriptor._USE_C_DESCRIPTORS == False:
         "total_vector_count"
     ]._serialized_options = b"\222A\007J\00580000"
     _globals["_DESCRIBEINDEXSTATSRESPONSE"]._options = None
-    _globals[
-        "_DESCRIBEINDEXSTATSRESPONSE"
-    ]._serialized_options = b'\222A\210\0012\205\001{"namespaces": {"": {"vectorCount": 50000}, "example-namespace-2": {"vectorCount": 30000}}, "dimension": 1024, "index_fullness": 0.4}'
+    _globals["_DESCRIBEINDEXSTATSRESPONSE"]._serialized_options = (
+        b'\222A\210\0012\205\001{"namespaces": {"": {"vectorCount": 50000}, "example-namespace-2": {"vectorCount": 30000}}, "dimension": 1024, "index_fullness": 0.4}'
+    )
     _globals["_VECTORSERVICE"].methods_by_name["Upsert"]._options = None
     _globals["_VECTORSERVICE"].methods_by_name[
         "Upsert"

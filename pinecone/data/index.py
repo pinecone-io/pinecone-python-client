@@ -65,7 +65,6 @@ def parse_query_response(response: QueryResponse):
 
 
 class Index:
-
     """
     A client for interacting with a Pinecone index via REST API.
     For improved performance, use the Pinecone GRPC index client.

@@ -49,11 +49,13 @@ class Vector(google.protobuf.message.Message):
     @property
     def values(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
         """This is the vector data included in the request."""
+
     @property
     def sparse_values(self) -> global___SparseValues: ...
     @property
     def metadata(self) -> google.protobuf.struct_pb2.Struct:
         """This is the metadata included in the request."""
+
     def __init__(
         self,
         *,
@@ -90,12 +92,15 @@ class ScoredVector(google.protobuf.message.Message):
     @property
     def values(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
         """This is the vector data, if it is requested."""
+
     @property
     def sparse_values(self) -> global___SparseValues:
         """This is the sparse data, if it is requested."""
+
     @property
     def metadata(self) -> google.protobuf.struct_pb2.Struct:
         """This is the metadata, if it is requested."""
+
     def __init__(
         self,
         *,
@@ -181,6 +186,7 @@ class UpsertRequest(google.protobuf.message.Message):
     @property
     def vectors(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Vector]:
         """An array containing the vectors to upsert. Recommended batch limit is 100 vectors."""
+
     def __init__(
         self,
         *,
@@ -226,12 +232,14 @@ class DeleteRequest(google.protobuf.message.Message):
     @property
     def ids(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
         """Vectors to delete."""
+
     @property
     def filter(self) -> google.protobuf.struct_pb2.Struct:
         """If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive
         with specifying ids to delete in the ids param or using delete_all=True.
         See https://www.pinecone.io/docs/metadata-filtering/.
         """
+
     def __init__(
         self,
         *,
@@ -274,6 +282,7 @@ class FetchRequest(google.protobuf.message.Message):
     @property
     def ids(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
         """The vector IDs to fetch. Does not accept values containing spaces."""
+
     def __init__(
         self,
         *,
@@ -316,9 +325,11 @@ class FetchResponse(google.protobuf.message.Message):
     @property
     def vectors(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___Vector]:
         """The fetched vectors, in the form of a map between the fetched ids and the fetched vectors"""
+
     @property
     def usage(self) -> global___Usage:
         """The usage for this operation."""
+
     def __init__(
         self,
         *,
@@ -454,12 +465,15 @@ class ListResponse(google.protobuf.message.Message):
     @property
     def vectors(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ListItem]:
         """A list of ids"""
+
     @property
     def pagination(self) -> global___Pagination:
         """Pagination token to continue past this listing"""
+
     @property
     def usage(self) -> global___Usage:
         """The usage for this operation."""
+
     def __init__(
         self,
         *,
@@ -518,12 +532,15 @@ class QueryVector(google.protobuf.message.Message):
     @property
     def values(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
         """The query vector values. This should be the same length as the dimension of the index being queried."""
+
     @property
     def sparse_values(self) -> global___SparseValues:
         """The query sparse values."""
+
     @property
     def filter(self) -> google.protobuf.struct_pb2.Struct:
         """An override for the metadata filter to apply. This replaces the request-level filter."""
+
     def __init__(
         self,
         *,
@@ -582,15 +599,19 @@ class QueryRequest(google.protobuf.message.Message):
     @property
     def filter(self) -> google.protobuf.struct_pb2.Struct:
         """The filter to apply. You can use vector metadata to limit your search. See https://www.pinecone.io/docs/metadata-filtering/."""
+
     @property
     def queries(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___QueryVector]:
         """DEPRECATED. The query vectors. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`."""
+
     @property
     def vector(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
         """The query vector. This should be the same length as the dimension of the index being queried. Each `query()` request can contain only one of the parameters `id` or `vector`."""
+
     @property
     def sparse_vector(self) -> global___SparseValues:
         """The query sparse values."""
+
     def __init__(
         self,
         *,
@@ -646,6 +667,7 @@ class SingleQueryResults(google.protobuf.message.Message):
     @property
     def matches(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ScoredVector]:
         """The matches for the vectors."""
+
     def __init__(
         self,
         *,
@@ -673,12 +695,15 @@ class QueryResponse(google.protobuf.message.Message):
         self,
     ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___SingleQueryResults]:
         """DEPRECATED. The results of each query. The order is the same as `QueryRequest.queries`."""
+
     @property
     def matches(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ScoredVector]:
         """The matches for the vectors."""
+
     @property
     def usage(self) -> global___Usage:
         """The usage for this operation."""
+
     def __init__(
         self,
         *,
@@ -749,11 +774,13 @@ class UpdateRequest(google.protobuf.message.Message):
     @property
     def values(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
         """Vector data."""
+
     @property
     def sparse_values(self) -> global___SparseValues: ...
     @property
     def set_metadata(self) -> google.protobuf.struct_pb2.Struct:
         """Metadata to *set* for the vector."""
+
     def __init__(
         self,
         *,
@@ -809,6 +836,7 @@ class DescribeIndexStatsRequest(google.protobuf.message.Message):
         for vectors that satisfy the filter.
         See https://www.pinecone.io/docs/metadata-filtering/.
         """
+
     def __init__(
         self,
         *,
@@ -879,6 +907,7 @@ class DescribeIndexStatsResponse(google.protobuf.message.Message):
         summary of its contents. If a metadata filter expression is present, the
         summary will reflect only vectors matching that expression.
         """
+
     def __init__(
         self,
         *,
