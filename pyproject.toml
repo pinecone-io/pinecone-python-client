@@ -97,6 +97,7 @@ pytest-mock = "3.6.1"
 pytest-timeout = "2.2.0"
 urllib3_mock = "0.3.3"
 responses = ">=0.8.1"
+black = "^24.4.2"
 
 [tool.poetry.extras]
 grpc = ["grpcio", "googleapis-common-protos", "lz4", "protobuf", "protoc-gen-openapiv2"]
