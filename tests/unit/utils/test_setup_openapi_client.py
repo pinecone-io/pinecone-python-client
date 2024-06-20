@@ -8,7 +8,7 @@ from pinecone.core.client.api_client import ApiClient
 from pinecone.utils.setup_openapi_client import setup_openapi_client, build_plugin_setup_client
 
 
-anclass TestSetupOpenAPIClient:
+class TestSetupOpenAPIClient:
     def test_setup_openapi_client(self):
         config = ConfigBuilder.build(api_key="my-api-key", host="https://my-controller-host")
         openapi_config = ConfigBuilder.build_openapi_config(config)
