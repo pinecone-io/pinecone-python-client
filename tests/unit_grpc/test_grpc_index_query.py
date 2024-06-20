@@ -11,6 +11,7 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
 )
 from pinecone.grpc.utils import dict_to_proto_struct
 
+
 class TestGrpcIndexQuery:
     def setup_method(self):
         self.config = Config(api_key="test-api-key", host="foo")

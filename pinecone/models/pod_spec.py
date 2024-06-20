@@ -1,12 +1,13 @@
 from typing import NamedTuple, Optional, Dict
 
+
 class PodSpec(NamedTuple):
     """
     PodSpec represents the configuration used to deploy a pod-based index.
-    
+
     To learn more about the options for each configuration, please see [Understanding Indexes](https://docs.pinecone.io/docs/indexes)
     """
-    
+
     environment: str
     """
     The environment where the pod index will be deployed. Example: 'us-east1-gcp'

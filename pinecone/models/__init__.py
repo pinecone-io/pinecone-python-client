@@ -6,13 +6,13 @@ from .index_list import IndexList
 from .collection_list import CollectionList
 
 __all__ = [
-    'CollectionDescription',
-    'IndexDescription',
-    'IndexStatus',
-    'PodSpec',
-    'PodSpecDefinition',
-    'ServerlessSpec',
-    'ServerlessSpecDefinition',
-    'IndexList',
-    'CollectionList'
+    "CollectionDescription",
+    "IndexDescription",
+    "IndexStatus",
+    "PodSpec",
+    "PodSpecDefinition",
+    "ServerlessSpec",
+    "ServerlessSpecDefinition",
+    "IndexList",
+    "CollectionList",
 ]

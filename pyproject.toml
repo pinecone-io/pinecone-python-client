@@ -84,6 +84,7 @@ types-tqdm = "^4.66.0.3"
 types-protobuf = "^4.24.0.4"
 
 [tool.poetry.group.dev.dependencies]
+pre-commit = "^3.0.0"
 numpy = [
   { version = ">=1.22", python = ">=3.9" },
   { version = ">=1.21", python = ">=3.8,<3.9" },
@@ -97,6 +98,7 @@ pytest-mock = "3.6.1"
 pytest-timeout = "2.2.0"
 urllib3_mock = "0.3.3"
 responses = ">=0.8.1"
+black = "^24.4.2"
 
 [tool.poetry.extras]
 grpc = ["grpcio", "googleapis-common-protos", "lz4", "protobuf", "protoc-gen-openapiv2"]

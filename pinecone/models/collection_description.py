@@ -1,5 +1,6 @@
 from typing import NamedTuple
 
+
 class CollectionDescription(NamedTuple):
     """
     The description of a collection.

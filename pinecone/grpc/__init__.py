@@ -52,5 +52,5 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     Vector as GRPCVector,
     SparseValues as GRPCSparseValues,
     Vector,
-    SparseValues
+    SparseValues,
 )

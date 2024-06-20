@@ -1,11 +1,12 @@
 from ..exceptions import ListConversionException
 
+
 def convert_to_list(obj):
     class_name = obj.__class__.__name__
 
-    if class_name == 'list':
+    if class_name == "list":
         return obj
-    elif hasattr(obj, 'tolist') and callable(getattr(obj, 'tolist')):
+    elif hasattr(obj, "tolist") and callable(getattr(obj, "tolist")):
         return obj.tolist()
     elif obj is None or isinstance(obj, str) or isinstance(obj, dict):
         # The string and dictionary classes in python can be passed to list()

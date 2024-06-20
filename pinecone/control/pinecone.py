@@ -16,7 +16,7 @@ from pinecone.core.client.models import (
     CreateIndexRequest,
     ConfigureIndexRequest,
     ConfigureIndexRequestSpec,
-    ConfigureIndexRequestSpecPod
+    ConfigureIndexRequestSpecPod,
 )
 from pinecone.models import ServerlessSpec, PodSpec, IndexList, CollectionList
 from .langchain_import_warnings import _build_langchain_attribute_error_message
@@ -27,8 +27,8 @@ from pinecone_plugin_interface import load_and_install as install_plugins
 
 logger = logging.getLogger(__name__)
 
-class Pinecone:
 
+class Pinecone:
     def __init__(
         self,
         api_key: Optional[str] = None,
@@ -44,7 +44,7 @@ class Pinecone:
         **kwargs,
     ):
         """
-        The `Pinecone` class is the main entry point for interacting with Pinecone via this Python SDK. 
+        The `Pinecone` class is the main entry point for interacting with Pinecone via this Python SDK.
         It is used to create, delete, and manage your indexes and collections.
 
         :param api_key: The API key to use for authentication. If not passed via kwarg, the API key will be read from the environment variable `PINECONE_API_KEY`.
@@ -56,7 +56,7 @@ class Pinecone:
         :param proxy_headers: Additional headers to pass to the proxy. Use this if your proxy setup requires authentication. Default: `{}`
         :type proxy_headers: Dict[str, str], optional
         :param ssl_ca_certs: The path to the SSL CA certificate bundle to use for the connection. This path should point to a file in PEM format. Default: `None`
-        :type ssl_ca_certs: str, optional   
+        :type ssl_ca_certs: str, optional
         :param ssl_verify: SSL verification is performed by default, but can be disabled using the boolean flag. Default: `True`
         :type ssl_verify: bool, optional
         :param config: A `pinecone.config.Config` object. If passed, the `api_key` and `host` parameters will be ignored.
@@ -68,7 +68,7 @@ class Pinecone:
         :param index_api: An instance of `pinecone.core.client.api.manage_indexes_api.ManageIndexesApi`. If passed, the `host` parameter will be ignored.
         :type index_api: pinecone.core.client.api.manage_indexes_api.ManageIndexesApi, optional
 
-        
+
         ### Configuration with environment variables
 
         If you instantiate the Pinecone client with no arguments, it will attempt to read the API key from the environment variable `PINECONE_API_KEY`.
@@ -94,26 +94,26 @@ class Pinecone:
 
         The Pinecone client supports the following environment variables:
 
-        - `PINECONE_API_KEY`: The API key to use for authentication. If not passed via 
+        - `PINECONE_API_KEY`: The API key to use for authentication. If not passed via
         kwarg, the API key will be read from the environment variable `PINECONE_API_KEY`.
 
-        - `PINECONE_DEBUG_CURL`: When troubleshooting it can be very useful to run curl 
-        commands against the control plane API to see exactly what data is being sent 
+        - `PINECONE_DEBUG_CURL`: When troubleshooting it can be very useful to run curl
+        commands against the control plane API to see exactly what data is being sent
         and received without all the abstractions and transformations applied by the Python
         SDK. If you set this environment variable to `true`, the Pinecone client will use
         request parameters to print out an equivalent curl command that you can run yourself
-        or share with Pinecone support. **Be very careful with this option, as it will print out 
+        or share with Pinecone support. **Be very careful with this option, as it will print out
         your API key** which forms part of a required authentication header. Default: `false`
-        
+
         ### Proxy configuration
 
         If your network setup requires you to interact with Pinecone via a proxy, you will need
         to pass additional configuration using optional keyword parameters. These optional parameters
         are forwarded to `urllib3`, which is the underlying library currently used by the Pinecone client to
-        make HTTP requests. You may find it helpful to refer to the 
-        [urllib3 documentation on working with proxies](https://urllib3.readthedocs.io/en/stable/advanced-usage.html#http-and-https-proxies) 
-        while troubleshooting these settings. 
-        
+        make HTTP requests. You may find it helpful to refer to the
+        [urllib3 documentation on working with proxies](https://urllib3.readthedocs.io/en/stable/advanced-usage.html#http-and-https-proxies)
+        while troubleshooting these settings.
+
         Here is a basic example:
 
         ```python
@@ -144,8 +144,8 @@ class Pinecone:
 
         ### Using proxies with self-signed certificates
 
-        By default the Pinecone Python client will perform SSL certificate verification 
-        using the CA bundle maintained by Mozilla in the [certifi](https://pypi.org/project/certifi/) package. 
+        By default the Pinecone Python client will perform SSL certificate verification
+        using the CA bundle maintained by Mozilla in the [certifi](https://pypi.org/project/certifi/) package.
         If your proxy server is using a self-signed certificate, you will need to pass the path to the certificate
         in PEM format using the `ssl_ca_certs` parameter.
 
@@ -165,7 +165,7 @@ class Pinecone:
 
         ### Disabling SSL verification
 
-        If you would like to disable SSL verification, you can pass the `ssl_verify` 
+        If you would like to disable SSL verification, you can pass the `ssl_verify`
         parameter with a value of `False`. We do not recommend going to production with SSL verification disabled.
 
         ```python
@@ -191,18 +191,21 @@ class Pinecone:
                 self.config = config
         else:
             self.config = PineconeConfig.build(
-                api_key=api_key, 
+                api_key=api_key,
                 host=host,
                 additional_headers=additional_headers,
                 proxy_url=proxy_url,
                 proxy_headers=proxy_headers,
                 ssl_ca_certs=ssl_ca_certs,
                 ssl_verify=ssl_verify,
-                **kwargs
+                **kwargs,
             )
 
         if kwargs.get("openapi_config", None):
-            warnings.warn("Passing openapi_config is deprecated and will be removed in a future release. Please pass settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at https://github.com/pinecone-io/pinecone-python-client for examples.", DeprecationWarning)
+            warnings.warn(
+                "Passing openapi_config is deprecated and will be removed in a future release. Please pass settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at https://github.com/pinecone-io/pinecone-python-client for examples.",
+                DeprecationWarning,
+            )
 
         self.openapi_config = ConfigBuilder.build_openapi_config(self.config, **kwargs)
         self.pool_threads = pool_threads
@@ -215,7 +218,7 @@ class Pinecone:
                 api_klass=ManageIndexesApi,
                 config=self.config,
                 openapi_config=self.openapi_config,
-                pool_threads=pool_threads
+                pool_threads=pool_threads,
             )
 
         self.index_host_store = IndexHostStore()
@@ -224,15 +227,13 @@ class Pinecone:
         self.load_plugins()
 
     def load_plugins(self):
-        """ @private """
+        """@private"""
         try:
             # I don't expect this to ever throw, but wrapping this in a
             # try block just in case to make sure a bad plugin doesn't
             # halt client initialization.
             openapi_client_builder = build_plugin_setup_client(
-                config=self.config,
-                openapi_config=self.openapi_config,
-                pool_threads=self.pool_threads
+                config=self.config, openapi_config=self.openapi_config, pool_threads=self.pool_threads
             )
             install_plugins(self, openapi_client_builder)
         except Exception as e:
@@ -248,8 +249,8 @@ class Pinecone:
     ):
         """Creates a Pinecone index.
 
-        :param name: The name of the index to create. Must be unique within your project and 
-            cannot be changed once created. Allowed characters are lowercase letters, numbers, 
+        :param name: The name of the index to create. Must be unique within your project and
+            cannot be changed once created. Allowed characters are lowercase letters, numbers,
             and hyphens and the name may not begin or end with hyphens. Maximum length is 45 characters.
         :type name: str
         :param dimension: The dimension of vectors that will be inserted in the index. This should
@@ -267,7 +268,7 @@ class Pinecone:
             if -1, return immediately and do not wait. Default: None
 
         ### Creating a serverless index
-        
+
         ```python
         import os
         from pinecone import Pinecone, ServerlessSpec
@@ -275,9 +276,9 @@ class Pinecone:
         client = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
 
         client.create_index(
-            name="my_index", 
-            dimension=1536, 
-            metric="cosine", 
+            name="my_index",
+            dimension=1536,
+            metric="cosine",
             spec=ServerlessSpec(cloud="aws", region="us-west-2")
         )
         ```
@@ -295,7 +296,7 @@ class Pinecone:
             dimension=1536,
             metric="cosine",
             spec=PodSpec(
-                environment="us-east1-gcp", 
+                environment="us-east1-gcp",
                 pod_type="p1.x1"
             )
         )
@@ -305,11 +306,21 @@ class Pinecone:
         api_instance = self.index_api
 
         if isinstance(spec, dict):
-            api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=dimension, metric=metric, spec=spec))
+            api_instance.create_index(
+                create_index_request=CreateIndexRequest(name=name, dimension=dimension, metric=metric, spec=spec)
+            )
         elif isinstance(spec, ServerlessSpec):
-            api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=dimension, metric=metric, spec=spec.asdict()))
+            api_instance.create_index(
+                create_index_request=CreateIndexRequest(
+                    name=name, dimension=dimension, metric=metric, spec=spec.asdict()
+                )
+            )
         elif isinstance(spec, PodSpec):
-            api_instance.create_index(create_index_request=CreateIndexRequest(name=name, dimension=dimension, metric=metric, spec=spec.asdict()))
+            api_instance.create_index(
+                create_index_request=CreateIndexRequest(
+                    name=name, dimension=dimension, metric=metric, spec=spec.asdict()
+                )
+            )
         else:
             raise TypeError("spec must be of type dict, ServerlessSpec, or PodSpec")
 
@@ -340,17 +351,17 @@ class Pinecone:
         """Deletes a Pinecone index.
 
         Deleting an index is an irreversible operation. All data in the index will be lost.
-        When you use this command, a request is sent to the Pinecone control plane to delete 
+        When you use this command, a request is sent to the Pinecone control plane to delete
         the index, but the termination is not synchronous because resources take a few moments to
-        be released. 
-        
+        be released.
+
         You can check the status of the index by calling the `describe_index()` command.
-        With repeated polling of the describe_index command, you will see the index transition to a 
+        With repeated polling of the describe_index command, you will see the index transition to a
         `Terminating` state before eventually resulting in a 404 after it has been removed.
 
         :param name: the name of the index.
         :type name: str
-        :param timeout: Number of seconds to poll status checking whether the index has been deleted. If None, 
+        :param timeout: Number of seconds to poll status checking whether the index has been deleted. If None,
             wait indefinitely; if >=0, time out after this many seconds;
             if -1, return immediately and do not wait. Default: None
         :type timeout: int, optional
@@ -383,11 +394,11 @@ class Pinecone:
 
     def list_indexes(self) -> IndexList:
         """Lists all indexes.
-        
-        The results include a description of all indexes in your project, including the 
+
+        The results include a description of all indexes in your project, including the
         index name, dimension, metric, status, and spec.
 
-        :return: Returns an `IndexList` object, which is iterable and contains a 
+        :return: Returns an `IndexList` object, which is iterable and contains a
             list of `IndexDescription` objects. It also has a convenience method `names()`
             which returns a list of index names.
 
@@ -406,7 +417,7 @@ class Pinecone:
                 spec=ServerlessSpec(cloud="aws", region="us-west-2")
             )
         ```
-        
+
         You can also use the `list_indexes()` method to iterate over all indexes in your project
         and get other information besides just names.
 
@@ -433,15 +444,15 @@ class Pinecone:
 
         :param name: the name of the index to describe.
         :return: Returns an `IndexDescription` object
-        which gives access to properties such as the 
-        index name, dimension, metric, host url, status, 
+        which gives access to properties such as the
+        index name, dimension, metric, host url, status,
         and spec.
 
         ### Getting your index host url
 
         In a real production situation, you probably want to
         store the host url in an environment variable so you
-        don't have to call describe_index and re-fetch it 
+        don't have to call describe_index and re-fetch it
         every time you want to use the index. But this example
         shows how to get the value from the API using describe_index.
 
@@ -451,7 +462,7 @@ class Pinecone:
         client = Pinecone()
 
         description = client.describe_index("my_index")
-        
+
         host = description.host
         print(f"Your index is hosted at {description.host}")
 
@@ -467,14 +478,14 @@ class Pinecone:
         return description
 
     def configure_index(self, name: str, replicas: Optional[int] = None, pod_type: Optional[str] = None):
-        """This method is used to scale configuration fields for your pod-based Pinecone index. 
+        """This method is used to scale configuration fields for your pod-based Pinecone index.
 
         :param: name: the name of the Index
         :param: replicas: the desired number of replicas, lowest value is 0.
         :param: pod_type: the new pod_type for the index. To learn more about the
             available pod types, please see [Understanding Indexes](https://docs.pinecone.io/docs/indexes)
-        
-        
+
+
         ```python
         from pinecone import Pinecone
 
@@ -483,7 +494,7 @@ class Pinecone:
         # Make a configuration change
         client.configure_index(name="my_index", replicas=4)
 
-        # Call describe_index to see the index status as the 
+        # Call describe_index to see the index status as the
         # change is applied.
         client.describe_index("my_index")
         ```
@@ -496,9 +507,7 @@ class Pinecone:
         if replicas:
             config_args.update(replicas=replicas)
         configure_index_request = ConfigureIndexRequest(
-            spec=ConfigureIndexRequestSpec(
-                pod=ConfigureIndexRequestSpecPod(**config_args)
-            )
+            spec=ConfigureIndexRequestSpec(pod=ConfigureIndexRequestSpecPod(**config_args))
         )
         api_instance.configure_index(name, configure_index_request=configure_index_request)
 
@@ -513,7 +522,7 @@ class Pinecone:
 
     def list_collections(self) -> CollectionList:
         """List all collections
-        
+
         ```python
         from pinecone import Pinecone
 
@@ -539,12 +548,12 @@ class Pinecone:
 
         :param: name: The name of the collection
 
-        Deleting a collection is an irreversible operation. All data 
+        Deleting a collection is an irreversible operation. All data
         in the collection will be lost.
 
         This method tells Pinecone you would like to delete a collection,
-        but it takes a few moments to complete the operation. Use the 
-        `describe_collection()` method to confirm that the collection 
+        but it takes a few moments to complete the operation. Use the
+        `describe_collection()` method to confirm that the collection
         has been deleted.
         """
         api_instance = self.index_api
@@ -557,7 +566,7 @@ class Pinecone:
 
         ```python
         from pinecone import Pinecone
-        
+
         client = Pinecone()
 
         description = client.describe_collection("my_collection")
@@ -579,12 +588,12 @@ class Pinecone:
     @staticmethod
     def from_texts(*args, **kwargs):
         raise AttributeError(_build_langchain_attribute_error_message("from_texts"))
-    
+
     @staticmethod
     def from_documents(*args, **kwargs):
         raise AttributeError(_build_langchain_attribute_error_message("from_documents"))
 
-    def Index(self, name: str = '', host: str = '', **kwargs):
+    def Index(self, name: str = "", host: str = "", **kwargs):
         """
         Target an index for data operations.
 
@@ -592,7 +601,7 @@ class Pinecone:
 
         In production situations, you want to uspert or query your data as quickly
         as possible. If you know in advance the host url of your index, you can
-        eliminate a round trip to the Pinecone control plane by specifying the 
+        eliminate a round trip to the Pinecone control plane by specifying the
         host of the index.
 
         ```python
@@ -601,7 +610,7 @@ class Pinecone:
 
         api_key = os.environ.get("PINECONE_API_KEY")
         index_host = os.environ.get("PINECONE_INDEX_HOST")
-        
+
         pc = Pinecone(api_key=api_key)
         index = pc.Index(host=index_host)
 
@@ -628,11 +637,11 @@ class Pinecone:
 
         For more casual usage, such as when you are playing and exploring with Pinecone
         in a notebook setting, you can also target an index by name. If you use this
-        approach, the client may need to perform an extra call to the Pinecone control 
+        approach, the client may need to perform an extra call to the Pinecone control
         plane to get the host url on your behalf to get the index host.
 
-        The client will cache the index host for future use whenever it is seen, so you 
-        will only incur the overhead of only one call. But this approach is not 
+        The client will cache the index host for future use whenever it is seen, so you
+        will only incur the overhead of only one call. But this approach is not
         recommended for production usage.
 
         ```python
@@ -640,7 +649,7 @@ class Pinecone:
         from pinecone import Pinecone, ServerlessSpec
 
         api_key = os.environ.get("PINECONE_API_KEY")
-        
+
         pc = Pinecone(api_key=api_key)
         pc.create_index(
             name='my-index',
@@ -654,16 +663,16 @@ class Pinecone:
         index.query(vector=[...], top_k=10)
         ```
         """
-        if name == '' and host == '':
+        if name == "" and host == "":
             raise ValueError("Either name or host must be specified")
-        
-        pt = kwargs.pop('pool_threads', None) or self.pool_threads
+
+        pt = kwargs.pop("pool_threads", None) or self.pool_threads
         api_key = self.config.api_key
         openapi_config = self.openapi_config
 
-        if host != '':
+        if host != "":
             # Use host url if it is provided
-            index_host=normalize_host(host)
+            index_host = normalize_host(host)
         else:
             # Otherwise, get host url from describe_index using the index name
             index_host = self.index_host_store.get_host(self.index_api, self.config, name)
@@ -674,5 +683,5 @@ class Pinecone:
             pool_threads=pt,
             openapi_config=openapi_config,
             source_tag=self.config.source_tag,
-            **kwargs
+            **kwargs,
         )

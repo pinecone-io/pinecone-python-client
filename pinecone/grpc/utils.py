@@ -2,8 +2,10 @@ import uuid
 
 from google.protobuf.struct_pb2 import Struct
 
+
 def _generate_request_id() -> str:
     return str(uuid.uuid4())
+
 
 from pinecone.core.client.models import (
     Vector as _Vector,
@@ -18,12 +20,14 @@ from pinecone.core.client.models import (
 
 from typing import Optional
 
+
 def dict_to_proto_struct(d: Optional[dict]) -> "Struct":
     if not d:
         d = {}
     s = Struct()
     s.update(d)
     return s
+
 
 def parse_sparse_values(sparse_values: dict):
     return (
@@ -46,12 +50,9 @@ def parse_fetch_response(response: dict):
             metadata=vec.get("metadata", None),
             _check_type=False,
         )
-    
+
     return FetchResponse(
-        vectors=vd, 
-        namespace=namespace,
-        usage=parse_usage(response.get("usage", {})),
-        _check_type=False
+        vectors=vd, namespace=namespace, usage=parse_usage(response.get("usage", {})), _check_type=False
     )
 
 
@@ -75,13 +76,12 @@ def parse_query_response(response: dict, _check_type: bool = False):
     # Due to OpenAPI model classes / actual parsing cost, we want to avoid
     # creating empty `Usage` objects and then passing them into QueryResponse
     # when they are not actually present in the response from the server.
-    args = {'namespace': response.get("namespace", ""),
-            'matches': matches,
-            '_check_type': _check_type}
+    args = {"namespace": response.get("namespace", ""), "matches": matches, "_check_type": _check_type}
     usage = response.get("usage")
     if usage:
-        args['usage'] = parse_usage(usage)
+        args["usage"] = parse_usage(usage)
     return QueryResponse(**args)
+
 
 def parse_stats_response(response: dict):
     fullness = response.get("indexFullness", 0.0)

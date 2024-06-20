@@ -21,7 +21,7 @@ from pinecone.core.client.models import (
     DeleteRequest,
     UpdateRequest,
     DescribeIndexStatsRequest,
-    ListResponse
+    ListResponse,
 )
 from pinecone.core.client.api.data_plane_api import DataPlaneApi
 from ..utils import setup_openapi_client
@@ -58,42 +58,38 @@ _OPENAPI_ENDPOINT_PARAMS = (
     "async_req",
 )
 
+
 def parse_query_response(response: QueryResponse):
     response._data_store.pop("results", None)
     return response
 
-class Index():
 
+class Index:
     """
     A client for interacting with a Pinecone index via REST API.
     For improved performance, use the Pinecone GRPC index client.
     """
 
     def __init__(
-            self,
-            api_key: str,
-            host: str,
-            pool_threads: Optional[int] = 1,
-            additional_headers: Optional[Dict[str, str]] = {},
-            openapi_config = None,
-            **kwargs
-        ):
-        self._config = ConfigBuilder.build(
-            api_key=api_key, 
-            host=host, 
-            additional_headers=additional_headers,
-            **kwargs
-        )
+        self,
+        api_key: str,
+        host: str,
+        pool_threads: Optional[int] = 1,
+        additional_headers: Optional[Dict[str, str]] = {},
+        openapi_config=None,
+        **kwargs,
+    ):
+        self._config = ConfigBuilder.build(api_key=api_key, host=host, additional_headers=additional_headers, **kwargs)
         openapi_config = ConfigBuilder.build_openapi_config(self._config, openapi_config)
-        
+
         self._vector_api = setup_openapi_client(
             api_client_klass=ApiClient,
             api_klass=DataPlaneApi,
             config=self._config,
             openapi_config=openapi_config,
-            pool_threads=pool_threads
+            pool_threads=pool_threads,
         )
-    
+
     def __enter__(self):
         return self
 
@@ -187,7 +183,11 @@ class Index():
         return UpsertResponse(upserted_count=total_upserted)
 
     def _upsert_batch(
-        self, vectors: Union[List[Vector], List[tuple], List[dict]], namespace: Optional[str], _check_type: bool, **kwargs
+        self,
+        vectors: Union[List[Vector], List[tuple], List[dict]],
+        namespace: Optional[str],
+        _check_type: bool,
+        **kwargs,
     ) -> UpsertResponse:
         args_dict = self._parse_non_empty_args([("namespace", namespace)])
         vec_builder = lambda v: VectorFactory.build(v, check_type=_check_type)
@@ -375,13 +375,15 @@ class Index():
             sparse_vector: (Union[SparseValues, Dict[str, Union[List[float], List[int]]]]): sparse values of the query vector.
                             Expected to be either a SparseValues object or a dict of the form:
                              {'indices': List[int], 'values': List[float]}, where the lists each have the same length.
-        
+
         Returns: QueryResponse object which contains the list of the closest vectors as ScoredVector objects,
                  and namespace name.
         """
 
         if len(args) > 0:
-            raise ValueError("The argument order for `query()` has changed; please use keyword arguments instead of positional arguments. Example: index.query(vector=[0.1, 0.2, 0.3], top_k=10, namespace='my_namespace')")
+            raise ValueError(
+                "The argument order for `query()` has changed; please use keyword arguments instead of positional arguments. Example: index.query(vector=[0.1, 0.2, 0.3], top_k=10, namespace='my_namespace')"
+            )
 
         if vector is not None and id is not None:
             raise ValueError("Cannot specify both `id` and `vector`")
@@ -505,7 +507,7 @@ class Index():
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
         )
-    
+
     @validate_and_convert_errors
     def list_paginated(
         self,
@@ -513,13 +515,13 @@ class Index():
         limit: Optional[int] = None,
         pagination_token: Optional[str] = None,
         namespace: Optional[str] = None,
-        **kwargs
-    ) ->  ListResponse:
+        **kwargs,
+    ) -> ListResponse:
         """
         The list_paginated operation finds vectors based on an id prefix within a single namespace.
         It returns matching ids in a paginated form, with a pagination token to fetch the next page of results.
         This id list can then be passed to fetch or delete operations, depending on your use case.
-        
+
         Consider using the `list` method to avoid having to handle pagination tokens manually.
 
         Examples:
@@ -531,13 +533,13 @@ class Index():
             >>> next_results = index.list_paginated(prefix='99', limit=5, namespace='my_namespace', pagination_token=results.pagination.next)
 
         Args:
-            prefix (Optional[str]): The id prefix to match. If unspecified, an empty string prefix will 
+            prefix (Optional[str]): The id prefix to match. If unspecified, an empty string prefix will
                                     be used with the effect of listing all ids in a namespace [optional]
             limit (Optional[int]): The maximum number of ids to return. If unspecified, the server will use a default value. [optional]
-            pagination_token (Optional[str]): A token needed to fetch the next page of results. This token is returned 
+            pagination_token (Optional[str]): A token needed to fetch the next page of results. This token is returned
                 in the response if additional results are available. [optional]
             namespace (Optional[str]): The namespace to fetch vectors from. If not specified, the default namespace is used. [optional]
-        
+
         Returns: ListResponse object which contains the list of ids, the namespace name, pagination information, and usage showing the number of read_units consumed.
         """
         args_dict = self._parse_non_empty_args(
@@ -565,10 +567,10 @@ class Index():
             ['999']
 
         Args:
-            prefix (Optional[str]): The id prefix to match. If unspecified, an empty string prefix will 
+            prefix (Optional[str]): The id prefix to match. If unspecified, an empty string prefix will
                                     be used with the effect of listing all ids in a namespace [optional]
             limit (Optional[int]): The maximum number of ids to return. If unspecified, the server will use a default value. [optional]
-            pagination_token (Optional[str]): A token needed to fetch the next page of results. This token is returned 
+            pagination_token (Optional[str]): A token needed to fetch the next page of results. This token is returned
                 in the response if additional results are available. [optional]
             namespace (Optional[str]): The namespace to fetch vectors from. If not specified, the default namespace is used. [optional]
         """
@@ -577,7 +579,7 @@ class Index():
             results = self.list_paginated(**kwargs)
             if len(results.vectors) > 0:
                 yield [v.id for v in results.vectors]
-            
+
             if results.pagination:
                 kwargs.update({"pagination_token": results.pagination.next})
             else:
