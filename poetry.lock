@@ -298,18 +298,18 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "filelock"
-version = "3.15.1"
+version = "3.15.3"
 description = "A platform independent file lock."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "filelock-3.15.1-py3-none-any.whl", hash = "sha256:71b3102950e91dfc1bb4209b64be4dc8854f40e5f534428d8684f953ac847fac"},
-    {file = "filelock-3.15.1.tar.gz", hash = "sha256:58a2549afdf9e02e10720eaa4d4470f56386d7a6f72edd7d0596337af8ed7ad8"},
+    {file = "filelock-3.15.3-py3-none-any.whl", hash = "sha256:0151273e5b5d6cf753a61ec83b3a9b7d8821c39ae9af9d7ecf2f9e2f17404103"},
+    {file = "filelock-3.15.3.tar.gz", hash = "sha256:e1199bf5194a2277273dacd50269f0d87d0682088a3c561c15674ea9005d8635"},
 ]
 
 [package.extras]
 docs = ["furo (>=2023.9.10)", "sphinx (>=7.2.6)", "sphinx-autodoc-typehints (>=1.25.2)"]
-testing = ["covdefaults (>=2.3)", "coverage (>=7.3.2)", "diff-cover (>=8.0.1)", "pytest (>=7.4.3)", "pytest-asyncio (>=0.21)", "pytest-cov (>=4.1)", "pytest-mock (>=3.12)", "pytest-timeout (>=2.2)"]
+testing = ["covdefaults (>=2.3)", "coverage (>=7.3.2)", "diff-cover (>=8.0.1)", "pytest (>=7.4.3)", "pytest-asyncio (>=0.21)", "pytest-cov (>=4.1)", "pytest-mock (>=3.12)", "pytest-timeout (>=2.2)", "virtualenv (>=20.26.2)"]
 typing = ["typing-extensions (>=4.8)"]
 
 [[package]]
@@ -875,6 +875,21 @@ pygments = ">=2.12.0"
 dev = ["hypothesis", "mypy", "pdoc-pyo3-sample-library (==1.0.11)", "pygments (>=2.14.0)", "pytest", "pytest-cov", "pytest-timeout", "ruff", "tox", "types-pygments"]
 
 [[package]]
+name = "pinecone-plugin-inference"
+version = "0.4.1"
+description = "Embeddings plugin for Pinecone SDK"
+optional = false
+python-versions = "<4.0,>=3.8"
+files = [
+    {file = "pinecone_plugin_inference-0.4.1-py3-none-any.whl", hash = "sha256:1a9877f393ef8389dc7708d6289c3cdaa074469fe8b26feeca2b64d6013031b5"},
+    {file = "pinecone_plugin_inference-0.4.1.tar.gz", hash = "sha256:dc920170d7b7623c22ae5f9557f4d4ac9af41e5d0b994b8207a8c7181b8ef583"},
+]
+
+[package.dependencies]
+pinecone-client = ">=4.1.1,<6.0.0"
+pinecone-plugin-interface = ">=0.0.7,<0.0.8"
+
+[[package]]
 name = "pinecone-plugin-interface"
 version = "0.0.7"
 description = "Plugin interface for the Pinecone python client"
@@ -1375,4 +1390,4 @@ grpc = ["googleapis-common-protos", "grpcio", "grpcio", "lz4", "protobuf", "prot
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "1c61ed3540dc2bf608b4c29a42f1a0a6a0a5cf48faba3c1e0968ae783091a40f"
+content-hash = "347079cf171da2fca2f4d1febd2974c390e42bb23d933519de8108163634b4ed"
