@@ -1,5 +1,5 @@
 # Pinecone Python Client 
-![License](https://img.shields.io/github/license/pinecone-io/pinecone-python-client?color=orange)
+![License](https://img.shields.io/github/license/pinecone-io/pinecone-python-client?color=orange) [![CI](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/pr.yaml/badge.svg)](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/pr.yaml)
 
 The official Pinecone Python client.
 
