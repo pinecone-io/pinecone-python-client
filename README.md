@@ -1,4 +1,4 @@
-# Pinecone Python Client &middot; 
+# Pinecone Python Client 
 ![License](https://img.shields.io/github/license/pinecone-io/pinecone-python-client?color=orange)
 
 The official Pinecone Python client.
