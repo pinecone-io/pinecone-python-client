@@ -1,0 +1,6 @@
+[submodule "codegen/apis"]
+	path = codegen/apis
+	url = git@github.com:pinecone-io/apis.git
+[submodule "codegen/python-oas-templates"]
+	path = codegen/python-oas-templates
+	url = git@github.com:pinecone-io/python-oas-templates.git
