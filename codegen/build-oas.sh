@@ -38,6 +38,7 @@ verify_spec_file_exists() {
 
 generate_client() {
 	local oas_file=$1
+	local openapi_generator_config=$2
 	local template_dir="codegen/python-oas-templates/templates5.2.0"
 
 	if [ ! -f "$oas_file" ]; then
@@ -56,7 +57,7 @@ generate_client() {
 	docker run --rm -v $(pwd):/workspace openapitools/openapi-generator-cli:v5.2.0 generate \
 		--input-spec "/workspace/$oas_file" \
 		--generator-name python \
-		--config /workspace/codegen/openapi-config.json \
+		--config "/workspace/$openapi_generator_config" \
 		--output /workspace/build \
 		--template-dir "/workspace/$template_dir"
 }
@@ -64,33 +65,31 @@ generate_client() {
 update_apis_repo
 verify_spec_version $version
 
-# Remove old generated files
-rm -rf pinecone/core/client
-mkdir -p pinecone/core/client
-
 # Generate data plane client
 data_oas="codegen/apis/static/$version/data_$version.oas.yaml"
+data_config="codegen/openapi-config.data.json"
 verify_spec_file_exists $data_oas
-generate_client $data_oas
-cp -r build/pinecone/core/client pinecone/core
+generate_client $data_oas $data_config
+rm -rf pinecone/core/data
+cp -r build/pinecone/core/data pinecone/core/data
 
 # Generate control plane client
 control_oas="codegen/apis/static/$version/control_$version.oas.yaml"
+control_config="codegen/openapi-config.control.json"
 verify_spec_file_exists $control_oas
-generate_client $control_oas
+generate_client $control_oas $control_config
+rm -rf pinecone/core/control
+cp -r build/pinecone/core/control pinecone/core/control
 
-# The openapi generator isn't really built to handle multiple spec files, 
-# so we have to manually merge the generated outputs from data plane and
-# control plane.
 
-# 1. Concat data and control models/__init__.py files
-cat pinecone/core/client/models/__init__.py >> build/pinecone/core/client/models/__init__.py
-# 2. Copy control models files and combined __init__ file into pinecone
-cp -r build/pinecone/core/client/models/* pinecone/core/client/models
-# 3. Concat data and control apis/__init__.py files
-cat pinecone/core/client/apis/__init__.py >> build/pinecone/core/client/apis/__init__.py
-# 4. Copy control apis files and combined __init__ file into pinecone
-cp -r build/pinecone/core/client/apis/* pinecone/core/client/apis
+# # 1. Concat data and control models/__init__.py files
+# cat pinecone/core/client/models/__init__.py >> build/pinecone/core/client/models/__init__.py
+# # 2. Copy control models files and combined __init__ file into pinecone
+# cp -r build/pinecone/core/client/models/* pinecone/core/client/models
+# # 3. Concat data and control apis/__init__.py files
+# cat pinecone/core/client/apis/__init__.py >> build/pinecone/core/client/apis/__init__.py
+# # 4. Copy control apis files and combined __init__ file into pinecone
+# cp -r build/pinecone/core/client/apis/* pinecone/core/client/apis
 
 # Format generated files
 poetry run black pinecone/core
