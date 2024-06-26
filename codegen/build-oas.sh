@@ -65,29 +65,34 @@ generate_client() {
 }
 
 extract_shared_classes() {
-	rm -rf pinecone/core/shared
-	mkdir -p pinecone/core/shared
+	target_directory="pinecone/core/shared"
+	rm -rf $target_directory
+	mkdir -p $target_directory
 
-	# Define the list of source files
+	modules=("control" "data")
+
+	# Define the list of shared source files
 	sharedFiles=(
-		"api_client.py"
-		"configuration.py" 
-		"exceptions.py" 
-		"model_utils.py" 
-		"rest.py"
+		"api_client"
+		"configuration" 
+		"exceptions" 
+		"model_utils" 
+		"rest"
 	)
 
-	control_directory="pinecone/core/control/client"
-	data_directory="pinecone/core/data/client"
-	target_directory="pinecone/core/shared"
+	source_directory="pinecone/core/${modules[0]}/client"
 
-	# Create the target directory if it does not exist
-	mkdir -p "$target_directory"
-
-	# Loop through each file and copy it to the target directory
+	# Loop through each file we want to share and copy it to the target directory
 	for file in "${sharedFiles[@]}"; do
-		mv "$control_directory/$file" "$target_directory"
-		rm "$data_directory/$file"
+		cp "$source_directory/$file.py" "$target_directory"
+	done
+
+	# Cleanup shared files in each module
+	for module in "${modules[@]}"; do
+		source_directory="pinecone/core/$module/client"
+		for file in "${sharedFiles[@]}"; do
+			rm "$source_directory/$file.py"
+		done
 	done
 
 	# Remove the docstring headers that aren't really correct in the 
@@ -101,17 +106,11 @@ extract_shared_classes() {
 		sed -i '' 's/from \.\.model_utils/from pinecone\.core\.shared\.model_utils/g' "$file"
 		sed -i '' 's/from pinecone\.core\.control\.client import rest/from pinecone\.core\.shared import rest/g' "$file"
 
-		sed -i '' 's/from pinecone\.core\.control\.client\.api_client/from pinecone\.core\.shared\.api_client/g' "$file"
-		sed -i '' 's/from pinecone\.core\.control\.client\.configuration/from pinecone\.core\.shared\.configuration/g' "$file"
-		sed -i '' 's/from pinecone\.core\.control\.client\.exceptions/from pinecone\.core\.shared\.exceptions/g' "$file"
-		sed -i '' 's/from pinecone\.core\.control\.client\.model_utils/from pinecone\.core\.shared\.model_utils/g' "$file"
-		sed -i '' 's/from pinecone\.core\.control\.client\.rest/from pinecone\.core\.shared\.rest/g' "$file"
-		
-		sed -i '' 's/from pinecone\.core\.data\.client\.api_client/from pinecone\.core\.shared\.api_client/g' "$file"
-		sed -i '' 's/from pinecone\.core\.data\.client\.configuration/from pinecone\.core\.shared\.configuration/g' "$file"
-		sed -i '' 's/from pinecone\.core\.data\.client\.exceptions/from pinecone\.core\.shared\.exceptions/g' "$file"
-		sed -i '' 's/from pinecone\.core\.data\.client\.model_utils/from pinecone\.core\.shared\.model_utils/g' "$file"
-		sed -i '' 's/from pinecone\.core\.data\.client\.rest/from pinecone\.core\.shared\.rest/g' "$file"
+		for module in "${modules[@]}"; do
+			for sharedFile in "${sharedFiles[@]}"; do
+				sed -i '' "s/from pinecone\.core\.$module\.client\.$sharedFile/from pinecone\.core\.shared\.$sharedFile/g" "$file"
+			done
+		done
 	done
 }
 
