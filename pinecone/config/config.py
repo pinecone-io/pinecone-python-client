@@ -3,7 +3,7 @@ import os
 
 from pinecone.exceptions.exceptions import PineconeConfigurationError
 from pinecone.config.openapi import OpenApiConfigFactory
-from pinecone.core.control.client.configuration import (
+from pinecone.core.shared.configuration import (
     Configuration as OpenApiConfiguration,
 )
 from pinecone.utils import normalize_host

@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 from pinecone import ConfigBuilder, Pinecone, PodSpec, ServerlessSpec
 from pinecone.core.control.client.models import IndexList, IndexModel
 from pinecone.core.control.client.api.manage_indexes_api import ManageIndexesApi
-from pinecone.core.control.client.configuration import Configuration as OpenApiConfiguration
+from pinecone.core.shared.configuration import Configuration as OpenApiConfiguration
 
 import time
 

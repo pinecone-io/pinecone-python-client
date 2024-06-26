@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eux -o pipefail
+
 version='2024-07'
 
 rm -rf build
@@ -62,17 +64,55 @@ generate_client() {
 		--template-dir "/workspace/$template_dir"
 }
 
-# Adjust exception import paths in generated code
-adjust_exception_imports() {
-	local client_dir=$1
-	local exception_dir=$2
+extract_shared_classes() {
+	rm -rf pinecone/core/shared
+	mkdir -p pinecone/core/shared
 
-	find pinecone/core -name "*.py" -exec sed -i 's/from pinecone\.core\.control\.client\.exceptions/from pinecone\.exceptions/g' {} +
+	# Define the list of source files
+	sharedFiles=(
+		"api_client.py"
+		"configuration.py" 
+		"exceptions.py" 
+		"model_utils.py" 
+		"rest.py"
+	)
 
+	control_directory="pinecone/core/control/client"
+	data_directory="pinecone/core/data/client"
+	target_directory="pinecone/core/shared"
 
-	# Adjust import paths in exceptions
-	sed -i '' -e 's/from pinecone\.core\.exceptions/from pinecone.core.control.exceptions/g' $exception_dir/__init__.py
-	sed -i '' -e 's/from pinecone\.core\.exceptions/from pinecone.core.data.exceptions/g' $exception_dir/__init__.py
+	# Create the target directory if it does not exist
+	mkdir -p "$target_directory"
+
+	# Loop through each file and copy it to the target directory
+	for file in "${sharedFiles[@]}"; do
+		mv "$control_directory/$file" "$target_directory"
+		rm "$data_directory/$file"
+	done
+
+	# Remove the docstring headers that aren't really correct in the 
+	# context of this new shared package structure
+	find "$target_directory" -name "*.py" -print0 | xargs -0 -I {} sh -c 'sed -i "" "/^\"\"\"/,/^\"\"\"/d" "{}"'
+
+	echo "All shared files have been copied to $target_directory."
+
+	# Adjust import paths in every file
+	find pinecone/core -name "*.py" | while IFS= read -r file; do
+		sed -i '' 's/from \.\.model_utils/from pinecone\.core\.shared\.model_utils/g' "$file"
+		sed -i '' 's/from pinecone\.core\.control\.client import rest/from pinecone\.core\.shared import rest/g' "$file"
+
+		sed -i '' 's/from pinecone\.core\.control\.client\.api_client/from pinecone\.core\.shared\.api_client/g' "$file"
+		sed -i '' 's/from pinecone\.core\.control\.client\.configuration/from pinecone\.core\.shared\.configuration/g' "$file"
+		sed -i '' 's/from pinecone\.core\.control\.client\.exceptions/from pinecone\.core\.shared\.exceptions/g' "$file"
+		sed -i '' 's/from pinecone\.core\.control\.client\.model_utils/from pinecone\.core\.shared\.model_utils/g' "$file"
+		sed -i '' 's/from pinecone\.core\.control\.client\.rest/from pinecone\.core\.shared\.rest/g' "$file"
+		
+		sed -i '' 's/from pinecone\.core\.data\.client\.api_client/from pinecone\.core\.shared\.api_client/g' "$file"
+		sed -i '' 's/from pinecone\.core\.data\.client\.configuration/from pinecone\.core\.shared\.configuration/g' "$file"
+		sed -i '' 's/from pinecone\.core\.data\.client\.exceptions/from pinecone\.core\.shared\.exceptions/g' "$file"
+		sed -i '' 's/from pinecone\.core\.data\.client\.model_utils/from pinecone\.core\.shared\.model_utils/g' "$file"
+		sed -i '' 's/from pinecone\.core\.data\.client\.rest/from pinecone\.core\.shared\.rest/g' "$file"
+	done
 }
 
 update_apis_repo
@@ -93,6 +133,11 @@ verify_spec_file_exists $control_oas
 generate_client $control_oas $control_config
 rm -rf pinecone/core/control
 cp -r build/pinecone/core/control pinecone/core/control
+
+# Even though we want to generate multiple packages, we
+# don't want to duplicate every exception and utility class.
+# So we do a bit of surgery to combine the shared files.
+extract_shared_classes
 
 # Format generated files
 poetry run black pinecone/core

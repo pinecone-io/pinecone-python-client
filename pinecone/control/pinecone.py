@@ -10,7 +10,7 @@ from pinecone.config import PineconeConfig, Config, ConfigBuilder
 from pinecone.core.control.client.api.manage_indexes_api import (
     ManageIndexesApi,
 )
-from pinecone.core.control.client.api_client import ApiClient
+from pinecone.core.shared.api_client import ApiClient
 
 from pinecone.utils import (
     normalize_host,

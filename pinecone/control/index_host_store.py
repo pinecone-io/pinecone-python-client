@@ -3,7 +3,7 @@ from pinecone.config import Config
 from pinecone.core.control.client.api.manage_indexes_api import (
     ManageIndexesApi as IndexOperationsApi,
 )
-from pinecone.core.control.client.exceptions import PineconeException
+from pinecone.core.shared.exceptions import PineconeException
 from pinecone.utils import normalize_host
 
 

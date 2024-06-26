@@ -14,15 +14,15 @@
 __version__ = "1.0.0"
 
 # import ApiClient
-from pinecone.core.control.client.api_client import ApiClient
+from pinecone.core.shared.api_client import ApiClient
 
 # import Configuration
-from pinecone.core.control.client.configuration import Configuration
+from pinecone.core.shared.configuration import Configuration
 
 # import exceptions
-from pinecone.core.control.client.exceptions import PineconeException
-from pinecone.core.control.client.exceptions import PineconeApiAttributeError
-from pinecone.core.control.client.exceptions import PineconeApiTypeError
-from pinecone.core.control.client.exceptions import PineconeApiValueError
-from pinecone.core.control.client.exceptions import PineconeApiKeyError
-from pinecone.core.control.client.exceptions import PineconeApiException
+from pinecone.core.shared.exceptions import PineconeException
+from pinecone.core.shared.exceptions import PineconeApiAttributeError
+from pinecone.core.shared.exceptions import PineconeApiTypeError
+from pinecone.core.shared.exceptions import PineconeApiValueError
+from pinecone.core.shared.exceptions import PineconeApiKeyError
+from pinecone.core.shared.exceptions import PineconeApiException

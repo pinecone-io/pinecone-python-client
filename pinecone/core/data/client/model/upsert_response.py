@@ -11,7 +11,7 @@
 import re  # noqa: F401
 import sys  # noqa: F401
 
-from pinecone.core.data.client.model_utils import (  # noqa: F401
+from pinecone.core.shared.model_utils import (  # noqa: F401
     PineconeApiTypeError,
     ModelComposed,
     ModelNormal,
@@ -25,8 +25,8 @@ from pinecone.core.data.client.model_utils import (  # noqa: F401
     none_type,
     validate_get_composed_info,
 )
-from ..model_utils import OpenApiModel
-from pinecone.core.data.client.exceptions import PineconeApiAttributeError
+from pinecone.core.shared.model_utils import OpenApiModel
+from pinecone.core.shared.exceptions import PineconeApiAttributeError
 
 
 class UpsertResponse(ModelNormal):
