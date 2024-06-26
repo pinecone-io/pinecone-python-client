@@ -1,6 +1,6 @@
 import pytest
 from pinecone import IndexList
-from pinecone.core.client.models import IndexList as OpenApiIndexList
+from pinecone.core.control.client.models import IndexList as OpenApiIndexList
 
 
 @pytest.fixture

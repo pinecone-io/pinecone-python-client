@@ -5,7 +5,7 @@
 # raise a `RecursionError`.
 # In order to avoid this, import only the API that you directly need like:
 #
-#   from .api.manage_indexes_api import ManageIndexesApi
+#   from .api.inference_api import InferenceApi
 #
 # or import this package, but before doing it, use:
 #
@@ -13,4 +13,5 @@
 #   sys.setrecursionlimit(n)
 
 # Import APIs into API package:
+from pinecone.core.control.client.api.inference_api import InferenceApi
 from pinecone.core.control.client.api.manage_indexes_api import ManageIndexesApi

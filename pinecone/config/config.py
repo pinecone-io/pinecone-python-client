@@ -1,9 +1,11 @@
 from typing import NamedTuple, Optional, Dict
 import os
 
-from pinecone.exceptions import PineconeConfigurationError
+from pinecone.exceptions.exceptions import PineconeConfigurationError
 from pinecone.config.openapi import OpenApiConfigFactory
-from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
+from pinecone.core.control.client.configuration import (
+    Configuration as OpenApiConfiguration,
+)
 from pinecone.utils import normalize_host
 from pinecone.utils.constants import SOURCE_TAG
 
@@ -57,15 +59,28 @@ class ConfigBuilder:
         if not host:
             raise PineconeConfigurationError("You haven't specified a host.")
 
-        return Config(api_key, host, proxy_url, proxy_headers, ssl_ca_certs, ssl_verify, additional_headers, source_tag)
+        return Config(
+            api_key,
+            host,
+            proxy_url,
+            proxy_headers,
+            ssl_ca_certs,
+            ssl_verify,
+            additional_headers,
+            source_tag,
+        )
 
     @staticmethod
     def build_openapi_config(
-        config: Config, openapi_config: Optional[OpenApiConfiguration] = None, **kwargs
+        config: Config,
+        openapi_config: Optional[OpenApiConfiguration] = None,
+        **kwargs,
     ) -> OpenApiConfiguration:
         if openapi_config:
             openapi_config = OpenApiConfigFactory.copy(
-                openapi_config=openapi_config, api_key=config.api_key, host=config.host
+                openapi_config=openapi_config,
+                api_key=config.api_key,
+                host=config.host,
             )
         elif openapi_config is None:
             openapi_config = OpenApiConfigFactory.build(api_key=config.api_key, host=config.host)

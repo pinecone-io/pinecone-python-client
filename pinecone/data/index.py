@@ -4,9 +4,9 @@ from typing import Union, List, Tuple, Optional, Dict, Any
 
 from pinecone.config import ConfigBuilder
 
-from pinecone.core.client.models import SparseValues
-from pinecone.core.client import ApiClient
-from pinecone.core.client.models import (
+from pinecone.core.data.client.models import SparseValues
+from pinecone.core.data.client import ApiClient
+from pinecone.core.data.client.models import (
     FetchResponse,
     QueryRequest,
     QueryResponse,
@@ -23,7 +23,7 @@ from pinecone.core.client.models import (
     DescribeIndexStatsRequest,
     ListResponse,
 )
-from pinecone.core.client.api.data_plane_api import DataPlaneApi
+from pinecone.core.data.client.api.data_plane_api import DataPlaneApi
 from ..utils import setup_openapi_client
 from .vector_factory import VectorFactory
 
@@ -79,7 +79,12 @@ class Index:
         openapi_config=None,
         **kwargs,
     ):
-        self._config = ConfigBuilder.build(api_key=api_key, host=host, additional_headers=additional_headers, **kwargs)
+        self._config = ConfigBuilder.build(
+            api_key=api_key,
+            host=host,
+            additional_headers=additional_headers,
+            **kwargs,
+        )
         openapi_config = ConfigBuilder.build_openapi_config(self._config, openapi_config)
 
         self._vector_api = setup_openapi_client(
@@ -172,7 +177,11 @@ class Index:
         if not isinstance(batch_size, int) or batch_size <= 0:
             raise ValueError("batch_size must be a positive integer")
 
-        pbar = tqdm(total=len(vectors), disable=not show_progress, desc="Upserted vectors")
+        pbar = tqdm(
+            total=len(vectors),
+            disable=not show_progress,
+            desc="Upserted vectors",
+        )
         total_upserted = 0
         for i in range(0, len(vectors), batch_size):
             batch_result = self._upsert_batch(vectors[i : i + batch_size], namespace, _check_type, **kwargs)
@@ -209,7 +218,11 @@ class Index:
             yield batch
 
     def upsert_from_dataframe(
-        self, df, namespace: Optional[str] = None, batch_size: int = 500, show_progress: bool = True
+        self,
+        df,
+        namespace: Optional[str] = None,
+        batch_size: int = 500,
+        show_progress: bool = True,
     ) -> UpsertResponse:
         """Upserts a dataframe into the index.
 
@@ -229,7 +242,11 @@ class Index:
         if not isinstance(df, pd.DataFrame):
             raise ValueError(f"Only pandas dataframes are supported. Found: {type(df)}")
 
-        pbar = tqdm(total=len(df), disable=not show_progress, desc="sending upsert requests")
+        pbar = tqdm(
+            total=len(df),
+            disable=not show_progress,
+            desc="sending upsert requests",
+        )
         results = []
         for chunk in self._iter_dataframe(df, batch_size=batch_size):
             res = self.upsert(vectors=chunk, namespace=namespace)
@@ -288,7 +305,12 @@ class Index:
         """
         _check_type = kwargs.pop("_check_type", False)
         args_dict = self._parse_non_empty_args(
-            [("ids", ids), ("delete_all", delete_all), ("namespace", namespace), ("filter", filter)]
+            [
+                ("ids", ids),
+                ("delete_all", delete_all),
+                ("namespace", namespace),
+                ("filter", filter),
+            ]
         )
 
         return self._vector_api.delete(
@@ -419,7 +441,12 @@ class Index:
         self,
         id: str,
         values: Optional[List[float]] = None,
-        set_metadata: Optional[Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]] = None,
+        set_metadata: Optional[
+            Dict[
+                str,
+                Union[str, float, int, bool, List[int], List[float], List[str]],
+            ]
+        ] = None,
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[SparseValues, Dict[str, Union[List[float], List[int]]]]] = None,
         **kwargs,
@@ -477,7 +504,9 @@ class Index:
 
     @validate_and_convert_errors
     def describe_index_stats(
-        self, filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None, **kwargs
+        self,
+        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        **kwargs,
     ) -> DescribeIndexStatsResponse:
         """
         The DescribeIndexStats operation returns statistics about the index's contents.

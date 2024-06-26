@@ -1,7 +1,9 @@
 from typing import Dict
 from pinecone.config import Config
-from pinecone.core.client.api.manage_indexes_api import ManageIndexesApi as IndexOperationsApi
-from pinecone.core.client.exceptions import PineconeException
+from pinecone.core.control.client.api.manage_indexes_api import (
+    ManageIndexesApi as IndexOperationsApi,
+)
+from pinecone.core.control.client.exceptions import PineconeException
 from pinecone.utils import normalize_host
 
 

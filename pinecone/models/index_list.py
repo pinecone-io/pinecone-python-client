@@ -1,4 +1,4 @@
-from pinecone.core.client.models import IndexList as OpenAPIIndexList
+from pinecone.core.control.client.models import IndexList as OpenAPIIndexList
 
 
 class IndexList:

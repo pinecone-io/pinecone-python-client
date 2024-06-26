@@ -1,6 +1,6 @@
 import pytest
 
-from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
+from pinecone.core.control.client.configuration import Configuration as OpenApiConfiguration
 from pinecone.config import ConfigBuilder
 from pinecone import PineconeConfigurationError
 

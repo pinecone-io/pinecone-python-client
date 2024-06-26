@@ -5,9 +5,13 @@ from typing import Union, Dict
 
 from ..utils import convert_to_list
 
-from .errors import SparseValuesTypeError, SparseValuesMissingKeysError, SparseValuesDictionaryExpectedError
+from .errors import (
+    SparseValuesTypeError,
+    SparseValuesMissingKeysError,
+    SparseValuesDictionaryExpectedError,
+)
 
-from pinecone.core.client.models import SparseValues
+from pinecone.core.data.client.models import SparseValues
 
 
 class SparseValuesFactory:

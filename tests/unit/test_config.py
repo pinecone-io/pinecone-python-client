@@ -1,7 +1,7 @@
 from pinecone import Pinecone
-from pinecone.exceptions import PineconeConfigurationError
+from pinecone.exceptions.exceptions import PineconeConfigurationError
 from pinecone.config import PineconeConfig
-from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
+from pinecone.core.control.client.configuration import Configuration as OpenApiConfiguration
 
 import pytest
 import os

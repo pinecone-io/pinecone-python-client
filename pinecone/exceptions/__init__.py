@@ -1,4 +1,4 @@
-from .core.client.exceptions import (
+from .openapi_exceptions import (
     PineconeException,
     PineconeApiAttributeError,
     PineconeApiTypeError,
@@ -10,20 +10,11 @@ from .core.client.exceptions import (
     ForbiddenException,
     ServiceException,
 )
-
-
-class PineconeProtocolError(PineconeException):
-    """Raised when something unexpected happens mid-request/response."""
-
-
-class PineconeConfigurationError(PineconeException):
-    """Raised when a configuration error occurs."""
-
-
-class ListConversionException(PineconeException, TypeError):
-    def __init__(self, message):
-        super().__init__(message)
-
+from .exceptions import (
+    PineconeConfigurationError,
+    PineconeProtocolError,
+    ListConversionException,
+)
 
 __all__ = [
     "PineconeConfigurationError",

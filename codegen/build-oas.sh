@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version='2024-04'
+version='2024-07'
 
 rm -rf build
 mkdir build
@@ -22,8 +22,8 @@ verify_spec_version() {
 		exit 1
 	fi
 
-	if [ ! -d "codegen/apis/static/$version" ]; then
-		echo "Version $version does not exist in static dir"
+	if [ ! -d "codegen/apis/_build/$version" ]; then
+		echo "Version $version does not exist in apis build dir"
 		exit 1
 	fi
 }
@@ -62,11 +62,24 @@ generate_client() {
 		--template-dir "/workspace/$template_dir"
 }
 
+# Adjust exception import paths in generated code
+adjust_exception_imports() {
+	local client_dir=$1
+	local exception_dir=$2
+
+	find pinecone/core -name "*.py" -exec sed -i 's/from pinecone\.core\.control\.client\.exceptions/from pinecone\.exceptions/g' {} +
+
+
+	# Adjust import paths in exceptions
+	sed -i '' -e 's/from pinecone\.core\.exceptions/from pinecone.core.control.exceptions/g' $exception_dir/__init__.py
+	sed -i '' -e 's/from pinecone\.core\.exceptions/from pinecone.core.data.exceptions/g' $exception_dir/__init__.py
+}
+
 update_apis_repo
 verify_spec_version $version
 
 # Generate data plane client
-data_oas="codegen/apis/static/$version/data_$version.oas.yaml"
+data_oas="codegen/apis/_build/$version/data_$version.oas.yaml"
 data_config="codegen/openapi-config.data.json"
 verify_spec_file_exists $data_oas
 generate_client $data_oas $data_config
@@ -74,22 +87,12 @@ rm -rf pinecone/core/data
 cp -r build/pinecone/core/data pinecone/core/data
 
 # Generate control plane client
-control_oas="codegen/apis/static/$version/control_$version.oas.yaml"
+control_oas="codegen/apis/_build/$version/control_$version.oas.yaml"
 control_config="codegen/openapi-config.control.json"
 verify_spec_file_exists $control_oas
 generate_client $control_oas $control_config
 rm -rf pinecone/core/control
 cp -r build/pinecone/core/control pinecone/core/control
-
-
-# # 1. Concat data and control models/__init__.py files
-# cat pinecone/core/client/models/__init__.py >> build/pinecone/core/client/models/__init__.py
-# # 2. Copy control models files and combined __init__ file into pinecone
-# cp -r build/pinecone/core/client/models/* pinecone/core/client/models
-# # 3. Concat data and control apis/__init__.py files
-# cat pinecone/core/client/apis/__init__.py >> build/pinecone/core/client/apis/__init__.py
-# # 4. Copy control apis files and combined __init__ file into pinecone
-# cp -r build/pinecone/core/client/apis/* pinecone/core/client/apis
 
 # Format generated files
 poetry run black pinecone/core

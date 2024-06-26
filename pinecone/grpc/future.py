@@ -1,5 +1,5 @@
 from grpc._channel import _MultiThreadedRendezvous
-from pinecone.exceptions import PineconeException
+from pinecone.exceptions.exceptions import PineconeException
 
 
 class PineconeGrpcFuture:
