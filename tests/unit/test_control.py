@@ -118,16 +118,19 @@ class TestControl:
         assert p.index_api.describe_index.call_count == expected_describe_index_calls
         assert time.sleep.call_count == expected_sleep_calls
 
-    @pytest.mark.parametrize('index_spec', [
-        {"serverless": {"cloud": "aws", "region": "us-west1"}},
-        {"pod": {"environment": "us-west1-gcp", "pod_type": "p1.x1", "pods": 1, "replicas": 1, "shards": 1}},
-    ])
+    @pytest.mark.parametrize(
+        "index_spec",
+        [
+            {"serverless": {"cloud": "aws", "region": "us-west1"}},
+            {"pod": {"environment": "us-west1-gcp", "pod_type": "p1.x1", "pods": 1, "replicas": 1, "shards": 1}},
+        ],
+    )
     def test_create_index(self, mocker, index_spec):
         p = Pinecone(api_key="123-456-789")
 
         mock_api = MagicMock()
         mocker.patch.object(p, "index_api", mock_api)
-        
+
         p.create_index(name="my-index", dimension=10, spec=index_spec)
 
         mock_api.create_index.assert_called_once()
@@ -184,6 +187,7 @@ class TestControl:
     def test_api_key_and_openapi_config(self, mocker):
         p = Pinecone(api_key="123", openapi_config=OpenApiConfiguration.get_default_copy())
         assert p.config.api_key == "123"
+
 
 class TestIndexConfig:
     def test_default_pool_threads(self):
