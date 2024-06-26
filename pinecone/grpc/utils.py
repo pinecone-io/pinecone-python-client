@@ -7,7 +7,7 @@ def _generate_request_id() -> str:
     return str(uuid.uuid4())
 
 
-from pinecone.core.data.client.models import (
+from pinecone.core.openapi.data.models import (
     Vector as _Vector,
     Usage,
     ScoredVector,

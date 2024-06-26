@@ -1,6 +1,6 @@
 import pytest
 from pinecone import CollectionList
-from pinecone.core.control.client.models import CollectionList as OpenApiCollectionList, CollectionModel
+from pinecone.core.openapi.control.models import CollectionList as OpenApiCollectionList, CollectionModel
 
 
 @pytest.fixture

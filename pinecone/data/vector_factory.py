@@ -7,7 +7,7 @@ from ..utils import fix_tuple_length, convert_to_list
 from ..utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
 from .sparse_vector_factory import SparseValuesFactory
 
-from pinecone.core.data.client.models import Vector, SparseValues
+from pinecone.core.openapi.data.models import Vector, SparseValues
 
 from .errors import (
     VectorDictionaryMissingKeysError,

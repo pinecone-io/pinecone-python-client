@@ -5,7 +5,7 @@ set -eux -o pipefail
 version='2024-07'
 modules=("control" "data")
 
-destination="pinecone/core"
+destination="pinecone/core/openapi"
 
 rm -rf build
 mkdir build
@@ -71,13 +71,12 @@ generate_client() {
 
 	# Copy the generated module to the correct location
 	rm -rf "${destination}/${module_name}"
-	cp -r "build/pinecone/core/${module_name}" "${destination}/${module_name}"
+	cp -r "build/pinecone/core/openapi/${module_name}" "${destination}/${module_name}"
 }
 
 extract_shared_classes() {
 	target_directory="${destination}/shared"
-	rm -rf $target_directory
-	mkdir -p $target_directory
+	mkdir -p "$target_directory"
 
 	# Define the list of shared source files
 	sharedFiles=(
@@ -88,7 +87,7 @@ extract_shared_classes() {
 		"rest"
 	)
 
-	source_directory="${destination}/${modules[0]}/client"
+	source_directory="${destination}/${modules[0]}"
 
 	# Loop through each file we want to share and copy it to the target directory
 	for file in "${sharedFiles[@]}"; do
@@ -97,7 +96,7 @@ extract_shared_classes() {
 
 	# Cleanup shared files in each module
 	for module in "${modules[@]}"; do
-		source_directory="${destination}/${module}/client"
+		source_directory="${destination}/${module}"
 		for file in "${sharedFiles[@]}"; do
 			rm "${source_directory}/${file}.py"
 		done
@@ -111,12 +110,13 @@ extract_shared_classes() {
 
 	# Adjust import paths in every file
 	find "${destination}" -name "*.py" | while IFS= read -r file; do
-		sed -i '' 's/from \.\.model_utils/from pinecone\.core\.shared\.model_utils/g' "$file"
-		sed -i '' 's/from pinecone\.core\.control\.client import rest/from pinecone\.core\.shared import rest/g' "$file"
+		sed -i '' 's/from \.\.model_utils/from pinecone\.core\.openapi\.shared\.model_utils/g' "$file"
 
 		for module in "${modules[@]}"; do
+			sed -i '' "s/from pinecone\.core\.openapi\.$module import rest/from pinecone\.core\.openapi\.shared import rest/g" "$file"
+
 			for sharedFile in "${sharedFiles[@]}"; do
-				sed -i '' "s/from pinecone\.core\.$module\.client\.$sharedFile/from pinecone\.core\.shared\.$sharedFile/g" "$file"
+				sed -i '' "s/from pinecone\.core\.openapi\.$module\.$sharedFile/from pinecone\.core\.openapi\.shared\.$sharedFile/g" "$file"
 			done
 		done
 	done
@@ -124,6 +124,9 @@ extract_shared_classes() {
 
 update_apis_repo
 verify_spec_version $version
+
+rm -rf "${destination}"
+mkdir -p "${destination}"
 
 for module in "${modules[@]}"; do
 	generate_client $module

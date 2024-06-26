@@ -4,9 +4,9 @@ from typing import Union, List, Tuple, Optional, Dict, Any
 
 from pinecone.config import ConfigBuilder
 
-from pinecone.core.data.client.models import SparseValues
-from pinecone.core.data.client import ApiClient
-from pinecone.core.data.client.models import (
+from pinecone.core.openapi.data.models import SparseValues
+from pinecone.core.openapi.data import ApiClient
+from pinecone.core.openapi.data.models import (
     FetchResponse,
     QueryRequest,
     QueryResponse,
@@ -23,7 +23,7 @@ from pinecone.core.data.client.models import (
     DescribeIndexStatsRequest,
     ListResponse,
 )
-from pinecone.core.data.client.api.data_plane_api import DataPlaneApi
+from pinecone.core.openapi.data.api.data_plane_api import DataPlaneApi
 from ..utils import setup_openapi_client
 from .vector_factory import VectorFactory
 

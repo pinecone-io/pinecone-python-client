@@ -1,4 +1,4 @@
 {
-    "packageName": "pinecone.core.control.client",
+    "packageName": "pinecone.core.openapi.control",
     "pythonAttrNoneIfUnset": true
 }

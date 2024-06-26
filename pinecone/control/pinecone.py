@@ -7,17 +7,17 @@ from .index_host_store import IndexHostStore
 
 from pinecone.config import PineconeConfig, Config, ConfigBuilder
 
-from pinecone.core.control.client.api.manage_indexes_api import (
+from pinecone.core.openapi.control.api.manage_indexes_api import (
     ManageIndexesApi,
 )
-from pinecone.core.shared.api_client import ApiClient
+from pinecone.core.openapi.shared.api_client import ApiClient
 
 from pinecone.utils import (
     normalize_host,
     setup_openapi_client,
     build_plugin_setup_client,
 )
-from pinecone.core.control.client.models import (
+from pinecone.core.openapi.control.models import (
     CreateCollectionRequest,
     CreateIndexRequest,
     ConfigureIndexRequest,

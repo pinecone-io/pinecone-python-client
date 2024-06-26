@@ -1,4 +1,4 @@
-from pinecone.core.control.client.models import (
+from pinecone.core.openapi.control.models import (
     CollectionList as OpenAPICollectionList,
 )
 

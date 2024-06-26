@@ -7,7 +7,7 @@ import copy
 
 from urllib3.connection import HTTPConnection
 
-from pinecone.core.shared.configuration import (
+from pinecone.core.openapi.shared.configuration import (
     Configuration as OpenApiConfiguration,
 )
 
