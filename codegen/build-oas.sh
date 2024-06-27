@@ -2,13 +2,11 @@
 
 set -eux -o pipefail
 
-version='2024-07'
+version=$1 # e.g. 2024-07
 modules=("control" "data")
 
 destination="pinecone/core/openapi"
-
-rm -rf build
-mkdir build
+build_dir="build"
 
 update_apis_repo() {
 	echo "Updating apis repo"
@@ -59,14 +57,14 @@ generate_client() {
 
 	# Cleanup previous build files
 	echo "Cleaning up previous build files"
-	rm -rf build
+	rm -rf "${build_dir}"
 
 	# Generate client module
 	docker run --rm -v $(pwd):/workspace openapitools/openapi-generator-cli:v5.2.0 generate \
 		--input-spec "/workspace/$oas_file" \
 		--generator-name python \
 		--config "/workspace/$openapi_generator_config" \
-		--output /workspace/build \
+		--output "/workspace/${build_dir}" \
 		--template-dir "/workspace/$template_dir"
 
 	# Copy the generated module to the correct location

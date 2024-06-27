@@ -24,6 +24,9 @@ test-grpc-unit:
 make type-check:
 	poetry run mypy pinecone --exclude pinecone/core
 
+make generate-oas:
+	./codegen/build-oas.sh "2024-07"
+
 version:
 	poetry version
 
@@ -32,21 +35,3 @@ package:
 
 upload:
 	poetry publish --verbose --username ${PYPI_USERNAME} --password ${PYPI_PASSWORD}
-
-upload-spruce:
-	# Configure Poetry for publishing to testpypi
-	poetry config repositories.test-pypi https://test.pypi.org/legacy/
-	poetry publish --verbose -r test-pypi --username ${PYPI_USERNAME} --password ${PYPI_PASSWORD}
-	
-license:
-	# Add license header using https://github.com/google/addlicense.
-	# If the license header already exists in a file, re-running this command has no effect.
-	pushd ${mkfile_path}/pinecone && \
-		docker run --rm -it -v ${mkfile_path}/pinecone:/src ghcr.io/google/addlicense:latest -f ./license_header.txt *.py */*.py */*/*.py */*/*/*.py */*/*/*/*.py */*/*/*/*/*.py */*/*/*/*/*/*.py; \
-		popd
-
-set-production:
-	echo "production" > pinecone/__environment__
-
-set-development:
-	echo "" > pinecone/__environment__
