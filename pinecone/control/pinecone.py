@@ -324,7 +324,21 @@ class Pinecone:
             if "serverless" in spec:
                 index_spec = IndexSpec(serverless=ServerlessSpecModel(**spec["serverless"]))
             elif "pod" in spec:
-                index_spec = IndexSpec(pod=PodSpecModel(**spec["pod"]))
+                args_dict = _parse_non_empty_args(
+                    [
+                        ("environment", spec["pod"].get("environment")),
+                        ("metadata_config", spec["pod"].get("metadata_config")),
+                        ("replicas", spec["pod"].get("replicas")),
+                        ("shards", spec["pod"].get("shards")),
+                        ("pods", spec["pod"].get("pods")),
+                        ("source_collection", spec["pod"].get("source_collection")),
+                    ]
+                )
+                if args_dict.get("metadata_config"):
+                    args_dict["metadata_config"] = PodSpecMetadataConfig(
+                        indexed=args_dict["metadata_config"].get("indexed", None)
+                    )
+                index_spec = IndexSpec(pod=PodSpecModel(**args_dict))
             else:
                 raise ValueError("spec must contain either 'serverless' or 'pod' key")
         elif isinstance(spec, ServerlessSpec):

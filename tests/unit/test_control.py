@@ -122,10 +122,34 @@ class TestControl:
         "index_spec",
         [
             {"serverless": {"cloud": "aws", "region": "us-west1"}},
-            {"pod": {"environment": "us-west1-gcp", "pod_type": "p1.x1", "pods": 1, "replicas": 1, "shards": 1}},
+            {"serverless": {"cloud": "aws", "region": "us-west1", "uknown_key": "value"}},
+            {"pod": {"environment": "us-west1-gcp", "pod_type": "p1.x1"}},
+            {"pod": {"environment": "us-west1-gcp", "pod_type": "p1.x1", "unknown_key": "value"}},
+            {
+                "pod": {
+                    "environment": "us-west1-gcp",
+                    "pod_type": "p1.x1",
+                    "pods": 2,
+                    "replicas": 1,
+                    "shards": 1,
+                    "metadata_config": {"indexed": ["foo"]},
+                    "source_collection": "bar",
+                }
+            },
+            {
+                "pod": {
+                    "environment": "us-west1-gcp",
+                    "pod_type": "p1.x1",
+                    "pods": None,
+                    "replicas": None,
+                    "shards": None,
+                    "metadata_config": None,
+                    "source_collection": None,
+                }
+            },
         ],
     )
-    def test_create_index(self, mocker, index_spec):
+    def test_create_index_with_spec_dictionary(self, mocker, index_spec):
         p = Pinecone(api_key="123-456-789")
 
         mock_api = MagicMock()
