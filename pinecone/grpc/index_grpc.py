@@ -5,15 +5,23 @@ from google.protobuf import json_format
 
 from tqdm.autonotebook import tqdm
 
-from .utils import dict_to_proto_struct, parse_fetch_response, parse_query_response, parse_stats_response
+from .utils import (
+    dict_to_proto_struct,
+    parse_fetch_response,
+    parse_query_response,
+    parse_stats_response,
+)
 from .vector_factory_grpc import VectorFactoryGRPC
 
-from pinecone.core.client.models import (
+from pinecone.core.openapi.data.models import (
     FetchResponse,
     QueryResponse,
     DescribeIndexStatsResponse,
 )
-from pinecone.models.list_response import ListResponse as SimpleListResponse, Pagination
+from pinecone.models.list_response import (
+    ListResponse as SimpleListResponse,
+    Pagination,
+)
 from pinecone.core.grpc.protos.vector_service_pb2 import (
     Vector as GRPCVector,
     QueryVector as GRPCQueryVector,
@@ -138,10 +146,19 @@ class GRPCIndex(GRPCIndexBase):
         if not isinstance(batch_size, int) or batch_size <= 0:
             raise ValueError("batch_size must be a positive integer")
 
-        pbar = tqdm(total=len(vectors), disable=not show_progress, desc="Upserted vectors")
+        pbar = tqdm(
+            total=len(vectors),
+            disable=not show_progress,
+            desc="Upserted vectors",
+        )
         total_upserted = 0
         for i in range(0, len(vectors), batch_size):
-            batch_result = self._upsert_batch(vectors[i : i + batch_size], namespace, timeout=timeout, **kwargs)
+            batch_result = self._upsert_batch(
+                vectors[i : i + batch_size],
+                namespace,
+                timeout=timeout,
+                **kwargs,
+            )
             pbar.update(batch_result.upserted_count)
             # we can't use here pbar.n for the case show_progress=False
             total_upserted += batch_result.upserted_count
@@ -149,7 +166,11 @@ class GRPCIndex(GRPCIndexBase):
         return UpsertResponse(upserted_count=total_upserted)
 
     def _upsert_batch(
-        self, vectors: List[GRPCVector], namespace: Optional[str], timeout: Optional[float], **kwargs
+        self,
+        vectors: List[GRPCVector],
+        namespace: Optional[str],
+        timeout: Optional[float],
+        **kwargs,
     ) -> UpsertResponse:
         args_dict = self._parse_non_empty_args([("namespace", namespace)])
         request = UpsertRequest(vectors=vectors, **args_dict)
@@ -183,10 +204,18 @@ class GRPCIndex(GRPCIndexBase):
         if not isinstance(df, pd.DataFrame):
             raise ValueError(f"Only pandas dataframes are supported. Found: {type(df)}")
 
-        pbar = tqdm(total=len(df), disable=not show_progress, desc="sending upsert requests")
+        pbar = tqdm(
+            total=len(df),
+            disable=not show_progress,
+            desc="sending upsert requests",
+        )
         results = []
         for chunk in self._iter_dataframe(df, batch_size=batch_size):
-            res = self.upsert(vectors=chunk, namespace=namespace, async_req=use_async_requests)
+            res = self.upsert(
+                vectors=chunk,
+                namespace=namespace,
+                async_req=use_async_requests,
+            )
             pbar.update(len(chunk))
             results.append(res)
 
@@ -194,7 +223,11 @@ class GRPCIndex(GRPCIndexBase):
             cast_results = cast(List[PineconeGrpcFuture], results)
             results = [
                 async_result.result()
-                for async_result in tqdm(cast_results, disable=not show_progress, desc="collecting async responses")
+                for async_result in tqdm(
+                    cast_results,
+                    disable=not show_progress,
+                    desc="collecting async responses",
+                )
             ]
 
         upserted_count = 0
@@ -257,7 +290,12 @@ class GRPCIndex(GRPCIndexBase):
             filter_struct = None
 
         args_dict = self._parse_non_empty_args(
-            [("ids", ids), ("delete_all", delete_all), ("namespace", namespace), ("filter", filter_struct)]
+            [
+                ("ids", ids),
+                ("delete_all", delete_all),
+                ("namespace", namespace),
+                ("filter", filter_struct),
+            ]
         )
         timeout = kwargs.pop("timeout", None)
 
@@ -268,7 +306,12 @@ class GRPCIndex(GRPCIndexBase):
         else:
             return self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout)
 
-    def fetch(self, ids: Optional[List[str]], namespace: Optional[str] = None, **kwargs) -> FetchResponse:
+    def fetch(
+        self,
+        ids: Optional[List[str]],
+        namespace: Optional[str] = None,
+        **kwargs,
+    ) -> FetchResponse:
         """
         The fetch operation looks up and returns vectors, by ID, from a single namespace.
         The returned vectors include the vector data and/or metadata.
@@ -378,7 +421,12 @@ class GRPCIndex(GRPCIndexBase):
         id: str,
         async_req: bool = False,
         values: Optional[List[float]] = None,
-        set_metadata: Optional[Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]] = None,
+        set_metadata: Optional[
+            Dict[
+                str,
+                Union[str, float, int, bool, List[int], List[float], List[str]],
+            ]
+        ] = None,
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
@@ -528,7 +576,9 @@ class GRPCIndex(GRPCIndexBase):
                 done = True
 
     def describe_index_stats(
-        self, filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None, **kwargs
+        self,
+        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        **kwargs,
     ) -> DescribeIndexStatsResponse:
         """
         The DescribeIndexStats operation returns statistics about the index's contents.

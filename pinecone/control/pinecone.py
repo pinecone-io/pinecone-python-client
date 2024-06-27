@@ -1,22 +1,32 @@
 import time
 import warnings
 import logging
-from typing import Optional, Dict, Any, Union, List, cast, NamedTuple
+from typing import Optional, Dict, Any, Union, List, Tuple, cast, NamedTuple
 
 from .index_host_store import IndexHostStore
 
 from pinecone.config import PineconeConfig, Config, ConfigBuilder
 
-from pinecone.core.client.api.manage_indexes_api import ManageIndexesApi
-from pinecone.core.client.api_client import ApiClient
+from pinecone.core.openapi.control.api.manage_indexes_api import (
+    ManageIndexesApi,
+)
+from pinecone.core.openapi.shared.api_client import ApiClient
 
-from pinecone.utils import normalize_host, setup_openapi_client, build_plugin_setup_client
-from pinecone.core.client.models import (
+from pinecone.utils import (
+    normalize_host,
+    setup_openapi_client,
+    build_plugin_setup_client,
+)
+from pinecone.core.openapi.control.models import (
     CreateCollectionRequest,
     CreateIndexRequest,
     ConfigureIndexRequest,
     ConfigureIndexRequestSpec,
     ConfigureIndexRequestSpecPod,
+    IndexSpec,
+    ServerlessSpec as ServerlessSpecModel,
+    PodSpec as PodSpecModel,
+    PodSpecMetadataConfig,
 )
 from pinecone.models import ServerlessSpec, PodSpec, IndexList, CollectionList
 from .langchain_import_warnings import _build_langchain_attribute_error_message
@@ -233,7 +243,9 @@ class Pinecone:
             # try block just in case to make sure a bad plugin doesn't
             # halt client initialization.
             openapi_client_builder = build_plugin_setup_client(
-                config=self.config, openapi_config=self.openapi_config, pool_threads=self.pool_threads
+                config=self.config,
+                openapi_config=self.openapi_config,
+                pool_threads=self.pool_threads,
             )
             install_plugins(self, openapi_client_builder)
         except Exception as e:
@@ -305,24 +317,67 @@ class Pinecone:
 
         api_instance = self.index_api
 
+        def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
+            return {arg_name: val for arg_name, val in args if val is not None}
+
         if isinstance(spec, dict):
-            api_instance.create_index(
-                create_index_request=CreateIndexRequest(name=name, dimension=dimension, metric=metric, spec=spec)
-            )
+            if "serverless" in spec:
+                index_spec = IndexSpec(serverless=ServerlessSpecModel(**spec["serverless"]))
+            elif "pod" in spec:
+                args_dict = _parse_non_empty_args(
+                    [
+                        ("environment", spec["pod"].get("environment")),
+                        ("metadata_config", spec["pod"].get("metadata_config")),
+                        ("replicas", spec["pod"].get("replicas")),
+                        ("shards", spec["pod"].get("shards")),
+                        ("pods", spec["pod"].get("pods")),
+                        ("source_collection", spec["pod"].get("source_collection")),
+                    ]
+                )
+                if args_dict.get("metadata_config"):
+                    args_dict["metadata_config"] = PodSpecMetadataConfig(
+                        indexed=args_dict["metadata_config"].get("indexed", None)
+                    )
+                index_spec = IndexSpec(pod=PodSpecModel(**args_dict))
+            else:
+                raise ValueError("spec must contain either 'serverless' or 'pod' key")
         elif isinstance(spec, ServerlessSpec):
-            api_instance.create_index(
-                create_index_request=CreateIndexRequest(
-                    name=name, dimension=dimension, metric=metric, spec=spec.asdict()
+            index_spec = IndexSpec(
+                serverless=ServerlessSpecModel(
+                    cloud=spec.cloud,
+                    region=spec.region,
                 )
             )
         elif isinstance(spec, PodSpec):
-            api_instance.create_index(
-                create_index_request=CreateIndexRequest(
-                    name=name, dimension=dimension, metric=metric, spec=spec.asdict()
+            args_dict = _parse_non_empty_args(
+                [
+                    ("replicas", spec.replicas),
+                    ("shards", spec.shards),
+                    ("pods", spec.pods),
+                    ("source_collection", spec.source_collection),
+                ]
+            )
+            if spec.metadata_config:
+                args_dict["metadata_config"] = PodSpecMetadataConfig(indexed=spec.metadata_config.get("indexed", None))
+
+            index_spec = IndexSpec(
+                pod=PodSpecModel(
+                    environment=spec.environment,
+                    pod_type=spec.pod_type,
+                    **args_dict,
                 )
             )
         else:
             raise TypeError("spec must be of type dict, ServerlessSpec, or PodSpec")
+
+        api_instance.create_index(
+            create_index_request=CreateIndexRequest(
+                name=name,
+                dimension=dimension,
+                metric=metric,
+                spec=index_spec,
+            ),
+        )
 
         def is_ready():
             status = self._get_status(name)
@@ -477,7 +532,12 @@ class Pinecone:
 
         return description
 
-    def configure_index(self, name: str, replicas: Optional[int] = None, pod_type: Optional[str] = None):
+    def configure_index(
+        self,
+        name: str,
+        replicas: Optional[int] = None,
+        pod_type: Optional[str] = None,
+    ):
         """This method is used to scale configuration fields for your pod-based Pinecone index.
 
         :param: name: the name of the Index

@@ -2,7 +2,15 @@ from .user_agent import get_user_agent
 import copy
 
 
-def setup_openapi_client(api_client_klass, api_klass, config, openapi_config, pool_threads, api_version=None, **kwargs):
+def setup_openapi_client(
+    api_client_klass,
+    api_klass,
+    config,
+    openapi_config,
+    pool_threads,
+    api_version=None,
+    **kwargs,
+):
     # It is important that we allow the user to pass in a reference to api_client_klass
     # instead of creating a direct dependency on ApiClient because plugins have their
     # own ApiClient implementations. Even if those implementations seem like they should
@@ -29,7 +37,13 @@ def setup_openapi_client(api_client_klass, api_klass, config, openapi_config, po
 def build_plugin_setup_client(config, openapi_config, pool_threads):
     def setup_plugin_client(api_client_klass, api_klass, api_version, **kwargs):
         return setup_openapi_client(
-            api_client_klass, api_klass, config, openapi_config, pool_threads, api_version, **kwargs
+            api_client_klass,
+            api_klass,
+            config,
+            openapi_config,
+            pool_threads,
+            api_version,
+            **kwargs,
         )
 
     return setup_plugin_client

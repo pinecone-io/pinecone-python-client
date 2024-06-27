@@ -5,7 +5,11 @@ from typing import Union, Dict
 
 from ..utils import convert_to_list
 
-from ..data import SparseValuesTypeError, SparseValuesMissingKeysError, SparseValuesDictionaryExpectedError
+from ..data import (
+    SparseValuesTypeError,
+    SparseValuesMissingKeysError,
+    SparseValuesDictionaryExpectedError,
+)
 
 from pinecone.core.grpc.protos.vector_service_pb2 import (
     SparseValues as GRPCSparseValues,

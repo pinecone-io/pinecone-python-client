@@ -7,7 +7,7 @@ from ..utils import fix_tuple_length, convert_to_list
 from ..utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
 from .sparse_vector_factory import SparseValuesFactory
 
-from pinecone.core.client.models import Vector, SparseValues
+from pinecone.core.openapi.data.models import Vector, SparseValues
 
 from .errors import (
     VectorDictionaryMissingKeysError,
@@ -39,7 +39,12 @@ class VectorFactory:
                 "Sparse values are not supported in tuples. Please use either dicts or Vector objects as inputs."
             )
         else:
-            return Vector(id=id, values=convert_to_list(values), metadata=metadata or {}, _check_type=check_type)
+            return Vector(
+                id=id,
+                values=convert_to_list(values),
+                metadata=metadata or {},
+                _check_type=check_type,
+            )
 
     @staticmethod
     def _dict_to_vector(item, check_type: bool) -> Vector:

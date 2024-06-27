@@ -1,4 +1,4 @@
-from ..exceptions import ListConversionException
+from ..exceptions.exceptions import ListConversionException
 
 
 def convert_to_list(obj):

@@ -7,7 +7,7 @@ def _generate_request_id() -> str:
     return str(uuid.uuid4())
 
 
-from pinecone.core.client.models import (
+from pinecone.core.openapi.data.models import (
     Vector as _Vector,
     Usage,
     ScoredVector,
@@ -52,7 +52,10 @@ def parse_fetch_response(response: dict):
         )
 
     return FetchResponse(
-        vectors=vd, namespace=namespace, usage=parse_usage(response.get("usage", {})), _check_type=False
+        vectors=vd,
+        namespace=namespace,
+        usage=parse_usage(response.get("usage", {})),
+        _check_type=False,
     )
 
 
@@ -76,7 +79,11 @@ def parse_query_response(response: dict, _check_type: bool = False):
     # Due to OpenAPI model classes / actual parsing cost, we want to avoid
     # creating empty `Usage` objects and then passing them into QueryResponse
     # when they are not actually present in the response from the server.
-    args = {"namespace": response.get("namespace", ""), "matches": matches, "_check_type": _check_type}
+    args = {
+        "namespace": response.get("namespace", ""),
+        "matches": matches,
+        "_check_type": _check_type,
+    }
     usage = response.get("usage")
     if usage:
         args["usage"] = parse_usage(usage)
