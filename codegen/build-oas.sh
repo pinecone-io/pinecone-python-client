@@ -17,6 +17,14 @@ update_apis_repo() {
 	popd
 }
 
+update_templates_repo() {
+	echo "Updating templates repo"
+	pushd codegen/python-oas-templates
+		git fetch
+		git pull
+	popd
+}
+
 verify_spec_version() {
 	local version=$1
 	echo "Verifying spec version $version exists in apis repo"
@@ -121,6 +129,7 @@ extract_shared_classes() {
 }
 
 update_apis_repo
+update_templates_repo
 verify_spec_version $version
 
 rm -rf "${destination}"
