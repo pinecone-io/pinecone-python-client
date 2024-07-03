@@ -2,7 +2,7 @@ import pytest
 import os
 
 from pinecone import Pinecone
-from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
+from pinecone.core.openapi.shared.configuration import Configuration as OpenApiConfiguration
 from urllib3 import make_headers
 
 

@@ -7,7 +7,9 @@ import copy
 
 from urllib3.connection import HTTPConnection
 
-from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
+from pinecone.core.openapi.shared.configuration import (
+    Configuration as OpenApiConfiguration,
+)
 
 TCP_KEEPINTVL = 60  # Sec
 TCP_KEEPIDLE = 300  # Sec
@@ -84,7 +86,13 @@ class OpenApiConfigFactory:
             and hasattr(socket, "TCP_KEEPCNT")
         ):
             socket_params += [(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, keep_alive_idle_sec)]
-            socket_params += [(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, keep_alive_interval_sec)]
+            socket_params += [
+                (
+                    socket.IPPROTO_TCP,
+                    socket.TCP_KEEPINTVL,
+                    keep_alive_interval_sec,
+                )
+            ]
             socket_params += [(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, keep_alive_tries)]
 
         # TCP Keep Alive Probes for Windows OS

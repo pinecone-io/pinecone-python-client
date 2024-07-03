@@ -15,7 +15,7 @@ from .utils import _generate_request_id
 from .config import GRPCClientConfig
 from pinecone.utils.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSION
 from pinecone.utils.user_agent import get_user_agent_grpc
-from pinecone.exceptions import PineconeException
+from pinecone.exceptions.exceptions import PineconeException
 
 _logger = logging.getLogger(__name__)
 
@@ -41,7 +41,11 @@ class GRPCIndexBase(ABC):
         self.grpc_client_config = grpc_config or GRPCClientConfig()
         self.retry_config = self.grpc_client_config.retry_config or RetryConfig()
 
-        self.fixed_metadata = {"api-key": config.api_key, "service-name": index_name, "client-version": CLIENT_VERSION}
+        self.fixed_metadata = {
+            "api-key": config.api_key,
+            "service-name": index_name,
+            "client-version": CLIENT_VERSION,
+        }
         if self.grpc_client_config.additional_metadata:
             self.fixed_metadata.update(self.grpc_client_config.additional_metadata)
 
@@ -103,7 +107,10 @@ class GRPCIndexBase(ABC):
         user_provided_options = options or {}
         _options = tuple((k, v) for k, v in {**default_options, **user_provided_options}.items())
         _logger.debug(
-            "creating new channel with endpoint %s options %s and config %s", target, _options, self.grpc_client_config
+            "creating new channel with endpoint %s options %s and config %s",
+            target,
+            _options,
+            self.grpc_client_config,
         )
         if not self.grpc_client_config.secure:
             channel = grpc.insecure_channel(target, options=_options)
@@ -138,13 +145,25 @@ class GRPCIndexBase(ABC):
             pass
 
     def _wrap_grpc_call(
-        self, func, request, timeout=None, metadata=None, credentials=None, wait_for_ready=None, compression=None
+        self,
+        func,
+        request,
+        timeout=None,
+        metadata=None,
+        credentials=None,
+        wait_for_ready=None,
+        compression=None,
     ):
         @wraps(func)
         def wrapped():
             user_provided_metadata = metadata or {}
             _metadata = tuple(
-                (k, v) for k, v in {**self.fixed_metadata, **self._request_metadata(), **user_provided_metadata}.items()
+                (k, v)
+                for k, v in {
+                    **self.fixed_metadata,
+                    **self._request_metadata(),
+                    **user_provided_metadata,
+                }.items()
             )
             try:
                 return func(

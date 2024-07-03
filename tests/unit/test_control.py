@@ -1,10 +1,10 @@
 import pytest
 import re
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from pinecone import ConfigBuilder, Pinecone, PodSpec, ServerlessSpec
-from pinecone.core.client.models import IndexList, IndexModel
-from pinecone.core.client.api.manage_indexes_api import ManageIndexesApi
-from pinecone.core.client.configuration import Configuration as OpenApiConfiguration
+from pinecone.core.openapi.control.models import IndexList, IndexModel
+from pinecone.core.openapi.control.api.manage_indexes_api import ManageIndexesApi
+from pinecone.core.openapi.shared.configuration import Configuration as OpenApiConfiguration
 
 import time
 
@@ -117,6 +117,47 @@ class TestControl:
         assert p.index_api.create_index.call_count == 1
         assert p.index_api.describe_index.call_count == expected_describe_index_calls
         assert time.sleep.call_count == expected_sleep_calls
+
+    @pytest.mark.parametrize(
+        "index_spec",
+        [
+            {"serverless": {"cloud": "aws", "region": "us-west1"}},
+            {"serverless": {"cloud": "aws", "region": "us-west1", "uknown_key": "value"}},
+            {"pod": {"environment": "us-west1-gcp", "pod_type": "p1.x1"}},
+            {"pod": {"environment": "us-west1-gcp", "pod_type": "p1.x1", "unknown_key": "value"}},
+            {
+                "pod": {
+                    "environment": "us-west1-gcp",
+                    "pod_type": "p1.x1",
+                    "pods": 2,
+                    "replicas": 1,
+                    "shards": 1,
+                    "metadata_config": {"indexed": ["foo"]},
+                    "source_collection": "bar",
+                }
+            },
+            {
+                "pod": {
+                    "environment": "us-west1-gcp",
+                    "pod_type": "p1.x1",
+                    "pods": None,
+                    "replicas": None,
+                    "shards": None,
+                    "metadata_config": None,
+                    "source_collection": None,
+                }
+            },
+        ],
+    )
+    def test_create_index_with_spec_dictionary(self, mocker, index_spec):
+        p = Pinecone(api_key="123-456-789")
+
+        mock_api = MagicMock()
+        mocker.patch.object(p, "index_api", mock_api)
+
+        p.create_index(name="my-index", dimension=10, spec=index_spec)
+
+        mock_api.create_index.assert_called_once()
 
     @pytest.mark.parametrize(
         "timeout_value, describe_index_responses, expected_describe_index_calls, expected_sleep_calls",

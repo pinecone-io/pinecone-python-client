@@ -26,4 +26,9 @@ class PineconeConfig:
             except Exception as e:
                 logger.warn(f"Ignoring PINECONE_ADDITIONAL_HEADERS: {e}")
 
-        return ConfigBuilder.build(api_key=api_key, host=host, additional_headers=additional_headers, **kwargs)
+        return ConfigBuilder.build(
+            api_key=api_key,
+            host=host,
+            additional_headers=additional_headers,
+            **kwargs,
+        )

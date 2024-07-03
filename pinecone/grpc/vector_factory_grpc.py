@@ -20,7 +20,10 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     Vector as GRPCVector,
     SparseValues as GRPCSparseValues,
 )
-from pinecone import Vector as NonGRPCVector, SparseValues as NonGRPCSparseValues
+from pinecone import (
+    Vector as NonGRPCVector,
+    SparseValues as NonGRPCSparseValues,
+)
 
 
 class VectorFactoryGRPC:
@@ -30,12 +33,22 @@ class VectorFactoryGRPC:
             return item
         elif isinstance(item, NonGRPCVector):
             if item.sparse_values:
-                sv = GRPCSparseValues(indices=item.sparse_values.indices, values=item.sparse_values.values)
+                sv = GRPCSparseValues(
+                    indices=item.sparse_values.indices,
+                    values=item.sparse_values.values,
+                )
                 return GRPCVector(
-                    id=item.id, values=item.values, metadata=dict_to_proto_struct(item.metadata or {}), sparse_values=sv
+                    id=item.id,
+                    values=item.values,
+                    metadata=dict_to_proto_struct(item.metadata or {}),
+                    sparse_values=sv,
                 )
             else:
-                return GRPCVector(id=item.id, values=item.values, metadata=dict_to_proto_struct(item.metadata or {}))
+                return GRPCVector(
+                    id=item.id,
+                    values=item.values,
+                    metadata=dict_to_proto_struct(item.metadata or {}),
+                )
         elif isinstance(item, tuple):
             return VectorFactoryGRPC._tuple_to_vector(item)
         elif isinstance(item, Mapping):
@@ -53,7 +66,11 @@ class VectorFactoryGRPC:
                 "Sparse values are not supported in tuples. Please use either dicts or Vector objects as inputs."
             )
         else:
-            return GRPCVector(id=id, values=convert_to_list(values), metadata=dict_to_proto_struct(metadata or {}))
+            return GRPCVector(
+                id=id,
+                values=convert_to_list(values),
+                metadata=dict_to_proto_struct(metadata or {}),
+            )
 
     @staticmethod
     def _dict_to_vector(item) -> GRPCVector:
