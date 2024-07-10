@@ -12,6 +12,7 @@ update_apis_repo() {
 	echo "Updating apis repo"
 	pushd codegen/apis
 		git fetch
+		git checkout main
 		git pull
 		just build
 	popd
@@ -21,6 +22,7 @@ update_templates_repo() {
 	echo "Updating templates repo"
 	pushd codegen/python-oas-templates
 		git fetch
+		git checkout main
 		git pull
 	popd
 }

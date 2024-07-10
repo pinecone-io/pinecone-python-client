@@ -26,9 +26,9 @@ from pinecone.core.openapi.control.model.collection_model import CollectionModel
 from pinecone.core.openapi.control.model.configure_index_request import ConfigureIndexRequest
 from pinecone.core.openapi.control.model.create_collection_request import CreateCollectionRequest
 from pinecone.core.openapi.control.model.create_index_request import CreateIndexRequest
+from pinecone.core.openapi.control.model.error_response import ErrorResponse
 from pinecone.core.openapi.control.model.index_list import IndexList
 from pinecone.core.openapi.control.model.index_model import IndexModel
-from pinecone.core.openapi.control.model.inline_response401 import InlineResponse401
 
 
 class ManageIndexesApi(object):
@@ -46,7 +46,7 @@ class ManageIndexesApi(object):
         def __configure_index(self, index_name, configure_index_request, **kwargs):
             """Configure an index  # noqa: E501
 
-            This operation specifies the pod type and number of replicas for an index. It applies to pod-based indexes only. Serverless indexes scale automatically based on usage.  # noqa: E501
+            This operation configures the pod size and number of replicas for a pod-based index.  It is not possible to change the pod type of an index. However, you can create a collection from an index and then [create a new index with a different pod type](http://docs.pinecone.io/guides/indexes/create-an-index#create-an-index-from-a-collection) from the collection.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -55,7 +55,7 @@ class ManageIndexesApi(object):
 
             Args:
                 index_name (str): The name of the index to configure.
-                configure_index_request (ConfigureIndexRequest): The desired pod type and replica configuration for the index.
+                configure_index_request (ConfigureIndexRequest): The desired pod size and replica configuration for the index.
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status

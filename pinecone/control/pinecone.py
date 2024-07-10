@@ -23,6 +23,7 @@ from pinecone.core.openapi.control.models import (
     ConfigureIndexRequest,
     ConfigureIndexRequestSpec,
     ConfigureIndexRequestSpecPod,
+    DeletionProtection,
     IndexSpec,
     ServerlessSpec as ServerlessSpecModel,
     PodSpec as PodSpecModel,
@@ -258,6 +259,7 @@ class Pinecone:
         spec: Union[Dict, ServerlessSpec, PodSpec],
         metric: Optional[str] = "cosine",
         timeout: Optional[int] = None,
+        deletion_protection: Optional[bool] = False,
     ):
         """Creates a Pinecone index.
 
@@ -320,6 +322,11 @@ class Pinecone:
         def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
             return {arg_name: val for arg_name, val in args if val is not None}
 
+        if deletion_protection:
+            dp = DeletionProtection("enabled")
+        else:
+            dp = DeletionProtection("disabled")
+
         if isinstance(spec, dict):
             if "serverless" in spec:
                 index_spec = IndexSpec(serverless=ServerlessSpecModel(**spec["serverless"]))
@@ -338,7 +345,7 @@ class Pinecone:
                     args_dict["metadata_config"] = PodSpecMetadataConfig(
                         indexed=args_dict["metadata_config"].get("indexed", None)
                     )
-                index_spec = IndexSpec(pod=PodSpecModel(**args_dict))
+                index_spec = IndexSpec(pod=PodSpecModel(**args_dict), deletion_protection=dp)
             else:
                 raise ValueError("spec must contain either 'serverless' or 'pod' key")
         elif isinstance(spec, ServerlessSpec):
@@ -346,7 +353,8 @@ class Pinecone:
                 serverless=ServerlessSpecModel(
                     cloud=spec.cloud,
                     region=spec.region,
-                )
+                ),
+                deletion_protection=dp
             )
         elif isinstance(spec, PodSpec):
             args_dict = _parse_non_empty_args(
@@ -365,7 +373,8 @@ class Pinecone:
                     environment=spec.environment,
                     pod_type=spec.pod_type,
                     **args_dict,
-                )
+                ),
+                deletion_protection=dp
             )
         else:
             raise TypeError("spec must be of type dict, ServerlessSpec, or PodSpec")

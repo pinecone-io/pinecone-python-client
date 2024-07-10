@@ -30,9 +30,11 @@ from pinecone.core.openapi.shared.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
+    from pinecone.core.openapi.control.model.deletion_protection import DeletionProtection
     from pinecone.core.openapi.control.model.pod_spec import PodSpec
     from pinecone.core.openapi.control.model.serverless_spec import ServerlessSpec
 
+    globals()["DeletionProtection"] = DeletionProtection
     globals()["PodSpec"] = PodSpec
     globals()["ServerlessSpec"] = ServerlessSpec
 
@@ -83,6 +85,7 @@ class IndexSpec(ModelNormal):
         return {
             "serverless": (ServerlessSpec,),  # noqa: E501
             "pod": (PodSpec,),  # noqa: E501
+            "deletion_protection": (DeletionProtection,),  # noqa: E501
         }
 
     @cached_property
@@ -92,6 +95,7 @@ class IndexSpec(ModelNormal):
     attribute_map = {
         "serverless": "serverless",  # noqa: E501
         "pod": "pod",  # noqa: E501
+        "deletion_protection": "deletion_protection",  # noqa: E501
     }
 
     read_only_vars = {}
@@ -136,6 +140,7 @@ class IndexSpec(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             serverless (ServerlessSpec): [optional]  # noqa: E501
             pod (PodSpec): [optional]  # noqa: E501
+            deletion_protection (DeletionProtection): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -224,6 +229,7 @@ class IndexSpec(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             serverless (ServerlessSpec): [optional]  # noqa: E501
             pod (PodSpec): [optional]  # noqa: E501
+            deletion_protection (DeletionProtection): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
