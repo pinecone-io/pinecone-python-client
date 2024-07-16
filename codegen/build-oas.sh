@@ -128,6 +128,8 @@ extract_shared_classes() {
 			done
 		done
 	done
+
+	echo "API_VERSION = '${version}'" > "${target_directory}/__init__.py"
 }
 
 update_apis_repo

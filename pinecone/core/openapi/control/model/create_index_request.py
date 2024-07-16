@@ -30,8 +30,10 @@ from pinecone.core.openapi.shared.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
+    from pinecone.core.openapi.control.model.deletion_protection import DeletionProtection
     from pinecone.core.openapi.control.model.index_spec import IndexSpec
 
+    globals()["DeletionProtection"] = DeletionProtection
     globals()["IndexSpec"] = IndexSpec
 
 
@@ -115,6 +117,7 @@ class CreateIndexRequest(ModelNormal):
             "dimension": (int,),  # noqa: E501
             "spec": (IndexSpec,),  # noqa: E501
             "metric": (str,),  # noqa: E501
+            "deletion_protection": (DeletionProtection,),  # noqa: E501
         }
 
     @cached_property
@@ -126,6 +129,7 @@ class CreateIndexRequest(ModelNormal):
         "dimension": "dimension",  # noqa: E501
         "spec": "spec",  # noqa: E501
         "metric": "metric",  # noqa: E501
+        "deletion_protection": "deletion_protection",  # noqa: E501
     }
 
     read_only_vars = {}
@@ -174,6 +178,7 @@ class CreateIndexRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'.. [optional] if omitted the server will use the default value of "cosine"  # noqa: E501
+            deletion_protection (DeletionProtection): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -269,6 +274,7 @@ class CreateIndexRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'.. [optional] if omitted the server will use the default value of "cosine"  # noqa: E501
+            deletion_protection (DeletionProtection): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

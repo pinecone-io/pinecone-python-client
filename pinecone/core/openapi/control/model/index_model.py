@@ -30,9 +30,11 @@ from pinecone.core.openapi.shared.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
+    from pinecone.core.openapi.control.model.deletion_protection import DeletionProtection
     from pinecone.core.openapi.control.model.index_model_spec import IndexModelSpec
     from pinecone.core.openapi.control.model.index_model_status import IndexModelStatus
 
+    globals()["DeletionProtection"] = DeletionProtection
     globals()["IndexModelSpec"] = IndexModelSpec
     globals()["IndexModelStatus"] = IndexModelStatus
 
@@ -119,6 +121,7 @@ class IndexModel(ModelNormal):
             "host": (str,),  # noqa: E501
             "spec": (IndexModelSpec,),  # noqa: E501
             "status": (IndexModelStatus,),  # noqa: E501
+            "deletion_protection": (DeletionProtection,),  # noqa: E501
         }
 
     @cached_property
@@ -132,6 +135,7 @@ class IndexModel(ModelNormal):
         "host": "host",  # noqa: E501
         "spec": "spec",  # noqa: E501
         "status": "status",  # noqa: E501
+        "deletion_protection": "deletion_protection",  # noqa: E501
     }
 
     read_only_vars = {}
@@ -182,6 +186,7 @@ class IndexModel(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            deletion_protection (DeletionProtection): [optional]  # noqa: E501
         """
 
         metric = kwargs.get("metric", "cosine")
@@ -283,6 +288,7 @@ class IndexModel(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            deletion_protection (DeletionProtection): [optional]  # noqa: E501
         """
 
         metric = kwargs.get("metric", "cosine")

@@ -73,6 +73,7 @@ class ErrorResponseError(ModelNormal):
             "UNAVAILABLE": "UNAVAILABLE",
             "DATA_LOSS": "DATA_LOSS",
             "FORBIDDEN": "FORBIDDEN",
+            "UNPROCESSABLE_ENTITY": "UNPROCESSABLE_ENTITY",
         },
     }
 
