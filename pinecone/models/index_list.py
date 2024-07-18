@@ -12,7 +12,7 @@ class IndexList:
         return [i.name for i in self.indexes]
 
     def __getitem__(self, key):
-        return IndexModel(self.indexes[key])
+        return self.indexes[key]
 
     def __len__(self):
         return len(self.indexes)

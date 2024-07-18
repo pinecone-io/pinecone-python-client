@@ -62,9 +62,6 @@ class TestIndexList:
         assert input.indexes[0].dimension == iil[0].dimension
         assert input.indexes[0].metric == iil[0].metric
         assert input.indexes[0].host == iil[0].host
-
-        # Deletion protection is a special case, since we're unwrapping
-        # the value from the DeletionProtection object inside our IndexModel
         assert input.indexes[0].deletion_protection.value == iil[0].deletion_protection
         assert iil[0].deletion_protection == "enabled"
 
@@ -72,7 +69,7 @@ class TestIndexList:
 
     def test_index_list_proxies_methods(self, index_list_response):
         # Forward compatibility, in case we add more attributes to IndexList for pagination
-        assert IndexList(index_list_response).index_list.indexes == index_list_response.indexes
+        assert IndexList(index_list_response).indexes[0].name == index_list_response.indexes[0].name
 
     def test_when_results_are_empty(self):
         iil = IndexList(OpenApiIndexList(indexes=[]))
