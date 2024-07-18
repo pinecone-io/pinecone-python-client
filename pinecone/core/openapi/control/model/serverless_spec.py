@@ -117,8 +117,8 @@ class ServerlessSpec(ModelNormal):
         """ServerlessSpec - a model defined in OpenAPI
 
         Args:
-            cloud (str): The public cloud where you would like your index hosted. Serverless indexes can be hosted only in AWS at this time.
-            region (str): The region where you would like your index to be created.  Serverless indexes can be created only in the us-east-1,us-west-2, and eu-west-1 regions of AWS at this time.
+            cloud (str): The public cloud where you would like your index hosted.
+            region (str): The region where you would like your index to be created.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -209,8 +209,8 @@ class ServerlessSpec(ModelNormal):
         """ServerlessSpec - a model defined in OpenAPI
 
         Args:
-            cloud (str): The public cloud where you would like your index hosted. Serverless indexes can be hosted only in AWS at this time.
-            region (str): The region where you would like your index to be created.  Serverless indexes can be created only in the us-east-1,us-west-2, and eu-west-1 regions of AWS at this time.
+            cloud (str): The public cloud where you would like your index hosted.
+            region (str): The region where you would like your index to be created.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types

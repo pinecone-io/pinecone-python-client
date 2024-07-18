@@ -31,8 +31,10 @@ from pinecone.core.openapi.shared.exceptions import PineconeApiAttributeError
 
 def lazy_import():
     from pinecone.core.openapi.control.model.configure_index_request_spec import ConfigureIndexRequestSpec
+    from pinecone.core.openapi.control.model.deletion_protection import DeletionProtection
 
     globals()["ConfigureIndexRequestSpec"] = ConfigureIndexRequestSpec
+    globals()["DeletionProtection"] = DeletionProtection
 
 
 class ConfigureIndexRequest(ModelNormal):
@@ -97,6 +99,7 @@ class ConfigureIndexRequest(ModelNormal):
         lazy_import()
         return {
             "spec": (ConfigureIndexRequestSpec,),  # noqa: E501
+            "deletion_protection": (DeletionProtection,),  # noqa: E501
         }
 
     @cached_property
@@ -105,6 +108,7 @@ class ConfigureIndexRequest(ModelNormal):
 
     attribute_map = {
         "spec": "spec",  # noqa: E501
+        "deletion_protection": "deletion_protection",  # noqa: E501
     }
 
     read_only_vars = {}
@@ -113,11 +117,8 @@ class ConfigureIndexRequest(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, spec, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, *args, **kwargs):  # noqa: E501
         """ConfigureIndexRequest - a model defined in OpenAPI
-
-        Args:
-            spec (ConfigureIndexRequestSpec):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -150,6 +151,8 @@ class ConfigureIndexRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            spec (ConfigureIndexRequestSpec): [optional]  # noqa: E501
+            deletion_protection (DeletionProtection): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -178,7 +181,6 @@ class ConfigureIndexRequest(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.spec = spec
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -203,11 +205,8 @@ class ConfigureIndexRequest(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, spec, *args, **kwargs):  # noqa: E501
+    def __init__(self, *args, **kwargs):  # noqa: E501
         """ConfigureIndexRequest - a model defined in OpenAPI
-
-        Args:
-            spec (ConfigureIndexRequestSpec):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -240,6 +239,8 @@ class ConfigureIndexRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            spec (ConfigureIndexRequestSpec): [optional]  # noqa: E501
+            deletion_protection (DeletionProtection): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -266,7 +267,6 @@ class ConfigureIndexRequest(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.spec = spec
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

@@ -2,7 +2,7 @@ import pytest
 import re
 from unittest.mock import patch, MagicMock
 from pinecone import ConfigBuilder, Pinecone, PodSpec, ServerlessSpec
-from pinecone.core.openapi.control.models import IndexList, IndexModel
+from pinecone.core.openapi.control.models import IndexList, IndexModel, DeletionProtection
 from pinecone.core.openapi.control.api.manage_indexes_api import ManageIndexesApi
 from pinecone.core.openapi.shared.configuration import Configuration as OpenApiConfiguration
 
@@ -20,6 +20,7 @@ def index_list_response():
                 host="asdf",
                 status={"ready": True},
                 spec={},
+                deletion_protection=DeletionProtection("enabled"),
                 _check_type=False,
             ),
             IndexModel(
@@ -29,6 +30,7 @@ def index_list_response():
                 host="asdf",
                 status={"ready": True},
                 spec={},
+                deletion_protection=DeletionProtection("enabled"),
                 _check_type=False,
             ),
             IndexModel(
@@ -38,6 +40,7 @@ def index_list_response():
                 host="asdf",
                 status={"ready": True},
                 spec={},
+                deletion_protection=DeletionProtection("disabled"),
                 _check_type=False,
             ),
         ]
@@ -72,15 +75,19 @@ class TestControl:
         for key, value in extras.items():
             assert p.index_api.api_client.default_headers[key] == value
         assert "User-Agent" in p.index_api.api_client.default_headers
-        assert len(p.index_api.api_client.default_headers) == 3
+        assert "X-Pinecone-API-Version" in p.index_api.api_client.default_headers
+        assert "header1" in p.index_api.api_client.default_headers
+        assert "header2" in p.index_api.api_client.default_headers
+        assert len(p.index_api.api_client.default_headers) == 4
 
     def test_overwrite_useragent(self):
         # This doesn't seem like a common use case, but we may want to allow this
         # when embedding the client in other pinecone tools such as canopy.
         extras = {"User-Agent": "test-user-agent"}
         p = Pinecone(api_key="123-456-789", additional_headers=extras)
+        assert "X-Pinecone-API-Version" in p.index_api.api_client.default_headers
         assert p.index_api.api_client.default_headers["User-Agent"] == "test-user-agent"
-        assert len(p.index_api.api_client.default_headers) == 1
+        assert len(p.index_api.api_client.default_headers) == 2
 
     def test_set_source_tag_in_useragent(self):
         p = Pinecone(api_key="123-456-789", source_tag="test_source_tag")

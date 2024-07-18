@@ -23,7 +23,7 @@ from pinecone.core.openapi.shared.model_utils import (  # noqa: F401
 )
 from pinecone.core.openapi.control.model.embed_request import EmbedRequest
 from pinecone.core.openapi.control.model.embeddings_list import EmbeddingsList
-from pinecone.core.openapi.control.model.inline_response401 import InlineResponse401
+from pinecone.core.openapi.control.model.error_response import ErrorResponse
 
 
 class InferenceApi(object):
