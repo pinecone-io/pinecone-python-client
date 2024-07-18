@@ -327,7 +327,10 @@ class Pinecone:
         def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
             return {arg_name: val for arg_name, val in args if val is not None}
 
-        dp = DeletionProtection(deletion_protection)
+        if deletion_protection in ["enabled", "disabled"]:
+            dp = DeletionProtection(deletion_protection)
+        else:
+            raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
 
         if isinstance(spec, dict):
             if "serverless" in spec:
@@ -573,12 +576,13 @@ class Pinecone:
         """
         api_instance = self.index_api
 
-        description = self.describe_index(name=name)
-
         if deletion_protection is None:
+            description = self.describe_index(name=name)
             dp = DeletionProtection(description.deletion_protection)
-        else:
+        elif deletion_protection in ["enabled", "disabled"]:
             dp = DeletionProtection(deletion_protection)
+        else:
+            raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
 
         pod_config_args: Dict[str, Any] = {}
         if pod_type:

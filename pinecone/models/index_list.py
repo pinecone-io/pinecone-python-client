@@ -1,4 +1,5 @@
 from pinecone.core.openapi.control.models import IndexList as OpenAPIIndexList
+from .index_model import IndexModel
 
 
 class IndexList:
@@ -10,7 +11,7 @@ class IndexList:
         return [i["name"] for i in self.index_list.indexes]
 
     def __getitem__(self, key):
-        return self.index_list.indexes[key]
+        return IndexModel(self.index_list.indexes[key])
 
     def __len__(self):
         return len(self.index_list.indexes)
