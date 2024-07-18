@@ -10,7 +10,7 @@ class TestCreateSLIndexHappyPath:
         assert desc.name == name
         assert desc.dimension == dimension
         assert desc.metric == "cosine"
-        assert desc.deletion_protection is "disabled"  # default value
+        assert desc.deletion_protection == "disabled"  # default value
 
     @pytest.mark.parametrize("metric", ["cosine", "euclidean", "dotproduct"])
     def test_create_index_with_metric(self, client, create_sl_index_params, metric):
