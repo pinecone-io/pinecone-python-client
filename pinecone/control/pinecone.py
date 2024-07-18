@@ -540,9 +540,7 @@ class Pinecone:
         host = description.host
         self.index_host_store.set_host(self.config, name, host)
 
-        return IndexModel(
-            description
-        )
+        return IndexModel(description)
 
     def configure_index(
         self,

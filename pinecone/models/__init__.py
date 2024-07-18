@@ -17,5 +17,5 @@ __all__ = [
     "ServerlessSpecDefinition",
     "IndexList",
     "CollectionList",
-    "IndexModel"
+    "IndexModel",
 ]

@@ -1,5 +1,6 @@
 from typing import NamedTuple, Dict, Optional, Union, Literal
 
+
 class PodSpecDefinition(NamedTuple):
     replicas: int
     shards: int
@@ -8,9 +9,11 @@ class PodSpecDefinition(NamedTuple):
     environment: str
     metadata_config: Optional[Dict]
 
+
 class ServerlessSpecDefinition(NamedTuple):
     cloud: str
     region: str
+
 
 PodKey = Literal["pod"]
 PodSpec = Dict[PodKey, PodSpecDefinition]

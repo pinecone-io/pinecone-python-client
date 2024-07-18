@@ -1,5 +1,6 @@
 from pinecone.core.openapi.control.models import IndexModel as OpenAPIIndexModel
 
+
 class IndexModel:
     def __init__(self, index: OpenAPIIndexModel):
         self.index = index
