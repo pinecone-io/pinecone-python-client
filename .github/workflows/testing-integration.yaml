@@ -117,17 +117,17 @@ jobs:
         uses: ./.github/actions/setup-poetry
       - name: 'Run integration tests (REST, prod)'
         if: matrix.pineconeEnv == 'prod'
-        run: poetry run pytest tests/integration/control/serverless -s -v
+        run: poetry run pytest tests/integration/control/pod -s -v
         env:
           PINECONE_DEBUG_CURL: 'true'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
           PINECONE_ENVIRONMENT: '${{ matrix.testConfig.pod.environment }}'
           GITHUB_BUILD_NUMBER: '${{ github.run_number }}-s-${{ matrix.testConfig.python-version}}'
-          DIMENSION: 1536
+          DIMENSION: 2500
           METRIC: 'cosine'
       - name: 'Run integration tests (REST, staging)'
         if: matrix.pineconeEnv == 'staging'
-        run: poetry run pytest tests/integration/control/serverless -s -v
+        run: poetry run pytest tests/integration/control/pod -s -v
         env:
           PINECONE_DEBUG_CURL: 'true'
           PINECONE_CONTROLLER_HOST: 'https://api-staging.pinecone.io'
