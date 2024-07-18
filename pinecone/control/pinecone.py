@@ -1,7 +1,7 @@
 import time
 import warnings
 import logging
-from typing import Optional, Dict, Any, Union, List, Tuple, cast, NamedTuple
+from typing import Optional, Dict, Any, Union, List, Tuple, Literal
 
 from .index_host_store import IndexHostStore
 
@@ -29,7 +29,8 @@ from pinecone.core.openapi.control.models import (
     PodSpec as PodSpecModel,
     PodSpecMetadataConfig,
 )
-from pinecone.models import ServerlessSpec, PodSpec, IndexList, CollectionList
+from pinecone.core.openapi.shared import API_VERSION
+from pinecone.models import ServerlessSpec, PodSpec, IndexModel, IndexList, CollectionList
 from .langchain_import_warnings import _build_langchain_attribute_error_message
 
 from pinecone.data import Index
@@ -230,6 +231,7 @@ class Pinecone:
                 config=self.config,
                 openapi_config=self.openapi_config,
                 pool_threads=pool_threads,
+                api_version=API_VERSION,
             )
 
         self.index_host_store = IndexHostStore()
@@ -259,7 +261,7 @@ class Pinecone:
         spec: Union[Dict, ServerlessSpec, PodSpec],
         metric: Optional[str] = "cosine",
         timeout: Optional[int] = None,
-        deletion_protection: Optional[bool] = False,
+        deletion_protection: Optional[Literal["enabled", "disabled"]] = "disabled",
     ):
         """Creates a Pinecone index.
 
@@ -280,6 +282,7 @@ class Pinecone:
         :type timeout: int, optional
         :param timeout: Specify the number of seconds to wait until index gets ready. If None, wait indefinitely; if >=0, time out after this many seconds;
             if -1, return immediately and do not wait. Default: None
+        :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. Default: "disabled"
 
         ### Creating a serverless index
 
@@ -293,7 +296,8 @@ class Pinecone:
             name="my_index",
             dimension=1536,
             metric="cosine",
-            spec=ServerlessSpec(cloud="aws", region="us-west-2")
+            spec=ServerlessSpec(cloud="aws", region="us-west-2"),
+            deletion_protection="enabled"
         )
         ```
 
@@ -312,7 +316,8 @@ class Pinecone:
             spec=PodSpec(
                 environment="us-east1-gcp",
                 pod_type="p1.x1"
-            )
+            ),
+            deletion_protection="enabled"
         )
         ```
         """
@@ -322,10 +327,7 @@ class Pinecone:
         def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
             return {arg_name: val for arg_name, val in args if val is not None}
 
-        if deletion_protection:
-            dp = DeletionProtection("enabled")
-        else:
-            dp = DeletionProtection("disabled")
+        dp = DeletionProtection(deletion_protection)
 
         if isinstance(spec, dict):
             if "serverless" in spec:
@@ -345,7 +347,7 @@ class Pinecone:
                     args_dict["metadata_config"] = PodSpecMetadataConfig(
                         indexed=args_dict["metadata_config"].get("indexed", None)
                     )
-                index_spec = IndexSpec(pod=PodSpecModel(**args_dict), deletion_protection=dp)
+                index_spec = IndexSpec(pod=PodSpecModel(**args_dict))
             else:
                 raise ValueError("spec must contain either 'serverless' or 'pod' key")
         elif isinstance(spec, ServerlessSpec):
@@ -353,8 +355,7 @@ class Pinecone:
                 serverless=ServerlessSpecModel(
                     cloud=spec.cloud,
                     region=spec.region,
-                ),
-                deletion_protection=dp
+                )
             )
         elif isinstance(spec, PodSpec):
             args_dict = _parse_non_empty_args(
@@ -373,8 +374,7 @@ class Pinecone:
                     environment=spec.environment,
                     pod_type=spec.pod_type,
                     **args_dict,
-                ),
-                deletion_protection=dp
+                )
             )
         else:
             raise TypeError("spec must be of type dict, ServerlessSpec, or PodSpec")
@@ -385,6 +385,7 @@ class Pinecone:
                 dimension=dimension,
                 metric=metric,
                 spec=index_spec,
+                deletion_protection=dp,
             ),
         )
 
@@ -463,7 +464,7 @@ class Pinecone:
         index name, dimension, metric, status, and spec.
 
         :return: Returns an `IndexList` object, which is iterable and contains a
-            list of `IndexDescription` objects. It also has a convenience method `names()`
+            list of `IndexModel` objects. It also has a convenience method `names()`
             which returns a list of index names.
 
         ```python
@@ -507,7 +508,7 @@ class Pinecone:
         """Describes a Pinecone index.
 
         :param name: the name of the index to describe.
-        :return: Returns an `IndexDescription` object
+        :return: Returns an `IndexModel` object
         which gives access to properties such as the
         index name, dimension, metric, host url, status,
         and spec.
@@ -539,13 +540,16 @@ class Pinecone:
         host = description.host
         self.index_host_store.set_host(self.config, name, host)
 
-        return description
+        return IndexModel(
+            description
+        )
 
     def configure_index(
         self,
         name: str,
         replicas: Optional[int] = None,
         pod_type: Optional[str] = None,
+        deletion_protection: Optional[Literal["enabled", "disabled"]] = None,
     ):
         """This method is used to scale configuration fields for your pod-based Pinecone index.
 
@@ -570,15 +574,27 @@ class Pinecone:
 
         """
         api_instance = self.index_api
-        config_args: Dict[str, Any] = {}
+
+        description = self.describe_index(name=name)
+
+        if deletion_protection is None:
+            dp = DeletionProtection(description.deletion_protection)
+        else:
+            dp = DeletionProtection(deletion_protection)
+
+        pod_config_args: Dict[str, Any] = {}
         if pod_type:
-            config_args.update(pod_type=pod_type)
+            pod_config_args.update(pod_type=pod_type)
         if replicas:
-            config_args.update(replicas=replicas)
-        configure_index_request = ConfigureIndexRequest(
-            spec=ConfigureIndexRequestSpec(pod=ConfigureIndexRequestSpecPod(**config_args))
-        )
-        api_instance.configure_index(name, configure_index_request=configure_index_request)
+            pod_config_args.update(replicas=replicas)
+
+        if pod_config_args != {}:
+            spec = ConfigureIndexRequestSpec(pod=ConfigureIndexRequestSpecPod(**pod_config_args))
+            req = ConfigureIndexRequest(deletion_protection=dp, spec=spec)
+        else:
+            req = ConfigureIndexRequest(deletion_protection=dp)
+
+        api_instance.configure_index(name, configure_index_request=req)
 
     def create_collection(self, name: str, source: str):
         """Create a collection from a pod-based index

@@ -1,0 +1,15 @@
+from pinecone.core.openapi.control.models import IndexModel as OpenAPIIndexModel
+
+class IndexModel:
+    def __init__(self, index: OpenAPIIndexModel):
+        self.index = index
+        self.deletion_protection = index.deletion_protection.value
+
+    def __str__(self):
+        return str(self.index)
+
+    def __repr__(self):
+        return repr(self.index)
+
+    def __getattr__(self, attr):
+        return getattr(self.index, attr)
