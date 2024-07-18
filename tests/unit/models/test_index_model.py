@@ -7,6 +7,7 @@ from pinecone.core.openapi.control.models import (
 )
 from pinecone.models import IndexModel
 
+
 class TestIndexModel:
     def test_index_model(self):
         openapi_model = OpenApiIndexModel(
@@ -16,9 +17,9 @@ class TestIndexModel:
             host="https://test-index-1.pinecone.io",
             status=IndexModelStatus(ready=True, state="Ready"),
             deletion_protection=DeletionProtection("enabled"),
-            spec=IndexModelSpec(serverless=ServerlessSpec(cloud="aws", region="us-west-1"))
+            spec=IndexModelSpec(serverless=ServerlessSpec(cloud="aws", region="us-west-1")),
         )
-        
+
         wrapped = IndexModel(openapi_model)
 
         assert wrapped.name == "test-index-1"
@@ -29,4 +30,4 @@ class TestIndexModel:
         assert wrapped.status.state == "Ready"
         assert wrapped.deletion_protection == "enabled"
 
-        assert wrapped['name'] == "test-index-1"
+        assert wrapped["name"] == "test-index-1"
