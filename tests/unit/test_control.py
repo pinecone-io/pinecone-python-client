@@ -2,7 +2,7 @@ import pytest
 import re
 from unittest.mock import patch, MagicMock
 from pinecone import ConfigBuilder, Pinecone, PodSpec, ServerlessSpec
-from pinecone.core.openapi.control.models import IndexList, IndexModel
+from pinecone.core.openapi.control.models import IndexList, IndexModel, DeletionProtection
 from pinecone.core.openapi.control.api.manage_indexes_api import ManageIndexesApi
 from pinecone.core.openapi.shared.configuration import Configuration as OpenApiConfiguration
 
@@ -20,6 +20,7 @@ def index_list_response():
                 host="asdf",
                 status={"ready": True},
                 spec={},
+                deletion_protection=DeletionProtection("enabled"),
                 _check_type=False,
             ),
             IndexModel(
@@ -29,6 +30,7 @@ def index_list_response():
                 host="asdf",
                 status={"ready": True},
                 spec={},
+                deletion_protection=DeletionProtection("enabled"),
                 _check_type=False,
             ),
             IndexModel(
@@ -38,6 +40,7 @@ def index_list_response():
                 host="asdf",
                 status={"ready": True},
                 spec={},
+                deletion_protection=DeletionProtection("disabled"),
                 _check_type=False,
             ),
         ]

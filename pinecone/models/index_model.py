@@ -14,3 +14,6 @@ class IndexModel:
 
     def __getattr__(self, attr):
         return getattr(self.index, attr)
+
+    def __getitem__(self, key):
+        return self.__getattr__(key)

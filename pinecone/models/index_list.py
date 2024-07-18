@@ -5,19 +5,20 @@ from .index_model import IndexModel
 class IndexList:
     def __init__(self, index_list: OpenAPIIndexList):
         self.index_list = index_list
+        self.indexes = [IndexModel(i) for i in self.index_list.indexes]
         self.current = 0
 
     def names(self):
-        return [i["name"] for i in self.index_list.indexes]
+        return [i.name for i in self.indexes]
 
     def __getitem__(self, key):
-        return IndexModel(self.index_list.indexes[key])
+        return IndexModel(self.indexes[key])
 
     def __len__(self):
-        return len(self.index_list.indexes)
+        return len(self.indexes)
 
     def __iter__(self):
-        return iter(self.index_list.indexes)
+        return iter(self.indexes)
 
     def __str__(self):
         return str(self.index_list)
