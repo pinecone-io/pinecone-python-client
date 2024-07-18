@@ -661,7 +661,6 @@ class Pinecone:
         print(description.source)
         print(description.status)
         print(description.size)
-        print(description.)
         ```
         """
         api_instance = self.index_api

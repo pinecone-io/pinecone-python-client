@@ -63,7 +63,7 @@ class CollectionModel(ModelNormal):
 
     validations = {
         ("dimension",): {
-            "inclusive_maximum": 2000,
+            "inclusive_maximum": 20000,
             "inclusive_minimum": 1,
         },
     }

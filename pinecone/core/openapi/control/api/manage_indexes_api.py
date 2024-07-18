@@ -46,7 +46,7 @@ class ManageIndexesApi(object):
         def __configure_index(self, index_name, configure_index_request, **kwargs):
             """Configure an index  # noqa: E501
 
-            This operation configures the pod size and number of replicas for a pod-based index.  It is not possible to change the pod type of an index. However, you can create a collection from an index and then [create a new index with a different pod type](http://docs.pinecone.io/guides/indexes/create-an-index#create-an-index-from-a-collection) from the collection.  # noqa: E501
+            This operation configures an existing index.   For serverless indexes, you can configure only index deletion protection. For pod-based indexes, you can configure the pod size, number of replicas, and index deletion protection.   It is not possible to change the pod type of a pod-based index. However, you can create a collection from a pod-based index and then [create a new pod-based index with a different pod type](http://docs.pinecone.io/guides/indexes/create-an-index#create-an-index-from-a-collection) from the collection. For guidance and examples, see [Configure an index](http://docs.pinecone.io/guides/indexes/configure-an-index).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
