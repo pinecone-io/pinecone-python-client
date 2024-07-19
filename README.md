@@ -13,15 +13,15 @@ For more information, see the docs at https://www.pinecone.io/docs/
 
 #### Upgrading from `4.x` to `5.x` 
 
-As part of an overall move to stop exposing generated code in the package's public interface, an obscure configuration property (`openapi_config`) was removed in favor of individual configuration options such as `proxy_url`, `proxy_headers`, and `ssl_ca_certs`. All of these properties were available in v3 and v4, with deprecation notices shown to affected users.
+As part of an overall move to stop exposing generated code in the package's public interface, an obscure configuration property (`openapi_config`) was removed in favor of individual configuration options such as `proxy_url`, `proxy_headers`, and `ssl_ca_certs`. All of these properties were available in v3 and v4 releases of the SDK, with deprecation notices shown to affected users.
 
 The specific objects being returned from methods such as `describe_index` and `list_indexes` have been changed, but the change should not impact usage as these implement the same interface.
 
 #### Older releases
 
-- ** Upgrading to `4.x`**: For this upgrade you are unlikely to be impacted by breaking changes unless you are using the `grpc` extras (see install steps below). Read full details in these [v4 Release Notes](https://github.com/pinecone-io/pinecone-python-client/releases/tag/v4.0.0).
+- **Upgrading to `4.x`** : For this upgrade you are unlikely to be impacted by breaking changes unless you are using the `grpc` extras (see install steps below). Read full details in these [v4 Release Notes](https://github.com/pinecone-io/pinecone-python-client/releases/tag/v4.0.0).
 
-- ** Upgrading to `3.x`**: Many things were changed in the v3 client to pave the way for Pinecone's new Serverless index offering. These changes are covered in detail in the [**v3 Migration Guide**](https://canyon-quilt-082.notion.site/Pinecone-Python-SDK-v3-0-0-Migration-Guide-056d3897d7634bf7be399676a4757c7b#a21aff70b403416ba352fd30e300bce3). Serverless indexes are only available in `3.x` release versions or greater.
+- **Upgrading to `3.x`**: Many things were changed in the v3 client to pave the way for Pinecone's new Serverless index offering. These changes are covered in detail in the [**v3 Migration Guide**](https://canyon-quilt-082.notion.site/Pinecone-Python-SDK-v3-0-0-Migration-Guide-056d3897d7634bf7be399676a4757c7b#a21aff70b403416ba352fd30e300bce3). Serverless indexes are only available in `3.x` release versions or greater.
 
 ### Example code
 
