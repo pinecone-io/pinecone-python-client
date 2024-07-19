@@ -1,6 +1,7 @@
 from pinecone import Pinecone
 from pinecone.grpc import PineconeGRPC
 
+
 class TestInferencePlugin:
     def test_embed(self, api_key):
         pc = Pinecone(api_key=api_key)
