@@ -88,8 +88,10 @@ class GRPCIndexBase(ABC):
         pass
 
     def _endpoint(self):
-        grpcHost = self.config.host.replace("https://", "")
-        return self._endpoint_override if self._endpoint_override else f"{grpcHost}:443"
+        grpc_host = self.config.host.replace("https://", "")
+        if ":" not in grpc_host:
+            grpc_host = f"{grpc_host}:443"
+        return self._endpoint_override if self._endpoint_override else grpc_host
 
     def _gen_channel(self, options=None):
         target = self._endpoint()
