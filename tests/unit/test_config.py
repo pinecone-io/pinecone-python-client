@@ -98,18 +98,9 @@ class TestConfig:
         idx = pc.Index(host="my-index-host", name="my-index-name")
         assert idx._vector_api.api_client.pool_threads == 10
 
-    def test_config_when_openapi_config_is_passed_merges_api_key(self):
-        oai_config = OpenApiConfiguration()
-        pc = Pinecone(api_key="asdf", openapi_config=oai_config)
-        assert pc.openapi_config.api_key == {"ApiKeyAuth": "asdf"}
-
     def test_ssl_config_passed_to_index_client(self):
-        oai_config = OpenApiConfiguration()
-        oai_config.ssl_ca_cert = "path/to/cert"
         proxy_headers = make_headers(proxy_basic_auth="asdf")
-        oai_config.proxy_headers = proxy_headers
-
-        pc = Pinecone(api_key="key", openapi_config=oai_config)
+        pc = Pinecone(api_key="key", ssl_ca_certs="path/to/cert", proxy_headers=proxy_headers)
 
         assert pc.openapi_config.ssl_ca_cert == "path/to/cert"
         assert pc.openapi_config.proxy_headers == proxy_headers
@@ -119,12 +110,8 @@ class TestConfig:
         assert idx._vector_api.api_client.configuration.proxy_headers == proxy_headers
 
     def test_host_config_not_clobbered_by_index(self):
-        oai_config = OpenApiConfiguration()
-        oai_config.ssl_ca_cert = "path/to/cert"
         proxy_headers = make_headers(proxy_basic_auth="asdf")
-        oai_config.proxy_headers = proxy_headers
-
-        pc = Pinecone(api_key="key", openapi_config=oai_config)
+        pc = Pinecone(api_key="key", ssl_ca_certs="path/to/cert", proxy_headers=proxy_headers)
 
         assert pc.openapi_config.ssl_ca_cert == "path/to/cert"
         assert pc.openapi_config.proxy_headers == proxy_headers
