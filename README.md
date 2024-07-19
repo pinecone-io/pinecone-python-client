@@ -315,7 +315,7 @@ pc.configure_index("example-index", replicas=new_number_of_replicas)
 
 ## Configuring deletion protection
 
-If you would like to enable deletion protection, which prevents an index from being deleted, the configure_index option also handles that.
+If you would like to enable deletion protection, which prevents an index from being deleted, the `configure_index` method also handles that via an optional `deletion_protection` keyword argument.
 
 ```python
 from pinecone import Pinecone
