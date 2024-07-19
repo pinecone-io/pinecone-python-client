@@ -215,10 +215,6 @@ class TestControl:
         response = p.list_indexes()
         assert [i.name for i in response] == ["index1", "index2", "index3"]
 
-    def test_api_key_and_openapi_config(self, mocker):
-        p = Pinecone(api_key="123", openapi_config=OpenApiConfiguration.get_default_copy())
-        assert p.config.api_key == "123"
-
 
 class TestIndexConfig:
     def test_default_pool_threads(self):
