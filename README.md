@@ -15,7 +15,7 @@ For more information, see the docs at https://www.pinecone.io/docs/
 
 As part of an overall move to stop exposing generated code in the package's public interface, an obscure configuration property (`openapi_config`) was removed in favor of individual configuration options such as `proxy_url`, `proxy_headers`, and `ssl_ca_certs`. All of these properties were available in v3 and v4 releases of the SDK, with deprecation notices shown to affected users.
 
-It is no longer necessary to install the separate plugin, `pinecone-plugin-inference`, to try out the [Inference API](https://docs.pinecone.io/guides/inference/understanding-inference); that plugin is now installed by default in the v5 SDK. See [usage instructions below](#inference-api).
+It is no longer necessary to install a separate plugin, `pinecone-plugin-inference`, to try out the [Inference API](https://docs.pinecone.io/guides/inference/understanding-inference); that plugin is now installed by default in the v5 SDK. See [usage instructions below](#inference-api).
 
 #### Older releases
 
