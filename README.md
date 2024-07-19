@@ -7,8 +7,17 @@ For more information, see the docs at https://www.pinecone.io/docs/
 
 ## Documentation
 
-- If you are upgrading from a `2.2.x` version of the client, check out the [**v3 Migration Guide**](https://canyon-quilt-082.notion.site/Pinecone-Python-SDK-v3-0-0-Migration-Guide-056d3897d7634bf7be399676a4757c7b#a21aff70b403416ba352fd30e300bce3).
 - [**Reference Documentation**](https://sdk.pinecone.io/python/index.html)
+
+### Upgrading your client
+
+- **`4.x` to `5.x`**: The v5 SDK introduced support for creating embeddings through Pinecone's new [Inference API](https://docs.pinecone.io/guides/inference/understanding-inference). It also brings in the optional ability to enable `deletion_protection` on indexes you create. 
+
+An obscure configuration property, `openapi_config`, was removed in favor of individual configuration options such as `proxy_url`, `proxy_headers`, and `ssl_ca_certs`.
+
+- **`3.x` to `4.x`**: For this upgrade are unlikely to be impacted by breaking changes unless you are using the `grpc` extras (see install steps below). A breaking change was made to upgrade an old grpc dependency to unlock significantly greater performance for GRPC users.
+
+- **`2.2.x` to `3.x`**: Many things were changed in the v3 client to pave the way for Pinecone's serverless index offering. These changes are covered in detail in the [**v3 Migration Guide**](https://canyon-quilt-082.notion.site/Pinecone-Python-SDK-v3-0-0-Migration-Guide-056d3897d7634bf7be399676a4757c7b#a21aff70b403416ba352fd30e300bce3). Serverless indexes are only available in `3.x` release versions or greater.
 
 ### Example code
 
@@ -34,10 +43,10 @@ pip3 install pinecone-client
 pip3 install "pinecone-client[grpc]"
 
 # Install a specific version
-pip3 install pinecone-client==3.0.0
+pip3 install pinecone-client==5.0.0
 
 # Install a specific version, with grpc extras
-pip3 install "pinecone-client[grpc]"==3.0.0
+pip3 install "pinecone-client[grpc]"==5.0.0
 ```
 
 ### Installing with poetry
@@ -50,10 +59,10 @@ poetry add pinecone-client
 poetry add pinecone-client --extras grpc
 
 # Install a specific version
-poetry add pinecone-client==3.0.0
+poetry add pinecone-client==5.0.0
 
 # Install a specific version, with grpc extras
-poetry add pinecone-client==3.0.0 --extras grpc
+poetry add pinecone-client==5.0.0 --extras grpc
 ```
 
 ## Usage
@@ -197,6 +206,7 @@ pc.create_index(
     name='my-index',
     dimension=1536,
     metric='euclidean',
+    deletion_protection='enabled',
     spec=ServerlessSpec(
         cloud='aws',
         region='us-west-2'
@@ -217,6 +227,7 @@ pc.create_index(
     name="example-index",
     dimension=1536,
     metric="cosine",
+    deletion_protection='enabled',
     spec=PodSpec(
         environment='us-west-2',
         pod_type='p1.x1'
@@ -275,7 +286,7 @@ index_description = pc.describe_index("example-index")
 
 ## Delete an index
 
-The following example deletes the index named `example-index`.
+The following example deletes the index named `example-index`. Only indexes which are not protected by deletion protection may be deleted.
 
 ```python
 from pinecone import Pinecone
@@ -296,6 +307,26 @@ pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
 
 new_number_of_replicas = 4
 pc.configure_index("example-index", replicas=new_number_of_replicas)
+```
+
+## Configuring deletion protection
+
+If you would like to enable deletion protection, which prevents an index from being deleted, the configure_index option also handles that.
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+
+# To enable deletion protection
+pc.configure_index("example-index", deletion_protection='enabled')
+
+# Disable deletion protection
+pc.configure_index("example-index", deletion_protection='disabled')
+
+# Call describe index to verify the configuration change has been applied
+desc = pc.describe_index("example-index")
+print(desc.deletion_protection)
 ```
 
 ## Describe index statistics
@@ -512,6 +543,40 @@ from pinecone import Pinecone
 pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
 
 pc.delete_collection("example-collection")
+```
+
+# Inference API
+
+The Pinecone SDK now supports creating embeddings via the [Inference API](https://docs.pinecone.io/guides/inference/understanding-inference).
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone(api_key="YOUR_API_KEY")
+model = "multilingual-e5-large"
+
+# Embed documents
+text = [
+    "Turkey is a classic meat to eat at American Thanksgiving.",
+    "Many people enjoy the beautiful mosques in Turkey.",
+]
+text_embeddings = pc.inference.embed(
+    model=model,
+    inputs=text,
+    parameters={"input_type": "passage", "truncate": "END"},
+)
+
+# Upsert documents into Pinecone index
+
+# Embed a query
+query = ["How should I prepare my turkey?"]
+query_embeddings = pc.inference.embed(
+    model=model,
+    inputs=query,
+    parameters={"input_type": "query", "truncate": "END"},
+)
+
+# Send query to Pinecone index to retrieve similar documents
 ```
 
 # Contributing
