@@ -1,6 +1,7 @@
 import pytest
 from .seed import weird_valid_ids, weird_invalid_ids
 
+
 class TestHandlingOfWeirdIds:
     def test_fetch_weird_ids(self, idx, weird_ids_namespace):
         weird_ids = weird_valid_ids()
