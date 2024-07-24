@@ -44,3 +44,9 @@ jobs:
     secrets:
       PYPI_USERNAME: __token__
       PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PUBLISH_TOKEN }}
+
+  docs-publish:
+    uses: './.github/workflows/build-and-publish-docs.yaml'
+    secrets: inherit
+    needs: 
+      - pypi
