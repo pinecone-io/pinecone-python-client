@@ -4,7 +4,7 @@ import logging
 import re
 import ssl
 import os
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 
 import urllib3
 
@@ -182,7 +182,7 @@ class RESTClientObject(object):
                 if (method != "DELETE") and ("Content-Type" not in headers):
                     headers["Content-Type"] = "application/json"
                 if query_params:
-                    url += "?" + urlencode(query_params)
+                    url += "?" + urlencode(query_params, quote_via=quote)
                 if ("Content-Type" not in headers) or (re.search("json", headers["Content-Type"], re.IGNORECASE)):
                     request_body = None
                     if body is not None:
@@ -240,8 +240,10 @@ class RESTClientObject(object):
                     raise PineconeApiException(status=0, reason=msg)
             # For `GET`, `HEAD`
             else:
+                if query_params:
+                    url += "?" + urlencode(query_params, quote_via=quote)
                 r = self.pool_manager.request(
-                    method, url, fields=query_params, preload_content=_preload_content, timeout=timeout, headers=headers
+                    method, url, preload_content=_preload_content, timeout=timeout, headers=headers
                 )
         except urllib3.exceptions.SSLError as e:
             msg = "{0}\n{1}".format(type(e).__name__, str(e))

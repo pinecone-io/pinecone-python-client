@@ -3,7 +3,7 @@ import os
 import time
 import json
 from ..helpers import get_environment_var, random_string
-from .seed import setup_data, setup_list_data
+from .seed import setup_data, setup_list_data, setup_weird_ids_data
 
 # Test matrix needs to consider the following dimensions:
 # - pod vs serverless
@@ -60,13 +60,16 @@ def index_name():
 
 @pytest.fixture(scope="session")
 def namespace():
-    # return 'banana'
     return random_string(10)
 
 
 @pytest.fixture(scope="session")
 def list_namespace():
-    # return 'list-banana'
+    return random_string(10)
+
+
+@pytest.fixture(scope="session")
+def weird_ids_namespace():
     return random_string(10)
 
 
@@ -89,8 +92,11 @@ def index_host(index_name, metric, spec):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def seed_data(idx, namespace, index_host, list_namespace):
+def seed_data(idx, namespace, index_host, list_namespace, weird_ids_namespace):
     print("Seeding data in host " + index_host)
+
+    print("Seeding data in weird is namespace " + weird_ids_namespace)
+    setup_weird_ids_data(idx, weird_ids_namespace, True)
 
     print('Seeding list data in namespace "' + list_namespace + '"')
     setup_list_data(idx, list_namespace, True)
