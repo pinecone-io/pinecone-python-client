@@ -11,6 +11,9 @@ from ...helpers import generate_index_name, get_environment_var
 def use_grpc():
     return get_environment_var("USE_GRPC") == "true"
 
+@pytest.fixture()
+def environment(spec):
+    return spec["pod"]["environment"]
 
 @pytest.fixture()
 def client(use_grpc):
@@ -93,7 +96,7 @@ def reusable_collection(spec):
         name=index_name,
         dimension=dimension,
         metric=get_environment_var("METRIC"),
-        spec=spec,
+        spec=json.loads(get_environment_var("SPEC")),
     )
     print(f"Created index {index_name}. Waiting 10 seconds to make sure it's ready...")
     time.sleep(10)
