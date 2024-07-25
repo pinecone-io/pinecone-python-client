@@ -82,7 +82,7 @@ def random_string():
 
 
 @pytest.fixture(scope="session")
-def reusable_collection():
+def reusable_collection(spec):
     pc = Pinecone(
         api_key=get_environment_var("PINECONE_API_KEY"), additional_headers={"sdk-test-suite": "pinecone-python-client"}
     )
@@ -93,9 +93,7 @@ def reusable_collection():
         name=index_name,
         dimension=dimension,
         metric=get_environment_var("METRIC"),
-        spec=PodSpec(
-            environment=get_environment_var("PINECONE_ENVIRONMENT"),
-        ),
+        spec=spec,
     )
     print(f"Created index {index_name}. Waiting 10 seconds to make sure it's ready...")
     time.sleep(10)
