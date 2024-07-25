@@ -13,6 +13,9 @@ inputs:
   metric:
     description: 'The metric of the index'
     required: true
+  dimension:
+    description: 'The dimension of the index'
+    required: true
   spec:
     description: 'The deploy spec of the index'
     required: true
@@ -49,6 +52,7 @@ runs:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         USE_GRPC: ${{ inputs.use_grpc }}
         METRIC: ${{ inputs.metric }}
+        DIMENSION: ${{ inputs.dimension }}
         SPEC: ${{ inputs.spec }}
         FRESHNESS_TIMEOUT_SECONDS: ${{ inputs.freshness_timeout_seconds }}
         GITHUB_BUILD_NUMBER: '${{ github.run_number }}-p-${{ matrix.testConfig.python-version}}'
