@@ -51,3 +51,4 @@ runs:
         METRIC: ${{ inputs.metric }}
         SPEC: ${{ inputs.spec }}
         FRESHNESS_TIMEOUT_SECONDS: ${{ inputs.freshness_timeout_seconds }}
+        GITHUB_BUILD_NUMBER: '${{ github.run_number }}-p-${{ matrix.testConfig.python-version}}'

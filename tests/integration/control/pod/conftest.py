@@ -2,19 +2,30 @@ import pytest
 import random
 import string
 import time
+import json
 from pinecone import Pinecone, PodSpec
 from ...helpers import generate_index_name, get_environment_var
 
 
 @pytest.fixture()
-def client():
-    api_key = get_environment_var("PINECONE_API_KEY")
-    return Pinecone(api_key=api_key, additional_headers={"sdk-test-suite": "pinecone-python-client"})
+def use_grpc():
+    return get_environment_var("USE_GRPC") == "true"
 
 
 @pytest.fixture()
-def environment():
-    return get_environment_var("PINECONE_ENVIRONMENT")
+def client(use_grpc):
+    api_key = get_environment_var("PINECONE_API_KEY")
+    if use_grpc:
+        from pinecone.grpc import PineconeGRPC
+
+        return PineconeGRPC(api_key=api_key, additional_headers={"sdk-test-suite": "pinecone-python-client"})
+    else:
+        return Pinecone(api_key=api_key, additional_headers={"sdk-test-suite": "pinecone-python-client"})
+
+
+@pytest.fixture()
+def spec():
+    return json.loads(get_environment_var("SPEC"))
 
 
 @pytest.fixture()
@@ -23,8 +34,7 @@ def dimension():
 
 
 @pytest.fixture()
-def create_index_params(index_name, environment, dimension, metric):
-    spec = {"pod": {"environment": environment, "pod_type": "p1.x1"}}
+def create_index_params(index_name, spec, dimension, metric):
     return dict(name=index_name, dimension=dimension, metric=metric, spec=spec, timeout=-1)
 
 

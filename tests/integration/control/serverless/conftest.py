@@ -2,29 +2,34 @@ import os
 import pytest
 import random
 import time
+import json
 from pinecone import Pinecone, NotFoundException, PineconeApiException
 from ...helpers import generate_index_name, get_environment_var
 
 
 @pytest.fixture()
-def client():
+def use_grpc():
+    return get_environment_var("USE_GRPC", "false") == "true"
+
+
+@pytest.fixture()
+def client(use_grpc):
     api_key = get_environment_var("PINECONE_API_KEY")
-    return Pinecone(api_key=api_key, additional_headers={"sdk-test-suite": "pinecone-python-client"})
+    if use_grpc:
+        from pinecone.grpc import PineconeGRPC
+
+        return PineconeGRPC(api_key=api_key, additional_headers={"sdk-test-suite": "pinecone-python-client"})
+    else:
+        return Pinecone(api_key=api_key, additional_headers={"sdk-test-suite": "pinecone-python-client"})
 
 
 @pytest.fixture()
-def serverless_cloud():
-    return get_environment_var("SERVERLESS_CLOUD", "aws")
+def spec():
+    return json.loads(get_environment_var("SPEC"))
 
 
 @pytest.fixture()
-def serverless_region():
-    return get_environment_var("SERVERLESS_REGION", "us-west-2")
-
-
-@pytest.fixture()
-def create_sl_index_params(index_name, serverless_cloud, serverless_region):
-    spec = {"serverless": {"cloud": serverless_cloud, "region": serverless_region}}
+def create_sl_index_params(index_name, spec):
     return dict(name=index_name, dimension=10, metric="cosine", spec=spec)
 
 
@@ -50,19 +55,6 @@ def ready_sl_index(client, index_name, create_sl_index_params):
 @pytest.fixture()
 def notready_sl_index(client, index_name, create_sl_index_params):
     client.create_index(**create_sl_index_params, timeout=-1)
-    yield index_name
-
-
-@pytest.fixture()
-def ready_pod_index(client, index_name, create_pod_index_params):
-    del create_pod_index_params["timeout"]
-    client.create_index(**create_pod_index_params)
-    yield index_name
-
-
-@pytest.fixture()
-def notready_pod_index(client, index_name, create_pod_index_params):
-    client.create_index(**create_pod_index_params)
     yield index_name
 
 
