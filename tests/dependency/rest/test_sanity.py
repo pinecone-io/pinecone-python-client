@@ -31,7 +31,7 @@ class TestSanityRest:
         idx.upsert(vectors=[("1", [1.0, 2.0]), ("2", [3.0, 4.0]), ("3", [5.0, 6.0])])
 
         # Wait for index freshness
-        time.sleep(30)
+        time.sleep(60)
 
         # Check the vector count reflects some data has been upserted
         description = idx.describe_index_stats()
