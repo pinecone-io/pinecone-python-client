@@ -36,8 +36,8 @@ class TestCollectionsHappyPath:
 
         assert collection_name in client.list_collections().names()
 
-        if time_waited >= 120:
-            raise Exception(f"Collection {collection_name} is not ready after 120 seconds")
+        if time_waited >= 5 * 60:
+            raise Exception(f"Collection {collection_name} is not ready after 5 minutes")
 
         # After collection ready, these should all be defined
         assert desc["name"] == collection_name
@@ -96,5 +96,5 @@ class TestCollectionsHappyPath:
             metric=target_metric,
             spec=PodSpec(environment=environment, source_collection=reusable_collection),
         )
-        time.sleep(10)
+        time.sleep(30)
         client.delete_index(index_name, -1)

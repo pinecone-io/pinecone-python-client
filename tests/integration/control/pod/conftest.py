@@ -115,15 +115,15 @@ def reusable_collection():
     time_waited = 0
     desc = pc.describe_collection(collection_name)
     collection_ready = desc["status"]
-    while collection_ready.lower() != "ready" and time_waited < 120:
+    while collection_ready.lower() != "ready" and time_waited < 300:
         print(f"Waiting for collection {collection_name} to be ready. Waited {time_waited} seconds...")
         time.sleep(5)
         time_waited += 5
         desc = pc.describe_collection(collection_name)
         collection_ready = desc["status"]
 
-    if time_waited >= 120:
-        raise Exception(f"Collection {collection_name} is not ready after 120 seconds")
+    if time_waited >= 300:
+        raise Exception(f"Collection {collection_name} is not ready after 300 seconds")
 
     print(f"Collection {collection_name} is ready. Deleting index {index_name}...")
     pc.delete_index(index_name)
@@ -139,7 +139,7 @@ def cleanup(client, index_name):
     yield
 
     time_waited = 0
-    while index_exists(index_name, client) and time_waited < 120:
+    while index_exists(index_name, client) and time_waited < 300:
         print(f"Waiting for index {index_name} to be ready to delete. Waited {time_waited} seconds..")
         time_waited += 5
         time.sleep(5)
@@ -152,5 +152,5 @@ def cleanup(client, index_name):
             print(f"Unable to delete index {index_name}: {e}")
             pass
 
-    if time_waited >= 120:
-        raise Exception(f"Index {index_name} could not be deleted after 120 seconds")
+    if time_waited >= 300:
+        raise Exception(f"Index {index_name} could not be deleted after 300 seconds")
