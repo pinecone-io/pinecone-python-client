@@ -85,7 +85,7 @@ def random_string():
 
 
 @pytest.fixture(scope="session")
-def reusable_collection(spec):
+def reusable_collection():
     pc = Pinecone(
         api_key=get_environment_var("PINECONE_API_KEY"), additional_headers={"sdk-test-suite": "pinecone-python-client"}
     )
