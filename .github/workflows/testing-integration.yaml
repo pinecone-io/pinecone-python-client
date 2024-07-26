@@ -85,7 +85,7 @@ jobs:
           test_suite: 'pod'
           use_grpc: ${{ matrix.use_grpc }}
           metric: 'cosine'
-          dimension: 1536
+          dimension: 100
           spec: '{ "pod": { "environment": "us-east4-gcp", "pod_type": "p1.x1" }}'
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
           freshness_timeout_seconds: 600
@@ -107,7 +107,7 @@ jobs:
           test_suite: 'serverless'
           use_grpc: ${{ matrix.use_grpc }}
           metric: 'cosine'
-          dimension: 1536
+          dimension: 100
           spec: '{ "serverless": { "cloud": "aws", "region": "us-west-2" }}'
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
           freshness_timeout_seconds: 600
