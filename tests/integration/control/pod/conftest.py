@@ -11,9 +11,11 @@ from ...helpers import generate_index_name, get_environment_var
 def use_grpc():
     return get_environment_var("USE_GRPC") == "true"
 
+
 @pytest.fixture()
 def environment(spec):
     return spec["pod"]["environment"]
+
 
 @pytest.fixture()
 def client(use_grpc):
