@@ -1383,4 +1383,4 @@ grpc = ["googleapis-common-protos", "grpcio", "grpcio", "lz4", "protobuf", "prot
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "9b11480e32522a0b81e775daebf03221c5372fc78b44a976e48579257bd77bf6"
+content-hash = "69662a7069bd562665f35798e0f43d9f56c599c6ead0e149a1ff47909a1111f9"
