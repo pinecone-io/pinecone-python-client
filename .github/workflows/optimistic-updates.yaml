@@ -1,0 +1,93 @@
+name: Update Spec
+
+on:
+  workflow_dispatch: {}
+#   schedule:
+#     - cron: '0 0 * * *'
+
+jobs:
+  update-and-build:
+    name: Build docs with pdoc
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up git
+        run: |
+          git config --global user.name "Pinecone CI"
+          git config --global user.email "clients@pinecone.io"
+
+      - name: Update spec
+        run: |
+          ./scripts/build-oas.sh
+          git add codegen
+          git add pinecone/core
+
+      - name: Commit changes
+        id: commit
+        run:
+          if git diff --cached --quiet; then
+            echo "No changes are staged."
+            echo "new_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "There are staged changes."
+            git commit -m'Regenerate core with latest specs'
+            echo "new_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+  
+      - name: Abort if no recent changes
+        if: steps.commit.outputs.new_changes == 'false'
+        uses: andymckay/cancel-action@0.3
+
+      - name: Test data plane (rest)
+        uses: ./.github/actions/test-data-plane
+        with:
+            metric: 'cosine'
+            use_grpc: false
+            spec: '{ "serverless": { "cloud": "aws", "region": "us-west-2" }}'
+            PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+            freshness_timeout_seconds: 600
+
+      - name: Test control plane (serverless, rest)
+        uses: ./.github/actions/test-control-plane
+        with:
+            test_suite: 'serverless'
+            use_grpc: false
+            metric: 'cosine'
+            spec: '{ "serverless": { "cloud": "aws", "region": "us-west-2" }}'
+            PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+            freshness_timeout_seconds: 600
+
+      - name: Test control plane (serverless, grpc)
+        uses: ./.github/actions/test-control-plane
+        with:
+            test_suite: 'serverless'
+            use_grpc: true
+            metric: 'cosine'
+            spec: '{ "serverless": { "cloud": "aws", "region": "us-west-2" }}'
+            PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+            freshness_timeout_seconds: 600
+
+      - name: Test control plane (pod, rest)
+        uses: ./.github/actions/test-control-plane
+        with:
+            test_suite: 'pod'
+            use_grpc: false
+            metric: 'cosine'
+            spec: '{ "serverless": { "cloud": "aws", "region": "us-west-2" }}'
+            PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+            freshness_timeout_seconds: 600
+    
+      - name: Test control plane (pod, grpc)
+        uses: ./.github/actions/test-control-plane
+        with:
+            test_suite: 'pod'
+            use_grpc: true
+            metric: 'cosine'
+            spec: '{ "serverless": { "cloud": "aws", "region": "us-west-2" }}'
+            PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+            freshness_timeout_seconds: 600
+
+      - name: Push changes
+        run: git push

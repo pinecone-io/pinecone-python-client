@@ -1,16 +1,20 @@
-name: 'Test Data Plane'
-description: 'Runs tests on the Pinecone data plane'
-
-# - pod vs serverless
-# - grpc vs rest
-# - metric -> vector vs sparse vector
-# - namespace: default vs custom
-# - environment: free vs paid
-# - with metadata vs without metadata
+name: 'Test Control Plane'
+description: 'Runs tests on the Pinecone control plane'
 
 inputs:
+  test_suite:
+    description: 'The type of the index (serverless, pod)'
+    required: true
+    default: 'serverless'
+  python_version:
+    description: 'The version of Python to use'
+    required: false
+    default: '3.9'
   metric:
     description: 'The metric of the index'
+    required: true
+  dimension:
+    description: 'The dimension of the index'
     required: true
   spec:
     description: 'The deploy spec of the index'
@@ -25,10 +29,6 @@ inputs:
   PINECONE_API_KEY:
     description: 'The Pinecone API key'
     required: true
-  python_version:
-    description: 'The version of Python to use'
-    required: false
-    default: '3.9'
 
 runs:
   using: 'composite'
@@ -44,13 +44,15 @@ runs:
         include_grpc: ${{ inputs.use_grpc }}
         include_dev: 'true'
 
-    - name: Run data plane tests
+    - name: Run tests
       id: data-plane-tests
       shell: bash
-      run: poetry run pytest tests/integration/data
+      run: poetry run pytest tests/integration/control/${{ inputs.test_suite }}
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         USE_GRPC: ${{ inputs.use_grpc }}
         METRIC: ${{ inputs.metric }}
+        DIMENSION: ${{ inputs.dimension }}
         SPEC: ${{ inputs.spec }}
         FRESHNESS_TIMEOUT_SECONDS: ${{ inputs.freshness_timeout_seconds }}
+        GITHUB_BUILD_NUMBER: '${{ github.run_number }}-p-${{ matrix.testConfig.python-version}}'

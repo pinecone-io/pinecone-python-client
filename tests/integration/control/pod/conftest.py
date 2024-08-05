@@ -2,19 +2,35 @@ import pytest
 import random
 import string
 import time
+import json
 from pinecone import Pinecone, PodSpec
 from ...helpers import generate_index_name, get_environment_var
 
 
 @pytest.fixture()
-def client():
-    api_key = get_environment_var("PINECONE_API_KEY")
-    return Pinecone(api_key=api_key, additional_headers={"sdk-test-suite": "pinecone-python-client"})
+def use_grpc():
+    return get_environment_var("USE_GRPC") == "true"
 
 
 @pytest.fixture()
-def environment():
-    return get_environment_var("PINECONE_ENVIRONMENT")
+def environment(spec):
+    return spec["pod"]["environment"]
+
+
+@pytest.fixture()
+def client(use_grpc):
+    api_key = get_environment_var("PINECONE_API_KEY")
+    if use_grpc:
+        from pinecone.grpc import PineconeGRPC
+
+        return PineconeGRPC(api_key=api_key, additional_headers={"sdk-test-suite": "pinecone-python-client"})
+    else:
+        return Pinecone(api_key=api_key, additional_headers={"sdk-test-suite": "pinecone-python-client"})
+
+
+@pytest.fixture()
+def spec():
+    return json.loads(get_environment_var("SPEC"))
 
 
 @pytest.fixture()
@@ -23,8 +39,7 @@ def dimension():
 
 
 @pytest.fixture()
-def create_index_params(index_name, environment, dimension, metric):
-    spec = {"pod": {"environment": environment, "pod_type": "p1.x1"}}
+def create_index_params(index_name, spec, dimension, metric):
     return dict(name=index_name, dimension=dimension, metric=metric, spec=spec, timeout=-1)
 
 
@@ -83,9 +98,7 @@ def reusable_collection():
         name=index_name,
         dimension=dimension,
         metric=get_environment_var("METRIC"),
-        spec=PodSpec(
-            environment=get_environment_var("PINECONE_ENVIRONMENT"),
-        ),
+        spec=json.loads(get_environment_var("SPEC")),
     )
     print(f"Created index {index_name}. Waiting 10 seconds to make sure it's ready...")
     time.sleep(10)
@@ -102,15 +115,15 @@ def reusable_collection():
     time_waited = 0
     desc = pc.describe_collection(collection_name)
     collection_ready = desc["status"]
-    while collection_ready.lower() != "ready" and time_waited < 120:
+    while collection_ready.lower() != "ready" and time_waited < 300:
         print(f"Waiting for collection {collection_name} to be ready. Waited {time_waited} seconds...")
         time.sleep(5)
         time_waited += 5
         desc = pc.describe_collection(collection_name)
         collection_ready = desc["status"]
 
-    if time_waited >= 120:
-        raise Exception(f"Collection {collection_name} is not ready after 120 seconds")
+    if time_waited >= 300:
+        raise Exception(f"Collection {collection_name} is not ready after 300 seconds")
 
     print(f"Collection {collection_name} is ready. Deleting index {index_name}...")
     pc.delete_index(index_name)
@@ -126,7 +139,7 @@ def cleanup(client, index_name):
     yield
 
     time_waited = 0
-    while index_exists(index_name, client) and time_waited < 120:
+    while index_exists(index_name, client) and time_waited < 300:
         print(f"Waiting for index {index_name} to be ready to delete. Waited {time_waited} seconds..")
         time_waited += 5
         time.sleep(5)
@@ -139,5 +152,5 @@ def cleanup(client, index_name):
             print(f"Unable to delete index {index_name}: {e}")
             pass
 
-    if time_waited >= 120:
-        raise Exception(f"Index {index_name} could not be deleted after 120 seconds")
+    if time_waited >= 300:
+        raise Exception(f"Index {index_name} could not be deleted after 300 seconds")
