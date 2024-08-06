@@ -227,7 +227,7 @@ class Index:
         """Upserts a dataframe into the index.
 
         Args:
-            df: A pandas dataframe with the following columns: id, vector, sparse_values, and metadata.
+            df: A pandas dataframe with the following columns: id, values, sparse_values, and metadata.
             namespace: The namespace to upsert into.
             batch_size: The number of rows to upsert in a single batch.
             show_progress: Whether to show a progress bar.

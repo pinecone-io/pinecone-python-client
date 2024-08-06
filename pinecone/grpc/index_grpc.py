@@ -187,7 +187,7 @@ class GRPCIndex(GRPCIndexBase):
         """Upserts a dataframe into the index.
 
         Args:
-            df: A pandas dataframe with the following columns: id, vector, and metadata.
+            df: A pandas dataframe with the following columns: id, values, sparse_values, and metadata.
             namespace: The namespace to upsert into.
             batch_size: The number of rows to upsert in a single batch.
             use_async_requests: Whether to upsert multiple requests at the same time using asynchronous request mechanism.
