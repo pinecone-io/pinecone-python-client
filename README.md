@@ -1,15 +1,15 @@
-# Pinecone Python Client 
+# Pinecone Python SDK 
 ![License](https://img.shields.io/github/license/pinecone-io/pinecone-python-client?color=orange) [![CI](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/pr.yaml/badge.svg)](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/pr.yaml)
 
-The official Pinecone Python client.
+The official Pinecone Python SDK.
 
-For more information, see the docs at https://www.pinecone.io/docs/
+For more information, see the docs at https://docs.pinecone.io
 
 ## Documentation
 
 - [**Reference Documentation**](https://sdk.pinecone.io/python/index.html)
 
-### Upgrading your client
+### Upgrading the SDK
 
 #### Upgrading from `4.x` to `5.x` 
 
@@ -21,21 +21,21 @@ It is no longer necessary to install a separate plugin, `pinecone-plugin-inferen
 
 - **Upgrading to `4.x`** : For this upgrade you are unlikely to be impacted by breaking changes unless you are using the `grpc` extras (see install steps below). Read full details in these [v4 Release Notes](https://github.com/pinecone-io/pinecone-python-client/releases/tag/v4.0.0).
 
-- **Upgrading to `3.x`**: Many things were changed in the v3 client to pave the way for Pinecone's new Serverless index offering. These changes are covered in detail in the [**v3 Migration Guide**](https://canyon-quilt-082.notion.site/Pinecone-Python-SDK-v3-0-0-Migration-Guide-056d3897d7634bf7be399676a4757c7b#a21aff70b403416ba352fd30e300bce3). Serverless indexes are only available in `3.x` release versions or greater.
+- **Upgrading to `3.x`**: Many things were changed in the v3 SDK to pave the way for Pinecone's new Serverless index offering. These changes are covered in detail in the [**v3 Migration Guide**](https://canyon-quilt-082.notion.site/Pinecone-Python-SDK-v3-0-0-Migration-Guide-056d3897d7634bf7be399676a4757c7b#a21aff70b403416ba352fd30e300bce3). Serverless indexes are only available in `3.x` release versions or greater.
 
 ### Example code
 
-Many of the brief examples shown in this README are using very small vectors to keep the documentation concise, but most real world usage will involve much larger embedding vectors. To see some more realistic examples of how this client can be used, explore some of our many Jupyter notebooks in the [examples](https://github.com/pinecone-io/examples) repository.
+Many of the brief examples shown in this README are using very small vectors to keep the documentation concise, but most real world usage will involve much larger embedding vectors. To see some more realistic examples of how this SDK can be used, explore some of our many Jupyter notebooks in the [examples](https://github.com/pinecone-io/examples) repository.
 
 ## Prerequisites
 
-The Pinecone Python client is compatible with Python 3.8 and greater.
+The Pinecone Python SDK is compatible with Python 3.8 and greater.
 
 ## Installation
 
-There are two flavors of the Pinecone python client. The default client installed from PyPI as `pinecone-client` has a minimal set of dependencies and interacts with Pinecone via HTTP requests.
+There are two flavors of the Pinecone Python SDK. The default flavor installed from PyPI as `pinecone-client` has a minimal set of dependencies and interacts with Pinecone via HTTP requests.
 
-If you are aiming to maximimize performance, you can install additional gRPC dependencies to access an alternate client implementation that relies on gRPC for data operations. See the guide on [tuning performance](https://docs.pinecone.io/docs/performance-tuning).
+If you are aiming to maximimize performance, you can install additional gRPC dependencies to access an alternate SDK implementation that relies on gRPC for data operations. See the guide on [tuning performance](https://docs.pinecone.io/docs/performance-tuning).
 
 ### Installing with pip
 
@@ -104,7 +104,7 @@ pc = Pinecone(api_key=os.environ.get('CUSTOM_VAR'))
 ### Proxy configuration
 
 If your network setup requires you to interact with Pinecone via a proxy, you will need
-to pass additional configuration using optional keyword parameters. These optional parameters are forwarded to `urllib3`, which is the underlying library currently used by the Pinecone client to make HTTP requests. You may find it helpful to refer to the [urllib3 documentation on working with proxies](https://urllib3.readthedocs.io/en/stable/advanced-usage.html#http-and-https-proxies) while troubleshooting these settings.
+to pass additional configuration using optional keyword parameters. These optional parameters are forwarded to `urllib3`, which is the underlying library currently used by the Pinecone SDK to make HTTP requests. You may find it helpful to refer to the [urllib3 documentation on working with proxies](https://urllib3.readthedocs.io/en/stable/advanced-usage.html#http-and-https-proxies) while troubleshooting these settings.
 
 Here is a basic example:
 
@@ -136,7 +136,7 @@ pc.list_indexes()
 
 ### Using proxies with self-signed certificates
 
-By default the Pinecone Python client will perform SSL certificate verification
+By default the Pinecone Python SDK will perform SSL certificate verification
 using the CA bundle maintained by Mozilla in the [certifi](https://pypi.org/project/certifi/) package.
 
 If your proxy server is using a self-signed certificate, you will need to pass the path to the certificate in PEM format using the `ssl_ca_certs` parameter.
@@ -178,7 +178,7 @@ pc.list_indexes()
 
 ### Working with GRPC (for improved performance)
 
-If you've followed instructions above to install with optional `grpc` extras, you can unlock some performance improvements by working with an alternative version of the client imported from the `pinecone.grpc` subpackage.
+If you've followed instructions above to install with optional `grpc` extras, you can unlock some performance improvements by working with an alternative version of the SDK imported from the `pinecone.grpc` subpackage.
 
 ```python
 import os
@@ -186,7 +186,7 @@ from pinecone.grpc import PineconeGRPC
 
 pc = PineconeGRPC(api_key=os.environ.get('PINECONE_API_KEY'))
 
-# From here on, everything is identical to the REST-based client.
+# From here on, everything is identical to the REST-based SDK.
 index = pc.Index(host='my-index-8833ca1.svc.us-east1-gcp.pinecone.io')
 
 index.upsert(vectors=[])
@@ -585,4 +585,4 @@ query_embeddings = pc.inference.embed(
 
 # Contributing
 
-If you'd like to make a contribution, or get setup locally to develop the Pinecone python client, please see our [contributing guide](https://github.com/pinecone-io/pinecone-python-client/blob/main/CONTRIBUTING.md)
+If you'd like to make a contribution, or get setup locally to develop the Pinecone Python SDK, please see our [contributing guide](https://github.com/pinecone-io/pinecone-python-client/blob/main/CONTRIBUTING.md)
