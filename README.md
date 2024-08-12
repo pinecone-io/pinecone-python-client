@@ -33,7 +33,7 @@ The Pinecone Python SDK is compatible with Python 3.8 and greater.
 
 ## Installation
 
-There are two flavors of the Pinecone Python SDK. The default flavor installed from PyPI as `pinecone-client` has a minimal set of dependencies and interacts with Pinecone via HTTP requests.
+There are two flavors of the Pinecone Python SDK. The default flavor installed from PyPI as `pinecone` has a minimal set of dependencies and interacts with Pinecone via HTTP requests.
 
 If you are aiming to maximimize performance, you can install additional gRPC dependencies to access an alternate SDK implementation that relies on gRPC for data operations. See the guide on [tuning performance](https://docs.pinecone.io/docs/performance-tuning).
 
@@ -41,32 +41,32 @@ If you are aiming to maximimize performance, you can install additional gRPC dep
 
 ```shell
 # Install the latest version
-pip3 install pinecone-client
+pip3 install pinecone
 
 # Install the latest version, with extra grpc dependencies
-pip3 install "pinecone-client[grpc]"
+pip3 install "pinecone[grpc]"
 
 # Install a specific version
-pip3 install pinecone-client==5.0.0
+pip3 install pinecone==5.0.0
 
 # Install a specific version, with grpc extras
-pip3 install "pinecone-client[grpc]"==5.0.0
+pip3 install "pinecone[grpc]"==5.0.0
 ```
 
 ### Installing with poetry
 
 ```shell
 # Install the latest version
-poetry add pinecone-client
+poetry add pinecone
 
 # Install the latest version, with grpc extras
-poetry add pinecone-client --extras grpc
+poetry add pinecone --extras grpc
 
 # Install a specific version
-poetry add pinecone-client==5.0.0
+poetry add pinecone==5.0.0
 
 # Install a specific version, with grpc extras
-poetry add pinecone-client==5.0.0 --extras grpc
+poetry add pinecone==5.0.0 --extras grpc
 ```
 
 ## Usage
