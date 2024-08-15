@@ -97,7 +97,7 @@ jobs:
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
           PINECONE_ENVIRONMENT: '${{ matrix.testConfig.pod.environment }}'
           GITHUB_BUILD_NUMBER: '${{ github.run_number }}-s-${{ matrix.testConfig.python-version}}'
-          DIMENSION: 2500
+          DIMENSION: 10
           METRIC: 'cosine'
       - name: 'Run integration tests (REST, staging)'
         if: matrix.pineconeEnv == 'staging'
@@ -108,7 +108,7 @@ jobs:
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY_STAGING }}'
           PINECONE_ENVIRONMENT: '${{ matrix.testConfig.pod.environment }}'
           GITHUB_BUILD_NUMBER: '${{ github.run_number }}-p-${{ matrix.testConfig.python-version}}'
-          DIMENSION: 1536
+          DIMENSION: 10
           METRIC: 'cosine'
 
   control-rest-serverless:
