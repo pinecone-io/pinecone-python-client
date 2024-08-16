@@ -556,7 +556,7 @@ class Pinecone:
         from pinecone import Pinecone
 
         client = YourClass()  # Initialize your class instance
-        exists = client.index_exists("my_index_name")
+        exists = client.has_index("my_index_name")
 
         if exists:
             print("The index exists.")
