@@ -14,5 +14,5 @@ class TestHasIndex:
         assert has_index == False
 
     def test_has_index_with_null_index_name(self, client):
-        has_index = client.has_index('')
+        has_index = client.has_index("")
         assert has_index == False
