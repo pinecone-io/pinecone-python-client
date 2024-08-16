@@ -544,6 +544,33 @@ class Pinecone:
 
         return IndexModel(description)
 
+    def has_index(self, name: str) -> bool:
+        """Checks if a Pinecone index exists.
+
+        :param name: The name of the index to check for existence.
+        :return: Returns `True` if the index exists, `False` otherwise.
+
+        ### Example Usage
+
+        ```python
+        from pinecone import Pinecone
+
+        client = YourClass()  # Initialize your class instance
+        exists = client.index_exists("my_index_name")
+
+        if exists:
+            print("The index exists.")
+        else:
+            print("The index does not exist.")
+        ```
+        """
+
+        try:
+            self.index_api.describe_index(name)
+            return True
+        except Exception as e:
+            return False
+
     def configure_index(
         self,
         name: str,
@@ -737,12 +764,12 @@ class Pinecone:
 
         pc = Pinecone(api_key=api_key)
         pc.create_index(
-            name='my-index',
+            name='my_index',
             dimension=1536,
             metric='cosine',
             spec=ServerlessSpec(cloud='aws', region='us-west-2')
         )
-        index = pc.Index('my-index')
+        index = pc.Index('my_index')
 
         # Now you're ready to perform data operations
         index.query(vector=[...], top_k=10)
