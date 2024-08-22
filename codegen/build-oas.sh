@@ -3,16 +3,31 @@
 set -eux -o pipefail
 
 version=$1 # e.g. 2024-07
-modules=("control" "data")
+is_early_access=$2 # e.g. true
 
-destination="pinecone/core/openapi"
+# if is_early_access is true, add the "ea" module
+if [ "$is_early_access" = "true" ]; then
+	destination="pinecone/core_ea/openapi"
+	modules=("db_control" "db_data")
+	py_module_name="core_ea"
+else
+	destination="pinecone/core/openapi"
+	modules=("control" "data")
+	py_module_name="core"
+fi
+
 build_dir="build"
 
 update_apis_repo() {
 	echo "Updating apis repo"
 	pushd codegen/apis
 		git fetch
-		git checkout main
+		if [ "$is_early_access" = "true" ]; then
+			echo "Checking out early access branch"
+			git checkout opbenesh/bulk-import
+		else
+			git checkout main
+		fi
 		git pull
 		just build
 	popd
@@ -58,11 +73,10 @@ generate_client() {
 	local module_name=$1
 
 	oas_file="codegen/apis/_build/${version}/${module_name}_${version}.oas.yaml"
-	openapi_generator_config="codegen/openapi-config.${module_name}.json"
+	package_name="pinecone.${py_module_name}.openapi.${module_name}"
 	template_dir="codegen/python-oas-templates/templates5.2.0"
 	
 	verify_file_exists $oas_file
-	verify_file_exists $openapi_generator_config
 	verify_directory_exists $template_dir
 
 	# Cleanup previous build files
@@ -73,13 +87,14 @@ generate_client() {
 	docker run --rm -v $(pwd):/workspace openapitools/openapi-generator-cli:v5.2.0 generate \
 		--input-spec "/workspace/$oas_file" \
 		--generator-name python \
-		--config "/workspace/$openapi_generator_config" \
+		--additional-properties=packageName=$package_name,pythonAttrNoneIfUnset=true \
 		--output "/workspace/${build_dir}" \
 		--template-dir "/workspace/$template_dir"
 
 	# Copy the generated module to the correct location
 	rm -rf "${destination}/${module_name}"
-	cp -r "build/pinecone/core/openapi/${module_name}" "${destination}/${module_name}"
+	mkdir -p "${destination}"
+	cp -r "build/pinecone/$py_module_name/openapi/${module_name}" "${destination}/${module_name}"
 }
 
 extract_shared_classes() {
@@ -118,13 +133,13 @@ extract_shared_classes() {
 
 	# Adjust import paths in every file
 	find "${destination}" -name "*.py" | while IFS= read -r file; do
-		sed -i '' 's/from \.\.model_utils/from pinecone\.core\.openapi\.shared\.model_utils/g' "$file"
+		sed -i '' "s/from \.\.model_utils/from pinecone\.$py_module_name\.openapi\.shared\.model_utils/g" "$file"
 
 		for module in "${modules[@]}"; do
-			sed -i '' "s/from pinecone\.core\.openapi\.$module import rest/from pinecone\.core\.openapi\.shared import rest/g" "$file"
+			sed -i '' "s/from pinecone\.$py_module_name\.openapi\.$module import rest/from pinecone\.$py_module_name\.openapi\.shared import rest/g" "$file"
 
 			for sharedFile in "${sharedFiles[@]}"; do
-				sed -i '' "s/from pinecone\.core\.openapi\.$module\.$sharedFile/from pinecone\.core\.openapi\.shared\.$sharedFile/g" "$file"
+				sed -i '' "s/from pinecone\.$py_module_name\.openapi\.$module\.$sharedFile/from pinecone\.$py_module_name\.openapi\.shared\.$sharedFile/g" "$file"
 			done
 		done
 	done
