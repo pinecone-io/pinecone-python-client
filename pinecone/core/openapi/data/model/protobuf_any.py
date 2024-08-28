@@ -65,8 +65,6 @@ class ProtobufAny(ModelNormal):
         """
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,

@@ -70,8 +70,6 @@ class ImportErrorMode(ModelNormal):
         """
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,
@@ -101,7 +99,7 @@ class ImportErrorMode(ModelNormal):
         return None
 
     attribute_map = {
-        "on_error": "on_error",  # noqa: E501
+        "on_error": "onError",  # noqa: E501
     }
 
     read_only_vars = {}

@@ -11,7 +11,7 @@ develop:
 
 test-unit:
 	@echo "Running tests..."
-	poetry run pytest --cov=pinecone --timeout=120 tests/unit
+	poetry run pytest --cov=pinecone --timeout=120 tests/unit -s -vv
 
 test-integration:
 	@echo "Running integration tests..."

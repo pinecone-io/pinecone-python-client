@@ -74,8 +74,6 @@ class EmbedRequest(ModelNormal):
         lazy_import()
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,

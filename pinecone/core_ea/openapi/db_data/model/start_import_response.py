@@ -56,7 +56,7 @@ class StartImportResponse(ModelNormal):
     allowed_values = {}
 
     validations = {
-        ("operation_id",): {
+        ("id",): {
             "max_length": 1000,
             "min_length": 1,
         },
@@ -70,8 +70,6 @@ class StartImportResponse(ModelNormal):
         """
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,
@@ -93,7 +91,7 @@ class StartImportResponse(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            "operation_id": (str,),  # noqa: E501
+            "id": (str,),  # noqa: E501
         }
 
     @cached_property
@@ -101,7 +99,7 @@ class StartImportResponse(ModelNormal):
         return None
 
     attribute_map = {
-        "operation_id": "operation_id",  # noqa: E501
+        "id": "id",  # noqa: E501
     }
 
     read_only_vars = {}
@@ -144,7 +142,7 @@ class StartImportResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            operation_id (str): Unique identifier for the import operations.. [optional]  # noqa: E501
+            id (str): Unique identifier for the import operations.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -231,7 +229,7 @@ class StartImportResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            operation_id (str): Unique identifier for the import operations.. [optional]  # noqa: E501
+            id (str): Unique identifier for the import operations.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

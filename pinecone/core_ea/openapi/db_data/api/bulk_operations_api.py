@@ -40,18 +40,18 @@ class BulkOperationsApi(object):
             api_client = ApiClient()
         self.api_client = api_client
 
-        def __cancel_import(self, operation_id, **kwargs):
-            """Cancel an ongoing import operation  # noqa: E501
+        def __cancel_import(self, id, **kwargs):
+            """Cancel an import  # noqa: E501
 
             The `cancel_import` operation cancels an import operation if it is not yet finished. It has no effect if the operation is already finished. For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.cancel_import(operation_id, async_req=True)
+            >>> thread = api.cancel_import(id, async_req=True)
             >>> result = thread.get()
 
             Args:
-                operation_id (str):
+                id (str):
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -75,7 +75,7 @@ class BulkOperationsApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                {str: (bool, date, datetime, dict, float, int, list, str, none_type)}
+                {str: (bool, dict, float, int, list, str, none_type)}
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -86,47 +86,47 @@ class BulkOperationsApi(object):
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
             kwargs["_host_index"] = kwargs.get("_host_index")
-            kwargs["operation_id"] = operation_id
+            kwargs["id"] = id
             return self.call_with_http_info(**kwargs)
 
         self.cancel_import = _Endpoint(
             settings={
-                "response_type": ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
+                "response_type": ({str: (bool, dict, float, int, list, str, none_type)},),
                 "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/bulk/imports/{operation_id}",
+                "endpoint_path": "/bulk/imports/{id}",
                 "operation_id": "cancel_import",
                 "http_method": "DELETE",
                 "servers": None,
             },
             params_map={
                 "all": [
-                    "operation_id",
+                    "id",
                 ],
                 "required": [
-                    "operation_id",
+                    "id",
                 ],
                 "nullable": [],
                 "enum": [],
                 "validation": [
-                    "operation_id",
+                    "id",
                 ],
             },
             root_map={
                 "validations": {
-                    ("operation_id",): {
+                    ("id",): {
                         "max_length": 1000,
                         "min_length": 1,
                     },
                 },
                 "allowed_values": {},
                 "openapi_types": {
-                    "operation_id": (str,),
+                    "id": (str,),
                 },
                 "attribute_map": {
-                    "operation_id": "operation_id",
+                    "id": "id",
                 },
                 "location_map": {
-                    "operation_id": "path",
+                    "id": "path",
                 },
                 "collection_format_map": {},
             },
@@ -138,18 +138,18 @@ class BulkOperationsApi(object):
             callable=__cancel_import,
         )
 
-        def __describe_import(self, operation_id, **kwargs):
-            """Describe a specific import operation  # noqa: E501
+        def __describe_import(self, id, **kwargs):
+            """Describe an import  # noqa: E501
 
             The `describe_import` operation returns details of a specific import operation. For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.describe_import(operation_id, async_req=True)
+            >>> thread = api.describe_import(id, async_req=True)
             >>> result = thread.get()
 
             Args:
-                operation_id (str):
+                id (str):
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -184,47 +184,47 @@ class BulkOperationsApi(object):
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
             kwargs["_host_index"] = kwargs.get("_host_index")
-            kwargs["operation_id"] = operation_id
+            kwargs["id"] = id
             return self.call_with_http_info(**kwargs)
 
         self.describe_import = _Endpoint(
             settings={
                 "response_type": (ImportModel,),
                 "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/bulk/imports/{operation_id}",
+                "endpoint_path": "/bulk/imports/{id}",
                 "operation_id": "describe_import",
                 "http_method": "GET",
                 "servers": None,
             },
             params_map={
                 "all": [
-                    "operation_id",
+                    "id",
                 ],
                 "required": [
-                    "operation_id",
+                    "id",
                 ],
                 "nullable": [],
                 "enum": [],
                 "validation": [
-                    "operation_id",
+                    "id",
                 ],
             },
             root_map={
                 "validations": {
-                    ("operation_id",): {
+                    ("id",): {
                         "max_length": 1000,
                         "min_length": 1,
                     },
                 },
                 "allowed_values": {},
                 "openapi_types": {
-                    "operation_id": (str,),
+                    "id": (str,),
                 },
                 "attribute_map": {
-                    "operation_id": "operation_id",
+                    "id": "id",
                 },
                 "location_map": {
-                    "operation_id": "path",
+                    "id": "path",
                 },
                 "collection_format_map": {},
             },
@@ -237,7 +237,7 @@ class BulkOperationsApi(object):
         )
 
         def __list_imports(self, **kwargs):
-            """List all recent and ongoing import operations  # noqa: E501
+            """List imports  # noqa: E501
 
             The `list_imports` operation lists all recent and ongoing import operations. For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
@@ -338,7 +338,7 @@ class BulkOperationsApi(object):
         def __start_import(self, start_import_request, **kwargs):
             """Start import  # noqa: E501
 
-            The `start_import` operation starts an asynchronous import of vectors from blob storage into an index. For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).   # noqa: E501
+            The `start_import` operation starts an asynchronous import of vectors from object storage into an index. For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 

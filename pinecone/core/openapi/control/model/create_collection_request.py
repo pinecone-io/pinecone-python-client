@@ -70,8 +70,6 @@ class CreateCollectionRequest(ModelNormal):
         """
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,

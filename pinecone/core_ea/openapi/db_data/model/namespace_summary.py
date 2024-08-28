@@ -65,8 +65,6 @@ class NamespaceSummary(ModelNormal):
         """
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,

@@ -1,4 +1,6 @@
 from datetime import date, datetime  # noqa: F401
+from dateutil.parser import parse
+
 import inspect
 import io
 import os
@@ -643,7 +645,7 @@ COERCION_INDEX_BY_TYPE = {
     float: 6,
     int: 7,
     bool: 8,
-    # datetime: 9,
+    datetime: 9,
     # date: 10,
     str: 11,
     file_type: 12,  # 'file_type' is an alias for the built-in 'file' or 'io.IOBase' type.
@@ -653,7 +655,7 @@ COERCION_INDEX_BY_TYPE = {
 # when we have a valid type already and we want to try converting
 # to another type
 UPCONVERSION_TYPE_PAIRS = (
-    # (str, datetime),
+    (str, datetime),
     # (str, date),
     (int, float),  # A float may be serialized as an integer, e.g. '3' is a valid serialized float.
     (list, ModelComposed),
@@ -738,12 +740,12 @@ def get_simple_class(input_value):
         return bool
     elif isinstance(input_value, int):
         return int
-    # elif isinstance(input_value, datetime):
-    #    # this must be higher than the date check because
-    #    # isinstance(datetime_instance, date) == True
-    #    return datetime
-    # elif isinstance(input_value, date):
-    #    return date
+    elif isinstance(input_value, datetime):
+        # this must be higher than the date check because
+        # isinstance(datetime_instance, date) == True
+        return datetime
+    elif isinstance(input_value, date):
+        return date
     elif isinstance(input_value, str):
         return str
     return type(input_value)
@@ -1116,38 +1118,38 @@ def deserialize_primitive(data, klass, path_to_item):
     """
     additional_message = ""
     try:
-        # if klass in {datetime, date}:
-        #     additional_message = (
-        #         "If you need your parameter to have a fallback "
-        #         "string value, please set its type as `type: {}` in your "
-        #         "spec. That allows the value to be any type. "
-        #     )
-        #     if klass == datetime:
-        #         if len(data) < 8:
-        #             raise ValueError("This is not a datetime")
-        #         # The string should be in iso8601 datetime format.
-        #         parsed_datetime = parse(data)
-        #         date_only = (
-        #             parsed_datetime.hour == 0 and
-        #             parsed_datetime.minute == 0 and
-        #             parsed_datetime.second == 0 and
-        #             parsed_datetime.tzinfo is None and
-        #             8 <= len(data) <= 10
-        #         )
-        #         if date_only:
-        #             raise ValueError("This is a date, not a datetime")
-        #         return parsed_datetime
-        #     elif klass == date:
-        #         if len(data) < 8:
-        #             raise ValueError("This is not a date")
-        #         return parse(data).date()
-        # else:
-        converted_value = klass(data)
-        if isinstance(data, str) and klass == float:
-            if str(converted_value) != data:
-                # '7' -> 7.0 -> '7.0' != '7'
-                raise ValueError("This is not a float")
-        return converted_value
+        if klass in {datetime, date}:
+            additional_message = (
+                "If you need your parameter to have a fallback "
+                "string value, please set its type as `type: {}` in your "
+                "spec. That allows the value to be any type. "
+            )
+            if klass == datetime:
+                if len(data) < 8:
+                    raise ValueError("This is not a datetime")
+                # The string should be in iso8601 datetime format.
+                parsed_datetime = parse(data)
+                date_only = (
+                    parsed_datetime.hour == 0
+                    and parsed_datetime.minute == 0
+                    and parsed_datetime.second == 0
+                    and parsed_datetime.tzinfo is None
+                    and 8 <= len(data) <= 10
+                )
+                if date_only:
+                    raise ValueError("This is a date, not a datetime")
+                return parsed_datetime
+            elif klass == date:
+                if len(data) < 8:
+                    raise ValueError("This is not a date")
+                return parse(data).date()
+        else:
+            converted_value = klass(data)
+            if isinstance(data, str) and klass == float:
+                if str(converted_value) != data:
+                    # '7' -> 7.0 -> '7.0' != '7'
+                    raise ValueError("This is not a float")
+            return converted_value
     except (OverflowError, ValueError) as ex:
         # parse can raise OverflowError
         raise PineconeApiValueError(

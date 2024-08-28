@@ -65,8 +65,6 @@ class EmbeddingsListUsage(ModelNormal):
         """
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,
