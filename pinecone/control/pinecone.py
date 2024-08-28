@@ -553,22 +553,22 @@ class Pinecone:
         ### Example Usage
 
         ```python
+        import os
         from pinecone import Pinecone
 
-        client = YourClass()  # Initialize your class instance
-        exists = client.has_index("my_index_name")
+        api_key = os.environ.get("PINECONE_API_KEY")
+        pc = Pinecone(api_key=api_key)
 
-        if exists:
-            print("The index exists.")
+        if pc.has_index("my_index_name"):
+            print("The index exists")
         else:
-            print("The index does not exist.")
+            print("The index does not exist")
         ```
         """
 
-        try:
-            self.index_api.describe_index(name)
+        if name in self.list_indexes().names():
             return True
-        except Exception as e:
+        else:
             return False
 
     def configure_index(
