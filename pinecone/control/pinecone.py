@@ -39,7 +39,6 @@ from pinecone_plugin_interface import load_and_install as install_plugins
 
 logger = logging.getLogger(__name__)
 
-
 class Pinecone:
     def __init__(
         self,
