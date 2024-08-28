@@ -64,7 +64,7 @@ class ImportModel(ModelNormal):
     }
 
     validations = {
-        ("operation_id",): {
+        ("id",): {
             "max_length": 1000,
             "min_length": 1,
         },
@@ -82,8 +82,6 @@ class ImportModel(ModelNormal):
         """
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,
@@ -105,10 +103,10 @@ class ImportModel(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            "operation_id": (str,),  # noqa: E501
+            "id": (str,),  # noqa: E501
             "uri": (str,),  # noqa: E501
             "status": (str,),  # noqa: E501
-            "started_at": (datetime,),  # noqa: E501
+            "created_at": (datetime,),  # noqa: E501
             "completed_at": (datetime,),  # noqa: E501
             "percent_complete": (float,),  # noqa: E501
             "records_imported": (int,),  # noqa: E501
@@ -120,13 +118,13 @@ class ImportModel(ModelNormal):
         return None
 
     attribute_map = {
-        "operation_id": "operation_id",  # noqa: E501
+        "id": "id",  # noqa: E501
         "uri": "uri",  # noqa: E501
         "status": "status",  # noqa: E501
-        "started_at": "started_at",  # noqa: E501
-        "completed_at": "completed_at",  # noqa: E501
-        "percent_complete": "percent_complete",  # noqa: E501
-        "records_imported": "records_imported",  # noqa: E501
+        "created_at": "createdAt",  # noqa: E501
+        "completed_at": "completedAt",  # noqa: E501
+        "percent_complete": "percentComplete",  # noqa: E501
+        "records_imported": "recordsImported",  # noqa: E501
         "error": "error",  # noqa: E501
     }
 
@@ -170,10 +168,10 @@ class ImportModel(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            operation_id (str): Unique identifier for the import operation.. [optional]  # noqa: E501
+            id (str): Unique identifier for the import operation.. [optional]  # noqa: E501
             uri (str): The URI from where the data is imported.. [optional]  # noqa: E501
             status (str): The status of the operation.. [optional]  # noqa: E501
-            started_at (datetime): The start time of the import operation.. [optional]  # noqa: E501
+            created_at (datetime): The start time of the import operation.. [optional]  # noqa: E501
             completed_at (datetime): The end time of the import operation.. [optional]  # noqa: E501
             percent_complete (float): The progress made by the operation out of 100. [optional]  # noqa: E501
             records_imported (int): The number of records successfully imported.. [optional]  # noqa: E501
@@ -264,10 +262,10 @@ class ImportModel(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            operation_id (str): Unique identifier for the import operation.. [optional]  # noqa: E501
+            id (str): Unique identifier for the import operation.. [optional]  # noqa: E501
             uri (str): The URI from where the data is imported.. [optional]  # noqa: E501
             status (str): The status of the operation.. [optional]  # noqa: E501
-            started_at (datetime): The start time of the import operation.. [optional]  # noqa: E501
+            created_at (datetime): The start time of the import operation.. [optional]  # noqa: E501
             completed_at (datetime): The end time of the import operation.. [optional]  # noqa: E501
             percent_complete (float): The progress made by the operation out of 100. [optional]  # noqa: E501
             records_imported (int): The number of records successfully imported.. [optional]  # noqa: E501

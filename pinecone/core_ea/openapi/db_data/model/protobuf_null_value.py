@@ -65,8 +65,6 @@ class ProtobufNullValue(ModelSimple):
         """
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,

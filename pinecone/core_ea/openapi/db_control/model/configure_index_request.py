@@ -74,8 +74,6 @@ class ConfigureIndexRequest(ModelNormal):
         lazy_import()
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,

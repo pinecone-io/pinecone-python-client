@@ -66,8 +66,6 @@ class DeletionProtection(ModelSimple):
         """
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,

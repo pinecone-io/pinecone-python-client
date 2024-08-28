@@ -74,8 +74,6 @@ class ImportListResponse(ModelNormal):
         lazy_import()
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,
@@ -98,7 +96,7 @@ class ImportListResponse(ModelNormal):
         """
         lazy_import()
         return {
-            "items": ([ImportModel],),  # noqa: E501
+            "data": ([ImportModel],),  # noqa: E501
             "pagination": (Pagination,),  # noqa: E501
         }
 
@@ -107,7 +105,7 @@ class ImportListResponse(ModelNormal):
         return None
 
     attribute_map = {
-        "items": "items",  # noqa: E501
+        "data": "data",  # noqa: E501
         "pagination": "pagination",  # noqa: E501
     }
 
@@ -151,7 +149,7 @@ class ImportListResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            items ([ImportModel]): [optional]  # noqa: E501
+            data ([ImportModel]): [optional]  # noqa: E501
             pagination (Pagination): [optional]  # noqa: E501
         """
 
@@ -239,7 +237,7 @@ class ImportListResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            items ([ImportModel]): [optional]  # noqa: E501
+            data ([ImportModel]): [optional]  # noqa: E501
             pagination (Pagination): [optional]  # noqa: E501
         """
 

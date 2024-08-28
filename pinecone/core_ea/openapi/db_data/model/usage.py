@@ -65,8 +65,6 @@ class Usage(ModelNormal):
         """
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,

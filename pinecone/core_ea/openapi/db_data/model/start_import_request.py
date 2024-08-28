@@ -80,8 +80,6 @@ class StartImportRequest(ModelNormal):
         lazy_import()
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,
@@ -116,7 +114,7 @@ class StartImportRequest(ModelNormal):
     attribute_map = {
         "integration": "integration",  # noqa: E501
         "uri": "uri",  # noqa: E501
-        "error_mode": "error_mode",  # noqa: E501
+        "error_mode": "errorMode",  # noqa: E501
     }
 
     read_only_vars = {}

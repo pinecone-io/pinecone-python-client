@@ -65,8 +65,6 @@ class UpsertResponse(ModelNormal):
         """
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,
