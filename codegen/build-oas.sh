@@ -10,10 +10,12 @@ if [ "$is_early_access" = "true" ]; then
 	destination="pinecone/core_ea/openapi"
 	modules=("db_control" "db_data")
 	py_module_name="core_ea"
+	template_dir="codegen/python-oas-templates/templates5.2.0"
 else
 	destination="pinecone/core/openapi"
 	modules=("control" "data")
 	py_module_name="core"
+	template_dir="codegen/python-oas-templates/templates5.2.0"
 fi
 
 build_dir="build"
@@ -22,12 +24,7 @@ update_apis_repo() {
 	echo "Updating apis repo"
 	pushd codegen/apis
 		git fetch
-		if [ "$is_early_access" = "true" ]; then
-			echo "Checking out early access branch"
-			git checkout opbenesh/bulk-import
-		else
-			git checkout main
-		fi
+		git checkout main
 		git pull
 		just build
 	popd
@@ -36,9 +33,9 @@ update_apis_repo() {
 update_templates_repo() {
 	echo "Updating templates repo"
 	pushd codegen/python-oas-templates
-		git fetch
-		git checkout main
-		git pull
+		# git fetch
+		# git checkout main
+		# git pull
 	popd
 }
 
@@ -74,7 +71,6 @@ generate_client() {
 
 	oas_file="codegen/apis/_build/${version}/${module_name}_${version}.oas.yaml"
 	package_name="pinecone.${py_module_name}.openapi.${module_name}"
-	template_dir="codegen/python-oas-templates/templates5.2.0"
 	
 	verify_file_exists $oas_file
 	verify_directory_exists $template_dir
@@ -90,6 +86,12 @@ generate_client() {
 		--additional-properties=packageName=$package_name,pythonAttrNoneIfUnset=true \
 		--output "/workspace/${build_dir}" \
 		--template-dir "/workspace/$template_dir"
+
+	# Hack to prevent coercion of strings into datetimes within "object" types while still
+	# allowing datetime parsing for fields that are explicitly typed as datetime
+	find "${build_dir}" -name "*.py" | while IFS= read -r file; do
+		sed -i '' "s/bool, date, datetime, dict, float, int, list, str, none_type/bool, dict, float, int, list, str, none_type/g" "$file"
+	done
 
 	# Copy the generated module to the correct location
 	rm -rf "${destination}/${module_name}"

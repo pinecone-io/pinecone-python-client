@@ -85,8 +85,8 @@ class ImportFeatureMixin:
         done = False
         while not done:
             results = self.list_imports_paginated(**kwargs)
-            if len(results.items) > 0:
-                yield results.items
+            if len(results.data) > 0:
+                yield results.data
 
             if results.pagination:
                 kwargs.update({"pagination_token": results.pagination.next})

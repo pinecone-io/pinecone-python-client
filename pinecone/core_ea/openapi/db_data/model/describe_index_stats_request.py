@@ -65,8 +65,6 @@ class DescribeIndexStatsRequest(ModelNormal):
         """
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,
@@ -88,7 +86,7 @@ class DescribeIndexStatsRequest(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            "filter": ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "filter": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
         }
 
     @cached_property
@@ -139,7 +137,7 @@ class DescribeIndexStatsRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): If this parameter is present, the operation only returns statistics for vectors that satisfy the filter. See [Filter with metadata](https://docs.pinecone.io/guides/data/filter-with-metadata).  Serverless indexes do not support filtering `describe_index_stats` by metadata.. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): If this parameter is present, the operation only returns statistics for vectors that satisfy the filter. See [Filter with metadata](https://docs.pinecone.io/guides/data/filter-with-metadata).  Serverless indexes do not support filtering `describe_index_stats` by metadata.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -226,7 +224,7 @@ class DescribeIndexStatsRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): If this parameter is present, the operation only returns statistics for vectors that satisfy the filter. See [Filter with metadata](https://docs.pinecone.io/guides/data/filter-with-metadata).  Serverless indexes do not support filtering `describe_index_stats` by metadata.. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): If this parameter is present, the operation only returns statistics for vectors that satisfy the filter. See [Filter with metadata](https://docs.pinecone.io/guides/data/filter-with-metadata).  Serverless indexes do not support filtering `describe_index_stats` by metadata.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

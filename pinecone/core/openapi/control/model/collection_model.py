@@ -76,8 +76,6 @@ class CollectionModel(ModelNormal):
         """
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,

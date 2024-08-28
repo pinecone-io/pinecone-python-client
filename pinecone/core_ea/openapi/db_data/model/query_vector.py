@@ -78,8 +78,6 @@ class QueryVector(ModelNormal):
         lazy_import()
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,
@@ -106,7 +104,7 @@ class QueryVector(ModelNormal):
             "sparse_values": (SparseValues,),  # noqa: E501
             "top_k": (int,),  # noqa: E501
             "namespace": (str,),  # noqa: E501
-            "filter": ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "filter": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
         }
 
     @cached_property
@@ -167,7 +165,7 @@ class QueryVector(ModelNormal):
             sparse_values (SparseValues): [optional]  # noqa: E501
             top_k (int): An override for the number of results to return for this query vector.. [optional]  # noqa: E501
             namespace (str): An override the namespace to search.. [optional]  # noqa: E501
-            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): An override for the metadata filter to apply. This replaces the request-level filter.. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): An override for the metadata filter to apply. This replaces the request-level filter.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -261,7 +259,7 @@ class QueryVector(ModelNormal):
             sparse_values (SparseValues): [optional]  # noqa: E501
             top_k (int): An override for the number of results to return for this query vector.. [optional]  # noqa: E501
             namespace (str): An override the namespace to search.. [optional]  # noqa: E501
-            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): An override for the metadata filter to apply. This replaces the request-level filter.. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): An override for the metadata filter to apply. This replaces the request-level filter.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
