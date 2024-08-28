@@ -17,3 +17,6 @@ class IndexModel:
 
     def __getitem__(self, key):
         return self.__getattr__(key)
+    
+    def to_dict(self):
+        return self.index.to_dict()
