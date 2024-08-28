@@ -1,3 +1,4 @@
+import json
 from pinecone.core.openapi.control.models import (
     CollectionList as OpenAPICollectionList,
 )
@@ -28,7 +29,7 @@ class CollectionList:
         return str(self.collection_list)
 
     def __repr__(self):
-        return repr(self.collection_list)
+        return json.dumps([c.to_dict() for c in self.collection_list.collections], indent=4)
 
     def __getattr__(self, attr):
         return getattr(self.collection_list, attr)

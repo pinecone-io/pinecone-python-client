@@ -9,11 +9,11 @@ class IndexModel:
     def __str__(self):
         return str(self.index)
 
-    def __repr__(self):
-        return repr(self.index)
-
     def __getattr__(self, attr):
         return getattr(self.index, attr)
 
     def __getitem__(self, key):
         return self.__getattr__(key)
+
+    def to_dict(self):
+        return self.index.to_dict()

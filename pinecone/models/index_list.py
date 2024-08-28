@@ -1,3 +1,4 @@
+import json
 from pinecone.core.openapi.control.models import IndexList as OpenAPIIndexList
 from .index_model import IndexModel
 
@@ -21,10 +22,10 @@ class IndexList:
         return iter(self.indexes)
 
     def __str__(self):
-        return str(self.index_list)
+        return str(self.indexes)
 
     def __repr__(self):
-        return repr(self.index_list)
+        return json.dumps([i.to_dict() for i in self.indexes], indent=4)
 
     def __getattr__(self, attr):
         return getattr(self.index_list, attr)
