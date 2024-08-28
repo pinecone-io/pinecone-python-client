@@ -3,6 +3,7 @@ from pinecone.core.openapi.control.models import (
     CollectionList as OpenAPICollectionList,
 )
 
+
 class CollectionList:
     """
     A list of collections.
