@@ -37,14 +37,17 @@ class ImportFeatureMixin:
         )
         openapi_config = ConfigBuilder.build_openapi_config(config, kwargs.get("openapi_config", None))
 
-        self.__import_operations_api = setup_openapi_client(
-            api_client_klass=ApiClient,
-            api_klass=BulkOperationsApi,
-            config=config,
-            openapi_config=openapi_config,
-            pool_threads=kwargs.get("pool_threads", 1),
-            api_version=API_VERSION,
-        )
+        if kwargs.get("__import_operations_api", None):
+            self.__import_operations_api = kwargs.get("__import_operations_api")
+        else:
+            self.__import_operations_api = setup_openapi_client(
+                api_client_klass=ApiClient,
+                api_klass=BulkOperationsApi,
+                config=config,
+                openapi_config=openapi_config,
+                pool_threads=kwargs.get("pool_threads", 1),
+                api_version=API_VERSION,
+            )
 
     @prerelease_feature
     def start_import(self, uri: str, integration: Optional[str] = None) -> StartImportResponse:
