@@ -1,6 +1,6 @@
 import warnings
 
-from typing import Optional
+from typing import Optional, Union, Literal
 
 from pinecone.config.config import ConfigBuilder
 from pinecone.core_ea.openapi.db_data import ApiClient
@@ -14,6 +14,7 @@ from pinecone.core_ea.openapi.db_data.models import (
     StartImportResponse,
     ImportListResponse,
     ImportModel,
+    ImportErrorMode as ImportErrorModeClass,
 )
 
 from ...utils import setup_openapi_client
@@ -49,8 +50,15 @@ class ImportFeatureMixin:
                 api_version=API_VERSION,
             )
 
+    ImportErrorMode = Literal["CONTINUE", "ABORT"]
+
     @prerelease_feature
-    def start_import(self, uri: str, integration: Optional[str] = None, on_error=Optional[str]) -> StartImportResponse:
+    def start_import(
+        self,
+        uri: str,
+        integration: Optional[str] = None,
+        error_mode: Optional[ImportErrorMode] = "CONTINUE",
+    ) -> StartImportResponse:
         """Import data from a URI into an index.
 
         Examples:
@@ -69,7 +77,7 @@ class ImportFeatureMixin:
             [
                 ("uri", uri),
                 ("integration", integration),
-                ("on_error", on_error),
+                ("error_mode", ImportErrorModeClass(error_mode=error_mode)),
             ]
         )
         return self.__import_operations_api.start_import(StartImportRequest(**args_dict))
