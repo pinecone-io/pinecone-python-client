@@ -1,9 +1,7 @@
 import pytest
 import warnings
 
-from urllib3 import BaseHTTPResponse, HTTPResponse
-
-from datetime import datetime, date
+from urllib3 import BaseHTTPResponse
 
 from pinecone.core_ea.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
 from pinecone.core_ea.openapi.db_data.models import ImportModel, StartImportResponse
@@ -83,6 +81,6 @@ class TestBulkImportStartImport:
 
         with pytest.warns(UserWarning, match="prerelease"):
             with pytest.raises(TypeError) as e:
-                my_import = client.start_import()
+                client.start_import()
 
         assert "missing 1 required positional argument" in str(e.value)
