@@ -50,7 +50,7 @@ class ImportFeatureMixin:
             )
 
     @prerelease_feature
-    def start_import(self, uri: str, integration: Optional[str] = None) -> StartImportResponse:
+    def start_import(self, uri: str, integration: Optional[str] = None, on_error=Optional[str]) -> StartImportResponse:
         """Import data from a URI into an index.
 
         Examples:
@@ -69,6 +69,7 @@ class ImportFeatureMixin:
             [
                 ("uri", uri),
                 ("integration", integration),
+                ("on_error", on_error),
             ]
         )
         return self.__import_operations_api.start_import(StartImportRequest(**args_dict))
