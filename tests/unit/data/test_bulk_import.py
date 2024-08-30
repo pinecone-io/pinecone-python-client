@@ -84,3 +84,43 @@ class TestBulkImportStartImport:
                 client.start_import()
 
         assert "missing 1 required positional argument" in str(e.value)
+
+class TestDescribeImport:
+    def test_describe_import(self, mocker):
+        # body = """
+        # {
+        #     "id": "1",
+        #     "records_imported": 1000,
+        #     "uri": "s3://path/to/file.parquet",
+        #     "status": "In Progress",
+        #     "error_mode": "CONTINUE",
+        #     "created_at": "2021-01-01T00:00:00Z",
+        #     "updated_at": "2021-01-01T00:00:00Z",
+        #     "integration": "s3",
+        #     "error_message": ""
+        #     "percent_complete": 43.2
+        # }
+        # """
+        body = """
+        {
+            "id": "1",
+        }
+        """
+        client = build_client_w_faked_response(mocker, body)
+
+        with pytest.warns(UserWarning, match="prerelease"):
+            my_import = client.describe_import(id="1")
+            assert my_import.id == "1"
+            assert my_import["id"] == "1"
+            assert my_import.to_dict() == {
+                "id": "1",
+                "records_imported": 1000,
+                "uri": "s3://path/to/file.parquet",
+                "status": "In Progress",
+                "error_mode": "CONTINUE",
+                "created_at": "2021-01-01T00:00:00Z",
+                "updated_at": "2021-01-01T00:00:00Z",
+                "integration": "s3",
+                "error_message": "",
+                "percent_complete": 43.2,
+            }

@@ -24,6 +24,8 @@ class OpenApiConfigFactory:
         openapi_config.host = host
         openapi_config.ssl_ca_cert = certifi.where()
         openapi_config.socket_options = cls._get_socket_options()
+        openapi_config.discard_unknown_keys = True
+        
         return openapi_config
 
     @classmethod

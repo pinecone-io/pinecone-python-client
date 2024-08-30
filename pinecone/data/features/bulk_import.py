@@ -143,24 +143,24 @@ class ImportFeatureMixin:
         return self.__import_operations_api.list_imports(**args_dict)
 
     @prerelease_feature
-    def describe_import(self, operation_id: str) -> ImportModel:
+    def describe_import(self, id: str) -> ImportModel:
         """
         describe_import is used to get detailed information about a specific import operation.
 
         Args:
-            operation_id (str): The id of the import operation. This value is returned when
+            id (str): The id of the import operation. This value is returned when
             starting an import, and can be looked up using list_imports.
 
         Returns:
             ImportModel: An object containing operation id, status, and other details.
         """
-        return self.__import_operations_api.describe_import(operation_id=operation_id)
+        return self.__import_operations_api.describe_import(id=id)
 
     @prerelease_feature
-    def cancel_import(self, operation_id: str):
+    def cancel_import(self, id: str):
         """Cancel an import operation.
 
         Args:
-            operation_id (str): The id of the import operation to cancel.
+            id (str): The id of the import operation to cancel.
         """
-        return self.__import_operations_api.cancel_import(operation_id=operation_id)
+        return self.__import_operations_api.cancel_import(id=id)
