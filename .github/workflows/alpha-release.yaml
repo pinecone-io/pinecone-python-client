@@ -43,11 +43,25 @@ jobs:
     secrets: inherit
 
   pypi:
+    if: ${{ inputs.skipTests != 'true' }}
     uses: './.github/workflows/publish-to-pypi.yaml'
     needs: 
       - unit-tests
       - integration-tests
       - dependency-tests
+    with:
+      isPrerelease: true
+      ref: ${{ inputs.ref }}
+      releaseLevel: ${{ inputs.releaseLevel }}
+      prereleaseSuffix: ${{ inputs.prereleaseSuffix }}
+      TWINE_REPOSITORY: 'pypi'
+    secrets:
+      PYPI_USERNAME: __token__
+      PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PUBLISH_TOKEN }}
+
+  skiptest-pypi:
+    if: ${{ inputs.skipTests == 'true' }}
+    uses: './.github/workflows/publish-to-pypi.yaml'
     with:
       isPrerelease: true
       ref: ${{ inputs.ref }}
