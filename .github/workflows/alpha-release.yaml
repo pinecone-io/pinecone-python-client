@@ -22,15 +22,23 @@ on:
         required: true
         type: string
         default: 'rc1'
+      skipTests:
+        description: 'Skip running tests'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   unit-tests:
+    if: ${{ inputs.skipTests == 'true' }}
     uses: './.github/workflows/testing-unit.yaml'
     secrets: inherit
   integration-tests:
+      if: ${{ inputs.skipTests == 'true' }}
       uses: './.github/workflows/testing-integration.yaml'
       secrets: inherit
   dependency-tests:
+    if: ${{ inputs.skipTests == 'true' }}
     uses: './.github/workflows/testing-dependency.yaml'
     secrets: inherit
 
