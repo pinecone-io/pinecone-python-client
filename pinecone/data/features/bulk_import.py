@@ -1,13 +1,13 @@
 import warnings
 
-from typing import Optional, Union, Literal
+from typing import Optional, Union, Literal, Iterator, List
 
 from pinecone.config.config import ConfigBuilder
 from pinecone.core_ea.openapi.db_data import ApiClient
 from pinecone.core_ea.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
 from pinecone.core_ea.openapi.shared import API_VERSION
 
-from pinecone.utils import parse_non_empty_args
+from pinecone.utils import parse_non_empty_args, install_json_repr_override, setup_openapi_client
 
 from pinecone.core_ea.openapi.db_data.models import (
     StartImportRequest,
@@ -17,7 +17,8 @@ from pinecone.core_ea.openapi.db_data.models import (
     ImportErrorMode as ImportErrorModeClass,
 )
 
-from ...utils import setup_openapi_client
+for m in [StartImportResponse, ImportListResponse, ImportModel]:
+    install_json_repr_override(m)
 
 
 def prerelease_feature(func):
@@ -69,9 +70,11 @@ class ImportFeatureMixin:
         Args:
             uri (str): The URI of the data to import. The URI must start with the scheme of a supported storage provider.
             integration (Optional[str], optional): Defaults to None.
+            error_mode: Defaults to "CONTINUE". If set to "CONTINUE", the import operation will continue even if some
+                records fail to import. Pass "ABORT" to stop the import operation if any records fail to import.
 
         Returns:
-            _type_: _description_
+            StartImportResponse: Contains the id of the import operation.
         """
         args_dict = parse_non_empty_args(
             [
@@ -83,7 +86,7 @@ class ImportFeatureMixin:
         return self.__import_operations_api.start_import(StartImportRequest(**args_dict))
 
     @prerelease_feature
-    def list_imports(self, **kwargs):
+    def list_imports(self, **kwargs) -> Iterator[List[ImportModel]]:
         """
         The list_imports operation accepts all of the same arguments as list_imports_paginated, and returns a generator that yields
         a list of operations in each page of results. It automatically handles pagination tokens on your
