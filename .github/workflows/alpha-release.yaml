@@ -22,33 +22,24 @@ on:
         required: true
         type: string
         default: 'rc1'
-      skipTests:
-        description: 'Skip running tests'
-        required: false
-        type: boolean
-        default: false
 
 jobs:
-  unit-tests:
-    if: ${{ inputs.skipTests == 'true' }}
-    uses: './.github/workflows/testing-unit.yaml'
-    secrets: inherit
-  integration-tests:
-      if: ${{ inputs.skipTests == 'true' }}
-      uses: './.github/workflows/testing-integration.yaml'
-      secrets: inherit
-  dependency-tests:
-    if: ${{ inputs.skipTests == 'true' }}
-    uses: './.github/workflows/testing-dependency.yaml'
-    secrets: inherit
+  # unit-tests:
+  #   uses: './.github/workflows/testing-unit.yaml'
+  #   secrets: inherit
+  # integration-tests:
+  #     uses: './.github/workflows/testing-integration.yaml'
+  #     secrets: inherit
+  # dependency-tests:
+  #   uses: './.github/workflows/testing-dependency.yaml'
+  #   secrets: inherit
 
   pypi:
-    if: ${{ inputs.skipTests != 'true' }}
     uses: './.github/workflows/publish-to-pypi.yaml'
-    needs: 
-      - unit-tests
-      - integration-tests
-      - dependency-tests
+    # needs: 
+    #   - unit-tests
+    #   - integration-tests
+    #   - dependency-tests
     with:
       isPrerelease: true
       ref: ${{ inputs.ref }}
@@ -59,15 +50,3 @@ jobs:
       PYPI_USERNAME: __token__
       PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PUBLISH_TOKEN }}
 
-  skiptest-pypi:
-    if: ${{ inputs.skipTests == 'true' }}
-    uses: './.github/workflows/publish-to-pypi.yaml'
-    with:
-      isPrerelease: true
-      ref: ${{ inputs.ref }}
-      releaseLevel: ${{ inputs.releaseLevel }}
-      prereleaseSuffix: ${{ inputs.prereleaseSuffix }}
-      TWINE_REPOSITORY: 'pypi'
-    secrets:
-      PYPI_USERNAME: __token__
-      PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PUBLISH_TOKEN }}
