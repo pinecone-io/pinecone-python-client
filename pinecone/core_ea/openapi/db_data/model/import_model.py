@@ -56,7 +56,7 @@ class ImportModel(ModelNormal):
     allowed_values = {
         ("status",): {
             "PENDING": "Pending",
-            "IN_PROGRESS": "In Progress",
+            "INPROGRESS": "InProgress",
             "FAILED": "Failed",
             "COMPLETED": "Completed",
             "CANCELLED": "Cancelled",
