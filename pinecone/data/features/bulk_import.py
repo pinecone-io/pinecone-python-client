@@ -89,19 +89,18 @@ class ImportFeatureMixin:
     def list_imports(self, **kwargs) -> Iterator[List[ImportModel]]:
         """
         The list_imports operation accepts all of the same arguments as list_imports_paginated, and returns a generator that yields
-        a list of operations in each page of results. It automatically handles pagination tokens on your
-        behalf so you can easily iterate over all results.
+        a description of each operation. It automatically handles pagination tokens on your behalf so you can easily iterate over all results.
 
         Args:
-            limit (Optional[int]): The maximum number of operations to return. If unspecified, the server will use a default value. [optional]
-            pagination_token (Optional[str]): A token needed to fetch the next page of results. This token is returned
-                in the response if additional results are available. [optional]
+            limit (Optional[int]): The maximum number of operations to fetch in each network call. If unspecified, the server will use a default value. [optional]
+            pagination_token (Optional[str]): A token needed to beginning listing from somewhere other than the first page of results. [optional]
         """
         done = False
         while not done:
             results = self.list_imports_paginated(**kwargs)
             if len(results.data) > 0:
-                yield results.data
+                for op in results.data:
+                    yield op
 
             if results.pagination:
                 kwargs.update({"pagination_token": results.pagination.next})
@@ -140,7 +139,6 @@ class ImportFeatureMixin:
             [
                 ("limit", limit),
                 ("pagination_token", pagination_token),
-                # ("namespace", namespace),
             ]
         )
         return self.__import_operations_api.list_imports(**args_dict)
@@ -157,6 +155,9 @@ class ImportFeatureMixin:
         Returns:
             ImportModel: An object containing operation id, status, and other details.
         """
+        if isinstance(id, int):
+            id = str(id)
+
         return self.__import_operations_api.describe_import(id=id)
 
     @prerelease_feature
