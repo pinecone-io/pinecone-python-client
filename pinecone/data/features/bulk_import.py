@@ -23,9 +23,7 @@ for m in [StartImportResponse, ImportListResponse, ImportModel]:
 
 def prerelease_feature(func):
     def wrapper(*args, **kwargs):
-        warnmsg = (
-            f"This is a prerelease feature implemented against the {API_VERSION} version of our API. Use with caution."
-        )
+        warnmsg = f"This is a prerelease feature implemented against the {API_VERSION} version of our API."
         warnings.warn(warnmsg)
         return func(*args, **kwargs)
 
@@ -60,16 +58,19 @@ class ImportFeatureMixin:
         integration: Optional[str] = None,
         error_mode: Optional[ImportErrorMode] = "CONTINUE",
     ) -> StartImportResponse:
-        """Import data from a URI into an index.
+        """Import data from a storage provider into an index. The uri must start with the scheme of a supported
+        storage provider. For buckets that are not publicly readable, you will also need to separately configure
+        a storage integration and pass the integration name.
 
         Examples:
             >>> from pinecone import Pinecone
             >>> index = Pinecone().Index('my-index')
             >>> index.start_import("s3://bucket-name/path/to/data.parquet")
+            { id: "1" }
 
         Args:
             uri (str): The URI of the data to import. The URI must start with the scheme of a supported storage provider.
-            integration (Optional[str], optional): Defaults to None.
+            integration (Optional[str], optional): If your bucket requires authentication to access, you need to pass the name of your storage integration using this property. Defaults to None.
             error_mode: Defaults to "CONTINUE". If set to "CONTINUE", the import operation will continue even if some
                 records fail to import. Pass "ABORT" to stop the import operation if any records fail to import.
 
@@ -88,12 +89,27 @@ class ImportFeatureMixin:
     @prerelease_feature
     def list_imports(self, **kwargs) -> Iterator[List[ImportModel]]:
         """
-        The list_imports operation accepts all of the same arguments as list_imports_paginated, and returns a generator that yields
-        a description of each operation. It automatically handles pagination tokens on your behalf so you can easily iterate over all results.
+        Returns a generator that yields each import operation. It automatically handles pagination tokens on your behalf so you can
+        easily iterate over all results. The `list_imports` method accepts all of the same arguments as list_imports_paginated
+
+        ```python
+        for op in index.list_imports():
+            print(op)
+        ```
+
+        You can convert the generator into a list by wrapping the generator in a call to the built-in `list` function:
+
+        ```python
+        operations = list(index.list_imports())
+        ```
+
+        You should be cautious with this approach because it will fetch all operations at once, which could be a large number
+        network calls and a lot of memory to hold the results.
 
         Args:
             limit (Optional[int]): The maximum number of operations to fetch in each network call. If unspecified, the server will use a default value. [optional]
-            pagination_token (Optional[str]): A token needed to beginning listing from somewhere other than the first page of results. [optional]
+            pagination_token (Optional[str]): When there are multiple pages of results, a pagination token is returned in the response. The token can be used
+                to fetch the next page of results. [optional]
         """
         done = False
         while not done:
@@ -122,10 +138,19 @@ class ImportFeatureMixin:
 
         Examples:
             >>> results = index.list_imports_paginated(limit=5)
-            >>> [v.id for v in results.operations]
             >>> results.pagination.next
             eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
-            >>> next_results = index.list_paginated(limit=5, pagination_token=results.pagination.next)
+            >>> results.data[0]
+            {
+                "id": "6",
+                "uri": "s3://dev-bulk-import-datasets-pub/10-records-dim-10/",
+                "status": "Completed",
+                "percent_complete": 100.0,
+                "records_imported": 10,
+                "created_at": "2024-09-06T14:52:02.567776+00:00",
+                "finished_at": "2024-09-06T14:52:28.130717+00:00"
+            }
+            >>> next_results = index.list_imports_paginated(limit=5, pagination_token=results.pagination.next)
 
         Args:
             limit (Optional[int]): The maximum number of ids to return. If unspecified, the server will use a default value. [optional]
