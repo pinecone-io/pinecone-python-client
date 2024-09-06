@@ -107,7 +107,7 @@ class ImportModel(ModelNormal):
             "uri": (str,),  # noqa: E501
             "status": (str,),  # noqa: E501
             "created_at": (datetime,),  # noqa: E501
-            "completed_at": (datetime,),  # noqa: E501
+            "finished_at": (datetime,),  # noqa: E501
             "percent_complete": (float,),  # noqa: E501
             "records_imported": (int,),  # noqa: E501
             "error": (str,),  # noqa: E501
@@ -122,7 +122,7 @@ class ImportModel(ModelNormal):
         "uri": "uri",  # noqa: E501
         "status": "status",  # noqa: E501
         "created_at": "createdAt",  # noqa: E501
-        "completed_at": "completedAt",  # noqa: E501
+        "finished_at": "finishedAt",  # noqa: E501
         "percent_complete": "percentComplete",  # noqa: E501
         "records_imported": "recordsImported",  # noqa: E501
         "error": "error",  # noqa: E501
@@ -172,7 +172,7 @@ class ImportModel(ModelNormal):
             uri (str): The URI from where the data is imported.. [optional]  # noqa: E501
             status (str): The status of the operation.. [optional]  # noqa: E501
             created_at (datetime): The start time of the import operation.. [optional]  # noqa: E501
-            completed_at (datetime): The end time of the import operation.. [optional]  # noqa: E501
+            finished_at (datetime): The end time of the import operation.. [optional]  # noqa: E501
             percent_complete (float): The progress made by the operation out of 100. [optional]  # noqa: E501
             records_imported (int): The number of records successfully imported.. [optional]  # noqa: E501
             error (str): The error message if the import process failed.. [optional]  # noqa: E501
@@ -266,7 +266,7 @@ class ImportModel(ModelNormal):
             uri (str): The URI from where the data is imported.. [optional]  # noqa: E501
             status (str): The status of the operation.. [optional]  # noqa: E501
             created_at (datetime): The start time of the import operation.. [optional]  # noqa: E501
-            completed_at (datetime): The end time of the import operation.. [optional]  # noqa: E501
+            finished_at (datetime): The end time of the import operation.. [optional]  # noqa: E501
             percent_complete (float): The progress made by the operation out of 100. [optional]  # noqa: E501
             records_imported (int): The number of records successfully imported.. [optional]  # noqa: E501
             error (str): The error message if the import process failed.. [optional]  # noqa: E501
