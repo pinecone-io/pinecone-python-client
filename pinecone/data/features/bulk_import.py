@@ -65,7 +65,7 @@ class ImportFeatureMixin:
         Examples:
             >>> from pinecone import Pinecone
             >>> index = Pinecone().Index('my-index')
-            >>> index.start_import("s3://bucket-name/path/to/data.parquet")
+            >>> index.start_import(uri="s3://bucket-name/path/to/data.parquet")
             { id: "1" }
 
         Args:
@@ -81,7 +81,7 @@ class ImportFeatureMixin:
             [
                 ("uri", uri),
                 ("integration", integration),
-                ("error_mode", ImportErrorModeClass(error_mode=error_mode)),
+                ("error_mode", ImportErrorModeClass(on_error=error_mode)),
             ]
         )
         return self.__import_operations_api.start_import(StartImportRequest(**args_dict))
