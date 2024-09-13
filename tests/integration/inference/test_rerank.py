@@ -3,7 +3,7 @@ from pinecone.grpc import PineconeGRPC
 
 
 class TestInferencePluginRerank:
-    def test_rerank(api_key):
+    def test_rerank(self, api_key):
         pc = Pinecone(api_key=api_key)
 
         model = "bge-reranker-v2-m3"
@@ -21,7 +21,7 @@ class TestInferencePluginRerank:
         assert isinstance(result.usage.rerank_units, int)
         assert result.usage.rerank_units == 1
 
-    def test_rerank_grpc(api_key):
+    def test_rerank_grpc(self, api_key):
         pc = PineconeGRPC(api_key=api_key)
 
         model = "bge-reranker-v2-m3"
