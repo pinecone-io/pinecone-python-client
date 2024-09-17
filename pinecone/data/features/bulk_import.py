@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Literal, Iterator, List
+from typing import Optional, Literal, Iterator, List, Type, cast
 
 from pinecone.utils.decorators import prerelease_feature
 from pinecone.config.config import ConfigBuilder
@@ -20,7 +20,9 @@ from pinecone.core_ea.openapi.db_data.models import (
 for m in [StartImportResponse, ImportListResponse, ImportModel]:
     install_json_repr_override(m)
 
-ImportErrorMode = Enum("ImportErrorMode", ImportErrorModeClass.allowed_values[("on_error",)])
+ImportErrorMode: Type[Enum] = cast(
+    Type[Enum], Enum("ImportErrorMode", ImportErrorModeClass.allowed_values[("on_error",)])
+)
 
 
 class ImportFeatureMixin:
