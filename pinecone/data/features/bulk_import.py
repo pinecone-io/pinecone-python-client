@@ -1,7 +1,6 @@
 from enum import Enum
 from typing import Optional, Literal, Iterator, List, Type, cast
 
-from pinecone.utils.decorators import prerelease_feature
 from pinecone.config.config import ConfigBuilder
 from pinecone.core_ea.openapi.db_data import ApiClient
 from pinecone.core_ea.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
@@ -44,9 +43,6 @@ class ImportFeatureMixin:
                 api_version=API_VERSION,
             )
 
-    usage_warning = "The bulk import feature is in early access."
-
-    @prerelease_feature(message=usage_warning, api_version=API_VERSION)
     def start_import(
         self,
         uri: str,
@@ -90,7 +86,6 @@ class ImportFeatureMixin:
 
         return self.__import_operations_api.start_import(StartImportRequest(**args_dict))
 
-    @prerelease_feature(message=usage_warning, api_version=API_VERSION)
     def list_imports(self, **kwargs) -> Iterator[List[ImportModel]]:
         """
         Returns a generator that yields each import operation. It automatically handles pagination tokens on your behalf so you can
@@ -127,7 +122,6 @@ class ImportFeatureMixin:
             else:
                 done = True
 
-    @prerelease_feature(message=usage_warning, api_version=API_VERSION)
     def list_imports_paginated(
         self,
         limit: Optional[int] = None,
@@ -172,7 +166,6 @@ class ImportFeatureMixin:
         )
         return self.__import_operations_api.list_imports(**args_dict)
 
-    @prerelease_feature(message=usage_warning, api_version=API_VERSION)
     def describe_import(self, id: str) -> ImportModel:
         """
         describe_import is used to get detailed information about a specific import operation.
@@ -189,7 +182,6 @@ class ImportFeatureMixin:
 
         return self.__import_operations_api.describe_import(id=id)
 
-    @prerelease_feature(message=usage_warning, api_version=API_VERSION)
     def cancel_import(self, id: str):
         """Cancel an import operation.
 

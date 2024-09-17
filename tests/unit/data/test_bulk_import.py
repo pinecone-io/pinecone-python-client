@@ -1,5 +1,4 @@
 import pytest
-import warnings
 
 from urllib3 import BaseHTTPResponse
 
@@ -36,17 +35,16 @@ class TestBulkImportStartImport:
         """
         client, mock_req = build_client_w_faked_response(mocker, body)
 
-        with pytest.warns(UserWarning, match="The bulk import feature is in early access"):
-            my_import = client.start_import("s3://path/to/file.parquet")
+        my_import = client.start_import("s3://path/to/file.parquet")
 
-            # We made some overrides to the print behavior, so we need to
-            # call it to ensure it doesn't raise an exception
-            print(my_import)
+        # We made some overrides to the print behavior, so we need to
+        # call it to ensure it doesn't raise an exception
+        print(my_import)
 
-            assert my_import.id == "1"
-            assert my_import["id"] == "1"
-            assert my_import.to_dict() == {"id": "1"}
-            assert my_import.__class__ == StartImportResponse
+        assert my_import.id == "1"
+        assert my_import["id"] == "1"
+        assert my_import.to_dict() == {"id": "1"}
+        assert my_import.__class__ == StartImportResponse
 
     def test_start_import_with_kwargs(self, mocker):
         body = """
@@ -56,19 +54,18 @@ class TestBulkImportStartImport:
         """
         client, mock_req = build_client_w_faked_response(mocker, body)
 
-        with pytest.warns(UserWarning, match="The bulk import feature is in early access"):
-            my_import = client.start_import(uri="s3://path/to/file.parquet", integration_id="123-456-789")
-            assert my_import.id == "1"
-            assert my_import["id"] == "1"
-            assert my_import.to_dict() == {"id": "1"}
-            assert my_import.__class__ == StartImportResponse
+        my_import = client.start_import(uri="s3://path/to/file.parquet", integration_id="123-456-789")
+        assert my_import.id == "1"
+        assert my_import["id"] == "1"
+        assert my_import.to_dict() == {"id": "1"}
+        assert my_import.__class__ == StartImportResponse
 
-            # By default, use continue error mode
-            _, call_kwargs = mock_req.call_args
-            assert (
-                call_kwargs["body"]
-                == '{"uri": "s3://path/to/file.parquet", "integrationId": "123-456-789", "errorMode": {"onError": "continue"}}'
-            )
+        # By default, use continue error mode
+        _, call_kwargs = mock_req.call_args
+        assert (
+            call_kwargs["body"]
+            == '{"uri": "s3://path/to/file.parquet", "integrationId": "123-456-789", "errorMode": {"onError": "continue"}}'
+        )
 
     @pytest.mark.parametrize(
         "error_mode_input",
@@ -87,10 +84,9 @@ class TestBulkImportStartImport:
         """
         client, mock_req = build_client_w_faked_response(mocker, body)
 
-        with pytest.warns(UserWarning, match="The bulk import feature is in early access"):
-            my_import = client.start_import(uri="s3://path/to/file.parquet", error_mode=error_mode_input)
-            _, call_kwargs = mock_req.call_args
-            assert call_kwargs["body"] == '{"uri": "s3://path/to/file.parquet", "errorMode": {"onError": "continue"}}'
+        my_import = client.start_import(uri="s3://path/to/file.parquet", error_mode=error_mode_input)
+        _, call_kwargs = mock_req.call_args
+        assert call_kwargs["body"] == '{"uri": "s3://path/to/file.parquet", "errorMode": {"onError": "continue"}}'
 
     def test_start_import_with_abort_error_mode(self, mocker):
         body = """
@@ -100,10 +96,9 @@ class TestBulkImportStartImport:
         """
         client, mock_req = build_client_w_faked_response(mocker, body)
 
-        with pytest.warns(UserWarning, match="The bulk import feature is in early access"):
-            my_import = client.start_import(uri="s3://path/to/file.parquet", error_mode=ImportErrorMode.ABORT)
-            _, call_kwargs = mock_req.call_args
-            assert call_kwargs["body"] == '{"uri": "s3://path/to/file.parquet", "errorMode": {"onError": "abort"}}'
+        my_import = client.start_import(uri="s3://path/to/file.parquet", error_mode=ImportErrorMode.ABORT)
+        _, call_kwargs = mock_req.call_args
+        assert call_kwargs["body"] == '{"uri": "s3://path/to/file.parquet", "errorMode": {"onError": "abort"}}'
 
     def test_start_import_with_unknown_error_mode(self, mocker):
         body = """
@@ -113,11 +108,10 @@ class TestBulkImportStartImport:
         """
         client, mock_req = build_client_w_faked_response(mocker, body)
 
-        with pytest.warns(UserWarning, match="The bulk import feature is in early access"):
-            with pytest.raises(ValueError) as e:
-                my_import = client.start_import(uri="s3://path/to/file.parquet", error_mode="unknown")
+        with pytest.raises(ValueError) as e:
+            my_import = client.start_import(uri="s3://path/to/file.parquet", error_mode="unknown")
 
-            assert "Invalid error_mode value: unknown" in str(e.value)
+        assert "Invalid error_mode value: unknown" in str(e.value)
 
     def test_start_invalid_uri(self, mocker):
         body = """
@@ -129,9 +123,8 @@ class TestBulkImportStartImport:
         """
         client, mock_req = build_client_w_faked_response(mocker, body, 400)
 
-        with pytest.warns(UserWarning, match="The bulk import feature is in early access"):
-            with pytest.raises(PineconeApiException) as e:
-                my_import = client.start_import(uri="invalid path")
+        with pytest.raises(PineconeApiException) as e:
+            my_import = client.start_import(uri="invalid path")
 
         assert e.value.status == 400
         assert e.value.body == body
@@ -140,9 +133,8 @@ class TestBulkImportStartImport:
     def test_no_arguments(self, mocker):
         client, mock_req = build_client_w_faked_response(mocker, "")
 
-        with pytest.warns(UserWarning, match="The bulk import feature is in early access"):
-            with pytest.raises(TypeError) as e:
-                client.start_import()
+        with pytest.raises(TypeError) as e:
+            client.start_import()
 
         assert "missing 1 required positional argument" in str(e.value)
 
@@ -165,17 +157,16 @@ class TestDescribeImport:
         """
         client, mock_req = build_client_w_faked_response(mocker, body)
 
-        with pytest.warns(UserWarning, match="The bulk import feature is in early access"):
-            my_import = client.describe_import(id="1")
+        my_import = client.describe_import(id="1")
 
-            # We made some overrides to the print behavior, so we need to
-            # call it to ensure it doesn't raise an exception
-            print(my_import)
+        # We made some overrides to the print behavior, so we need to
+        # call it to ensure it doesn't raise an exception
+        print(my_import)
 
-            assert my_import.id == "1"
-            assert my_import["id"] == "1"
-            desc = my_import.to_dict()
-            assert desc["id"] == "1"
-            assert desc["records_imported"] == 1000
-            assert desc["uri"] == "s3://path/to/file.parquet"
-            assert desc["status"] == "InProgress"
+        assert my_import.id == "1"
+        assert my_import["id"] == "1"
+        desc = my_import.to_dict()
+        assert desc["id"] == "1"
+        assert desc["records_imported"] == 1000
+        assert desc["uri"] == "s3://path/to/file.parquet"
+        assert desc["status"] == "InProgress"
