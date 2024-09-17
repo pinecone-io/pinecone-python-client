@@ -12,3 +12,4 @@ from .setup_openapi_client import (
 from .parse_args import parse_non_empty_args
 from .docslinks import docslinks
 from .repr_overrides import install_json_repr_override
+from .decorators import prerelease_feature

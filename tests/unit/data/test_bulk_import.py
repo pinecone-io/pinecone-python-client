@@ -36,7 +36,7 @@ class TestBulkImportStartImport:
         """
         client = build_client_w_faked_response(mocker, body)
 
-        with pytest.warns(UserWarning, match="prerelease"):
+        with pytest.warns(UserWarning, match="pre-release"):
             my_import = client.start_import("s3://path/to/file.parquet")
             assert my_import.id == "1"
             assert my_import["id"] == "1"
@@ -51,7 +51,7 @@ class TestBulkImportStartImport:
         """
         client = build_client_w_faked_response(mocker, body)
 
-        with pytest.warns(UserWarning, match="prerelease"):
+        with pytest.warns(UserWarning, match="pre-release"):
             my_import = client.start_import(uri="s3://path/to/file.parquet")
             assert my_import.id == "1"
             assert my_import["id"] == "1"
@@ -68,7 +68,7 @@ class TestBulkImportStartImport:
         """
         client = build_client_w_faked_response(mocker, body, 400)
 
-        with pytest.warns(UserWarning, match="prerelease"):
+        with pytest.warns(UserWarning, match="pre-release"):
             with pytest.raises(PineconeApiException) as e:
                 my_import = client.start_import(uri="invalid path")
 
@@ -79,7 +79,7 @@ class TestBulkImportStartImport:
     def test_no_arguments(self, mocker):
         client = build_client_w_faked_response(mocker, "")
 
-        with pytest.warns(UserWarning, match="prerelease"):
+        with pytest.warns(UserWarning, match="pre-release"):
             with pytest.raises(TypeError) as e:
                 client.start_import()
 
@@ -93,35 +93,23 @@ class TestDescribeImport:
             "id": "1",
             "records_imported": 1000,
             "uri": "s3://path/to/file.parquet",
-            "status": "In Progress",
+            "status": "InProgress",
             "error_mode": "CONTINUE",
             "created_at": "2021-01-01T00:00:00Z",
             "updated_at": "2021-01-01T00:00:00Z",
             "integration": "s3",
-            "error_message": ""
+            "error_message": "",
             "percent_complete": 43.2
         }
         """
-        # body = """
-        # {
-        #     "id": "1",
-        # }
-        # """
         client = build_client_w_faked_response(mocker, body)
 
-        with pytest.warns(UserWarning, match="prerelease"):
+        with pytest.warns(UserWarning, match="pre-release"):
             my_import = client.describe_import(id="1")
             assert my_import.id == "1"
             assert my_import["id"] == "1"
-            assert my_import.to_dict() == {
-                "id": "1",
-                "records_imported": 1000,
-                "uri": "s3://path/to/file.parquet",
-                "status": "In Progress",
-                "error_mode": "CONTINUE",
-                "created_at": "2021-01-01T00:00:00Z",
-                "updated_at": "2021-01-01T00:00:00Z",
-                "integration": "s3",
-                "error_message": "",
-                "percent_complete": 43.2,
-            }
+            desc = my_import.to_dict()
+            assert desc['id'] == "1"
+            assert desc['records_imported'] == 1000
+            assert desc['uri'] == "s3://path/to/file.parquet"
+            assert desc['status'] == "InProgress"

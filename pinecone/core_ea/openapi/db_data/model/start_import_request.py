@@ -62,7 +62,7 @@ class StartImportRequest(ModelNormal):
     allowed_values = {}
 
     validations = {
-        ("integration",): {
+        ("integration_id",): {
             "max_length": 1000,
             "min_length": 1,
         },
@@ -102,7 +102,7 @@ class StartImportRequest(ModelNormal):
         """
         lazy_import()
         return {
-            "integration": (str,),  # noqa: E501
+            "integration_id": (str,),  # noqa: E501
             "uri": (str,),  # noqa: E501
             "error_mode": (ImportErrorMode,),  # noqa: E501
         }
@@ -112,7 +112,7 @@ class StartImportRequest(ModelNormal):
         return None
 
     attribute_map = {
-        "integration": "integration",  # noqa: E501
+        "integration_id": "integration_id",  # noqa: E501
         "uri": "uri",  # noqa: E501
         "error_mode": "errorMode",  # noqa: E501
     }
@@ -157,7 +157,7 @@ class StartImportRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            integration (str): The name of the storage integration that should be used to access the data.. [optional]  # noqa: E501
+            integration_id (str): The id of the storage integration that should be used to access the data.. [optional]  # noqa: E501
             uri (str): The URI prefix under which the data to import is available. All data within this prefix will be listed then imported into the target index. Currently only `s3://` URIs are supported.. [optional]  # noqa: E501
             error_mode (ImportErrorMode): [optional]  # noqa: E501
         """
@@ -246,7 +246,7 @@ class StartImportRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            integration (str): The name of the storage integration that should be used to access the data.. [optional]  # noqa: E501
+            integration_id (str): The id of the storage integration that should be used to access the data.. [optional]  # noqa: E501
             uri (str): The URI prefix under which the data to import is available. All data within this prefix will be listed then imported into the target index. Currently only `s3://` URIs are supported.. [optional]  # noqa: E501
             error_mode (ImportErrorMode): [optional]  # noqa: E501
         """

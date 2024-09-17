@@ -1,7 +1,10 @@
 import warnings
 
+from enum import Enum
+from functools import wraps
 from typing import Optional, Union, Literal, Iterator, List
 
+from pinecone.utils.decorators import prerelease_feature
 from pinecone.config.config import ConfigBuilder
 from pinecone.core_ea.openapi.db_data import ApiClient
 from pinecone.core_ea.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
@@ -20,14 +23,7 @@ from pinecone.core_ea.openapi.db_data.models import (
 for m in [StartImportResponse, ImportListResponse, ImportModel]:
     install_json_repr_override(m)
 
-
-def prerelease_feature(func):
-    def wrapper(*args, **kwargs):
-        warnmsg = f"This is a prerelease feature implemented against the {API_VERSION} version of our API."
-        warnings.warn(warnmsg)
-        return func(*args, **kwargs)
-
-    return wrapper
+ImportErrorMode = Enum("ImportErrorMode", ImportErrorModeClass.allowed_values[("on_error",)])
 
 
 class ImportFeatureMixin:
@@ -49,14 +45,12 @@ class ImportFeatureMixin:
                 api_version=API_VERSION,
             )
 
-    ImportErrorMode = Literal["CONTINUE", "ABORT"]
-
-    @prerelease_feature
+    @prerelease_feature(message="The bulk import feature is in pre-release.", api_version=API_VERSION)
     def start_import(
         self,
         uri: str,
-        integration: Optional[str] = None,
-        error_mode: Optional[ImportErrorMode] = "CONTINUE",
+        integration_id: Optional[str] = None,
+        error_mode: Optional[Literal["CONTINUE", "ABORT"]] = "CONTINUE",
     ) -> StartImportResponse:
         """Import data from a storage provider into an index. The uri must start with the scheme of a supported
         storage provider. For buckets that are not publicly readable, you will also need to separately configure
@@ -77,16 +71,25 @@ class ImportFeatureMixin:
         Returns:
             StartImportResponse: Contains the id of the import operation.
         """
+        if isinstance(error_mode, ImportErrorMode):
+            error_mode = error_mode.value
+        elif isinstance(error_mode, str):
+            try:
+                error_mode = ImportErrorMode(error_mode.lower()).value
+            except ValueError:
+                raise ValueError(f"Invalid error_mode value: {error_mode}")
+
         args_dict = parse_non_empty_args(
             [
                 ("uri", uri),
-                ("integration", integration),
+                ("integration_id", integration_id),
                 ("error_mode", ImportErrorModeClass(on_error=error_mode)),
             ]
         )
+
         return self.__import_operations_api.start_import(StartImportRequest(**args_dict))
 
-    @prerelease_feature
+    @prerelease_feature(message="The bulk import feature is in pre-release.", api_version=API_VERSION)
     def list_imports(self, **kwargs) -> Iterator[List[ImportModel]]:
         """
         Returns a generator that yields each import operation. It automatically handles pagination tokens on your behalf so you can
@@ -123,7 +126,7 @@ class ImportFeatureMixin:
             else:
                 done = True
 
-    @prerelease_feature
+    @prerelease_feature(message="The bulk import feature is in pre-release.", api_version=API_VERSION)
     def list_imports_paginated(
         self,
         limit: Optional[int] = None,
@@ -168,7 +171,7 @@ class ImportFeatureMixin:
         )
         return self.__import_operations_api.list_imports(**args_dict)
 
-    @prerelease_feature
+    @prerelease_feature(message="The bulk import feature is in pre-release.", api_version=API_VERSION)
     def describe_import(self, id: str) -> ImportModel:
         """
         describe_import is used to get detailed information about a specific import operation.
@@ -185,7 +188,7 @@ class ImportFeatureMixin:
 
         return self.__import_operations_api.describe_import(id=id)
 
-    @prerelease_feature
+    @prerelease_feature(message="The bulk import feature is in pre-release.", api_version=API_VERSION)
     def cancel_import(self, id: str):
         """Cancel an import operation.
 
