@@ -112,7 +112,7 @@ class StartImportRequest(ModelNormal):
         return None
 
     attribute_map = {
-        "integration_id": "integration_id",  # noqa: E501
+        "integration_id": "integrationId",  # noqa: E501
         "uri": "uri",  # noqa: E501
         "error_mode": "errorMode",  # noqa: E501
     }
