@@ -1,8 +1,5 @@
-import warnings
-
 from enum import Enum
-from functools import wraps
-from typing import Optional, Union, Literal, Iterator, List
+from typing import Optional, Literal, Iterator, List
 
 from pinecone.utils.decorators import prerelease_feature
 from pinecone.config.config import ConfigBuilder

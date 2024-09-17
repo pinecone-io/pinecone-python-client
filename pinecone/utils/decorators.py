@@ -2,10 +2,13 @@ import warnings
 from functools import wraps
 from typing import Optional, Callable
 
+
 class PineconePrereleaseWarning(UserWarning):
     pass
 
+
 warnings.simplefilter("once", PineconePrereleaseWarning)
+
 
 def prerelease_feature(
     message: str = "This is a pre-release feature and may change in the future.", api_version: Optional[str] = None
