@@ -197,4 +197,6 @@ class ImportFeatureMixin:
         Args:
             id (str): The id of the import operation to cancel.
         """
+        if isinstance(id, int):
+            id = str(id)
         return self.__import_operations_api.cancel_import(id=id)
