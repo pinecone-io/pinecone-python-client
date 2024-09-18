@@ -84,8 +84,6 @@ class QueryRequest(ModelNormal):
         lazy_import()
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,
@@ -110,7 +108,7 @@ class QueryRequest(ModelNormal):
         return {
             "top_k": (int,),  # noqa: E501
             "namespace": (str,),  # noqa: E501
-            "filter": ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "filter": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
             "include_values": (bool,),  # noqa: E501
             "include_metadata": (bool,),  # noqa: E501
             "queries": ([QueryVector],),  # noqa: E501
@@ -179,7 +177,7 @@ class QueryRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             namespace (str): The namespace to query.. [optional]  # noqa: E501
-            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Filter with metadata](https://docs.pinecone.io/guides/data/filter-with-metadata).. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Filter with metadata](https://docs.pinecone.io/guides/data/filter-with-metadata).. [optional]  # noqa: E501
             include_values (bool): Indicates whether vector values are included in the response.. [optional] if omitted the server will use the default value of False  # noqa: E501
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
             queries ([QueryVector]): DEPRECATED. The query vectors. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`.. [optional]  # noqa: E501
@@ -277,7 +275,7 @@ class QueryRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             namespace (str): The namespace to query.. [optional]  # noqa: E501
-            filter ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Filter with metadata](https://docs.pinecone.io/guides/data/filter-with-metadata).. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Filter with metadata](https://docs.pinecone.io/guides/data/filter-with-metadata).. [optional]  # noqa: E501
             include_values (bool): Indicates whether vector values are included in the response.. [optional] if omitted the server will use the default value of False  # noqa: E501
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
             queries ([QueryVector]): DEPRECATED. The query vectors. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`.. [optional]  # noqa: E501

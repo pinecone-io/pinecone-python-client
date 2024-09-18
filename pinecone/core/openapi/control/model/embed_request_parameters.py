@@ -65,8 +65,6 @@ class EmbedRequestParameters(ModelNormal):
         """
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,

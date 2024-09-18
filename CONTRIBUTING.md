@@ -142,3 +142,26 @@ Hello, from your virtualenv!
 ```
 
 If you experience any issues please [file a new issue](https://github.com/pinecone-io/pinecone-python-client/issues/new).
+
+
+## Consuming API version upgrades
+
+These instructions can only be followed by Pinecone employees with access to our private APIs repository.
+
+Prerequisites:
+- You must be an employee with access to private Pinecone repositories
+- You must have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running. Our code generation script uses a dockerized version of the OpenAPI CLI.
+- You must have initialized the git submodules under codegen
+
+```sh
+git submodule 
+```
+
+
+To regenerate the generated portions of the client with the latest version of the API specifications, you need to have Docker Desktop running on your local machine.
+
+
+
+```sh
+./codegen/
+```

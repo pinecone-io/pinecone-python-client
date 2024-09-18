@@ -78,8 +78,6 @@ class Vector(ModelNormal):
         lazy_import()
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,
@@ -105,7 +103,7 @@ class Vector(ModelNormal):
             "id": (str,),  # noqa: E501
             "values": ([float],),  # noqa: E501
             "sparse_values": (SparseValues,),  # noqa: E501
-            "metadata": ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "metadata": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
         }
 
     @cached_property
@@ -164,7 +162,7 @@ class Vector(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             sparse_values (SparseValues): [optional]  # noqa: E501
-            metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): This is the metadata included in the request.. [optional]  # noqa: E501
+            metadata ({str: (bool, dict, float, int, list, str, none_type)}): This is the metadata included in the request.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -258,7 +256,7 @@ class Vector(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             sparse_values (SparseValues): [optional]  # noqa: E501
-            metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): This is the metadata included in the request.. [optional]  # noqa: E501
+            metadata ({str: (bool, dict, float, int, list, str, none_type)}): This is the metadata included in the request.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

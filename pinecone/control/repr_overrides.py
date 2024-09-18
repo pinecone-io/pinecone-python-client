@@ -1,7 +1,6 @@
+from pinecone.utils import install_json_repr_override
 from pinecone.models.index_model import IndexModel
 from pinecone.core.openapi.control.models import CollectionModel
-
-import json
 
 
 def install_repr_overrides():
@@ -14,4 +13,4 @@ def install_repr_overrides():
     query results.
     """
     for model in [IndexModel, CollectionModel]:
-        model.__repr__ = lambda self: json.dumps(self.to_dict(), indent=4, sort_keys=False)
+        install_json_repr_override(model)

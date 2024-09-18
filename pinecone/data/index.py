@@ -4,6 +4,7 @@ from typing import Union, List, Tuple, Optional, Dict, Any
 
 from pinecone.config import ConfigBuilder
 
+from pinecone.core.openapi.shared import API_VERSION
 from pinecone.core.openapi.data.models import SparseValues
 from pinecone.core.openapi.data import ApiClient
 from pinecone.core.openapi.data.models import (
@@ -23,8 +24,9 @@ from pinecone.core.openapi.data.models import (
     DescribeIndexStatsRequest,
     ListResponse,
 )
+from .features.bulk_import import ImportFeatureMixin
 from pinecone.core.openapi.data.api.data_plane_api import DataPlaneApi
-from ..utils import setup_openapi_client
+from ..utils import setup_openapi_client, parse_non_empty_args
 from .vector_factory import VectorFactory
 
 __all__ = [
@@ -64,7 +66,7 @@ def parse_query_response(response: QueryResponse):
     return response
 
 
-class Index:
+class Index(ImportFeatureMixin):
     """
     A client for interacting with a Pinecone index via REST API.
     For improved performance, use the Pinecone GRPC index client.
@@ -79,6 +81,15 @@ class Index:
         openapi_config=None,
         **kwargs,
     ):
+        super().__init__(
+            api_key=api_key,
+            host=host,
+            pool_threads=pool_threads,
+            additional_headers=additional_headers,
+            openapi_config=openapi_config,
+            **kwargs,
+        )
+
         self._config = ConfigBuilder.build(
             api_key=api_key,
             host=host,
@@ -93,6 +104,7 @@ class Index:
             config=self._config,
             openapi_config=openapi_config,
             pool_threads=pool_threads,
+            api_version=API_VERSION,
         )
 
     def __enter__(self):
@@ -198,7 +210,7 @@ class Index:
         _check_type: bool,
         **kwargs,
     ) -> UpsertResponse:
-        args_dict = self._parse_non_empty_args([("namespace", namespace)])
+        args_dict = parse_non_empty_args([("namespace", namespace)])
         vec_builder = lambda v: VectorFactory.build(v, check_type=_check_type)
 
         return self._vector_api.upsert(
@@ -304,7 +316,7 @@ class Index:
           Returns: An empty dictionary if the delete operation was successful.
         """
         _check_type = kwargs.pop("_check_type", False)
-        args_dict = self._parse_non_empty_args(
+        args_dict = parse_non_empty_args(
             [
                 ("ids", ids),
                 ("delete_all", delete_all),
@@ -344,7 +356,7 @@ class Index:
 
         Returns: FetchResponse object which contains the list of Vector objects, and namespace name.
         """
-        args_dict = self._parse_non_empty_args([("namespace", namespace)])
+        args_dict = parse_non_empty_args([("namespace", namespace)])
         return self._vector_api.fetch(ids=ids, **args_dict, **kwargs)
 
     @validate_and_convert_errors
@@ -413,7 +425,7 @@ class Index:
         _check_type = kwargs.pop("_check_type", False)
 
         sparse_vector = self._parse_sparse_values_arg(sparse_vector)
-        args_dict = self._parse_non_empty_args(
+        args_dict = parse_non_empty_args(
             [
                 ("vector", vector),
                 ("id", id),
@@ -484,7 +496,7 @@ class Index:
         """
         _check_type = kwargs.pop("_check_type", False)
         sparse_values = self._parse_sparse_values_arg(sparse_values)
-        args_dict = self._parse_non_empty_args(
+        args_dict = parse_non_empty_args(
             [
                 ("values", values),
                 ("set_metadata", set_metadata),
@@ -526,7 +538,7 @@ class Index:
         Returns: DescribeIndexStatsResponse object which contains stats about the index.
         """
         _check_type = kwargs.pop("_check_type", False)
-        args_dict = self._parse_non_empty_args([("filter", filter)])
+        args_dict = parse_non_empty_args([("filter", filter)])
 
         return self._vector_api.describe_index_stats(
             DescribeIndexStatsRequest(
@@ -571,7 +583,7 @@ class Index:
 
         Returns: ListResponse object which contains the list of ids, the namespace name, pagination information, and usage showing the number of read_units consumed.
         """
-        args_dict = self._parse_non_empty_args(
+        args_dict = parse_non_empty_args(
             [
                 ("prefix", prefix),
                 ("limit", limit),
@@ -613,10 +625,6 @@ class Index:
                 kwargs.update({"pagination_token": results.pagination.next})
             else:
                 done = True
-
-    @staticmethod
-    def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
-        return {arg_name: val for arg_name, val in args if val is not None}
 
     @staticmethod
     def _parse_sparse_values_arg(

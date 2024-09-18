@@ -82,7 +82,7 @@ class DataPlaneApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                {str: (bool, date, datetime, dict, float, int, list, str, none_type)}
+                {str: (bool, dict, float, int, list, str, none_type)}
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -97,7 +97,7 @@ class DataPlaneApi(object):
 
         self.alt_delete = _Endpoint(
             settings={
-                "response_type": ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
+                "response_type": ({str: (bool, dict, float, int, list, str, none_type)},),
                 "auth": ["ApiKeyAuth"],
                 "endpoint_path": "/vectors/delete",
                 "operation_id": "alt_delete",
@@ -252,7 +252,7 @@ class DataPlaneApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                {str: (bool, date, datetime, dict, float, int, list, str, none_type)}
+                {str: (bool, dict, float, int, list, str, none_type)}
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -268,7 +268,7 @@ class DataPlaneApi(object):
 
         self.delete = _Endpoint(
             settings={
-                "response_type": ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
+                "response_type": ({str: (bool, dict, float, int, list, str, none_type)},),
                 "auth": ["ApiKeyAuth"],
                 "endpoint_path": "/vectors/delete",
                 "operation_id": "delete",
@@ -710,7 +710,7 @@ class DataPlaneApi(object):
                 async_req (bool): execute request asynchronously
 
             Returns:
-                {str: (bool, date, datetime, dict, float, int, list, str, none_type)}
+                {str: (bool, dict, float, int, list, str, none_type)}
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -726,7 +726,7 @@ class DataPlaneApi(object):
 
         self.update = _Endpoint(
             settings={
-                "response_type": ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),
+                "response_type": ({str: (bool, dict, float, int, list, str, none_type)},),
                 "auth": ["ApiKeyAuth"],
                 "endpoint_path": "/vectors/update",
                 "operation_id": "update",

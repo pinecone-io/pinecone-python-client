@@ -77,8 +77,6 @@ class ScoredVector(ModelNormal):
         lazy_import()
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,
@@ -105,7 +103,7 @@ class ScoredVector(ModelNormal):
             "score": (float,),  # noqa: E501
             "values": ([float],),  # noqa: E501
             "sparse_values": (SparseValues,),  # noqa: E501
-            "metadata": ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "metadata": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
         }
 
     @cached_property
@@ -166,7 +164,7 @@ class ScoredVector(ModelNormal):
             score (float): This is a measure of similarity between this vector and the query vector.  The higher the score, the more they are similar.. [optional]  # noqa: E501
             values ([float]): This is the vector data, if it is requested.. [optional]  # noqa: E501
             sparse_values (SparseValues): [optional]  # noqa: E501
-            metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): This is the metadata, if it is requested.. [optional]  # noqa: E501
+            metadata ({str: (bool, dict, float, int, list, str, none_type)}): This is the metadata, if it is requested.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -260,7 +258,7 @@ class ScoredVector(ModelNormal):
             score (float): This is a measure of similarity between this vector and the query vector.  The higher the score, the more they are similar.. [optional]  # noqa: E501
             values ([float]): This is the vector data, if it is requested.. [optional]  # noqa: E501
             sparse_values (SparseValues): [optional]  # noqa: E501
-            metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): This is the metadata, if it is requested.. [optional]  # noqa: E501
+            metadata ({str: (bool, dict, float, int, list, str, none_type)}): This is the metadata, if it is requested.. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

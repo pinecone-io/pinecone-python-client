@@ -8,3 +8,5 @@ from .errors import (
     SparseValuesDictionaryExpectedError,
     MetadataDictionaryExpectedError,
 )
+
+from .features.bulk_import import ImportErrorMode

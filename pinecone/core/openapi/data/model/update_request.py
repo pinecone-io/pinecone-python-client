@@ -78,8 +78,6 @@ class UpdateRequest(ModelNormal):
         lazy_import()
         return (
             bool,
-            date,
-            datetime,
             dict,
             float,
             int,
@@ -105,7 +103,7 @@ class UpdateRequest(ModelNormal):
             "id": (str,),  # noqa: E501
             "values": ([float],),  # noqa: E501
             "sparse_values": (SparseValues,),  # noqa: E501
-            "set_metadata": ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "set_metadata": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
             "namespace": (str,),  # noqa: E501
         }
 
@@ -166,7 +164,7 @@ class UpdateRequest(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             values ([float]): Vector data.. [optional]  # noqa: E501
             sparse_values (SparseValues): [optional]  # noqa: E501
-            set_metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): Metadata to set for the vector.. [optional]  # noqa: E501
+            set_metadata ({str: (bool, dict, float, int, list, str, none_type)}): Metadata to set for the vector.. [optional]  # noqa: E501
             namespace (str): The namespace containing the vector to update.. [optional]  # noqa: E501
         """
 
@@ -260,7 +258,7 @@ class UpdateRequest(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             values ([float]): Vector data.. [optional]  # noqa: E501
             sparse_values (SparseValues): [optional]  # noqa: E501
-            set_metadata ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): Metadata to set for the vector.. [optional]  # noqa: E501
+            set_metadata ({str: (bool, dict, float, int, list, str, none_type)}): Metadata to set for the vector.. [optional]  # noqa: E501
             namespace (str): The namespace containing the vector to update.. [optional]  # noqa: E501
         """
 
