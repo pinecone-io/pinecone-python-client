@@ -51,7 +51,7 @@ class ImportFeatureMixin:
     ) -> StartImportResponse:
         """Import data from a storage provider into an index. The uri must start with the scheme of a supported
         storage provider. For buckets that are not publicly readable, you will also need to separately configure
-        a storage integration and pass the integration name.
+        a storage integration and pass the integration id.
 
         Examples:
             >>> from pinecone import Pinecone
@@ -61,7 +61,7 @@ class ImportFeatureMixin:
 
         Args:
             uri (str): The URI of the data to import. The URI must start with the scheme of a supported storage provider.
-            integration (Optional[str], optional): If your bucket requires authentication to access, you need to pass the name of your storage integration using this property. Defaults to None.
+            integration_id (Optional[str], optional): If your bucket requires authentication to access, you need to pass the id of your storage integration using this property. Defaults to None.
             error_mode: Defaults to "CONTINUE". If set to "CONTINUE", the import operation will continue even if some
                 records fail to import. Pass "ABORT" to stop the import operation if any records fail to import.
 
@@ -103,7 +103,7 @@ class ImportFeatureMixin:
         ```
 
         You should be cautious with this approach because it will fetch all operations at once, which could be a large number
-        network calls and a lot of memory to hold the results.
+        of network calls and a lot of memory to hold the results.
 
         Args:
             limit (Optional[int]): The maximum number of operations to fetch in each network call. If unspecified, the server will use a default value. [optional]
@@ -179,7 +179,6 @@ class ImportFeatureMixin:
         """
         if isinstance(id, int):
             id = str(id)
-
         return self.__import_operations_api.describe_import(id=id)
 
     def cancel_import(self, id: str):

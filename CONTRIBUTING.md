@@ -150,7 +150,7 @@ These instructions can only be followed by Pinecone employees with access to our
 
 Prerequisites:
 - You must be an employee with access to private Pinecone repositories
-- You must have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running. Our code generation script uses a dockerized version of the openapi CLI.
+- You must have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running. Our code generation script uses a dockerized version of the OpenAPI CLI.
 - You must have initialized the git submodules under codegen
 
 ```sh
