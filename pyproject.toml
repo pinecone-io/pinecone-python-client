@@ -69,6 +69,7 @@ protobuf = { version = "^4.25", optional = true }
 protoc-gen-openapiv2 = {version = "^0.0.1", optional = true }
 pinecone-plugin-interface = "^0.0.7"
 pinecone-plugin-inference = "^1.1.0"
+python-dateutil = ">=2.5.3"
 
 [tool.poetry.group.types]
 optional = true
