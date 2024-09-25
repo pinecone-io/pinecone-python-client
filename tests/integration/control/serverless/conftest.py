@@ -9,7 +9,9 @@ from ...helpers import generate_index_name, get_environment_var
 @pytest.fixture()
 def client():
     api_key = get_environment_var("PINECONE_API_KEY")
-    return Pinecone(api_key=api_key, additional_headers={"sdk-test-suite": "pinecone-python-client"})
+    return Pinecone(
+        api_key=api_key, additional_headers={"sdk-test-suite": "pinecone-python-client"}
+    )
 
 
 @pytest.fixture()
@@ -67,7 +69,14 @@ def notready_pod_index(client, index_name, create_pod_index_params):
 
 
 def delete_with_retry(client, index_name, retries=0, sleep_interval=5):
-    print("Deleting index " + index_name + ", retry " + str(retries) + ", next sleep interval " + str(sleep_interval))
+    print(
+        "Deleting index "
+        + index_name
+        + ", retry "
+        + str(retries)
+        + ", next sleep interval "
+        + str(sleep_interval)
+    )
     try:
         client.delete_index(index_name, -1)
     except NotFoundException:
@@ -94,7 +103,7 @@ def cleanup(client, index_name):
 
     try:
         client.delete_index(index_name, -1)
-    except:
+    except Exception:
         pass
 
 
@@ -108,5 +117,5 @@ def cleanup_all():
         if index.name.startswith(buildNumber):
             try:
                 delete_with_retry(client, index.name)
-            except:
+            except Exception:
                 pass

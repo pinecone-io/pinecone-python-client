@@ -26,10 +26,10 @@ ImportErrorMode: Type[Enum] = cast(
 
 class ImportFeatureMixin:
     def __init__(self, **kwargs):
-        config = ConfigBuilder.build(
-            **kwargs,
+        config = ConfigBuilder.build(**kwargs)
+        openapi_config = ConfigBuilder.build_openapi_config(
+            config, kwargs.get("openapi_config", None)
         )
-        openapi_config = ConfigBuilder.build_openapi_config(config, kwargs.get("openapi_config", None))
 
         if kwargs.get("__import_operations_api", None):
             self.__import_operations_api = kwargs.get("__import_operations_api")
@@ -123,10 +123,7 @@ class ImportFeatureMixin:
                 done = True
 
     def list_imports_paginated(
-        self,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
-        **kwargs,
+        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
     ) -> ImportListResponse:
         """
         The list_imports_paginated operation returns information about import operations.
@@ -158,12 +155,7 @@ class ImportFeatureMixin:
         Returns: ImportListResponse object which contains the list of operations as ImportModel objects, pagination information,
             and usage showing the number of read_units consumed.
         """
-        args_dict = parse_non_empty_args(
-            [
-                ("limit", limit),
-                ("pagination_token", pagination_token),
-            ]
-        )
+        args_dict = parse_non_empty_args([("limit", limit), ("pagination_token", pagination_token)])
         return self.__import_operations_api.list_imports(**args_dict)
 
     def describe_import(self, id: str) -> ImportModel:

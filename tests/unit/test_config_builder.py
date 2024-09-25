@@ -14,7 +14,9 @@ class TestConfigBuilder:
 
     def test_build_merges_key_and_host_when_openapi_config_provided(self):
         config = ConfigBuilder.build(
-            api_key="my-api-key", host="https://my-controller-host", openapi_config=OpenApiConfiguration()
+            api_key="my-api-key",
+            host="https://my-controller-host",
+            openapi_config=OpenApiConfiguration(),
         )
         assert config.api_key == "my-api-key"
         assert config.host == "https://my-controller-host"
@@ -22,9 +24,7 @@ class TestConfigBuilder:
 
     def test_build_with_source_tag(self):
         config = ConfigBuilder.build(
-            api_key="my-api-key",
-            host="https://my-controller-host",
-            source_tag="my-source-tag",
+            api_key="my-api-key", host="https://my-controller-host", source_tag="my-source-tag"
         )
         assert config.api_key == "my-api-key"
         assert config.host == "https://my-controller-host"
@@ -61,7 +61,9 @@ class TestConfigBuilder:
         assert openapi_config.proxy == "http://my-proxy:8080"
 
     def test_build_openapi_config_does_not_mutate_input(self):
-        config = ConfigBuilder.build(api_key="my-api-key", host="foo", ssl_ca_certs="path/to/bundle.foo")
+        config = ConfigBuilder.build(
+            api_key="my-api-key", host="foo", ssl_ca_certs="path/to/bundle.foo"
+        )
 
         input_openapi_config = OpenApiConfiguration()
         input_openapi_config.host = "bar"

@@ -25,7 +25,9 @@ class TestConfig:
         ]
         for var in known_env_vars:
             if os.getenv(var):
-                raise ValueError(f"Unexpected env var {var} found in environment. Check for test pollution.")
+                raise ValueError(
+                    f"Unexpected env var {var} found in environment. Check for test pollution."
+                )
 
         yield  # this is where the testing happens
 
@@ -62,7 +64,10 @@ class TestConfig:
         openapi_config = OpenApiConfiguration()
 
         config = PineconeConfig.build(
-            api_key=api_key, host=controller_host, ssl_ca_certs=ssl_ca_cert, openapi_config=openapi_config
+            api_key=api_key,
+            host=controller_host,
+            ssl_ca_certs=ssl_ca_cert,
+            openapi_config=openapi_config,
         )
 
         assert config.api_key == api_key
@@ -82,7 +87,9 @@ class TestConfig:
         controller_host = "kwargs-controller-host"
         additional_headers = {"header": "value2"}
 
-        config = PineconeConfig.build(api_key=api_key, host=controller_host, additional_headers=additional_headers)
+        config = PineconeConfig.build(
+            api_key=api_key, host=controller_host, additional_headers=additional_headers
+        )
 
         assert config.api_key == api_key
         assert config.host == "https://" + controller_host

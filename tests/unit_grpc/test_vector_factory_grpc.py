@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from collections.abc import Iterable, Mapping
 
 from pinecone.grpc.vector_factory_grpc import VectorFactoryGRPC
 from pinecone.grpc import Vector, SparseValues
@@ -18,7 +17,9 @@ class TestVectorFactoryGRPC:
 
     def test_build_when_nongrpc_vector_it_converts(self):
         vec = NonGRPCVector(id="1", values=[0.1, 0.2, 0.3])
-        assert VectorFactoryGRPC.build(vec) == Vector(id="1", values=[0.1, 0.2, 0.3], metadata=dict_to_proto_struct({}))
+        assert VectorFactoryGRPC.build(vec) == Vector(
+            id="1", values=[0.1, 0.2, 0.3], metadata=dict_to_proto_struct({})
+        )
 
     def test_build_when_nongrpc_vector_with_metadata_it_converts(self):
         vec = NonGRPCVector(id="1", values=[0.1, 0.2, 0.3], metadata={"genre": "comedy"})
@@ -28,7 +29,9 @@ class TestVectorFactoryGRPC:
 
     def test_build_when_nongrpc_vector_with_sparse_values_it_converts(self):
         vec = NonGRPCVector(
-            id="1", values=[0.1, 0.2, 0.3], sparse_values=NonGRPCSparseValues(indices=[0, 2], values=[0.1, 0.3])
+            id="1",
+            values=[0.1, 0.2, 0.3],
+            sparse_values=NonGRPCSparseValues(indices=[0, 2], values=[0.1, 0.3]),
         )
         assert VectorFactoryGRPC.build(vec) == Vector(
             id="1",
@@ -37,7 +40,9 @@ class TestVectorFactoryGRPC:
             sparse_values=SparseValues(indices=[0, 2], values=[0.1, 0.3]),
         )
 
-    @pytest.mark.parametrize("values_array", [[0.1, 0.2, 0.3], np.array([0.1, 0.2, 0.3]), pd.array([0.1, 0.2, 0.3])])
+    @pytest.mark.parametrize(
+        "values_array", [[0.1, 0.2, 0.3], np.array([0.1, 0.2, 0.3]), pd.array([0.1, 0.2, 0.3])]
+    )
     def test_build_when_tuple_with_two_values(self, values_array):
         tup = ("1", values_array)
         actual = VectorFactoryGRPC.build(tup)
@@ -46,20 +51,26 @@ class TestVectorFactoryGRPC:
 
     @pytest.mark.parametrize(
         "vector_tup",
-        [("1", "not an array"), ("1", {}), ("1", "not an array", {"genre": "comedy"}), ("1", {}, {"genre": "comedy"})],
+        [
+            ("1", "not an array"),
+            ("1", {}),
+            ("1", "not an array", {"genre": "comedy"}),
+            ("1", {}, {"genre": "comedy"}),
+        ],
     )
     def test_build_when_tuple_values_must_be_list(self, vector_tup):
-        with pytest.raises(
-            TypeError,
-            match="Expected a list or list-like data structure",
-        ):
+        with pytest.raises(TypeError, match="Expected a list or list-like data structure"):
             VectorFactoryGRPC.build(vector_tup)
 
-    @pytest.mark.parametrize("values_array", [[0.1, 0.2, 0.3], np.array([0.1, 0.2, 0.3]), pd.array([0.1, 0.2, 0.3])])
+    @pytest.mark.parametrize(
+        "values_array", [[0.1, 0.2, 0.3], np.array([0.1, 0.2, 0.3]), pd.array([0.1, 0.2, 0.3])]
+    )
     def test_build_when_tuple_with_three_values(self, values_array):
         tup = ("1", values_array, {"genre": "comedy"})
         actual = VectorFactoryGRPC.build(tup)
-        expected = Vector(id="1", values=[0.1, 0.2, 0.3], metadata=dict_to_proto_struct({"genre": "comedy"}))
+        expected = Vector(
+            id="1", values=[0.1, 0.2, 0.3], metadata=dict_to_proto_struct({"genre": "comedy"})
+        )
         assert actual == expected
 
     @pytest.mark.parametrize("sv_klass", [SparseValues, NonGRPCSparseValues])
@@ -81,11 +92,15 @@ class TestVectorFactoryGRPC:
             tup = ("1",)
             VectorFactoryGRPC.build(tup)
 
-    @pytest.mark.parametrize("metadata", [{"genre": "comedy"}, dict_to_proto_struct({"genre": "comedy"})])
+    @pytest.mark.parametrize(
+        "metadata", [{"genre": "comedy"}, dict_to_proto_struct({"genre": "comedy"})]
+    )
     def test_build_when_dict(self, metadata):
         d = {"id": "1", "values": [0.1, 0.2, 0.3], "metadata": metadata}
         actual = VectorFactoryGRPC.build(d)
-        expected = Vector(id="1", values=[0.1, 0.2, 0.3], metadata=dict_to_proto_struct({"genre": "comedy"}))
+        expected = Vector(
+            id="1", values=[0.1, 0.2, 0.3], metadata=dict_to_proto_struct({"genre": "comedy"})
+        )
         assert actual == expected
 
     def test_build_with_dict_no_metadata(self):
@@ -131,7 +146,9 @@ class TestVectorFactoryGRPC:
     def test_build_when_dict_with_special_values(self, input_values):
         d = {"id": "1", "values": input_values, "metadata": {"genre": "comedy"}}
         actual = VectorFactoryGRPC.build(d)
-        expected = Vector(id="1", values=[0.1, 0.2, 0.3], metadata=dict_to_proto_struct({"genre": "comedy"}))
+        expected = Vector(
+            id="1", values=[0.1, 0.2, 0.3], metadata=dict_to_proto_struct({"genre": "comedy"})
+        )
         assert actual == expected
 
     def test_build_when_dict_missing_required_fields(self):
@@ -141,7 +158,12 @@ class TestVectorFactoryGRPC:
 
     def test_build_when_dict_excess_keys(self):
         with pytest.raises(ValueError, match="Found excess keys in the vector dictionary"):
-            d = {"id": "1", "values": [0.1, 0.2, 0.3], "metadata": {"genre": "comedy"}, "extra": "field"}
+            d = {
+                "id": "1",
+                "values": [0.1, 0.2, 0.3],
+                "metadata": {"genre": "comedy"},
+                "extra": "field",
+            }
             VectorFactoryGRPC.build(d)
 
     @pytest.mark.parametrize(
@@ -188,7 +210,9 @@ class TestVectorFactoryGRPC:
         assert actual == expected
 
     @pytest.mark.parametrize("bogus_sparse_values", [1, "not an array", [1, 2], {}])
-    def test_build_when_dict_sparse_values_errors_when_invalid_sparse_values_values(self, bogus_sparse_values):
+    def test_build_when_dict_sparse_values_errors_when_invalid_sparse_values_values(
+        self, bogus_sparse_values
+    ):
         with pytest.raises(ValueError, match="Found unexpected data in column `sparse_values`"):
             d = {
                 "id": "1",
@@ -199,7 +223,9 @@ class TestVectorFactoryGRPC:
             VectorFactoryGRPC.build(d)
 
     @pytest.mark.parametrize("bogus_sparse_indices", [1, "not an array", [0.1, 0.2], {}])
-    def test_build_when_dict_sparse_values_errors_when_indices_not_valid_list(self, bogus_sparse_indices):
+    def test_build_when_dict_sparse_values_errors_when_indices_not_valid_list(
+        self, bogus_sparse_indices
+    ):
         with pytest.raises(ValueError, match="Found unexpected data in column `sparse_values`"):
             d = {
                 "id": "1",
@@ -213,17 +239,11 @@ class TestVectorFactoryGRPC:
         with pytest.raises(ValueError, match="Invalid vector value passed: cannot interpret type"):
             VectorFactoryGRPC.build(1)
 
-    @pytest.mark.parametrize(
-        "bogus_sparse_values",
-        [
-            1,
-            "not a dict",
-            [1, 2, 3],
-            [],
-        ],
-    )
+    @pytest.mark.parametrize("bogus_sparse_values", [1, "not a dict", [1, 2, 3], []])
     def test_build_when_invalid_sparse_values_type_in_dict(self, bogus_sparse_values):
-        with pytest.raises(ValueError, match="Column `sparse_values` is expected to be a dictionary"):
+        with pytest.raises(
+            ValueError, match="Column `sparse_values` is expected to be a dictionary"
+        ):
             d = {
                 "id": "1",
                 "values": [0.1, 0.2, 0.3],
@@ -233,15 +253,12 @@ class TestVectorFactoryGRPC:
             VectorFactoryGRPC.build(d)
 
     @pytest.mark.parametrize(
-        "bogus_sparse_values",
-        [
-            {},
-            {"indices": [0, 2]},
-            {"values": [0.1, 0.3]},
-        ],
+        "bogus_sparse_values", [{}, {"indices": [0, 2]}, {"values": [0.1, 0.3]}]
     )
     def test_build_when_missing_keys_in_sparse_values_dict(self, bogus_sparse_values):
-        with pytest.raises(ValueError, match="Missing required keys in data in column `sparse_values`"):
+        with pytest.raises(
+            ValueError, match="Missing required keys in data in column `sparse_values`"
+        ):
             d = {
                 "id": "1",
                 "values": [0.1, 0.2, 0.3],
@@ -251,7 +268,14 @@ class TestVectorFactoryGRPC:
             VectorFactoryGRPC.build(d)
 
     def test_build_when_sparse_values_is_None(self):
-        d = {"id": "1", "values": [0.1, 0.2, 0.3], "metadata": {"genre": "comedy"}, "sparse_values": None}
+        d = {
+            "id": "1",
+            "values": [0.1, 0.2, 0.3],
+            "metadata": {"genre": "comedy"},
+            "sparse_values": None,
+        }
         actual = VectorFactoryGRPC.build(d)
-        expected = Vector(id="1", values=[0.1, 0.2, 0.3], metadata=dict_to_proto_struct({"genre": "comedy"}))
+        expected = Vector(
+            id="1", values=[0.1, 0.2, 0.3], metadata=dict_to_proto_struct({"genre": "comedy"})
+        )
         assert actual == expected

@@ -71,7 +71,7 @@ generate_client() {
 
 	oas_file="codegen/apis/_build/${version}/${module_name}_${version}.oas.yaml"
 	package_name="pinecone.${py_module_name}.openapi.${module_name}"
-	
+
 	verify_file_exists $oas_file
 	verify_directory_exists $template_dir
 
@@ -106,9 +106,9 @@ extract_shared_classes() {
 	# Define the list of shared source files
 	sharedFiles=(
 		"api_client"
-		"configuration" 
-		"exceptions" 
-		"model_utils" 
+		"configuration"
+		"exceptions"
+		"model_utils"
 		"rest"
 	)
 
@@ -127,7 +127,7 @@ extract_shared_classes() {
 		done
 	done
 
-	# Remove the docstring headers that aren't really correct in the 
+	# Remove the docstring headers that aren't really correct in the
 	# context of this new shared package structure
 	find "$target_directory" -name "*.py" -print0 | xargs -0 -I {} sh -c 'sed -i "" "/^\"\"\"/,/^\"\"\"/d" "{}"'
 
@@ -166,4 +166,4 @@ done
 extract_shared_classes
 
 # Format generated files
-poetry run black "${destination}"
+poetry run ruff format "${destination}"

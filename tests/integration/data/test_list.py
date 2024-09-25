@@ -4,7 +4,7 @@ from pinecone import Vector
 class TestListPaginated:
     def test_list_when_no_results(self, idx):
         results = idx.list_paginated(namespace="no-results")
-        assert results != None
+        assert results is not None
         assert results.namespace == "no-results"
         assert len(results.vectors) == 0
         # assert results.pagination == None
@@ -12,7 +12,7 @@ class TestListPaginated:
     def test_list_no_args(self, idx):
         results = idx.list_paginated()
 
-        assert results != None
+        assert results is not None
         assert len(results.vectors) == 9
         assert results.namespace == ""
         # assert results.pagination == None
@@ -20,11 +20,11 @@ class TestListPaginated:
     def test_list_when_limit(self, idx, list_namespace):
         results = idx.list_paginated(limit=10, namespace=list_namespace)
 
-        assert results != None
+        assert results is not None
         assert len(results.vectors) == 10
         assert results.namespace == list_namespace
-        assert results.pagination != None
-        assert results.pagination.next != None
+        assert results.pagination is not None
+        assert results.pagination.next is not None
         assert isinstance(results.pagination.next, str)
         assert results.pagination.next != ""
 
@@ -34,7 +34,10 @@ class TestListPaginated:
             prefix="99", limit=5, namespace=list_namespace, pagination_token=results.pagination.next
         )
         next_next_results = idx.list_paginated(
-            prefix="99", limit=5, namespace=list_namespace, pagination_token=next_results.pagination.next
+            prefix="99",
+            limit=5,
+            namespace=list_namespace,
+            pagination_token=next_results.pagination.next,
         )
 
         assert results.namespace == list_namespace
@@ -54,7 +57,7 @@ class TestList:
         page_count = 0
         for ids in idx.list():
             page_count += 1
-            assert ids != None
+            assert ids is not None
             page_sizes.append(len(ids))
             pages.append(ids)
 
@@ -67,9 +70,21 @@ class TestList:
         page_count = 0
         for ids in results:
             page_count += 1
-            assert ids != None
+            assert ids is not None
             assert len(ids) == 11
-            assert ids == ["99", "990", "991", "992", "993", "994", "995", "996", "997", "998", "999"]
+            assert ids == [
+                "99",
+                "990",
+                "991",
+                "992",
+                "993",
+                "994",
+                "995",
+                "996",
+                "997",
+                "998",
+                "999",
+            ]
         assert page_count == 1
 
     def test_list_when_no_results_for_prefix(self, idx, list_namespace):
@@ -91,7 +106,7 @@ class TestList:
 
         for ids in idx.list(prefix="99", limit=5, namespace=list_namespace):
             page_count += 1
-            assert ids != None
+            assert ids is not None
             page_sizes.append(len(ids))
             pages.append(ids)
 

@@ -11,7 +11,7 @@ from pinecone.grpc.sparse_values_factory import SparseValuesFactory
 
 class TestSparseValuesFactory:
     def test_build_when_None(self):
-        assert SparseValuesFactory.build(None) == None
+        assert SparseValuesFactory.build(None) is None
 
     def test_build_when_passed_GRPCSparseValues(self):
         """
@@ -67,14 +67,12 @@ class TestSparseValuesFactory:
         assert actual == expected
 
     @pytest.mark.parametrize(
-        "input",
-        [
-            {"indices": [2], "values": [0.3, 0.3]},
-            {"indices": [88, 102], "values": [-0.1]},
-        ],
+        "input", [{"indices": [2], "values": [0.3, 0.3]}, {"indices": [88, 102], "values": [-0.1]}]
     )
     def test_build_when_list_sizes_dont_match(self, input):
-        with pytest.raises(ValueError, match="Sparse values indices and values must have the same length"):
+        with pytest.raises(
+            ValueError, match="Sparse values indices and values must have the same length"
+        ):
             SparseValuesFactory.build(input)
 
     @pytest.mark.parametrize(

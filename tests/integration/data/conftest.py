@@ -30,7 +30,9 @@ def build_client():
     else:
         from pinecone import Pinecone
 
-        return Pinecone(api_key=api_key(), additional_headers={"sdk-test-suite": "pinecone-python-client"})
+        return Pinecone(
+            api_key=api_key(), additional_headers={"sdk-test-suite": "pinecone-python-client"}
+        )
 
 
 @pytest.fixture(scope="session")

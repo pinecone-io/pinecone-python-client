@@ -1,6 +1,5 @@
 import re
 from pinecone.grpc import PineconeGRPC, GRPCClientConfig
-from pinecone import ConfigBuilder
 
 
 class TestGRPCIndexInitialization:
@@ -12,24 +11,26 @@ class TestGRPCIndexInitialization:
         assert index.grpc_client_config.timeout == 20
         assert index.grpc_client_config.conn_timeout == 1
         assert index.grpc_client_config.reuse_channel == True
-        assert index.grpc_client_config.retry_config == None
-        assert index.grpc_client_config.grpc_channel_options == None
-        assert index.grpc_client_config.additional_metadata == None
+        assert index.grpc_client_config.retry_config is None
+        assert index.grpc_client_config.grpc_channel_options is None
+        assert index.grpc_client_config.additional_metadata is None
 
         # Default metadata, grpc equivalent to http request headers
         assert len(index.fixed_metadata) == 3
         assert index.fixed_metadata["api-key"] == "YOUR_API_KEY"
         assert index.fixed_metadata["service-name"] == "my-index"
-        assert index.fixed_metadata["client-version"] != None
+        assert index.fixed_metadata["client-version"] is not None
 
     def test_init_with_additional_metadata(self):
         pc = PineconeGRPC(api_key="YOUR_API_KEY")
-        config = GRPCClientConfig(additional_metadata={"debug-header": "value123", "debug-header2": "value456"})
+        config = GRPCClientConfig(
+            additional_metadata={"debug-header": "value123", "debug-header2": "value456"}
+        )
         index = pc.Index(name="my-index", host="host", grpc_config=config)
         assert len(index.fixed_metadata) == 5
         assert index.fixed_metadata["api-key"] == "YOUR_API_KEY"
         assert index.fixed_metadata["service-name"] == "my-index"
-        assert index.fixed_metadata["client-version"] != None
+        assert index.fixed_metadata["client-version"] is not None
         assert index.fixed_metadata["debug-header"] == "value123"
         assert index.fixed_metadata["debug-header2"] == "value456"
 
@@ -105,5 +106,6 @@ class TestGRPCIndexInitialization:
 
     def test_config_passes_source_tag_when_set(self):
         pc = PineconeGRPC(api_key="YOUR_API_KEY", source_tag="my_source_tag")
-        index = pc.Index(name="my-index", host="host")
-        assert re.search(r"source_tag=my_source_tag", pc.index_api.api_client.user_agent) is not None
+        assert (
+            re.search(r"source_tag=my_source_tag", pc.index_api.api_client.user_agent) is not None
+        )

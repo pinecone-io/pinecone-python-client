@@ -33,13 +33,17 @@ class TestUserAgent:
         assert re.search(r"source_tag=my_source_tag", useragent) is not None
 
         config = ConfigBuilder.build(
-            api_key="my-api-key", host="https://my-controller-host", source_tag="   My Source Tag  123  "
+            api_key="my-api-key",
+            host="https://my-controller-host",
+            source_tag="   My Source Tag  123  ",
         )
         useragent = get_user_agent(config)
         assert re.search(r"source_tag=my_source_tag_123", useragent) is not None
 
         config = ConfigBuilder.build(
-            api_key="my-api-key", host="https://my-controller-host", source_tag="   My Source Tag  123 #### !! "
+            api_key="my-api-key",
+            host="https://my-controller-host",
+            source_tag="   My Source Tag  123 #### !! ",
         )
         useragent = get_user_agent(config)
         assert re.search(r"source_tag=my_source_tag_123", useragent) is not None

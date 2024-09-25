@@ -22,7 +22,9 @@ def index_list_response():
                 status=IndexModelStatus(ready=True, state="Ready"),
                 deletion_protection=DeletionProtection("enabled"),
                 spec=IndexModelSpec(
-                    pod=OpenApiPodSpec(environment="us-west1-gcp", pod_type="p1.x1", pods=1, replicas=1, shards=1)
+                    pod=OpenApiPodSpec(
+                        environment="us-west1-gcp", pod_type="p1.x1", pods=1, replicas=1, shards=1
+                    )
                 ),
             ),
             OpenApiIndexModel(
@@ -33,7 +35,9 @@ def index_list_response():
                 status=IndexModelStatus(ready=True, state="Ready"),
                 deletion_protection=DeletionProtection("disabled"),
                 spec=IndexModelSpec(
-                    pod=OpenApiPodSpec(environment="us-west1-gcp", pod_type="p1.x1", pods=1, replicas=1, shards=1)
+                    pod=OpenApiPodSpec(
+                        environment="us-west1-gcp", pod_type="p1.x1", pods=1, replicas=1, shards=1
+                    )
                 ),
             ),
         ],

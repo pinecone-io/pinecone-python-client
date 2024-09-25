@@ -40,5 +40,7 @@ class SparseValuesDictionaryExpectedError(ValueError, TypeError):
 
 class MetadataDictionaryExpectedError(ValueError, TypeError):
     def __init__(self, item):
-        message = f"Column `metadata` is expected to be a dictionary, found {type(item['metadata'])}"
+        message = (
+            f"Column `metadata` is expected to be a dictionary, found {type(item['metadata'])}"
+        )
         super().__init__(message)

@@ -17,7 +17,12 @@ class PineconeConfig:
         additional_headers: Optional[Dict[str, str]] = {},
         **kwargs,
     ) -> Config:
-        host = host or kwargs.get("host") or os.getenv("PINECONE_CONTROLLER_HOST") or DEFAULT_CONTROLLER_HOST
+        host = (
+            host
+            or kwargs.get("host")
+            or os.getenv("PINECONE_CONTROLLER_HOST")
+            or DEFAULT_CONTROLLER_HOST
+        )
         headers_json = os.getenv("PINECONE_ADDITIONAL_HEADERS")
         if headers_json:
             try:
@@ -27,8 +32,5 @@ class PineconeConfig:
                 logger.warn(f"Ignoring PINECONE_ADDITIONAL_HEADERS: {e}")
 
         return ConfigBuilder.build(
-            api_key=api_key,
-            host=host,
-            additional_headers=additional_headers,
-            **kwargs,
+            api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )

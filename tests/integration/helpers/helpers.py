@@ -57,9 +57,14 @@ def poll_stats_for_namespace(
     total_time = 0
     done = False
     while not done:
-        print(f'Waiting for namespace "{namespace}" to have vectors. Total time waited: {total_time} seconds')
+        print(
+            f'Waiting for namespace "{namespace}" to have vectors. Total time waited: {total_time} seconds'
+        )
         stats = idx.describe_index_stats()
-        if namespace in stats.namespaces and stats.namespaces[namespace].vector_count >= expected_count:
+        if (
+            namespace in stats.namespaces
+            and stats.namespaces[namespace].vector_count >= expected_count
+        ):
             done = True
         elif total_time > max_sleep:
             raise TimeoutError(f"Timed out waiting for namespace {namespace} to have vectors")

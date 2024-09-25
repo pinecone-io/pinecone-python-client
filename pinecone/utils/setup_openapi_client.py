@@ -3,13 +3,7 @@ import copy
 
 
 def setup_openapi_client(
-    api_client_klass,
-    api_klass,
-    config,
-    openapi_config,
-    pool_threads,
-    api_version=None,
-    **kwargs,
+    api_client_klass, api_klass, config, openapi_config, pool_threads, api_version=None, **kwargs
 ):
     # It is important that we allow the user to pass in a reference to api_client_klass
     # instead of creating a direct dependency on ApiClient because plugins have their
@@ -37,13 +31,7 @@ def setup_openapi_client(
 def build_plugin_setup_client(config, openapi_config, pool_threads):
     def setup_plugin_client(api_client_klass, api_klass, api_version, **kwargs):
         return setup_openapi_client(
-            api_client_klass,
-            api_klass,
-            config,
-            openapi_config,
-            pool_threads,
-            api_version,
-            **kwargs,
+            api_client_klass, api_klass, config, openapi_config, pool_threads, api_version, **kwargs
         )
 
     return setup_plugin_client

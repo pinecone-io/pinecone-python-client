@@ -4,7 +4,6 @@ from unittest.mock import patch, MagicMock
 from pinecone import ConfigBuilder, Pinecone, PodSpec, ServerlessSpec
 from pinecone.core.openapi.control.models import IndexList, IndexModel, DeletionProtection
 from pinecone.core.openapi.control.api.manage_indexes_api import ManageIndexesApi
-from pinecone.core.openapi.shared.configuration import Configuration as OpenApiConfiguration
 
 import time
 
@@ -50,13 +49,15 @@ def index_list_response():
 class TestControl:
     def test_plugins_are_installed(self):
         with patch("pinecone.control.pinecone.install_plugins") as mock_install_plugins:
-            p = Pinecone(api_key="asdf")
+            Pinecone(api_key="asdf")
             mock_install_plugins.assert_called_once()
 
     def test_bad_plugin_doesnt_break_sdk(self):
-        with patch("pinecone.control.pinecone.install_plugins", side_effect=Exception("bad plugin")):
+        with patch(
+            "pinecone.control.pinecone.install_plugins", side_effect=Exception("bad plugin")
+        ):
             try:
-                p = Pinecone(api_key="asdf")
+                Pinecone(api_key="asdf")
             except Exception as e:
                 assert False, f"Unexpected exception: {e}"
 
@@ -91,10 +92,14 @@ class TestControl:
 
     def test_set_source_tag_in_useragent(self):
         p = Pinecone(api_key="123-456-789", source_tag="test_source_tag")
-        assert re.search(r"source_tag=test_source_tag", p.index_api.api_client.user_agent) is not None
+        assert (
+            re.search(r"source_tag=test_source_tag", p.index_api.api_client.user_agent) is not None
+        )
 
     def test_set_source_tag_in_useragent_via_config(self):
-        config = ConfigBuilder.build(api_key="YOUR_API_KEY", host="https://my-host", source_tag="my_source_tag")
+        config = ConfigBuilder.build(
+            api_key="YOUR_API_KEY", host="https://my-host", source_tag="my_source_tag"
+        )
         p = Pinecone(config=config)
         assert re.search(r"source_tag=my_source_tag", p.index_api.api_client.user_agent) is not None
 
@@ -104,13 +109,27 @@ class TestControl:
             # When timeout=None, describe_index is called until ready
             (None, [{"status": {"ready": False}}, {"status": {"ready": True}}], 2, 1),
             # Timeout of 10 seconds, describe_index called 3 times, sleep twice
-            (10, [{"status": {"ready": False}}, {"status": {"ready": False}}, {"status": {"ready": True}}], 3, 2),
+            (
+                10,
+                [
+                    {"status": {"ready": False}},
+                    {"status": {"ready": False}},
+                    {"status": {"ready": True}},
+                ],
+                3,
+                2,
+            ),
             # When timeout=-1, create_index returns immediately without calling describe_index or sleep
             (-1, [{"status": {"ready": False}}], 0, 0),
         ],
     )
     def test_create_index_with_timeout(
-        self, mocker, timeout_value, describe_index_responses, expected_describe_index_calls, expected_sleep_calls
+        self,
+        mocker,
+        timeout_value,
+        describe_index_responses,
+        expected_describe_index_calls,
+        expected_sleep_calls,
     ):
         p = Pinecone(api_key="123-456-789")
         mocker.patch.object(p.index_api, "describe_index", side_effect=describe_index_responses)
@@ -118,7 +137,10 @@ class TestControl:
         mocker.patch("time.sleep")
 
         p.create_index(
-            name="my-index", dimension=10, spec=ServerlessSpec(cloud="aws", region="us-west1"), timeout=timeout_value
+            name="my-index",
+            dimension=10,
+            spec=ServerlessSpec(cloud="aws", region="us-west1"),
+            timeout=timeout_value,
         )
 
         assert p.index_api.create_index.call_count == 1
@@ -172,13 +194,27 @@ class TestControl:
             # When timeout=None, describe_index is called until ready
             (None, [{"status": {"ready": False}}, {"status": {"ready": True}}], 2, 1),
             # Timeout of 10 seconds, describe_index called 3 times, sleep twice
-            (10, [{"status": {"ready": False}}, {"status": {"ready": False}}, {"status": {"ready": True}}], 3, 2),
+            (
+                10,
+                [
+                    {"status": {"ready": False}},
+                    {"status": {"ready": False}},
+                    {"status": {"ready": True}},
+                ],
+                3,
+                2,
+            ),
             # When timeout=-1, create_index returns immediately without calling describe_index or sleep
             (-1, [{"status": {"ready": False}}], 0, 0),
         ],
     )
     def test_create_index_from_source_collection(
-        self, mocker, timeout_value, describe_index_responses, expected_describe_index_calls, expected_sleep_calls
+        self,
+        mocker,
+        timeout_value,
+        describe_index_responses,
+        expected_describe_index_calls,
+        expected_sleep_calls,
     ):
         p = Pinecone(api_key="123-456-789")
         mocker.patch.object(p.index_api, "describe_index", side_effect=describe_index_responses)
@@ -205,7 +241,9 @@ class TestControl:
             mocker.patch.object(p.index_api, "describe_index", side_effect=describe_index_response)
             mocker.patch("time.sleep")
 
-            p.create_index(name="my-index", dimension=10, timeout=10, spec=PodSpec(environment="us-west1-gcp"))
+            p.create_index(
+                name="my-index", dimension=10, timeout=10, spec=PodSpec(environment="us-west1-gcp")
+            )
 
     def test_list_indexes_returns_iterable(self, mocker, index_list_response):
         p = Pinecone(api_key="123-456-789")

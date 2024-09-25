@@ -34,12 +34,7 @@ def create_index_if_not_exists(pc, index_name):
             name=index_name,
             metric="cosine",
             dimension=DIMENSION,
-            spec={
-                "serverless": {
-                    "cloud": read_env_var("CLOUD"),
-                    "region": read_env_var("REGION"),
-                }
-            },
+            spec={"serverless": {"cloud": read_env_var("CLOUD"), "region": read_env_var("REGION")}},
         )
 
 
@@ -78,14 +73,14 @@ def main():
             # Fetch some vectors
             ids_to_fetch = random.sample(upserted_ids, k=random.randint(1, 20))
             print("Fetching {} vectors".format(len(ids_to_fetch)))
-            fetched_vectors = index.fetch(ids=ids_to_fetch)
+            index.fetch(ids=ids_to_fetch)
 
             # Query some vectors
             print("Querying 10 times")
             for i in range(10):
                 # Query by vector values
                 query_vector = random_embedding_values(DIMENSION)
-                query_results = index.query(vector=query_vector, top_k=10)
+                index.query(vector=query_vector, top_k=10)
 
             # Delete some vectors
             print("Deleting some vectors")

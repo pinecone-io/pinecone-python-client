@@ -13,8 +13,8 @@ class TestFetch:
         results = idx.fetch(ids=["1", "2", "4"], namespace=target_namespace)
         assert isinstance(results, FetchResponse) == True
 
-        assert results.usage != None
-        assert results.usage["read_units"] != None
+        assert results.usage is not None
+        assert results.usage["read_units"] is not None
         assert results.usage["read_units"] > 0
 
         assert results.namespace == target_namespace
@@ -22,13 +22,13 @@ class TestFetch:
         assert results.vectors["1"].id == "1"
         assert results.vectors["2"].id == "2"
         # Metadata included, if set
-        assert results.vectors["1"].metadata == None
-        assert results.vectors["2"].metadata == None
-        assert results.vectors["4"].metadata != None
+        assert results.vectors["1"].metadata is None
+        assert results.vectors["2"].metadata is None
+        assert results.vectors["4"].metadata is not None
         assert results.vectors["4"].metadata["genre"] == "action"
         assert results.vectors["4"].metadata["runtime"] == 120
         # Values included
-        assert results.vectors["1"].values != None
+        assert results.vectors["1"].values is not None
         assert len(results.vectors["1"].values) == self.expected_dimension
 
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
@@ -39,8 +39,8 @@ class TestFetch:
         assert results.namespace == target_namespace
         assert len(results.vectors) == 1
         assert results.vectors["1"].id == "1"
-        assert results.vectors["1"].metadata == None
-        assert results.vectors["1"].values != None
+        assert results.vectors["1"].metadata is None
+        assert results.vectors["1"].values is not None
         assert len(results.vectors["1"].values) == self.expected_dimension
 
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
@@ -74,5 +74,5 @@ class TestFetch:
         results = idx.fetch(ids=["1", "4"])
         assert results.namespace == ""
         assert results.vectors["1"].id == "1"
-        assert results.vectors["1"].values != None
-        assert results.vectors["4"].metadata != None
+        assert results.vectors["1"].values is not None
+        assert results.vectors["4"].metadata is not None

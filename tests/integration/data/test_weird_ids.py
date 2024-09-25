@@ -14,19 +14,21 @@ class TestHandlingOfWeirdIds:
             for id in ids_to_fetch:
                 assert id in results.vectors
                 assert results.vectors[id].id == id
-                assert results.vectors[id].metadata == None
-                assert results.vectors[id].values != None
+                assert results.vectors[id].metadata is None
+                assert results.vectors[id].values is not None
                 assert len(results.vectors[id].values) == 2
 
     @pytest.mark.parametrize("id_to_query", weird_valid_ids())
     def test_query_weird_ids(self, idx, weird_ids_namespace, id_to_query):
-        results = idx.query(id=id_to_query, top_k=10, namespace=weird_ids_namespace, include_values=True)
+        results = idx.query(
+            id=id_to_query, top_k=10, namespace=weird_ids_namespace, include_values=True
+        )
         assert results.usage["read_units"] > 0
         assert len(results.matches) == 10
         assert results.namespace == weird_ids_namespace
-        assert results.matches[0].id != None
-        assert results.matches[0].metadata == None
-        assert results.matches[0].values != None
+        assert results.matches[0].id is not None
+        assert results.matches[0].metadata is None
+        assert results.matches[0].values is not None
         assert len(results.matches[0].values) == 2
 
     def test_list_weird_ids(self, idx, weird_ids_namespace):

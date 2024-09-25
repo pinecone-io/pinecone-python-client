@@ -28,7 +28,9 @@ class TestCollectionsHappyPath:
         time_waited = 0
         collection_ready = desc["status"]
         while collection_ready.lower() != "ready" and time_waited < 120:
-            print(f"Waiting for collection {collection_name} to be ready. Waited {time_waited} seconds...")
+            print(
+                f"Waiting for collection {collection_name} to be ready. Waited {time_waited} seconds..."
+            )
             time.sleep(5)
             time_waited += 5
             desc = client.describe_collection(collection_name)
@@ -45,7 +47,7 @@ class TestCollectionsHappyPath:
         assert desc["environment"] == environment
         assert desc["dimension"] == dimension
         assert desc["vector_count"] == num_vectors
-        assert desc["size"] != None
+        assert desc["size"] is not None
         assert desc["size"] > 0
 
         # Create index from collection

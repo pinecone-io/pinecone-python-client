@@ -135,5 +135,13 @@ docstring-code-format = false
 docstring-code-line-length = "dynamic"
 
 [tool.ruff.lint.per-file-ignores]
+# F403 Allow star imports
+# F401 allow imported but unused
 "__init__.py" = ["F401", "F403"]
+
+# E402 Allow module level import not at top of file so
+#      tqdm warnings can be disabled ahead of loading any code
 "pinecone/__init__.py" = ["E402"]
+
+# E712 Allow == comparison to True/False
+"tests/**" = ["E712"]

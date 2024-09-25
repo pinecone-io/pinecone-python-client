@@ -44,7 +44,9 @@ def test_upsert_to_namespace(idx, namespace, use_nondefault_namespace):
 
 
 @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
-@pytest.mark.skipif(os.getenv("METRIC") != "dotproduct", reason="Only metric=dotprodouct indexes support hybrid")
+@pytest.mark.skipif(
+    os.getenv("METRIC") != "dotproduct", reason="Only metric=dotprodouct indexes support hybrid"
+)
 def test_upsert_to_namespace_with_sparse_embedding_values(idx, namespace, use_nondefault_namespace):
     target_namespace = namespace if use_nondefault_namespace else ""
 
@@ -52,8 +54,10 @@ def test_upsert_to_namespace_with_sparse_embedding_values(idx, namespace, use_no
     idx.upsert(
         vectors=[
             Vector(
-                id="1", values=embedding_values(), sparse_values=SparseValues(indices=[0, 1], values=embedding_values())
-            ),
+                id="1",
+                values=embedding_values(),
+                sparse_values=SparseValues(indices=[0, 1], values=embedding_values()),
+            )
         ],
         namespace=target_namespace,
     )
