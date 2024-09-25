@@ -1,4 +1,3 @@
-import numbers
 
 from collections.abc import Mapping
 from typing import Union, Dict

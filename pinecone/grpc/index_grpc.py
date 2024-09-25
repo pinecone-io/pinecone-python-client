@@ -32,7 +32,6 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     FetchRequest,
     UpdateRequest,
     ListRequest,
-    ListResponse,
     DescribeIndexStatsRequest,
     DeleteResponse,
     UpdateResponse,

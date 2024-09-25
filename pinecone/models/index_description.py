@@ -1,4 +1,4 @@
-from typing import NamedTuple, Dict, Optional, Union, Literal
+from typing import NamedTuple, Dict, Optional, Literal
 
 
 class PodSpecDefinition(NamedTuple):

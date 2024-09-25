@@ -1,6 +1,6 @@
 from tqdm.autonotebook import tqdm
 
-from typing import Union, List, Tuple, Optional, Dict, Any
+from typing import Union, List, Optional, Dict, Any
 
 from pinecone.config import ConfigBuilder
 
@@ -17,7 +17,6 @@ from pinecone.core.openapi.data.models import (
     DescribeIndexStatsResponse,
     UpsertRequest,
     UpsertResponse,
-    UpdateRequest,
     Vector,
     DeleteRequest,
     UpdateRequest,
@@ -211,7 +210,9 @@ class Index(ImportFeatureMixin):
         **kwargs,
     ) -> UpsertResponse:
         args_dict = parse_non_empty_args([("namespace", namespace)])
-        vec_builder = lambda v: VectorFactory.build(v, check_type=_check_type)
+        
+        def vec_builder(v): 
+            return VectorFactory.build(v, check_type=_check_type)
 
         return self._vector_api.upsert(
             UpsertRequest(

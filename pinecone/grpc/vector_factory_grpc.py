@@ -87,10 +87,10 @@ class VectorFactoryGRPC:
             try:
                 item["values"] = convert_to_list(values)
             except TypeError as e:
-                raise TypeError(f"Column `values` is expected to be a list of floats") from e
+                raise TypeError("Column `values` is expected to be a list of floats") from e
 
         sparse_values = item.get("sparse_values")
-        if sparse_values != None and not isinstance(sparse_values, GRPCSparseValues):
+        if sparse_values is not None and not isinstance(sparse_values, GRPCSparseValues):
             item["sparse_values"] = SparseValuesFactory.build(sparse_values)
 
         metadata = item.get("metadata")
@@ -115,5 +115,5 @@ class VectorFactoryGRPC:
             if not isinstance(item["values"], Iterable) or not isinstance(
                 item["values"].__iter__().__next__(), numbers.Real
             ):
-                raise TypeError(f"Column `values` is expected to be a list of floats")
+                raise TypeError("Column `values` is expected to be a list of floats")
             raise e

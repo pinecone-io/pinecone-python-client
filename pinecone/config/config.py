@@ -95,7 +95,7 @@ class ConfigBuilder:
             openapi_config.proxy_headers = config.proxy_headers
         if config.ssl_ca_certs:
             openapi_config.ssl_ca_cert = config.ssl_ca_certs
-        if config.ssl_verify != None:
+        if config.ssl_verify is not None:
             openapi_config.verify_ssl = config.ssl_verify
 
         return openapi_config

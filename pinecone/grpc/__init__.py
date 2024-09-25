@@ -54,3 +54,13 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     Vector,
     SparseValues,
 )
+
+__all__ = [
+    "GRPCIndex",
+    "PineconeGRPC",
+    "GRPCClientConfig",
+    "GRPCVector",
+    "GRPCSparseValues",
+    "Vector",
+    "SparseValues",
+]

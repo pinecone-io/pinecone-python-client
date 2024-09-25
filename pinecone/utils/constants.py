@@ -1,5 +1,4 @@
 import os
-import enum
 
 from .version import __version__
 
