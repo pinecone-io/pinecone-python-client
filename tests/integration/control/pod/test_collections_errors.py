@@ -1,7 +1,6 @@
 import string
 import random
 import pytest
-import time
 from pinecone import PodSpec
 
 
@@ -10,7 +9,9 @@ def random_string():
 
 
 class TestCollectionErrorCases:
-    def test_create_index_with_nonexistent_source_collection(self, client, dimension, metric, environment):
+    def test_create_index_with_nonexistent_source_collection(
+        self, client, dimension, metric, environment
+    ):
         with pytest.raises(Exception) as e:
             index_name = "from-nonexistent-coll-" + random_string()
             client.create_index(
@@ -22,7 +23,9 @@ class TestCollectionErrorCases:
             client.delete_index(index_name, -1)
         assert "Resource doesnotexist not found" in str(e.value)
 
-    def test_create_index_in_mismatched_environment(self, client, dimension, metric, environment, reusable_collection):
+    def test_create_index_in_mismatched_environment(
+        self, client, dimension, metric, environment, reusable_collection
+    ):
         envs = [
             "eastus-azure",
             "eu-west4-gcp",
@@ -51,7 +54,9 @@ class TestCollectionErrorCases:
         assert "Source collection must be in the same environment as the index" in str(e.value)
 
     @pytest.mark.skip(reason="Bug reported in #global-cps")
-    def test_create_index_with_mismatched_dimension(self, client, dimension, metric, environment, reusable_collection):
+    def test_create_index_with_mismatched_dimension(
+        self, client, dimension, metric, environment, reusable_collection
+    ):
         with pytest.raises(Exception) as e:
             client.create_index(
                 name="from-coll-" + random_string(),

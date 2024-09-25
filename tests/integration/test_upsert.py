@@ -10,7 +10,12 @@ class TestUpsert:
         idx.upsert(vectors=[("1", random_vector), ("2", random_vector), ("3", random_vector)])
 
         # Tuples with metadata
-        idx.upsert(vectors=[("4", random_vector, {"key": "value"}), ("5", random_vector, {"key": "value2"})])
+        idx.upsert(
+            vectors=[
+                ("4", random_vector, {"key": "value"}),
+                ("5", random_vector, {"key": "value2"}),
+            ]
+        )
 
         # Vector objects
         idx.upsert(vectors=[Vector(id="6", values=random_vector)])
@@ -33,7 +38,9 @@ class TestUpsert:
         idx.upsert(
             vectors=[
                 Vector(
-                    id="1", values=random_vector, sparse_values=SparseValues(values=[0.1, 0.2, 0.3], indices=[1, 2, 3])
+                    id="1",
+                    values=random_vector,
+                    sparse_values=SparseValues(values=[0.1, 0.2, 0.3], indices=[1, 2, 3]),
                 )
             ]
         )

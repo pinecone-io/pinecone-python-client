@@ -1,6 +1,5 @@
 import os
 import pytest
-from pinecone import Pinecone
 from urllib3 import make_headers
 from urllib3.exceptions import InsecureRequestWarning
 
@@ -19,32 +18,26 @@ def exercise_all_apis(client, index_name):
 
 
 class TestProxyConfig:
-    @pytest.mark.skipif(os.getenv("USE_GRPC") != "false", reason="gRPC doesn't support 'https://' proxy URLs")
+    @pytest.mark.skipif(
+        os.getenv("USE_GRPC") != "false", reason="gRPC doesn't support 'https://' proxy URLs"
+    )
     def test_https_proxy_with_self_signed_cert(self, client_cls, api_key, index_name, proxy1):
         ssl_ca_certs = os.path.join(proxy1["ssl_ca_certs"], "mitmproxy-ca-cert.pem")
-        pc = client_cls(
-            api_key=api_key,
-            proxy_url=PROXY1_URL_HTTPS,
-            ssl_ca_certs=ssl_ca_certs,
-        )
+        pc = client_cls(api_key=api_key, proxy_url=PROXY1_URL_HTTPS, ssl_ca_certs=ssl_ca_certs)
         exercise_all_apis(pc, index_name)
 
     def test_http_proxy_with_self_signed_cert(self, client_cls, api_key, index_name, proxy1):
         ssl_ca_certs = os.path.join(proxy1["ssl_ca_certs"], "mitmproxy-ca-cert.pem")
-        pc = client_cls(
-            api_key=api_key,
-            proxy_url=PROXY1_URL_HTTP,
-            ssl_ca_certs=ssl_ca_certs,
-        )
+        pc = client_cls(api_key=api_key, proxy_url=PROXY1_URL_HTTP, ssl_ca_certs=ssl_ca_certs)
         exercise_all_apis(pc, index_name)
 
-    @pytest.mark.skipif(os.getenv("USE_GRPC") != "false", reason="gRPC doesn't support disabling ssl_verify")
-    def test_proxy_with_ssl_verification_disabled_emits_warning(self, client_cls, api_key, index_name):
-        pc = client_cls(
-            api_key=api_key,
-            proxy_url=PROXY1_URL_HTTPS,
-            ssl_verify=False,
-        )
+    @pytest.mark.skipif(
+        os.getenv("USE_GRPC") != "false", reason="gRPC doesn't support disabling ssl_verify"
+    )
+    def test_proxy_with_ssl_verification_disabled_emits_warning(
+        self, client_cls, api_key, index_name
+    ):
+        pc = client_cls(api_key=api_key, proxy_url=PROXY1_URL_HTTPS, ssl_verify=False)
 
         with pytest.warns(InsecureRequestWarning):
             pc.list_indexes()
@@ -52,9 +45,7 @@ class TestProxyConfig:
     def test_proxy_with_incorrect_cert_path(self, client_cls, api_key):
         with pytest.raises(Exception) as e:
             pc = client_cls(
-                api_key=api_key,
-                proxy_url=PROXY1_URL_HTTPS,
-                ssl_ca_certs="~/incorrect/path",
+                api_key=api_key, proxy_url=PROXY1_URL_HTTPS, ssl_ca_certs="~/incorrect/path"
             )
             pc.list_indexes()
 
@@ -63,11 +54,7 @@ class TestProxyConfig:
     def test_proxy_with_valid_path_to_incorrect_cert(self, client_cls, api_key, proxy2):
         ssl_ca_certs = os.path.join(proxy2["ssl_ca_certs"], "mitmproxy-ca-cert.pem")
         with pytest.raises(Exception) as e:
-            pc = client_cls(
-                api_key=api_key,
-                proxy_url=PROXY1_URL_HTTPS,
-                ssl_ca_certs=ssl_ca_certs,
-            )
+            pc = client_cls(api_key=api_key, proxy_url=PROXY1_URL_HTTPS, ssl_ca_certs=ssl_ca_certs)
             pc.list_indexes()
 
         assert "CERTIFICATE_VERIFY_FAILED" in str(e.value)

@@ -11,9 +11,13 @@ def convert_to_list(obj):
     elif obj is None or isinstance(obj, str) or isinstance(obj, dict):
         # The string and dictionary classes in python can be passed to list()
         # but they're not going to yield sensible results for our use case.
-        raise ListConversionException(f"Expected a list or list-like data structure, but got: {obj}")
+        raise ListConversionException(
+            f"Expected a list or list-like data structure, but got: {obj}"
+        )
     else:
         try:
             return list(obj)
         except Exception as e:
-            raise ListConversionException(f"Expected a list or list-like data structure, but got: {obj}") from e
+            raise ListConversionException(
+                f"Expected a list or list-like data structure, but got: {obj}"
+            ) from e

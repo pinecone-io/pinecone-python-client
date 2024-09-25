@@ -1,7 +1,5 @@
 import json
-from pinecone.core.openapi.control.models import (
-    CollectionList as OpenAPICollectionList,
-)
+from pinecone.core.openapi.control.models import CollectionList as OpenAPICollectionList
 
 
 class CollectionList:

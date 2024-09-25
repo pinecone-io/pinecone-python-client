@@ -13,5 +13,7 @@ class TestListErrors:
     def test_list_change_namespace_while_fetching_next_page(self, idx, namespace):
         results = idx.list_paginated(limit=5, namespace=namespace)
         with pytest.raises(PineconeException) as e:
-            idx.list_paginated(limit=5, namespace="new-namespace", pagination_token=results.pagination.next)
+            idx.list_paginated(
+                limit=5, namespace="new-namespace", pagination_token=results.pagination.next
+            )
         assert "namespace" in str(e.value)

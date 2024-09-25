@@ -76,5 +76,5 @@ class VectorFactory:
             if not isinstance(item["values"], Iterable) or not isinstance(
                 item["values"].__iter__().__next__(), numbers.Real
             ):
-                raise TypeError(f"Column `values` is expected to be a list of floats")
+                raise TypeError("Column `values` is expected to be a list of floats")
             raise e

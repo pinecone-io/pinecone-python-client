@@ -3,7 +3,7 @@ import pytest
 from urllib3 import BaseHTTPResponse
 
 from pinecone.core_ea.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
-from pinecone.core_ea.openapi.db_data.models import ImportModel, StartImportResponse
+from pinecone.core_ea.openapi.db_data.models import StartImportResponse
 from pinecone.core_ea.openapi.shared.api_client import ApiClient
 from pinecone.core_ea.openapi.shared.exceptions import PineconeApiException
 
@@ -17,13 +17,17 @@ def build_api_w_faked_response(mocker, body: str, status: int = 200) -> BaseHTTP
     response.data = body.encode("utf-8")
 
     api_client = ApiClient()
-    mock_request = mocker.patch.object(api_client.rest_client.pool_manager, "request", return_value=response)
+    mock_request = mocker.patch.object(
+        api_client.rest_client.pool_manager, "request", return_value=response
+    )
     return BulkOperationsApi(api_client=api_client), mock_request
 
 
 def build_client_w_faked_response(mocker, body: str, status: int = 200):
     api_client, mock_req = build_api_w_faked_response(mocker, body, status)
-    return ImportFeatureMixin(__import_operations_api=api_client, api_key="asdf", host="asdf"), mock_req
+    return ImportFeatureMixin(
+        __import_operations_api=api_client, api_key="asdf", host="asdf"
+    ), mock_req
 
 
 class TestBulkImportStartImport:
@@ -54,7 +58,9 @@ class TestBulkImportStartImport:
         """
         client, mock_req = build_client_w_faked_response(mocker, body)
 
-        my_import = client.start_import(uri="s3://path/to/file.parquet", integration_id="123-456-789")
+        my_import = client.start_import(
+            uri="s3://path/to/file.parquet", integration_id="123-456-789"
+        )
         assert my_import.id == "1"
         assert my_import["id"] == "1"
         assert my_import.to_dict() == {"id": "1"}
@@ -68,13 +74,7 @@ class TestBulkImportStartImport:
         )
 
     @pytest.mark.parametrize(
-        "error_mode_input",
-        [
-            ImportErrorMode.CONTINUE,
-            "Continue",
-            "continue",
-            "cONTINUE",
-        ],
+        "error_mode_input", [ImportErrorMode.CONTINUE, "Continue", "continue", "cONTINUE"]
     )
     def test_start_import_with_explicit_error_mode(self, mocker, error_mode_input):
         body = """
@@ -84,9 +84,12 @@ class TestBulkImportStartImport:
         """
         client, mock_req = build_client_w_faked_response(mocker, body)
 
-        my_import = client.start_import(uri="s3://path/to/file.parquet", error_mode=error_mode_input)
+        client.start_import(uri="s3://path/to/file.parquet", error_mode=error_mode_input)
         _, call_kwargs = mock_req.call_args
-        assert call_kwargs["body"] == '{"uri": "s3://path/to/file.parquet", "errorMode": {"onError": "continue"}}'
+        assert (
+            call_kwargs["body"]
+            == '{"uri": "s3://path/to/file.parquet", "errorMode": {"onError": "continue"}}'
+        )
 
     def test_start_import_with_abort_error_mode(self, mocker):
         body = """
@@ -96,9 +99,12 @@ class TestBulkImportStartImport:
         """
         client, mock_req = build_client_w_faked_response(mocker, body)
 
-        my_import = client.start_import(uri="s3://path/to/file.parquet", error_mode=ImportErrorMode.ABORT)
+        client.start_import(uri="s3://path/to/file.parquet", error_mode=ImportErrorMode.ABORT)
         _, call_kwargs = mock_req.call_args
-        assert call_kwargs["body"] == '{"uri": "s3://path/to/file.parquet", "errorMode": {"onError": "abort"}}'
+        assert (
+            call_kwargs["body"]
+            == '{"uri": "s3://path/to/file.parquet", "errorMode": {"onError": "abort"}}'
+        )
 
     def test_start_import_with_unknown_error_mode(self, mocker):
         body = """
@@ -109,7 +115,7 @@ class TestBulkImportStartImport:
         client, mock_req = build_client_w_faked_response(mocker, body)
 
         with pytest.raises(ValueError) as e:
-            my_import = client.start_import(uri="s3://path/to/file.parquet", error_mode="unknown")
+            client.start_import(uri="s3://path/to/file.parquet", error_mode="unknown")
 
         assert "Invalid error_mode value: unknown" in str(e.value)
 
@@ -124,11 +130,13 @@ class TestBulkImportStartImport:
         client, mock_req = build_client_w_faked_response(mocker, body, 400)
 
         with pytest.raises(PineconeApiException) as e:
-            my_import = client.start_import(uri="invalid path")
+            client.start_import(uri="invalid path")
 
         assert e.value.status == 400
         assert e.value.body == body
-        assert "Bulk import URIs must start with the scheme of a supported storage provider" in str(e.value)
+        assert "Bulk import URIs must start with the scheme of a supported storage provider" in str(
+            e.value
+        )
 
     def test_no_arguments(self, mocker):
         client, mock_req = build_client_w_faked_response(mocker, "")

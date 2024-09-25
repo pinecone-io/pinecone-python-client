@@ -9,7 +9,9 @@ from ...helpers import generate_index_name, get_environment_var
 @pytest.fixture()
 def client():
     api_key = get_environment_var("PINECONE_API_KEY")
-    return Pinecone(api_key=api_key, additional_headers={"sdk-test-suite": "pinecone-python-client"})
+    return Pinecone(
+        api_key=api_key, additional_headers={"sdk-test-suite": "pinecone-python-client"}
+    )
 
 
 @pytest.fixture()
@@ -74,7 +76,8 @@ def random_string():
 @pytest.fixture(scope="session")
 def reusable_collection():
     pc = Pinecone(
-        api_key=get_environment_var("PINECONE_API_KEY"), additional_headers={"sdk-test-suite": "pinecone-python-client"}
+        api_key=get_environment_var("PINECONE_API_KEY"),
+        additional_headers={"sdk-test-suite": "pinecone-python-client"},
     )
     index_name = "temp-index-" + random_string()
     dimension = int(get_environment_var("DIMENSION"))
@@ -83,15 +86,15 @@ def reusable_collection():
         name=index_name,
         dimension=dimension,
         metric=get_environment_var("METRIC"),
-        spec=PodSpec(
-            environment=get_environment_var("PINECONE_ENVIRONMENT"),
-        ),
+        spec=PodSpec(environment=get_environment_var("PINECONE_ENVIRONMENT")),
     )
     print(f"Created index {index_name}. Waiting 10 seconds to make sure it's ready...")
     time.sleep(10)
 
     num_vectors = 10
-    vectors = [(str(i), [random.uniform(0, 1) for _ in range(dimension)]) for i in range(num_vectors)]
+    vectors = [
+        (str(i), [random.uniform(0, 1) for _ in range(dimension)]) for i in range(num_vectors)
+    ]
 
     index = pc.Index(index_name)
     index.upsert(vectors=vectors)
@@ -103,7 +106,9 @@ def reusable_collection():
     desc = pc.describe_collection(collection_name)
     collection_ready = desc["status"]
     while collection_ready.lower() != "ready" and time_waited < 120:
-        print(f"Waiting for collection {collection_name} to be ready. Waited {time_waited} seconds...")
+        print(
+            f"Waiting for collection {collection_name} to be ready. Waited {time_waited} seconds..."
+        )
         time.sleep(5)
         time_waited += 5
         desc = pc.describe_collection(collection_name)
@@ -127,7 +132,9 @@ def cleanup(client, index_name):
 
     time_waited = 0
     while index_exists(index_name, client) and time_waited < 120:
-        print(f"Waiting for index {index_name} to be ready to delete. Waited {time_waited} seconds..")
+        print(
+            f"Waiting for index {index_name} to be ready to delete. Waited {time_waited} seconds.."
+        )
         time_waited += 5
         time.sleep(5)
         try:

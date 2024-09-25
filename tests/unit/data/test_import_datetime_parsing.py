@@ -1,12 +1,9 @@
-import pytest
-
 from urllib3 import BaseHTTPResponse, HTTPResponse
 
 from datetime import datetime, date
 
 from pinecone.core_ea.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
-from pinecone.core_ea.openapi.db_data.model.import_model import ImportModel
-from pinecone.core_ea.openapi.shared.api_client import ApiClient, Endpoint as _Endpoint
+from pinecone.core_ea.openapi.shared.api_client import ApiClient
 from pinecone.core_ea.openapi.shared.rest import RESTResponse
 
 

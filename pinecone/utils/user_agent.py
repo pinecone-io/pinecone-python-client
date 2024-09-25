@@ -21,8 +21,7 @@ def _build_source_tag_field(source_tag):
 def _get_user_agent(client_id, config):
     user_agent_details = {"urllib3": urllib3.__version__}
     user_agent = "{} ({})".format(
-        client_id,
-        ", ".join([f"{k}:{v}" for k, v in user_agent_details.items()]),
+        client_id, ", ".join([f"{k}:{v}" for k, v in user_agent_details.items()])
     )
     user_agent += f"; {_build_source_tag_field(config.source_tag)}" if config.source_tag else ""
     return user_agent

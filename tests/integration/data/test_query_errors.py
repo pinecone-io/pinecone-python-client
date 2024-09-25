@@ -15,13 +15,13 @@ class TestQueryErrorCases:
     def test_query_with_invalid_id(self, idx, namespace, use_nondefault_namespace):
         target_namespace = namespace if use_nondefault_namespace else ""
 
-        with pytest.raises(TypeError) as e:
+        with pytest.raises(TypeError):
             idx.query(id=1, namespace=target_namespace, top_k=10)
 
     def test_query_with_invalid_top_k(self, idx, namespace, use_nondefault_namespace):
         target_namespace = namespace if use_nondefault_namespace else ""
 
-        with pytest.raises((PineconeException, ValueError)) as e:
+        with pytest.raises((PineconeException, ValueError)):
             idx.query(id="1", namespace=target_namespace, top_k=-1)
 
     def test_query_with_missing_top_k(self, idx, namespace, use_nondefault_namespace):

@@ -13,17 +13,20 @@ class TestSetupOpenAPIClient:
         assert openapi_config.host == "https://my-controller-host"
 
         control_plane_client = setup_openapi_client(
-            ApiClient, ManageIndexesApi, config=config, openapi_config=openapi_config, pool_threads=2
+            ApiClient,
+            ManageIndexesApi,
+            config=config,
+            openapi_config=openapi_config,
+            pool_threads=2,
         )
         user_agent_regex = re.compile(r"python-client-\d+\.\d+\.\d+ \(urllib3\:\d+\.\d+\.\d+\)")
         assert re.match(user_agent_regex, control_plane_client.api_client.user_agent)
-        assert re.match(user_agent_regex, control_plane_client.api_client.default_headers["User-Agent"])
+        assert re.match(
+            user_agent_regex, control_plane_client.api_client.default_headers["User-Agent"]
+        )
 
     def test_setup_openapi_client_with_api_version(self):
-        config = ConfigBuilder.build(
-            api_key="my-api-key",
-            host="https://my-controller-host",
-        )
+        config = ConfigBuilder.build(api_key="my-api-key", host="https://my-controller-host")
         openapi_config = ConfigBuilder.build_openapi_config(config)
         assert openapi_config.host == "https://my-controller-host"
 
@@ -37,12 +40,18 @@ class TestSetupOpenAPIClient:
         )
         user_agent_regex = re.compile(r"python-client-\d+\.\d+\.\d+ \(urllib3\:\d+\.\d+\.\d+\)")
         assert re.match(user_agent_regex, control_plane_client.api_client.user_agent)
-        assert re.match(user_agent_regex, control_plane_client.api_client.default_headers["User-Agent"])
-        assert control_plane_client.api_client.default_headers["X-Pinecone-API-Version"] == "2024-04"
+        assert re.match(
+            user_agent_regex, control_plane_client.api_client.default_headers["User-Agent"]
+        )
+        assert (
+            control_plane_client.api_client.default_headers["X-Pinecone-API-Version"] == "2024-04"
+        )
 
 
 class TestBuildPluginSetupClient:
-    @pytest.mark.parametrize("plugin_api_version,plugin_host", [(None, None), ("2024-07", "https://my-plugin-host")])
+    @pytest.mark.parametrize(
+        "plugin_api_version,plugin_host", [(None, None), ("2024-07", "https://my-plugin-host")]
+    )
     def test_setup_openapi_client_with_host_override(self, plugin_api_version, plugin_host):
         # These configurations represent the configurations that the core sdk
         # (e.g. Pinecone class) will have built prior to invoking the plugin setup.
@@ -67,7 +76,9 @@ class TestBuildPluginSetupClient:
         # proxy settings, etc) while allowing the plugin to pass the parts of the
         # configuration that are relevant to it such as api version, base url if
         # served from somewhere besides api.pinecone.io, etc.
-        client_builder = build_plugin_setup_client(config=config, openapi_config=openapi_config, pool_threads=2)
+        client_builder = build_plugin_setup_client(
+            config=config, openapi_config=openapi_config, pool_threads=2
+        )
 
         # The plugin machinery in pinecone_plugin_interface will be the one to call
         # this client_builder function using classes and other config it discovers inside the
@@ -81,7 +92,10 @@ class TestBuildPluginSetupClient:
         # class generated off the openapi spec.
         plugin_api = ManageIndexesApi
         plugin_client = client_builder(
-            api_client_klass=ApiClient, api_klass=plugin_api, api_version=plugin_api_version, host=plugin_host
+            api_client_klass=ApiClient,
+            api_klass=plugin_api,
+            api_version=plugin_api_version,
+            host=plugin_host,
         )
 
         # Returned client is an instance of the input class
@@ -100,7 +114,10 @@ class TestBuildPluginSetupClient:
         assert plugin_client.api_client.configuration.ssl_ca_cert == "path/to/bundle.pem"
 
         # Plugins need to be able to pass their own API version (optionally)
-        assert plugin_client.api_client.default_headers.get("X-Pinecone-API-Version") == plugin_api_version
+        assert (
+            plugin_client.api_client.default_headers.get("X-Pinecone-API-Version")
+            == plugin_api_version
+        )
 
         # Plugins need to be able to override the host (optionally)
         if plugin_host:

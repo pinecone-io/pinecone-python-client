@@ -5,7 +5,10 @@ from pinecone import PodSpec
 class TestDeletionProtection:
     def test_deletion_protection(self, client, index_name, environment):
         client.create_index(
-            name=index_name, dimension=2, deletion_protection="enabled", spec=PodSpec(environment=environment)
+            name=index_name,
+            dimension=2,
+            deletion_protection="enabled",
+            spec=PodSpec(environment=environment),
         )
         desc = client.describe_index(index_name)
         print(desc.deletion_protection)
@@ -24,7 +27,10 @@ class TestDeletionProtection:
 
     def test_configure_index_with_deletion_protection(self, client, index_name, environment):
         client.create_index(
-            name=index_name, dimension=2, deletion_protection="enabled", spec=PodSpec(environment=environment)
+            name=index_name,
+            dimension=2,
+            deletion_protection="enabled",
+            spec=PodSpec(environment=environment),
         )
         desc = client.describe_index(index_name)
         assert desc.deletion_protection == "enabled"

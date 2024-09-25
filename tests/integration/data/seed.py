@@ -7,16 +7,24 @@ import itertools
 def setup_data(idx, target_namespace, wait):
     # Upsert without metadata
     idx.upsert(
-        vectors=[("1", embedding_values(2)), ("2", embedding_values(2)), ("3", embedding_values(2))],
+        vectors=[
+            ("1", embedding_values(2)),
+            ("2", embedding_values(2)),
+            ("3", embedding_values(2)),
+        ],
         namespace=target_namespace,
     )
 
     # Upsert with metadata
     idx.upsert(
         vectors=[
-            Vector(id="4", values=embedding_values(2), metadata={"genre": "action", "runtime": 120}),
+            Vector(
+                id="4", values=embedding_values(2), metadata={"genre": "action", "runtime": 120}
+            ),
             Vector(id="5", values=embedding_values(2), metadata={"genre": "comedy", "runtime": 90}),
-            Vector(id="6", values=embedding_values(2), metadata={"genre": "romance", "runtime": 240}),
+            Vector(
+                id="6", values=embedding_values(2), metadata={"genre": "romance", "runtime": 240}
+            ),
         ],
         namespace=target_namespace,
     )
@@ -40,7 +48,10 @@ def setup_data(idx, target_namespace, wait):
 def setup_list_data(idx, target_namespace, wait):
     # Upsert a bunch more stuff for testing list pagination
     for i in range(0, 1000, 50):
-        idx.upsert(vectors=[(str(i + d), embedding_values(2)) for d in range(50)], namespace=target_namespace)
+        idx.upsert(
+            vectors=[(str(i + d), embedding_values(2)) for d in range(50)],
+            namespace=target_namespace,
+        )
 
     if wait:
         poll_fetch_for_ids_in_namespace(idx, ids=["999"], namespace=target_namespace)
@@ -59,7 +70,26 @@ def weird_invalid_ids():
     ]
     emojis = list("🌲🍦")
     two_byte = list("田中さんにあげて下さい")
-    quotes = ["‘", "’", "“", "”", "„", "‟", "‹", "›", "❛", "❜", "❝", "❞", "❮", "❯", "＂", "＇", "｢", "｣"]
+    quotes = [
+        "‘",
+        "’",
+        "“",
+        "”",
+        "„",
+        "‟",
+        "‹",
+        "›",
+        "❛",
+        "❜",
+        "❝",
+        "❞",
+        "❮",
+        "❯",
+        "＂",
+        "＇",
+        "｢",
+        "｣",
+    ]
 
     return invisible + emojis + two_byte + quotes
 
@@ -103,15 +133,7 @@ def weird_valid_ids():
     ]
     ids.extend(script_injection)
 
-    unwanted_interpolation = [
-        "$HOME",
-        "$ENV{'HOME'}",
-        "%d",
-        "%s",
-        "%n",
-        "%x",
-        "{0}",
-    ]
+    unwanted_interpolation = ["$HOME", "$ENV{'HOME'}", "%d", "%s", "%n", "%x", "{0}"]
     ids.extend(unwanted_interpolation)
 
     return ids

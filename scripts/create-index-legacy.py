@@ -39,7 +39,7 @@ def main():
 
     print(f"Waiting for index {index_name} to be ready...")
     time.sleep(60)
-    print(f"Done waiting.")
+    print("Done waiting.")
 
     description = pinecone.describe_index(index_name)
     print(f"Index description: {description}")
@@ -50,11 +50,11 @@ def main():
         vector = random_embedding_values(dimension)
         vecs = [{"id": random_string(10), "values": vector} for i in range(10)]
         index.upsert(vectors=[vecs])
-    print(f"Done upserting.")
+    print("Done upserting.")
 
     print(f"Beginning query of index {index_name}...")
     index.query(vector=random_embedding_values(dimension))
-    print(f"Done querying.")
+    print("Done querying.")
 
 
 if __name__ == "__main__":

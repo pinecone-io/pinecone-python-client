@@ -1,6 +1,9 @@
 import pytest
 from pinecone import CollectionList
-from pinecone.core.openapi.control.models import CollectionList as OpenApiCollectionList, CollectionModel
+from pinecone.core.openapi.control.models import (
+    CollectionList as OpenApiCollectionList,
+    CollectionModel,
+)
 
 
 @pytest.fixture
@@ -23,7 +26,7 @@ def collection_list_response():
                 record_count=2000,
                 environment="us-west1-gcp",
             ),
-        ],
+        ]
     )
 
 
@@ -44,7 +47,8 @@ class TestCollectionList:
     def test_collection_list_proxies_methods(self, collection_list_response):
         # Forward compatibility, in case we add more attributes to IndexList for pagination
         assert (
-            CollectionList(collection_list_response).collection_list.collections == collection_list_response.collections
+            CollectionList(collection_list_response).collection_list.collections
+            == collection_list_response.collections
         )
 
     def test_when_results_are_empty(self):

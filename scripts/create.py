@@ -27,12 +27,7 @@ def main():
         name=index_name,
         metric=read_env_var("METRIC"),
         dimension=int(read_env_var("DIMENSION")),
-        spec={
-            "serverless": {
-                "cloud": read_env_var("CLOUD"),
-                "region": read_env_var("REGION"),
-            }
-        },
+        spec={"serverless": {"cloud": read_env_var("CLOUD"), "region": read_env_var("REGION")}},
     )
     write_gh_output("index_name", index_name)
 

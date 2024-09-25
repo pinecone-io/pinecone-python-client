@@ -24,7 +24,11 @@ class TestIndexClientInitialization:
     def test_multiple_additional_headers(self):
         pc = Pinecone(api_key="YOUR_API_KEY")
         index = pc.Index(
-            host="myhost", additional_headers={"test-header": "test-header-value", "test-header2": "test-header-value2"}
+            host="myhost",
+            additional_headers={
+                "test-header": "test-header-value",
+                "test-header2": "test-header-value2",
+            },
         )
         assert "test-header" in index._vector_api.api_client.default_headers
         assert "test-header2" in index._vector_api.api_client.default_headers
@@ -42,11 +46,15 @@ class TestIndexClientInitialization:
 
     def test_set_source_tag(self):
         pc = Pinecone(api_key="123-456-789", source_tag="test_source_tag")
-        index = pc.Index(host="myhost")
-        assert re.search(r"source_tag=test_source_tag", pc.index_api.api_client.user_agent) is not None
+        assert (
+            re.search(r"source_tag=test_source_tag", pc.index_api.api_client.user_agent) is not None
+        )
 
     def test_set_source_tag_via_config(self):
-        config = ConfigBuilder.build(api_key="YOUR_API_KEY", host="https://my-host", source_tag="my_source_tag")
+        config = ConfigBuilder.build(
+            api_key="YOUR_API_KEY", host="https://my-host", source_tag="my_source_tag"
+        )
         pc = Pinecone(config=config)
-        index = pc.Index(host="myhost")
-        assert re.search(r"source_tag=my_source_tag", pc.index_api.api_client.user_agent) is not None
+        assert (
+            re.search(r"source_tag=my_source_tag", pc.index_api.api_client.user_agent) is not None
+        )

@@ -1,8 +1,8 @@
 """
 Connecting to Pinecone with GRPC
 
-The `pinecone.grpc` submodule provides an alternative version of the Pinecone 
-client that uses gRPC instead of HTTP for data operations. This provides a 
+The `pinecone.grpc` submodule provides an alternative version of the Pinecone
+client that uses gRPC instead of HTTP for data operations. This provides a
 significant performance boost for data operations.
 
 ### Installing the gRPC client
@@ -54,3 +54,13 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     Vector,
     SparseValues,
 )
+
+__all__ = [
+    "GRPCIndex",
+    "PineconeGRPC",
+    "GRPCClientConfig",
+    "GRPCVector",
+    "GRPCSparseValues",
+    "Vector",
+    "SparseValues",
+]

@@ -1,6 +1,6 @@
 from tqdm.autonotebook import tqdm
 
-from typing import Union, List, Tuple, Optional, Dict, Any
+from typing import Union, List, Optional, Dict, Any
 
 from pinecone.config import ConfigBuilder
 
@@ -17,7 +17,6 @@ from pinecone.core.openapi.data.models import (
     DescribeIndexStatsResponse,
     UpsertRequest,
     UpsertResponse,
-    UpdateRequest,
     Vector,
     DeleteRequest,
     UpdateRequest,
@@ -91,10 +90,7 @@ class Index(ImportFeatureMixin):
         )
 
         self._config = ConfigBuilder.build(
-            api_key=api_key,
-            host=host,
-            additional_headers=additional_headers,
-            **kwargs,
+            api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
         openapi_config = ConfigBuilder.build_openapi_config(self._config, openapi_config)
 
@@ -189,14 +185,12 @@ class Index(ImportFeatureMixin):
         if not isinstance(batch_size, int) or batch_size <= 0:
             raise ValueError("batch_size must be a positive integer")
 
-        pbar = tqdm(
-            total=len(vectors),
-            disable=not show_progress,
-            desc="Upserted vectors",
-        )
+        pbar = tqdm(total=len(vectors), disable=not show_progress, desc="Upserted vectors")
         total_upserted = 0
         for i in range(0, len(vectors), batch_size):
-            batch_result = self._upsert_batch(vectors[i : i + batch_size], namespace, _check_type, **kwargs)
+            batch_result = self._upsert_batch(
+                vectors[i : i + batch_size], namespace, _check_type, **kwargs
+            )
             pbar.update(batch_result.upserted_count)
             # we can't use here pbar.n for the case show_progress=False
             total_upserted += batch_result.upserted_count
@@ -211,7 +205,9 @@ class Index(ImportFeatureMixin):
         **kwargs,
     ) -> UpsertResponse:
         args_dict = parse_non_empty_args([("namespace", namespace)])
-        vec_builder = lambda v: VectorFactory.build(v, check_type=_check_type)
+
+        def vec_builder(v):
+            return VectorFactory.build(v, check_type=_check_type)
 
         return self._vector_api.upsert(
             UpsertRequest(
@@ -230,11 +226,7 @@ class Index(ImportFeatureMixin):
             yield batch
 
     def upsert_from_dataframe(
-        self,
-        df,
-        namespace: Optional[str] = None,
-        batch_size: int = 500,
-        show_progress: bool = True,
+        self, df, namespace: Optional[str] = None, batch_size: int = 500, show_progress: bool = True
     ) -> UpsertResponse:
         """Upserts a dataframe into the index.
 
@@ -254,11 +246,7 @@ class Index(ImportFeatureMixin):
         if not isinstance(df, pd.DataFrame):
             raise ValueError(f"Only pandas dataframes are supported. Found: {type(df)}")
 
-        pbar = tqdm(
-            total=len(df),
-            disable=not show_progress,
-            desc="sending upsert requests",
-        )
+        pbar = tqdm(total=len(df), disable=not show_progress, desc="sending upsert requests")
         results = []
         for chunk in self._iter_dataframe(df, batch_size=batch_size):
             res = self.upsert(vectors=chunk, namespace=namespace)
@@ -317,18 +305,17 @@ class Index(ImportFeatureMixin):
         """
         _check_type = kwargs.pop("_check_type", False)
         args_dict = parse_non_empty_args(
-            [
-                ("ids", ids),
-                ("delete_all", delete_all),
-                ("namespace", namespace),
-                ("filter", filter),
-            ]
+            [("ids", ids), ("delete_all", delete_all), ("namespace", namespace), ("filter", filter)]
         )
 
         return self._vector_api.delete(
             DeleteRequest(
                 **args_dict,
-                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS and v is not None},
+                **{
+                    k: v
+                    for k, v in kwargs.items()
+                    if k not in _OPENAPI_ENDPOINT_PARAMS and v is not None
+                },
                 _check_type=_check_type,
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
@@ -370,7 +357,9 @@ class Index(ImportFeatureMixin):
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[SparseValues, Dict[str, Union[List[float], List[int]]]]] = None,
+        sparse_vector: Optional[
+            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
+        ] = None,
         **kwargs,
     ) -> QueryResponse:
         """
@@ -454,13 +443,12 @@ class Index(ImportFeatureMixin):
         id: str,
         values: Optional[List[float]] = None,
         set_metadata: Optional[
-            Dict[
-                str,
-                Union[str, float, int, bool, List[int], List[float], List[str]],
-            ]
+            Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]
         ] = None,
         namespace: Optional[str] = None,
-        sparse_values: Optional[Union[SparseValues, Dict[str, Union[List[float], List[int]]]]] = None,
+        sparse_values: Optional[
+            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
+        ] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """
@@ -516,9 +504,7 @@ class Index(ImportFeatureMixin):
 
     @validate_and_convert_errors
     def describe_index_stats(
-        self,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
-        **kwargs,
+        self, filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None, **kwargs
     ) -> DescribeIndexStatsResponse:
         """
         The DescribeIndexStats operation returns statistics about the index's contents.
@@ -628,7 +614,7 @@ class Index(ImportFeatureMixin):
 
     @staticmethod
     def _parse_sparse_values_arg(
-        sparse_values: Optional[Union[SparseValues, Dict[str, Union[List[float], List[int]]]]]
+        sparse_values: Optional[Union[SparseValues, Dict[str, Union[List[float], List[int]]]]],
     ) -> Optional[SparseValues]:
         if sparse_values is None:
             return None
@@ -636,7 +622,11 @@ class Index(ImportFeatureMixin):
         if isinstance(sparse_values, SparseValues):
             return sparse_values
 
-        if not isinstance(sparse_values, dict) or "indices" not in sparse_values or "values" not in sparse_values:
+        if (
+            not isinstance(sparse_values, dict)
+            or "indices" not in sparse_values
+            or "values" not in sparse_values
+        ):
             raise ValueError(
                 "Invalid sparse values argument. Expected a dict of: {'indices': List[int], 'values': List[float]}."
                 f"Received: {sparse_values}"

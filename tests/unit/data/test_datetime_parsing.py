@@ -1,5 +1,4 @@
 from pinecone import Vector, Config
-from datetime import datetime
 
 
 class TestDatetimeConversion:
@@ -12,7 +11,7 @@ class TestDatetimeConversion:
             _configuration=Config(),
         )
         assert vec.metadata["created_at"] == "7th of January, 2023"
-        assert vec.metadata["created_at"].__class__ == str
+        assert isinstance(vec.metadata["created_at"], str)
 
     def test_dates_not_coerced(self):
         vec = Vector(
@@ -23,4 +22,4 @@ class TestDatetimeConversion:
             _configuration=Config(),
         )
         assert vec.metadata["created_at"] == "8/12/2024"
-        assert vec.metadata["created_at"].__class__ == str
+        assert isinstance(vec.metadata["created_at"], str)

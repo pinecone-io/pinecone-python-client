@@ -1,5 +1,4 @@
 import time
-import warnings
 import logging
 from typing import Optional, Dict, Any, Union, List, Tuple, Literal
 
@@ -7,16 +6,11 @@ from .index_host_store import IndexHostStore
 
 from pinecone.config import PineconeConfig, Config, ConfigBuilder
 
-from pinecone.core.openapi.control.api.manage_indexes_api import (
-    ManageIndexesApi,
-)
+from pinecone.core.openapi.control.api.manage_indexes_api import ManageIndexesApi
 from pinecone.core.openapi.shared.api_client import ApiClient
 
-from pinecone.utils import (
-    normalize_host,
-    setup_openapi_client,
-    build_plugin_setup_client,
-)
+
+from pinecone.utils import normalize_host, setup_openapi_client, build_plugin_setup_client
 from pinecone.core.openapi.control.models import (
     CreateCollectionRequest,
     CreateIndexRequest,
@@ -215,7 +209,7 @@ class Pinecone:
 
         if kwargs.get("openapi_config", None):
             raise Exception(
-                "Passing openapi_config is no longer supported. Please pass settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at https://github.com/pinecone-io/pinecone-python-client for examples.",
+                "Passing openapi_config is no longer supported. Please pass settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at https://github.com/pinecone-io/pinecone-python-client for examples."
             )
 
         self.openapi_config = ConfigBuilder.build_openapi_config(self.config, **kwargs)
@@ -354,10 +348,7 @@ class Pinecone:
                 raise ValueError("spec must contain either 'serverless' or 'pod' key")
         elif isinstance(spec, ServerlessSpec):
             index_spec = IndexSpec(
-                serverless=ServerlessSpecModel(
-                    cloud=spec.cloud,
-                    region=spec.region,
-                )
+                serverless=ServerlessSpecModel(cloud=spec.cloud, region=spec.region)
             )
         elif isinstance(spec, PodSpec):
             args_dict = _parse_non_empty_args(
@@ -369,14 +360,12 @@ class Pinecone:
                 ]
             )
             if spec.metadata_config:
-                args_dict["metadata_config"] = PodSpecMetadataConfig(indexed=spec.metadata_config.get("indexed", None))
+                args_dict["metadata_config"] = PodSpecMetadataConfig(
+                    indexed=spec.metadata_config.get("indexed", None)
+                )
 
             index_spec = IndexSpec(
-                pod=PodSpecModel(
-                    environment=spec.environment,
-                    pod_type=spec.pod_type,
-                    **args_dict,
-                )
+                pod=PodSpecModel(environment=spec.environment, pod_type=spec.pod_type, **args_dict)
             )
         else:
             raise TypeError("spec must be of type dict, ServerlessSpec, or PodSpec")
@@ -388,7 +377,7 @@ class Pinecone:
                 metric=metric,
                 spec=index_spec,
                 deletion_protection=dp,
-            ),
+            )
         )
 
         def is_ready():
@@ -631,7 +620,9 @@ class Pinecone:
         :param source: Name of the source index
         """
         api_instance = self.index_api
-        api_instance.create_collection(create_collection_request=CreateCollectionRequest(name=name, source=source))
+        api_instance.create_collection(
+            create_collection_request=CreateCollectionRequest(name=name, source=source)
+        )
 
     def list_collections(self) -> CollectionList:
         """List all collections

@@ -12,14 +12,18 @@ class TestVectorFactory:
         assert VectorFactory.build(vec) == vec
         assert VectorFactory.build(vec).__class__ == Vector
 
-    @pytest.mark.parametrize("values_array", [[0.1, 0.2, 0.3], np.array([0.1, 0.2, 0.3]), pd.array([0.1, 0.2, 0.3])])
+    @pytest.mark.parametrize(
+        "values_array", [[0.1, 0.2, 0.3], np.array([0.1, 0.2, 0.3]), pd.array([0.1, 0.2, 0.3])]
+    )
     def test_build_when_tuple_with_two_values(self, values_array):
         tup = ("1", values_array)
         actual = VectorFactory.build(tup)
         expected = Vector(id="1", values=[0.1, 0.2, 0.3], metadata={})
         assert actual == expected
 
-    @pytest.mark.parametrize("values_array", [[0.1, 0.2, 0.3], np.array([0.1, 0.2, 0.3]), pd.array([0.1, 0.2, 0.3])])
+    @pytest.mark.parametrize(
+        "values_array", [[0.1, 0.2, 0.3], np.array([0.1, 0.2, 0.3]), pd.array([0.1, 0.2, 0.3])]
+    )
     def test_build_when_tuple_with_three_values(self, values_array):
         tup = ("1", values_array, {"genre": "comedy"})
         actual = VectorFactory.build(tup)
@@ -39,8 +43,7 @@ class TestVectorFactory:
     )
     def test_build_when_tuple_values_must_be_list(self, vector_tup):
         with pytest.raises(
-            ListConversionException,
-            match="Expected a list or list-like data structure",
+            ListConversionException, match="Expected a list or list-like data structure"
         ):
             VectorFactory.build(vector_tup)
 
@@ -54,7 +57,9 @@ class TestVectorFactory:
             tup = ("1",)
             VectorFactory.build(tup)
 
-    @pytest.mark.parametrize("values_array", [[0.1, 0.2, 0.3], np.array([0.1, 0.2, 0.3]), pd.array([0.1, 0.2, 0.3])])
+    @pytest.mark.parametrize(
+        "values_array", [[0.1, 0.2, 0.3], np.array([0.1, 0.2, 0.3]), pd.array([0.1, 0.2, 0.3])]
+    )
     def test_build_when_dict(self, values_array):
         d = {"id": "1", "values": values_array, "metadata": {"genre": "comedy"}}
         actual = VectorFactory.build(d)
@@ -68,7 +73,12 @@ class TestVectorFactory:
 
     def test_build_when_dict_excess_keys(self):
         with pytest.raises(ValueError, match="Found excess keys in the vector dictionary"):
-            d = {"id": "1", "values": [0.1, 0.2, 0.3], "metadata": {"genre": "comedy"}, "extra": "field"}
+            d = {
+                "id": "1",
+                "values": [0.1, 0.2, 0.3],
+                "metadata": {"genre": "comedy"},
+                "extra": "field",
+            }
             VectorFactory.build(d)
 
     def test_build_when_dict_sparse_values(self):
@@ -104,12 +114,21 @@ class TestVectorFactory:
         assert actual == expected
 
     def test_build_when_dict_sparse_values_errors_when_not_dict(self):
-        with pytest.raises(ValueError, match="Column `sparse_values` is expected to be a dictionary"):
-            d = {"id": "1", "values": [0.1, 0.2, 0.3], "metadata": {"genre": "comedy"}, "sparse_values": "not a dict"}
+        with pytest.raises(
+            ValueError, match="Column `sparse_values` is expected to be a dictionary"
+        ):
+            d = {
+                "id": "1",
+                "values": [0.1, 0.2, 0.3],
+                "metadata": {"genre": "comedy"},
+                "sparse_values": "not a dict",
+            }
             VectorFactory.build(d)
 
     def test_build_when_dict_sparse_values_errors_when_missing_indices(self):
-        with pytest.raises(ValueError, match="Missing required keys in data in column `sparse_values`"):
+        with pytest.raises(
+            ValueError, match="Missing required keys in data in column `sparse_values`"
+        ):
             d = {
                 "id": "1",
                 "values": [0.1, 0.2, 0.3],
@@ -119,7 +138,9 @@ class TestVectorFactory:
             VectorFactory.build(d)
 
     def test_build_when_dict_sparse_values_errors_when_missing_values(self):
-        with pytest.raises(ValueError, match="Missing required keys in data in column `sparse_values`"):
+        with pytest.raises(
+            ValueError, match="Missing required keys in data in column `sparse_values`"
+        ):
             d = {
                 "id": "1",
                 "values": [0.1, 0.2, 0.3],
@@ -217,7 +238,12 @@ class TestVectorFactory:
             VectorFactory.build(1)
 
     def test_build_when_sparse_values_is_None(self):
-        d = {"id": "1", "values": [0.1, 0.2, 0.3], "metadata": {"genre": "comedy"}, "sparse_values": None}
+        d = {
+            "id": "1",
+            "values": [0.1, 0.2, 0.3],
+            "metadata": {"genre": "comedy"},
+            "sparse_values": None,
+        }
         actual = VectorFactory.build(d)
         expected = Vector(id="1", values=[0.1, 0.2, 0.3], metadata={"genre": "comedy"})
         assert actual == expected

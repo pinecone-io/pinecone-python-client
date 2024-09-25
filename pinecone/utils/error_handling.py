@@ -11,11 +11,13 @@ def validate_and_convert_errors(func):
             return func(*args, **kwargs)
         except MaxRetryError as e:
             if isinstance(e.reason, ProtocolError):
-                raise ProtocolError(f"Failed to connect to {e.url}; did you specify the correct index name?") from e
+                raise ProtocolError(
+                    f"Failed to connect to {e.url}; did you specify the correct index name?"
+                ) from e
             else:
                 raise
         except ProtocolError as e:
-            raise ProtocolError(f"Failed to connect; did you specify the correct index name?") from e
+            raise ProtocolError("Failed to connect; did you specify the correct index name?") from e
 
     # Override signature
     sig = inspect.signature(func)

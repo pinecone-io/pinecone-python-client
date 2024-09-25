@@ -134,7 +134,9 @@ class GRPCIndexBase(ABC):
 
     def grpc_server_on(self) -> bool:
         try:
-            grpc.channel_ready_future(self._channel).result(timeout=self.grpc_client_config.conn_timeout)
+            grpc.channel_ready_future(self._channel).result(
+                timeout=self.grpc_client_config.conn_timeout
+            )
             return True
         except grpc.FutureTimeoutError:
             return False

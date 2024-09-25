@@ -1,5 +1,3 @@
-import numbers
-
 from collections.abc import Mapping
 from typing import Union, Dict
 
@@ -11,9 +9,7 @@ from ..data import (
     SparseValuesDictionaryExpectedError,
 )
 
-from pinecone.core.grpc.protos.vector_service_pb2 import (
-    SparseValues as GRPCSparseValues,
-)
+from pinecone.core.grpc.protos.vector_service_pb2 import SparseValues as GRPCSparseValues
 from pinecone import SparseValues as NonGRPCSparseValues
 
 

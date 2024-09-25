@@ -20,10 +20,7 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     Vector as GRPCVector,
     SparseValues as GRPCSparseValues,
 )
-from pinecone import (
-    Vector as NonGRPCVector,
-    SparseValues as NonGRPCSparseValues,
-)
+from pinecone import Vector as NonGRPCVector, SparseValues as NonGRPCSparseValues
 
 
 class VectorFactoryGRPC:
@@ -34,8 +31,7 @@ class VectorFactoryGRPC:
         elif isinstance(item, NonGRPCVector):
             if item.sparse_values:
                 sv = GRPCSparseValues(
-                    indices=item.sparse_values.indices,
-                    values=item.sparse_values.values,
+                    indices=item.sparse_values.indices, values=item.sparse_values.values
                 )
                 return GRPCVector(
                     id=item.id,
@@ -67,9 +63,7 @@ class VectorFactoryGRPC:
             )
         else:
             return GRPCVector(
-                id=id,
-                values=convert_to_list(values),
-                metadata=dict_to_proto_struct(metadata or {}),
+                id=id, values=convert_to_list(values), metadata=dict_to_proto_struct(metadata or {})
             )
 
     @staticmethod
@@ -87,10 +81,10 @@ class VectorFactoryGRPC:
             try:
                 item["values"] = convert_to_list(values)
             except TypeError as e:
-                raise TypeError(f"Column `values` is expected to be a list of floats") from e
+                raise TypeError("Column `values` is expected to be a list of floats") from e
 
         sparse_values = item.get("sparse_values")
-        if sparse_values != None and not isinstance(sparse_values, GRPCSparseValues):
+        if sparse_values is not None and not isinstance(sparse_values, GRPCSparseValues):
             item["sparse_values"] = SparseValuesFactory.build(sparse_values)
 
         metadata = item.get("metadata")
@@ -115,5 +109,5 @@ class VectorFactoryGRPC:
             if not isinstance(item["values"], Iterable) or not isinstance(
                 item["values"].__iter__().__next__(), numbers.Real
             ):
-                raise TypeError(f"Column `values` is expected to be a list of floats")
+                raise TypeError("Column `values` is expected to be a list of floats")
             raise e

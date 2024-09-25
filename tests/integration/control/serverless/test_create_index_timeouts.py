@@ -10,7 +10,9 @@ class TestCreateIndexWithTimeout:
         assert desc.status.ready == True
 
     def test_create_index_when_timeout_set(self, client, create_sl_index_params):
-        create_sl_index_params["timeout"] = 1000  # effectively infinite, but different code path from None
+        create_sl_index_params["timeout"] = (
+            1000  # effectively infinite, but different code path from None
+        )
         client.create_index(**create_sl_index_params)
         desc = client.describe_index(create_sl_index_params["name"])
         assert desc.status.ready == True

@@ -3,9 +3,7 @@ import os
 
 from pinecone.exceptions.exceptions import PineconeConfigurationError
 from pinecone.config.openapi import OpenApiConfigFactory
-from pinecone.core.openapi.shared.configuration import (
-    Configuration as OpenApiConfiguration,
-)
+from pinecone.core.openapi.shared.configuration import Configuration as OpenApiConfiguration
 from pinecone.utils import normalize_host
 from pinecone.utils.constants import SOURCE_TAG
 
@@ -72,15 +70,11 @@ class ConfigBuilder:
 
     @staticmethod
     def build_openapi_config(
-        config: Config,
-        openapi_config: Optional[OpenApiConfiguration] = None,
-        **kwargs,
+        config: Config, openapi_config: Optional[OpenApiConfiguration] = None, **kwargs
     ) -> OpenApiConfiguration:
         if openapi_config:
             openapi_config = OpenApiConfigFactory.copy(
-                openapi_config=openapi_config,
-                api_key=config.api_key,
-                host=config.host,
+                openapi_config=openapi_config, api_key=config.api_key, host=config.host
             )
         elif openapi_config is None:
             openapi_config = OpenApiConfigFactory.build(api_key=config.api_key, host=config.host)
@@ -95,7 +89,7 @@ class ConfigBuilder:
             openapi_config.proxy_headers = config.proxy_headers
         if config.ssl_ca_certs:
             openapi_config.ssl_ca_cert = config.ssl_ca_certs
-        if config.ssl_verify != None:
+        if config.ssl_verify is not None:
             openapi_config.verify_ssl = config.ssl_verify
 
         return openapi_config
