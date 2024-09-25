@@ -75,7 +75,47 @@ If you want to extract only the path to your new virtualenv, you can run `poetry
 
 ### Step 4. Enable pre-commit hooks.
 
-Run `poetry run pre-commit install` to enable checks to run when you commit so you don't have to find out during your CI run that minor issues need to be addressed.
+Run `poetry run pre-commit install` to enable checks to run when you commit so you don't have to find out during your CI run that minor lint issues need to be addressed.
+
+## Common tasks
+
+### Running tests
+
+- Unit tests: `make test-unit`
+- Integration tests: `PINECONE_API_KEY="YOUR API KEY" make test-integration`
+- Run the tests in a single file: `poetry run pytest tests/unit/data/test_bulk_import.py -s -vv`
+
+### Running the ruff linter / formatter
+
+These should automatically trigger if you have enabled pre-commit hooks with `poetry run pre-commit install`. But in case you want to trigger these yourself, you can run them like this:
+
+```
+poetry run ruff check --fix # lint rules
+poetry run ruff format      # formatting
+```
+
+If you want to adjust the behavior of ruff, configurations are in `pyproject.toml`.
+
+
+### Consuming API version upgrades
+
+These instructions can only be followed by Pinecone employees with access to our private APIs repository.
+
+Prerequisites:
+- You must be an employee with access to private Pinecone repositories
+- You must have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running. Our code generation script uses a dockerized version of the OpenAPI CLI.
+- You must have initialized the git submodules under codegen
+
+```sh
+git submodule
+```
+
+To regenerate the generated portions of the client with the latest version of the API specifications, you need to have Docker Desktop running on your local machine.
+
+```sh
+./codegen/
+```
+
 
 ## Loading your virtualenv in another shell
 
@@ -146,26 +186,3 @@ Hello, from your virtualenv!
 ```
 
 If you experience any issues please [file a new issue](https://github.com/pinecone-io/pinecone-python-client/issues/new).
-
-
-## Consuming API version upgrades
-
-These instructions can only be followed by Pinecone employees with access to our private APIs repository.
-
-Prerequisites:
-- You must be an employee with access to private Pinecone repositories
-- You must have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running. Our code generation script uses a dockerized version of the OpenAPI CLI.
-- You must have initialized the git submodules under codegen
-
-```sh
-git submodule
-```
-
-
-To regenerate the generated portions of the client with the latest version of the API specifications, you need to have Docker Desktop running on your local machine.
-
-
-
-```sh
-./codegen/
-```
