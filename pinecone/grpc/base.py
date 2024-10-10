@@ -3,18 +3,16 @@ from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Dict, Optional
 
-import certifi
 import grpc
 from grpc._channel import _InactiveRpcError, Channel
-import json
 
 from .retry import RetryConfig
+from .channel_factory import GrpcChannelFactory
 
 from pinecone import Config
 from .utils import _generate_request_id
 from .config import GRPCClientConfig
-from pinecone.utils.constants import MAX_MSG_SIZE, REQUEST_ID, CLIENT_VERSION
-from pinecone.utils.user_agent import get_user_agent_grpc
+from pinecone.utils.constants import REQUEST_ID, CLIENT_VERSION
 from pinecone.exceptions.exceptions import PineconeException
 
 _logger = logging.getLogger(__name__)
@@ -35,8 +33,6 @@ class GRPCIndexBase(ABC):
         grpc_config: Optional[GRPCClientConfig] = None,
         _endpoint_override: Optional[str] = None,
     ):
-        self.name = index_name
-
         self.config = config
         self.grpc_client_config = grpc_config or GRPCClientConfig()
         self.retry_config = self.grpc_client_config.retry_config or RetryConfig()
@@ -51,35 +47,10 @@ class GRPCIndexBase(ABC):
 
         self._endpoint_override = _endpoint_override
 
-        self.method_config = json.dumps(
-            {
-                "methodConfig": [
-                    {
-                        "name": [{"service": "VectorService.Upsert"}],
-                        "retryPolicy": {
-                            "maxAttempts": 5,
-                            "initialBackoff": "0.1s",
-                            "maxBackoff": "1s",
-                            "backoffMultiplier": 2,
-                            "retryableStatusCodes": ["UNAVAILABLE"],
-                        },
-                    },
-                    {
-                        "name": [{"service": "VectorService"}],
-                        "retryPolicy": {
-                            "maxAttempts": 5,
-                            "initialBackoff": "0.1s",
-                            "maxBackoff": "1s",
-                            "backoffMultiplier": 2,
-                            "retryableStatusCodes": ["UNAVAILABLE"],
-                        },
-                    },
-                ]
-            }
+        self.channel_factory = GrpcChannelFactory(
+            config=self.config, grpc_client_config=self.grpc_client_config, use_asyncio=False
         )
-
-        options = {"grpc.primary_user_agent": get_user_agent_grpc(config)}
-        self._channel = channel or self._gen_channel(options=options)
+        self._channel = channel or self._gen_channel()
         self.stub = self.stub_class(self._channel)
 
     @property
@@ -93,36 +64,8 @@ class GRPCIndexBase(ABC):
             grpc_host = f"{grpc_host}:443"
         return self._endpoint_override if self._endpoint_override else grpc_host
 
-    def _gen_channel(self, options=None):
-        target = self._endpoint()
-        default_options = {
-            "grpc.max_send_message_length": MAX_MSG_SIZE,
-            "grpc.max_receive_message_length": MAX_MSG_SIZE,
-            "grpc.service_config": self.method_config,
-            "grpc.enable_retries": True,
-            "grpc.per_rpc_retry_buffer_size": MAX_MSG_SIZE,
-        }
-        if self.grpc_client_config.secure:
-            default_options["grpc.ssl_target_name_override"] = target.split(":")[0]
-        if self.config.proxy_url:
-            default_options["grpc.http_proxy"] = self.config.proxy_url
-        user_provided_options = options or {}
-        _options = tuple((k, v) for k, v in {**default_options, **user_provided_options}.items())
-        _logger.debug(
-            "creating new channel with endpoint %s options %s and config %s",
-            target,
-            _options,
-            self.grpc_client_config,
-        )
-        if not self.grpc_client_config.secure:
-            channel = grpc.insecure_channel(target, options=_options)
-        else:
-            ca_certs = self.config.ssl_ca_certs if self.config.ssl_ca_certs else certifi.where()
-            root_cas = open(ca_certs, "rb").read()
-            tls = grpc.ssl_channel_credentials(root_certificates=root_cas)
-            channel = grpc.secure_channel(target, tls, options=_options)
-
-        return channel
+    def _gen_channel(self):
+        return self.channel_factory.create_channel(self._endpoint())
 
     @property
     def channel(self):
