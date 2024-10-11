@@ -62,12 +62,9 @@ class TestGrpcChannelFactory:
         )
         endpoint = "test.endpoint:443"
 
-        with patch("grpc.secure_channel") as mock_secure_channel, patch(
-            "grpc.insecure_channel"
-        ) as mock_insecure_channel:
+        with patch("grpc.secure_channel") as mock_secure_channel:
             channel = factory.create_channel(endpoint)
 
-            assert mock_insecure_channel.not_called()
             mock_secure_channel.assert_called_once()
             assert "grpc.http_proxy" in dict(mock_secure_channel.call_args[1]["options"])
             assert (
