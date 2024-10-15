@@ -71,7 +71,7 @@ class TestGrpcIndexUpsert:
         )
 
     def _assert_called_once(self, vectors, async_call=False):
-        self.index._wrap_grpc_call.assert_called_once_with(
+        self.index.runner.run.assert_called_once_with(
             self.index.stub.Upsert.future if async_call else self.index.stub.Upsert,
             UpsertRequest(vectors=vectors, namespace="ns"),
             timeout=None,
@@ -80,19 +80,19 @@ class TestGrpcIndexUpsert:
     def test_upsert_tuplesOfIdVec_UpserWithoutMD(
         self, mocker, vals1, vals2, expected_vec1, expected_vec2
     ):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         self.index.upsert([("vec1", vals1), ("vec2", vals2)], namespace="ns")
         self._assert_called_once([expected_vec1, expected_vec2])
 
     def test_upsert_tuplesOfIdVecMD_UpsertVectorsWithMD(
         self, mocker, vals1, md1, vals2, md2, expected_vec_md1, expected_vec_md2
     ):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         self.index.upsert([("vec1", vals1, md1), ("vec2", vals2, md2)], namespace="ns")
         self._assert_called_once([expected_vec_md1, expected_vec_md2])
 
     def test_upsert_vectors_upsertInputVectors(self, mocker, expected_vec_md1, expected_vec_md2):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         self.index.upsert([expected_vec_md1, expected_vec_md2], namespace="ns")
         self._assert_called_once([expected_vec_md1, expected_vec_md2])
 
@@ -110,7 +110,7 @@ class TestGrpcIndexUpsert:
         expected_vec_md_sparse1,
         expected_vec_md_sparse2,
     ):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         self.index.upsert(
             [
                 Vector(
@@ -131,7 +131,7 @@ class TestGrpcIndexUpsert:
         self._assert_called_once([expected_vec_md_sparse1, expected_vec_md_sparse2])
 
     def test_upsert_dict(self, mocker, vals1, vals2, expected_vec1, expected_vec2):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         dict1 = {"id": "vec1", "values": vals1}
         dict2 = {"id": "vec2", "values": vals2}
         self.index.upsert([dict1, dict2], namespace="ns")
@@ -140,7 +140,7 @@ class TestGrpcIndexUpsert:
     def test_upsert_dict_md(
         self, mocker, vals1, md1, vals2, md2, expected_vec_md1, expected_vec_md2
     ):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         dict1 = {"id": "vec1", "values": vals1, "metadata": md1}
         dict2 = {"id": "vec2", "values": vals2, "metadata": md2}
         self.index.upsert([dict1, dict2], namespace="ns")
@@ -156,7 +156,7 @@ class TestGrpcIndexUpsert:
         sparse_indices_2,
         sparse_values_2,
     ):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         dict1 = {
             "id": "vec1",
             "values": vals1,
@@ -197,7 +197,7 @@ class TestGrpcIndexUpsert:
         sparse_indices_2,
         sparse_values_2,
     ):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         dict1 = {
             "id": "vec1",
             "values": vals1,
@@ -229,7 +229,7 @@ class TestGrpcIndexUpsert:
         )
 
     def test_upsert_dict_negative(self, mocker, vals1, vals2, md2):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
 
         # Missing required keys
         dict1 = {"values": vals1}
@@ -269,7 +269,7 @@ class TestGrpcIndexUpsert:
     def test_upsert_dict_with_invalid_values(
         self, mocker, key, new_val, vals1, md1, sparse_indices_1, sparse_values_1
     ):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
 
         full_dict1 = {
             "id": "vec1",
@@ -288,7 +288,7 @@ class TestGrpcIndexUpsert:
     def test_upsert_dict_with_invalid_ids(
         self, mocker, key, new_val, vals1, md1, sparse_indices_1, sparse_values_1
     ):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
 
         full_dict1 = {
             "id": "vec1",
@@ -310,7 +310,7 @@ class TestGrpcIndexUpsert:
     def test_upsert_dict_with_invalid_sparse_values(
         self, mocker, key, new_val, vals1, md1, sparse_indices_1, sparse_values_1
     ):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
 
         full_dict1 = {
             "id": "vec1",
@@ -341,8 +341,8 @@ class TestGrpcIndexUpsert:
         expected_vec_md_sparse2,
     ):
         mocker.patch.object(
-            self.index,
-            "_wrap_grpc_call",
+            self.index.runner,
+            "run",
             autospec=True,
             side_effect=lambda stub, upsert_request, timeout: MockUpsertDelegate(
                 UpsertResponse(upserted_count=len(upsert_request.vectors))
@@ -384,8 +384,8 @@ class TestGrpcIndexUpsert:
         expected_vec_md_sparse2,
     ):
         mocker.patch.object(
-            self.index,
-            "_wrap_grpc_call",
+            self.index.runner,
+            "run",
             autospec=True,
             side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
                 upserted_count=len(upsert_request.vectors)
@@ -424,7 +424,7 @@ class TestGrpcIndexUpsert:
         sparse_indices_2,
         sparse_values_2,
     ):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         full_dict1 = {
             "id": "vec1",
             "values": vals1,
@@ -457,7 +457,7 @@ class TestGrpcIndexUpsert:
             self.index.upsert_from_dataframe(df)
 
     def test_upsert_async_upsertInputVectorsAsync(self, mocker, expected_vec_md1, expected_vec_md2):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         self.index.upsert([expected_vec_md1, expected_vec_md2], namespace="ns", async_req=True)
         self._assert_called_once([expected_vec_md1, expected_vec_md2], async_call=True)
 
@@ -465,8 +465,8 @@ class TestGrpcIndexUpsert:
         self, mocker, vals1, md1, expected_vec_md1, expected_vec_md2
     ):
         mocker.patch.object(
-            self.index,
-            "_wrap_grpc_call",
+            self.index.runner,
+            "run",
             autospec=True,
             side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
                 upserted_count=len(upsert_request.vectors)
@@ -476,7 +476,7 @@ class TestGrpcIndexUpsert:
         result = self.index.upsert(
             [expected_vec_md1, expected_vec_md2], namespace="ns", batch_size=1, show_progress=False
         )
-        self.index._wrap_grpc_call.assert_any_call(
+        self.index.runner.run.assert_any_call(
             self.index.stub.Upsert,
             UpsertRequest(
                 vectors=[Vector(id="vec1", values=vals1, metadata=dict_to_proto_struct(md1))],
@@ -485,7 +485,7 @@ class TestGrpcIndexUpsert:
             timeout=None,
         )
 
-        self.index._wrap_grpc_call.assert_any_call(
+        self.index.runner.run.assert_any_call(
             self.index.stub.Upsert,
             UpsertRequest(vectors=[expected_vec_md2], namespace="ns"),
             timeout=None,
@@ -497,8 +497,8 @@ class TestGrpcIndexUpsert:
         self, mocker, vals1, vals2, md1, md2, expected_vec_md1, expected_vec_md2
     ):
         mocker.patch.object(
-            self.index,
-            "_wrap_grpc_call",
+            self.index.runner,
+            "run",
             autospec=True,
             side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
                 upserted_count=len(upsert_request.vectors)
@@ -514,13 +514,13 @@ class TestGrpcIndexUpsert:
             namespace="ns",
             batch_size=2,
         )
-        self.index._wrap_grpc_call.assert_any_call(
+        self.index.runner.run.assert_any_call(
             self.index.stub.Upsert,
             UpsertRequest(vectors=[expected_vec_md1, expected_vec_md2], namespace="ns"),
             timeout=None,
         )
 
-        self.index._wrap_grpc_call.assert_any_call(
+        self.index.runner.run.assert_any_call(
             self.index.stub.Upsert,
             UpsertRequest(
                 vectors=[Vector(id="vec3", values=vals1, metadata=dict_to_proto_struct(md1))],
@@ -535,8 +535,8 @@ class TestGrpcIndexUpsert:
         self, mocker, expected_vec_md1, expected_vec_md2
     ):
         mocker.patch.object(
-            self.index,
-            "_wrap_grpc_call",
+            self.index.runner,
+            "run",
             autospec=True,
             side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
                 upserted_count=len(upsert_request.vectors)
@@ -554,8 +554,8 @@ class TestGrpcIndexUpsert:
         self, mocker, vals1, md1, vals2, md2, expected_vec_md1, expected_vec_md2
     ):
         mocker.patch.object(
-            self.index,
-            "_wrap_grpc_call",
+            self.index.runner,
+            "run",
             autospec=True,
             side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
                 upserted_count=len(upsert_request.vectors)
@@ -567,13 +567,13 @@ class TestGrpcIndexUpsert:
             namespace="ns",
             batch_size=2,
         )
-        self.index._wrap_grpc_call.assert_any_call(
+        self.index.runner.run.assert_any_call(
             self.index.stub.Upsert,
             UpsertRequest(vectors=[expected_vec_md1, expected_vec_md2], namespace="ns"),
             timeout=None,
         )
 
-        self.index._wrap_grpc_call.assert_any_call(
+        self.index.runner.run.assert_any_call(
             self.index.stub.Upsert,
             UpsertRequest(
                 vectors=[Vector(id="vec3", values=vals1, metadata=dict_to_proto_struct(md1))],

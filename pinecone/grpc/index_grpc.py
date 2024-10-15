@@ -133,7 +133,7 @@ class GRPCIndex(GRPCIndexBase):
         if async_req:
             args_dict = self._parse_non_empty_args([("namespace", namespace)])
             request = UpsertRequest(vectors=vectors, **args_dict, **kwargs)
-            future = self._wrap_grpc_call(self.stub.Upsert.future, request, timeout=timeout)
+            future = self.runner.run(self.stub.Upsert.future, request, timeout=timeout)
             return PineconeGrpcFuture(future)
 
         if batch_size is None:
@@ -155,15 +155,11 @@ class GRPCIndex(GRPCIndexBase):
         return UpsertResponse(upserted_count=total_upserted)
 
     def _upsert_batch(
-        self,
-        vectors: List[GRPCVector],
-        namespace: Optional[str],
-        timeout: Optional[float],
-        **kwargs,
+        self, vectors: List[GRPCVector], namespace: Optional[str], timeout: Optional[int], **kwargs
     ) -> UpsertResponse:
         args_dict = self._parse_non_empty_args([("namespace", namespace)])
         request = UpsertRequest(vectors=vectors, **args_dict)
-        return self._wrap_grpc_call(self.stub.Upsert, request, timeout=timeout, **kwargs)
+        return self.runner.run(self.stub.Upsert, request, timeout=timeout, **kwargs)
 
     def upsert_from_dataframe(
         self,
@@ -280,10 +276,10 @@ class GRPCIndex(GRPCIndexBase):
 
         request = DeleteRequest(**args_dict, **kwargs)
         if async_req:
-            future = self._wrap_grpc_call(self.stub.Delete.future, request, timeout=timeout)
+            future = self.runner.run(self.stub.Delete.future, request, timeout=timeout)
             return PineconeGrpcFuture(future)
         else:
-            return self._wrap_grpc_call(self.stub.Delete, request, timeout=timeout)
+            return self.runner.run(self.stub.Delete, request, timeout=timeout)
 
     def fetch(
         self, ids: Optional[List[str]], namespace: Optional[str] = None, **kwargs
@@ -308,7 +304,7 @@ class GRPCIndex(GRPCIndexBase):
         args_dict = self._parse_non_empty_args([("namespace", namespace)])
 
         request = FetchRequest(ids=ids, **args_dict, **kwargs)
-        response = self._wrap_grpc_call(self.stub.Fetch, request, timeout=timeout)
+        response = self.runner.run(self.stub.Fetch, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_fetch_response(json_response)
 
@@ -388,7 +384,7 @@ class GRPCIndex(GRPCIndexBase):
         request = QueryRequest(**args_dict)
 
         timeout = kwargs.pop("timeout", None)
-        response = self._wrap_grpc_call(self.stub.Query, request, timeout=timeout)
+        response = self.runner.run(self.stub.Query, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_query_response(json_response, _check_type=False)
 
@@ -451,10 +447,10 @@ class GRPCIndex(GRPCIndexBase):
 
         request = UpdateRequest(id=id, **args_dict)
         if async_req:
-            future = self._wrap_grpc_call(self.stub.Update.future, request, timeout=timeout)
+            future = self.runner.run(self.stub.Update.future, request, timeout=timeout)
             return PineconeGrpcFuture(future)
         else:
-            return self._wrap_grpc_call(self.stub.Update, request, timeout=timeout)
+            return self.runner.run(self.stub.Update, request, timeout=timeout)
 
     def list_paginated(
         self,
@@ -499,7 +495,7 @@ class GRPCIndex(GRPCIndexBase):
         )
         request = ListRequest(**args_dict, **kwargs)
         timeout = kwargs.pop("timeout", None)
-        response = self._wrap_grpc_call(self.stub.List, request, timeout=timeout)
+        response = self.runner.run(self.stub.List, request, timeout=timeout)
 
         if response.pagination and response.pagination.next != "":
             pagination = Pagination(next=response.pagination.next)
@@ -572,7 +568,7 @@ class GRPCIndex(GRPCIndexBase):
         timeout = kwargs.pop("timeout", None)
 
         request = DescribeIndexStatsRequest(**args_dict)
-        response = self._wrap_grpc_call(self.stub.DescribeIndexStats, request, timeout=timeout)
+        response = self.runner.run(self.stub.DescribeIndexStats, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_stats_response(json_response)
 

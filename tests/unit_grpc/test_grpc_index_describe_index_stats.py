@@ -12,16 +12,16 @@ class TestGrpcIndexDescribeIndexStats:
         )
 
     def test_describeIndexStats_callWithoutFilter_CalledWithoutFilter(self, mocker):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         self.index.describe_index_stats()
-        self.index._wrap_grpc_call.assert_called_once_with(
+        self.index.runner.run.assert_called_once_with(
             self.index.stub.DescribeIndexStats, DescribeIndexStatsRequest(), timeout=None
         )
 
     def test_describeIndexStats_callWithFilter_CalledWithFilter(self, mocker, filter1):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         self.index.describe_index_stats(filter=filter1)
-        self.index._wrap_grpc_call.assert_called_once_with(
+        self.index.runner.run.assert_called_once_with(
             self.index.stub.DescribeIndexStats,
             DescribeIndexStatsRequest(filter=dict_to_proto_struct(filter1)),
             timeout=None,
