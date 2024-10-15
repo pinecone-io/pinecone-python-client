@@ -1,6 +1,7 @@
 from ..control.pinecone import Pinecone
 from ..config.config import ConfigBuilder
 from .index_grpc import GRPCIndex
+from .index_grpc_asyncio import GRPCIndexAsyncio
 
 
 class PineconeGRPC(Pinecone):
@@ -47,7 +48,7 @@ class PineconeGRPC(Pinecone):
 
     """
 
-    def Index(self, name: str = "", host: str = "", **kwargs):
+    def Index(self, name: str = "", host: str = "", use_asyncio=False, **kwargs):
         """
         Target an index for data operations.
 
@@ -131,4 +132,8 @@ class PineconeGRPC(Pinecone):
             proxy_url=self.config.proxy_url,
             ssl_ca_certs=self.config.ssl_ca_certs,
         )
-        return GRPCIndex(index_name=name, config=config, **kwargs)
+
+        if use_asyncio:
+            return GRPCIndexAsyncio(index_name=name, config=config, **kwargs)
+        else:
+            return GRPCIndex(index_name=name, config=config, **kwargs)
