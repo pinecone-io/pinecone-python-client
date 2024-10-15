@@ -155,11 +155,7 @@ class GRPCIndex(GRPCIndexBase):
         return UpsertResponse(upserted_count=total_upserted)
 
     def _upsert_batch(
-        self,
-        vectors: List[GRPCVector],
-        namespace: Optional[str],
-        timeout: Optional[float],
-        **kwargs,
+        self, vectors: List[GRPCVector], namespace: Optional[str], timeout: Optional[int], **kwargs
     ) -> UpsertResponse:
         args_dict = self._parse_non_empty_args([("namespace", namespace)])
         request = UpsertRequest(vectors=vectors, **args_dict)

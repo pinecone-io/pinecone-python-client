@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 
 from grpc._channel import _InactiveRpcError
 
@@ -8,6 +8,8 @@ from .utils import _generate_request_id
 from .config import GRPCClientConfig
 from pinecone.utils.constants import REQUEST_ID, CLIENT_VERSION
 from pinecone.exceptions.exceptions import PineconeException
+from grpc import CallCredentials, Compression
+from google.protobuf.message import Message
 
 
 class GrpcRunner:
@@ -26,12 +28,12 @@ class GrpcRunner:
     def run(
         self,
         func,
-        request,
-        timeout=None,
-        metadata=None,
-        credentials=None,
-        wait_for_ready=None,
-        compression=None,
+        request: Message,
+        timeout: Optional[int] = None,
+        metadata: Optional[Dict[str, str]] = None,
+        credentials: Optional[CallCredentials] = None,
+        wait_for_ready: Optional[bool] = None,
+        compression: Optional[Compression] = None,
     ):
         @wraps(func)
         def wrapped():
@@ -54,12 +56,12 @@ class GrpcRunner:
     async def run_asyncio(
         self,
         func,
-        request,
-        timeout=None,
-        metadata=None,
-        credentials=None,
-        wait_for_ready=None,
-        compression=None,
+        request: Message,
+        timeout: Optional[int] = None,
+        metadata: Optional[Dict[str, str]] = None,
+        credentials: Optional[CallCredentials] = None,
+        wait_for_ready: Optional[bool] = None,
+        compression: Optional[Compression] = None,
     ):
         @wraps(func)
         async def wrapped():
