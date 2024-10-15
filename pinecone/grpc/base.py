@@ -1,21 +1,14 @@
-import logging
 from abc import ABC, abstractmethod
-from functools import wraps
-from typing import Dict, Optional
+from typing import Optional
 
 import grpc
-from grpc._channel import _InactiveRpcError, Channel
+from grpc._channel import Channel
 
-from .retry import RetryConfig
 from .channel_factory import GrpcChannelFactory
 
 from pinecone import Config
-from .utils import _generate_request_id
 from .config import GRPCClientConfig
-from pinecone.utils.constants import REQUEST_ID, CLIENT_VERSION
-from pinecone.exceptions.exceptions import PineconeException
-
-_logger = logging.getLogger(__name__)
+from .grpc_runner import GrpcRunner
 
 
 class GRPCIndexBase(ABC):
@@ -35,18 +28,10 @@ class GRPCIndexBase(ABC):
     ):
         self.config = config
         self.grpc_client_config = grpc_config or GRPCClientConfig()
-        self.retry_config = self.grpc_client_config.retry_config or RetryConfig()
-
-        self.fixed_metadata = {
-            "api-key": config.api_key,
-            "service-name": index_name,
-            "client-version": CLIENT_VERSION,
-        }
-        if self.grpc_client_config.additional_metadata:
-            self.fixed_metadata.update(self.grpc_client_config.additional_metadata)
 
         self._endpoint_override = _endpoint_override
 
+        self.runner = GrpcRunner(index_name=index_name, config=config, grpc_config=grpc_config)
         self.channel_factory = GrpcChannelFactory(
             config=self.config, grpc_client_config=self.grpc_client_config, use_asyncio=False
         )
@@ -90,44 +75,6 @@ class GRPCIndexBase(ABC):
             self._channel.close()
         except TypeError:
             pass
-
-    def _wrap_grpc_call(
-        self,
-        func,
-        request,
-        timeout=None,
-        metadata=None,
-        credentials=None,
-        wait_for_ready=None,
-        compression=None,
-    ):
-        @wraps(func)
-        def wrapped():
-            user_provided_metadata = metadata or {}
-            _metadata = tuple(
-                (k, v)
-                for k, v in {
-                    **self.fixed_metadata,
-                    **self._request_metadata(),
-                    **user_provided_metadata,
-                }.items()
-            )
-            try:
-                return func(
-                    request,
-                    timeout=timeout,
-                    metadata=_metadata,
-                    credentials=credentials,
-                    wait_for_ready=wait_for_ready,
-                    compression=compression,
-                )
-            except _InactiveRpcError as e:
-                raise PineconeException(e._state.debug_error_string) from e
-
-        return wrapped()
-
-    def _request_metadata(self) -> Dict[str, str]:
-        return {REQUEST_ID: _generate_request_id()}
 
     def __enter__(self):
         return self
