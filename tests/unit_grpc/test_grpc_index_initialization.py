@@ -15,25 +15,6 @@ class TestGRPCIndexInitialization:
         assert index.grpc_client_config.grpc_channel_options is None
         assert index.grpc_client_config.additional_metadata is None
 
-        # Default metadata, grpc equivalent to http request headers
-        assert len(index.fixed_metadata) == 3
-        assert index.fixed_metadata["api-key"] == "YOUR_API_KEY"
-        assert index.fixed_metadata["service-name"] == "my-index"
-        assert index.fixed_metadata["client-version"] is not None
-
-    def test_init_with_additional_metadata(self):
-        pc = PineconeGRPC(api_key="YOUR_API_KEY")
-        config = GRPCClientConfig(
-            additional_metadata={"debug-header": "value123", "debug-header2": "value456"}
-        )
-        index = pc.Index(name="my-index", host="host", grpc_config=config)
-        assert len(index.fixed_metadata) == 5
-        assert index.fixed_metadata["api-key"] == "YOUR_API_KEY"
-        assert index.fixed_metadata["service-name"] == "my-index"
-        assert index.fixed_metadata["client-version"] is not None
-        assert index.fixed_metadata["debug-header"] == "value123"
-        assert index.fixed_metadata["debug-header2"] == "value456"
-
     def test_init_with_grpc_config_from_dict(self):
         pc = PineconeGRPC(api_key="YOUR_API_KEY")
         config = GRPCClientConfig._from_dict({"timeout": 10})

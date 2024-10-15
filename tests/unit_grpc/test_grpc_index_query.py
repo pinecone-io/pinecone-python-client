@@ -14,16 +14,16 @@ class TestGrpcIndexQuery:
         )
 
     def test_query_byVectorNoFilter_queryVectorNoFilter(self, mocker, vals1):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         self.index.query(top_k=10, vector=vals1)
-        self.index._wrap_grpc_call.assert_called_once_with(
+        self.index.runner.run.assert_called_once_with(
             self.index.stub.Query, QueryRequest(top_k=10, vector=vals1), timeout=None
         )
 
     def test_query_byVectorWithFilter_queryVectorWithFilter(self, mocker, vals1, filter1):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         self.index.query(top_k=10, vector=vals1, filter=filter1, namespace="ns", timeout=10)
-        self.index._wrap_grpc_call.assert_called_once_with(
+        self.index.runner.run.assert_called_once_with(
             self.index.stub.Query,
             QueryRequest(
                 top_k=10, vector=vals1, filter=dict_to_proto_struct(filter1), namespace="ns"
@@ -32,9 +32,9 @@ class TestGrpcIndexQuery:
         )
 
     def test_query_byVecId_queryByVecId(self, mocker):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         self.index.query(top_k=10, id="vec1", include_metadata=True, include_values=False)
-        self.index._wrap_grpc_call.assert_called_once_with(
+        self.index.runner.run.assert_called_once_with(
             self.index.stub.Query,
             QueryRequest(top_k=10, id="vec1", include_metadata=True, include_values=False),
             timeout=None,

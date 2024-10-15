@@ -12,18 +12,18 @@ class TestGrpcIndexUpdate:
         )
 
     def test_update_byIdAnValues_updateByIdAndValues(self, mocker, vals1):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         self.index.update(id="vec1", values=vals1, namespace="ns", timeout=30)
-        self.index._wrap_grpc_call.assert_called_once_with(
+        self.index.runner.run.assert_called_once_with(
             self.index.stub.Update,
             UpdateRequest(id="vec1", values=vals1, namespace="ns"),
             timeout=30,
         )
 
     def test_update_byIdAnValuesAsync_updateByIdAndValuesAsync(self, mocker, vals1):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         self.index.update(id="vec1", values=vals1, namespace="ns", timeout=30, async_req=True)
-        self.index._wrap_grpc_call.assert_called_once_with(
+        self.index.runner.run.assert_called_once_with(
             self.index.stub.Update.future,
             UpdateRequest(id="vec1", values=vals1, namespace="ns"),
             timeout=30,
@@ -32,9 +32,9 @@ class TestGrpcIndexUpdate:
     def test_update_byIdAnValuesAndMetadata_updateByIdAndValuesAndMetadata(
         self, mocker, vals1, md1
     ):
-        mocker.patch.object(self.index, "_wrap_grpc_call", autospec=True)
+        mocker.patch.object(self.index.runner, "run", autospec=True)
         self.index.update("vec1", values=vals1, set_metadata=md1)
-        self.index._wrap_grpc_call.assert_called_once_with(
+        self.index.runner.run.assert_called_once_with(
             self.index.stub.Update,
             UpdateRequest(id="vec1", values=vals1, set_metadata=dict_to_proto_struct(md1)),
             timeout=None,
