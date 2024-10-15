@@ -79,7 +79,9 @@ class GrpcRunner:
 
         return await wrapped()
 
-    def _prepare_metadata(self, user_provided_metadata: Dict[str, str]) -> Tuple[Tuple[str, str]]:
+    def _prepare_metadata(
+        self, user_provided_metadata: Dict[str, str]
+    ) -> Tuple[Tuple[str, str], ...]:
         return tuple(
             (k, v)
             for k, v in {

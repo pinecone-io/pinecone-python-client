@@ -31,7 +31,9 @@ class GRPCIndexBase(ABC):
 
         self._endpoint_override = _endpoint_override
 
-        self.runner = GrpcRunner(index_name=index_name, config=config, grpc_config=grpc_config)
+        self.runner = GrpcRunner(
+            index_name=index_name, config=config, grpc_config=self.grpc_client_config
+        )
         self.channel_factory = GrpcChannelFactory(
             config=self.config, grpc_client_config=self.grpc_client_config, use_asyncio=False
         )
