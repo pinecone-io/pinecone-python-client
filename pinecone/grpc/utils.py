@@ -22,6 +22,12 @@ def _generate_request_id() -> str:
     return str(uuid.uuid4())
 
 
+def normalize_endpoint(endpoint: str) -> str:
+    grpc_host = endpoint.replace("https://", "")
+    if ":" not in grpc_host:
+        grpc_host = f"{grpc_host}:443"
+
+
 def dict_to_proto_struct(d: Optional[dict]) -> "Struct":
     if not d:
         d = {}

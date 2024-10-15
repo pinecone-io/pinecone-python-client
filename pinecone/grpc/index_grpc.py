@@ -42,6 +42,10 @@ from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
 from .base import GRPCIndexBase
 from .future import PineconeGrpcFuture
 
+from .config import GRPCClientConfig
+from pinecone.config import Config
+from grpc._channel import Channel
+
 
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues"]
 
@@ -55,6 +59,23 @@ class SparseVectorTypedDict(TypedDict):
 
 class GRPCIndex(GRPCIndexBase):
     """A client for interacting with a Pinecone index via GRPC API."""
+
+    def __init__(
+        self,
+        index_name: str,
+        config: Config,
+        channel: Optional[Channel] = None,
+        grpc_config: Optional[GRPCClientConfig] = None,
+        _endpoint_override: Optional[str] = None,
+    ):
+        super().__init__(
+            index_name=index_name,
+            config=config,
+            channel=channel,
+            grpc_config=grpc_config,
+            _endpoint_override=_endpoint_override,
+            use_asyncio=False,
+        )
 
     @property
     def stub_class(self):
