@@ -83,7 +83,7 @@ generate_client() {
 	docker run --rm -v $(pwd):/workspace openapitools/openapi-generator-cli:v5.2.0 generate \
 		--input-spec "/workspace/$oas_file" \
 		--generator-name python \
-		--additional-properties=packageName=$package_name,pythonAttrNoneIfUnset=true \
+		--additional-properties=packageName=$package_name,pythonAttrNoneIfUnset=true,exceptionsPackageName=pinecone.core.openapi.shared.exceptions \
 		--output "/workspace/${build_dir}" \
 		--template-dir "/workspace/$template_dir"
 
