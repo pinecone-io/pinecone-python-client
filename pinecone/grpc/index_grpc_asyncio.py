@@ -112,7 +112,18 @@ class GRPCIndexAsyncio(GRPCIndexBase):
             for batch in vector_batches
         ]
 
-        return await tqdm.gather(*tasks, disable=not show_progress, desc="Upserted batches")
+        if namespace is not None:
+            pbar_desc = f"Upserted vectors in namespace '{namespace}'"
+        else:
+            pbar_desc = "Upserted vectors in namespace ''"
+
+        upserted_count = 0
+        with tqdm(total=len(vectors), disable=not show_progress, desc=pbar_desc) as pbar:
+            for task in asyncio.as_completed(tasks):
+                res = await task
+                pbar.update(res.upserted_count)
+                upserted_count += res.upserted_count
+        return UpsertResponse(upserted_count=upserted_count)
 
     async def _upsert_batch(
         self,
@@ -173,12 +184,12 @@ class GRPCIndexAsyncio(GRPCIndexBase):
         )
         return json_format.MessageToDict(response)
 
-    async def composite_query(
+    async def query(
         self,
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
         namespace: Optional[str] = None,
-        top_k: Optional[int] = None,
+        top_k: Optional[int] = 10,
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
@@ -244,12 +255,11 @@ class GRPCIndexAsyncio(GRPCIndexBase):
         )
         return parse_query_response(json_response, _check_type=False)
 
-    async def multi_namespace_query(
+    async def composite_query(
         self,
         vector: Optional[List[float]] = None,
-        id: Optional[str] = None,
-        namespaces: Optional[str] = None,
-        top_k: Optional[int] = None,
+        namespaces: Optional[List[str]] = None,
+        top_k: Optional[int] = 10,
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
@@ -258,12 +268,13 @@ class GRPCIndexAsyncio(GRPCIndexBase):
         semaphore: Optional[asyncio.Semaphore] = None,
         **kwargs,
     ) -> Awaitable[CompositeQueryResults]:
+        aggregator_lock = asyncio.Lock()
         semaphore = self._get_semaphore(max_concurrent_requests, semaphore)
+        aggregator = QueryResultsAggregator(top_k=top_k)
 
-        queries = [
+        query_tasks = [
             self._query(
                 vector=vector,
-                id=id,
                 namespace=ns,
                 top_k=top_k,
                 filter=filter,
@@ -276,13 +287,11 @@ class GRPCIndexAsyncio(GRPCIndexBase):
             for ns in namespaces
         ]
 
-        results = await asyncio.gather(*queries, return_exceptions=True)
+        for query_task in asyncio.as_completed(query_tasks):
+            response = await query_task
+            async with aggregator_lock:
+                aggregator.add_results(response)
 
-        aggregator = QueryResultsAggregator(top_k=top_k)
-        for result in results:
-            if isinstance(result, Exception):
-                continue
-            aggregator.add_results(result)
         final_results = aggregator.get_results()
         return final_results
 

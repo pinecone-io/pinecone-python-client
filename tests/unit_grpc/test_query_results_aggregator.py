@@ -1,13 +1,12 @@
-from pinecone.grpc.query_results_aggregator import QueryResultsAggregator
+from pinecone.grpc.query_results_aggregator import (
+    QueryResultsAggregator,
+    QueryResultsAggregatorInvalidTopKError,
+    QueryResultsAggregregatorNotEnoughResultsError,
+)
+import pytest
 
 
 class TestQueryResultsAggregator:
-    def test_empty_results(self):
-        aggregator = QueryResultsAggregator(top_k=3)
-        results = aggregator.get_results()
-        assert results.usage.read_units == 0
-        assert len(results.matches) == 0
-
     def test_keeps_running_usage_total(self):
         aggregator = QueryResultsAggregator(top_k=3)
 
@@ -87,40 +86,44 @@ class TestQueryResultsAggregator:
         assert results.matches[4].id == "4"  # 0.22
         assert results.matches[4].namespace == "ns1"
 
-    # def test_returns_topk(self):
-    #     aggregator = QueryResultsAggregator(top_k=5)
+    def test_correctly_handles_dotproduct_metric(self):
+        # For this index metric, the higher the score, the more similar the vectors are.
+        # We have to infer that we have this type of index by seeing whether scores are
+        # sorted in descending or ascending order.
+        aggregator = QueryResultsAggregator(top_k=3)
 
-    #     results1 = QueryResponse(
-    #         matches=[
-    #             ScoredVector(id="1", score=0.1, vector=[]),
-    #             ScoredVector(id="2", score=0.11, vector=[]),
-    #             ScoredVector(id="3", score=0.12, vector=[]),
-    #             ScoredVector(id="4", score=0.13, vector=[]),
-    #             ScoredVector(id="5", score=0.14, vector=[]),
-    #         ],
-    #         usage=Usage(read_units=5)
-    #     )
-    #     aggregator.add_results(results1)
+        desc_results1 = {
+            "matches": [
+                {"id": "1", "score": 0.9, "values": []},
+                {"id": "2", "score": 0.8, "values": []},
+                {"id": "3", "score": 0.7, "values": []},
+                {"id": "4", "score": 0.6, "values": []},
+                {"id": "5", "score": 0.5, "values": []},
+            ],
+            "usage": {"readUnits": 5},
+            "namespace": "ns1",
+        }
+        aggregator.add_results(desc_results1)
 
-    #     results2 = QueryResponse(
-    #         matches=[
-    #             ScoredVector(id="7", score=0.101, vector=[]),
-    #             ScoredVector(id="8", score=0.102, vector=[]),
-    #             ScoredVector(id="9", score=0.121, vector=[]),
-    #             ScoredVector(id="10", score=0.2, vector=[]),
-    #             ScoredVector(id="11", score=0.4, vector=[]),
-    #         ],
-    #         usage=Usage(read_units=7)
-    #     )
-    #     aggregator.add_results(results2)
+        results2 = {
+            "matches": [
+                {"id": "7", "score": 0.77, "values": []},
+                {"id": "8", "score": 0.88, "values": []},
+                {"id": "9", "score": 0.99, "values": []},
+                {"id": "10", "score": 0.1010, "values": []},
+                {"id": "11", "score": 0.1111, "values": []},
+            ],
+            "usage": {"readUnits": 7},
+            "namespace": "ns2",
+        }
+        aggregator.add_results(results2)
 
-    #     combined = aggregator.get_results()
-    #     assert len(combined.matches) == 5
-    #     assert combined.matches[0].id == "1" # 0.1
-    #     assert combined.matches[1].id == "7" # 0.101
-    #     assert combined.matches[2].id == "8" # 0.102
-    #     assert combined.matches[3].id == "3" # 0.12
-    #     assert combined.matches[4].id == "9" # 0.121
+        results = aggregator.get_results()
+        assert results.usage.read_units == 12
+        assert len(results.matches) == 3
+        assert results.matches[0].id == "9"  # 0.99
+        assert results.matches[1].id == "1"  # 0.9
+        assert results.matches[2].id == "8"  # 0.88
 
 
 class TestQueryResultsAggregatorOutputUX:
@@ -139,7 +142,8 @@ class TestQueryResultsAggregatorOutputUX:
                         "list": [1, 2, 3],
                         "list2": ["foo", "bar"],
                     },
-                }
+                },
+                {"id": "2", "score": 0.4},
             ],
             "usage": {"readUnits": 5},
             "namespace": "ns1",
@@ -153,7 +157,7 @@ class TestQueryResultsAggregatorOutputUX:
         assert results.matches[0].values == [0.31, 0.32, 0.33, 0.34, 0.35, 0.36]
 
     def test_can_interact_like_dict(self):
-        aggregator = QueryResultsAggregator(top_k=1)
+        aggregator = QueryResultsAggregator(top_k=3)
         results1 = {
             "matches": [
                 {
@@ -167,7 +171,19 @@ class TestQueryResultsAggregatorOutputUX:
                         "list": [1, 2, 3],
                         "list2": ["foo", "bar"],
                     },
-                }
+                },
+                {
+                    "id": "2",
+                    "score": 0.4,
+                    "values": [0.31, 0.32, 0.33, 0.34, 0.35, 0.36],
+                    "sparse_values": {"indices": [1, 2], "values": [0.2, 0.4]},
+                    "metadata": {
+                        "hello": "world",
+                        "number": 42,
+                        "list": [1, 2, 3],
+                        "list2": ["foo", "bar"],
+                    },
+                },
             ],
             "usage": {"readUnits": 5},
             "namespace": "ns1",
@@ -235,27 +251,42 @@ class TestQueryResultsAggregatorOutputUX:
                         "list": [1, 2, 3],
                         "list2": ["foo", "bar"],
                     },
-                }
-            ],
-            "usage": {"readUnits": 5},
-            "namespace": "ns1",
-        }
-        aggregator.add_results(results1)
-
-        results1 = {
-            "matches": [
+                },
                 {
                     "id": "2",
                     "score": 0.4,
                     "values": [0.31, 0.32, 0.33, 0.34, 0.35, 0.36],
                     "sparse_values": {"indices": [1, 2], "values": [0.2, 0.4]},
                     "metadata": {"boolean": True, "nullish": None},
-                }
+                },
             ],
             "usage": {"readUnits": 5},
-            "namespace": "ns2",
+            "namespace": "ns1",
         }
         aggregator.add_results(results1)
         results = aggregator.get_results()
         print(results)
         capsys.readouterr()
+
+
+class TestQueryAggregatorEdgeCases:
+    def test_topK_too_small(self):
+        with pytest.raises(QueryResultsAggregatorInvalidTopKError):
+            QueryResultsAggregator(top_k=0)
+
+    def test_matches_too_small(self):
+        aggregator = QueryResultsAggregator(top_k=3)
+        results1 = {
+            "matches": [{"id": "1", "score": 0.1}],
+            "usage": {"readUnits": 5},
+            "namespace": "ns1",
+        }
+        with pytest.raises(QueryResultsAggregregatorNotEnoughResultsError):
+            aggregator.add_results(results1)
+
+    def test_empty_results(self):
+        aggregator = QueryResultsAggregator(top_k=3)
+        results = aggregator.get_results()
+        assert results is not None
+        assert results.usage.read_units == 0
+        assert len(results.matches) == 0
