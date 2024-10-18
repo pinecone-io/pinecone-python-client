@@ -84,7 +84,7 @@ class CompositeQueryResults:
 class QueryResultsAggregationEmptyResultsError(Exception):
     def __init__(self, namespace: str):
         super().__init__(
-            f"Cannot infer metric type from empty query results. Query result for namespace '{namespace}' is empty. Have you spelled the namespace name correctly?"
+            f"Query results for namespace '{namespace}' were empty. Check that you have upserted vectors into this namespace (see describe_index_stats) and that the namespace name is spelled correctly."
         )
 
 
@@ -111,7 +111,7 @@ class QueryResultsAggregator:
         self.is_dotproduct = None
         self.read = False
 
-    def __is_dotproduct_index(self, matches):
+    def _is_dotproduct_index(self, matches):
         # The interpretation of the score depends on the similar metric used.
         # Unlike other index types, in indexes configured for dotproduct,
         # a higher score is better. We have to infer this is the case by inspecting
@@ -120,6 +120,20 @@ class QueryResultsAggregator:
             if matches[i].get("score") > matches[i - 1].get("score"):  # Found an increase
                 return False
         return True
+
+    def _dotproduct_heap_item(self, match, ns):
+        return (match.get("score"), -self.insertion_counter, match, ns)
+
+    def _non_dotproduct_heap_item(self, match, ns):
+        return (-match.get("score"), -self.insertion_counter, match, ns)
+
+    def _process_matches(self, matches, ns, heap_item_fn):
+        for match in matches:
+            self.insertion_counter += 1
+            if len(self.heap) < self.top_k:
+                heapq.heappush(self.heap, heap_item_fn(match, ns))
+            else:
+                heapq.heappushpop(self.heap, heap_item_fn(match, ns))
 
     def add_results(self, results: QueryResponse):
         if self.read:
@@ -132,24 +146,18 @@ class QueryResultsAggregator:
         ns = results.get("namespace")
         self.usage_read_units += results.get("usage", {}).get("readUnits", 0)
 
+        if len(matches) == 0:
+            raise QueryResultsAggregationEmptyResultsError(ns)
+
         if self.is_dotproduct is None:
-            if len(matches) == 0:
-                raise QueryResultsAggregationEmptyResultsError(ns)
             if len(matches) == 1:
                 raise QueryResultsAggregregatorNotEnoughResultsError(self.top_k, len(matches))
-            self.is_dotproduct = self.__is_dotproduct_index(matches)
+            self.is_dotproduct = self._is_dotproduct_index(matches)
 
-        print("is_dotproduct:", self.is_dotproduct)
         if self.is_dotproduct:
-            raise NotImplementedError("Dotproduct indexes are not yet supported.")
+            self._process_matches(matches, ns, self._dotproduct_heap_item)
         else:
-            for match in matches:
-                self.insertion_counter += 1
-                score = match.get("score")
-                if len(self.heap) < self.top_k:
-                    heapq.heappush(self.heap, (-score, -self.insertion_counter, match, ns))
-                else:
-                    heapq.heappushpop(self.heap, (-score, -self.insertion_counter, match, ns))
+            self._process_matches(matches, ns, self._non_dotproduct_heap_item)
 
     def get_results(self) -> CompositeQueryResults:
         if self.read:

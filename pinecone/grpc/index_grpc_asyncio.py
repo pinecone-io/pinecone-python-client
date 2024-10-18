@@ -264,19 +264,28 @@ class GRPCIndexAsyncio(GRPCIndexBase):
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
         sparse_vector: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
+        show_progress: Optional[bool] = True,
         max_concurrent_requests: Optional[int] = None,
         semaphore: Optional[asyncio.Semaphore] = None,
         **kwargs,
     ) -> Awaitable[CompositeQueryResults]:
         aggregator_lock = asyncio.Lock()
         semaphore = self._get_semaphore(max_concurrent_requests, semaphore)
-        aggregator = QueryResultsAggregator(top_k=top_k)
 
+        # The caller may only want the topK=1 result across all queries,
+        # but we need to get at least 2 results from each query in order to
+        # aggregate them correctly. So we'll temporarily set topK to 2 for the
+        # subqueries, and then we'll take the topK=1 results from the aggregated
+        # results.
+        aggregator = QueryResultsAggregator(top_k=top_k)
+        subquery_topk = top_k if top_k > 2 else 2
+
+        target_namespaces = set(namespaces)  # dedup namespaces
         query_tasks = [
             self._query(
                 vector=vector,
                 namespace=ns,
-                top_k=top_k,
+                top_k=subquery_topk,
                 filter=filter,
                 include_values=include_values,
                 include_metadata=include_metadata,
@@ -284,13 +293,17 @@ class GRPCIndexAsyncio(GRPCIndexBase):
                 semaphore=semaphore,
                 **kwargs,
             )
-            for ns in namespaces
+            for ns in target_namespaces
         ]
 
-        for query_task in asyncio.as_completed(query_tasks):
-            response = await query_task
-            async with aggregator_lock:
-                aggregator.add_results(response)
+        with tqdm(
+            total=len(query_tasks), disable=not show_progress, desc="Querying namespaces"
+        ) as pbar:
+            for query_task in asyncio.as_completed(query_tasks):
+                response = await query_task
+                pbar.update(1)
+                async with aggregator_lock:
+                    aggregator.add_results(response)
 
         final_results = aggregator.get_results()
         return final_results
