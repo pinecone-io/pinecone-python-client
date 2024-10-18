@@ -59,14 +59,22 @@ def generate_index_name(test_name: str) -> str:
 
 def main():
     pc = Pinecone(api_key=read_env_var("PINECONE_API_KEY"))
+
     index_name = generate_index_name(read_env_var("NAME_PREFIX") + random_string(20))
+    dimension = int(read_env_var("DIMENSION"))
+    metric = read_env_var("METRIC")
+
     pc.create_index(
         name=index_name,
-        metric=read_env_var("METRIC"),
-        dimension=int(read_env_var("DIMENSION")),
+        metric=metric,
+        dimension=dimension,
         spec={"serverless": {"cloud": read_env_var("CLOUD"), "region": read_env_var("REGION")}},
     )
+    desc = pc.describe_index(index_name)
     write_gh_output("index_name", index_name)
+    write_gh_output("index_host", desc.host)
+    write_gh_output("index_metric", metric)
+    write_gh_output("index_dimension", dimension)
 
 
 if __name__ == "__main__":
