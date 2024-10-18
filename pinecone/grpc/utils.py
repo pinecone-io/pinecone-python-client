@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 from google.protobuf import json_format
 from google.protobuf.message import Message
 
@@ -14,6 +14,8 @@ from pinecone.core.openapi.data.models import (
     DescribeIndexStatsResponse,
     NamespaceSummary,
 )
+from pinecone.core.grpc.protos.vector_service_pb2 import SparseValues as GRPCSparseValues
+from .sparse_vector import SparseVectorTypedDict
 
 from google.protobuf.struct_pb2 import Struct
 
@@ -26,6 +28,7 @@ def normalize_endpoint(endpoint: str) -> str:
     grpc_host = endpoint.replace("https://", "")
     if ":" not in grpc_host:
         grpc_host = f"{grpc_host}:443"
+    return grpc_host
 
 
 def dict_to_proto_struct(d: Optional[dict]) -> "Struct":
@@ -115,3 +118,25 @@ def parse_stats_response(response: dict):
         total_vector_count=total_vector_count,
         _check_type=False,
     )
+
+
+def parse_sparse_values_arg(
+    sparse_values: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]],
+) -> Optional[GRPCSparseValues]:
+    if sparse_values is None:
+        return None
+
+    if isinstance(sparse_values, GRPCSparseValues):
+        return sparse_values
+
+    if (
+        not isinstance(sparse_values, dict)
+        or "indices" not in sparse_values
+        or "values" not in sparse_values
+    ):
+        raise ValueError(
+            "Invalid sparse values argument. Expected a dict of: {'indices': List[int], 'values': List[float]}."
+            f"Received: {sparse_values}"
+        )
+
+    return GRPCSparseValues(indices=sparse_values["indices"], values=sparse_values["values"])

@@ -48,7 +48,7 @@ class PineconeGRPC(Pinecone):
 
     """
 
-    def Index(self, name: str = "", host: str = "", use_asyncio=False, **kwargs):
+    def Index(self, name: str = "", host: str = "", **kwargs):
         """
         Target an index for data operations.
 
@@ -119,6 +119,12 @@ class PineconeGRPC(Pinecone):
         index.query(vector=[...], top_k=10)
         ```
         """
+        return self._init_index(name=name, host=host, use_asyncio=False, **kwargs)
+
+    def AsyncioIndex(self, name: str = "", host: str = "", **kwargs):
+        return self._init_index(name=name, host=host, use_asyncio=True, **kwargs)
+
+    def _init_index(self, name: str, host: str, use_asyncio=False, **kwargs):
         if name == "" and host == "":
             raise ValueError("Either name or host must be specified")
 
