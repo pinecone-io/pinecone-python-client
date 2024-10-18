@@ -1,6 +1,6 @@
 import time
 import logging
-from typing import Optional, Dict, Any, Union, List, Tuple, Literal
+from typing import Optional, Dict, Any, Union, Literal
 
 from .index_host_store import IndexHostStore
 
@@ -10,7 +10,12 @@ from pinecone.core.openapi.control.api.manage_indexes_api import ManageIndexesAp
 from pinecone.core.openapi.shared.api_client import ApiClient
 
 
-from pinecone.utils import normalize_host, setup_openapi_client, build_plugin_setup_client
+from pinecone.utils import (
+    normalize_host,
+    setup_openapi_client,
+    build_plugin_setup_client,
+    parse_non_empty_args,
+)
 from pinecone.core.openapi.control.models import (
     CreateCollectionRequest,
     CreateIndexRequest,
@@ -317,9 +322,6 @@ class Pinecone:
 
         api_instance = self.index_api
 
-        def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
-            return {arg_name: val for arg_name, val in args if val is not None}
-
         if deletion_protection in ["enabled", "disabled"]:
             dp = DeletionProtection(deletion_protection)
         else:
@@ -329,7 +331,7 @@ class Pinecone:
             if "serverless" in spec:
                 index_spec = IndexSpec(serverless=ServerlessSpecModel(**spec["serverless"]))
             elif "pod" in spec:
-                args_dict = _parse_non_empty_args(
+                args_dict = parse_non_empty_args(
                     [
                         ("environment", spec["pod"].get("environment")),
                         ("metadata_config", spec["pod"].get("metadata_config")),
@@ -351,7 +353,7 @@ class Pinecone:
                 serverless=ServerlessSpecModel(cloud=spec.cloud, region=spec.region)
             )
         elif isinstance(spec, PodSpec):
-            args_dict = _parse_non_empty_args(
+            args_dict = parse_non_empty_args(
                 [
                     ("replicas", spec.replicas),
                     ("shards", spec.shards),
