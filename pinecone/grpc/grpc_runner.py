@@ -1,3 +1,4 @@
+import asyncio
 from functools import wraps
 from typing import Dict, Tuple, Optional
 
@@ -62,20 +63,32 @@ class GrpcRunner:
         credentials: Optional[CallCredentials] = None,
         wait_for_ready: Optional[bool] = None,
         compression: Optional[Compression] = None,
+        semaphore: Optional[asyncio.Semaphore] = None,
     ):
         @wraps(func)
         async def wrapped():
             user_provided_metadata = metadata or {}
             _metadata = self._prepare_metadata(user_provided_metadata)
             try:
-                return await func(
-                    request,
-                    timeout=timeout,
-                    metadata=_metadata,
-                    credentials=credentials,
-                    wait_for_ready=wait_for_ready,
-                    compression=compression,
-                )
+                if semaphore is not None:
+                    async with semaphore:
+                        return await func(
+                            request,
+                            timeout=timeout,
+                            metadata=_metadata,
+                            credentials=credentials,
+                            wait_for_ready=wait_for_ready,
+                            compression=compression,
+                        )
+                else:
+                    return await func(
+                        request,
+                        timeout=timeout,
+                        metadata=_metadata,
+                        credentials=credentials,
+                        wait_for_ready=wait_for_ready,
+                        compression=compression,
+                    )
             except _InactiveRpcError as e:
                 raise PineconeException(e._state.debug_error_string) from e
 
