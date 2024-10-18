@@ -1,7 +1,7 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional, Any, Dict
 import json
 import heapq
-from pinecone.core.openapi.data.models import QueryResponse, Usage
+from pinecone.core.openapi.data.models import Usage
 
 from dataclasses import dataclass, asdict
 
@@ -15,14 +15,14 @@ class ScoredVectorWithNamespace:
     sparse_values: dict
     metadata: dict
 
-    def __init__(self, aggregate_results_heap_tuple: Tuple[float, int, dict, str]):
+    def __init__(self, aggregate_results_heap_tuple: Tuple[float, int, object, str]):
         json_vector = aggregate_results_heap_tuple[2]
         self.namespace = aggregate_results_heap_tuple[3]
-        self.id = json_vector.get("id")
-        self.score = json_vector.get("score")
-        self.values = json_vector.get("values")
-        self.sparse_values = json_vector.get("sparse_values", None)
-        self.metadata = json_vector.get("metadata", None)
+        self.id = json_vector.get("id")  # type: ignore
+        self.score = json_vector.get("score")  # type: ignore
+        self.values = json_vector.get("values")  # type: ignore
+        self.sparse_values = json_vector.get("sparse_values", None)  # type: ignore
+        self.metadata = json_vector.get("metadata", None)  # type: ignore
 
     def __getitem__(self, key):
         if hasattr(self, key):
@@ -106,10 +106,11 @@ class QueryResultsAggregator:
             raise QueryResultsAggregatorInvalidTopKError(top_k)
         self.top_k = top_k
         self.usage_read_units = 0
-        self.heap = []
+        self.heap: List[Tuple[float, int, object, str]] = []
         self.insertion_counter = 0
         self.is_dotproduct = None
         self.read = False
+        self.final_results: Optional[CompositeQueryResults] = None
 
     def _is_dotproduct_index(self, matches):
         # The interpretation of the score depends on the similar metric used.
@@ -135,7 +136,7 @@ class QueryResultsAggregator:
             else:
                 heapq.heappushpop(self.heap, heap_item_fn(match, ns))
 
-    def add_results(self, results: QueryResponse):
+    def add_results(self, results: Dict[str, Any]):
         if self.read:
             # This is mainly just to sanity check in test cases which get quite confusing
             # if you read results twice due to the heap being emptied when constructing
@@ -143,7 +144,7 @@ class QueryResultsAggregator:
             raise ValueError("Results have already been read. Cannot add more results.")
 
         matches = results.get("matches", [])
-        ns = results.get("namespace")
+        ns: str = results.get("namespace", "")
         self.usage_read_units += results.get("usage", {}).get("readUnits", 0)
 
         if len(matches) == 0:
@@ -161,7 +162,11 @@ class QueryResultsAggregator:
 
     def get_results(self) -> CompositeQueryResults:
         if self.read:
-            return self.final_results
+            if self.final_results is not None:
+                return self.final_results
+            else:
+                # I don't think this branch can ever actually be reached, but the type checker disagrees
+                raise ValueError("Results have already been read. Cannot get results again.")
         self.read = True
 
         self.final_results = CompositeQueryResults(
