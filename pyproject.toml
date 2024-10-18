@@ -86,7 +86,6 @@ urllib3_mock = "0.3.3"
 responses = ">=0.8.1"
 pyarrow = "^17.0.0"
 httpx = "^0.27.2"
-torch = "^2.5.0"
 
 [tool.poetry.extras]
 grpc = ["grpcio", "googleapis-common-protos", "lz4", "protobuf", "protoc-gen-openapiv2"]
