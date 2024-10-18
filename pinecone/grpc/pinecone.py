@@ -1,6 +1,7 @@
 from ..control.pinecone import Pinecone
 from ..config.config import ConfigBuilder
 from .index_grpc import GRPCIndex
+from .index_grpc_asyncio import GRPCIndexAsyncio
 
 
 class PineconeGRPC(Pinecone):
@@ -118,6 +119,12 @@ class PineconeGRPC(Pinecone):
         index.query(vector=[...], top_k=10)
         ```
         """
+        return self._init_index(name=name, host=host, use_asyncio=False, **kwargs)
+
+    def AsyncioIndex(self, name: str = "", host: str = "", **kwargs):
+        return self._init_index(name=name, host=host, use_asyncio=True, **kwargs)
+
+    def _init_index(self, name: str, host: str, use_asyncio=False, **kwargs):
         if name == "" and host == "":
             raise ValueError("Either name or host must be specified")
 
@@ -131,4 +138,8 @@ class PineconeGRPC(Pinecone):
             proxy_url=self.config.proxy_url,
             ssl_ca_certs=self.config.ssl_ca_certs,
         )
-        return GRPCIndex(index_name=name, config=config, **kwargs)
+
+        if use_asyncio:
+            return GRPCIndexAsyncio(index_name=name, config=config, **kwargs)
+        else:
+            return GRPCIndex(index_name=name, config=config, **kwargs)

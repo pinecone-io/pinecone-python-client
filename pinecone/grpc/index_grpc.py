@@ -1,17 +1,23 @@
 import logging
-from typing import Optional, Dict, Union, List, Tuple, Any, TypedDict, cast
+from typing import Optional, Dict, Union, List, cast
 
 from google.protobuf import json_format
 
 from tqdm.autonotebook import tqdm
 
+from pinecone.utils import parse_non_empty_args
 from .utils import (
     dict_to_proto_struct,
     parse_fetch_response,
     parse_query_response,
     parse_stats_response,
+    parse_sparse_values_arg,
 )
 from .vector_factory_grpc import VectorFactoryGRPC
+from .base import GRPCIndexBase
+from .future import PineconeGrpcFuture
+from .sparse_vector import SparseVectorTypedDict
+from .config import GRPCClientConfig
 
 from pinecone.core.openapi.data.models import (
     FetchResponse,
@@ -36,8 +42,9 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
 )
 from pinecone import Vector as NonGRPCVector
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
-from .base import GRPCIndexBase
-from .future import PineconeGrpcFuture
+
+from pinecone.config import Config
+from grpc._channel import Channel
 
 
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues"]
@@ -45,13 +52,25 @@ __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues"]
 _logger = logging.getLogger(__name__)
 
 
-class SparseVectorTypedDict(TypedDict):
-    indices: List[int]
-    values: List[float]
-
-
 class GRPCIndex(GRPCIndexBase):
     """A client for interacting with a Pinecone index via GRPC API."""
+
+    def __init__(
+        self,
+        index_name: str,
+        config: Config,
+        channel: Optional[Channel] = None,
+        grpc_config: Optional[GRPCClientConfig] = None,
+        _endpoint_override: Optional[str] = None,
+    ):
+        super().__init__(
+            index_name=index_name,
+            config=config,
+            channel=channel,
+            grpc_config=grpc_config,
+            _endpoint_override=_endpoint_override,
+            use_asyncio=False,
+        )
 
     @property
     def stub_class(self):
@@ -131,7 +150,7 @@ class GRPCIndex(GRPCIndexBase):
 
         vectors = list(map(VectorFactoryGRPC.build, vectors))
         if async_req:
-            args_dict = self._parse_non_empty_args([("namespace", namespace)])
+            args_dict = parse_non_empty_args([("namespace", namespace)])
             request = UpsertRequest(vectors=vectors, **args_dict, **kwargs)
             future = self.runner.run(self.stub.Upsert.future, request, timeout=timeout)
             return PineconeGrpcFuture(future)
@@ -157,7 +176,7 @@ class GRPCIndex(GRPCIndexBase):
     def _upsert_batch(
         self, vectors: List[GRPCVector], namespace: Optional[str], timeout: Optional[int], **kwargs
     ) -> UpsertResponse:
-        args_dict = self._parse_non_empty_args([("namespace", namespace)])
+        args_dict = parse_non_empty_args([("namespace", namespace)])
         request = UpsertRequest(vectors=vectors, **args_dict)
         return self.runner.run(self.stub.Upsert, request, timeout=timeout, **kwargs)
 
@@ -264,7 +283,7 @@ class GRPCIndex(GRPCIndexBase):
         else:
             filter_struct = None
 
-        args_dict = self._parse_non_empty_args(
+        args_dict = parse_non_empty_args(
             [
                 ("ids", ids),
                 ("delete_all", delete_all),
@@ -301,7 +320,7 @@ class GRPCIndex(GRPCIndexBase):
         """
         timeout = kwargs.pop("timeout", None)
 
-        args_dict = self._parse_non_empty_args([("namespace", namespace)])
+        args_dict = parse_non_empty_args([("namespace", namespace)])
 
         request = FetchRequest(ids=ids, **args_dict, **kwargs)
         response = self.runner.run(self.stub.Fetch, request, timeout=timeout)
@@ -367,8 +386,8 @@ class GRPCIndex(GRPCIndexBase):
         else:
             filter_struct = None
 
-        sparse_vector = self._parse_sparse_values_arg(sparse_vector)
-        args_dict = self._parse_non_empty_args(
+        sparse_vector = parse_sparse_values_arg(sparse_vector)
+        args_dict = parse_non_empty_args(
             [
                 ("vector", vector),
                 ("id", id),
@@ -435,8 +454,8 @@ class GRPCIndex(GRPCIndexBase):
             set_metadata_struct = None
 
         timeout = kwargs.pop("timeout", None)
-        sparse_values = self._parse_sparse_values_arg(sparse_values)
-        args_dict = self._parse_non_empty_args(
+        sparse_values = parse_sparse_values_arg(sparse_values)
+        args_dict = parse_non_empty_args(
             [
                 ("values", values),
                 ("set_metadata", set_metadata_struct),
@@ -485,7 +504,7 @@ class GRPCIndex(GRPCIndexBase):
 
         Returns: SimpleListResponse object which contains the list of ids, the namespace name, pagination information, and usage showing the number of read_units consumed.
         """
-        args_dict = self._parse_non_empty_args(
+        args_dict = parse_non_empty_args(
             [
                 ("prefix", prefix),
                 ("limit", limit),
@@ -564,36 +583,10 @@ class GRPCIndex(GRPCIndexBase):
             filter_struct = dict_to_proto_struct(filter)
         else:
             filter_struct = None
-        args_dict = self._parse_non_empty_args([("filter", filter_struct)])
+        args_dict = parse_non_empty_args([("filter", filter_struct)])
         timeout = kwargs.pop("timeout", None)
 
         request = DescribeIndexStatsRequest(**args_dict)
         response = self.runner.run(self.stub.DescribeIndexStats, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_stats_response(json_response)
-
-    @staticmethod
-    def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
-        return {arg_name: val for arg_name, val in args if val is not None}
-
-    @staticmethod
-    def _parse_sparse_values_arg(
-        sparse_values: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]],
-    ) -> Optional[GRPCSparseValues]:
-        if sparse_values is None:
-            return None
-
-        if isinstance(sparse_values, GRPCSparseValues):
-            return sparse_values
-
-        if (
-            not isinstance(sparse_values, dict)
-            or "indices" not in sparse_values
-            or "values" not in sparse_values
-        ):
-            raise ValueError(
-                "Invalid sparse values argument. Expected a dict of: {'indices': List[int], 'values': List[float]}."
-                f"Received: {sparse_values}"
-            )
-
-        return GRPCSparseValues(indices=sparse_values["indices"], values=sparse_values["values"])
