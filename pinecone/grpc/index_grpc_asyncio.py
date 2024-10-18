@@ -1,4 +1,4 @@
-from typing import Optional, Union, List, Dict, Awaitable
+from typing import Optional, Union, List, Dict, Awaitable, Any
 
 from tqdm.asyncio import tqdm
 import asyncio
@@ -91,14 +91,14 @@ class GRPCIndexAsyncio(GRPCIndexBase):
         max_concurrent_requests: Optional[int] = None,
         semaphore: Optional[asyncio.Semaphore] = None,
         **kwargs,
-    ) -> Awaitable[UpsertResponse]:
+    ) -> UpsertResponse:
         timeout = kwargs.pop("timeout", None)
         vectors = list(map(VectorFactoryGRPC.build, vectors))
         semaphore = self._get_semaphore(max_concurrent_requests, semaphore)
 
         if batch_size is None:
             return await self._upsert_batch(
-                vectors, namespace, timeout=timeout, semaphore=semaphore, **kwargs
+                vectors=vectors, namespace=namespace, timeout=timeout, semaphore=semaphore, **kwargs
             )
 
         if not isinstance(batch_size, int) or batch_size <= 0:
@@ -132,7 +132,7 @@ class GRPCIndexAsyncio(GRPCIndexBase):
         namespace: Optional[str],
         timeout: Optional[int] = None,
         **kwargs,
-    ) -> Awaitable[UpsertResponse]:
+    ) -> UpsertResponse:
         args_dict = parse_non_empty_args([("namespace", namespace)])
         request = UpsertRequest(vectors=vectors, **args_dict)
         return await self.runner.run_asyncio(
@@ -151,7 +151,7 @@ class GRPCIndexAsyncio(GRPCIndexBase):
         sparse_vector: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
         semaphore: Optional[asyncio.Semaphore] = None,
         **kwargs,
-    ) -> Awaitable[Dict]:
+    ) -> dict[str, Any]:
         if vector is not None and id is not None:
             raise ValueError("Cannot specify both `id` and `vector`")
 
@@ -182,7 +182,8 @@ class GRPCIndexAsyncio(GRPCIndexBase):
         response = await self.runner.run_asyncio(
             self.stub.Query, request, timeout=timeout, semaphore=semaphore
         )
-        return json_format.MessageToDict(response)
+        parsed = json_format.MessageToDict(response)
+        return parsed
 
     async def query(
         self,
@@ -196,7 +197,7 @@ class GRPCIndexAsyncio(GRPCIndexBase):
         sparse_vector: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
         semaphore: Optional[asyncio.Semaphore] = None,
         **kwargs,
-    ) -> Awaitable[QueryResponse]:
+    ) -> QueryResponse:
         """
         The Query operation searches a namespace, using a query vector.
         It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
@@ -257,9 +258,9 @@ class GRPCIndexAsyncio(GRPCIndexBase):
 
     async def composite_query(
         self,
-        vector: Optional[List[float]] = None,
-        namespaces: Optional[List[str]] = None,
-        top_k: Optional[int] = 10,
+        vector: List[float],
+        namespaces: List[str],
+        top_k: Optional[int] = None,
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
@@ -268,17 +269,23 @@ class GRPCIndexAsyncio(GRPCIndexBase):
         max_concurrent_requests: Optional[int] = None,
         semaphore: Optional[asyncio.Semaphore] = None,
         **kwargs,
-    ) -> Awaitable[CompositeQueryResults]:
+    ) -> CompositeQueryResults:
         aggregator_lock = asyncio.Lock()
         semaphore = self._get_semaphore(max_concurrent_requests, semaphore)
 
-        # The caller may only want the topK=1 result across all queries,
+        if len(namespaces) == 0:
+            raise ValueError("At least one namespace must be specified")
+        if len(vector) == 0:
+            raise ValueError("Query vector must not be empty")
+
+        # The caller may only want the top_k=1 result across all queries,
         # but we need to get at least 2 results from each query in order to
         # aggregate them correctly. So we'll temporarily set topK to 2 for the
         # subqueries, and then we'll take the topK=1 results from the aggregated
         # results.
-        aggregator = QueryResultsAggregator(top_k=top_k)
-        subquery_topk = top_k if top_k > 2 else 2
+        overall_topk = top_k if top_k is not None else 10
+        aggregator = QueryResultsAggregator(top_k=overall_topk)
+        subquery_topk = overall_topk if overall_topk > 2 else 2
 
         target_namespaces = set(namespaces)  # dedup namespaces
         query_tasks = [

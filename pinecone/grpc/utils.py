@@ -10,8 +10,8 @@ from pinecone.core.openapi.data.models import (
     QueryResponse,
     DescribeIndexStatsResponse,
     NamespaceSummary,
-    SparseValues as GRPCSparseValues,
 )
+from pinecone.core.grpc.protos.vector_service_pb2 import SparseValues as GRPCSparseValues
 from .sparse_vector import SparseVectorTypedDict
 
 from google.protobuf.struct_pb2 import Struct
