@@ -1,6 +1,8 @@
 import os
+import re
 import random
 import string
+from datetime import datetime
 from pinecone import Pinecone
 
 
@@ -20,9 +22,45 @@ def write_gh_output(name, value):
         print(f"{name}={value}", file=fh)
 
 
+def generate_index_name(test_name: str) -> str:
+    github_actor = os.getenv("GITHUB_ACTOR", None)
+    user = os.getenv("USER", None)
+    index_owner = github_actor or user
+
+    current_date = datetime.now()
+    formatted_date = current_date.strftime("%Y%m%d-%f")
+
+    github_job = os.getenv("GITHUB_JOB", None)
+
+    if test_name.startswith("test_"):
+        test_name = test_name[5:]
+
+    # Remove trailing underscore, if any
+    if test_name.endswith("_"):
+        test_name = test_name[:-1]
+
+    name_parts = [index_owner, formatted_date, github_job, test_name]
+    index_name = "-".join([x for x in name_parts if x is not None])
+
+    # Remove invalid characters
+    replace_with_hyphen = re.compile(r"[\[\(_,\s]")
+    index_name = re.sub(replace_with_hyphen, "-", index_name)
+    replace_with_empty = re.compile(r"[\]\)\.]")
+    index_name = re.sub(replace_with_empty, "", index_name)
+
+    max_length = 45
+    index_name = index_name[:max_length]
+
+    # Trim final character if it is not alphanumeric
+    if index_name.endswith("_") or index_name.endswith("-"):
+        index_name = index_name[:-1]
+
+    return index_name.lower()
+
+
 def main():
     pc = Pinecone(api_key=read_env_var("PINECONE_API_KEY"))
-    index_name = read_env_var("NAME_PREFIX") + random_string(20)
+    index_name = generate_index_name(read_env_var("NAME_PREFIX") + random_string(20))
     pc.create_index(
         name=index_name,
         metric=read_env_var("METRIC"),
