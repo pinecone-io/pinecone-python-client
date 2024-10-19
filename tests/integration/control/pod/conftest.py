@@ -3,7 +3,7 @@ import random
 import string
 import time
 from pinecone import Pinecone, PodSpec
-from ...helpers import generate_index_name, get_environment_var
+from ...helpers import generate_index_name, generate_collection_name, get_environment_var
 
 
 @pytest.fixture()
@@ -99,7 +99,7 @@ def reusable_collection():
     index = pc.Index(index_name)
     index.upsert(vectors=vectors)
 
-    collection_name = "reused-coll-" + random_string()
+    collection_name = generate_collection_name("reused-coll-" + random_string())
     pc.create_collection(name=collection_name, source=index_name)
 
     time_waited = 0

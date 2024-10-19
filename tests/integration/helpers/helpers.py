@@ -11,7 +11,11 @@ def random_string(length):
     return "".join(random.choice(string.ascii_lowercase) for i in range(length))
 
 
-def generate_index_name(test_name: str) -> str:
+def generate_collection_name(label):
+    return generate_index_name(label)
+
+
+def generate_index_name(label: str) -> str:
     github_actor = os.getenv("GITHUB_ACTOR", None)
     user = os.getenv("USER", None)
     index_owner = github_actor or user
@@ -21,14 +25,14 @@ def generate_index_name(test_name: str) -> str:
 
     github_job = os.getenv("GITHUB_JOB", None)
 
-    if test_name.startswith("test_"):
-        test_name = test_name[5:]
+    if label.startswith("test_"):
+        label = label[5:]
 
     # Remove trailing underscore, if any
-    if test_name.endswith("_"):
-        test_name = test_name[:-1]
+    if label.endswith("_"):
+        label = label[:-1]
 
-    name_parts = [index_owner, formatted_date, github_job, test_name]
+    name_parts = [index_owner, formatted_date, github_job, label]
     index_name = "-".join([x for x in name_parts if x is not None])
 
     # Remove invalid characters
