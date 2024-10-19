@@ -1,12 +1,8 @@
-import string
 import random
 import pytest
 import time
 from pinecone import PodSpec
-
-
-def random_string():
-    return "".join(random.choice(string.ascii_lowercase) for i in range(10))
+from ...helpers import generate_index_name, generate_collection_name
 
 
 class TestCollectionsHappyPath:
@@ -18,7 +14,7 @@ class TestCollectionsHappyPath:
         vectors = [(str(i), random_vector()) for i in range(num_vectors)]
         index.upsert(vectors=vectors)
 
-        collection_name = "coll1-" + random_string()
+        collection_name = generate_collection_name("coll1")
         client.create_collection(name=collection_name, source=ready_index)
         desc = client.describe_collection(collection_name)
         assert desc["name"] == collection_name
@@ -51,7 +47,7 @@ class TestCollectionsHappyPath:
         assert desc["size"] > 0
 
         # Create index from collection
-        index_name = "index-from-collection-" + collection_name
+        index_name = generate_index_name("index-from-collection-" + collection_name)
         print(f"Creating index {index_name} from collection {collection_name}...")
         client.create_index(
             name=index_name,
@@ -91,7 +87,7 @@ class TestCollectionsHappyPath:
         metrics = ["cosine", "euclidean", "dotproduct"]
         target_metric = random.choice([x for x in metrics if x != metric])
 
-        index_name = "from-coll-" + random_string()
+        index_name = generate_index_name("from-" + reusable_collection)
         client.create_index(
             name=index_name,
             dimension=dimension,
