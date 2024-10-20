@@ -1,7 +1,7 @@
 import pytest
 import re
 from pinecone.config import ConfigBuilder
-from pinecone.core.openapi.control.api.manage_indexes_api import ManageIndexesApi
+from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
 from pinecone.core.openapi.shared.api_client import ApiClient
 from pinecone.utils.setup_openapi_client import setup_openapi_client, build_plugin_setup_client
 

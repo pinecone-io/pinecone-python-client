@@ -13,7 +13,7 @@ from .utils import (
 )
 from .vector_factory_grpc import VectorFactoryGRPC
 
-from pinecone.core.openapi.data.models import (
+from pinecone.core.openapi.db_data.models import (
     FetchResponse,
     QueryResponse,
     DescribeIndexStatsResponse,

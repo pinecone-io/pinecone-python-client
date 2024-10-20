@@ -4,10 +4,10 @@ from typing import Union, List, Optional, Dict, Any
 
 from pinecone.config import ConfigBuilder
 
-from pinecone.core.openapi.shared import API_VERSION
-from pinecone.core.openapi.data.models import SparseValues
-from pinecone.core.openapi.data import ApiClient
-from pinecone.core.openapi.data.models import (
+from pinecone.openapi_support import ApiClient
+from pinecone.core.openapi.db_data.api.data_plane_api import DataPlaneApi
+from pinecone.core.openapi.db_data import API_VERSION
+from pinecone.core.openapi.db_data.models import (
     FetchResponse,
     QueryRequest,
     QueryResponse,
@@ -22,9 +22,9 @@ from pinecone.core.openapi.data.models import (
     UpdateRequest,
     DescribeIndexStatsRequest,
     ListResponse,
+    SparseValues,
 )
 from .features.bulk_import import ImportFeatureMixin
-from pinecone.core.openapi.data.api.data_plane_api import DataPlaneApi
 from ..utils import setup_openapi_client, parse_non_empty_args
 from .vector_factory import VectorFactory
 
