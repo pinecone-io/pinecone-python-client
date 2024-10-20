@@ -10,7 +10,7 @@ from urllib.parse import quote
 from urllib3.fields import RequestField
 
 
-from .rest import rest
+from .rest import RESTClientObject
 from .configuration import Configuration
 from .exceptions import PineconeApiTypeError, PineconeApiValueError, PineconeApiException
 from .model_utils import (
@@ -61,7 +61,7 @@ class ApiClient(object):
         self.configuration = configuration
         self.pool_threads = pool_threads
 
-        self.rest_client = rest.RESTClientObject(configuration)
+        self.rest_client = RESTClientObject(configuration)
         self.default_headers = {}
         if header_name is not None:
             self.default_headers[header_name] = header_value

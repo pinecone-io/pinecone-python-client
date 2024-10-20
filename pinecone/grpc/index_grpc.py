@@ -16,7 +16,7 @@ from .vector_factory_grpc import VectorFactoryGRPC
 from pinecone.core.openapi.db_data.models import (
     FetchResponse,
     QueryResponse,
-    DescribeIndexStatsResponse,
+    IndexDescription as DescribeIndexStatsResponse,
 )
 from pinecone.models.list_response import ListResponse as SimpleListResponse, Pagination
 from pinecone.core.grpc.protos.vector_service_pb2 import (

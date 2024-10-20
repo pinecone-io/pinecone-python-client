@@ -5,7 +5,7 @@ from typing import Union, List, Optional, Dict, Any
 from pinecone.config import ConfigBuilder
 
 from pinecone.openapi_support import ApiClient
-from pinecone.core.openapi.db_data.api.data_plane_api import DataPlaneApi
+from pinecone.core.openapi.db_data.api.vector_operations_api import VectorOperationsApi
 from pinecone.core.openapi.db_data import API_VERSION
 from pinecone.core.openapi.db_data.models import (
     FetchResponse,
@@ -14,7 +14,7 @@ from pinecone.core.openapi.db_data.models import (
     RpcStatus,
     ScoredVector,
     SingleQueryResults,
-    DescribeIndexStatsResponse,
+    IndexDescription as DescribeIndexStatsResponse,
     UpsertRequest,
     UpsertResponse,
     Vector,
@@ -96,7 +96,7 @@ class Index(ImportFeatureMixin):
 
         self._vector_api = setup_openapi_client(
             api_client_klass=ApiClient,
-            api_klass=DataPlaneApi,
+            api_klass=VectorOperationsApi,
             config=self._config,
             openapi_config=openapi_config,
             pool_threads=pool_threads,

@@ -8,7 +8,7 @@ from pinecone.core.openapi.db_data.models import (
     SparseValues,
     FetchResponse,
     QueryResponse,
-    DescribeIndexStatsResponse,
+    IndexDescription as DescribeIndexStatsResponse,
     NamespaceSummary,
 )
 

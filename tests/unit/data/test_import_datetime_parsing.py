@@ -2,9 +2,8 @@ from urllib3 import BaseHTTPResponse, HTTPResponse
 
 from datetime import datetime, date
 
-from pinecone.core_ea.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
-from pinecone.core_ea.openapi.shared.api_client import ApiClient
-from pinecone.core_ea.openapi.shared.rest import RESTResponse
+from pinecone.core.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
+from pinecone.openapi_support import ApiClient, RESTResponse
 
 
 def fake_response(mocker, body: str, status: int = 200) -> BaseHTTPResponse:
