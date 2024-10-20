@@ -20,8 +20,7 @@ def generate_index_name(label: str) -> str:
     user = os.getenv("USER", None)
     index_owner = github_actor or user
 
-    current_date = datetime.now()
-    formatted_date = current_date.strftime("%Y%m%d-%f")
+    formatted_date = datetime.now().strftime("%Y%m%d-%H%M%S%f")[:-3]
 
     github_job = os.getenv("GITHUB_JOB", None)
 
