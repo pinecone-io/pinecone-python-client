@@ -3,7 +3,8 @@
 # generated output led to unnecessary duplication. Morever, these classes do not have
 # any dynamic content so they didn't need to be part of the generation process.
 
-from .api_client import ApiClient, Endpoint
+from .api_client import ApiClient, check_allowed_values, check_validations
+from .endpoint import Endpoint
 from .configuration import Configuration
 from .exceptions import (
     PineconeException,

@@ -748,7 +748,7 @@ def get_simple_class(input_value):
         return list
     elif isinstance(input_value, dict):
         return dict
-    elif isinstance(input_value, none_type):
+    elif input_value is None:
         return none_type
     elif isinstance(input_value, file_type):
         return file_type
