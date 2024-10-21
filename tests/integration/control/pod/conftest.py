@@ -1,9 +1,8 @@
 import pytest
 import random
-import string
 import time
 from pinecone import Pinecone, PodSpec
-from ...helpers import generate_index_name, get_environment_var
+from ...helpers import generate_index_name, generate_collection_name, get_environment_var
 
 
 @pytest.fixture()
@@ -69,17 +68,13 @@ def index_exists(index_name, client):
     return index_name in client.list_indexes().names()
 
 
-def random_string():
-    return "".join(random.choice(string.ascii_lowercase) for i in range(10))
-
-
 @pytest.fixture(scope="session")
 def reusable_collection():
     pc = Pinecone(
         api_key=get_environment_var("PINECONE_API_KEY"),
         additional_headers={"sdk-test-suite": "pinecone-python-client"},
     )
-    index_name = "temp-index-" + random_string()
+    index_name = generate_index_name("temp-index")
     dimension = int(get_environment_var("DIMENSION"))
     print(f"Creating index {index_name} to prepare a collection...")
     pc.create_index(
@@ -99,7 +94,7 @@ def reusable_collection():
     index = pc.Index(index_name)
     index.upsert(vectors=vectors)
 
-    collection_name = "reused-coll-" + random_string()
+    collection_name = generate_collection_name("reused-coll")
     pc.create_collection(name=collection_name, source=index_name)
 
     time_waited = 0
