@@ -2,7 +2,7 @@ import pytest
 import os
 import time
 import json
-from ..helpers import get_environment_var, random_string
+from ..helpers import get_environment_var, random_string, generate_index_name
 from .seed import setup_data, setup_list_data, setup_weird_ids_data
 
 # Test matrix needs to consider the following dimensions:
@@ -57,7 +57,7 @@ def spec():
 
 @pytest.fixture(scope="session")
 def index_name():
-    return "dataplane-" + random_string(20)
+    return generate_index_name("dataplane")
 
 
 @pytest.fixture(scope="session")

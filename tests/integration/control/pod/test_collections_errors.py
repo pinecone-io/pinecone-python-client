@@ -1,11 +1,7 @@
-import string
 import random
 import pytest
 from pinecone import PodSpec
-
-
-def random_string():
-    return "".join(random.choice(string.ascii_lowercase) for i in range(10))
+from ...helpers import generate_collection_name, generate_index_name, random_string
 
 
 class TestCollectionErrorCases:
@@ -13,7 +9,7 @@ class TestCollectionErrorCases:
         self, client, dimension, metric, environment
     ):
         with pytest.raises(Exception) as e:
-            index_name = "from-nonexistent-coll-" + random_string()
+            index_name = generate_index_name("from-nonexistent-coll-" + random_string(10))
             client.create_index(
                 name=index_name,
                 dimension=dimension,
@@ -43,7 +39,7 @@ class TestCollectionErrorCases:
         target_env = random.choice([x for x in envs if x != environment])
 
         with pytest.raises(Exception) as e:
-            index_name = "from-coll-" + random_string()
+            index_name = generate_index_name("from-coll-" + random_string(10))
             client.create_index(
                 name=index_name,
                 dimension=dimension,
@@ -59,7 +55,7 @@ class TestCollectionErrorCases:
     ):
         with pytest.raises(Exception) as e:
             client.create_index(
-                name="from-coll-" + random_string(),
+                name=generate_index_name("from-coll-" + random_string(10)),
                 dimension=dimension + 1,
                 metric=metric,
                 spec=PodSpec(environment=environment, source_collection=reusable_collection),
@@ -91,13 +87,13 @@ class TestCollectionErrorCases:
     #     assert 'Source collection is not ready' in str(e.value)
 
     def test_create_collection_from_not_ready_index(self, client, notready_index):
-        name = "coll3-" + random_string()
+        name = generate_collection_name("coll3")
         with pytest.raises(Exception) as e:
             client.create_collection(name, notready_index)
         assert "Source index is not ready" in str(e.value)
 
     def test_create_collection_with_invalid_index(self, client):
-        name = "coll4-" + random_string()
+        name = generate_collection_name("coll4")
         with pytest.raises(Exception) as e:
             client.create_collection(name, "invalid_index")
         assert "Resource invalid_index not found" in str(e.value)

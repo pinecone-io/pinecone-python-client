@@ -4,26 +4,34 @@ import time
 import random
 import string
 from typing import Any
+from datetime import datetime
 
 
 def random_string(length):
     return "".join(random.choice(string.ascii_lowercase) for i in range(length))
 
 
-def generate_index_name(test_name: str) -> str:
-    buildNumber = os.getenv("GITHUB_BUILD_NUMBER", None)
+def generate_collection_name(label):
+    return generate_index_name(label)
 
-    if test_name.startswith("test_"):
-        test_name = test_name[5:]
 
-    # Trim name length to save space for other info in name
-    test_name = test_name[:20]
+def generate_index_name(label: str) -> str:
+    github_actor = os.getenv("GITHUB_ACTOR", None)
+    user = os.getenv("USER", None)
+    index_owner = github_actor or user
+
+    formatted_date = datetime.now().strftime("%Y%m%d-%H%M%S%f")[:-3]
+
+    github_job = os.getenv("GITHUB_JOB", None)
+
+    if label.startswith("test_"):
+        label = label[5:]
 
     # Remove trailing underscore, if any
-    if test_name.endswith("_"):
-        test_name = test_name[:-1]
+    if label.endswith("_"):
+        label = label[:-1]
 
-    name_parts = [buildNumber, test_name, random_string(45)]
+    name_parts = [index_owner, formatted_date, github_job, label]
     index_name = "-".join([x for x in name_parts if x is not None])
 
     # Remove invalid characters
@@ -36,8 +44,8 @@ def generate_index_name(test_name: str) -> str:
     index_name = index_name[:max_length]
 
     # Trim final character if it is not alphanumeric
-    if test_name.endswith("_") or test_name.endswith("-"):
-        test_name = test_name[:-1]
+    if index_name.endswith("_") or index_name.endswith("-"):
+        index_name = index_name[:-1]
 
     return index_name.lower()
 
