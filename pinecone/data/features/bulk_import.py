@@ -2,21 +2,21 @@ from enum import Enum
 from typing import Optional, Literal, Iterator, List, Type, cast
 
 from pinecone.config.config import ConfigBuilder
-from pinecone.core_ea.openapi.db_data import ApiClient
-from pinecone.core_ea.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
-from pinecone.core_ea.openapi.shared import API_VERSION
+from pinecone.openapi_support import ApiClient
+from pinecone.core.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
+from pinecone.core.openapi.db_data import API_VERSION
 
 from pinecone.utils import parse_non_empty_args, install_json_repr_override, setup_openapi_client
 
-from pinecone.core_ea.openapi.db_data.models import (
+from pinecone.core.openapi.db_data.models import (
     StartImportRequest,
     StartImportResponse,
-    ImportListResponse,
+    ListImportsResponse,
     ImportModel,
     ImportErrorMode as ImportErrorModeClass,
 )
 
-for m in [StartImportResponse, ImportListResponse, ImportModel]:
+for m in [StartImportResponse, ListImportsResponse, ImportModel]:
     install_json_repr_override(m)
 
 ImportErrorMode: Type[Enum] = cast(
@@ -84,7 +84,7 @@ class ImportFeatureMixin:
             ]
         )
 
-        return self.__import_operations_api.start_import(StartImportRequest(**args_dict))
+        return self.__import_operations_api.start_bulk_import(StartImportRequest(**args_dict))
 
     def list_imports(self, **kwargs) -> Iterator[List[ImportModel]]:
         """
@@ -124,7 +124,7 @@ class ImportFeatureMixin:
 
     def list_imports_paginated(
         self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
-    ) -> ImportListResponse:
+    ) -> ListImportsResponse:
         """
         The list_imports_paginated operation returns information about import operations.
         It returns operations in a paginated form, with a pagination token to fetch the next page of results.
@@ -152,7 +152,7 @@ class ImportFeatureMixin:
             pagination_token (Optional[str]): A token needed to fetch the next page of results. This token is returned
                 in the response if additional results are available. [optional]
 
-        Returns: ImportListResponse object which contains the list of operations as ImportModel objects, pagination information,
+        Returns: ListImportsResponse object which contains the list of operations as ImportModel objects, pagination information,
             and usage showing the number of read_units consumed.
         """
         args_dict = parse_non_empty_args([("limit", limit), ("pagination_token", pagination_token)])
@@ -171,7 +171,7 @@ class ImportFeatureMixin:
         """
         if isinstance(id, int):
             id = str(id)
-        return self.__import_operations_api.describe_import(id=id)
+        return self.__import_operations_api.describe_bulk_import(id=id)
 
     def cancel_import(self, id: str):
         """Cancel an import operation.

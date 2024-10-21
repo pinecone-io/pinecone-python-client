@@ -6,12 +6,12 @@ from .index_host_store import IndexHostStore
 
 from pinecone.config import PineconeConfig, Config, ConfigBuilder
 
-from pinecone.core.openapi.control.api.manage_indexes_api import ManageIndexesApi
-from pinecone.core.openapi.shared.api_client import ApiClient
+from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
+from pinecone.openapi_support.api_client import ApiClient
 
 
 from pinecone.utils import normalize_host, setup_openapi_client, build_plugin_setup_client
-from pinecone.core.openapi.control.models import (
+from pinecone.core.openapi.db_control.models import (
     CreateCollectionRequest,
     CreateIndexRequest,
     ConfigureIndexRequest,
@@ -23,7 +23,7 @@ from pinecone.core.openapi.control.models import (
     PodSpec as PodSpecModel,
     PodSpecMetadataConfig,
 )
-from pinecone.core.openapi.shared import API_VERSION
+from pinecone.core.openapi.db_control import API_VERSION
 from pinecone.models import ServerlessSpec, PodSpec, IndexModel, IndexList, CollectionList
 from .langchain_import_warnings import _build_langchain_attribute_error_message
 

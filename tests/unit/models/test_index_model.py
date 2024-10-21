@@ -1,4 +1,4 @@
-from pinecone.core.openapi.control.models import (
+from pinecone.core.openapi.db_control.models import (
     IndexModel as OpenApiIndexModel,
     IndexModelStatus,
     IndexModelSpec,
