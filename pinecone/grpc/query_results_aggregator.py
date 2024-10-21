@@ -61,7 +61,7 @@ class ScoredVectorWithNamespace:
 
 
 @dataclass
-class CompositeQueryResults:
+class QueryNamespacesResults:
     usage: Usage
     matches: List[ScoredVectorWithNamespace]
 
@@ -69,7 +69,7 @@ class CompositeQueryResults:
         if hasattr(self, key):
             return getattr(self, key)
         else:
-            raise KeyError(f"'{key}' not found in CompositeQueryResults")
+            raise KeyError(f"'{key}' not found in QueryNamespacesResults")
 
     def __repr__(self):
         return json.dumps(
@@ -110,7 +110,7 @@ class QueryResultsAggregator:
         self.insertion_counter = 0
         self.is_dotproduct = None
         self.read = False
-        self.final_results: Optional[CompositeQueryResults] = None
+        self.final_results: Optional[QueryNamespacesResults] = None
 
     def _is_dotproduct_index(self, matches):
         # The interpretation of the score depends on the similar metric used.
@@ -160,7 +160,7 @@ class QueryResultsAggregator:
         else:
             self._process_matches(matches, ns, self._non_dotproduct_heap_item)
 
-    def get_results(self) -> CompositeQueryResults:
+    def get_results(self) -> QueryNamespacesResults:
         if self.read:
             if self.final_results is not None:
                 return self.final_results
@@ -169,7 +169,7 @@ class QueryResultsAggregator:
                 raise ValueError("Results have already been read. Cannot get results again.")
         self.read = True
 
-        self.final_results = CompositeQueryResults(
+        self.final_results = QueryNamespacesResults(
             usage=Usage(read_units=self.usage_read_units),
             matches=[
                 ScoredVectorWithNamespace(heapq.heappop(self.heap)) for _ in range(len(self.heap))

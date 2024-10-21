@@ -42,7 +42,7 @@ from .utils import (
     parse_sparse_values_arg,
 )
 from .vector_factory_grpc import VectorFactoryGRPC
-from .query_results_aggregator import QueryResultsAggregator, CompositeQueryResults
+from .query_results_aggregator import QueryResultsAggregator, QueryNamespacesResults
 
 
 class GRPCIndexAsyncio(GRPCIndexBase):
@@ -256,7 +256,7 @@ class GRPCIndexAsyncio(GRPCIndexBase):
         )
         return parse_query_response(json_response, _check_type=False)
 
-    async def composite_query(
+    async def query_namespaces(
         self,
         vector: List[float],
         namespaces: List[str],
@@ -269,7 +269,7 @@ class GRPCIndexAsyncio(GRPCIndexBase):
         max_concurrent_requests: Optional[int] = None,
         semaphore: Optional[asyncio.Semaphore] = None,
         **kwargs,
-    ) -> CompositeQueryResults:
+    ) -> QueryNamespacesResults:
         aggregator_lock = asyncio.Lock()
         semaphore = self._get_semaphore(max_concurrent_requests, semaphore)
 
