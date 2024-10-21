@@ -1,7 +1,8 @@
-name: 'Cleanup All Indexes/Collections'
+name: 'Cleanup All Indexes/Collections (Nightly)'
 
 on:
-  workflow_dispatch: {}
+    schedule:
+      - cron:  '5 22 * * *' # 5 minutes after 10pm UTC, every day
 
 jobs:
   cleanup-all:
@@ -13,4 +14,4 @@ jobs:
         uses: ./.github/actions/cleanup-all
         with:
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
-          DELETE_ALL: true
+          DELETE_ALL: false
