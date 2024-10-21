@@ -577,7 +577,7 @@ class Index(ImportFeatureMixin):
                 ("pagination_token", pagination_token),
             ]
         )
-        return self._vector_api.list(**args_dict, **kwargs)
+        return self._vector_api.list_vectors(**args_dict, **kwargs)
 
     @validate_and_convert_errors
     def list(self, **kwargs):
