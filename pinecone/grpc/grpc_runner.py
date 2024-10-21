@@ -8,9 +8,18 @@ from pinecone import Config
 from .utils import _generate_request_id
 from .config import GRPCClientConfig
 from pinecone.utils.constants import REQUEST_ID, CLIENT_VERSION
-from pinecone.exceptions.exceptions import PineconeException
-from grpc import CallCredentials, Compression
+from grpc import CallCredentials, Compression, StatusCode
+from grpc.aio import AioRpcError
 from google.protobuf.message import Message
+
+from pinecone.exceptions import (
+    PineconeException,
+    PineconeApiValueError,
+    PineconeApiException,
+    UnauthorizedException,
+    PineconeNotFoundException,
+    ServiceException,
+)
 
 
 class GrpcRunner:
@@ -50,7 +59,7 @@ class GrpcRunner:
                     compression=compression,
                 )
             except _InactiveRpcError as e:
-                raise PineconeException(e._state.debug_error_string) from e
+                self._map_exception(e, e._state.code, e._state.details)
 
         return wrapped()
 
@@ -89,8 +98,8 @@ class GrpcRunner:
                         wait_for_ready=wait_for_ready,
                         compression=compression,
                     )
-            except _InactiveRpcError as e:
-                raise PineconeException(e._state.debug_error_string) from e
+            except AioRpcError as e:
+                self._map_exception(e, e.code(), e.details())
 
         return await wrapped()
 
@@ -108,3 +117,37 @@ class GrpcRunner:
 
     def _request_metadata(self) -> Dict[str, str]:
         return {REQUEST_ID: _generate_request_id()}
+
+    def _map_exception(self, e: Exception, code: Optional[StatusCode], details: Optional[str]):
+        # Client / connection issues
+        details = details or ""
+
+        if code in [StatusCode.DEADLINE_EXCEEDED]:
+            raise TimeoutError(details) from e
+
+        # Permissions stuff
+        if code in [StatusCode.PERMISSION_DENIED, StatusCode.UNAUTHENTICATED]:
+            raise UnauthorizedException(status=code, reason=details) from e
+
+        # 400ish stuff
+        if code in [StatusCode.NOT_FOUND]:
+            raise PineconeNotFoundException(status=code, reason=details) from e
+        if code in [StatusCode.INVALID_ARGUMENT, StatusCode.OUT_OF_RANGE]:
+            raise PineconeApiValueError(details) from e
+        if code in [
+            StatusCode.ALREADY_EXISTS,
+            StatusCode.FAILED_PRECONDITION,
+            StatusCode.UNIMPLEMENTED,
+            StatusCode.RESOURCE_EXHAUSTED,
+        ]:
+            raise PineconeApiException(status=code, reason=details) from e
+
+        # 500ish stuff
+        if code in [StatusCode.INTERNAL, StatusCode.UNAVAILABLE]:
+            raise ServiceException(status=code, reason=details) from e
+        if code in [StatusCode.UNKNOWN, StatusCode.DATA_LOSS, StatusCode.ABORTED]:
+            # abandon hope, all ye who enter here
+            raise PineconeException(code, details) from e
+
+        # If you get here, you're in a bad place
+        raise PineconeException(code, details) from e
