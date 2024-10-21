@@ -34,7 +34,7 @@ class TestBulkImport:
         api_client = fake_response(mocker, body, 200)
         api = BulkOperationsApi(api_client=api_client)
 
-        r = api.describe_import(id="1")
+        r = api.describe_bulk_import(id="1")
         assert r.created_at.year == 2024
         assert r.created_at.month == 8
         assert r.created_at.date() == date(year=2024, month=8, day=27)

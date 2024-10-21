@@ -128,7 +128,7 @@ remove_shared_classes() {
 			sed -i '' "s/from pinecone\.$py_module_name\.openapi\.$module import rest/from pinecone\.openapi_support import rest/g" "$file"
 
 			for sharedFile in "${sharedFiles[@]}"; do
-				sed -i '' "s/from pinecone\.$py_module_name\.openapi\.$module\.$sharedFile/from pinecone\.openapi_support\.$sharedFile/g" "$file"
+				sed -i '' "s/from pinecone\.$py_module_name\.openapi\.$module\.$sharedFile/from pinecone\.openapi_support/g" "$file"
 			done
 		done
 	done

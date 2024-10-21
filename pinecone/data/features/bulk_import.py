@@ -84,7 +84,7 @@ class ImportFeatureMixin:
             ]
         )
 
-        return self.__import_operations_api.start_import(StartImportRequest(**args_dict))
+        return self.__import_operations_api.start_bulk_import(StartImportRequest(**args_dict))
 
     def list_imports(self, **kwargs) -> Iterator[List[ImportModel]]:
         """
@@ -171,7 +171,7 @@ class ImportFeatureMixin:
         """
         if isinstance(id, int):
             id = str(id)
-        return self.__import_operations_api.describe_import(id=id)
+        return self.__import_operations_api.describe_bulk_import(id=id)
 
     def cancel_import(self, id: str):
         """Cancel an import operation.

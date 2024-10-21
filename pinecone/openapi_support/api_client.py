@@ -136,14 +136,10 @@ class ApiClient(object):
             )
 
         # path parameters
-        if path_params:
-            sanitized_path_params: Dict[str, Any] = self.sanitize_for_serialization(path_params)
-        if sanitized_path_params:
-            processed_path_params: List[Tuple[str, Any]] = self.parameters_to_tuples(
-                sanitized_path_params, collection_formats
-            )
-        else:
-            processed_path_params = []
+        sanitized_path_params: Dict[str, Any] = self.sanitize_for_serialization(path_params or {})
+        processed_path_params: List[Tuple[str, Any]] = self.parameters_to_tuples(
+            sanitized_path_params, collection_formats
+        )
 
         for k, v in processed_path_params:
             # specified safe chars, encode everything
@@ -157,6 +153,8 @@ class ApiClient(object):
             processed_query_params = self.parameters_to_tuples(
                 sanitized_query_params, collection_formats
             )
+        else:
+            processed_query_params = []
 
         # post parameters
         if post_params or files:

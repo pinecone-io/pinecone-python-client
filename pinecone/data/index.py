@@ -209,7 +209,7 @@ class Index(ImportFeatureMixin):
         def vec_builder(v):
             return VectorFactory.build(v, check_type=_check_type)
 
-        return self._vector_api.upsert(
+        return self._vector_api.upsert_vectors(
             UpsertRequest(
                 vectors=list(map(vec_builder, vectors)),
                 **args_dict,
@@ -308,7 +308,7 @@ class Index(ImportFeatureMixin):
             [("ids", ids), ("delete_all", delete_all), ("namespace", namespace), ("filter", filter)]
         )
 
-        return self._vector_api.delete(
+        return self._vector_api.delete_vectors(
             DeleteRequest(
                 **args_dict,
                 **{
@@ -344,7 +344,7 @@ class Index(ImportFeatureMixin):
         Returns: FetchResponse object which contains the list of Vector objects, and namespace name.
         """
         args_dict = parse_non_empty_args([("namespace", namespace)])
-        return self._vector_api.fetch(ids=ids, **args_dict, **kwargs)
+        return self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
 
     @validate_and_convert_errors
     def query(
@@ -427,7 +427,7 @@ class Index(ImportFeatureMixin):
                 ("sparse_vector", sparse_vector),
             ]
         )
-        response = self._vector_api.query(
+        response = self._vector_api.query_vectors(
             QueryRequest(
                 **args_dict,
                 _check_type=_check_type,
@@ -492,7 +492,7 @@ class Index(ImportFeatureMixin):
                 ("sparse_values", sparse_values),
             ]
         )
-        return self._vector_api.update(
+        return self._vector_api.update_vector(
             UpdateRequest(
                 id=id,
                 **args_dict,
