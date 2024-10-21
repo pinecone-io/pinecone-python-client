@@ -151,7 +151,7 @@ class GRPCIndexAsyncio(GRPCIndexBase):
         sparse_vector: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
         semaphore: Optional[asyncio.Semaphore] = None,
         **kwargs,
-    ) -> dict[str, Any]:
+    ) -> Dict[str, Any]:
         if vector is not None and id is not None:
             raise ValueError("Cannot specify both `id` and `vector`")
 
