@@ -134,6 +134,13 @@ class QueryResultsAggregator:
             if len(self.heap) < self.top_k:
                 heapq.heappush(self.heap, heap_item_fn(match, ns))
             else:
+                # Assume we have dotproduct scores sorted in descending order
+                if self.is_dotproduct and match["score"] < self.heap[0][0]:
+                    # No further matches can improve the top-K heap
+                    break
+                elif not self.is_dotproduct and match["score"] > -self.heap[0][0]:
+                    # No further matches can improve the top-K heap
+                    break
                 heapq.heappushpop(self.heap, heap_item_fn(match, ns))
 
     def add_results(self, results: Dict[str, Any]):
@@ -156,9 +163,9 @@ class QueryResultsAggregator:
             self.is_dotproduct = self._is_dotproduct_index(matches)
 
         if self.is_dotproduct:
-            self._process_matches(matches, ns, self._dotproduct_heap_item)
+            self._process_matches2(matches, ns, self._dotproduct_heap_item)
         else:
-            self._process_matches(matches, ns, self._non_dotproduct_heap_item)
+            self._process_matches2(matches, ns, self._non_dotproduct_heap_item)
 
     def get_results(self) -> QueryNamespacesResults:
         if self.read:
