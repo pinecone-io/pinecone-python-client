@@ -269,7 +269,7 @@ class TestQueryResultsAggregator:
 
 class TestQueryResultsAggregatorOutputUX:
     def test_can_interact_with_attributes(self):
-        aggregator = QueryResultsAggregator(top_k=1)
+        aggregator = QueryResultsAggregator(top_k=2)
         results1 = {
             "matches": [
                 {
@@ -414,6 +414,8 @@ class TestQueryAggregatorEdgeCases:
     def test_topK_too_small(self):
         with pytest.raises(QueryResultsAggregatorInvalidTopKError):
             QueryResultsAggregator(top_k=0)
+        with pytest.raises(QueryResultsAggregatorInvalidTopKError):
+            QueryResultsAggregator(top_k=1)
 
     def test_matches_too_small(self):
         aggregator = QueryResultsAggregator(top_k=3)
@@ -431,3 +433,121 @@ class TestQueryAggregatorEdgeCases:
         assert results is not None
         assert results.usage.read_units == 0
         assert len(results.matches) == 0
+
+    def test_empty_results_with_usage(self):
+        aggregator = QueryResultsAggregator(top_k=3)
+
+        aggregator.add_results({"matches": [], "usage": {"readUnits": 5}, "namespace": "ns1"})
+        aggregator.add_results({"matches": [], "usage": {"readUnits": 5}, "namespace": "ns2"})
+        aggregator.add_results({"matches": [], "usage": {"readUnits": 5}, "namespace": "ns3"})
+
+        results = aggregator.get_results()
+        assert results is not None
+        assert results.usage.read_units == 15
+        assert len(results.matches) == 0
+
+    def test_exactly_one_result(self):
+        aggregator = QueryResultsAggregator(top_k=3)
+        results1 = {
+            "matches": [{"id": "2", "score": 0.01}, {"id": "3", "score": 0.2}],
+            "usage": {"readUnits": 5},
+            "namespace": "ns2",
+        }
+        aggregator.add_results(results1)
+
+        results2 = {
+            "matches": [{"id": "1", "score": 0.1}],
+            "usage": {"readUnits": 5},
+            "namespace": "ns1",
+        }
+        aggregator.add_results(results2)
+        results = aggregator.get_results()
+        assert results.usage.read_units == 10
+        assert len(results.matches) == 3
+        assert results.matches[0].id == "2"
+        assert results.matches[0].namespace == "ns2"
+        assert results.matches[0].score == 0.01
+        assert results.matches[1].id == "1"
+        assert results.matches[1].namespace == "ns1"
+        assert results.matches[1].score == 0.1
+        assert results.matches[2].id == "3"
+        assert results.matches[2].namespace == "ns2"
+        assert results.matches[2].score == 0.2
+
+    def test_two_result_sets_with_single_result_errors(self):
+        with pytest.raises(QueryResultsAggregregatorNotEnoughResultsError):
+            aggregator = QueryResultsAggregator(top_k=3)
+            results1 = {
+                "matches": [{"id": "1", "score": 0.1}],
+                "usage": {"readUnits": 5},
+                "namespace": "ns1",
+            }
+            aggregator.add_results(results1)
+            results2 = {
+                "matches": [{"id": "2", "score": 0.01}],
+                "usage": {"readUnits": 5},
+                "namespace": "ns2",
+            }
+            aggregator.add_results(results2)
+
+    def test_single_result_after_index_type_known_no_error(self):
+        aggregator = QueryResultsAggregator(top_k=3)
+
+        results3 = {
+            "matches": [{"id": "2", "score": 0.01}, {"id": "3", "score": 0.2}],
+            "usage": {"readUnits": 5},
+            "namespace": "ns3",
+        }
+        aggregator.add_results(results3)
+
+        results1 = {
+            "matches": [{"id": "1", "score": 0.1}],
+            "usage": {"readUnits": 5},
+            "namespace": "ns1",
+        }
+        aggregator.add_results(results1)
+        results2 = {"matches": [], "usage": {"readUnits": 5}, "namespace": "ns2"}
+        aggregator.add_results(results2)
+
+        results = aggregator.get_results()
+        assert results.usage.read_units == 15
+        assert len(results.matches) == 3
+        assert results.matches[0].id == "2"
+        assert results.matches[0].namespace == "ns3"
+        assert results.matches[0].score == 0.01
+        assert results.matches[1].id == "1"
+        assert results.matches[1].namespace == "ns1"
+        assert results.matches[1].score == 0.1
+        assert results.matches[2].id == "3"
+        assert results.matches[2].namespace == "ns3"
+        assert results.matches[2].score == 0.2
+
+    def test_all_empty_results(self):
+        aggregator = QueryResultsAggregator(top_k=10)
+
+        aggregator.add_results({"matches": [], "usage": {"readUnits": 5}, "namespace": "ns1"})
+        aggregator.add_results({"matches": [], "usage": {"readUnits": 5}, "namespace": "ns2"})
+        aggregator.add_results({"matches": [], "usage": {"readUnits": 5}, "namespace": "ns3"})
+
+        results = aggregator.get_results()
+
+        assert results.usage.read_units == 15
+        assert len(results.matches) == 0
+
+    def test_some_empty_results(self):
+        aggregator = QueryResultsAggregator(top_k=10)
+        results2 = {
+            "matches": [{"id": "2", "score": 0.01}, {"id": "3", "score": 0.2}],
+            "usage": {"readUnits": 5},
+            "namespace": "ns0",
+        }
+        aggregator.add_results(results2)
+
+        aggregator.add_results({"matches": [], "usage": {"readUnits": 5}, "namespace": "ns1"})
+        aggregator.add_results({"matches": [], "usage": {"readUnits": 5}, "namespace": "ns2"})
+        aggregator.add_results({"matches": [], "usage": {"readUnits": 5}, "namespace": "ns3"})
+
+        results = aggregator.get_results()
+
+        assert results.usage.read_units == 20
+        assert len(results.matches) == 2

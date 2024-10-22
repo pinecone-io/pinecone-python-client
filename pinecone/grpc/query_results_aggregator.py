@@ -89,20 +89,22 @@ class QueryResultsAggregationEmptyResultsError(Exception):
 
 
 class QueryResultsAggregregatorNotEnoughResultsError(Exception):
-    def __init__(self, top_k: int, num_results: int):
+    def __init__(self, num_results: int):
         super().__init__(
-            f"Cannot interpret results without at least two matches. In order to aggregate results from multiple queries, top_k must be greater than 1 in order to correctly infer the similarity metric from scores. Expected at least {top_k} results but got {num_results}."
+            "Cannot interpret results without at least two matches. In order to aggregate results from multiple queries, top_k must be greater than 1 in order to correctly infer the similarity metric from scores."
         )
 
 
 class QueryResultsAggregatorInvalidTopKError(Exception):
     def __init__(self, top_k: int):
-        super().__init__(f"Invalid top_k value {top_k}. top_k must be a positive integer.")
+        super().__init__(
+            f"Invalid top_k value {top_k}. To aggregate results from multiple queries the top_k must be at least 2."
+        )
 
 
 class QueryResultsAggregator:
     def __init__(self, top_k: int):
-        if top_k < 1:
+        if top_k < 2:
             raise QueryResultsAggregatorInvalidTopKError(top_k)
         self.top_k = top_k
         self.usage_read_units = 0
@@ -155,11 +157,14 @@ class QueryResultsAggregator:
         self.usage_read_units += results.get("usage", {}).get("readUnits", 0)
 
         if len(matches) == 0:
-            raise QueryResultsAggregationEmptyResultsError(ns)
+            return
 
         if self.is_dotproduct is None:
             if len(matches) == 1:
-                raise QueryResultsAggregregatorNotEnoughResultsError(self.top_k, len(matches))
+                # This condition should match the second time we add results containing
+                # only one match. We need at least two matches in a single response in order
+                # to infer the similarity metric
+                raise QueryResultsAggregregatorNotEnoughResultsError(len(matches))
             self.is_dotproduct = self._is_dotproduct_index(matches)
 
         if self.is_dotproduct:
