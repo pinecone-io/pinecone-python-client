@@ -9,14 +9,13 @@ from .channel_factory import GrpcChannelFactory
 from pinecone import Config
 from .config import GRPCClientConfig
 from .grpc_runner import GrpcRunner
+from .utils import normalize_endpoint
 
 
 class GRPCIndexBase(ABC):
     """
     Base class for grpc-based interaction with Pinecone indexes
     """
-
-    _pool = None
 
     def __init__(
         self,
@@ -25,17 +24,17 @@ class GRPCIndexBase(ABC):
         channel: Optional[Channel] = None,
         grpc_config: Optional[GRPCClientConfig] = None,
         _endpoint_override: Optional[str] = None,
+        use_asyncio: Optional[bool] = False,
     ):
         self.config = config
         self.grpc_client_config = grpc_config or GRPCClientConfig()
-
         self._endpoint_override = _endpoint_override
 
         self.runner = GrpcRunner(
             index_name=index_name, config=config, grpc_config=self.grpc_client_config
         )
         self.channel_factory = GrpcChannelFactory(
-            config=self.config, grpc_client_config=self.grpc_client_config, use_asyncio=False
+            config=self.config, grpc_client_config=self.grpc_client_config, use_asyncio=use_asyncio
         )
         self._channel = channel or self._gen_channel()
         self.stub = self.stub_class(self._channel)
@@ -46,9 +45,7 @@ class GRPCIndexBase(ABC):
         pass
 
     def _endpoint(self):
-        grpc_host = self.config.host.replace("https://", "")
-        if ":" not in grpc_host:
-            grpc_host = f"{grpc_host}:443"
+        grpc_host = normalize_endpoint(self.config.host)
         return self._endpoint_override if self._endpoint_override else grpc_host
 
     def _gen_channel(self):
@@ -83,3 +80,10 @@ class GRPCIndexBase(ABC):
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        self.close()
+        return True
