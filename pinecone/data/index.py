@@ -1,11 +1,11 @@
 from tqdm.autonotebook import tqdm
 
+import logging
 from typing import Union, List, Optional, Dict, Any
 
 from pinecone.config import ConfigBuilder
 
 from pinecone.core.openapi.shared import API_VERSION
-from pinecone.core.openapi.data.models import SparseValues
 from pinecone.core.openapi.data import ApiClient
 from pinecone.core.openapi.data.models import (
     FetchResponse,
@@ -22,11 +22,21 @@ from pinecone.core.openapi.data.models import (
     UpdateRequest,
     DescribeIndexStatsRequest,
     ListResponse,
+    SparseValues,
+)
+from pinecone.core.openapi.data.api.data_plane_api import DataPlaneApi
+from ..utils import (
+    setup_openapi_client,
+    parse_non_empty_args,
+    build_plugin_setup_client,
+    validate_and_convert_errors,
 )
 from .features.bulk_import import ImportFeatureMixin
-from pinecone.core.openapi.data.api.data_plane_api import DataPlaneApi
-from ..utils import setup_openapi_client, parse_non_empty_args
 from .vector_factory import VectorFactory
+
+from pinecone_plugin_interface import load_and_install as install_plugins
+
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "Index",
@@ -46,8 +56,6 @@ __all__ = [
     "DescribeIndexStatsRequest",
     "SparseValues",
 ]
-
-from ..utils.error_handling import validate_and_convert_errors
 
 _OPENAPI_ENDPOINT_PARAMS = (
     "_return_http_data_only",
@@ -102,6 +110,23 @@ class Index(ImportFeatureMixin):
             pool_threads=pool_threads,
             api_version=API_VERSION,
         )
+
+        self._load_plugins()
+
+    def _load_plugins(self):
+        """@private"""
+        try:
+            # I don't expect this to ever throw, but wrapping this in a
+            # try block just in case to make sure a bad plugin doesn't
+            # halt client initialization.
+            openapi_client_builder = build_plugin_setup_client(
+                config=self.config,
+                openapi_config=self.openapi_config,
+                pool_threads=self.pool_threads,
+            )
+            install_plugins(self, openapi_client_builder)
+        except Exception as e:
+            logger.error(f"Error loading plugins in Index: {e}")
 
     def __enter__(self):
         return self

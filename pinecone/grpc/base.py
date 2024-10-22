@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
+import logging
 import grpc
 from grpc._channel import Channel
 
@@ -9,6 +10,10 @@ from .channel_factory import GrpcChannelFactory
 from pinecone import Config
 from .config import GRPCClientConfig
 from .grpc_runner import GrpcRunner
+
+from pinecone_plugin_interface import load_and_install as install_plugins
+
+_logger = logging.getLogger(__name__)
 
 
 class GRPCIndexBase(ABC):
@@ -39,6 +44,19 @@ class GRPCIndexBase(ABC):
         )
         self._channel = channel or self._gen_channel()
         self.stub = self.stub_class(self._channel)
+
+        self._load_plugins()
+
+    def _load_plugins(self):
+        """@private"""
+        try:
+
+            def stub_openapi_client_builder(**kwargs):
+                pass
+
+            install_plugins(self, stub_openapi_client_builder)
+        except Exception as e:
+            _logger.error(f"Error loading plugins in GRPCIndex: {e}")
 
     @property
     @abstractmethod
