@@ -81,15 +81,8 @@ class QueryNamespacesResults:
         )
 
 
-class QueryResultsAggregationEmptyResultsError(Exception):
-    def __init__(self, namespace: str):
-        super().__init__(
-            f"Query results for namespace '{namespace}' were empty. Check that you have upserted vectors into this namespace (see describe_index_stats) and that the namespace name is spelled correctly."
-        )
-
-
 class QueryResultsAggregregatorNotEnoughResultsError(Exception):
-    def __init__(self, num_results: int):
+    def __init__(self):
         super().__init__(
             "Cannot interpret results without at least two matches. In order to aggregate results from multiple queries, top_k must be greater than 1 in order to correctly infer the similarity metric from scores."
         )
@@ -164,7 +157,7 @@ class QueryResultsAggregator:
                 # This condition should match the second time we add results containing
                 # only one match. We need at least two matches in a single response in order
                 # to infer the similarity metric
-                raise QueryResultsAggregregatorNotEnoughResultsError(len(matches))
+                raise QueryResultsAggregregatorNotEnoughResultsError()
             self.is_dotproduct = self._is_dotproduct_index(matches)
 
         if self.is_dotproduct:
