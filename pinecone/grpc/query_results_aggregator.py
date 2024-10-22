@@ -163,9 +163,9 @@ class QueryResultsAggregator:
             self.is_dotproduct = self._is_dotproduct_index(matches)
 
         if self.is_dotproduct:
-            self._process_matches2(matches, ns, self._dotproduct_heap_item)
+            self._process_matches(matches, ns, self._dotproduct_heap_item)
         else:
-            self._process_matches2(matches, ns, self._non_dotproduct_heap_item)
+            self._process_matches(matches, ns, self._non_dotproduct_heap_item)
 
     def get_results(self) -> QueryNamespacesResults:
         if self.read:
