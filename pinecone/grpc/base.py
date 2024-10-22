@@ -51,7 +51,7 @@ class GRPCIndexBase(ABC):
         """@private"""
         try:
 
-            def stub_openapi_client_builder(**kwargs):
+            def stub_openapi_client_builder(*args, **kwargs):
                 pass
 
             install_plugins(self, stub_openapi_client_builder)
