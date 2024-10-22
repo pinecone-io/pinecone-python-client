@@ -9,6 +9,7 @@ from .setup_openapi_client import setup_openapi_client, build_plugin_setup_clien
 from .parse_args import parse_non_empty_args
 from .docslinks import docslinks
 from .repr_overrides import install_json_repr_override
+from .error_handling import validate_and_convert_errors
 
 __all__ = [
     "check_kwargs",
@@ -23,4 +24,5 @@ __all__ = [
     "parse_non_empty_args",
     "docslinks",
     "install_json_repr_override",
+    "validate_and_convert_errors",
 ]
