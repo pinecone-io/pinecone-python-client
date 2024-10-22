@@ -1,14 +1,14 @@
 from typing import Optional
 import uuid
 
-from pinecone.core.openapi.data.models import (
+from pinecone.core.openapi.db_data.models import (
     Vector as _Vector,
     Usage,
     ScoredVector,
     SparseValues,
     FetchResponse,
     QueryResponse,
-    DescribeIndexStatsResponse,
+    IndexDescription as DescribeIndexStatsResponse,
     NamespaceSummary,
 )
 

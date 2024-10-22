@@ -13,7 +13,7 @@ if [ "$is_early_access" = "true" ]; then
 	template_dir="codegen/python-oas-templates/templates5.2.0"
 else
 	destination="pinecone/core/openapi"
-	modules=("control" "data")
+	modules=("db_control" "db_data")
 	py_module_name="core"
 	template_dir="codegen/python-oas-templates/templates5.2.0"
 fi
@@ -83,7 +83,7 @@ generate_client() {
 	docker run --rm -v $(pwd):/workspace openapitools/openapi-generator-cli:v5.2.0 generate \
 		--input-spec "/workspace/$oas_file" \
 		--generator-name python \
-		--additional-properties=packageName=$package_name,pythonAttrNoneIfUnset=true,exceptionsPackageName=pinecone.core.openapi.shared.exceptions \
+		--additional-properties=packageName=$package_name,pythonAttrNoneIfUnset=true,exceptionsPackageName=pinecone.openapi_support.exceptions \
 		--output "/workspace/${build_dir}" \
 		--template-dir "/workspace/$template_dir"
 
@@ -97,12 +97,10 @@ generate_client() {
 	rm -rf "${destination}/${module_name}"
 	mkdir -p "${destination}"
 	cp -r "build/pinecone/$py_module_name/openapi/${module_name}" "${destination}/${module_name}"
+	echo "API_VERSION = '${version}'" >> "${destination}/${module_name}/__init__.py"
 }
 
-extract_shared_classes() {
-	target_directory="${destination}/shared"
-	mkdir -p "$target_directory"
-
+remove_shared_classes() {
 	# Define the list of shared source files
 	sharedFiles=(
 		"api_client"
@@ -114,11 +112,6 @@ extract_shared_classes() {
 
 	source_directory="${destination}/${modules[0]}"
 
-	# Loop through each file we want to share and copy it to the target directory
-	for file in "${sharedFiles[@]}"; do
-		cp "${source_directory}/${file}.py" "$target_directory"
-	done
-
 	# Cleanup shared files in each module
 	for module in "${modules[@]}"; do
 		source_directory="${destination}/${module}"
@@ -127,26 +120,18 @@ extract_shared_classes() {
 		done
 	done
 
-	# Remove the docstring headers that aren't really correct in the
-	# context of this new shared package structure
-	find "$target_directory" -name "*.py" -print0 | xargs -0 -I {} sh -c 'sed -i "" "/^\"\"\"/,/^\"\"\"/d" "{}"'
-
-	echo "All shared files have been copied to $target_directory."
-
 	# Adjust import paths in every file
 	find "${destination}" -name "*.py" | while IFS= read -r file; do
-		sed -i '' "s/from \.\.model_utils/from pinecone\.$py_module_name\.openapi\.shared\.model_utils/g" "$file"
+		sed -i '' "s/from \.\.model_utils/from pinecone\.openapi_support\.model_utils/g" "$file"
 
 		for module in "${modules[@]}"; do
-			sed -i '' "s/from pinecone\.$py_module_name\.openapi\.$module import rest/from pinecone\.$py_module_name\.openapi\.shared import rest/g" "$file"
+			sed -i '' "s/from pinecone\.$py_module_name\.openapi\.$module import rest/from pinecone\.openapi_support import rest/g" "$file"
 
 			for sharedFile in "${sharedFiles[@]}"; do
-				sed -i '' "s/from pinecone\.$py_module_name\.openapi\.$module\.$sharedFile/from pinecone\.$py_module_name\.openapi\.shared\.$sharedFile/g" "$file"
+				sed -i '' "s/from pinecone\.$py_module_name\.openapi\.$module\.$sharedFile/from pinecone\.openapi_support/g" "$file"
 			done
 		done
 	done
-
-	echo "API_VERSION = '${version}'" > "${target_directory}/__init__.py"
 }
 
 update_apis_repo
@@ -162,8 +147,9 @@ done
 
 # Even though we want to generate multiple packages, we
 # don't want to duplicate every exception and utility class.
-# So we do a bit of surgery to combine the shared files.
-extract_shared_classes
+# So we do a bit of surgery to find these shared files
+# elsewhere, in the pinecone.openapi_support package.
+remove_shared_classes
 
 # Format generated files
 poetry run ruff format "${destination}"

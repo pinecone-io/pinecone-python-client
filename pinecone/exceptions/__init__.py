@@ -1,4 +1,4 @@
-from pinecone.core.openapi.shared.exceptions import (
+from pinecone.openapi_support.exceptions import (
     PineconeException,
     PineconeApiAttributeError,
     PineconeApiTypeError,

@@ -2,9 +2,8 @@ from urllib3 import BaseHTTPResponse, HTTPResponse
 
 from datetime import datetime, date
 
-from pinecone.core_ea.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
-from pinecone.core_ea.openapi.shared.api_client import ApiClient
-from pinecone.core_ea.openapi.shared.rest import RESTResponse
+from pinecone.core.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
+from pinecone.openapi_support import ApiClient, RESTResponse
 
 
 def fake_response(mocker, body: str, status: int = 200) -> BaseHTTPResponse:
@@ -35,7 +34,7 @@ class TestBulkImport:
         api_client = fake_response(mocker, body, 200)
         api = BulkOperationsApi(api_client=api_client)
 
-        r = api.describe_import(id="1")
+        r = api.describe_bulk_import(id="1")
         assert r.created_at.year == 2024
         assert r.created_at.month == 8
         assert r.created_at.date() == date(year=2024, month=8, day=27)
