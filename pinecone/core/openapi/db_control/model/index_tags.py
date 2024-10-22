@@ -63,9 +63,9 @@ class IndexTags(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        return (str, none_type)  # noqa: E501
+        return (str,)  # noqa: E501
 
-    _nullable = False
+    _nullable = True
 
     @cached_property
     def openapi_types():

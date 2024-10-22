@@ -62,8 +62,8 @@ class StartImportRequest(ModelNormal):
     allowed_values = {}
 
     validations = {
-        ("integration_id",): {"max_length": 1000, "min_length": 1},
-        ("uri",): {"max_length": 1500},
+        ("uri",): {"max_length": 1500, "min_length": 1},
+        ("integration_id",): {"max_length": 1000},
     }
 
     @cached_property
@@ -89,8 +89,8 @@ class StartImportRequest(ModelNormal):
         """
         lazy_import()
         return {
-            "integration_id": (str,),  # noqa: E501
             "uri": (str,),  # noqa: E501
+            "integration_id": (str,),  # noqa: E501
             "error_mode": (ImportErrorMode,),  # noqa: E501
         }
 
@@ -99,8 +99,8 @@ class StartImportRequest(ModelNormal):
         return None
 
     attribute_map = {
-        "integration_id": "integrationId",  # noqa: E501
         "uri": "uri",  # noqa: E501
+        "integration_id": "integrationId",  # noqa: E501
         "error_mode": "errorMode",  # noqa: E501
     }
 
@@ -110,8 +110,11 @@ class StartImportRequest(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, uri, *args, **kwargs):  # noqa: E501
         """StartImportRequest - a model defined in OpenAPI
+
+        Args:
+            uri (str): The URI prefix under which the data to import is available. All data within this prefix will be listed then imported into the target index. Currently only `s3://` URIs are supported.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -145,7 +148,6 @@ class StartImportRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             integration_id (str): The id of the storage integration that should be used to access the data.. [optional]  # noqa: E501
-            uri (str): The URI prefix under which the data to import is available. All data within this prefix will be listed then imported into the target index. Currently only `s3://` URIs are supported.. [optional]  # noqa: E501
             error_mode (ImportErrorMode): [optional]  # noqa: E501
         """
 
@@ -172,6 +174,7 @@ class StartImportRequest(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.uri = uri
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -196,8 +199,11 @@ class StartImportRequest(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs):  # noqa: E501
+    def __init__(self, uri, *args, **kwargs):  # noqa: E501
         """StartImportRequest - a model defined in OpenAPI
+
+        Args:
+            uri (str): The URI prefix under which the data to import is available. All data within this prefix will be listed then imported into the target index. Currently only `s3://` URIs are supported.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -231,7 +237,6 @@ class StartImportRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             integration_id (str): The id of the storage integration that should be used to access the data.. [optional]  # noqa: E501
-            uri (str): The URI prefix under which the data to import is available. All data within this prefix will be listed then imported into the target index. Currently only `s3://` URIs are supported.. [optional]  # noqa: E501
             error_mode (ImportErrorMode): [optional]  # noqa: E501
         """
 
@@ -256,6 +261,7 @@ class StartImportRequest(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.uri = uri
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
