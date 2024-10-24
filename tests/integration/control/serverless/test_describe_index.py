@@ -45,5 +45,8 @@ class TestDescribeIndex:
         assert description.host != ""
         assert notready_sl_index in description.host
 
-        assert description.status.ready == False
-        assert description.status.state in ["Ready", "Initializing"]
+        if description.status.state == "Ready":
+            assert description.status.ready == True
+        else:
+            assert description.status.ready == False
+            assert description.status.state == "Initializing"
