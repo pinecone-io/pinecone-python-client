@@ -54,7 +54,7 @@ def ready_index(client, index_name, create_index_params):
     client.create_index(**create_index_params)
     time.sleep(10)  # Extra wait, since status is sometimes inaccurate
     yield index_name
-    client.delete_index(index_name, -1)
+    attempt_delete_index(client, index_name)
 
 
 @pytest.fixture()
@@ -109,20 +109,43 @@ def reusable_collection():
         raise Exception(f"Collection {collection_name} is not ready after 120 seconds")
 
     print(f"Collection {collection_name} is ready. Deleting index {index_name}...")
-    pc.delete_index(index_name)
+    attempt_delete_index(pc, index_name)
 
     yield collection_name
 
     print(f"Deleting collection {collection_name}...")
-    pc.delete_collection(collection_name)
+    attempt_delete_collection(pc, collection_name)
 
 
-@pytest.fixture(autouse=True)
-def cleanup(client, index_name):
-    yield
+def attempt_delete_collection(client, collection_name):
+    time_waited = 0
+    while collection_name in client.list_collections().names() and time_waited < 120:
+        print(
+            f"Waiting for collection {collection_name} to be ready to delete. Waited {time_waited} seconds.."
+        )
+        time_waited += 5
+        time.sleep(5)
+        try:
+            print(f"Attempting delete of collection {collection_name}")
+            client.delete_collection(collection_name, -1)
+            print(f"Deleted collection {collection_name}")
+            break
+        except Exception as e:
+            print(f"Unable to delete collection {collection_name}: {e}")
+            pass
 
+    if time_waited >= 120:
+        # Things that fail to delete due to transient statuses will be garbage
+        # collected by the nightly cleanup script
+        print(f"Collection {collection_name} could not be deleted after 120 seconds")
+
+
+def attempt_delete_index(client, index_name):
     time_waited = 0
     while client.has_index(index_name) and time_waited < 120:
+        if client.describe_index(index_name).delete_protection == "enabled":
+            client.configure_index(index_name, deletion_protection="disabled")
+
         print(
             f"Waiting for index {index_name} to be ready to delete. Waited {time_waited} seconds.."
         )
@@ -141,3 +164,10 @@ def cleanup(client, index_name):
         # Things that fail to delete due to transient statuses will be garbage
         # collected by the nightly cleanup script
         print(f"Index {index_name} could not be deleted after 120 seconds")
+
+
+@pytest.fixture(autouse=True)
+def cleanup(client, index_name):
+    yield
+
+    attempt_delete_index(client, index_name)
