@@ -79,6 +79,7 @@ jobs:
           lz4_version: '${{ matrix.lz4_version }}'
           protobuf_version: '${{ matrix.protobuf_version }}'
           googleapis_common_protos_version: '${{ matrix.googleapis_common_protos_version }}'
+          DD_TAGS: 'test.configuration.python:${{ matrix.python_version}},test.configuration.grpcio:${{ matrix.grpcio_version }},test.configuration.lz4:${{ matrix.lz4_version }},test.configuration.protobuf:${{ matrix.protobuf_version }},test.configuration.googleapis_common_protos:${{ matrix.googleapis_common_protos_version }}'
 
   dependency-matrix-grpc-312:
     name: Deps (GRPC)
@@ -114,6 +115,7 @@ jobs:
           lz4_version: '${{ matrix.lz4_version }}'
           protobuf_version: '${{ matrix.protobuf_version }}'
           googleapis_common_protos_version: '${{ matrix.googleapis_common_protos_version }}'
+          DD_TAGS: 'test.configuration.python:${{ matrix.python_version}},test.configuration.grpcio:${{ matrix.grpcio_version }},test.configuration.lz4:${{ matrix.lz4_version }},test.configuration.protobuf:${{ matrix.protobuf_version }},test.configuration.googleapis_common_protos:${{ matrix.googleapis_common_protos_version }}'
 
   dependency-matrix-rest:
     name: Deps (REST)
@@ -139,6 +141,7 @@ jobs:
           index_name: '${{ needs.dependency-matrix-setup.outputs.index_name }}'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
           urllib3_version: '${{ matrix.urllib3_version }}'
+          DD_TAGS: 'test.configuration.python:${{ matrix.python_version}},test.configuration.urllib3:${{ matrix.urllib3_version }}'
 
   dependency-matrix-rest-312:
     name: Deps (REST)
@@ -163,6 +166,7 @@ jobs:
           index_name: '${{ needs.dependency-matrix-setup.outputs.index_name }}'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
           urllib3_version: '${{ matrix.urllib3_version }}'
+          DD_TAGS: 'test.configuration.python:${{ matrix.python_version}},test.configuration.urllib3:${{ matrix.urllib3_version }}'
 
   deps-cleanup:
     name: Deps cleanup
