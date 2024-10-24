@@ -29,6 +29,9 @@ inputs:
     description: 'The version of Python to use'
     required: false
     default: '3.9'
+  DATADOG_API_KEY:
+    description: 'The Datadog API key'
+    required: true
 
 outputs:
   index_name:
@@ -52,8 +55,13 @@ runs:
     - name: Run data plane tests
       id: data-plane-tests
       shell: bash
-      run: poetry run pytest tests/integration/data
+      run: poetry run pytest tests/integration/data --ddtrace
       env:
+        DD_CIVISIBILITY_AGENTLESS_ENABLED: true
+        DD_API_KEY: ${{ inputs.DATADOG_API_KEY }}
+        DD_SITE: datadoghq.com
+        DD_ENV: ci
+        DD_SERVICE: pinecone-python-client
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         USE_GRPC: ${{ inputs.use_grpc }}
         METRIC: ${{ inputs.metric }}
