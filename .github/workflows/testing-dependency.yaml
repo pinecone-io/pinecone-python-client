@@ -3,6 +3,13 @@ name: Dependency Testing
 on:
   workflow_call: {}
 
+env:
+  DD_CIVISIBILITY_AGENTLESS_ENABLED: true
+  DD_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+  DD_SITE: datadoghq.com
+  DD_ENV: ci
+  DD_SERVICE: pinecone-python-client
+
 jobs:
   dependency-matrix-setup:
     name: Deps setup
@@ -132,7 +139,7 @@ jobs:
           index_name: '${{ needs.dependency-matrix-setup.outputs.index_name }}'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
           urllib3_version: '${{ matrix.urllib3_version }}'
-      
+
   dependency-matrix-rest-312:
     name: Deps (REST)
     runs-on: ubuntu-latest
