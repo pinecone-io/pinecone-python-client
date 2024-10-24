@@ -64,10 +64,6 @@ def notready_index(client, index_name, create_index_params):
     yield index_name
 
 
-def index_exists(index_name, client):
-    return index_name in client.list_indexes().names()
-
-
 @pytest.fixture(scope="session")
 def reusable_collection():
     pc = Pinecone(
@@ -126,7 +122,7 @@ def cleanup(client, index_name):
     yield
 
     time_waited = 0
-    while index_exists(index_name, client) and time_waited < 120:
+    while client.has_index(index_name) and time_waited < 120:
         print(
             f"Waiting for index {index_name} to be ready to delete. Waited {time_waited} seconds.."
         )
@@ -142,4 +138,6 @@ def cleanup(client, index_name):
             pass
 
     if time_waited >= 120:
-        raise Exception(f"Index {index_name} could not be deleted after 120 seconds")
+        # Things that fail to delete due to transient statuses will be garbage
+        # collected by the nightly cleanup script
+        print(f"Index {index_name} could not be deleted after 120 seconds")
