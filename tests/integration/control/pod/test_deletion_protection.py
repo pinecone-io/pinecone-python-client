@@ -52,7 +52,7 @@ class TestDeletionProtection:
         for t in range(1, 30):
             delta = 2
             desc = client.describe_index(index_name)
-            if desc.status.ready:
+            if desc.status.state == "Ready":
                 print(f"Index {index_name} is ready after {(t-1)*delta} seconds")
                 break
             print("Index is not ready yet. Waiting for 2 seconds.")
