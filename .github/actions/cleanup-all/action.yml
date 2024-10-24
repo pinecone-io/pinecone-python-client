@@ -5,12 +5,16 @@ inputs:
   PINECONE_API_KEY:
     description: 'The Pinecone API key'
     required: true
+  DELETE_ALL:
+    description: 'Delete all indexes and collections'
+    required: false
+    default: 'false'
 
 runs:
   using: 'composite'
   steps:
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: 3.9
     - name: Setup Poetry
@@ -20,3 +24,4 @@ runs:
       run: poetry run python3 scripts/cleanup-all.py
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
+        DELETE_ALL: ${{ inputs.DELETE_ALL }}
