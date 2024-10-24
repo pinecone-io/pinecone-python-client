@@ -2,6 +2,7 @@ import os
 import re
 from pinecone import Pinecone
 from datetime import datetime, timedelta
+import time
 
 
 def delete_everything(pc):
@@ -16,6 +17,30 @@ def delete_everything(pc):
     for index in pc.list_indexes().names():
         try:
             print("Deleting index: " + index)
+            desc = pc.describe_index(index)
+
+            # Check whether index can be deleted
+            if desc.deletion_protection == "enabled":
+                pc.configure_index(index, deletion_protection="disabled")
+
+            # Wait for index to be ready before deleting
+            ready_to_delete = False
+            max_wait = 60
+            time_waited = 0
+            while not ready_to_delete:
+                desc = pc.describe_index(index)
+                if desc.status.state == "Ready":
+                    ready_to_delete = True
+                    break
+                else:
+                    print("Index is not ready yet. Waiting for 2 seconds.")
+                    time.sleep(2)
+                    time_waited += 2
+
+                if time_waited > max_wait:
+                    print(f"Timed out waiting for index {index} to be ready")
+                    break
+
             pc.delete_index(index)
         except Exception as e:
             print("Failed to delete index: " + index + " " + str(e))
