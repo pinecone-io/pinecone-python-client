@@ -58,5 +58,14 @@ class TestDeletionProtection:
             print("Index is not ready yet. Waiting for 2 seconds.")
             time.sleep(delta)
 
-        # Cleanup
-        client.delete_index(index_name)
+        attempts = 0
+        while attempts < 12:
+            try:
+                client.delete_index(index_name)
+                break
+            except Exception as e:
+                attempts += 1
+                print(f"Failed to delete index {index_name} on attempt {attempts}.")
+                print(f"Error: {e}")
+                client.describe_index(index_name)
+                time.sleep(10)
