@@ -127,7 +127,7 @@ def attempt_delete_collection(client, collection_name):
         time.sleep(5)
         try:
             print(f"Attempting delete of collection {collection_name}")
-            client.delete_collection(collection_name, -1)
+            client.delete_collection(collection_name)
             print(f"Deleted collection {collection_name}")
             break
         except Exception as e:
