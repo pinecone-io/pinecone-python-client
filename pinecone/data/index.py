@@ -363,7 +363,7 @@ class Index(ImportFeatureMixin):
             Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
         ] = None,
         **kwargs,
-    ) -> Union[QueryResponse, ApplyResult[QueryResponse]]:
+    ) -> Union[QueryResponse, ApplyResult]:
         """
         The Query operation searches a namespace, using a query vector.
         It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
@@ -483,7 +483,6 @@ class Index(ImportFeatureMixin):
         sparse_vector: Optional[
             Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
         ] = None,
-        show_progress: Optional[bool] = True,
         **kwargs,
     ) -> QueryNamespacesResults:
         if len(namespaces) == 0:
@@ -522,18 +521,6 @@ class Index(ImportFeatureMixin):
 
         final_results = aggregator.get_results()
         return final_results
-
-        # with tqdm(
-        #     total=len(query_tasks), disable=not show_progress, desc="Querying namespaces"
-        # ) as pbar:
-        #     for query_task in asyncio.as_completed(query_tasks):
-        #         response = await query_task
-        #         pbar.update(1)
-        #         async with aggregator_lock:
-        #             aggregator.add_results(response)
-
-        # final_results = aggregator.get_results()
-        # return final_results
 
     @validate_and_convert_errors
     def update(
