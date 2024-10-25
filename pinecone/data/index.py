@@ -472,6 +472,7 @@ class Index(ImportFeatureMixin):
         )
         return response
 
+    @validate_and_convert_errors
     def query_namespaces(
         self,
         vector: List[float],
