@@ -42,7 +42,7 @@ from .utils import (
     parse_sparse_values_arg,
 )
 from .vector_factory_grpc import VectorFactoryGRPC
-from .query_results_aggregator import QueryResultsAggregator, QueryNamespacesResults
+from ..data.query_results_aggregator import QueryResultsAggregator, QueryNamespacesResults
 
 
 class GRPCIndexAsyncio(GRPCIndexBase):

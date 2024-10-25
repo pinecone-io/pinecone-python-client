@@ -1,4 +1,4 @@
-from pinecone.grpc.query_results_aggregator import (
+from pinecone.data.query_results_aggregator import (
     QueryResultsAggregator,
     QueryResultsAggregatorInvalidTopKError,
     QueryResultsAggregregatorNotEnoughResultsError,
