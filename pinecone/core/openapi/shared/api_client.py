@@ -8,6 +8,24 @@ import re
 import typing
 from urllib.parse import quote
 from urllib3.fields import RequestField
+import time
+import random
+
+def retry_api_call(
+    func, args=(), kwargs={}, retries=3, backoff=1, jitter=0.5
+):
+    attempts = 0
+    while attempts < retries:
+        try:
+            return func(*args, **kwargs)  # Attempt to call __call_api
+        except Exception as e:
+            attempts += 1
+            if attempts >= retries:
+                print(f"API call failed after {attempts} attempts: {e}")
+                raise  # Re-raise exception if retries are exhausted
+            sleep_time = backoff * (2 ** (attempts - 1)) + random.uniform(0, jitter)
+            # print(f"Retrying ({attempts}/{retries}) in {sleep_time:.2f} seconds after error: {e}")
+            time.sleep(sleep_time)
 
 
 from pinecone.core.openapi.shared import rest
@@ -397,25 +415,32 @@ class ApiClient(object):
             )
 
         return self.pool.apply_async(
-            self.__call_api,
-            (
-                resource_path,
-                method,
-                path_params,
-                query_params,
-                header_params,
-                body,
-                post_params,
-                files,
-                response_type,
-                auth_settings,
-                _return_http_data_only,
-                collection_formats,
-                _preload_content,
-                _request_timeout,
-                _host,
-                _check_type,
-            ),
+            retry_api_call,
+            args=(
+                self.__call_api,  # Pass the API call function as the first argument
+                (
+                    resource_path,
+                    method,
+                    path_params,
+                    query_params,
+                    header_params,
+                    body,
+                    post_params,
+                    files,
+                    response_type,
+                    auth_settings,
+                    _return_http_data_only,
+                    collection_formats,
+                    _preload_content,
+                    _request_timeout,
+                    _host,
+                    _check_type,
+                ),
+                {},  # empty kwargs dictionary
+                3,    # retries
+                1,    # backoff time
+                0.5   # jitter
+            )
         )
 
     def request(
