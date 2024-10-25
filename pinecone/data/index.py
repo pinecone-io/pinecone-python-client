@@ -120,7 +120,7 @@ class Index(ImportFeatureMixin):
             # try block just in case to make sure a bad plugin doesn't
             # halt client initialization.
             openapi_client_builder = build_plugin_setup_client(
-                config=self.config,
+                config=self._config,
                 openapi_config=self.openapi_config,
                 pool_threads=self.pool_threads,
             )
