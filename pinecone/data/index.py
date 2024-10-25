@@ -97,16 +97,16 @@ class Index(ImportFeatureMixin):
             **kwargs,
         )
 
-        self._config = ConfigBuilder.build(
+        self.config = ConfigBuilder.build(
             api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
-        self._openapi_config = ConfigBuilder.build_openapi_config(self._config, openapi_config)
+        self._openapi_config = ConfigBuilder.build_openapi_config(self.config, openapi_config)
         self._pool_threads = pool_threads
 
         self._vector_api = setup_openapi_client(
             api_client_klass=ApiClient,
             api_klass=DataPlaneApi,
-            config=self._config,
+            config=self.config,
             openapi_config=self._openapi_config,
             pool_threads=self._pool_threads,
             api_version=API_VERSION,
@@ -121,7 +121,7 @@ class Index(ImportFeatureMixin):
             # try block just in case to make sure a bad plugin doesn't
             # halt client initialization.
             openapi_client_builder = build_plugin_setup_client(
-                config=self._config,
+                config=self.config,
                 openapi_config=self._openapi_config,
                 pool_threads=self._pool_threads,
             )
