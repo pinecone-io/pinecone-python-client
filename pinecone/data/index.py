@@ -100,14 +100,15 @@ class Index(ImportFeatureMixin):
         self._config = ConfigBuilder.build(
             api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
-        openapi_config = ConfigBuilder.build_openapi_config(self._config, openapi_config)
+        self._openapi_config = ConfigBuilder.build_openapi_config(self._config, openapi_config)
+        self._pool_threads = pool_threads
 
         self._vector_api = setup_openapi_client(
             api_client_klass=ApiClient,
             api_klass=DataPlaneApi,
             config=self._config,
-            openapi_config=openapi_config,
-            pool_threads=pool_threads,
+            openapi_config=self._openapi_config,
+            pool_threads=self._pool_threads,
             api_version=API_VERSION,
         )
 
@@ -121,8 +122,8 @@ class Index(ImportFeatureMixin):
             # halt client initialization.
             openapi_client_builder = build_plugin_setup_client(
                 config=self._config,
-                openapi_config=self.openapi_config,
-                pool_threads=self.pool_threads,
+                openapi_config=self._openapi_config,
+                pool_threads=self._pool_threads,
             )
             install_plugins(self, openapi_client_builder)
         except Exception as e:
