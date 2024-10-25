@@ -5,6 +5,28 @@ from pinecone import PodSpec
 from ...helpers import generate_index_name, generate_collection_name
 
 
+def attempt_cleanup_collection(client, collection_name):
+    try:
+        time.sleep(10)
+        client.delete_collection(collection_name)
+    except Exception as e:
+        # Failures here usually happen because the backend thinks there is still some
+        # operation pending on the resource.
+        # These orphaned resources will get cleaned up by the cleanup job later.
+        print(f"Failed to cleanup collection: {e}")
+
+
+def attempt_cleanup_index(client, index_name):
+    try:
+        time.sleep(10)
+        client.delete_index(index_name, -1)
+    except Exception as e:
+        # Failures here usually happen because the backend thinks there is still some
+        # operation pending on the resource.
+        # These orphaned resources will get cleaned up by the cleanup job later.
+        print(f"Failed to cleanup collection: {e}")
+
+
 class TestCollectionsHappyPath:
     def test_index_to_collection_to_index_happy_path(
         self, client, environment, dimension, metric, ready_index, random_vector
@@ -78,8 +100,8 @@ class TestCollectionsHappyPath:
             assert results.vectors[v[0]].values == pytest.approx(v[1], rel=0.01)
 
         # Cleanup
-        client.delete_collection(collection_name)
-        client.delete_index(index_name)
+        attempt_cleanup_collection(client, collection_name)
+        attempt_cleanup_index(client, index_name)
 
     def test_create_index_with_different_metric_from_orig_index(
         self, client, dimension, metric, environment, reusable_collection
@@ -94,5 +116,4 @@ class TestCollectionsHappyPath:
             metric=target_metric,
             spec=PodSpec(environment=environment, source_collection=reusable_collection),
         )
-        time.sleep(10)
-        client.delete_index(index_name, -1)
+        attempt_cleanup_index(client, index_name)
