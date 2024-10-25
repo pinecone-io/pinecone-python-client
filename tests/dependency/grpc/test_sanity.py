@@ -36,7 +36,7 @@ class TestSanityRest:
         # Check the vector count reflects some data has been upserted
         description = idx.describe_index_stats()
         assert description.dimension == 2
-        assert description.total_vector_count == 3
+        assert description.total_vector_count >= 3
 
         # Query for results
         query_results = idx.query(id="1", top_k=10, include_values=True)

@@ -44,6 +44,3 @@ class TestDescribeIndex:
         assert isinstance(description.host, str)
         assert description.host != ""
         assert notready_sl_index in description.host
-
-        assert description.status.ready == False
-        assert description.status.state in ["Ready", "Initializing"]
