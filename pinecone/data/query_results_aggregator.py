@@ -2,6 +2,7 @@ from typing import List, Tuple, Optional, Any, Dict
 import json
 import heapq
 from pinecone.core.openapi.data.models import Usage
+from pinecone.core.openapi.data.models import QueryResponse as OpenAPIQueryResponse
 
 from dataclasses import dataclass, asdict
 
@@ -29,6 +30,9 @@ class ScoredVectorWithNamespace:
             return getattr(self, key)
         else:
             raise KeyError(f"'{key}' not found in ScoredVectorWithNamespace")
+
+    def get(self, key, default=None):
+        return getattr(self, key, default)
 
     def __repr__(self):
         return json.dumps(self._truncate(asdict(self)), indent=4)
@@ -70,6 +74,9 @@ class QueryNamespacesResults:
             return getattr(self, key)
         else:
             raise KeyError(f"'{key}' not found in QueryNamespacesResults")
+
+    def get(self, key, default=None):
+        return getattr(self, key, default)
 
     def __repr__(self):
         return json.dumps(
@@ -147,7 +154,10 @@ class QueryResultsAggregator:
 
         matches = results.get("matches", [])
         ns: str = results.get("namespace", "")
-        self.usage_read_units += results.get("usage", {}).get("readUnits", 0)
+        if isinstance(results, OpenAPIQueryResponse):
+            self.usage_read_units += results.usage.read_units
+        else:
+            self.usage_read_units += results.get("usage", {}).get("readUnits", 0)
 
         if len(matches) == 0:
             return

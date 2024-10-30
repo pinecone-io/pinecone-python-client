@@ -44,6 +44,14 @@ class TestQueryResultsAggregator:
         assert results.matches[1].id == "7"  # 0.101
         assert results.matches[2].id == "2"  # 0.11
 
+        # Bracket-style accessor
+        assert results["usage"]["read_units"] == results.usage.read_units
+        assert results["matches"][0]["id"] == results.matches[0].id
+
+        # Get-style accessor
+        assert results.get("matches", []) == results.matches
+        assert results.get("usage", {}).get("read_units") == results.usage.read_units
+
     def test_inserting_duplicate_scores_stable_ordering(self):
         aggregator = QueryResultsAggregator(top_k=5)
 

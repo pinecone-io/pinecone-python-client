@@ -512,26 +512,20 @@ class Index(ImportFeatureMixin):
         ] = None,
         **kwargs,
     ) -> QueryNamespacesResults:
-        if len(namespaces) == 0:
+        if namespaces is None or len(namespaces) == 0:
             raise ValueError("At least one namespace must be specified")
         if len(vector) == 0:
             raise ValueError("Query vector must not be empty")
 
-        # The caller may only want the top_k=1 result across all queries,
-        # but we need to get at least 2 results from each query in order to
-        # aggregate them correctly. So we'll temporarily set topK to 2 for the
-        # subqueries, and then we'll take the topK=1 results from the aggregated
-        # results.
         overall_topk = top_k if top_k is not None else 10
         aggregator = QueryResultsAggregator(top_k=overall_topk)
-        subquery_topk = overall_topk if overall_topk > 2 else 2
 
         target_namespaces = set(namespaces)  # dedup namespaces
         async_results = [
             self.query(
                 vector=vector,
                 namespace=ns,
-                top_k=subquery_topk,
+                top_k=overall_topk,
                 filter=filter,
                 include_values=include_values,
                 include_metadata=include_metadata,
