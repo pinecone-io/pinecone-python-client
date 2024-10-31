@@ -379,6 +379,18 @@ class TestPineconeGrpcFuture:
         with pytest.raises(TimeoutError):
             future.exception(timeout=1)
 
+    def test_add_done_callback(self, mocker):
+        grpc_future = mock_grpc_future(mocker, running=True)
+        future = PineconeGrpcFuture(grpc_future)
+
+        callback = mocker.MagicMock()
+        future.add_done_callback(callback)
+
+        grpc_future.done.return_value = True
+        future._sync_state(grpc_future)
+
+        callback.assert_called_once_with(future)
+
     def test_concurrent_futures_as_completed(self, mocker):
         grpc_future = mock_grpc_future(mocker, running=True)
 

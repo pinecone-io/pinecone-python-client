@@ -19,8 +19,26 @@ class MockUpsertDelegate:
     def __init__(self, upsert_response: UpsertResponse):
         self.response = upsert_response
 
-    def result(self, timeout):
+    def result(self, timeout=None):
         return self.response
+
+    def cancelled(self):
+        return False
+
+    def cancel(self):
+        pass
+
+    def exception(self, timeout=None):
+        return None
+
+    def done(self):
+        return True
+
+    def running(self):
+        return False
+
+    def add_done_callback(self, callback):
+        pass
 
 
 @pytest.fixture
