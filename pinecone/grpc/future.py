@@ -5,21 +5,26 @@ from pinecone.exceptions.exceptions import PineconeException
 
 
 class PineconeGrpcFuture(ConcurrentFuture):
-    def __init__(self, grpc_future: GrpcFuture, timeout: Optional[int] = 10):
+    def __init__(
+        self, grpc_future: GrpcFuture, timeout: Optional[int] = 10, result_transformer=None
+    ):
         super().__init__()
         self._grpc_future = grpc_future
         self.default_timeout = timeout  # seconds
-
-        # Add callback to subscribe to updates from the gRPC future
-        self._grpc_future.add_done_callback(self._sync_state)
+        self.result_transformer = result_transformer
 
         # Sync initial state, in case the gRPC future is already done
         self._sync_state(self._grpc_future)
 
+        # Add callback to subscribe to updates from the gRPC future
+        self._grpc_future.add_done_callback(self._sync_state)
+
+    @property
+    def grpc_future(self):
+        return self._grpc_future
+
     def _sync_state(self, grpc_future):
-        # Sync the gRPC future completion to the wrapper future
         if self.done():
-            # Future already done, nothing to do
             return
 
         if grpc_future.cancelled():
@@ -34,6 +39,11 @@ class PineconeGrpcFuture(ConcurrentFuture):
                 self.set_exception(e)
         elif grpc_future.running():
             self.set_running_or_notify_cancel()
+
+    def set_result(self, result):
+        if self.result_transformer:
+            result = self.result_transformer(result)
+        return super().set_result(result)
 
     def cancel(self):
         self._grpc_future.cancel()
