@@ -6,12 +6,15 @@ from pinecone.exceptions.exceptions import PineconeException
 
 class PineconeGrpcFuture(ConcurrentFuture):
     def __init__(
-        self, grpc_future: GrpcFuture, timeout: Optional[int] = 10, result_transformer=None
+        self, grpc_future: GrpcFuture, timeout: Optional[int] = None, result_transformer=None
     ):
         super().__init__()
         self._grpc_future = grpc_future
-        self.default_timeout = timeout  # seconds
-        self.result_transformer = result_transformer
+        self._result_transformer = result_transformer
+        if timeout is not None:
+            self._default_timeout = timeout  # seconds
+        else:
+            self._default_timeout = 5  # seconds
 
         # Sync initial state, in case the gRPC future is already done
         self._sync_state(self._grpc_future)
@@ -29,11 +32,11 @@ class PineconeGrpcFuture(ConcurrentFuture):
 
         if grpc_future.cancelled():
             self.cancel()
-        elif grpc_future.exception(timeout=self.default_timeout):
+        elif grpc_future.exception(timeout=self._default_timeout):
             self.set_exception(grpc_future.exception())
         elif grpc_future.done():
             try:
-                result = grpc_future.result(timeout=self.default_timeout)
+                result = grpc_future.result(timeout=self._default_timeout)
                 self.set_result(result)
             except Exception as e:
                 self.set_exception(e)
@@ -41,7 +44,7 @@ class PineconeGrpcFuture(ConcurrentFuture):
             self.set_running_or_notify_cancel()
 
     def set_result(self, result):
-        if self.result_transformer:
+        if self._result_transformer:
             result = self.result_transformer(result)
         return super().set_result(result)
 
@@ -66,8 +69,11 @@ class PineconeGrpcFuture(ConcurrentFuture):
         except RpcError as e:
             raise self._wrap_rpc_exception(e) from e
 
-    def _timeout(self, timeout: Optional[int]) -> int:
-        return timeout if timeout is not None else self.default_timeout
+    def _timeout(self, timeout: Optional[int] = None) -> int:
+        if timeout is not None:
+            return timeout
+        else:
+            return self._default_timeout
 
     def _wrap_rpc_exception(self, e):
         if e._state and e._state.debug_error_string:

@@ -287,7 +287,7 @@ class GRPCIndex(GRPCIndexBase):
         namespace: Optional[str] = None,
         async_req: Optional[bool] = False,
         **kwargs,
-    ) -> FetchResponse:
+    ) -> Union[FetchResponse, PineconeGrpcFuture]:
         """
         The fetch operation looks up and returns vectors, by ID, from a single namespace.
         The returned vectors include the vector data and/or metadata.
