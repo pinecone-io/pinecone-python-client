@@ -81,12 +81,6 @@ class PineconeGrpcFuture(ConcurrentFuture):
         else:
             return PineconeException("Unknown GRPC error")
 
-    # def __repr__(self):
-    #     return super().__repr__()
-
-    # def __str__(self) -> str:
-    #     return super().__repr__()
-
     def __del__(self):
         self._grpc_future.cancel()
         self = None  # release the reference to the grpc future
