@@ -1,6 +1,8 @@
 import os
 import pytest
-from pinecone.grpc import PineconeGrpcFuture
+
+if os.environ.get("USE_GRPC") == "true":
+    from pinecone.grpc import PineconeGrpcFuture
 
 
 @pytest.mark.skipif(

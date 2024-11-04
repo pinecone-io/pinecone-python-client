@@ -1,8 +1,10 @@
 import os
 import pytest
 from pinecone import Vector
-from pinecone.grpc import GRPCDeleteResponse
 from ..helpers import poll_stats_for_namespace, random_string
+
+if os.environ.get("USE_GRPC") == "true":
+    from pinecone.grpc import GRPCDeleteResponse
 
 
 class TestDeleteFuture:
