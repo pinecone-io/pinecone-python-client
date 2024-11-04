@@ -1,4 +1,7 @@
 from typing import Optional
+from google.protobuf import json_format
+from google.protobuf.message import Message
+
 import uuid
 
 from pinecone.core.openapi.data.models import (
@@ -35,10 +38,12 @@ def parse_sparse_values(sparse_values: dict):
     )
 
 
-def parse_fetch_response(response: dict):
+def parse_fetch_response(response: Message):
+    json_response = json_format.MessageToDict(response)
+
     vd = {}
-    vectors = response.get("vectors", {})
-    namespace = response.get("namespace", "")
+    vectors = json_response.get("vectors", {})
+    namespace = json_response.get("namespace", "")
 
     for id, vec in vectors.items():
         vd[id] = _Vector(
@@ -52,7 +57,7 @@ def parse_fetch_response(response: dict):
     return FetchResponse(
         vectors=vd,
         namespace=namespace,
-        usage=parse_usage(response.get("usage", {})),
+        usage=parse_usage(json_response.get("usage", {})),
         _check_type=False,
     )
 

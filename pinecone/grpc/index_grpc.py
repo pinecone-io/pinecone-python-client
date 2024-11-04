@@ -282,8 +282,12 @@ class GRPCIndex(GRPCIndexBase):
             return self.runner.run(self.stub.Delete, request, timeout=timeout)
 
     def fetch(
-        self, ids: Optional[List[str]], namespace: Optional[str] = None, **kwargs
-    ) -> FetchResponse:
+        self,
+        ids: Optional[List[str]],
+        namespace: Optional[str] = None,
+        async_req: Optional[bool] = False,
+        **kwargs,
+    ) -> Union[FetchResponse, PineconeGrpcFuture]:
         """
         The fetch operation looks up and returns vectors, by ID, from a single namespace.
         The returned vectors include the vector data and/or metadata.
@@ -304,9 +308,13 @@ class GRPCIndex(GRPCIndexBase):
         args_dict = self._parse_non_empty_args([("namespace", namespace)])
 
         request = FetchRequest(ids=ids, **args_dict, **kwargs)
-        response = self.runner.run(self.stub.Fetch, request, timeout=timeout)
-        json_response = json_format.MessageToDict(response)
-        return parse_fetch_response(json_response)
+
+        if async_req:
+            future = self.runner.run(self.stub.Fetch.future, request, timeout=timeout)
+            return PineconeGrpcFuture(future, result_transformer=parse_fetch_response)
+        else:
+            response = self.runner.run(self.stub.Fetch, request, timeout=timeout)
+            return parse_fetch_response(response)
 
     def query(
         self,

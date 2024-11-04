@@ -13,14 +13,36 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     SparseValues,
 )
 from pinecone.grpc.utils import dict_to_proto_struct
+from grpc import Future as GrpcFuture
 
 
-class MockUpsertDelegate:
+class MockUpsertDelegate(GrpcFuture):
     def __init__(self, upsert_response: UpsertResponse):
         self.response = upsert_response
 
-    def result(self, timeout):
+    def result(self, timeout=None):
         return self.response
+
+    def cancelled(self):
+        return False
+
+    def cancel(self):
+        pass
+
+    def exception(self, timeout=None):
+        return None
+
+    def done(self):
+        return True
+
+    def running(self):
+        return False
+
+    def add_done_callback(self, callback):
+        pass
+
+    def traceback(self, timeout=None):
+        pass
 
 
 @pytest.fixture
