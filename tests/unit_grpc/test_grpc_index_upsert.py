@@ -13,9 +13,10 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     SparseValues,
 )
 from pinecone.grpc.utils import dict_to_proto_struct
+from grpc import Future as GrpcFuture
 
 
-class MockUpsertDelegate:
+class MockUpsertDelegate(GrpcFuture):
     def __init__(self, upsert_response: UpsertResponse):
         self.response = upsert_response
 
@@ -38,6 +39,9 @@ class MockUpsertDelegate:
         return False
 
     def add_done_callback(self, callback):
+        pass
+
+    def traceback(self, timeout=None):
         pass
 
 
