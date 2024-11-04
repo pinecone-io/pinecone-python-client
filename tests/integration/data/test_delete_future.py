@@ -2,14 +2,16 @@ import os
 import pytest
 from pinecone import Vector
 from pinecone.grpc import GRPCDeleteResponse
-from ..helpers import poll_stats_for_namespace
+from ..helpers import poll_stats_for_namespace, random_string
 
 
 class TestDeleteFuture:
     @pytest.mark.skipif(
         os.getenv("USE_GRPC") != "true", reason="PineconeGrpcFutures only returned from grpc client"
     )
-    def test_delete_future(self, idx, namespace):
+    def test_delete_future(self, idx):
+        namespace = random_string(10)
+
         idx.upsert(
             vectors=[
                 Vector(id="id1", values=[0.1, 0.2]),

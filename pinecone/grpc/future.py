@@ -45,7 +45,7 @@ class PineconeGrpcFuture(ConcurrentFuture):
 
     def set_result(self, result):
         if self._result_transformer:
-            result = self.result_transformer(result)
+            result = self._result_transformer(result)
         return super().set_result(result)
 
     def cancel(self):
