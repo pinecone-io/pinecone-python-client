@@ -1,4 +1,5 @@
 import pytest
+import os
 from ..helpers import random_string, poll_stats_for_namespace
 from pinecone.data.query_results_aggregator import (
     QueryResultsAggregatorInvalidTopKError,
@@ -8,7 +9,10 @@ from pinecone.data.query_results_aggregator import (
 from pinecone import Vector
 
 
-class TestQueryNamespaces:
+@pytest.mark.skipif(
+    os.getenv("USE_GRPC") == "true", reason="query_namespaces currently only available via rest"
+)
+class TestQueryNamespacesRest:
     def test_query_namespaces(self, idx):
         ns_prefix = random_string(5)
         ns1 = f"{ns_prefix}-ns1"
