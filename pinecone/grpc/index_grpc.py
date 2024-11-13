@@ -1,9 +1,11 @@
 import logging
-from typing import Optional, Dict, Union, List, Tuple, Any, TypedDict, cast
+from typing import Optional, Dict, Union, List, Tuple, Any, TypedDict, Iterable, cast
 
 from google.protobuf import json_format
 
 from tqdm.autonotebook import tqdm
+from concurrent.futures import as_completed, Future
+
 
 from .utils import (
     dict_to_proto_struct,
@@ -35,6 +37,7 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     SparseValues as GRPCSparseValues,
 )
 from pinecone import Vector as NonGRPCVector
+from pinecone.data.query_results_aggregator import QueryNamespacesResults, QueryResultsAggregator
 from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
 from .base import GRPCIndexBase
 from .future import PineconeGrpcFuture
@@ -401,6 +404,50 @@ class GRPCIndex(GRPCIndexBase):
             response = self.runner.run(self.stub.Query, request, timeout=timeout)
             json_response = json_format.MessageToDict(response)
             return parse_query_response(json_response, _check_type=False)
+
+    def query_namespaces(
+        self,
+        vector: List[float],
+        namespaces: List[str],
+        top_k: Optional[int] = None,
+        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        include_values: Optional[bool] = None,
+        include_metadata: Optional[bool] = None,
+        sparse_vector: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
+        **kwargs,
+    ) -> QueryNamespacesResults:
+        if namespaces is None or len(namespaces) == 0:
+            raise ValueError("At least one namespace must be specified")
+        if len(vector) == 0:
+            raise ValueError("Query vector must not be empty")
+
+        overall_topk = top_k if top_k is not None else 10
+        aggregator = QueryResultsAggregator(top_k=overall_topk)
+
+        target_namespaces = set(namespaces)  # dedup namespaces
+        futures = [
+            self.query(
+                vector=vector,
+                namespace=ns,
+                top_k=overall_topk,
+                filter=filter,
+                include_values=include_values,
+                include_metadata=include_metadata,
+                sparse_vector=sparse_vector,
+                async_req=True,
+                **kwargs,
+            )
+            for ns in target_namespaces
+        ]
+
+        only_futures = cast(Iterable[Future], futures)
+        for future in as_completed(only_futures):
+            response = future.result()
+            json_result = json_format.MessageToDict(response)
+            aggregator.add_results(json_result)
+
+        final_results = aggregator.get_results()
+        return final_results
 
     def update(
         self,
