@@ -426,7 +426,8 @@ class GRPCIndex(GRPCIndexBase):
 
         target_namespaces = set(namespaces)  # dedup namespaces
         futures = [
-            self.query(
+            self.threadpool_executor.submit(
+                self.query,
                 vector=vector,
                 namespace=ns,
                 top_k=overall_topk,
@@ -434,17 +435,15 @@ class GRPCIndex(GRPCIndexBase):
                 include_values=include_values,
                 include_metadata=include_metadata,
                 sparse_vector=sparse_vector,
-                async_req=True,
+                async_req=False,
                 **kwargs,
             )
             for ns in target_namespaces
         ]
 
         only_futures = cast(Iterable[Future], futures)
-        for future in as_completed(only_futures):
-            response = future.result()
-            json_result = json_format.MessageToDict(response)
-            aggregator.add_results(json_result)
+        for response in as_completed(only_futures):
+            aggregator.add_results(response.result())
 
         final_results = aggregator.get_results()
         return final_results
