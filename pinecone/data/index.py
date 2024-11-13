@@ -33,6 +33,8 @@ from ..utils import (
 )
 from .features.bulk_import import ImportFeatureMixin
 from .vector_factory import VectorFactory
+from .query_results_aggregator import QueryResultsAggregator, QueryNamespacesResults
+from multiprocessing.pool import ApplyResult
 
 from pinecone_plugin_interface import load_and_install as install_plugins
 
@@ -387,7 +389,7 @@ class Index(ImportFeatureMixin):
             Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
         ] = None,
         **kwargs,
-    ) -> QueryResponse:
+    ) -> Union[QueryResponse, ApplyResult]:
         """
         The Query operation searches a namespace, using a query vector.
         It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
@@ -429,6 +431,39 @@ class Index(ImportFeatureMixin):
                  and namespace name.
         """
 
+        response = self._query(
+            *args,
+            top_k=top_k,
+            vector=vector,
+            id=id,
+            namespace=namespace,
+            filter=filter,
+            include_values=include_values,
+            include_metadata=include_metadata,
+            sparse_vector=sparse_vector,
+            **kwargs,
+        )
+
+        if kwargs.get("async_req", False):
+            return response
+        else:
+            return parse_query_response(response)
+
+    def _query(
+        self,
+        *args,
+        top_k: int,
+        vector: Optional[List[float]] = None,
+        id: Optional[str] = None,
+        namespace: Optional[str] = None,
+        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        include_values: Optional[bool] = None,
+        include_metadata: Optional[bool] = None,
+        sparse_vector: Optional[
+            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
+        ] = None,
+        **kwargs,
+    ) -> QueryResponse:
         if len(args) > 0:
             raise ValueError(
                 "The argument order for `query()` has changed; please use keyword arguments instead of positional arguments. Example: index.query(vector=[0.1, 0.2, 0.3], top_k=10, namespace='my_namespace')"
@@ -461,7 +496,52 @@ class Index(ImportFeatureMixin):
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
         )
-        return parse_query_response(response)
+        return response
+
+    @validate_and_convert_errors
+    def query_namespaces(
+        self,
+        vector: List[float],
+        namespaces: List[str],
+        top_k: Optional[int] = None,
+        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        include_values: Optional[bool] = None,
+        include_metadata: Optional[bool] = None,
+        sparse_vector: Optional[
+            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
+        ] = None,
+        **kwargs,
+    ) -> QueryNamespacesResults:
+        if namespaces is None or len(namespaces) == 0:
+            raise ValueError("At least one namespace must be specified")
+        if len(vector) == 0:
+            raise ValueError("Query vector must not be empty")
+
+        overall_topk = top_k if top_k is not None else 10
+        aggregator = QueryResultsAggregator(top_k=overall_topk)
+
+        target_namespaces = set(namespaces)  # dedup namespaces
+        async_results = [
+            self.query(
+                vector=vector,
+                namespace=ns,
+                top_k=overall_topk,
+                filter=filter,
+                include_values=include_values,
+                include_metadata=include_metadata,
+                sparse_vector=sparse_vector,
+                async_req=True,
+                **kwargs,
+            )
+            for ns in target_namespaces
+        ]
+
+        for result in async_results:
+            response = result.get()
+            aggregator.add_results(response)
+
+        final_results = aggregator.get_results()
+        return final_results
 
     @validate_and_convert_errors
     def update(

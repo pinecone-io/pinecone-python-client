@@ -52,7 +52,10 @@ def metric():
 
 @pytest.fixture(scope="session")
 def spec():
-    return json.loads(get_environment_var("SPEC"))
+    spec_json = get_environment_var(
+        "SPEC", '{"serverless": {"cloud": "aws", "region": "us-east-1" }}'
+    )
+    return json.loads(spec_json)
 
 
 @pytest.fixture(scope="session")

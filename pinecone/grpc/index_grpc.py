@@ -326,8 +326,9 @@ class GRPCIndex(GRPCIndexBase):
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
         sparse_vector: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
+        async_req: Optional[bool] = False,
         **kwargs,
-    ) -> QueryResponse:
+    ) -> Union[QueryResponse, PineconeGrpcFuture]:
         """
         The Query operation searches a namespace, using a query vector.
         It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
@@ -392,9 +393,14 @@ class GRPCIndex(GRPCIndexBase):
         request = QueryRequest(**args_dict)
 
         timeout = kwargs.pop("timeout", None)
-        response = self.runner.run(self.stub.Query, request, timeout=timeout)
-        json_response = json_format.MessageToDict(response)
-        return parse_query_response(json_response, _check_type=False)
+
+        if async_req:
+            future = self.runner.run(self.stub.Query.future, request, timeout=timeout)
+            return PineconeGrpcFuture(future)
+        else:
+            response = self.runner.run(self.stub.Query, request, timeout=timeout)
+            json_response = json_format.MessageToDict(response)
+            return parse_query_response(json_response, _check_type=False)
 
     def update(
         self,
