@@ -105,6 +105,9 @@ class Index(ImportFeatureMixin):
         self._openapi_config = ConfigBuilder.build_openapi_config(self.config, openapi_config)
         self._pool_threads = pool_threads
 
+        if kwargs.get("connection_pool_maxsize", None):
+            self._openapi_config.connection_pool_maxsize = kwargs.get("connection_pool_maxsize")
+
         self._vector_api = setup_openapi_client(
             api_client_klass=ApiClient,
             api_klass=DataPlaneApi,
@@ -512,6 +515,48 @@ class Index(ImportFeatureMixin):
         ] = None,
         **kwargs,
     ) -> QueryNamespacesResults:
+        """The query_namespaces() method is used to make a query to multiple namespaces in parallel and combine the results into one result set.
+
+        Since several asynchronous calls are made on your behalf when calling this method, you will need to tune the pool_threads and connection_pool_maxsize parameter of the Index constructor to suite your workload.
+
+        Examples:
+
+        ```python
+        from pinecone import Pinecone
+
+        pc = Pinecone(api_key="your-api-key")
+        index = pc.Index(
+            host="index-name",
+            pool_threads=32,
+            connection_pool_maxsize=32
+        )
+
+        query_vec = [0.1, 0.2, 0.3] # An embedding that matches the index dimension
+        combined_results = index.query_namespaces(
+            vector=query_vec,
+            namespaces=['ns1', 'ns2', 'ns3', 'ns4'],
+            top_k=10,
+            filter={'genre': {"$eq": "drama"}},
+            include_values=True,
+            include_metadata=True
+        )
+        for vec in combined_results.matches:
+            print(vec.id, vec.score)
+        print(combined_results.usage)
+        ```
+
+        Args:
+            vector (List[float]): The query vector, must be the same length as the dimension of the index being queried.
+            namespaces (List[str]): The list of namespaces to query.
+            top_k (Optional[int], optional): The number of results you would like to request from each namespace. Defaults to 10.
+            filter (Optional[Dict[str, Union[str, float, int, bool, List, dict]]], optional): Pass an optional filter to filter results based on metadata. Defaults to None.
+            include_values (Optional[bool], optional): Boolean field indicating whether vector values should be included with results. Defaults to None.
+            include_metadata (Optional[bool], optional): Boolean field indicating whether vector metadata should be included with results. Defaults to None.
+            sparse_vector (Optional[ Union[SparseValues, Dict[str, Union[List[float], List[int]]]] ], optional): If you are working with a dotproduct index, you can pass a sparse vector as part of your hybrid search. Defaults to None.
+
+        Returns:
+            QueryNamespacesResults: A QueryNamespacesResults object containing the combined results from all namespaces, as well as the combined usage cost in read units.
+        """
         if namespaces is None or len(namespaces) == 0:
             raise ValueError("At least one namespace must be specified")
         if len(vector) == 0:
