@@ -469,3 +469,23 @@ class Configuration(object):
         """Fix base path."""
         self._base_path = value
         self.server_index = None
+
+    def __repr__(self):
+        attrs = [
+            f"host={self.host}",
+            f"api_key=***",
+            f"api_key_prefix={self.api_key_prefix}",
+            f"access_token={self.access_token}",
+            f"connection_pool_maxsize={self.connection_pool_maxsize}",
+            f"username={self.username}",
+            f"password={self.password}",
+            f"discard_unknown_keys={self.discard_unknown_keys}",
+            f"disabled_client_side_validations={self.disabled_client_side_validations}",
+            f"server_index={self.server_index}",
+            f"server_variables={self.server_variables}",
+            f"server_operation_index={self.server_operation_index}",
+            f"server_operation_variables={self.server_operation_variables}",
+            f"ssl_ca_cert={self.ssl_ca_cert}",
+
+        ]
+        return f"Configuration({', '.join(attrs)})"
