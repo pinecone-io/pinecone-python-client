@@ -517,19 +517,33 @@ class Index(ImportFeatureMixin):
     ) -> QueryNamespacesResults:
         """The query_namespaces() method is used to make a query to multiple namespaces in parallel and combine the results into one result set.
 
+        Since several asynchronous calls are made on your behalf when calling this method, you will need to tune the pool_threads and connection_pool_maxsize parameter of the Index constructor to suite your workload.
+
         Examples:
-            >>> query_vec = [0.1, 0.2, 0.3] # An embedding that matches the index dimension
-            >>> combined_results = index.query_namespaces(
-                vector=query_vec,
-                namespaces=['ns1', 'ns2', 'ns3', 'ns4'],
-                top_k=10,
-                filter={'genre': {"$eq": "drama"}},
-                include_values=True,
-                include_metadata=True
-            )
-            >>> for vec in combined_results.matches:
-            >>>     print(vec.id, vec.score)
-            >>> print(combined_results.usage)
+
+        ```python
+        from pinecone import Pinecone
+
+        pc = Pinecone(api_key="your-api-key")
+        index = pc.Index(
+            host="index-name",
+            pool_threads=32,
+            connection_pool_maxsize=32
+        )
+
+        query_vec = [0.1, 0.2, 0.3] # An embedding that matches the index dimension
+        combined_results = index.query_namespaces(
+            vector=query_vec,
+            namespaces=['ns1', 'ns2', 'ns3', 'ns4'],
+            top_k=10,
+            filter={'genre': {"$eq": "drama"}},
+            include_values=True,
+            include_metadata=True
+        )
+        for vec in combined_results.matches:
+            print(vec.id, vec.score)
+        print(combined_results.usage)
+        ```
 
         Args:
             vector (List[float]): The query vector, must be the same length as the dimension of the index being queried.
