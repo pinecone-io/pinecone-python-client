@@ -2,6 +2,7 @@ import json
 import atexit
 import mimetypes
 from multiprocessing.pool import ThreadPool
+from concurrent.futures import ThreadPoolExecutor
 import io
 import os
 import re
@@ -70,6 +71,7 @@ class ApiClient(object):
     """
 
     _pool = None
+    _threadpool_executor = None
 
     def __init__(self, configuration=None, header_name=None, header_value=None, cookie=None, pool_threads=1):
         if configuration is None:
@@ -92,6 +94,9 @@ class ApiClient(object):
         self.close()
 
     def close(self):
+        if self._threadpool_executor:
+            self._threadpool_executor.shutdown()
+            self._threadpool_executor = None
         if self._pool:
             self._pool.close()
             self._pool.join()
@@ -108,6 +113,12 @@ class ApiClient(object):
             atexit.register(self.close)
             self._pool = ThreadPool(self.pool_threads)
         return self._pool
+
+    @property
+    def threadpool_executor(self):
+        if self._threadpool_executor is None:
+            self._threadpool_executor = ThreadPoolExecutor(max_workers=self.pool_threads)
+        return self._threadpool_executor
 
     @property
     def user_agent(self):
@@ -334,6 +345,7 @@ class ApiClient(object):
         response_type: typing.Optional[typing.Tuple[typing.Any]] = None,
         auth_settings: typing.Optional[typing.List[str]] = None,
         async_req: typing.Optional[bool] = None,
+        async_threadpool_executor: typing.Optional[bool] = None,
         _return_http_data_only: typing.Optional[bool] = None,
         collection_formats: typing.Optional[typing.Dict[str, str]] = None,
         _preload_content: bool = True,
@@ -394,6 +406,27 @@ class ApiClient(object):
             If parameter async_req is False or missing,
             then the method will return the response directly.
         """
+        if async_threadpool_executor:
+            return self.threadpool_executor.submit(
+                self.__call_api,
+                resource_path,
+                method,
+                path_params,
+                query_params,
+                header_params,
+                body,
+                post_params,
+                files,
+                response_type,
+                auth_settings,
+                _return_http_data_only,
+                collection_formats,
+                _preload_content,
+                _request_timeout,
+                _host,
+                _check_type,
+            )
+
         if not async_req:
             return self.__call_api(
                 resource_path,
@@ -690,6 +723,7 @@ class Endpoint(object):
         self.params_map["all"].extend(
             [
                 "async_req",
+                "async_threadpool_executor",
                 "_host_index",
                 "_preload_content",
                 "_request_timeout",
@@ -704,6 +738,7 @@ class Endpoint(object):
         self.openapi_types = root_map["openapi_types"]
         extra_types = {
             "async_req": (bool,),
+            "async_threadpool_executor": (bool, ),
             "_host_index": (none_type, int),
             "_preload_content": (bool,),
             "_request_timeout": (none_type, float, (float,), [float], int, (int,), [int]),
@@ -853,6 +888,7 @@ class Endpoint(object):
             response_type=self.settings["response_type"],
             auth_settings=self.settings["auth"],
             async_req=kwargs["async_req"],
+            async_threadpool_executor=kwargs.get("async_threadpool_executor", None),
             _check_type=kwargs["_check_return_type"],
             _return_http_data_only=kwargs["_return_http_data_only"],
             _preload_content=kwargs["_preload_content"],

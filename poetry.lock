@@ -1072,6 +1072,17 @@ googleapis-common-protos = "*"
 protobuf = ">=4.21.0"
 
 [[package]]
+name = "py-cpuinfo"
+version = "9.0.0"
+description = "Get CPU info with pure Python"
+optional = false
+python-versions = "*"
+files = [
+    {file = "py-cpuinfo-9.0.0.tar.gz", hash = "sha256:3cdbbf3fac90dc6f118bfd64384f309edeadd902d7c8fb17f02ffa1fc3f49690"},
+    {file = "py_cpuinfo-9.0.0-py3-none-any.whl", hash = "sha256:859625bc251f64e21f077d099d4162689c762b5d6a4c3c97553d56241c9674d5"},
+]
+
+[[package]]
 name = "pygments"
 version = "2.16.1"
 description = "Pygments is a syntax highlighting package written in Python."
@@ -1123,6 +1134,26 @@ pytest = ">=5.4.0"
 
 [package.extras]
 testing = ["coverage", "hypothesis (>=5.7.1)"]
+
+[[package]]
+name = "pytest-benchmark"
+version = "5.0.0"
+description = "A ``pytest`` fixture for benchmarking code. It will group the tests into rounds that are calibrated to the chosen timer."
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "pytest-benchmark-5.0.0.tar.gz", hash = "sha256:cd0adf68516eea7ac212b78a7eb6fc3373865507de8562bb3bfff2f2f852cc63"},
+    {file = "pytest_benchmark-5.0.0-py3-none-any.whl", hash = "sha256:67fed4943aa761077345119555d7f6df09877a12a36e8128f05e19ccd5942d80"},
+]
+
+[package.dependencies]
+py-cpuinfo = "*"
+pytest = ">=3.8"
+
+[package.extras]
+aspect = ["aspectlib"]
+elasticsearch = ["elasticsearch"]
+histogram = ["pygal", "pygaljs", "setuptools"]
 
 [[package]]
 name = "pytest-cov"
@@ -1586,4 +1617,4 @@ grpc = ["googleapis-common-protos", "grpcio", "grpcio", "lz4", "protobuf", "prot
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "d680a8699ebcc13e2369221c4fa987d1206f1a5549393055040fa78dac4da5be"
+content-hash = "0823a7b71260e2e723e281446f1995a1033a3301cbb933b605b202ea55583e4d"

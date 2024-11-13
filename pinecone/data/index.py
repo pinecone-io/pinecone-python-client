@@ -1,6 +1,7 @@
 from tqdm.autonotebook import tqdm
 
 import logging
+import json
 from typing import Union, List, Optional, Dict, Any
 
 from pinecone.config import ConfigBuilder
@@ -34,7 +35,9 @@ from ..utils import (
 from .features.bulk_import import ImportFeatureMixin
 from .vector_factory import VectorFactory
 from .query_results_aggregator import QueryResultsAggregator, QueryNamespacesResults
+
 from multiprocessing.pool import ApplyResult
+from concurrent.futures import as_completed
 
 from pinecone_plugin_interface import load_and_install as install_plugins
 
@@ -67,6 +70,7 @@ _OPENAPI_ENDPOINT_PARAMS = (
     "_check_return_type",
     "_host_index",
     "async_req",
+    "async_threadpool_executor",
 )
 
 
@@ -447,7 +451,7 @@ class Index(ImportFeatureMixin):
             **kwargs,
         )
 
-        if kwargs.get("async_req", False):
+        if kwargs.get("async_req", False) or kwargs.get("async_threadpool_executor", False):
             return response
         else:
             return parse_query_response(response)
@@ -491,6 +495,7 @@ class Index(ImportFeatureMixin):
                 ("sparse_vector", sparse_vector),
             ]
         )
+
         response = self._vector_api.query(
             QueryRequest(
                 **args_dict,
@@ -566,7 +571,7 @@ class Index(ImportFeatureMixin):
         aggregator = QueryResultsAggregator(top_k=overall_topk)
 
         target_namespaces = set(namespaces)  # dedup namespaces
-        async_results = [
+        async_futures = [
             self.query(
                 vector=vector,
                 namespace=ns,
@@ -575,14 +580,16 @@ class Index(ImportFeatureMixin):
                 include_values=include_values,
                 include_metadata=include_metadata,
                 sparse_vector=sparse_vector,
-                async_req=True,
+                async_threadpool_executor=True,
+                _preload_content=False,
                 **kwargs,
             )
             for ns in target_namespaces
         ]
 
-        for result in async_results:
-            response = result.get()
+        for result in as_completed(async_futures):
+            raw_result = result.result()
+            response = json.loads(raw_result.data.decode("utf-8"))
             aggregator.add_results(response)
 
         final_results = aggregator.get_results()
