@@ -85,7 +85,6 @@ class PineconeApiKeyError(PineconeException, KeyError):
 
 
 class PineconeApiException(PineconeException):
-
     def __init__(self, status=None, reason=None, http_resp=None):
         if http_resp:
             self.status = http_resp.status
@@ -111,25 +110,21 @@ class PineconeApiException(PineconeException):
 
 
 class NotFoundException(PineconeApiException):
-
     def __init__(self, status=None, reason=None, http_resp=None):
         super(NotFoundException, self).__init__(status, reason, http_resp)
 
 
 class UnauthorizedException(PineconeApiException):
-
     def __init__(self, status=None, reason=None, http_resp=None):
         super(UnauthorizedException, self).__init__(status, reason, http_resp)
 
 
 class ForbiddenException(PineconeApiException):
-
     def __init__(self, status=None, reason=None, http_resp=None):
         super(ForbiddenException, self).__init__(status, reason, http_resp)
 
 
 class ServiceException(PineconeApiException):
-
     def __init__(self, status=None, reason=None, http_resp=None):
         super(ServiceException, self).__init__(status, reason, http_resp)
 

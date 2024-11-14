@@ -36,9 +36,9 @@ class TestRestIndex:
     # region: upsert tests
 
     def test_upsert_tuplesOfIdVec_UpserWithoutMD(self, mocker):
-        mocker.patch.object(self.index._vector_api, "upsert", autospec=True)
+        mocker.patch.object(self.index._vector_api, "upsert_vectors", autospec=True)
         self.index.upsert([("vec1", self.vals1), ("vec2", self.vals2)], namespace="ns")
-        self.index._vector_api.upsert.assert_called_once_with(
+        self.index._vector_api.upsert_vectors.assert_called_once_with(
             UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, metadata={}),
@@ -49,9 +49,9 @@ class TestRestIndex:
         )
 
     def test_upsert_tuplesOfIdVecMD_UpsertVectorsWithMD(self, mocker):
-        mocker.patch.object(self.index._vector_api, "upsert", autospec=True)
+        mocker.patch.object(self.index._vector_api, "upsert_vectors", autospec=True)
         self.index.upsert([("vec1", self.vals1, self.md1), ("vec2", self.vals2, self.md2)])
-        self.index._vector_api.upsert.assert_called_once_with(
+        self.index._vector_api.upsert_vectors.assert_called_once_with(
             UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, metadata=self.md1),
@@ -61,14 +61,14 @@ class TestRestIndex:
         )
 
     def test_upsert_dictOfIdVecMD_UpsertVectorsWithMD(self, mocker):
-        mocker.patch.object(self.index._vector_api, "upsert", autospec=True)
+        mocker.patch.object(self.index._vector_api, "upsert_vectors", autospec=True)
         self.index.upsert(
             [
                 {"id": self.id1, "values": self.vals1, "metadata": self.md1},
                 {"id": self.id2, "values": self.vals2, "metadata": self.md2},
             ]
         )
-        self.index._vector_api.upsert.assert_called_once_with(
+        self.index._vector_api.upsert_vectors.assert_called_once_with(
             UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, metadata=self.md1),
@@ -78,25 +78,25 @@ class TestRestIndex:
         )
 
     def test_upsert_dictOfIdVecMD_UpsertVectorsWithoutMD(self, mocker):
-        mocker.patch.object(self.index._vector_api, "upsert", autospec=True)
+        mocker.patch.object(self.index._vector_api, "upsert_vectors", autospec=True)
         self.index.upsert(
             [{"id": self.id1, "values": self.vals1}, {"id": self.id2, "values": self.vals2}]
         )
-        self.index._vector_api.upsert.assert_called_once_with(
+        self.index._vector_api.upsert_vectors.assert_called_once_with(
             UpsertRequest(
                 vectors=[Vector(id="vec1", values=self.vals1), Vector(id="vec2", values=self.vals2)]
             )
         )
 
     def test_upsert_dictOfIdVecMD_UpsertVectorsWithSparseValues(self, mocker):
-        mocker.patch.object(self.index._vector_api, "upsert", autospec=True)
+        mocker.patch.object(self.index._vector_api, "upsert_vectors", autospec=True)
         self.index.upsert(
             [
                 {"id": self.id1, "values": self.vals1, "sparse_values": self.sv1},
                 {"id": self.id2, "values": self.vals2, "sparse_values": self.sv2},
             ]
         )
-        self.index._vector_api.upsert.assert_called_once_with(
+        self.index._vector_api.upsert_vectors.assert_called_once_with(
             UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, sparse_values=SparseValues(**self.sv1)),
@@ -106,7 +106,7 @@ class TestRestIndex:
         )
 
     def test_upsert_vectors_upsertInputVectors(self, mocker):
-        mocker.patch.object(self.index._vector_api, "upsert", autospec=True)
+        mocker.patch.object(self.index._vector_api, "upsert_vectors", autospec=True)
         self.index.upsert(
             vectors=[
                 Vector(id="vec1", values=self.vals1, metadata=self.md1),
@@ -114,7 +114,7 @@ class TestRestIndex:
             ],
             namespace="ns",
         )
-        self.index._vector_api.upsert.assert_called_once_with(
+        self.index._vector_api.upsert_vectors.assert_called_once_with(
             UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, metadata=self.md1),
@@ -130,7 +130,7 @@ class TestRestIndex:
             [Vector(id="vec2", values=self.vals2, metadata=self.md2)],
         ]
         with Index(api_key="asdf", host="https://test.pinecone.io", pool_threads=30) as index:
-            mocker.patch.object(index._vector_api, "upsert", autospec=True)
+            mocker.patch.object(index._vector_api, "upsert_vectors", autospec=True)
 
             # Send requests in parallel
             async_results = [
@@ -140,7 +140,7 @@ class TestRestIndex:
             # Wait for and retrieve responses (this raises in case of error)
             [async_result.get() for async_result in async_results]
 
-            index._vector_api.upsert.assert_any_call(
+            index._vector_api.upsert_vectors.assert_any_call(
                 UpsertRequest(
                     vectors=[Vector(id="vec1", values=self.vals1, metadata=self.md1)],
                     namespace="ns",
@@ -148,7 +148,7 @@ class TestRestIndex:
                 async_req=True,
             )
 
-            index._vector_api.upsert.assert_any_call(
+            index._vector_api.upsert_vectors.assert_any_call(
                 UpsertRequest(
                     vectors=[Vector(id="vec2", values=self.vals2, metadata=self.md2)],
                     namespace="ns",
@@ -159,7 +159,7 @@ class TestRestIndex:
     def test_upsert_vectorListIsMultiplyOfBatchSize_vectorsUpsertedInBatches(self, mocker):
         mocker.patch.object(
             self.index._vector_api,
-            "upsert",
+            "upsert_vectors",
             autospec=True,
             side_effect=lambda upsert_request: UpsertResponse(
                 upserted_count=len(upsert_request.vectors)
@@ -176,13 +176,13 @@ class TestRestIndex:
             show_progress=False,
         )
 
-        self.index._vector_api.upsert.assert_any_call(
+        self.index._vector_api.upsert_vectors.assert_any_call(
             UpsertRequest(
                 vectors=[Vector(id="vec1", values=self.vals1, metadata=self.md1)], namespace="ns"
             )
         )
 
-        self.index._vector_api.upsert.assert_any_call(
+        self.index._vector_api.upsert_vectors.assert_any_call(
             UpsertRequest(
                 vectors=[Vector(id="vec2", values=self.vals2, metadata=self.md2)], namespace="ns"
             )
@@ -193,7 +193,7 @@ class TestRestIndex:
     def test_upsert_vectorListNotMultiplyOfBatchSize_vectorsUpsertedInBatches(self, mocker):
         mocker.patch.object(
             self.index._vector_api,
-            "upsert",
+            "upsert_vectors",
             autospec=True,
             side_effect=lambda upsert_request: UpsertResponse(
                 upserted_count=len(upsert_request.vectors)
@@ -210,7 +210,7 @@ class TestRestIndex:
             batch_size=2,
         )
 
-        self.index._vector_api.upsert.assert_any_call(
+        self.index._vector_api.upsert_vectors.assert_any_call(
             UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, metadata=self.md1),
@@ -220,7 +220,7 @@ class TestRestIndex:
             )
         )
 
-        self.index._vector_api.upsert.assert_any_call(
+        self.index._vector_api.upsert_vectors.assert_any_call(
             UpsertRequest(
                 vectors=[Vector(id="vec3", values=self.vals1, metadata=self.md1)], namespace="ns"
             )
@@ -231,7 +231,7 @@ class TestRestIndex:
     def test_upsert_vectorListSmallerThanBatchSize_vectorsUpsertedInBatches(self, mocker):
         mocker.patch.object(
             self.index._vector_api,
-            "upsert",
+            "upsert_vectors",
             autospec=True,
             side_effect=lambda upsert_request: UpsertResponse(
                 upserted_count=len(upsert_request.vectors)
@@ -248,7 +248,7 @@ class TestRestIndex:
             batch_size=5,
         )
 
-        self.index._vector_api.upsert.assert_called_once_with(
+        self.index._vector_api.upsert_vectors.assert_called_once_with(
             UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, metadata=self.md1),
@@ -264,7 +264,7 @@ class TestRestIndex:
     def test_upsert_tuplesList_vectorsUpsertedInBatches(self, mocker):
         mocker.patch.object(
             self.index._vector_api,
-            "upsert",
+            "upsert_vectors",
             autospec=True,
             side_effect=lambda upsert_request: UpsertResponse(
                 upserted_count=len(upsert_request.vectors)
@@ -281,7 +281,7 @@ class TestRestIndex:
             batch_size=2,
         )
 
-        self.index._vector_api.upsert.assert_any_call(
+        self.index._vector_api.upsert_vectors.assert_any_call(
             UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, metadata=self.md1),
@@ -291,7 +291,7 @@ class TestRestIndex:
             )
         )
 
-        self.index._vector_api.upsert.assert_any_call(
+        self.index._vector_api.upsert_vectors.assert_any_call(
             UpsertRequest(
                 vectors=[Vector(id="vec3", values=self.vals1, metadata=self.md1)], namespace="ns"
             )
@@ -302,7 +302,7 @@ class TestRestIndex:
     def test_upsert_dataframe(self, mocker):
         mocker.patch.object(
             self.index._vector_api,
-            "upsert",
+            "upsert_vectors",
             autospec=True,
             return_value=UpsertResponse(upserted_count=2),
         )
@@ -314,7 +314,7 @@ class TestRestIndex:
         )
         self.index.upsert_from_dataframe(df)
 
-        self.index._vector_api.upsert.assert_called_once_with(
+        self.index._vector_api.upsert_vectors.assert_called_once_with(
             UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, metadata=self.md1),
@@ -359,11 +359,13 @@ class TestRestIndex:
             matches=[ScoredVector(id="1", score=0.9, values=[0.0], metadata={"a": 2})],
             namespace="test",
         )
-        mocker.patch.object(self.index._vector_api, "query", autospec=True, return_value=response)
+        mocker.patch.object(
+            self.index._vector_api, "query_vectors", autospec=True, return_value=response
+        )
 
         actual = self.index.query(top_k=10, vector=self.vals1)
 
-        self.index._vector_api.query.assert_called_once_with(
+        self.index._vector_api.query_vectors.assert_called_once_with(
             pinecone.QueryRequest(top_k=10, vector=self.vals1)
         )
         expected = QueryResponse(
@@ -373,16 +375,16 @@ class TestRestIndex:
         assert expected.to_dict() == actual.to_dict()
 
     def test_query_byVectorWithFilter_queryVectorWithFilter(self, mocker):
-        mocker.patch.object(self.index._vector_api, "query", autospec=True)
+        mocker.patch.object(self.index._vector_api, "query_vectors", autospec=True)
         self.index.query(top_k=10, vector=self.vals1, filter=self.filter1, namespace="ns")
-        self.index._vector_api.query.assert_called_once_with(
+        self.index._vector_api.query_vectors.assert_called_once_with(
             pinecone.QueryRequest(top_k=10, vector=self.vals1, filter=self.filter1, namespace="ns")
         )
 
     def test_query_byVecId_queryByVecId(self, mocker):
-        mocker.patch.object(self.index._vector_api, "query", autospec=True)
+        mocker.patch.object(self.index._vector_api, "query_vectors", autospec=True)
         self.index.query(top_k=10, id="vec1", include_metadata=True, include_values=False)
-        self.index._vector_api.query.assert_called_once_with(
+        self.index._vector_api.query_vectors.assert_called_once_with(
             pinecone.QueryRequest(top_k=10, id="vec1", include_metadata=True, include_values=False)
         )
 
@@ -403,23 +405,23 @@ class TestRestIndex:
     # region: delete tests
 
     def test_delete_byIds_deleteByIds(self, mocker):
-        mocker.patch.object(self.index._vector_api, "delete", autospec=True)
+        mocker.patch.object(self.index._vector_api, "delete_vectors", autospec=True)
         self.index.delete(ids=["vec1", "vec2"])
-        self.index._vector_api.delete.assert_called_once_with(
+        self.index._vector_api.delete_vectors.assert_called_once_with(
             pinecone.DeleteRequest(ids=["vec1", "vec2"])
         )
 
     def test_delete_deleteAllByFilter_deleteAllByFilter(self, mocker):
-        mocker.patch.object(self.index._vector_api, "delete", autospec=True)
+        mocker.patch.object(self.index._vector_api, "delete_vectors", autospec=True)
         self.index.delete(delete_all=True, filter=self.filter1, namespace="ns")
-        self.index._vector_api.delete.assert_called_once_with(
+        self.index._vector_api.delete_vectors.assert_called_once_with(
             pinecone.DeleteRequest(delete_all=True, filter=self.filter1, namespace="ns")
         )
 
     def test_delete_deleteAllNoFilter_deleteNoFilter(self, mocker):
-        mocker.patch.object(self.index._vector_api, "delete", autospec=True)
+        mocker.patch.object(self.index._vector_api, "delete_vectors", autospec=True)
         self.index.delete(delete_all=True)
-        self.index._vector_api.delete.assert_called_once_with(
+        self.index._vector_api.delete_vectors.assert_called_once_with(
             pinecone.DeleteRequest(delete_all=True)
         )
 
@@ -428,30 +430,32 @@ class TestRestIndex:
     # region: fetch tests
 
     def test_fetch_byIds_fetchByIds(self, mocker):
-        mocker.patch.object(self.index._vector_api, "fetch", autospec=True)
+        mocker.patch.object(self.index._vector_api, "fetch_vectors", autospec=True)
         self.index.fetch(ids=["vec1", "vec2"])
-        self.index._vector_api.fetch.assert_called_once_with(ids=["vec1", "vec2"])
+        self.index._vector_api.fetch_vectors.assert_called_once_with(ids=["vec1", "vec2"])
 
     def test_fetch_byIdsAndNS_fetchByIdsAndNS(self, mocker):
-        mocker.patch.object(self.index._vector_api, "fetch", autospec=True)
+        mocker.patch.object(self.index._vector_api, "fetch_vectors", autospec=True)
         self.index.fetch(ids=["vec1", "vec2"], namespace="ns")
-        self.index._vector_api.fetch.assert_called_once_with(ids=["vec1", "vec2"], namespace="ns")
+        self.index._vector_api.fetch_vectors.assert_called_once_with(
+            ids=["vec1", "vec2"], namespace="ns"
+        )
 
     # endregion
 
     # region: update tests
 
     def test_update_byIdAnValues_updateByIdAndValues(self, mocker):
-        mocker.patch.object(self.index._vector_api, "update", autospec=True)
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
         self.index.update(id="vec1", values=self.vals1, namespace="ns")
-        self.index._vector_api.update.assert_called_once_with(
+        self.index._vector_api.update_vector.assert_called_once_with(
             pinecone.UpdateRequest(id="vec1", values=self.vals1, namespace="ns")
         )
 
     def test_update_byIdAnValuesAndMetadata_updateByIdAndValuesAndMetadata(self, mocker):
-        mocker.patch.object(self.index._vector_api, "update", autospec=True)
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
         self.index.update("vec1", values=self.vals1, metadata=self.md1)
-        self.index._vector_api.update.assert_called_once_with(
+        self.index._vector_api.update_vector.assert_called_once_with(
             pinecone.UpdateRequest(id="vec1", values=self.vals1, metadata=self.md1)
         )
 

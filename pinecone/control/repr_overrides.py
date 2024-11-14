@@ -1,6 +1,6 @@
 from pinecone.utils import install_json_repr_override
 from pinecone.models.index_model import IndexModel
-from pinecone.core.openapi.control.models import CollectionModel
+from pinecone.core.openapi.db_control.models import CollectionModel
 
 
 def install_repr_overrides():

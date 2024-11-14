@@ -1,4 +1,4 @@
-from pinecone.core.openapi.control.models import IndexModel as OpenAPIIndexModel
+from pinecone.core.openapi.db_control.models import IndexModel as OpenAPIIndexModel
 
 
 class IndexModel:

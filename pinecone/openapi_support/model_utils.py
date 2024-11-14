@@ -8,7 +8,7 @@ import pprint
 import re
 import tempfile
 
-from pinecone.core_ea.openapi.shared.exceptions import (
+from .exceptions import (
     PineconeApiKeyError,
     PineconeApiAttributeError,
     PineconeApiTypeError,
@@ -31,7 +31,9 @@ def convert_js_args_to_python_args(fn):
         """
         spec_property_naming = kwargs.get("_spec_property_naming", False)
         if spec_property_naming:
-            kwargs = change_keys_js_to_python(kwargs, _self if isinstance(_self, type) else _self.__class__)
+            kwargs = change_keys_js_to_python(
+                kwargs, _self if isinstance(_self, type) else _self.__class__
+            )
         return fn(_self, *args, **kwargs)
 
     return wrapped_init
@@ -126,9 +128,13 @@ class OpenApiModel(object):
         elif self.additional_properties_type is not None:
             required_types_mixed = self.additional_properties_type
 
-        if get_simple_class(name) != str:
-            error_msg = type_error_message(var_name=name, var_value=name, valid_classes=(str,), key_type=True)
-            raise PineconeApiTypeError(error_msg, path_to_item=path_to_item, valid_classes=(str,), key_type=True)
+        if get_simple_class(name) is not str:
+            error_msg = type_error_message(
+                var_name=name, var_value=name, valid_classes=(str,), key_type=True
+            )
+            raise PineconeApiTypeError(
+                error_msg, path_to_item=path_to_item, valid_classes=(str,), key_type=True
+            )
 
         if self._check_type:
             value = validate_and_convert_types(
@@ -211,7 +217,8 @@ class OpenApiModel(object):
             path_to_item = kwargs.get("_path_to_item", ())
             raise PineconeApiValueError(
                 "Cannot deserialize input data due to missing discriminator. "
-                "The discriminator property '%s' is missing at path: %s" % (discr_propertyname_js, path_to_item)
+                "The discriminator property '%s' is missing at path: %s"
+                % (discr_propertyname_js, path_to_item)
             )
 
         # Implementation note: the last argument to get_discriminator_class
@@ -225,7 +232,8 @@ class OpenApiModel(object):
             raise PineconeApiValueError(
                 "Cannot deserialize input data due to invalid discriminator "
                 "value. The OpenAPI document has no mapping for discriminator "
-                "property '%s'='%s' at path: %s" % (discr_propertyname_js, disc_prop_value, path_to_item)
+                "property '%s'='%s' at path: %s"
+                % (discr_propertyname_js, disc_prop_value, path_to_item)
             )
 
         if new_cls in visited_composed_classes:
@@ -250,7 +258,9 @@ class OpenApiModel(object):
         # Build a list containing all oneOf and anyOf descendants.
         oneof_anyof_classes = None
         if cls._composed_schemas is not None:
-            oneof_anyof_classes = cls._composed_schemas.get("oneOf", ()) + cls._composed_schemas.get("anyOf", ())
+            oneof_anyof_classes = cls._composed_schemas.get(
+                "oneOf", ()
+            ) + cls._composed_schemas.get("anyOf", ())
         oneof_anyof_child = new_cls in oneof_anyof_classes
         kwargs["_visited_composed_classes"] = visited_composed_classes + (cls,)
 
@@ -316,7 +326,8 @@ class OpenApiModel(object):
             path_to_item = kwargs.get("_path_to_item", ())
             raise PineconeApiValueError(
                 "Cannot deserialize input data due to missing discriminator. "
-                "The discriminator property '%s' is missing at path: %s" % (discr_propertyname_js, path_to_item)
+                "The discriminator property '%s' is missing at path: %s"
+                % (discr_propertyname_js, path_to_item)
             )
 
         # Implementation note: the last argument to get_discriminator_class
@@ -330,7 +341,8 @@ class OpenApiModel(object):
             raise PineconeApiValueError(
                 "Cannot deserialize input data due to invalid discriminator "
                 "value. The OpenAPI document has no mapping for discriminator "
-                "property '%s'='%s' at path: %s" % (discr_propertyname_js, disc_prop_value, path_to_item)
+                "property '%s'='%s' at path: %s"
+                % (discr_propertyname_js, disc_prop_value, path_to_item)
             )
 
         if new_cls in visited_composed_classes:
@@ -355,14 +367,16 @@ class OpenApiModel(object):
         # Build a list containing all oneOf and anyOf descendants.
         oneof_anyof_classes = None
         if cls._composed_schemas is not None:
-            oneof_anyof_classes = cls._composed_schemas.get("oneOf", ()) + cls._composed_schemas.get("anyOf", ())
+            oneof_anyof_classes = cls._composed_schemas.get(
+                "oneOf", ()
+            ) + cls._composed_schemas.get("anyOf", ())
         oneof_anyof_child = new_cls in oneof_anyof_classes
         kwargs["_visited_composed_classes"] = visited_composed_classes + (cls,)
 
         if cls._composed_schemas.get("allOf") and oneof_anyof_child:
             # Validate that we can make self because when we make the
             # new_cls it will not include the allOf validations in self
-            self_inst = cls._from_openapi_data(*args, **kwargs)
+            self_inst = cls._from_openapi_data(*args, **kwargs)  # noqa: F841
 
         new_inst = new_cls._new_from_openapi_data(*args, **kwargs)
         return new_inst
@@ -393,7 +407,8 @@ class ModelSimple(OpenApiModel):
             return self.get(name)
 
         raise PineconeApiAttributeError(
-            "{0} has no attribute '{1}'".format(type(self).__name__, name), [e for e in [self._path_to_item, name] if e]
+            "{0} has no attribute '{1}'".format(type(self).__name__, name),
+            [e for e in [self._path_to_item, name] if e],
         )
 
     def __contains__(self, name):
@@ -446,7 +461,8 @@ class ModelNormal(OpenApiModel):
             return self.get(name)
 
         raise PineconeApiAttributeError(
-            "{0} has no attribute '{1}'".format(type(self).__name__, name), [e for e in [self._path_to_item, name] if e]
+            "{0} has no attribute '{1}'".format(type(self).__name__, name),
+            [e for e in [self._path_to_item, name] if e],
         )
 
     def __contains__(self, name):
@@ -600,7 +616,9 @@ class ModelComposed(OpenApiModel):
         if name in self.required_properties:
             return name in self.__dict__
 
-        model_instances = self._var_name_to_model_instances.get(name, self._additional_properties_model_instances)
+        model_instances = self._var_name_to_model_instances.get(
+            name, self._additional_properties_model_instances
+        )
 
         if model_instances:
             for model_instance in model_instances:
@@ -730,7 +748,7 @@ def get_simple_class(input_value):
         return list
     elif isinstance(input_value, dict):
         return dict
-    elif isinstance(input_value, none_type):
+    elif input_value is None:
         return none_type
     elif isinstance(input_value, file_type):
         return file_type
@@ -767,7 +785,9 @@ def check_allowed_values(allowed_values, input_variable_path, input_values):
             "Invalid values for `%s` [%s], must be a subset of [%s]"
             % (input_variable_path[0], invalid_values, ", ".join(map(str, these_allowed_values)))
         )
-    elif isinstance(input_values, dict) and not set(input_values.keys()).issubset(set(these_allowed_values)):
+    elif isinstance(input_values, dict) and not set(input_values.keys()).issubset(
+        set(these_allowed_values)
+    ):
         invalid_values = ", ".join(map(str, set(input_values.keys()) - set(these_allowed_values)))
         raise PineconeApiValueError(
             "Invalid keys in `%s` [%s], must be a subset of [%s]"
@@ -959,11 +979,15 @@ def order_response_types(required_types):
             return COERCION_INDEX_BY_TYPE[class_or_instance]
         raise PineconeApiValueError("Unsupported type: %s" % class_or_instance)
 
-    sorted_types = sorted(required_types, key=lambda class_or_instance: index_getter(class_or_instance))
+    sorted_types = sorted(
+        required_types, key=lambda class_or_instance: index_getter(class_or_instance)
+    )
     return sorted_types
 
 
-def remove_uncoercible(required_types_classes, current_item, spec_property_naming, must_convert=True):
+def remove_uncoercible(
+    required_types_classes, current_item, spec_property_naming, must_convert=True
+):
     """Only keeps the type conversions that are possible
 
     Args:
@@ -1103,9 +1127,14 @@ def change_keys_js_to_python(input_dict, model_class):
 
 def get_type_error(var_value, path_to_item, valid_classes, key_type=False):
     error_msg = type_error_message(
-        var_name=path_to_item[-1], var_value=var_value, valid_classes=valid_classes, key_type=key_type
+        var_name=path_to_item[-1],
+        var_value=var_value,
+        valid_classes=valid_classes,
+        key_type=key_type,
     )
-    return PineconeApiTypeError(error_msg, path_to_item=path_to_item, valid_classes=valid_classes, key_type=key_type)
+    return PineconeApiTypeError(
+        error_msg, path_to_item=path_to_item, valid_classes=valid_classes, key_type=key_type
+    )
 
 
 def deserialize_primitive(data, klass, path_to_item):
@@ -1145,7 +1174,7 @@ def deserialize_primitive(data, klass, path_to_item):
                 return parse(data).date()
         else:
             converted_value = klass(data)
-            if isinstance(data, str) and klass == float:
+            if isinstance(data, str) and klass is float:
                 if str(converted_value) != data:
                     # '7' -> 7.0 -> '7.0' != '7'
                     raise ValueError("This is not a float")
@@ -1194,21 +1223,25 @@ def get_discriminator_class(model_class, discr_name, discr_value, cls_visited):
         # Descendant example:  mammal -> whale/zebra/Pig -> BasquePig/DanishPig
         #   if we try to make BasquePig from mammal, we need to travel through
         #   the oneOf descendant discriminators to find BasquePig
-        descendant_classes = model_class._composed_schemas.get("oneOf", ()) + model_class._composed_schemas.get(
-            "anyOf", ()
-        )
+        descendant_classes = model_class._composed_schemas.get(
+            "oneOf", ()
+        ) + model_class._composed_schemas.get("anyOf", ())
         ancestor_classes = model_class._composed_schemas.get("allOf", ())
         possible_classes = descendant_classes + ancestor_classes
         for cls in possible_classes:
             # Check if the schema has inherited discriminators.
             if hasattr(cls, "discriminator") and cls.discriminator is not None:
-                used_model_class = get_discriminator_class(cls, discr_name, discr_value, cls_visited)
+                used_model_class = get_discriminator_class(
+                    cls, discr_name, discr_value, cls_visited
+                )
                 if used_model_class is not None:
                     return used_model_class
     return used_model_class
 
 
-def deserialize_model(model_data, model_class, path_to_item, check_type, configuration, spec_property_naming):
+def deserialize_model(
+    model_data, model_class, path_to_item, check_type, configuration, spec_property_naming
+):
     """Deserializes model_data to model instance.
 
     Args:
@@ -1320,7 +1353,9 @@ def attempt_convert_item(
         PineconeApiKeyError
     """
     valid_classes_ordered = order_response_types(valid_classes)
-    valid_classes_coercible = remove_uncoercible(valid_classes_ordered, input_value, spec_property_naming)
+    valid_classes_coercible = remove_uncoercible(
+        valid_classes_ordered, input_value, spec_property_naming
+    )
     if not valid_classes_coercible or key_type:
         # we do not handle keytype errors, json will take care
         # of this for us
@@ -1330,7 +1365,12 @@ def attempt_convert_item(
         try:
             if issubclass(valid_class, OpenApiModel):
                 return deserialize_model(
-                    input_value, valid_class, path_to_item, check_type, configuration, spec_property_naming
+                    input_value,
+                    valid_class,
+                    path_to_item,
+                    check_type,
+                    configuration,
+                    spec_property_naming,
                 )
             elif valid_class == file_type:
                 return deserialize_file(input_value, configuration)
@@ -1386,7 +1426,9 @@ def is_valid_type(input_class_simple, valid_classes):
         bool
     """
     valid_type = input_class_simple in valid_classes
-    if not valid_type and (issubclass(input_class_simple, OpenApiModel) or input_class_simple is none_type):
+    if not valid_type and (
+        issubclass(input_class_simple, OpenApiModel) or input_class_simple is none_type
+    ):
         for valid_class in valid_classes:
             if input_class_simple is none_type and is_type_nullable(valid_class):
                 # Schema is oneOf/anyOf and the 'null' type is one of the allowed types.
@@ -1402,7 +1444,12 @@ def is_valid_type(input_class_simple, valid_classes):
 
 
 def validate_and_convert_types(
-    input_value, required_types_mixed, path_to_item, spec_property_naming, _check_type, configuration=None
+    input_value,
+    required_types_mixed,
+    path_to_item,
+    spec_property_naming,
+    _check_type,
+    configuration=None,
 ):
     """Raises a TypeError is there is a problem, otherwise returns value
 
@@ -1503,7 +1550,7 @@ def validate_and_convert_types(
         for inner_key, inner_val in input_value.items():
             inner_path = list(path_to_item)
             inner_path.append(inner_key)
-            if get_simple_class(inner_key) != str:
+            if get_simple_class(inner_key) is not str:
                 raise get_type_error(inner_key, inner_path, valid_classes, key_type=True)
             input_value[inner_key] = validate_and_convert_types(
                 inner_val,
@@ -1606,11 +1653,10 @@ def type_error_message(var_value=None, var_name=None, valid_classes=None, key_ty
     if key_type:
         key_or_value = "key"
     valid_classes_phrase = get_valid_classes_phrase(valid_classes)
-    msg = "Invalid type for variable '{0}'. Required {1} type {2} and " "passed type was {3}".format(
-        var_name,
-        key_or_value,
-        valid_classes_phrase,
-        type(var_value).__name__,
+    msg = (
+        "Invalid type for variable '{0}'. Required {1} type {2} and " "passed type was {3}".format(
+            var_name, key_or_value, valid_classes_phrase, type(var_value).__name__
+        )
     )
     return msg
 
@@ -1644,7 +1690,6 @@ def get_allof_instances(self, model_args, constant_args):
     """
     composed_instances = []
     for allof_class in self._composed_schemas["allOf"]:
-
         try:
             allof_instance = allof_class(**model_args, **constant_args)
             composed_instances.append(allof_instance)
@@ -1652,7 +1697,8 @@ def get_allof_instances(self, model_args, constant_args):
             raise PineconeApiValueError(
                 "Invalid inputs given to generate an instance of '%s'. The "
                 "input data was invalid for the allOf schema '%s' in the composed "
-                "schema '%s'. Error=%s" % (allof_class.__name__, allof_class.__name__, self.__class__.__name__, str(ex))
+                "schema '%s'. Error=%s"
+                % (allof_class.__name__, allof_class.__name__, self.__class__.__name__, str(ex))
             ) from ex
     return composed_instances
 
@@ -1875,4 +1921,9 @@ def validate_get_composed_info(constant_args, model_args, self):
         if prop_name not in discarded_args:
             var_name_to_model_instances[prop_name] = [self] + composed_instances
 
-    return [composed_instances, var_name_to_model_instances, additional_properties_model_instances, discarded_args]
+    return [
+        composed_instances,
+        var_name_to_model_instances,
+        additional_properties_model_instances,
+        discarded_args,
+    ]
