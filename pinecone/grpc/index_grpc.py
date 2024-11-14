@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Dict, Union, List, Tuple, Any, TypedDict, Iterable, cast
+from typing import Optional, Dict, Union, List, Iterable, cast
 
 from google.protobuf import json_format
 
@@ -64,6 +64,7 @@ class GRPCIndex(GRPCIndexBase):
         config: Config,
         channel: Optional[Channel] = None,
         grpc_config: Optional[GRPCClientConfig] = None,
+        pool_threads: Optional[int] = None,
         _endpoint_override: Optional[str] = None,
     ):
         super().__init__(
@@ -71,6 +72,7 @@ class GRPCIndex(GRPCIndexBase):
             config=config,
             channel=channel,
             grpc_config=grpc_config,
+            pool_threads=pool_threads,
             _endpoint_override=_endpoint_override,
             use_asyncio=False,
         )
