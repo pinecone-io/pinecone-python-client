@@ -47,20 +47,24 @@ index.query(vector=[...], top_k=10)
 from .index_grpc import GRPCIndex
 from .pinecone import PineconeGRPC
 from .config import GRPCClientConfig
+from .future import PineconeGrpcFuture
 
 from pinecone.core.grpc.protos.vector_service_pb2 import (
     Vector as GRPCVector,
     SparseValues as GRPCSparseValues,
     Vector,
     SparseValues,
+    DeleteResponse as GRPCDeleteResponse,
 )
 
 __all__ = [
     "GRPCIndex",
     "PineconeGRPC",
+    "GRPCDeleteResponse",
     "GRPCClientConfig",
     "GRPCVector",
     "GRPCSparseValues",
     "Vector",
     "SparseValues",
+    "PineconeGrpcFuture",
 ]

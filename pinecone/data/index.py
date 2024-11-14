@@ -1,5 +1,7 @@
 from tqdm.autonotebook import tqdm
 
+import logging
+import json
 from typing import Union, List, Optional, Dict, Any
 
 from pinecone.config import ConfigBuilder
@@ -25,8 +27,21 @@ from pinecone.core.openapi.db_data.models import (
     SparseValues,
 )
 from .features.bulk_import import ImportFeatureMixin
-from ..utils import setup_openapi_client, parse_non_empty_args
+from ..utils import (
+    setup_openapi_client,
+    parse_non_empty_args,
+    build_plugin_setup_client,
+    validate_and_convert_errors,
+)
 from .vector_factory import VectorFactory
+from .query_results_aggregator import QueryResultsAggregator, QueryNamespacesResults
+
+from multiprocessing.pool import ApplyResult
+from concurrent.futures import as_completed
+
+from pinecone_plugin_interface import load_and_install as install_plugins
+
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "Index",
@@ -47,8 +62,6 @@ __all__ = [
     "SparseValues",
 ]
 
-from ..utils.error_handling import validate_and_convert_errors
-
 _OPENAPI_ENDPOINT_PARAMS = (
     "_return_http_data_only",
     "_preload_content",
@@ -57,6 +70,7 @@ _OPENAPI_ENDPOINT_PARAMS = (
     "_check_return_type",
     "_host_index",
     "async_req",
+    "async_threadpool_executor",
 )
 
 
@@ -89,19 +103,40 @@ class Index(ImportFeatureMixin):
             **kwargs,
         )
 
-        self._config = ConfigBuilder.build(
+        self.config = ConfigBuilder.build(
             api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
-        openapi_config = ConfigBuilder.build_openapi_config(self._config, openapi_config)
+        self._openapi_config = ConfigBuilder.build_openapi_config(self.config, openapi_config)
+        self._pool_threads = pool_threads
+
+        if kwargs.get("connection_pool_maxsize", None):
+            self._openapi_config.connection_pool_maxsize = kwargs.get("connection_pool_maxsize")
 
         self._vector_api = setup_openapi_client(
             api_client_klass=ApiClient,
             api_klass=VectorOperationsApi,
-            config=self._config,
-            openapi_config=openapi_config,
-            pool_threads=pool_threads,
+            config=self.config,
+            openapi_config=self._openapi_config,
+            pool_threads=self._pool_threads,
             api_version=API_VERSION,
         )
+
+        self._load_plugins()
+
+    def _load_plugins(self):
+        """@private"""
+        try:
+            # I don't expect this to ever throw, but wrapping this in a
+            # try block just in case to make sure a bad plugin doesn't
+            # halt client initialization.
+            openapi_client_builder = build_plugin_setup_client(
+                config=self.config,
+                openapi_config=self._openapi_config,
+                pool_threads=self._pool_threads,
+            )
+            install_plugins(self, openapi_client_builder)
+        except Exception as e:
+            logger.error(f"Error loading plugins in Index: {e}")
 
     def __enter__(self):
         return self
@@ -361,7 +396,7 @@ class Index(ImportFeatureMixin):
             Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
         ] = None,
         **kwargs,
-    ) -> QueryResponse:
+    ) -> Union[QueryResponse, ApplyResult]:
         """
         The Query operation searches a namespace, using a query vector.
         It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
@@ -403,6 +438,39 @@ class Index(ImportFeatureMixin):
                  and namespace name.
         """
 
+        response = self._query(
+            *args,
+            top_k=top_k,
+            vector=vector,
+            id=id,
+            namespace=namespace,
+            filter=filter,
+            include_values=include_values,
+            include_metadata=include_metadata,
+            sparse_vector=sparse_vector,
+            **kwargs,
+        )
+
+        if kwargs.get("async_req", False) or kwargs.get("async_threadpool_executor", False):
+            return response
+        else:
+            return parse_query_response(response)
+
+    def _query(
+        self,
+        *args,
+        top_k: int,
+        vector: Optional[List[float]] = None,
+        id: Optional[str] = None,
+        namespace: Optional[str] = None,
+        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        include_values: Optional[bool] = None,
+        include_metadata: Optional[bool] = None,
+        sparse_vector: Optional[
+            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
+        ] = None,
+        **kwargs,
+    ) -> QueryResponse:
         if len(args) > 0:
             raise ValueError(
                 "The argument order for `query()` has changed; please use keyword arguments instead of positional arguments. Example: index.query(vector=[0.1, 0.2, 0.3], top_k=10, namespace='my_namespace')"
@@ -427,6 +495,7 @@ class Index(ImportFeatureMixin):
                 ("sparse_vector", sparse_vector),
             ]
         )
+        
         response = self._vector_api.query_vectors(
             QueryRequest(
                 **args_dict,
@@ -435,7 +504,96 @@ class Index(ImportFeatureMixin):
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
         )
-        return parse_query_response(response)
+        return response
+
+    @validate_and_convert_errors
+    def query_namespaces(
+        self,
+        vector: List[float],
+        namespaces: List[str],
+        top_k: Optional[int] = None,
+        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        include_values: Optional[bool] = None,
+        include_metadata: Optional[bool] = None,
+        sparse_vector: Optional[
+            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
+        ] = None,
+        **kwargs,
+    ) -> QueryNamespacesResults:
+        """The query_namespaces() method is used to make a query to multiple namespaces in parallel and combine the results into one result set.
+
+        Since several asynchronous calls are made on your behalf when calling this method, you will need to tune the pool_threads and connection_pool_maxsize parameter of the Index constructor to suite your workload.
+
+        Examples:
+
+        ```python
+        from pinecone import Pinecone
+
+        pc = Pinecone(api_key="your-api-key")
+        index = pc.Index(
+            host="index-name",
+            pool_threads=32,
+            connection_pool_maxsize=32
+        )
+
+        query_vec = [0.1, 0.2, 0.3] # An embedding that matches the index dimension
+        combined_results = index.query_namespaces(
+            vector=query_vec,
+            namespaces=['ns1', 'ns2', 'ns3', 'ns4'],
+            top_k=10,
+            filter={'genre': {"$eq": "drama"}},
+            include_values=True,
+            include_metadata=True
+        )
+        for vec in combined_results.matches:
+            print(vec.id, vec.score)
+        print(combined_results.usage)
+        ```
+
+        Args:
+            vector (List[float]): The query vector, must be the same length as the dimension of the index being queried.
+            namespaces (List[str]): The list of namespaces to query.
+            top_k (Optional[int], optional): The number of results you would like to request from each namespace. Defaults to 10.
+            filter (Optional[Dict[str, Union[str, float, int, bool, List, dict]]], optional): Pass an optional filter to filter results based on metadata. Defaults to None.
+            include_values (Optional[bool], optional): Boolean field indicating whether vector values should be included with results. Defaults to None.
+            include_metadata (Optional[bool], optional): Boolean field indicating whether vector metadata should be included with results. Defaults to None.
+            sparse_vector (Optional[ Union[SparseValues, Dict[str, Union[List[float], List[int]]]] ], optional): If you are working with a dotproduct index, you can pass a sparse vector as part of your hybrid search. Defaults to None.
+
+        Returns:
+            QueryNamespacesResults: A QueryNamespacesResults object containing the combined results from all namespaces, as well as the combined usage cost in read units.
+        """
+        if namespaces is None or len(namespaces) == 0:
+            raise ValueError("At least one namespace must be specified")
+        if len(vector) == 0:
+            raise ValueError("Query vector must not be empty")
+
+        overall_topk = top_k if top_k is not None else 10
+        aggregator = QueryResultsAggregator(top_k=overall_topk)
+
+        target_namespaces = set(namespaces)  # dedup namespaces
+        async_futures = [
+            self.query(
+                vector=vector,
+                namespace=ns,
+                top_k=overall_topk,
+                filter=filter,
+                include_values=include_values,
+                include_metadata=include_metadata,
+                sparse_vector=sparse_vector,
+                async_threadpool_executor=True,
+                _preload_content=False,
+                **kwargs,
+            )
+            for ns in target_namespaces
+        ]
+
+        for result in as_completed(async_futures):
+            raw_result = result.result()
+            response = json.loads(raw_result.data.decode("utf-8"))
+            aggregator.add_results(response)
+
+        final_results = aggregator.get_results()
+        return final_results
 
     @validate_and_convert_errors
     def update(

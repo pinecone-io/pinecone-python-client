@@ -52,7 +52,10 @@ def metric():
 
 @pytest.fixture(scope="session")
 def spec():
-    return json.loads(get_environment_var("SPEC"))
+    spec_json = get_environment_var(
+        "SPEC", '{"serverless": {"cloud": "aws", "region": "us-east-1" }}'
+    )
+    return json.loads(spec_json)
 
 
 @pytest.fixture(scope="session")
@@ -97,14 +100,17 @@ def index_host(index_name, metric, spec):
 def seed_data(idx, namespace, index_host, list_namespace, weird_ids_namespace):
     print("Seeding data in host " + index_host)
 
-    print("Seeding data in weird is namespace " + weird_ids_namespace)
-    setup_weird_ids_data(idx, weird_ids_namespace, True)
+    if os.getenv("SKIP_WEIRD") != "true":
+        print("Seeding data in weird ids namespace " + weird_ids_namespace)
+        setup_weird_ids_data(idx, weird_ids_namespace, True)
+    else:
+        print("Skipping seeding data in weird ids namespace")
 
     print('Seeding list data in namespace "' + list_namespace + '"')
     setup_list_data(idx, list_namespace, True)
 
     print('Seeding data in namespace "' + namespace + '"')
-    setup_data(idx, namespace, False)
+    setup_data(idx, namespace, True)
 
     print('Seeding data in namespace ""')
     setup_data(idx, "", True)

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pinecone"
-version = "5.3.1"
+version = "5.4.0"
 packages = [
     { include="pinecone", from="." },
 ]
@@ -83,6 +83,9 @@ pytest-asyncio = "0.15.1"
 pytest-cov = "2.10.1"
 pytest-mock = "3.6.1"
 pytest-timeout = "2.2.0"
+pytest-benchmark = [
+  { version = '5.0.0', python = ">=3.9,<4.0" }
+]
 urllib3_mock = "0.3.3"
 responses = ">=0.8.1"
 ddtrace = "^2.14.4"

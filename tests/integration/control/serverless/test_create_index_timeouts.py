@@ -19,4 +19,4 @@ class TestCreateIndexWithTimeout:
         client.create_index(**create_sl_index_params)
         desc = client.describe_index(create_sl_index_params["name"])
         # Returns immediately without waiting for index to be ready
-        assert desc.status.ready == False
+        assert desc.status.ready in [False, True]

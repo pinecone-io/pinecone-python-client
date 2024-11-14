@@ -2,12 +2,31 @@ import json
 import atexit
 import mimetypes
 from multiprocessing.pool import ThreadPool
+from concurrent.futures import ThreadPoolExecutor
 import io
 import os
 import re
 import typing
 from urllib.parse import quote
 from urllib3.fields import RequestField
+import time
+import random
+
+def retry_api_call(
+    func, args=(), kwargs={}, retries=3, backoff=1, jitter=0.5
+):
+    attempts = 0
+    while attempts < retries:
+        try:
+            return func(*args, **kwargs)  # Attempt to call __call_api
+        except Exception as e:
+            attempts += 1
+            if attempts >= retries:
+                print(f"API call failed after {attempts} attempts: {e}")
+                raise  # Re-raise exception if retries are exhausted
+            sleep_time = backoff * (2 ** (attempts - 1)) + random.uniform(0, jitter)
+            # print(f"Retrying ({attempts}/{retries}) in {sleep_time:.2f} seconds after error: {e}")
+            time.sleep(sleep_time)
 
 
 from pinecone.core.openapi.shared import rest
@@ -52,6 +71,7 @@ class ApiClient(object):
     """
 
     _pool = None
+    _threadpool_executor = None
 
     def __init__(self, configuration=None, header_name=None, header_value=None, cookie=None, pool_threads=1):
         if configuration is None:
@@ -74,6 +94,9 @@ class ApiClient(object):
         self.close()
 
     def close(self):
+        if self._threadpool_executor:
+            self._threadpool_executor.shutdown()
+            self._threadpool_executor = None
         if self._pool:
             self._pool.close()
             self._pool.join()
@@ -90,6 +113,12 @@ class ApiClient(object):
             atexit.register(self.close)
             self._pool = ThreadPool(self.pool_threads)
         return self._pool
+
+    @property
+    def threadpool_executor(self):
+        if self._threadpool_executor is None:
+            self._threadpool_executor = ThreadPoolExecutor(max_workers=self.pool_threads)
+        return self._threadpool_executor
 
     @property
     def user_agent(self):
@@ -316,6 +345,7 @@ class ApiClient(object):
         response_type: typing.Optional[typing.Tuple[typing.Any]] = None,
         auth_settings: typing.Optional[typing.List[str]] = None,
         async_req: typing.Optional[bool] = None,
+        async_threadpool_executor: typing.Optional[bool] = None,
         _return_http_data_only: typing.Optional[bool] = None,
         collection_formats: typing.Optional[typing.Dict[str, str]] = None,
         _preload_content: bool = True,
@@ -376,6 +406,27 @@ class ApiClient(object):
             If parameter async_req is False or missing,
             then the method will return the response directly.
         """
+        if async_threadpool_executor:
+            return self.threadpool_executor.submit(
+                self.__call_api,
+                resource_path,
+                method,
+                path_params,
+                query_params,
+                header_params,
+                body,
+                post_params,
+                files,
+                response_type,
+                auth_settings,
+                _return_http_data_only,
+                collection_formats,
+                _preload_content,
+                _request_timeout,
+                _host,
+                _check_type,
+            )
+
         if not async_req:
             return self.__call_api(
                 resource_path,
@@ -397,25 +448,32 @@ class ApiClient(object):
             )
 
         return self.pool.apply_async(
-            self.__call_api,
-            (
-                resource_path,
-                method,
-                path_params,
-                query_params,
-                header_params,
-                body,
-                post_params,
-                files,
-                response_type,
-                auth_settings,
-                _return_http_data_only,
-                collection_formats,
-                _preload_content,
-                _request_timeout,
-                _host,
-                _check_type,
-            ),
+            retry_api_call,
+            args=(
+                self.__call_api,  # Pass the API call function as the first argument
+                (
+                    resource_path,
+                    method,
+                    path_params,
+                    query_params,
+                    header_params,
+                    body,
+                    post_params,
+                    files,
+                    response_type,
+                    auth_settings,
+                    _return_http_data_only,
+                    collection_formats,
+                    _preload_content,
+                    _request_timeout,
+                    _host,
+                    _check_type,
+                ),
+                {},  # empty kwargs dictionary
+                3,    # retries
+                1,    # backoff time
+                0.5   # jitter
+            )
         )
 
     def request(
@@ -665,6 +723,7 @@ class Endpoint(object):
         self.params_map["all"].extend(
             [
                 "async_req",
+                "async_threadpool_executor",
                 "_host_index",
                 "_preload_content",
                 "_request_timeout",
@@ -679,6 +738,7 @@ class Endpoint(object):
         self.openapi_types = root_map["openapi_types"]
         extra_types = {
             "async_req": (bool,),
+            "async_threadpool_executor": (bool, ),
             "_host_index": (none_type, int),
             "_preload_content": (bool,),
             "_request_timeout": (none_type, float, (float,), [float], int, (int,), [int]),
@@ -828,6 +888,7 @@ class Endpoint(object):
             response_type=self.settings["response_type"],
             auth_settings=self.settings["auth"],
             async_req=kwargs["async_req"],
+            async_threadpool_executor=kwargs.get("async_threadpool_executor", None),
             _check_type=kwargs["_check_return_type"],
             _return_http_data_only=kwargs["_return_http_data_only"],
             _preload_content=kwargs["_preload_content"],

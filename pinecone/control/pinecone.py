@@ -765,6 +765,14 @@ class Pinecone:
         # Now you're ready to perform data operations
         index.query(vector=[...], top_k=10)
         ```
+
+        Arguments:
+            name: The name of the index to target. If you specify the name of the index, the client will
+                fetch the host url from the Pinecone control plane.
+            host: The host url of the index to target. If you specify the host url, the client will use
+                the host url directly without making any additional calls to the control plane.
+            pool_threads: The number of threads to use when making parallel requests by calling index methods with optional kwarg async_req=True, or using methods that make use of parallelism automatically such as query_namespaces(). Default: 1
+            connection_pool_maxsize: The maximum number of connections to keep in the connection pool. Default: 5 * multiprocessing.cpu_count()
         """
         if name == "" and host == "":
             raise ValueError("Either name or host must be specified")

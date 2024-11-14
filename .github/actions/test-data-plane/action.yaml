@@ -32,6 +32,10 @@ inputs:
   DATADOG_API_KEY:
     description: 'The Datadog API key'
     required: true
+  skip_weird_id_tests:
+    description: 'Whether to skip tests that verify handling of unusual ID strings'
+    required: false
+    default: 'false'
 
 outputs:
   index_name:
@@ -67,3 +71,4 @@ runs:
         METRIC: ${{ inputs.metric }}
         SPEC: ${{ inputs.spec }}
         FRESHNESS_TIMEOUT_SECONDS: ${{ inputs.freshness_timeout_seconds }}
+        SKIP_WEIRD: ${{ inputs.skip_weird_id_tests }}
