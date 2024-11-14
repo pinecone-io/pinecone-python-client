@@ -116,7 +116,7 @@ class Index(ImportFeatureMixin):
             api_client_klass=ApiClient,
             api_klass=VectorOperationsApi,
             config=self.config,
-            openapi_config=openapi_config,
+            openapi_config=self._openapi_config,
             pool_threads=pool_threads,
             api_version=API_VERSION,
         )
