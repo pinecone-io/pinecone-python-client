@@ -56,6 +56,7 @@ class Endpoint(object):
         self.params_map["all"].extend(
             [
                 "async_req",
+                "async_threadpool_executor",
                 "_host_index",
                 "_preload_content",
                 "_request_timeout",
@@ -70,6 +71,7 @@ class Endpoint(object):
         self.openapi_types = root_map["openapi_types"]
         extra_types = {
             "async_req": (bool,),
+            "async_threadpool_executor": (bool,),
             "_host_index": (none_type, int),
             "_preload_content": (bool,),
             "_request_timeout": (none_type, float, (float,), [float], int, (int,), [int]),
@@ -235,6 +237,7 @@ class Endpoint(object):
             response_type=self.settings["response_type"],
             auth_settings=self.settings["auth"],
             async_req=kwargs["async_req"],
+            async_threadpool_executor=kwargs.get("async_threadpool_executor", None),
             _check_type=kwargs["_check_return_type"],
             _return_http_data_only=kwargs["_return_http_data_only"],
             _preload_content=kwargs["_preload_content"],
