@@ -456,8 +456,7 @@ class GRPCIndexAsyncio(GRPCIndexBase):
 
         request = FetchRequest(ids=ids, **args_dict, **kwargs)
         response = await self.runner.run_asyncio(self.stub.Fetch, request, timeout=timeout)
-        json_response = json_format.MessageToDict(response)
-        return parse_fetch_response(json_response)
+        return parse_fetch_response(response)
 
     async def update(
         self,
