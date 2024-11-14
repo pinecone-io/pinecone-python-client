@@ -6,16 +6,17 @@ from typing import Union, List, Optional, Dict, Any
 
 from pinecone.config import ConfigBuilder
 
-from pinecone.core.openapi.shared import API_VERSION
-from pinecone.core.openapi.data import ApiClient
-from pinecone.core.openapi.data.models import (
+from pinecone.openapi_support import ApiClient
+from pinecone.core.openapi.db_data.api.vector_operations_api import VectorOperationsApi
+from pinecone.core.openapi.db_data import API_VERSION
+from pinecone.core.openapi.db_data.models import (
     FetchResponse,
     QueryRequest,
     QueryResponse,
     RpcStatus,
     ScoredVector,
     SingleQueryResults,
-    DescribeIndexStatsResponse,
+    IndexDescription as DescribeIndexStatsResponse,
     UpsertRequest,
     UpsertResponse,
     Vector,
@@ -25,7 +26,6 @@ from pinecone.core.openapi.data.models import (
     ListResponse,
     SparseValues,
 )
-from pinecone.core.openapi.data.api.data_plane_api import DataPlaneApi
 from ..utils import (
     setup_openapi_client,
     parse_non_empty_args,
@@ -114,10 +114,10 @@ class Index(ImportFeatureMixin):
 
         self._vector_api = setup_openapi_client(
             api_client_klass=ApiClient,
-            api_klass=DataPlaneApi,
+            api_klass=VectorOperationsApi,
             config=self.config,
-            openapi_config=self._openapi_config,
-            pool_threads=self._pool_threads,
+            openapi_config=openapi_config,
+            pool_threads=pool_threads,
             api_version=API_VERSION,
         )
 
@@ -244,7 +244,7 @@ class Index(ImportFeatureMixin):
         def vec_builder(v):
             return VectorFactory.build(v, check_type=_check_type)
 
-        return self._vector_api.upsert(
+        return self._vector_api.upsert_vectors(
             UpsertRequest(
                 vectors=list(map(vec_builder, vectors)),
                 **args_dict,
@@ -343,7 +343,7 @@ class Index(ImportFeatureMixin):
             [("ids", ids), ("delete_all", delete_all), ("namespace", namespace), ("filter", filter)]
         )
 
-        return self._vector_api.delete(
+        return self._vector_api.delete_vectors(
             DeleteRequest(
                 **args_dict,
                 **{
@@ -379,7 +379,7 @@ class Index(ImportFeatureMixin):
         Returns: FetchResponse object which contains the list of Vector objects, and namespace name.
         """
         args_dict = parse_non_empty_args([("namespace", namespace)])
-        return self._vector_api.fetch(ids=ids, **args_dict, **kwargs)
+        return self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
 
     @validate_and_convert_errors
     def query(
@@ -495,8 +495,7 @@ class Index(ImportFeatureMixin):
                 ("sparse_vector", sparse_vector),
             ]
         )
-
-        response = self._vector_api.query(
+        response = self._vector_api.query_vectors(
             QueryRequest(
                 **args_dict,
                 _check_type=_check_type,
@@ -650,7 +649,7 @@ class Index(ImportFeatureMixin):
                 ("sparse_values", sparse_values),
             ]
         )
-        return self._vector_api.update(
+        return self._vector_api.update_vector(
             UpdateRequest(
                 id=id,
                 **args_dict,
@@ -735,7 +734,7 @@ class Index(ImportFeatureMixin):
                 ("pagination_token", pagination_token),
             ]
         )
-        return self._vector_api.list(**args_dict, **kwargs)
+        return self._vector_api.list_vectors(**args_dict, **kwargs)
 
     @validate_and_convert_errors
     def list(self, **kwargs):

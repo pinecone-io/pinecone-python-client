@@ -8,7 +8,7 @@ from urllib.parse import urlencode, quote
 
 import urllib3
 
-from pinecone.core_ea.openapi.shared.exceptions import (
+from .exceptions import (
     PineconeApiException,
     UnauthorizedException,
     ForbiddenException,
@@ -34,7 +34,6 @@ logger = logging.getLogger(__name__)
 
 
 class RESTResponse(io.IOBase):
-
     def __init__(self, resp):
         self.urllib3_response = resp
         self.status = resp.status
@@ -51,7 +50,6 @@ class RESTResponse(io.IOBase):
 
 
 class RESTClientObject(object):
-
     def __init__(self, configuration, pools_size=4, maxsize=None):
         # urllib3.PoolManager will pass all kw parameters to connectionpool
         # https://github.com/shazow/urllib3/blob/f9409436f83aeb79fbaf090181cd81b784f1b8ce/urllib3/poolmanager.py#L75  # noqa: E501
@@ -157,7 +155,10 @@ class RESTClientObject(object):
                 print(
                     bcolors.OKBLUE
                     + "curl -X {method} '{url}' {formatted_headers} -d '{data}'".format(
-                        method=method, url=formatted_url, formatted_headers=formatted_headers, data=formatted_body
+                        method=method,
+                        url=formatted_url,
+                        formatted_headers=formatted_headers,
+                        data=formatted_body,
                     )
                     + bcolors.ENDC
                 )
@@ -183,7 +184,9 @@ class RESTClientObject(object):
                     headers["Content-Type"] = "application/json"
                 if query_params:
                     url += "?" + urlencode(query_params, quote_via=quote)
-                if ("Content-Type" not in headers) or (re.search("json", headers["Content-Type"], re.IGNORECASE)):
+                if ("Content-Type" not in headers) or (
+                    re.search("json", headers["Content-Type"], re.IGNORECASE)
+                ):
                     request_body = None
                     if body is not None:
                         request_body = json.dumps(body)
@@ -280,7 +283,9 @@ class RESTClientObject(object):
 
         return r
 
-    def GET(self, url, headers=None, query_params=None, _preload_content=True, _request_timeout=None):
+    def GET(
+        self, url, headers=None, query_params=None, _preload_content=True, _request_timeout=None
+    ):
         return self.request(
             "GET",
             url,
@@ -290,7 +295,9 @@ class RESTClientObject(object):
             query_params=query_params,
         )
 
-    def HEAD(self, url, headers=None, query_params=None, _preload_content=True, _request_timeout=None):
+    def HEAD(
+        self, url, headers=None, query_params=None, _preload_content=True, _request_timeout=None
+    ):
         return self.request(
             "HEAD",
             url,
@@ -321,7 +328,15 @@ class RESTClientObject(object):
             body=body,
         )
 
-    def DELETE(self, url, headers=None, query_params=None, body=None, _preload_content=True, _request_timeout=None):
+    def DELETE(
+        self,
+        url,
+        headers=None,
+        query_params=None,
+        body=None,
+        _preload_content=True,
+        _request_timeout=None,
+    ):
         return self.request(
             "DELETE",
             url,

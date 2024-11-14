@@ -5,26 +5,24 @@ from multiprocessing.pool import ThreadPool
 import io
 import os
 import re
-import typing
 from urllib.parse import quote
 from urllib3.fields import RequestField
 
+from typing import Optional, List, Tuple, Dict, Any, Union
 
-from pinecone.core_ea.openapi.shared import rest
-from pinecone.core_ea.openapi.shared.configuration import Configuration
-from pinecone.core_ea.openapi.shared.exceptions import PineconeApiTypeError, PineconeApiValueError, PineconeApiException
-from pinecone.core_ea.openapi.shared.model_utils import (
+
+from .rest import RESTClientObject
+from .configuration import Configuration
+from .exceptions import PineconeApiValueError, PineconeApiException
+from .model_utils import (
     ModelNormal,
     ModelSimple,
     ModelComposed,
-    check_allowed_values,
-    check_validations,
     date,
     datetime,
     deserialize_file,
     file_type,
     model_to_dict,
-    none_type,
     validate_and_convert_types,
 )
 
@@ -53,13 +51,15 @@ class ApiClient(object):
 
     _pool = None
 
-    def __init__(self, configuration=None, header_name=None, header_value=None, cookie=None, pool_threads=1):
+    def __init__(
+        self, configuration=None, header_name=None, header_value=None, cookie=None, pool_threads=1
+    ):
         if configuration is None:
             configuration = Configuration.get_default_copy()
         self.configuration = configuration
         self.pool_threads = pool_threads
 
-        self.rest_client = rest.RESTClientObject(configuration)
+        self.rest_client = RESTClientObject(configuration)
         self.default_headers = {}
         if header_name is not None:
             self.default_headers[header_name] = header_value
@@ -107,22 +107,21 @@ class ApiClient(object):
         self,
         resource_path: str,
         method: str,
-        path_params: typing.Optional[typing.Dict[str, typing.Any]] = None,
-        query_params: typing.Optional[typing.List[typing.Tuple[str, typing.Any]]] = None,
-        header_params: typing.Optional[typing.Dict[str, typing.Any]] = None,
-        body: typing.Optional[typing.Any] = None,
-        post_params: typing.Optional[typing.List[typing.Tuple[str, typing.Any]]] = None,
-        files: typing.Optional[typing.Dict[str, typing.List[io.IOBase]]] = None,
-        response_type: typing.Optional[typing.Tuple[typing.Any]] = None,
-        auth_settings: typing.Optional[typing.List[str]] = None,
-        _return_http_data_only: typing.Optional[bool] = None,
-        collection_formats: typing.Optional[typing.Dict[str, str]] = None,
+        path_params: Optional[Dict[str, Any]] = None,
+        query_params: Optional[List[Tuple[str, Any]]] = None,
+        header_params: Optional[Dict[str, Any]] = None,
+        body: Optional[Any] = None,
+        post_params: Optional[List[Tuple[str, Any]]] = None,
+        files: Optional[Dict[str, List[io.IOBase]]] = None,
+        response_type: Optional[Tuple[Any]] = None,
+        auth_settings: Optional[List[str]] = None,
+        _return_http_data_only: Optional[bool] = None,
+        collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
-        _request_timeout: typing.Optional[typing.Union[int, float, typing.Tuple]] = None,
-        _host: typing.Optional[str] = None,
-        _check_type: typing.Optional[bool] = None,
+        _request_timeout: Optional[Union[int, float, Tuple]] = None,
+        _host: Optional[str] = None,
+        _check_type: Optional[bool] = None,
     ):
-
         config = self.configuration
 
         # header parameters
@@ -131,37 +130,59 @@ class ApiClient(object):
         if self.cookie:
             header_params["Cookie"] = self.cookie
         if header_params:
-            header_params = self.sanitize_for_serialization(header_params)
-            header_params = dict(self.parameters_to_tuples(header_params, collection_formats))
+            sanitized_header_params: Dict[str, Any] = self.sanitize_for_serialization(header_params)
+            processed_header_params: Dict[str, Any] = dict(
+                self.parameters_to_tuples(sanitized_header_params, collection_formats)
+            )
 
         # path parameters
-        if path_params:
-            path_params = self.sanitize_for_serialization(path_params)
-            path_params = self.parameters_to_tuples(path_params, collection_formats)
-            for k, v in path_params:
-                # specified safe chars, encode everything
-                resource_path = resource_path.replace("{%s}" % k, quote(str(v), safe=config.safe_chars_for_path_param))
+        sanitized_path_params: Dict[str, Any] = self.sanitize_for_serialization(path_params or {})
+        processed_path_params: List[Tuple[str, Any]] = self.parameters_to_tuples(
+            sanitized_path_params, collection_formats
+        )
+
+        for k, v in processed_path_params:
+            # specified safe chars, encode everything
+            resource_path = resource_path.replace(
+                "{%s}" % k, quote(str(v), safe=config.safe_chars_for_path_param)
+            )
 
         # query parameters
         if query_params:
-            query_params = self.sanitize_for_serialization(query_params)
-            query_params = self.parameters_to_tuples(query_params, collection_formats)
+            sanitized_query_params = self.sanitize_for_serialization(query_params)
+            processed_query_params = self.parameters_to_tuples(
+                sanitized_query_params, collection_formats
+            )
+        else:
+            processed_query_params = []
 
         # post parameters
         if post_params or files:
             post_params = post_params if post_params else []
-            post_params = self.sanitize_for_serialization(post_params)
-            post_params = self.parameters_to_tuples(post_params, collection_formats)
-            post_params.extend(self.files_parameters(files))
-            if header_params["Content-Type"].startswith("multipart"):
-                post_params = self.parameters_to_multipart(post_params, (dict))
+            sanitized_post_params = self.sanitize_for_serialization(post_params)
+            if sanitized_path_params:
+                processed_post_params = self.parameters_to_tuples(
+                    sanitized_post_params, collection_formats
+                )
+                processed_post_params.extend(self.files_parameters(files))
+            if processed_header_params["Content-Type"].startswith("multipart"):
+                processed_post_params = self.parameters_to_multipart(sanitized_post_params, (dict))
+        else:
+            processed_post_params = None
 
         # body
         if body:
             body = self.sanitize_for_serialization(body)
 
         # auth setting
-        self.update_params_for_auth(header_params, query_params, auth_settings, resource_path, method, body)
+        self.update_params_for_auth(
+            processed_header_params,
+            processed_query_params,
+            auth_settings,
+            resource_path,
+            method,
+            body,
+        )
 
         # request url
         if _host is None:
@@ -175,9 +196,9 @@ class ApiClient(object):
             response_data = self.request(
                 method,
                 url,
-                query_params=query_params,
-                headers=header_params,
-                post_params=post_params,
+                query_params=processed_query_params,
+                headers=processed_header_params,
+                post_params=processed_post_params,
                 body=body,
                 _preload_content=_preload_content,
                 _request_timeout=_request_timeout,
@@ -191,7 +212,6 @@ class ApiClient(object):
         return_data = response_data
 
         if not _preload_content:
-            return return_data
             return return_data
 
         # deserialize response data
@@ -225,7 +245,9 @@ class ApiClient(object):
         if collection_types is None:
             collection_types = dict
         for k, v in params.items() if isinstance(params, dict) else params:  # noqa: E501
-            if isinstance(v, collection_types):  # v is instance of collection_type, formatting as application/json
+            if isinstance(
+                v, collection_types
+            ):  # v is instance of collection_type, formatting as application/json
                 v = json.dumps(v, ensure_ascii=False).encode("utf-8")
                 field = RequestField(k, v)
                 field.make_multipart(content_type="application/json; charset=utf-8")
@@ -235,7 +257,7 @@ class ApiClient(object):
         return new_params
 
     @classmethod
-    def sanitize_for_serialization(cls, obj):
+    def sanitize_for_serialization(cls, obj) -> Any:
         """Prepares data for transmission before it is sent with the rest client
         If obj is None, return None.
         If obj is str, int, long, float, bool, return directly.
@@ -249,10 +271,13 @@ class ApiClient(object):
         :return: The serialized form of data.
         """
         if isinstance(obj, (ModelNormal, ModelComposed)):
-            return {key: cls.sanitize_for_serialization(val) for key, val in model_to_dict(obj, serialize=True).items()}
+            return {
+                key: cls.sanitize_for_serialization(val)
+                for key, val in model_to_dict(obj, serialize=True).items()
+            }
         elif isinstance(obj, io.IOBase):
             return cls.get_file_data_and_close_file(obj)
-        elif isinstance(obj, (str, int, float, none_type, bool)):
+        elif isinstance(obj, (str, int, float, bool)) or obj is None:
             return obj
         elif isinstance(obj, (datetime, date)):
             return obj.isoformat()
@@ -262,7 +287,9 @@ class ApiClient(object):
             return [cls.sanitize_for_serialization(item) for item in obj]
         if isinstance(obj, dict):
             return {key: cls.sanitize_for_serialization(val) for key, val in obj.items()}
-        raise PineconeApiValueError("Unable to prepare type {} for serialization".format(obj.__class__.__name__))
+        raise PineconeApiValueError(
+            "Unable to prepare type {} for serialization".format(obj.__class__.__name__)
+        )
 
     def deserialize(self, response, response_type, _check_type):
         """Deserializes response into an object.
@@ -288,7 +315,9 @@ class ApiClient(object):
         # save response body into a tmp file and return the instance
         if response_type == (file_type,):
             content_disposition = response.getheader("Content-Disposition")
-            return deserialize_file(response.data, self.configuration, content_disposition=content_disposition)
+            return deserialize_file(
+                response.data, self.configuration, content_disposition=content_disposition
+            )
 
         # fetch data from response object
         try:
@@ -299,7 +328,12 @@ class ApiClient(object):
         # store our data under the key of 'received_data' so users have some
         # context if they are deserializing a string and the data type is wrong
         deserialized_data = validate_and_convert_types(
-            received_data, response_type, ["received_data"], True, _check_type, configuration=self.configuration
+            received_data,
+            response_type,
+            ["received_data"],
+            True,
+            _check_type,
+            configuration=self.configuration,
         )
         return deserialized_data
 
@@ -307,21 +341,21 @@ class ApiClient(object):
         self,
         resource_path: str,
         method: str,
-        path_params: typing.Optional[typing.Dict[str, typing.Any]] = None,
-        query_params: typing.Optional[typing.List[typing.Tuple[str, typing.Any]]] = None,
-        header_params: typing.Optional[typing.Dict[str, typing.Any]] = None,
-        body: typing.Optional[typing.Any] = None,
-        post_params: typing.Optional[typing.List[typing.Tuple[str, typing.Any]]] = None,
-        files: typing.Optional[typing.Dict[str, typing.List[io.IOBase]]] = None,
-        response_type: typing.Optional[typing.Tuple[typing.Any]] = None,
-        auth_settings: typing.Optional[typing.List[str]] = None,
-        async_req: typing.Optional[bool] = None,
-        _return_http_data_only: typing.Optional[bool] = None,
-        collection_formats: typing.Optional[typing.Dict[str, str]] = None,
+        path_params: Optional[Dict[str, Any]] = None,
+        query_params: Optional[List[Tuple[str, Any]]] = None,
+        header_params: Optional[Dict[str, Any]] = None,
+        body: Optional[Any] = None,
+        post_params: Optional[List[Tuple[str, Any]]] = None,
+        files: Optional[Dict[str, List[io.IOBase]]] = None,
+        response_type: Optional[Tuple[Any]] = None,
+        auth_settings: Optional[List[str]] = None,
+        async_req: Optional[bool] = None,
+        _return_http_data_only: Optional[bool] = None,
+        collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
-        _request_timeout: typing.Optional[typing.Union[int, float, typing.Tuple]] = None,
-        _host: typing.Optional[str] = None,
-        _check_type: typing.Optional[bool] = None,
+        _request_timeout: Optional[Union[int, float, Tuple]] = None,
+        _host: Optional[str] = None,
+        _check_type: Optional[bool] = None,
     ):
         """Makes the HTTP request (synchronous) and returns deserialized data.
 
@@ -497,17 +531,23 @@ class ApiClient(object):
             )
         else:
             raise PineconeApiValueError(
-                "http method must be `GET`, `HEAD`, `OPTIONS`," " `POST`, `PATCH`, `PUT` or `DELETE`."
+                "http method must be `GET`, `HEAD`, `OPTIONS`,"
+                " `POST`, `PATCH`, `PUT` or `DELETE`."
             )
 
-    def parameters_to_tuples(self, params, collection_formats):
+    @classmethod
+    def parameters_to_tuples(
+        cls,
+        params: Union[Dict[str, Any], List[Tuple[str, Any]]],
+        collection_formats: Optional[Dict[str, str]],
+    ) -> List[Tuple[str, str]]:
         """Get parameters as list of tuples, formatting collections.
 
         :param params: Parameters as dict or list of two-tuples
         :param dict collection_formats: Parameter collection formats
         :return: Parameters as list of tuples, collections formatted
         """
-        new_params = []
+        new_params: List[Tuple[str, Any]] = []
         if collection_formats is None:
             collection_formats = {}
         for k, v in params.items() if isinstance(params, dict) else params:  # noqa: E501
@@ -535,7 +575,7 @@ class ApiClient(object):
         file_instance.close()
         return file_data
 
-    def files_parameters(self, files: typing.Optional[typing.Dict[str, typing.List[io.IOBase]]] = None):
+    def files_parameters(self, files: Optional[Dict[str, List[io.IOBase]]] = None):
         """Builds form parameters.
 
         :param files: None or a dict with key=param_name and
@@ -556,9 +596,10 @@ class ApiClient(object):
                     continue
                 if file_instance.closed is True:
                     raise PineconeApiValueError(
-                        "Cannot read a closed file. The passed in file_type " "for %s must be open." % param_name
+                        "Cannot read a closed file. The passed in file_type "
+                        "for %s must be open." % param_name
                     )
-                filename = os.path.basename(file_instance.name)
+                filename = os.path.basename(file_instance.name)  # type: ignore
                 filedata = self.get_file_data_and_close_file(file_instance)
                 mimetype = mimetypes.guess_type(filename)[0] or "application/octet-stream"
                 params.append(tuple([param_name, tuple([filename, filedata, mimetype])]))
@@ -581,7 +622,7 @@ class ApiClient(object):
         else:
             return ", ".join(accepts)
 
-    def select_header_content_type(self, content_types):
+    def select_header_content_type(self, content_types: List[str]) -> str:
         """Returns `Content-Type` based on an array of content_types provided.
 
         :param content_types: List of content-types.
@@ -622,216 +663,6 @@ class ApiClient(object):
                 elif auth_setting["in"] == "query":
                     querys.append((auth_setting["key"], auth_setting["value"]))
                 else:
-                    raise PineconeApiValueError("Authentication token must be in `query` or `header`")
-
-
-class Endpoint(object):
-    def __init__(self, settings=None, params_map=None, root_map=None, headers_map=None, api_client=None, callable=None):
-        """Creates an endpoint
-
-        Args:
-            settings (dict): see below key value pairs
-                'response_type' (tuple/None): response type
-                'auth' (list): a list of auth type keys
-                'endpoint_path' (str): the endpoint path
-                'operation_id' (str): endpoint string identifier
-                'http_method' (str): POST/PUT/PATCH/GET etc
-                'servers' (list): list of str servers that this endpoint is at
-            params_map (dict): see below key value pairs
-                'all' (list): list of str endpoint parameter names
-                'required' (list): list of required parameter names
-                'nullable' (list): list of nullable parameter names
-                'enum' (list): list of parameters with enum values
-                'validation' (list): list of parameters with validations
-            root_map
-                'validations' (dict): the dict mapping endpoint parameter tuple
-                    paths to their validation dictionaries
-                'allowed_values' (dict): the dict mapping endpoint parameter
-                    tuple paths to their allowed_values (enum) dictionaries
-                'openapi_types' (dict): param_name to openapi type
-                'attribute_map' (dict): param_name to camelCase name
-                'location_map' (dict): param_name to  'body', 'file', 'form',
-                    'header', 'path', 'query'
-                collection_format_map (dict): param_name to `csv` etc.
-            headers_map (dict): see below key value pairs
-                'accept' (list): list of Accept header strings
-                'content_type' (list): list of Content-Type header strings
-            api_client (ApiClient) api client instance
-            callable (function): the function which is invoked when the
-                Endpoint is called
-        """
-        self.settings = settings
-        self.params_map = params_map
-        self.params_map["all"].extend(
-            [
-                "async_req",
-                "_host_index",
-                "_preload_content",
-                "_request_timeout",
-                "_return_http_data_only",
-                "_check_input_type",
-                "_check_return_type",
-            ]
-        )
-        self.params_map["nullable"].extend(["_request_timeout"])
-        self.validations = root_map["validations"]
-        self.allowed_values = root_map["allowed_values"]
-        self.openapi_types = root_map["openapi_types"]
-        extra_types = {
-            "async_req": (bool,),
-            "_host_index": (none_type, int),
-            "_preload_content": (bool,),
-            "_request_timeout": (none_type, float, (float,), [float], int, (int,), [int]),
-            "_return_http_data_only": (bool,),
-            "_check_input_type": (bool,),
-            "_check_return_type": (bool,),
-        }
-        self.openapi_types.update(extra_types)
-        self.attribute_map = root_map["attribute_map"]
-        self.location_map = root_map["location_map"]
-        self.collection_format_map = root_map["collection_format_map"]
-        self.headers_map = headers_map
-        self.api_client = api_client
-        self.callable = callable
-
-    def __validate_inputs(self, kwargs):
-        for param in self.params_map["enum"]:
-            if param in kwargs:
-                check_allowed_values(self.allowed_values, (param,), kwargs[param])
-
-        for param in self.params_map["validation"]:
-            if param in kwargs:
-                check_validations(
-                    self.validations, (param,), kwargs[param], configuration=self.api_client.configuration
-                )
-
-        if kwargs["_check_input_type"] is False:
-            return
-
-        for key, value in kwargs.items():
-            fixed_val = validate_and_convert_types(
-                value,
-                self.openapi_types[key],
-                [key],
-                False,
-                kwargs["_check_input_type"],
-                configuration=self.api_client.configuration,
-            )
-            kwargs[key] = fixed_val
-
-    def __gather_params(self, kwargs):
-        params = {"body": None, "collection_format": {}, "file": {}, "form": [], "header": {}, "path": {}, "query": []}
-
-        for param_name, param_value in kwargs.items():
-            param_location = self.location_map.get(param_name)
-            if param_location is None:
-                continue
-            if param_location:
-                if param_location == "body":
-                    params["body"] = param_value
-                    continue
-                base_name = self.attribute_map[param_name]
-                if param_location == "form" and self.openapi_types[param_name] == (file_type,):
-                    params["file"][param_name] = [param_value]
-                elif param_location == "form" and self.openapi_types[param_name] == ([file_type],):
-                    # param_value is already a list
-                    params["file"][param_name] = param_value
-                elif param_location in {"form", "query"}:
-                    param_value_full = (base_name, param_value)
-                    params[param_location].append(param_value_full)
-                if param_location not in {"form", "query"}:
-                    params[param_location][base_name] = param_value
-                collection_format = self.collection_format_map.get(param_name)
-                if collection_format:
-                    params["collection_format"][base_name] = collection_format
-
-        return params
-
-    def __call__(self, *args, **kwargs):
-        """This method is invoked when endpoints are called
-        Example:
-
-        api_instance = ManageIndexesApi()
-        api_instance.configure_index  # this is an instance of the class Endpoint
-        api_instance.configure_index()  # this invokes api_instance.configure_index.__call__()
-        which then invokes the callable functions stored in that endpoint at
-        api_instance.configure_index.callable or self.callable in this class
-
-        """
-        return self.callable(self, *args, **kwargs)
-
-    def call_with_http_info(self, **kwargs):
-
-        try:
-            index = (
-                self.api_client.configuration.server_operation_index.get(
-                    self.settings["operation_id"], self.api_client.configuration.server_index
-                )
-                if kwargs["_host_index"] is None
-                else kwargs["_host_index"]
-            )
-            server_variables = self.api_client.configuration.server_operation_variables.get(
-                self.settings["operation_id"], self.api_client.configuration.server_variables
-            )
-            _host = self.api_client.configuration.get_host_from_settings(
-                index, variables=server_variables, servers=self.settings["servers"]
-            )
-        except IndexError:
-            if self.settings["servers"]:
-                raise PineconeApiValueError(
-                    "Invalid host index. Must be 0 <= index < %s" % len(self.settings["servers"])
-                )
-            _host = None
-
-        for key, value in kwargs.items():
-            if key not in self.params_map["all"]:
-                raise PineconeApiTypeError(
-                    "Got an unexpected parameter '%s'" " to method `%s`" % (key, self.settings["operation_id"])
-                )
-            # only throw this nullable PineconeApiValueError if _check_input_type
-            # is False, if _check_input_type==True we catch this case
-            # in self.__validate_inputs
-            if key not in self.params_map["nullable"] and value is None and kwargs["_check_input_type"] is False:
-                raise PineconeApiValueError(
-                    "Value may not be None for non-nullable parameter `%s`"
-                    " when calling `%s`" % (key, self.settings["operation_id"])
-                )
-
-        for key in self.params_map["required"]:
-            if key not in kwargs.keys():
-                raise PineconeApiValueError(
-                    "Missing the required parameter `%s` when calling " "`%s`" % (key, self.settings["operation_id"])
-                )
-
-        self.__validate_inputs(kwargs)
-
-        params = self.__gather_params(kwargs)
-
-        accept_headers_list = self.headers_map["accept"]
-        if accept_headers_list:
-            params["header"]["Accept"] = self.api_client.select_header_accept(accept_headers_list)
-
-        content_type_headers_list = self.headers_map["content_type"]
-        if content_type_headers_list:
-            header_list = self.api_client.select_header_content_type(content_type_headers_list)
-            params["header"]["Content-Type"] = header_list
-
-        return self.api_client.call_api(
-            self.settings["endpoint_path"],
-            self.settings["http_method"],
-            params["path"],
-            params["query"],
-            params["header"],
-            body=params["body"],
-            post_params=params["form"],
-            files=params["file"],
-            response_type=self.settings["response_type"],
-            auth_settings=self.settings["auth"],
-            async_req=kwargs["async_req"],
-            _check_type=kwargs["_check_return_type"],
-            _return_http_data_only=kwargs["_return_http_data_only"],
-            _preload_content=kwargs["_preload_content"],
-            _request_timeout=kwargs["_request_timeout"],
-            _host=_host,
-            collection_formats=params["collection_format"],
-        )
+                    raise PineconeApiValueError(
+                        "Authentication token must be in `query` or `header`"
+                    )

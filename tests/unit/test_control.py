@@ -2,8 +2,8 @@ import pytest
 import re
 from unittest.mock import patch, MagicMock
 from pinecone import ConfigBuilder, Pinecone, PodSpec, ServerlessSpec
-from pinecone.core.openapi.control.models import IndexList, IndexModel, DeletionProtection
-from pinecone.core.openapi.control.api.manage_indexes_api import ManageIndexesApi
+from pinecone.core.openapi.db_control.models import IndexList, IndexModel, DeletionProtection
+from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
 
 import time
 

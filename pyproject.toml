@@ -68,6 +68,7 @@ pandas-stubs = [
 ]
 types-tqdm = "^4.66.0.3"
 types-protobuf = "^4.24.0.4"
+types-python-dateutil = "^2.9.0.20241003"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.0.0"
@@ -88,6 +89,7 @@ pytest-benchmark = [
 urllib3_mock = "0.3.3"
 responses = ">=0.8.1"
 ddtrace = "^2.14.4"
+
 
 [tool.poetry.extras]
 grpc = ["grpcio", "googleapis-common-protos", "lz4", "protobuf", "protoc-gen-openapiv2"]

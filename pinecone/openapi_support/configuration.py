@@ -5,7 +5,7 @@ import sys
 import urllib3
 
 from http import client as http_client
-from pinecone.core_ea.openapi.shared.exceptions import PineconeApiValueError
+from .exceptions import PineconeApiValueError
 
 
 JSON_SCHEMA_VALIDATION_KEYWORDS = {
@@ -87,7 +87,7 @@ class Configuration(object):
 
         You can programmatically set the cookie:
 
-    conf = pinecone.core_ea.openapi.db_control.Configuration(
+    conf = pinecone.openapi_support.Configuration(
         api_key={'cookieAuth': 'abc123'}
         api_key_prefix={'cookieAuth': 'JSESSIONID'}
     )
@@ -155,7 +155,7 @@ class Configuration(object):
         self.logger = {}
         """Logging Settings
         """
-        self.logger["package_logger"] = logging.getLogger("pinecone.core_ea.openapi.db_control")
+        self.logger["package_logger"] = logging.getLogger("pinecone.openapi_support")
         self.logger["urllib3_logger"] = logging.getLogger("urllib3")
         self.logger_format = "%(asctime)s %(levelname)s %(message)s"
         """Log format
@@ -391,9 +391,7 @@ class Configuration(object):
                 "type": "api_key",
                 "in": "header",
                 "key": "Api-Key",
-                "value": self.get_api_key_with_prefix(
-                    "ApiKeyAuth",
-                ),
+                "value": self.get_api_key_with_prefix("ApiKeyAuth"),
             }
         return auth
 
@@ -406,7 +404,7 @@ class Configuration(object):
             "Python SDK Debug Report:\n"
             "OS: {env}\n"
             "Python Version: {pyversion}\n"
-            "Version of the API: 2024-10\n"
+            "Version of the API: 2024-07\n"
             "SDK Package Version: 1.0.0".format(env=sys.platform, pyversion=sys.version)
         )
 
@@ -415,12 +413,7 @@ class Configuration(object):
 
         :return: An array of host settings
         """
-        return [
-            {
-                "url": "https://api.pinecone.io",
-                "description": "Production API endpoints",
-            }
-        ]
+        return [{"url": "https://api.pinecone.io", "description": "Production API endpoints"}]
 
     def get_host_from_settings(self, index, variables=None, servers=None):
         """Gets host URL based on the index and variables
@@ -452,7 +445,9 @@ class Configuration(object):
             if "enum_values" in variable and used_value not in variable["enum_values"]:
                 raise ValueError(
                     "The variable `{0}` in the host URL has invalid value "
-                    "{1}. Must be {2}.".format(variable_name, variables[variable_name], variable["enum_values"])
+                    "{1}. Must be {2}.".format(
+                        variable_name, variables[variable_name], variable["enum_values"]
+                    )
                 )
 
             url = url.replace("{" + variable_name + "}", used_value)
