@@ -45,6 +45,7 @@ index.query(vector=[...], top_k=10)
 """
 
 from .index_grpc import GRPCIndex
+from .index_grpc_asyncio import GRPCIndexAsyncio
 from .pinecone import PineconeGRPC
 from .config import GRPCClientConfig
 from .future import PineconeGrpcFuture

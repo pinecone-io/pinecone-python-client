@@ -30,6 +30,15 @@ outputs:
   index_name:
     description: 'The name of the index, including randomized suffix'
     value: ${{ steps.create-index.outputs.index_name }}
+  index_host:
+    description: 'The host of the index'
+    value: ${{ steps.create-index.outputs.index_host }}
+  index_dimension:
+    description: 'The dimension of the index'
+    value: ${{ steps.create-index.outputs.index_dimension }}
+  index_metric:
+    description: 'The metric of the index'
+    value: ${{ steps.create-index.outputs.index_metric }}
 
 runs:
   using: 'composite'

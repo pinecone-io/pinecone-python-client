@@ -12,6 +12,8 @@ from pinecone.core.openapi.shared.exceptions import (
 )
 from .exceptions import PineconeConfigurationError, PineconeProtocolError, ListConversionException
 
+PineconeNotFoundException = NotFoundException
+
 __all__ = [
     "PineconeConfigurationError",
     "PineconeProtocolError",
@@ -22,6 +24,7 @@ __all__ = [
     "PineconeApiKeyError",
     "PineconeApiException",
     "NotFoundException",
+    "PineconeNotFoundException",
     "UnauthorizedException",
     "ForbiddenException",
     "ServiceException",
