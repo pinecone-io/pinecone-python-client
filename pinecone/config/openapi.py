@@ -7,7 +7,7 @@ import copy
 
 from urllib3.connection import HTTPConnection
 
-from pinecone.core.openapi.shared.configuration import Configuration as OpenApiConfiguration
+from pinecone.openapi_support.configuration import Configuration as OpenApiConfiguration
 
 TCP_KEEPINTVL = 60  # Sec
 TCP_KEEPIDLE = 300  # Sec

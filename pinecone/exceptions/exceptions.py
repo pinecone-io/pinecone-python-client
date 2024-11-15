@@ -1,4 +1,4 @@
-from pinecone.core.openapi.shared.exceptions import PineconeException
+from pinecone.openapi_support.exceptions import PineconeException
 
 
 class PineconeProtocolError(PineconeException):

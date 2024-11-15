@@ -2,10 +2,9 @@ import pytest
 
 from urllib3 import BaseHTTPResponse
 
-from pinecone.core_ea.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
-from pinecone.core_ea.openapi.db_data.models import StartImportResponse
-from pinecone.core_ea.openapi.shared.api_client import ApiClient
-from pinecone.core_ea.openapi.shared.exceptions import PineconeApiException
+from pinecone.openapi_support import ApiClient, PineconeApiException
+from pinecone.core.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
+from pinecone.core.openapi.db_data.models import StartImportResponse
 
 from pinecone.data.features.bulk_import import ImportFeatureMixin, ImportErrorMode
 

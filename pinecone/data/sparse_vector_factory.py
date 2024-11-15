@@ -9,7 +9,7 @@ from .errors import (
     SparseValuesDictionaryExpectedError,
 )
 
-from pinecone.core.openapi.data.models import SparseValues
+from pinecone.core.openapi.db_data.models import SparseValues
 
 
 class SparseValuesFactory:

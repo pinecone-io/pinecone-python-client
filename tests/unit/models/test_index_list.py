@@ -1,6 +1,6 @@
 import pytest
 from pinecone import IndexList
-from pinecone.core.openapi.control.models import (
+from pinecone.core.openapi.db_control.models import (
     IndexList as OpenApiIndexList,
     IndexModel as OpenApiIndexModel,
     IndexModelSpec,

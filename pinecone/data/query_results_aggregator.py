@@ -1,8 +1,8 @@
 from typing import List, Tuple, Optional, Any, Dict
 import json
 import heapq
-from pinecone.core.openapi.data.models import Usage
-from pinecone.core.openapi.data.models import QueryResponse as OpenAPIQueryResponse
+from pinecone.core.openapi.db_data.models import Usage
+from pinecone.core.openapi.db_data.models import QueryResponse as OpenAPIQueryResponse
 
 from dataclasses import dataclass, asdict
 
