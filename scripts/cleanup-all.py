@@ -5,6 +5,39 @@ from datetime import datetime, timedelta
 import time
 
 
+def delete_index(pc, index_name):
+    try:
+        print("Deleting index: " + index_name)
+        desc = pc.describe_index(index_name)
+
+        # Check whether index can be deleted
+        if desc.deletion_protection == "enabled":
+            pc.configure_index(index_name, deletion_protection="disabled")
+
+        # Wait for index to be ready before deleting
+        ready_to_delete = False
+        max_wait = 60
+        time_waited = 0
+        while not ready_to_delete:
+            desc = pc.describe_index(index_name)
+            if desc.status.state == "Ready":
+                ready_to_delete = True
+                break
+            else:
+                print("Index is not ready yet. Waiting for 2 seconds.")
+                time.sleep(2)
+                time_waited += 2
+
+            if time_waited > max_wait:
+                print(f"Timed out waiting for index {index_name} to be ready")
+                break
+
+        pc.delete_index(index_name)
+    except Exception as e:
+        print("Failed to delete index: " + index_name + " " + str(e))
+        pass
+
+
 def delete_everything(pc):
     for collection in pc.list_collections().names():
         try:
@@ -15,36 +48,7 @@ def delete_everything(pc):
             pass
 
     for index in pc.list_indexes().names():
-        try:
-            print("Deleting index: " + index)
-            desc = pc.describe_index(index)
-
-            # Check whether index can be deleted
-            if desc.deletion_protection == "enabled":
-                pc.configure_index(index, deletion_protection="disabled")
-
-            # Wait for index to be ready before deleting
-            ready_to_delete = False
-            max_wait = 60
-            time_waited = 0
-            while not ready_to_delete:
-                desc = pc.describe_index(index)
-                if desc.status.state == "Ready":
-                    ready_to_delete = True
-                    break
-                else:
-                    print("Index is not ready yet. Waiting for 2 seconds.")
-                    time.sleep(2)
-                    time_waited += 2
-
-                if time_waited > max_wait:
-                    print(f"Timed out waiting for index {index} to be ready")
-                    break
-
-            pc.delete_index(index)
-        except Exception as e:
-            print("Failed to delete index: " + index + " " + str(e))
-            pass
+        delete_index(pc, index)
 
 
 def parse_date(resource_name):
@@ -86,12 +90,7 @@ def delete_old(pc):
 
     for index in pc.list_indexes().names():
         if is_resource_old(index):
-            try:
-                print("Deleting index: " + index)
-                pc.delete_index(index)
-            except Exception as e:
-                print("Failed to delete index: " + index + " " + str(e))
-                pass
+            delete_index(pc, index)
         else:
             print("Skipping index, not old enough: " + index)
 

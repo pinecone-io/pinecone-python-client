@@ -6,7 +6,7 @@ on:
 
 jobs:
   cleanup-all:
-    name: Cleanupu all indexes/collections
+    name: Cleanup all indexes/collections
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
