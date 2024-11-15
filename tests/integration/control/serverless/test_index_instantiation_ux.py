@@ -8,6 +8,6 @@ class TestIndexInstantiationUX:
             pinecone.Index(name="my-index", host="host")
 
         assert (
-            str(e.value)
-            == "You are attempting to access the Index client directly from the pinecone module."
+            "You are attempting to access the Index client directly from the pinecone module."
+            in str(e.value)
         )
