@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 import pinecone
-from pinecone import Index
+from pinecone.data import _Index
 from pinecone import UpsertRequest, Vector
 from pinecone import (
     DescribeIndexStatsRequest,
@@ -31,7 +31,7 @@ class TestRestIndex:
         self.svv2 = [0.1, 0.2, 0.3]
         self.sv2 = {"indices": self.svi2, "values": self.svv2}
 
-        self.index = Index(api_key="asdf", host="https://test.pinecone.io")
+        self.index = _Index(api_key="asdf", host="https://test.pinecone.io")
 
     # region: upsert tests
 
@@ -129,7 +129,7 @@ class TestRestIndex:
             [Vector(id="vec1", values=self.vals1, metadata=self.md1)],
             [Vector(id="vec2", values=self.vals2, metadata=self.md2)],
         ]
-        with Index(api_key="asdf", host="https://test.pinecone.io", pool_threads=30) as index:
+        with _Index(api_key="asdf", host="https://test.pinecone.io", pool_threads=30) as index:
             mocker.patch.object(index._vector_api, "upsert_vectors", autospec=True)
 
             # Send requests in parallel
