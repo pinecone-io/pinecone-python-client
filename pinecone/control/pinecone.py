@@ -27,7 +27,7 @@ from pinecone.core.openapi.db_control import API_VERSION
 from pinecone.models import ServerlessSpec, PodSpec, IndexModel, IndexList, CollectionList
 from .langchain_import_warnings import _build_langchain_attribute_error_message
 
-from pinecone.data import Index
+from pinecone.data import _Index
 
 from pinecone_plugin_interface import load_and_install as install_plugins
 
@@ -788,7 +788,7 @@ class Pinecone:
             # Otherwise, get host url from describe_index using the index name
             index_host = self.index_host_store.get_host(self.index_api, self.config, name)
 
-        return Index(
+        return _Index(
             host=index_host,
             api_key=api_key,
             pool_threads=pt,
