@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pinecone"
-version = "5.4.0"
+version = "5.4.1"
 packages = [
     { include="pinecone", from="." },
 ]
