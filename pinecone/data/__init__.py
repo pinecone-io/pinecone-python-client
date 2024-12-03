@@ -1,4 +1,5 @@
 from .index import *
+from .import_error import Index, IndexClientInstantiationError
 from .errors import (
     VectorDictionaryMissingKeysError,
     VectorDictionaryExcessKeysError,
