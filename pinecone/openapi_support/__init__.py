@@ -34,6 +34,7 @@ from .model_utils import (
     none_type,
 )
 from .rest import RESTClientObject, RESTResponse
+from .constants import OPENAPI_ENDPOINT_PARAMS
 
 from datetime import date, datetime  # noqa: F401
 from dateutil.parser import parse
