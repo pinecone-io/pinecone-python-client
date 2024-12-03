@@ -33,7 +33,7 @@ from .model_utils import (
     file_type,
     none_type,
 )
-from .rest import Urllib3RestClient, RESTResponse
+from .rest import RESTClientObject, RESTResponse
 from .constants import OPENAPI_ENDPOINT_PARAMS
 
 from datetime import date, datetime  # noqa: F401
