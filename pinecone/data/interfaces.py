@@ -254,6 +254,7 @@ class IndexInterface(ABC):
         combined_results = index.query_namespaces(
             vector=query_vec,
             namespaces=['ns1', 'ns2', 'ns3', 'ns4'],
+            metric="cosine",
             top_k=10,
             filter={'genre': {"$eq": "drama"}},
             include_values=True,
@@ -268,6 +269,7 @@ class IndexInterface(ABC):
             vector (List[float]): The query vector, must be the same length as the dimension of the index being queried.
             namespaces (List[str]): The list of namespaces to query.
             top_k (Optional[int], optional): The number of results you would like to request from each namespace. Defaults to 10.
+            metric (str): Must be one of 'cosine', 'euclidean', 'dotproduct'. This is needed in order to merge results across namespaces, since the interpretation of score depends on the index metric type.
             filter (Optional[Dict[str, Union[str, float, int, bool, List, dict]]], optional): Pass an optional filter to filter results based on metadata. Defaults to None.
             include_values (Optional[bool], optional): Boolean field indicating whether vector values should be included with results. Defaults to None.
             include_metadata (Optional[bool], optional): Boolean field indicating whether vector metadata should be included with results. Defaults to None.

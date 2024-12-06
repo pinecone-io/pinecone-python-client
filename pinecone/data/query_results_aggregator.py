@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional, Any, Dict
+from typing import List, Tuple, Optional, Any, Dict, Literal
 import json
 import heapq
 from pinecone.core.openapi.db_data.models import Usage
@@ -88,46 +88,38 @@ class QueryNamespacesResults:
         )
 
 
-class QueryResultsAggregregatorNotEnoughResultsError(Exception):
-    def __init__(self):
-        super().__init__(
-            "Cannot interpret results without at least two matches. In order to aggregate results from multiple queries, top_k must be greater than 1 in order to correctly infer the similarity metric from scores."
-        )
-
-
 class QueryResultsAggregatorInvalidTopKError(Exception):
     def __init__(self, top_k: int):
-        super().__init__(
-            f"Invalid top_k value {top_k}. To aggregate results from multiple queries the top_k must be at least 2."
-        )
+        super().__init__(f"Invalid top_k value {top_k}. top_k must be at least 1.")
 
 
 class QueryResultsAggregator:
-    def __init__(self, top_k: int):
-        if top_k < 2:
+    def __init__(self, top_k: int, metric: Literal["cosine", "euclidean", "dotproduct"]):
+        if top_k < 1:
             raise QueryResultsAggregatorInvalidTopKError(top_k)
+
+        if metric in ["dotproduct", "cosine"]:
+            self.is_bigger_better = True
+        elif metric in ["euclidean"]:
+            self.is_bigger_better = False
+        else:
+            raise ValueError(
+                f"Cannot merge results for unknown similarity metric {metric}. Supported metrics are 'dotproduct', 'cosine', and 'euclidean'."
+            )
+
         self.top_k = top_k
         self.usage_read_units = 0
         self.heap: List[Tuple[float, int, object, str]] = []
         self.insertion_counter = 0
-        self.is_dotproduct = None
         self.read = False
         self.final_results: Optional[QueryNamespacesResults] = None
 
-    def _is_dotproduct_index(self, matches):
-        # The interpretation of the score depends on the similar metric used.
-        # Unlike other index types, in indexes configured for dotproduct,
-        # a higher score is better. We have to infer this is the case by inspecting
-        # the order of the scores in the results.
-        for i in range(1, len(matches)):
-            if matches[i].get("score") > matches[i - 1].get("score"):  # Found an increase
-                return False
-        return True
-
-    def _dotproduct_heap_item(self, match, ns):
+    def _bigger_better_heap_item(self, match, ns):
+        # This 4-tuple is used to ensure that the heap is sorted by score followed by
+        # insertion order. The insertion order is used to break any ties in the score.
         return (match.get("score"), -self.insertion_counter, match, ns)
 
-    def _non_dotproduct_heap_item(self, match, ns):
+    def _smaller_better_heap_item(self, match, ns):
         return (-match.get("score"), -self.insertion_counter, match, ns)
 
     def _process_matches(self, matches, ns, heap_item_fn):
@@ -137,10 +129,10 @@ class QueryResultsAggregator:
                 heapq.heappush(self.heap, heap_item_fn(match, ns))
             else:
                 # Assume we have dotproduct scores sorted in descending order
-                if self.is_dotproduct and match["score"] < self.heap[0][0]:
+                if self.is_bigger_better and match["score"] < self.heap[0][0]:
                     # No further matches can improve the top-K heap
                     break
-                elif not self.is_dotproduct and match["score"] > -self.heap[0][0]:
+                elif not self.is_bigger_better and match["score"] > -self.heap[0][0]:
                     # No further matches can improve the top-K heap
                     break
                 heapq.heappushpop(self.heap, heap_item_fn(match, ns))
@@ -162,18 +154,10 @@ class QueryResultsAggregator:
         if len(matches) == 0:
             return
 
-        if self.is_dotproduct is None:
-            if len(matches) == 1:
-                # This condition should match the second time we add results containing
-                # only one match. We need at least two matches in a single response in order
-                # to infer the similarity metric
-                raise QueryResultsAggregregatorNotEnoughResultsError()
-            self.is_dotproduct = self._is_dotproduct_index(matches)
-
-        if self.is_dotproduct:
-            self._process_matches(matches, ns, self._dotproduct_heap_item)
+        if self.is_bigger_better:
+            self._process_matches(matches, ns, self._bigger_better_heap_item)
         else:
-            self._process_matches(matches, ns, self._non_dotproduct_heap_item)
+            self._process_matches(matches, ns, self._smaller_better_heap_item)
 
     def get_results(self) -> QueryNamespacesResults:
         if self.read:

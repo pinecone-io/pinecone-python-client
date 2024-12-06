@@ -2,7 +2,7 @@ from tqdm.autonotebook import tqdm
 
 import logging
 import json
-from typing import Union, List, Optional, Dict, Any
+from typing import Union, List, Optional, Dict, Any, Literal
 
 from pinecone.config import ConfigBuilder
 
@@ -311,6 +311,7 @@ class _Index(IndexInterface, ImportFeatureMixin):
         self,
         vector: List[float],
         namespaces: List[str],
+        metric: Literal["cosine", "euclidean", "dotproduct"],
         top_k: Optional[int] = None,
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
@@ -326,7 +327,7 @@ class _Index(IndexInterface, ImportFeatureMixin):
             raise ValueError("Query vector must not be empty")
 
         overall_topk = top_k if top_k is not None else 10
-        aggregator = QueryResultsAggregator(top_k=overall_topk)
+        aggregator = QueryResultsAggregator(top_k=overall_topk, metric=metric)
 
         target_namespaces = set(namespaces)  # dedup namespaces
         async_futures = [
