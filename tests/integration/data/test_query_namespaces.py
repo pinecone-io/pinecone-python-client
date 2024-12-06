@@ -220,4 +220,4 @@ class TestQueryNamespacesRest:
                 filter={},
                 top_k=2,
             )
-        assert str(e.value) == "query_namespaces() missing 1 required positional argument: 'metric'"
+        assert "query_namespaces() missing 1 required positional argument: 'metric'" in str(e.value)
