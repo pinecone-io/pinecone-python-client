@@ -1,15 +1,11 @@
 import pytest
 from ..helpers import random_string, poll_stats_for_namespace
-from pinecone.data.query_results_aggregator import (
-    QueryResultsAggregatorInvalidTopKError,
-    QueryResultsAggregregatorNotEnoughResultsError,
-)
 
 from pinecone import Vector
 
 
 class TestQueryNamespacesRest:
-    def test_query_namespaces(self, idx):
+    def test_query_namespaces(self, idx, metric):
         ns_prefix = random_string(5)
         ns1 = f"{ns_prefix}-ns1"
         ns2 = f"{ns_prefix}-ns2"
@@ -50,6 +46,7 @@ class TestQueryNamespacesRest:
         results = idx.query_namespaces(
             vector=[0.1, 0.2],
             namespaces=[ns1, ns2, ns3],
+            metric=metric,
             include_values=True,
             include_metadata=True,
             filter={"genre": {"$eq": "drama"}},
@@ -84,6 +81,7 @@ class TestQueryNamespacesRest:
         results2 = idx.query_namespaces(
             vector=[0.1, 0.2],
             namespaces=[ns1, ns2, ns3, f"{ns_prefix}-nonexistent"],
+            metric=metric,
             include_values=True,
             include_metadata=True,
             filter={"genre": {"$eq": "action"}},
@@ -98,6 +96,7 @@ class TestQueryNamespacesRest:
         results3 = idx.query_namespaces(
             vector=[0.1, 0.2],
             namespaces=[ns1, ns2, ns3],
+            metric=metric,
             include_values=True,
             include_metadata=True,
             filter={},
@@ -110,6 +109,7 @@ class TestQueryNamespacesRest:
         results4 = idx.query_namespaces(
             vector=[0.1, 0.2],
             namespaces=[ns1, ns2, ns3],
+            metric=metric,
             include_values=True,
             include_metadata=True,
             filter={"genre": {"$eq": "comedy"}},
@@ -122,6 +122,7 @@ class TestQueryNamespacesRest:
         results5 = idx.query_namespaces(
             vector=[0.1, 0.2],
             namespaces=[ns1, ns2, ns3],
+            metric=metric,
             include_values=True,
             include_metadata=True,
             filter={},
@@ -137,6 +138,7 @@ class TestQueryNamespacesRest:
                 f"{ns_prefix}-nonexistent2",
                 f"{ns_prefix}-nonexistent3",
             ],
+            metric=metric,
             include_values=True,
             include_metadata=True,
             filter={"genre": {"$eq": "comedy"}},
@@ -145,22 +147,7 @@ class TestQueryNamespacesRest:
         assert len(results6.matches) == 0
         assert results6.usage.read_units > 0
 
-    def test_invalid_top_k(self, idx):
-        with pytest.raises(QueryResultsAggregatorInvalidTopKError) as e:
-            idx.query_namespaces(
-                vector=[0.1, 0.2],
-                namespaces=["ns1", "ns2", "ns3"],
-                include_values=True,
-                include_metadata=True,
-                filter={},
-                top_k=1,
-            )
-        assert (
-            str(e.value)
-            == "Invalid top_k value 1. To aggregate results from multiple queries the top_k must be at least 2."
-        )
-
-    def test_unmergeable_results(self, idx):
+    def test_single_result_per_namespace(self, idx):
         ns_prefix = random_string(5)
         ns1 = f"{ns_prefix}-ns1"
         ns2 = f"{ns_prefix}-ns2"
@@ -183,26 +170,27 @@ class TestQueryNamespacesRest:
         poll_stats_for_namespace(idx, namespace=ns1, expected_count=2)
         poll_stats_for_namespace(idx, namespace=ns2, expected_count=2)
 
-        with pytest.raises(QueryResultsAggregregatorNotEnoughResultsError) as e:
-            idx.query_namespaces(
-                vector=[0.1, 0.2],
-                namespaces=[ns1, ns2],
-                include_values=True,
-                include_metadata=True,
-                filter={"key": {"$eq": 1}},
-                top_k=2,
-            )
-
-        assert (
-            str(e.value)
-            == "Cannot interpret results without at least two matches. In order to aggregate results from multiple queries, top_k must be greater than 1 in order to correctly infer the similarity metric from scores."
+        results = idx.query_namespaces(
+            vector=[0.1, 0.21],
+            namespaces=[ns1, ns2],
+            metric="cosine",
+            include_values=True,
+            include_metadata=True,
+            filter={"key": {"$eq": 1}},
+            top_k=2,
         )
+        assert len(results.matches) == 2
+        assert results.matches[0].id == "id1"
+        assert results.matches[0].namespace == ns1
+        assert results.matches[1].id == "id5"
+        assert results.matches[1].namespace == ns2
 
     def test_missing_namespaces(self, idx):
         with pytest.raises(ValueError) as e:
             idx.query_namespaces(
                 vector=[0.1, 0.2],
                 namespaces=[],
+                metric="cosine",
                 include_values=True,
                 include_metadata=True,
                 filter={},
@@ -214,9 +202,22 @@ class TestQueryNamespacesRest:
             idx.query_namespaces(
                 vector=[0.1, 0.2],
                 namespaces=None,
+                metric="cosine",
                 include_values=True,
                 include_metadata=True,
                 filter={},
                 top_k=2,
             )
         assert str(e.value) == "At least one namespace must be specified"
+
+    def test_missing_metric(self, idx):
+        with pytest.raises(TypeError) as e:
+            idx.query_namespaces(
+                vector=[0.1, 0.2],
+                namespaces=["ns1"],
+                include_values=True,
+                include_metadata=True,
+                filter={},
+                top_k=2,
+            )
+        assert str(e.value) == "query_namespaces() missing 1 required positional argument: 'metric'"

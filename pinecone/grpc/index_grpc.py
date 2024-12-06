@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Dict, Union, List, Tuple, Any, TypedDict, Iterable, cast
+from typing import Optional, Dict, Union, List, Tuple, Any, TypedDict, Iterable, cast, Literal
 
 from google.protobuf import json_format
 
@@ -409,6 +409,7 @@ class GRPCIndex(GRPCIndexBase):
         self,
         vector: List[float],
         namespaces: List[str],
+        metric: Literal["cosine", "euclidean", "dotproduct"],
         top_k: Optional[int] = None,
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
@@ -422,7 +423,7 @@ class GRPCIndex(GRPCIndexBase):
             raise ValueError("Query vector must not be empty")
 
         overall_topk = top_k if top_k is not None else 10
-        aggregator = QueryResultsAggregator(top_k=overall_topk)
+        aggregator = QueryResultsAggregator(top_k=overall_topk, metric=metric)
 
         target_namespaces = set(namespaces)  # dedup namespaces
         futures = [
