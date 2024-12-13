@@ -1,0 +1,8 @@
+version: v1
+plugins:
+  - plugin: buf.build/grpc/python:v1.59.0
+    out: gen
+  - plugin: buf.build/protocolbuffers/python:v29.0
+    out: gen
+  - plugin: buf.build/protocolbuffers/pyi:v29.1
+    out: gen
