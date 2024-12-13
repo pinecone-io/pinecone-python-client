@@ -14,10 +14,9 @@ from pinecone.core.openapi.db_data.models import (
     QueryResponse,
     IndexDescription as DescribeIndexStatsResponse,
     UpsertResponse,
-    Vector,
     ListResponse,
-    SparseValues,
 )
+from .dataclasses import Vector, SparseValues
 from .interfaces import IndexInterface
 from .request_factory import IndexRequestFactory
 from .features.bulk_import import ImportFeatureMixin

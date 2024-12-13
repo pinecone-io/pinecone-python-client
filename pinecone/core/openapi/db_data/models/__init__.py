@@ -49,7 +49,6 @@ from pinecone.core.openapi.db_data.model.start_import_request import StartImport
 from pinecone.core.openapi.db_data.model.start_import_response import StartImportResponse
 from pinecone.core.openapi.db_data.model.update_request import UpdateRequest
 from pinecone.core.openapi.db_data.model.upsert_record import UpsertRecord
-from pinecone.core.openapi.db_data.model.upsert_record_embed import UpsertRecordEmbed
 from pinecone.core.openapi.db_data.model.upsert_request import UpsertRequest
 from pinecone.core.openapi.db_data.model.upsert_response import UpsertResponse
 from pinecone.core.openapi.db_data.model.usage import Usage

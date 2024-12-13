@@ -49,7 +49,7 @@ class ManageIndexesApi(object):
         def __configure_index(self, index_name, configure_index_request, **kwargs):
             """Configure an index  # noqa: E501
 
-            This operation configures an existing index.   For serverless indexes, you can configure only index deletion protection and tags. For pod-based indexes, you can configure the pod size, number of replicas, tags, and index deletion protection.   It is not possible to change the pod type of a pod-based index. However, you can create a collection from a pod-based index and then [create a new pod-based index with a different pod type](http://docs.pinecone.io/guides/indexes/create-an-index#create-an-index-from-a-collection) from the collection. For guidance and examples, see [Configure an index](http://docs.pinecone.io/guides/indexes/configure-an-index).  # noqa: E501
+            This operation configures an existing index.   For serverless indexes, you can configure index deletion protection, tags, and integrated inference embedding settings for the index. For pod-based indexes, you can configure the pod size, number of replicas, tags, and index deletion protection.  It is not possible to change the pod type of a pod-based index. However, you can create a collection from a pod-based index and then [create a new pod-based index with a different pod type](http://docs.pinecone.io/guides/indexes/create-an-index#create-an-index-from-a-collection) from the collection. For guidance and examples, see [Configure an index](http://docs.pinecone.io/guides/indexes/configure-an-index).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -288,7 +288,7 @@ class ManageIndexesApi(object):
         def __create_index_for_model(self, create_index_for_model_request, **kwargs):
             """Create an index for an embedding model  # noqa: E501
 
-            This operation creates a serverless index configured for a specific embedding model.   # noqa: E501
+            This operation creates a serverless integrated inference index for a specific embedding model.  Refer to the [model guide](https://docs.pinecone.io/guides/inference/understanding-inference#embedding-models) for available models and model details.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 

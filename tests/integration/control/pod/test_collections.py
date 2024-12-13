@@ -89,7 +89,6 @@ class TestCollectionsHappyPath:
 
         # Verify stats reflect the vectors present in the collection
         stats = new_index.describe_index_stats()
-        print(stats)
         assert stats.total_vector_count == num_vectors
 
         # Verify the vectors from the collection can be fetched

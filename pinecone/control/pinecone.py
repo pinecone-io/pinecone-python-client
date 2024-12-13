@@ -1,6 +1,6 @@
 import time
 import logging
-from typing import Optional, Dict, Any, Union, List, Tuple, Literal
+from typing import Optional, Dict, Any, Union, Literal
 
 from .index_host_store import IndexHostStore
 from .pinecone_interface import PineconeDBControlInterface
@@ -27,6 +27,7 @@ from pinecone.core.openapi.db_control.models import (
 from pinecone.core.openapi.db_control import API_VERSION
 from pinecone.models import ServerlessSpec, PodSpec, IndexModel, IndexList, CollectionList
 from .langchain_import_warnings import _build_langchain_attribute_error_message
+from pinecone.utils import parse_non_empty_args, docslinks
 
 from pinecone.data import _Index
 
@@ -115,30 +116,12 @@ class Pinecone(PineconeDBControlInterface):
         except Exception as e:
             logger.error(f"Error loading plugins: {e}")
 
-    def create_index(
-        self,
-        name: str,
-        dimension: int,
-        spec: Union[Dict, ServerlessSpec, PodSpec],
-        metric: Optional[str] = "cosine",
-        timeout: Optional[int] = None,
-        deletion_protection: Optional[Literal["enabled", "disabled"]] = "disabled",
-    ):
-        api_instance = self.index_api
-
-        def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
-            return {arg_name: val for arg_name, val in args if val is not None}
-
-        if deletion_protection in ["enabled", "disabled"]:
-            dp = DeletionProtection(deletion_protection)
-        else:
-            raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
-
+    def _parse_index_spec(self, spec: Union[Dict, ServerlessSpec, PodSpec]) -> IndexSpec:
         if isinstance(spec, dict):
             if "serverless" in spec:
                 index_spec = IndexSpec(serverless=ServerlessSpecModel(**spec["serverless"]))
             elif "pod" in spec:
-                args_dict = _parse_non_empty_args(
+                args_dict = parse_non_empty_args(
                     [
                         ("environment", spec["pod"].get("environment")),
                         ("metadata_config", spec["pod"].get("metadata_config")),
@@ -160,7 +143,7 @@ class Pinecone(PineconeDBControlInterface):
                 serverless=ServerlessSpecModel(cloud=spec.cloud, region=spec.region)
             )
         elif isinstance(spec, PodSpec):
-            args_dict = _parse_non_empty_args(
+            args_dict = parse_non_empty_args(
                 [
                     ("replicas", spec.replicas),
                     ("shards", spec.shards),
@@ -179,13 +162,42 @@ class Pinecone(PineconeDBControlInterface):
         else:
             raise TypeError("spec must be of type dict, ServerlessSpec, or PodSpec")
 
+        return index_spec
+
+    def create_index(
+        self,
+        name: str,
+        spec: Union[Dict, ServerlessSpec, PodSpec],
+        dimension: Optional[int] = None,
+        metric: Optional[Literal["cosine", "euclidean", "dotproduct"]] = "cosine",
+        timeout: Optional[int] = None,
+        deletion_protection: Optional[Literal["enabled", "disabled"]] = "disabled",
+        vector_type: Optional[Literal["dense", "sparse"]] = "dense",
+    ):
+        api_instance = self.index_api
+
+        if vector_type == "sparse" and dimension is not None:
+            raise ValueError("dimension should not be specified for sparse indexes")
+
+        if deletion_protection in ["enabled", "disabled"]:
+            dp = DeletionProtection(deletion_protection)
+        else:
+            raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
+
+        index_spec = self._parse_index_spec(spec)
+
         api_instance.create_index(
             create_index_request=CreateIndexRequest(
-                name=name,
-                dimension=dimension,
-                metric=metric,
-                spec=index_spec,
-                deletion_protection=dp,
+                **parse_non_empty_args(
+                    [
+                        ("name", name),
+                        ("dimension", dimension),
+                        ("metric", metric),
+                        ("spec", index_spec),
+                        ("deletion_protection", dp),
+                        ("vector_type", vector_type),
+                    ]
+                )
             )
         )
 
@@ -194,20 +206,25 @@ class Pinecone(PineconeDBControlInterface):
             ready = status["ready"]
             return ready
 
+        total_wait_time = 0
         if timeout == -1:
+            logger.debug(f"Skipping wait for index {name} to be ready")
             return
         if timeout is None:
             while not is_ready():
+                total_wait_time += 5
                 time.sleep(5)
         else:
             while (not is_ready()) and timeout >= 0:
+                total_wait_time += 5
                 time.sleep(5)
                 timeout -= 5
         if timeout and timeout < 0:
+            logger.error(f"Index {name} is not ready. Timeout reached.")
             raise (
                 TimeoutError(
                     "Please call the describe_index API ({}) to confirm index status.".format(
-                        "https://www.pinecone.io/docs/api/operation/describe_index/"
+                        docslinks["API_DESCRIBE_INDEX"]
                     )
                 )
             )

@@ -175,11 +175,12 @@ class PineconeDBControlInterface(ABC):
     def create_index(
         self,
         name: str,
-        dimension: int,
         spec: Union[Dict, ServerlessSpec, PodSpec],
+        dimension: Optional[int],
         metric: Optional[str] = "cosine",
         timeout: Optional[int] = None,
         deletion_protection: Optional[Literal["enabled", "disabled"]] = "disabled",
+        vector_type: Optional[str] = "dense",
     ):
         """Creates a Pinecone index.
 
@@ -187,20 +188,23 @@ class PineconeDBControlInterface(ABC):
             cannot be changed once created. Allowed characters are lowercase letters, numbers,
             and hyphens and the name may not begin or end with hyphens. Maximum length is 45 characters.
         :type name: str
-        :param dimension: The dimension of vectors that will be inserted in the index. This should
-            match the dimension of the embeddings you will be inserting. For example, if you are using
-            OpenAI's CLIP model, you should use `dimension=1536`.
-        :type dimension: int
         :param metric: Type of metric used in the vector index when querying, one of `{"cosine", "dotproduct", "euclidean"}`. Defaults to `"cosine"`.
             Defaults to `"cosine"`.
         :type metric: str, optional
         :param spec: A dictionary containing configurations describing how the index should be deployed. For serverless indexes,
             specify region and cloud. For pod indexes, specify replicas, shards, pods, pod_type, metadata_config, and source_collection.
         :type spec: Dict
+        :param dimension: The dimension of vectors that will be inserted in the index. This should
+            match the dimension of the embeddings you will be inserting. For example, if you are using
+            OpenAI's CLIP model, you should use `dimension=1536`. Dimension is a required field when
+            creating an index with vector_type="dense".
+        :type dimension: int
         :type timeout: int, optional
         :param timeout: Specify the number of seconds to wait until index gets ready. If None, wait indefinitely; if >=0, time out after this many seconds;
             if -1, return immediately and do not wait. Default: None
         :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. Default: "disabled"
+        :param vector_type: The type of vectors to be stored in the index. One of `{"dense", "sparse"}`. Default: "dense"
+        :type vector_type: str, optional
 
         ### Creating a serverless index
 
