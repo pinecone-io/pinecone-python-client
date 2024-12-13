@@ -16,7 +16,7 @@ from pinecone.core.openapi.db_data.models import (
     UpsertResponse,
     ListResponse,
 )
-from .dataclasses import Vector, SparseValues
+from .dataclasses import Vector, SparseValues, FetchResponse
 from .interfaces import IndexInterface
 from .request_factory import IndexRequestFactory
 from .features.bulk_import import ImportFeatureMixin
@@ -209,7 +209,12 @@ class Index(IndexInterface, ImportFeatureMixin):
     @validate_and_convert_errors
     def fetch(self, ids: List[str], namespace: Optional[str] = None, **kwargs) -> FetchResponse:
         args_dict = parse_non_empty_args([("namespace", namespace)])
-        return self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
+        result = self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
+        return FetchResponse(
+            namespace=namespace,
+            vectors={k: Vector.from_dict(v) for k, v in result.vectors},
+            usage=result.usage,
+        )
 
     @validate_and_convert_errors
     def query(
