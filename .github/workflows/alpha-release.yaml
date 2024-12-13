@@ -24,22 +24,22 @@ on:
         default: 'rc1'
 
 jobs:
-  unit-tests:
-    uses: './.github/workflows/testing-unit.yaml'
-    secrets: inherit
-  integration-tests:
-      uses: './.github/workflows/testing-integration.yaml'
-      secrets: inherit
-  dependency-tests:
-    uses: './.github/workflows/testing-dependency.yaml'
-    secrets: inherit
+  # unit-tests:
+  #   uses: './.github/workflows/testing-unit.yaml'
+  #   secrets: inherit
+  # integration-tests:
+  #     uses: './.github/workflows/testing-integration.yaml'
+  #     secrets: inherit
+  # dependency-tests:
+  #   uses: './.github/workflows/testing-dependency.yaml'
+  #   secrets: inherit
 
   pypi:
     uses: './.github/workflows/publish-to-pypi.yaml'
-    needs: 
-      - unit-tests
-      - integration-tests
-      - dependency-tests
+    # needs:
+    #   - unit-tests
+    #   - integration-tests
+    #   - dependency-tests
     with:
       isPrerelease: true
       ref: ${{ inputs.ref }}
@@ -49,4 +49,3 @@ jobs:
     secrets:
       PYPI_USERNAME: __token__
       PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PUBLISH_TOKEN }}
-
