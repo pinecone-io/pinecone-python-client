@@ -14,6 +14,7 @@ from .utils import (
     parse_stats_response,
 )
 from .vector_factory_grpc import VectorFactoryGRPC
+from .sparse_values_factory import SparseValuesFactory
 
 from pinecone.core.openapi.db_data.models import (
     FetchResponse,
@@ -21,7 +22,7 @@ from pinecone.core.openapi.db_data.models import (
     IndexDescription as DescribeIndexStatsResponse,
 )
 from pinecone.models.list_response import ListResponse as SimpleListResponse, Pagination
-from pinecone.core.grpc.protos.vector_service_pb2 import (
+from pinecone.core.grpc.protos.db_data_2025_01_pb2 import (
     Vector as GRPCVector,
     QueryVector as GRPCQueryVector,
     UpsertRequest,
@@ -36,9 +37,9 @@ from pinecone.core.grpc.protos.vector_service_pb2 import (
     UpdateResponse,
     SparseValues as GRPCSparseValues,
 )
-from pinecone import Vector as NonGRPCVector
+from pinecone import Vector, SparseValues
 from pinecone.data.query_results_aggregator import QueryNamespacesResults, QueryResultsAggregator
-from pinecone.core.grpc.protos.vector_service_pb2_grpc import VectorServiceStub
+from pinecone.core.grpc.protos.db_data_2025_01_pb2_grpc import VectorServiceStub
 from .base import GRPCIndexBase
 from .future import PineconeGrpcFuture
 
@@ -62,7 +63,7 @@ class GRPCIndex(GRPCIndexBase):
 
     def upsert(
         self,
-        vectors: Union[List[GRPCVector], List[NonGRPCVector], List[tuple], List[dict]],
+        vectors: Union[List[Vector], List[GRPCVector], List[tuple], List[dict]],
         async_req: bool = False,
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,
@@ -328,7 +329,9 @@ class GRPCIndex(GRPCIndexBase):
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
+        sparse_vector: Optional[
+            Union[SparseValues, GRPCSparseValues, SparseVectorTypedDict]
+        ] = None,
         async_req: Optional[bool] = False,
         **kwargs,
     ) -> Union[QueryResponse, PineconeGrpcFuture]:
@@ -364,7 +367,7 @@ class GRPCIndex(GRPCIndexBase):
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.
                                      If omitted the server will use the default value of False  [optional]
             sparse_vector: (Union[SparseValues, Dict[str, Union[List[float], List[int]]]]): sparse values of the query vector.
-                            Expected to be either a GRPCSparseValues object or a dict of the form:
+                            Expected to be either a SparseValues object or a dict of the form:
                              {'indices': List[int], 'values': List[float]}, where the lists each have the same length.
 
         Returns: QueryResponse object which contains the list of the closest vectors as ScoredVector objects,
@@ -379,7 +382,7 @@ class GRPCIndex(GRPCIndexBase):
         else:
             filter_struct = None
 
-        sparse_vector = self._parse_sparse_values_arg(sparse_vector)
+        sparse_vector = SparseValuesFactory.build(sparse_vector)
         args_dict = self._parse_non_empty_args(
             [
                 ("vector", vector),
@@ -495,7 +498,7 @@ class GRPCIndex(GRPCIndexBase):
             set_metadata_struct = None
 
         timeout = kwargs.pop("timeout", None)
-        sparse_values = self._parse_sparse_values_arg(sparse_values)
+        sparse_values = SparseValuesFactory.build(sparse_values)
         args_dict = self._parse_non_empty_args(
             [
                 ("values", values),
@@ -635,25 +638,3 @@ class GRPCIndex(GRPCIndexBase):
     @staticmethod
     def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
         return {arg_name: val for arg_name, val in args if val is not None}
-
-    @staticmethod
-    def _parse_sparse_values_arg(
-        sparse_values: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]],
-    ) -> Optional[GRPCSparseValues]:
-        if sparse_values is None:
-            return None
-
-        if isinstance(sparse_values, GRPCSparseValues):
-            return sparse_values
-
-        if (
-            not isinstance(sparse_values, dict)
-            or "indices" not in sparse_values
-            or "values" not in sparse_values
-        ):
-            raise ValueError(
-                "Invalid sparse values argument. Expected a dict of: {'indices': List[int], 'values': List[float]}."
-                f"Received: {sparse_values}"
-            )
-
-        return GRPCSparseValues(indices=sparse_values["indices"], values=sparse_values["values"])

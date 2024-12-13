@@ -3,14 +3,14 @@ import pytest
 
 import pinecone
 from pinecone.data import _Index
-from pinecone import UpsertRequest, Vector
 from pinecone import (
     DescribeIndexStatsRequest,
     ScoredVector,
     QueryResponse,
+    UpsertRequest,
     UpsertResponse,
-    SparseValues,
 )
+from pinecone.core.openapi.db_data.models import Vector, SparseValues
 
 
 class TestRestIndex:

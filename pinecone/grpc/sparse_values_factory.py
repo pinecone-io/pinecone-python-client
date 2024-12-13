@@ -3,40 +3,42 @@ from typing import Union, Dict
 
 from ..utils import convert_to_list
 
-from ..data import (
-    SparseValuesTypeError,
-    SparseValuesMissingKeysError,
-    SparseValuesDictionaryExpectedError,
-)
+from ..data import SparseValuesTypeError, SparseValuesMissingKeysError
 
-from pinecone.core.grpc.protos.vector_service_pb2 import SparseValues as GRPCSparseValues
-from pinecone import SparseValues as NonGRPCSparseValues
+from pinecone.core.grpc.protos.db_data_2025_01_pb2 import SparseValues as GRPCSparseValues
+from pinecone.core.openapi.db_data.models import SparseValues as OpenApiSparseValues
+from pinecone import SparseValues
 
 
 class SparseValuesFactory:
     @staticmethod
-    def build(input: Union[Dict, GRPCSparseValues, NonGRPCSparseValues]) -> GRPCSparseValues:
+    def build(input: Union[Dict, GRPCSparseValues, SparseValues]) -> GRPCSparseValues:
         if input is None:
             return input
         if isinstance(input, GRPCSparseValues):
             return input
-        if isinstance(input, NonGRPCSparseValues):
-            return GRPCSparseValues(indices=input.indices, values=input.values)
-        if not isinstance(input, Mapping):
-            raise SparseValuesDictionaryExpectedError(input)
-        if not {"indices", "values"}.issubset(input):
-            raise SparseValuesMissingKeysError(input)
+        if isinstance(input, SparseValues) or isinstance(input, OpenApiSparseValues):
+            return GRPCSparseValues(
+                indices=SparseValuesFactory._convert_to_list(input.indices, int),
+                values=SparseValuesFactory._convert_to_list(input.values, float),
+            )
+        if isinstance(input, Mapping):
+            if not {"indices", "values"}.issubset(input):
+                raise SparseValuesMissingKeysError(input)
 
-        indices = SparseValuesFactory._convert_to_list(input.get("indices"), int)
-        values = SparseValuesFactory._convert_to_list(input.get("values"), float)
+            indices = SparseValuesFactory._convert_to_list(input.get("indices"), int)
+            values = SparseValuesFactory._convert_to_list(input.get("values"), float)
 
-        if len(indices) != len(values):
-            raise ValueError("Sparse values indices and values must have the same length")
+            if len(indices) != len(values):
+                raise ValueError("Sparse values indices and values must have the same length")
 
-        try:
-            return GRPCSparseValues(indices=indices, values=values)
-        except TypeError as e:
-            raise SparseValuesTypeError() from e
+            try:
+                return GRPCSparseValues(indices=indices, values=values)
+            except TypeError as e:
+                raise SparseValuesTypeError() from e
+        raise ValueError(
+            "SparseValuesFactory does not know how to handle input type {}".format(type(input))
+        )
 
     @staticmethod
     def _convert_to_list(input, expected_type):

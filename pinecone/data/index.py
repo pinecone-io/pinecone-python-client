@@ -19,13 +19,12 @@ from pinecone.core.openapi.db_data.models import (
     IndexDescription as DescribeIndexStatsResponse,
     UpsertRequest,
     UpsertResponse,
-    Vector,
     DeleteRequest,
     UpdateRequest,
     DescribeIndexStatsRequest,
     ListResponse,
-    SparseValues,
 )
+from .dataclasses import Vector, SparseValues
 from .interfaces import IndexInterface
 from .request_factory import IndexRequestFactory
 from .features.bulk_import import ImportFeatureMixin
@@ -57,11 +56,9 @@ __all__ = [
     "UpsertRequest",
     "UpsertResponse",
     "UpdateRequest",
-    "Vector",
     "DeleteRequest",
     "UpdateRequest",
     "DescribeIndexStatsRequest",
-    "SparseValues",
 ]
 
 
