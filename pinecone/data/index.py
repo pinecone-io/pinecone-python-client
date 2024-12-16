@@ -11,18 +11,10 @@ from pinecone.core.openapi.db_data.api.vector_operations_api import VectorOperat
 from pinecone.core.openapi.db_data import API_VERSION
 from pinecone.core.openapi.db_data.models import (
     FetchResponse,
-    QueryRequest,
     QueryResponse,
-    RpcStatus,
-    ScoredVector,
-    SingleQueryResults,
     IndexDescription as DescribeIndexStatsResponse,
-    UpsertRequest,
     UpsertResponse,
     Vector,
-    DeleteRequest,
-    UpdateRequest,
-    DescribeIndexStatsRequest,
     ListResponse,
     SparseValues,
 )
@@ -45,32 +37,13 @@ from pinecone_plugin_interface import load_and_install as install_plugins
 
 logger = logging.getLogger(__name__)
 
-__all__ = [
-    "_Index",
-    "FetchResponse",
-    "QueryRequest",
-    "QueryResponse",
-    "RpcStatus",
-    "ScoredVector",
-    "SingleQueryResults",
-    "DescribeIndexStatsResponse",
-    "UpsertRequest",
-    "UpsertResponse",
-    "UpdateRequest",
-    "Vector",
-    "DeleteRequest",
-    "UpdateRequest",
-    "DescribeIndexStatsRequest",
-    "SparseValues",
-]
-
 
 def parse_query_response(response: QueryResponse):
     response._data_store.pop("results", None)
     return response
 
 
-class _Index(IndexInterface, ImportFeatureMixin):
+class Index(IndexInterface, ImportFeatureMixin):
     """
     A client for interacting with a Pinecone index via REST API.
     For improved performance, use the Pinecone GRPC index client.

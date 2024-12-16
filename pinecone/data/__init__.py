@@ -1,4 +1,12 @@
-from .index import *
+from .index import (
+    Index as _Index,
+    FetchResponse,
+    QueryResponse,
+    DescribeIndexStatsResponse,
+    UpsertResponse,
+    SparseValues,
+    Vector,
+)
 from .import_error import Index, IndexClientInstantiationError
 from .errors import (
     VectorDictionaryMissingKeysError,
