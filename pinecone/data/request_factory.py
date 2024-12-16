@@ -4,21 +4,21 @@ from typing import Union, List, Optional, Dict, Any
 from pinecone.core.openapi.db_data.models import (
     QueryRequest,
     UpsertRequest,
-    Vector,
     DeleteRequest,
     UpdateRequest,
     DescribeIndexStatsRequest,
-    SparseValues,
 )
 from ..utils import parse_non_empty_args
 from .vector_factory import VectorFactory
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
+from .types import VectorTypedDict, SparseVectorTypedDict, VectorMetadataTypedDict, VectorTuple
+from .dataclasses import Vector, SparseValues
 
 logger = logging.getLogger(__name__)
 
 
 def parse_sparse_values_arg(
-    sparse_values: Optional[Union[SparseValues, Dict[str, Union[List[float], List[int]]]]],
+    sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]],
 ) -> Optional[SparseValues]:
     if sparse_values is None:
         return None
@@ -53,9 +53,7 @@ class IndexRequestFactory:
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> QueryRequest:
         if vector is not None and id is not None:
@@ -82,7 +80,7 @@ class IndexRequestFactory:
 
     @staticmethod
     def upsert_request(
-        vectors: Union[List[Vector], List[tuple], List[dict]],
+        vectors: Union[List[Vector], List[VectorTuple], List[VectorTypedDict]],
         namespace: Optional[str],
         _check_type: bool,
         **kwargs,
@@ -117,13 +115,9 @@ class IndexRequestFactory:
     def update_request(
         id: str,
         values: Optional[List[float]] = None,
-        set_metadata: Optional[
-            Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]
-        ] = None,
+        set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
-        sparse_values: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> UpdateRequest:
         _check_type = kwargs.pop("_check_type", False)

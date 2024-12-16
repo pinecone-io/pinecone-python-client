@@ -12,13 +12,14 @@ from pinecone.core.openapi.db_data.models import (
 )
 from .query_results_aggregator import QueryNamespacesResults
 from multiprocessing.pool import ApplyResult
+from .types import VectorTypedDict, SparseVectorTypedDict, VectorMetadataTypedDict
 
 
 class IndexInterface(ABC):
     @abstractmethod
     def upsert(
         self,
-        vectors: Union[List[Vector], List[tuple], List[dict]],
+        vectors: Union[List[Vector], List[tuple], List[VectorTypedDict]],
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,
         show_progress: bool = True,
@@ -229,9 +230,7 @@ class IndexInterface(ABC):
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         """The query_namespaces() method is used to make a query to multiple namespaces in parallel and combine the results into one result set.
@@ -285,13 +284,9 @@ class IndexInterface(ABC):
         self,
         id: str,
         values: Optional[List[float]] = None,
-        set_metadata: Optional[
-            Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]
-        ] = None,
+        set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
-        sparse_values: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """

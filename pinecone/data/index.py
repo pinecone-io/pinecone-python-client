@@ -20,6 +20,7 @@ from .dataclasses import Vector, SparseValues, FetchResponse
 from .interfaces import IndexInterface
 from .request_factory import IndexRequestFactory
 from .features.bulk_import import ImportFeatureMixin
+from .types import SparseVectorTypedDict, VectorTypedDict, VectorMetadataTypedDict, VectorTuple
 from ..utils import (
     setup_openapi_client,
     parse_non_empty_args,
@@ -113,7 +114,7 @@ class Index(IndexInterface, ImportFeatureMixin):
     @validate_and_convert_errors
     def upsert(
         self,
-        vectors: Union[List[Vector], List[tuple], List[dict]],
+        vectors: Union[List[Vector], List[VectorTuple], List[VectorTypedDict]],
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,
         show_progress: bool = True,
@@ -148,7 +149,7 @@ class Index(IndexInterface, ImportFeatureMixin):
 
     def _upsert_batch(
         self,
-        vectors: Union[List[Vector], List[tuple], List[dict]],
+        vectors: Union[List[Vector], List[VectorTuple], List[VectorTypedDict]],
         namespace: Optional[str],
         _check_type: bool,
         **kwargs,
@@ -211,7 +212,7 @@ class Index(IndexInterface, ImportFeatureMixin):
         args_dict = parse_non_empty_args([("namespace", namespace)])
         result = self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
         return FetchResponse(
-            namespace=namespace,
+            namespace=result.namespace,
             vectors={k: Vector.from_dict(v) for k, v in result.vectors},
             usage=result.usage,
         )
@@ -227,9 +228,7 @@ class Index(IndexInterface, ImportFeatureMixin):
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> Union[QueryResponse, ApplyResult]:
         response = self._query(
@@ -260,9 +259,7 @@ class Index(IndexInterface, ImportFeatureMixin):
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> QueryResponse:
         if len(args) > 0:
@@ -286,7 +283,7 @@ class Index(IndexInterface, ImportFeatureMixin):
     @validate_and_convert_errors
     def query_namespaces(
         self,
-        vector: List[float],
+        vector: Optional[List[float]],
         namespaces: List[str],
         metric: Literal["cosine", "euclidean", "dotproduct"],
         top_k: Optional[int] = None,
@@ -300,7 +297,8 @@ class Index(IndexInterface, ImportFeatureMixin):
     ) -> QueryNamespacesResults:
         if namespaces is None or len(namespaces) == 0:
             raise ValueError("At least one namespace must be specified")
-        if len(vector) == 0:
+        if sparse_vector is None and vector is not None and len(vector) == 0:
+            # If querying with a vector, it must not be empty
             raise ValueError("Query vector must not be empty")
 
         overall_topk = top_k if top_k is not None else 10
@@ -336,13 +334,9 @@ class Index(IndexInterface, ImportFeatureMixin):
         self,
         id: str,
         values: Optional[List[float]] = None,
-        set_metadata: Optional[
-            Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]
-        ] = None,
+        set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
-        sparse_values: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         return self._vector_api.update_vector(

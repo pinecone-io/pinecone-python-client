@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Dict, Union, List, Tuple, Any, TypedDict, Iterable, cast, Literal
+from typing import Optional, Dict, Union, List, Tuple, Any, Iterable, cast, Literal
 
 from google.protobuf import json_format
 
@@ -42,16 +42,12 @@ from pinecone.data.query_results_aggregator import QueryNamespacesResults, Query
 from pinecone.core.grpc.protos.db_data_2025_01_pb2_grpc import VectorServiceStub
 from .base import GRPCIndexBase
 from .future import PineconeGrpcFuture
+from ..data.types import SparseVectorTypedDict
 
 
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues"]
 
 _logger = logging.getLogger(__name__)
-
-
-class SparseVectorTypedDict(TypedDict):
-    indices: List[int]
-    values: List[float]
 
 
 class GRPCIndex(GRPCIndexBase):

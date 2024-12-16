@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import Union, Dict
+from typing import Union, Dict, Optional
 
 from ..utils import convert_to_list
 
@@ -17,7 +17,9 @@ class SparseValuesFactory:
     """SparseValuesFactory is used to convert various types of user input into SparseValues objects used in generated request code."""
 
     @staticmethod
-    def build(input: Union[Dict, SparseValues]) -> OpenApiSparseValues:
+    def build(
+        input: Union[Dict, Optional[SparseValues], OpenApiSparseValues],
+    ) -> Optional[OpenApiSparseValues]:
         if input is None:
             return input
         if isinstance(input, OpenApiSparseValues):

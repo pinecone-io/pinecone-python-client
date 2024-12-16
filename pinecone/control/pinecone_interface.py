@@ -177,10 +177,10 @@ class PineconeDBControlInterface(ABC):
         name: str,
         spec: Union[Dict, ServerlessSpec, PodSpec],
         dimension: Optional[int],
-        metric: Optional[str] = "cosine",
+        metric: Optional[Literal["cosine", "euclidean", "dotproduct"]] = "cosine",
         timeout: Optional[int] = None,
         deletion_protection: Optional[Literal["enabled", "disabled"]] = "disabled",
-        vector_type: Optional[str] = "dense",
+        vector_type: Optional[Literal["dense", "sparse"]] = "dense",
     ):
         """Creates a Pinecone index.
 
