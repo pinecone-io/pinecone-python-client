@@ -42,7 +42,13 @@ from pinecone.data.query_results_aggregator import QueryNamespacesResults, Query
 from pinecone.core.grpc.protos.db_data_2025_01_pb2_grpc import VectorServiceStub
 from .base import GRPCIndexBase
 from .future import PineconeGrpcFuture
-from ..data.types import SparseVectorTypedDict
+from ..data.types import (
+    SparseVectorTypedDict,
+    VectorTypedDict,
+    VectorTuple,
+    FilterTypedDict,
+    VectorMetadataTypedDict,
+)
 
 
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues"]
@@ -59,7 +65,7 @@ class GRPCIndex(GRPCIndexBase):
 
     def upsert(
         self,
-        vectors: Union[List[Vector], List[GRPCVector], List[tuple], List[dict]],
+        vectors: Union[List[Vector], List[GRPCVector], List[VectorTuple], List[VectorTypedDict]],
         async_req: bool = False,
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,
@@ -223,7 +229,7 @@ class GRPCIndex(GRPCIndexBase):
         ids: Optional[List[str]] = None,
         delete_all: Optional[bool] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         async_req: bool = False,
         **kwargs,
     ) -> Union[DeleteResponse, PineconeGrpcFuture]:
@@ -249,7 +255,7 @@ class GRPCIndex(GRPCIndexBase):
                                Default is False.
             namespace (str): The namespace to delete vectors from [optional]
                              If not specified, the default namespace is used.
-            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+            filter (FilterTypedDict):
                     If specified, the metadata filter here will be used to select the vectors to delete.
                     This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True.
                      See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
@@ -322,7 +328,7 @@ class GRPCIndex(GRPCIndexBase):
         id: Optional[str] = None,
         namespace: Optional[str] = None,
         top_k: Optional[int] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
         sparse_vector: Optional[
@@ -410,7 +416,7 @@ class GRPCIndex(GRPCIndexBase):
         namespaces: List[str],
         metric: Literal["cosine", "euclidean", "dotproduct"],
         top_k: Optional[int] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
         sparse_vector: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
@@ -453,9 +459,7 @@ class GRPCIndex(GRPCIndexBase):
         id: str,
         async_req: bool = False,
         values: Optional[List[float]] = None,
-        set_metadata: Optional[
-            Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]
-        ] = None,
+        set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
@@ -603,7 +607,7 @@ class GRPCIndex(GRPCIndexBase):
                 done = True
 
     def describe_index_stats(
-        self, filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None, **kwargs
+        self, filter: Optional[FilterTypedDict] = None, **kwargs
     ) -> DescribeIndexStatsResponse:
         """
         The DescribeIndexStats operation returns statistics about the index's contents.

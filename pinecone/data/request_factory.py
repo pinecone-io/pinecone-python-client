@@ -11,7 +11,13 @@ from pinecone.core.openapi.db_data.models import (
 from ..utils import parse_non_empty_args
 from .vector_factory import VectorFactory
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
-from .types import VectorTypedDict, SparseVectorTypedDict, VectorMetadataTypedDict, VectorTuple
+from .types import (
+    VectorTypedDict,
+    SparseVectorTypedDict,
+    VectorMetadataTypedDict,
+    VectorTuple,
+    FilterTypedDict,
+)
 from .dataclasses import Vector, SparseValues
 
 logger = logging.getLogger(__name__)
@@ -50,7 +56,7 @@ class IndexRequestFactory:
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
         sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,

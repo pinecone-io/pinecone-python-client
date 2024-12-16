@@ -12,7 +12,7 @@ from pinecone.core.openapi.db_data.models import (
 )
 from .query_results_aggregator import QueryNamespacesResults
 from multiprocessing.pool import ApplyResult
-from .types import VectorTypedDict, SparseVectorTypedDict, VectorMetadataTypedDict
+from .types import VectorTypedDict, SparseVectorTypedDict, VectorMetadataTypedDict, FilterTypedDict
 
 
 class IndexInterface(ABC):
@@ -171,7 +171,7 @@ class IndexInterface(ABC):
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
         sparse_vector: Optional[

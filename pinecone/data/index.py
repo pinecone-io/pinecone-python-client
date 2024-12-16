@@ -20,7 +20,13 @@ from .dataclasses import Vector, SparseValues, FetchResponse
 from .interfaces import IndexInterface
 from .request_factory import IndexRequestFactory
 from .features.bulk_import import ImportFeatureMixin
-from .types import SparseVectorTypedDict, VectorTypedDict, VectorMetadataTypedDict, VectorTuple
+from .types import (
+    SparseVectorTypedDict,
+    VectorTypedDict,
+    VectorMetadataTypedDict,
+    VectorTuple,
+    FilterTypedDict,
+)
 from ..utils import (
     setup_openapi_client,
     parse_non_empty_args,
@@ -225,7 +231,7 @@ class Index(IndexInterface, ImportFeatureMixin):
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
         sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
@@ -256,7 +262,7 @@ class Index(IndexInterface, ImportFeatureMixin):
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
         sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,

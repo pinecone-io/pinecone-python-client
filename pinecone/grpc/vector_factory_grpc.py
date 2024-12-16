@@ -1,7 +1,7 @@
 import numbers
 
 from collections.abc import Iterable, Mapping
-from typing import Union, Tuple, Dict
+from typing import Union
 
 from google.protobuf.struct_pb2 import Struct
 
@@ -14,6 +14,7 @@ from ..data import (
     VectorTupleLengthError,
     MetadataDictionaryExpectedError,
 )
+from ..data.types import VectorTuple, VectorTypedDict
 from .sparse_values_factory import SparseValuesFactory
 
 from pinecone.core.grpc.protos.db_data_2025_01_pb2 import (
@@ -31,7 +32,7 @@ class VectorFactoryGRPC:
     """This class is responsible for building GRPCVector objects from various input types."""
 
     @staticmethod
-    def build(item: Union[Vector, GRPCVector, Vector, Tuple, Dict]) -> GRPCVector:
+    def build(item: Union[Vector, GRPCVector, Vector, VectorTuple, VectorTypedDict]) -> GRPCVector:
         if isinstance(item, GRPCVector):
             return item
         elif isinstance(item, Vector) or isinstance(item, OpenApiVector):
