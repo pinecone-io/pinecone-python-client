@@ -1,16 +1,9 @@
 import pandas as pd
 import pytest
 
-import pinecone
 from pinecone.data import _Index
-from pinecone import UpsertRequest, Vector
-from pinecone import (
-    DescribeIndexStatsRequest,
-    ScoredVector,
-    QueryResponse,
-    UpsertResponse,
-    SparseValues,
-)
+import pinecone.core.openapi.db_data.models as oai_models
+from pinecone import QueryResponse, UpsertResponse, SparseValues, Vector
 
 
 class TestRestIndex:
@@ -39,7 +32,7 @@ class TestRestIndex:
         mocker.patch.object(self.index._vector_api, "upsert_vectors", autospec=True)
         self.index.upsert([("vec1", self.vals1), ("vec2", self.vals2)], namespace="ns")
         self.index._vector_api.upsert_vectors.assert_called_once_with(
-            UpsertRequest(
+            oai_models.UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, metadata={}),
                     Vector(id="vec2", values=self.vals2, metadata={}),
@@ -52,7 +45,7 @@ class TestRestIndex:
         mocker.patch.object(self.index._vector_api, "upsert_vectors", autospec=True)
         self.index.upsert([("vec1", self.vals1, self.md1), ("vec2", self.vals2, self.md2)])
         self.index._vector_api.upsert_vectors.assert_called_once_with(
-            UpsertRequest(
+            oai_models.UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, metadata=self.md1),
                     Vector(id="vec2", values=self.vals2, metadata=self.md2),
@@ -69,7 +62,7 @@ class TestRestIndex:
             ]
         )
         self.index._vector_api.upsert_vectors.assert_called_once_with(
-            UpsertRequest(
+            oai_models.UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, metadata=self.md1),
                     Vector(id="vec2", values=self.vals2, metadata=self.md2),
@@ -83,7 +76,7 @@ class TestRestIndex:
             [{"id": self.id1, "values": self.vals1}, {"id": self.id2, "values": self.vals2}]
         )
         self.index._vector_api.upsert_vectors.assert_called_once_with(
-            UpsertRequest(
+            oai_models.UpsertRequest(
                 vectors=[Vector(id="vec1", values=self.vals1), Vector(id="vec2", values=self.vals2)]
             )
         )
@@ -97,7 +90,7 @@ class TestRestIndex:
             ]
         )
         self.index._vector_api.upsert_vectors.assert_called_once_with(
-            UpsertRequest(
+            oai_models.UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, sparse_values=SparseValues(**self.sv1)),
                     Vector(id="vec2", values=self.vals2, sparse_values=SparseValues(**self.sv2)),
@@ -115,7 +108,7 @@ class TestRestIndex:
             namespace="ns",
         )
         self.index._vector_api.upsert_vectors.assert_called_once_with(
-            UpsertRequest(
+            oai_models.UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, metadata=self.md1),
                     Vector(id="vec2", values=self.vals2, metadata=self.md2),
@@ -141,7 +134,7 @@ class TestRestIndex:
             [async_result.get() for async_result in async_results]
 
             index._vector_api.upsert_vectors.assert_any_call(
-                UpsertRequest(
+                oai_models.UpsertRequest(
                     vectors=[Vector(id="vec1", values=self.vals1, metadata=self.md1)],
                     namespace="ns",
                 ),
@@ -149,7 +142,7 @@ class TestRestIndex:
             )
 
             index._vector_api.upsert_vectors.assert_any_call(
-                UpsertRequest(
+                oai_models.UpsertRequest(
                     vectors=[Vector(id="vec2", values=self.vals2, metadata=self.md2)],
                     namespace="ns",
                 ),
@@ -177,13 +170,13 @@ class TestRestIndex:
         )
 
         self.index._vector_api.upsert_vectors.assert_any_call(
-            UpsertRequest(
+            oai_models.UpsertRequest(
                 vectors=[Vector(id="vec1", values=self.vals1, metadata=self.md1)], namespace="ns"
             )
         )
 
         self.index._vector_api.upsert_vectors.assert_any_call(
-            UpsertRequest(
+            oai_models.UpsertRequest(
                 vectors=[Vector(id="vec2", values=self.vals2, metadata=self.md2)], namespace="ns"
             )
         )
@@ -211,7 +204,7 @@ class TestRestIndex:
         )
 
         self.index._vector_api.upsert_vectors.assert_any_call(
-            UpsertRequest(
+            oai_models.UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, metadata=self.md1),
                     Vector(id="vec2", values=self.vals2, metadata=self.md2),
@@ -221,7 +214,7 @@ class TestRestIndex:
         )
 
         self.index._vector_api.upsert_vectors.assert_any_call(
-            UpsertRequest(
+            oai_models.UpsertRequest(
                 vectors=[Vector(id="vec3", values=self.vals1, metadata=self.md1)], namespace="ns"
             )
         )
@@ -249,7 +242,7 @@ class TestRestIndex:
         )
 
         self.index._vector_api.upsert_vectors.assert_called_once_with(
-            UpsertRequest(
+            oai_models.UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, metadata=self.md1),
                     Vector(id="vec2", values=self.vals2, metadata=self.md2),
@@ -282,7 +275,7 @@ class TestRestIndex:
         )
 
         self.index._vector_api.upsert_vectors.assert_any_call(
-            UpsertRequest(
+            oai_models.UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, metadata=self.md1),
                     Vector(id="vec2", values=self.vals2, metadata=self.md2),
@@ -292,7 +285,7 @@ class TestRestIndex:
         )
 
         self.index._vector_api.upsert_vectors.assert_any_call(
-            UpsertRequest(
+            oai_models.UpsertRequest(
                 vectors=[Vector(id="vec3", values=self.vals1, metadata=self.md1)], namespace="ns"
             )
         )
@@ -315,7 +308,7 @@ class TestRestIndex:
         self.index.upsert_from_dataframe(df)
 
         self.index._vector_api.upsert_vectors.assert_called_once_with(
-            UpsertRequest(
+            oai_models.UpsertRequest(
                 vectors=[
                     Vector(id="vec1", values=self.vals1, metadata=self.md1),
                     Vector(id="vec2", values=self.vals2, metadata=self.md2),
@@ -356,7 +349,7 @@ class TestRestIndex:
     def test_query_byVectorNoFilter_queryVectorNoFilter(self, mocker):
         response = QueryResponse(
             results=[],
-            matches=[ScoredVector(id="1", score=0.9, values=[0.0], metadata={"a": 2})],
+            matches=[oai_models.ScoredVector(id="1", score=0.9, values=[0.0], metadata={"a": 2})],
             namespace="test",
         )
         mocker.patch.object(
@@ -366,10 +359,10 @@ class TestRestIndex:
         actual = self.index.query(top_k=10, vector=self.vals1)
 
         self.index._vector_api.query_vectors.assert_called_once_with(
-            pinecone.QueryRequest(top_k=10, vector=self.vals1)
+            oai_models.QueryRequest(top_k=10, vector=self.vals1)
         )
         expected = QueryResponse(
-            matches=[ScoredVector(id="1", score=0.9, values=[0.0], metadata={"a": 2})],
+            matches=[oai_models.ScoredVector(id="1", score=0.9, values=[0.0], metadata={"a": 2})],
             namespace="test",
         )
         assert expected.to_dict() == actual.to_dict()
@@ -378,14 +371,18 @@ class TestRestIndex:
         mocker.patch.object(self.index._vector_api, "query_vectors", autospec=True)
         self.index.query(top_k=10, vector=self.vals1, filter=self.filter1, namespace="ns")
         self.index._vector_api.query_vectors.assert_called_once_with(
-            pinecone.QueryRequest(top_k=10, vector=self.vals1, filter=self.filter1, namespace="ns")
+            oai_models.QueryRequest(
+                top_k=10, vector=self.vals1, filter=self.filter1, namespace="ns"
+            )
         )
 
     def test_query_byVecId_queryByVecId(self, mocker):
         mocker.patch.object(self.index._vector_api, "query_vectors", autospec=True)
         self.index.query(top_k=10, id="vec1", include_metadata=True, include_values=False)
         self.index._vector_api.query_vectors.assert_called_once_with(
-            pinecone.QueryRequest(top_k=10, id="vec1", include_metadata=True, include_values=False)
+            oai_models.QueryRequest(
+                top_k=10, id="vec1", include_metadata=True, include_values=False
+            )
         )
 
     def test_query_rejects_both_id_and_vector(self):
@@ -408,21 +405,21 @@ class TestRestIndex:
         mocker.patch.object(self.index._vector_api, "delete_vectors", autospec=True)
         self.index.delete(ids=["vec1", "vec2"])
         self.index._vector_api.delete_vectors.assert_called_once_with(
-            pinecone.DeleteRequest(ids=["vec1", "vec2"])
+            oai_models.DeleteRequest(ids=["vec1", "vec2"])
         )
 
     def test_delete_deleteAllByFilter_deleteAllByFilter(self, mocker):
         mocker.patch.object(self.index._vector_api, "delete_vectors", autospec=True)
         self.index.delete(delete_all=True, filter=self.filter1, namespace="ns")
         self.index._vector_api.delete_vectors.assert_called_once_with(
-            pinecone.DeleteRequest(delete_all=True, filter=self.filter1, namespace="ns")
+            oai_models.DeleteRequest(delete_all=True, filter=self.filter1, namespace="ns")
         )
 
     def test_delete_deleteAllNoFilter_deleteNoFilter(self, mocker):
         mocker.patch.object(self.index._vector_api, "delete_vectors", autospec=True)
         self.index.delete(delete_all=True)
         self.index._vector_api.delete_vectors.assert_called_once_with(
-            pinecone.DeleteRequest(delete_all=True)
+            oai_models.DeleteRequest(delete_all=True)
         )
 
     # endregion
@@ -449,14 +446,14 @@ class TestRestIndex:
         mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
         self.index.update(id="vec1", values=self.vals1, namespace="ns")
         self.index._vector_api.update_vector.assert_called_once_with(
-            pinecone.UpdateRequest(id="vec1", values=self.vals1, namespace="ns")
+            oai_models.UpdateRequest(id="vec1", values=self.vals1, namespace="ns")
         )
 
     def test_update_byIdAnValuesAndMetadata_updateByIdAndValuesAndMetadata(self, mocker):
         mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
         self.index.update("vec1", values=self.vals1, metadata=self.md1)
         self.index._vector_api.update_vector.assert_called_once_with(
-            pinecone.UpdateRequest(id="vec1", values=self.vals1, metadata=self.md1)
+            oai_models.UpdateRequest(id="vec1", values=self.vals1, metadata=self.md1)
         )
 
     # endregion
@@ -467,14 +464,14 @@ class TestRestIndex:
         mocker.patch.object(self.index._vector_api, "describe_index_stats", autospec=True)
         self.index.describe_index_stats()
         self.index._vector_api.describe_index_stats.assert_called_once_with(
-            DescribeIndexStatsRequest()
+            oai_models.DescribeIndexStatsRequest()
         )
 
     def test_describeIndexStats_callWithFilter_CalledWithFilter(self, mocker):
         mocker.patch.object(self.index._vector_api, "describe_index_stats", autospec=True)
         self.index.describe_index_stats(filter=self.filter1)
         self.index._vector_api.describe_index_stats.assert_called_once_with(
-            DescribeIndexStatsRequest(filter=self.filter1)
+            oai_models.DescribeIndexStatsRequest(filter=self.filter1)
         )
 
     # endregion
