@@ -63,7 +63,7 @@ jobs:
           # - 4.1.0
           - 4.3.3
         protobuf_version:
-          - 5.28
+          - 5.29.1
         protoc-gen-openapiv2:
           - 0.0.1
         googleapis_common_protos_version:
@@ -79,7 +79,6 @@ jobs:
           lz4_version: '${{ matrix.lz4_version }}'
           protobuf_version: '${{ matrix.protobuf_version }}'
           googleapis_common_protos_version: '${{ matrix.googleapis_common_protos_version }}'
-          DD_TAGS: 'test.configuration.python:${{ matrix.python_version}},test.configuration.grpcio:${{ matrix.grpcio_version }},test.configuration.lz4:${{ matrix.lz4_version }},test.configuration.protobuf:${{ matrix.protobuf_version }},test.configuration.googleapis_common_protos:${{ matrix.googleapis_common_protos_version }}'
 
   dependency-matrix-grpc-312:
     name: Deps (GRPC)
