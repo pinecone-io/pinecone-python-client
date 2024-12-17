@@ -10,6 +10,7 @@ from pinecone.core.openapi.db_data.models import (
 )
 from ..utils import parse_non_empty_args
 from .vector_factory import VectorFactory
+from .sparse_values_factory import SparseValuesFactory
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
 from .types import (
     VectorTypedDict,
@@ -66,7 +67,7 @@ class IndexRequestFactory:
         if vector is not None and id is not None:
             raise ValueError("Cannot specify both `id` and `vector`")
 
-        sparse_vector = parse_sparse_values_arg(sparse_vector)
+        sparse_vector = SparseValuesFactory.build(sparse_vector)
         args_dict = parse_non_empty_args(
             [
                 ("vector", vector),
