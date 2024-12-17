@@ -25,28 +25,6 @@ from .dataclasses import Vector, SparseValues
 logger = logging.getLogger(__name__)
 
 
-def parse_sparse_values_arg(
-    sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]],
-) -> Optional[SparseValues]:
-    if sparse_values is None:
-        return None
-
-    if isinstance(sparse_values, SparseValues):
-        return sparse_values
-
-    if (
-        not isinstance(sparse_values, dict)
-        or "indices" not in sparse_values
-        or "values" not in sparse_values
-    ):
-        raise ValueError(
-            "Invalid sparse values argument. Expected a dict of: {'indices': List[int], 'values': List[float]}."
-            f"Received: {sparse_values}"
-        )
-
-    return SparseValues(indices=sparse_values["indices"], values=sparse_values["values"])
-
-
 def non_openapi_kwargs(kwargs):
     return {k: v for k, v in kwargs.items() if k not in OPENAPI_ENDPOINT_PARAMS}
 
@@ -67,7 +45,7 @@ class IndexRequestFactory:
         if vector is not None and id is not None:
             raise ValueError("Cannot specify both `id` and `vector`")
 
-        sparse_vector = SparseValuesFactory.build(sparse_vector)
+        sparse_vector_normalized = SparseValuesFactory.build(sparse_vector)
         args_dict = parse_non_empty_args(
             [
                 ("vector", vector),
@@ -78,7 +56,7 @@ class IndexRequestFactory:
                 ("filter", filter),
                 ("include_values", include_values),
                 ("include_metadata", include_metadata),
-                ("sparse_vector", sparse_vector),
+                ("sparse_vector", sparse_vector_normalized),
             ]
         )
 
@@ -131,13 +109,13 @@ class IndexRequestFactory:
         **kwargs,
     ) -> UpdateRequest:
         _check_type = kwargs.pop("_check_type", False)
-        sparse_values = parse_sparse_values_arg(sparse_values)
+        sparse_values_normalized = SparseValuesFactory.build(sparse_values)
         args_dict = parse_non_empty_args(
             [
                 ("values", values),
                 ("set_metadata", set_metadata),
                 ("namespace", namespace),
-                ("sparse_values", sparse_values),
+                ("sparse_values", sparse_values_normalized),
             ]
         )
 

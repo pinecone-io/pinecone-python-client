@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import Union, Dict, Optional
+from typing import Union, Optional
 
 from ..utils import convert_to_list
 
@@ -10,6 +10,7 @@ from .errors import (
 )
 
 from .dataclasses import SparseValues
+from .types import SparseVectorTypedDict
 from pinecone.core.openapi.db_data.models import SparseValues as OpenApiSparseValues
 
 
@@ -18,7 +19,7 @@ class SparseValuesFactory:
 
     @staticmethod
     def build(
-        input: Union[Dict, Optional[SparseValues], OpenApiSparseValues],
+        input: Optional[Union[SparseValues, OpenApiSparseValues, SparseVectorTypedDict]],
     ) -> Optional[OpenApiSparseValues]:
         if input is None:
             return input
