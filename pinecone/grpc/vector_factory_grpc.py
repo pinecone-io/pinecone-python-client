@@ -1,7 +1,7 @@
 import numbers
 
 from collections.abc import Iterable, Mapping
-from typing import Union, Tuple, Dict
+from typing import Union
 
 from google.protobuf.struct_pb2 import Struct
 
@@ -14,25 +14,30 @@ from ..data import (
     VectorTupleLengthError,
     MetadataDictionaryExpectedError,
 )
+from ..data.types import VectorTuple, VectorTypedDict
 from .sparse_values_factory import SparseValuesFactory
 
-from pinecone.core.grpc.protos.vector_service_pb2 import (
+from pinecone.core.grpc.protos.db_data_2025_01_pb2 import (
     Vector as GRPCVector,
     SparseValues as GRPCSparseValues,
 )
-from pinecone import Vector as NonGRPCVector, SparseValues as NonGRPCSparseValues
+from pinecone.core.openapi.db_data.models import (
+    SparseValues as OpenApiSparseValues,
+    Vector as OpenApiVector,
+)
+from pinecone import Vector, SparseValues
 
 
 class VectorFactoryGRPC:
+    """This class is responsible for building GRPCVector objects from various input types."""
+
     @staticmethod
-    def build(item: Union[GRPCVector, NonGRPCVector, Tuple, Dict]) -> GRPCVector:
+    def build(item: Union[Vector, GRPCVector, Vector, VectorTuple, VectorTypedDict]) -> GRPCVector:
         if isinstance(item, GRPCVector):
             return item
-        elif isinstance(item, NonGRPCVector):
+        elif isinstance(item, Vector) or isinstance(item, OpenApiVector):
             if item.sparse_values:
-                sv = GRPCSparseValues(
-                    indices=item.sparse_values.indices, values=item.sparse_values.values
-                )
+                sv = SparseValuesFactory.build(item.sparse_values)
                 return GRPCVector(
                     id=item.id,
                     values=item.values,
@@ -57,7 +62,11 @@ class VectorFactoryGRPC:
         if len(item) < 2 or len(item) > 3:
             raise VectorTupleLengthError(item)
         id, values, metadata = fix_tuple_length(item, 3)
-        if isinstance(values, GRPCSparseValues) or isinstance(values, NonGRPCSparseValues):
+        if (
+            isinstance(values, GRPCSparseValues)
+            or isinstance(values, SparseValues)
+            or isinstance(values, OpenApiSparseValues)
+        ):
             raise ValueError(
                 "Sparse values are not supported in tuples. Please use either dicts or Vector objects as inputs."
             )
@@ -76,6 +85,11 @@ class VectorFactoryGRPC:
         if len(excessive_keys) > 0:
             raise VectorDictionaryExcessKeysError(item)
 
+        if "values" not in item and "sparse_values" not in item:
+            raise ValueError(
+                "At least one of 'values' or 'sparse_values' must be provided in the vector dictionary."
+            )
+
         values = item.get("values")
         if "values" in item:
             try:
@@ -84,7 +98,7 @@ class VectorFactoryGRPC:
                 raise TypeError("Column `values` is expected to be a list of floats") from e
 
         sparse_values = item.get("sparse_values")
-        if sparse_values is not None and not isinstance(sparse_values, GRPCSparseValues):
+        if sparse_values is not None:
             item["sparse_values"] = SparseValuesFactory.build(sparse_values)
 
         metadata = item.get("metadata")

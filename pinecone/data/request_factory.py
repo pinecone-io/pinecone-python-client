@@ -4,39 +4,25 @@ from typing import Union, List, Optional, Dict, Any
 from pinecone.core.openapi.db_data.models import (
     QueryRequest,
     UpsertRequest,
-    Vector,
     DeleteRequest,
     UpdateRequest,
     DescribeIndexStatsRequest,
-    SparseValues,
 )
 from ..utils import parse_non_empty_args
 from .vector_factory import VectorFactory
+from .sparse_values_factory import SparseValuesFactory
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
+from .types import (
+    VectorTypedDict,
+    SparseVectorTypedDict,
+    VectorMetadataTypedDict,
+    VectorTuple,
+    VectorTupleWithMetadata,
+    FilterTypedDict,
+)
+from .dataclasses import Vector, SparseValues
 
 logger = logging.getLogger(__name__)
-
-
-def parse_sparse_values_arg(
-    sparse_values: Optional[Union[SparseValues, Dict[str, Union[List[float], List[int]]]]],
-) -> Optional[SparseValues]:
-    if sparse_values is None:
-        return None
-
-    if isinstance(sparse_values, SparseValues):
-        return sparse_values
-
-    if (
-        not isinstance(sparse_values, dict)
-        or "indices" not in sparse_values
-        or "values" not in sparse_values
-    ):
-        raise ValueError(
-            "Invalid sparse values argument. Expected a dict of: {'indices': List[int], 'values': List[float]}."
-            f"Received: {sparse_values}"
-        )
-
-    return SparseValues(indices=sparse_values["indices"], values=sparse_values["values"])
 
 
 def non_openapi_kwargs(kwargs):
@@ -50,18 +36,16 @@ class IndexRequestFactory:
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> QueryRequest:
         if vector is not None and id is not None:
             raise ValueError("Cannot specify both `id` and `vector`")
 
-        sparse_vector = parse_sparse_values_arg(sparse_vector)
+        sparse_vector_normalized = SparseValuesFactory.build(sparse_vector)
         args_dict = parse_non_empty_args(
             [
                 ("vector", vector),
@@ -72,7 +56,7 @@ class IndexRequestFactory:
                 ("filter", filter),
                 ("include_values", include_values),
                 ("include_metadata", include_metadata),
-                ("sparse_vector", sparse_vector),
+                ("sparse_vector", sparse_vector_normalized),
             ]
         )
 
@@ -82,7 +66,9 @@ class IndexRequestFactory:
 
     @staticmethod
     def upsert_request(
-        vectors: Union[List[Vector], List[tuple], List[dict]],
+        vectors: Union[
+            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
+        ],
         namespace: Optional[str],
         _check_type: bool,
         **kwargs,
@@ -117,23 +103,19 @@ class IndexRequestFactory:
     def update_request(
         id: str,
         values: Optional[List[float]] = None,
-        set_metadata: Optional[
-            Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]
-        ] = None,
+        set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
-        sparse_values: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> UpdateRequest:
         _check_type = kwargs.pop("_check_type", False)
-        sparse_values = parse_sparse_values_arg(sparse_values)
+        sparse_values_normalized = SparseValuesFactory.build(sparse_values)
         args_dict = parse_non_empty_args(
             [
                 ("values", values),
                 ("set_metadata", set_metadata),
                 ("namespace", namespace),
-                ("sparse_values", sparse_values),
+                ("sparse_values", sparse_values_normalized),
             ]
         )
 

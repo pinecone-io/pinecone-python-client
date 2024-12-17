@@ -9,11 +9,11 @@ from pinecone.core.openapi.db_data.models import (
     Usage,
     ScoredVector,
     SparseValues,
-    FetchResponse,
     QueryResponse,
     IndexDescription as DescribeIndexStatsResponse,
     NamespaceSummary,
 )
+from pinecone.data.dataclasses import FetchResponse
 
 from google.protobuf.struct_pb2 import Struct
 
@@ -55,10 +55,7 @@ def parse_fetch_response(response: Message):
         )
 
     return FetchResponse(
-        vectors=vd,
-        namespace=namespace,
-        usage=parse_usage(json_response.get("usage", {})),
-        _check_type=False,
+        vectors=vd, namespace=namespace, usage=parse_usage(json_response.get("usage", {}))
     )
 
 

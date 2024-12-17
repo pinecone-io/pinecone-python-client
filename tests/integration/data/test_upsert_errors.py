@@ -1,8 +1,7 @@
 import pytest
 import os
 from pinecone import Vector, SparseValues
-from .utils import embedding_values
-from ..helpers import fake_api_key
+from ..helpers import fake_api_key, embedding_values
 from pinecone import PineconeException
 
 
@@ -124,7 +123,7 @@ class TestUpsertFailsSparseValuesDimensionMismatch:
 
 class TestUpsertFailsWhenValuesMissing:
     def test_upsert_fails_when_values_missing_objects(self, idx):
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             idx.upsert(vectors=[Vector(id="1"), Vector(id="2")])
 
     def test_upsert_fails_when_values_missing_tuples(self, idx):
@@ -138,7 +137,7 @@ class TestUpsertFailsWhenValuesMissing:
 
 class TestUpsertFailsWhenValuesWrongType:
     def test_upsert_fails_when_values_wrong_type_objects(self, idx):
-        with pytest.raises(PineconeException):
+        with pytest.raises(Exception):
             idx.upsert(vectors=[Vector(id="1", values="abc"), Vector(id="2", values="def")])
 
     def test_upsert_fails_when_values_wrong_type_tuples(self, idx):

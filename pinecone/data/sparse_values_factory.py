@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import Union, Dict
+from typing import Union, Optional
 
 from ..utils import convert_to_list
 
@@ -9,16 +9,24 @@ from .errors import (
     SparseValuesDictionaryExpectedError,
 )
 
-from pinecone.core.openapi.db_data.models import SparseValues
+from .dataclasses import SparseValues
+from .types import SparseVectorTypedDict
+from pinecone.core.openapi.db_data.models import SparseValues as OpenApiSparseValues
 
 
 class SparseValuesFactory:
+    """SparseValuesFactory is used to convert various types of user input into SparseValues objects used in generated request code."""
+
     @staticmethod
-    def build(input: Union[Dict, SparseValues]) -> SparseValues:
+    def build(
+        input: Optional[Union[SparseValues, OpenApiSparseValues, SparseVectorTypedDict]],
+    ) -> Optional[OpenApiSparseValues]:
         if input is None:
             return input
-        if isinstance(input, SparseValues):
+        if isinstance(input, OpenApiSparseValues):
             return input
+        if isinstance(input, SparseValues):
+            return OpenApiSparseValues(indices=input.indices, values=input.values)
         if not isinstance(input, Mapping):
             raise SparseValuesDictionaryExpectedError(input)
         if not {"indices", "values"}.issubset(input):
@@ -31,7 +39,7 @@ class SparseValuesFactory:
             raise ValueError("Sparse values indices and values must have the same length")
 
         try:
-            return SparseValues(indices=indices, values=values)
+            return OpenApiSparseValues(indices=indices, values=values)
         except TypeError as e:
             raise SparseValuesTypeError() from e
 

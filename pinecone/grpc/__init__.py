@@ -49,11 +49,11 @@ from .pinecone import PineconeGRPC
 from .config import GRPCClientConfig
 from .future import PineconeGrpcFuture
 
-from pinecone.core.grpc.protos.vector_service_pb2 import (
+from pinecone.data.dataclasses import Vector, SparseValues
+
+from pinecone.core.grpc.protos.db_data_2025_01_pb2 import (
     Vector as GRPCVector,
     SparseValues as GRPCSparseValues,
-    Vector,
-    SparseValues,
     DeleteResponse as GRPCDeleteResponse,
 )
 

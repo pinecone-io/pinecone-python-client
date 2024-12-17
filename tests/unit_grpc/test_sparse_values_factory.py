@@ -1,6 +1,7 @@
 import pytest
-from pinecone.grpc import SparseValues as GRPCSparseValues
-from pinecone import SparseValues as NonGRPCSparseValues
+from pinecone.grpc import GRPCSparseValues
+from pinecone.core.openapi.db_data.models import SparseValues as OpenApiSparseValues
+from pinecone import SparseValues
 
 import numpy as np
 import pandas as pd
@@ -21,11 +22,18 @@ class TestSparseValuesFactory:
         actual = SparseValuesFactory.build(sv)
         assert actual == sv
 
-    def test_build_when_passed_NonGRPCSparseValues(self):
+    def test_build_when_given_SparseValues(self):
+        sv = SparseValues(indices=[0, 2], values=[0.1, 0.3])
+        actual = SparseValuesFactory.build(sv)
+        expected = GRPCSparseValues(indices=[0, 2], values=[0.1, 0.3])
+        assert isinstance(actual, GRPCSparseValues)
+        assert actual == expected
+
+    def test_build_when_passed_OpenApiSparseValues(self):
         """
-        Convert when given NonGRPCSparseValues
+        Convert when given OpenApiSparseValues
         """
-        sv = NonGRPCSparseValues(indices=[0, 2], values=[0.1, 0.3])
+        sv = OpenApiSparseValues(indices=[0, 2], values=[0.1, 0.3])
         actual = SparseValuesFactory.build(sv)
         expected = GRPCSparseValues(indices=[0, 2], values=[0.1, 0.3])
         assert actual == expected

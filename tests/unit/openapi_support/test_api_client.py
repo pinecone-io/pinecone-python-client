@@ -61,9 +61,11 @@ class TestSanitization:
         m = IndexModel(
             name="myindex",
             dimension=10,
+            metric="cosine",
             host="localhost",
             spec=IndexModelSpec(),
             status=IndexModelStatus(ready=True, state="Ready"),
+            vector_type="dense",
         )
         assert ApiClient.sanitize_for_serialization(m) == {
             "name": "myindex",
@@ -72,6 +74,26 @@ class TestSanitization:
             "host": "localhost",
             "spec": {},
             "status": {"ready": True, "state": "Ready"},
+            "vector_type": "dense",
+        }
+
+        m2 = IndexModel(
+            name="myindex2",
+            metric="cosine",
+            host="localhost",
+            spec=IndexModelSpec(),
+            status=IndexModelStatus(ready=True, state="Ready"),
+            vector_type="sparse",
+            deletion_protection=DeletionProtection(value="enabled"),
+        )
+        assert ApiClient.sanitize_for_serialization(m2) == {
+            "name": "myindex2",
+            "metric": "cosine",
+            "host": "localhost",
+            "spec": {},
+            "status": {"ready": True, "state": "Ready"},
+            "vector_type": "sparse",
+            "deletion_protection": "enabled",
         }
 
     def test_sanitize_for_serialization_serializes_model_simple(self):

@@ -1,6 +1,6 @@
 from pinecone import Config
 from pinecone.grpc import GRPCIndex
-from pinecone.core.grpc.protos.vector_service_pb2 import DescribeIndexStatsRequest
+from pinecone.core.grpc.protos.db_data_2025_01_pb2 import DescribeIndexStatsRequest
 from pinecone.grpc.utils import dict_to_proto_struct
 
 

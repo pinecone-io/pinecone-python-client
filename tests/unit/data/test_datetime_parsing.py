@@ -1,4 +1,5 @@
-from pinecone import Vector, Config
+from pinecone import Config
+from pinecone.core.openapi.db_data.models import Vector
 
 
 class TestDatetimeConversion:
