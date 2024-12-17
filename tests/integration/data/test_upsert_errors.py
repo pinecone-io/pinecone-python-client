@@ -124,7 +124,7 @@ class TestUpsertFailsSparseValuesDimensionMismatch:
 
 class TestUpsertFailsWhenValuesMissing:
     def test_upsert_fails_when_values_missing_objects(self, idx):
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             idx.upsert(vectors=[Vector(id="1"), Vector(id="2")])
 
     def test_upsert_fails_when_values_missing_tuples(self, idx):

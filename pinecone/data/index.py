@@ -10,7 +10,6 @@ from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.db_data.api.vector_operations_api import VectorOperationsApi
 from pinecone.core.openapi.db_data import API_VERSION
 from pinecone.core.openapi.db_data.models import (
-    FetchResponse,
     QueryResponse,
     IndexDescription as DescribeIndexStatsResponse,
     UpsertResponse,
@@ -219,7 +218,7 @@ class Index(IndexInterface, ImportFeatureMixin):
         result = self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
         return FetchResponse(
             namespace=result.namespace,
-            vectors={k: Vector.from_dict(v) for k, v in result.vectors},
+            vectors={k: Vector.from_dict(v) for k, v in result.vectors.items()},
             usage=result.usage,
         )
 

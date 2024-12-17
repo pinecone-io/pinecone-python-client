@@ -1,7 +1,64 @@
+import logging
 import pytest
-from pinecone import PineconeException, FetchResponse
+import random
+from ..helpers import poll_fetch_for_ids_in_namespace, poll_stats_for_namespace
+from .utils import embedding_values
+
+from pinecone import PineconeException, FetchResponse, Vector, SparseValues
+
+logger = logging.getLogger(__name__)
 
 
+def seed(idx, namespace):
+    # Upsert without metadata
+    logger.info(f"Seeding vectors without metadata into namespace '{namespace}'")
+    idx.upsert(
+        vectors=[
+            ("1", embedding_values(2)),
+            ("2", embedding_values(2)),
+            ("3", embedding_values(2)),
+        ],
+        namespace=namespace,
+    )
+
+    # Upsert with metadata
+    logger.info(f"Seeding vectors with metadata into namespace '{namespace}'")
+    idx.upsert(
+        vectors=[
+            Vector(
+                id="4", values=embedding_values(2), metadata={"genre": "action", "runtime": 120}
+            ),
+            Vector(id="5", values=embedding_values(2), metadata={"genre": "comedy", "runtime": 90}),
+            Vector(
+                id="6", values=embedding_values(2), metadata={"genre": "romance", "runtime": 240}
+            ),
+        ],
+        namespace=namespace,
+    )
+
+    # Upsert with dict
+    idx.upsert(
+        vectors=[
+            {"id": "7", "values": embedding_values(2)},
+            {"id": "8", "values": embedding_values(2)},
+            {"id": "9", "values": embedding_values(2)},
+        ],
+        namespace=namespace,
+    )
+
+    poll_fetch_for_ids_in_namespace(
+        idx, ids=["1", "2", "3", "4", "5", "6", "7", "8", "9"], namespace=namespace
+    )
+
+
+@pytest.fixture(scope="class")
+def seed_for_fetch(idx, namespace):
+    seed(idx, namespace)
+    seed(idx, "")
+    yield
+
+
+@pytest.mark.usefixtures("seed_for_fetch")
 class TestFetch:
     def setup_method(self):
         self.expected_dimension = 2
@@ -76,3 +133,32 @@ class TestFetch:
         assert results.vectors["1"].id == "1"
         assert results.vectors["1"].values is not None
         assert results.vectors["4"].metadata is not None
+
+    @pytest.mark.skip(reason="Backend implementation not ready")
+    def test_fetch_sparse_index(self, sparse_idx):
+        sparse_idx.upsert(
+            vectors=[
+                Vector(
+                    id=str(i),
+                    sparse_values=SparseValues(
+                        indices=[i, random.randint(2000, 4000)], values=embedding_values(2)
+                    ),
+                    metadata={"genre": "action", "runtime": 120},
+                )
+                for i in range(50)
+            ],
+            namespace="",
+        )
+
+        poll_stats_for_namespace(sparse_idx, "", 50, max_sleep=120)
+
+        fetch_results = sparse_idx.fetch(ids=[str(i) for i in range(10)])
+        assert fetch_results.namespace == ""
+        assert len(fetch_results.vectors) == 10
+        for i in range(10):
+            assert fetch_results.vectors[str(i)].id == str(i)
+            assert fetch_results.vectors[str(i)].values is not None
+            assert len(fetch_results.vectors[str(i)].values) == 2
+            assert fetch_results.vectors[str(i)].metadata is not None
+            assert fetch_results.vectors[str(i)].metadata["genre"] == "action"
+            assert fetch_results.vectors[str(i)].metadata["runtime"] == 120
