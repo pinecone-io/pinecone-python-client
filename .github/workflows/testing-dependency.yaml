@@ -63,7 +63,7 @@ jobs:
           # - 4.1.0
           - 4.3.3
         protobuf_version:
-          - 4.25.3
+          - 5.28
         protoc-gen-openapiv2:
           - 0.0.1
         googleapis_common_protos_version:

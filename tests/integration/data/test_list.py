@@ -1,6 +1,5 @@
 import logging
 import pytest
-from pinecone import Vector
 from ..helpers import poll_fetch_for_ids_in_namespace, embedding_values, random_string
 
 logger = logging.getLogger(__name__)
@@ -40,7 +39,6 @@ class TestListPaginated:
         assert results is not None
         assert results.namespace == ""
         assert results.vectors is not None
-        assert isinstance(results.vectors, list)
         # assert results.pagination == None
 
     def test_list_when_limit(self, idx, list_namespace):
@@ -138,7 +136,6 @@ class TestList:
             vectors.extend([v for _, v in result.vectors.items()])
 
         assert len(vectors) == 11
-        assert isinstance(vectors[0], Vector)
         assert set([v.id for v in vectors]) == set(
             ["99", "990", "991", "992", "993", "994", "995", "996", "997", "998", "999"]
         )

@@ -1,15 +1,21 @@
 import pytest
 import os
 from pinecone import Vector, PineconeException
-from ..helpers import poll_stats_for_namespace, embedding_values
+from ..helpers import poll_stats_for_namespace, embedding_values, random_string
 
 
+@pytest.fixture(scope="class")
+def namespace_query_async():
+    return random_string(10)
+
+
+@pytest.mark.usefixtures("namespace_query_async")
 class TestUpsertWithAsyncReq:
     @pytest.mark.skipif(
         os.getenv("USE_GRPC") != "true", reason="PineconeGrpcFutures only returned from grpc client"
     )
-    def test_upsert_to_namespace(self, idx, namespace):
-        target_namespace = namespace
+    def test_upsert_to_namespace(self, idx, namespace_query_async):
+        target_namespace = namespace_query_async
 
         # Upsert with tuples
         upsert1 = idx.upsert(
@@ -63,8 +69,8 @@ class TestUpsertWithAsyncReq:
     @pytest.mark.skipif(
         os.getenv("USE_GRPC") != "true", reason="PineconeGrpcFutures only returned from grpc client"
     )
-    def test_upsert_to_namespace_when_failed_req(self, idx, namespace):
-        target_namespace = namespace
+    def test_upsert_to_namespace_when_failed_req(self, idx, namespace_query_async):
+        target_namespace = namespace_query_async
 
         # Upsert with tuples
         upsert1 = idx.upsert(
