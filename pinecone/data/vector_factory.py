@@ -1,7 +1,7 @@
 import numbers
 
 from collections.abc import Iterable, Mapping
-from typing import Union, Tuple, Dict
+from typing import Union, Tuple
 
 from ..utils import fix_tuple_length, convert_to_list, parse_non_empty_args
 from ..utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
@@ -21,12 +21,16 @@ from .errors import (
     MetadataDictionaryExpectedError,
 )
 
+from .types import VectorTuple, VectorTypedDict
+
 
 class VectorFactory:
     """VectorFactory is used to convert various types of input into vector objects used in generated request code."""
 
     @staticmethod
-    def build(item: Union[OpenApiVector, Tuple, Dict], check_type: bool = True) -> OpenApiVector:
+    def build(
+        item: Union[OpenApiVector, VectorTuple, VectorTypedDict], check_type: bool = True
+    ) -> OpenApiVector:
         if isinstance(item, OpenApiVector):
             return item
         elif isinstance(item, Vector):
@@ -48,7 +52,7 @@ class VectorFactory:
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
     @staticmethod
-    def _tuple_to_vector(item, check_type: bool) -> OpenApiVector:
+    def _tuple_to_vector(item: Tuple, check_type: bool) -> OpenApiVector:
         if len(item) < 2 or len(item) > 3:
             raise VectorTupleLengthError(item)
         id, values, metadata = fix_tuple_length(item, 3)

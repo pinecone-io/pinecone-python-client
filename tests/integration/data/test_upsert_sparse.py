@@ -1,14 +1,14 @@
 import pytest
 import random
 from pinecone import Vector, SparseValues
-from ..helpers import poll_stats_for_namespace
-from .utils import embedding_values
+from ..helpers import poll_stats_for_namespace, embedding_values
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 
+@pytest.mark.skip(reason="Sparse indexes are not yet supported")
 class TestUpsertSparse:
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
     def test_upsert_sparse_to_namespace(self, sparse_idx, use_nondefault_namespace, namespace):

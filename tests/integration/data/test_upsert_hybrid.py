@@ -1,8 +1,7 @@
 import pytest
 import os
 from pinecone import Vector, SparseValues
-from ..helpers import poll_stats_for_namespace
-from .utils import embedding_values
+from ..helpers import poll_stats_for_namespace, embedding_values
 
 
 @pytest.mark.skipif(

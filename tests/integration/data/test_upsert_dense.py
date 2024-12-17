@@ -1,13 +1,17 @@
 import pytest
 from pinecone import Vector
-from ..helpers import poll_stats_for_namespace
-from .utils import embedding_values
+from ..helpers import poll_stats_for_namespace, embedding_values, random_string
+
+
+@pytest.fixture(scope="session")
+def upsert_dense_namespace():
+    return random_string(10)
 
 
 class TestUpsertDense:
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
-    def test_upsert_to_namespace(self, idx, namespace, use_nondefault_namespace):
-        target_namespace = namespace if use_nondefault_namespace else ""
+    def test_upsert_to_namespace(self, idx, upsert_dense_namespace, use_nondefault_namespace):
+        target_namespace = upsert_dense_namespace if use_nondefault_namespace else ""
 
         # Upsert with tuples
         idx.upsert(

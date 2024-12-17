@@ -1,8 +1,7 @@
 import pytest
 import os
 from pinecone import Vector, SparseValues
-from .utils import embedding_values
-from ..helpers import fake_api_key
+from ..helpers import fake_api_key, embedding_values
 from pinecone import PineconeException
 
 

@@ -1,6 +1,31 @@
+import logging
+import pytest
 from pinecone import Vector
+from ..helpers import poll_fetch_for_ids_in_namespace, embedding_values, random_string
+
+logger = logging.getLogger(__name__)
 
 
+@pytest.fixture(scope="session")
+def list_namespace():
+    return random_string(10)
+
+
+@pytest.fixture(scope="session")
+def seed_for_list(idx, list_namespace, wait=True):
+    logger.debug(f"Upserting into list namespace '{list_namespace}'")
+    for i in range(0, 1000, 50):
+        idx.upsert(
+            vectors=[(str(i + d), embedding_values(2)) for d in range(50)], namespace=list_namespace
+        )
+
+    if wait:
+        poll_fetch_for_ids_in_namespace(idx, ids=["999"], namespace=list_namespace)
+
+    yield
+
+
+@pytest.mark.usefixtures("seed_for_list")
 class TestListPaginated:
     def test_list_when_no_results(self, idx):
         results = idx.list_paginated(namespace="no-results")
@@ -13,8 +38,9 @@ class TestListPaginated:
         results = idx.list_paginated()
 
         assert results is not None
-        assert len(results.vectors) == 9
         assert results.namespace == ""
+        assert results.vectors is not None
+        assert isinstance(results.vectors, list)
         # assert results.pagination == None
 
     def test_list_when_limit(self, idx, list_namespace):
@@ -50,20 +76,8 @@ class TestListPaginated:
         # assert next_next_results.pagination == None
 
 
+@pytest.mark.usefixtures("seed_for_list")
 class TestList:
-    def test_list_with_defaults(self, idx):
-        pages = []
-        page_sizes = []
-        page_count = 0
-        for ids in idx.list():
-            page_count += 1
-            assert ids is not None
-            page_sizes.append(len(ids))
-            pages.append(ids)
-
-        assert page_count == 1
-        assert page_sizes == [9]
-
     def test_list(self, idx, list_namespace):
         results = idx.list(prefix="99", limit=20, namespace=list_namespace)
 

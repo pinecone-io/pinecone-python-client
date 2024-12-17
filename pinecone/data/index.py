@@ -24,6 +24,7 @@ from .types import (
     VectorTypedDict,
     VectorMetadataTypedDict,
     VectorTuple,
+    VectorTupleWithMetadata,
     FilterTypedDict,
 )
 from ..utils import (
@@ -119,7 +120,9 @@ class Index(IndexInterface, ImportFeatureMixin):
     @validate_and_convert_errors
     def upsert(
         self,
-        vectors: Union[List[Vector], List[VectorTuple], List[VectorTypedDict]],
+        vectors: Union[
+            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
+        ],
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,
         show_progress: bool = True,
@@ -154,7 +157,9 @@ class Index(IndexInterface, ImportFeatureMixin):
 
     def _upsert_batch(
         self,
-        vectors: Union[List[Vector], List[VectorTuple], List[VectorTypedDict]],
+        vectors: Union[
+            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
+        ],
         namespace: Optional[str],
         _check_type: bool,
         **kwargs,
@@ -271,6 +276,9 @@ class Index(IndexInterface, ImportFeatureMixin):
             raise ValueError(
                 "The argument order for `query()` has changed; please use keyword arguments instead of positional arguments. Example: index.query(vector=[0.1, 0.2, 0.3], top_k=10, namespace='my_namespace')"
             )
+
+        if top_k < 1:
+            raise ValueError("top_k must be a positive integer")
 
         request = IndexRequestFactory.query_request(
             top_k=top_k,

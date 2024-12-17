@@ -1,7 +1,6 @@
 import os
 import pytest
-from ..helpers import poll_fetch_for_ids_in_namespace
-from .utils import embedding_values
+from ..helpers import poll_fetch_for_ids_in_namespace, embedding_values
 from pinecone import Vector
 import logging
 

@@ -1,12 +1,21 @@
 import logging
 import pytest
 import random
-from ..helpers import poll_fetch_for_ids_in_namespace, poll_stats_for_namespace
-from .utils import embedding_values
+from ..helpers import (
+    poll_fetch_for_ids_in_namespace,
+    poll_stats_for_namespace,
+    embedding_values,
+    random_string,
+)
 
 from pinecone import PineconeException, FetchResponse, Vector, SparseValues
 
 logger = logging.getLogger(__name__)
+
+
+@pytest.fixture(scope="session")
+def fetch_namespace():
+    return random_string(10)
 
 
 def seed(idx, namespace):
@@ -52,8 +61,8 @@ def seed(idx, namespace):
 
 
 @pytest.fixture(scope="class")
-def seed_for_fetch(idx, namespace):
-    seed(idx, namespace)
+def seed_for_fetch(idx, fetch_namespace):
+    seed(idx, fetch_namespace)
     seed(idx, "")
     yield
 
@@ -64,8 +73,8 @@ class TestFetch:
         self.expected_dimension = 2
 
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
-    def test_fetch_multiple_by_id(self, idx, namespace, use_nondefault_namespace):
-        target_namespace = namespace if use_nondefault_namespace else ""
+    def test_fetch_multiple_by_id(self, idx, fetch_namespace, use_nondefault_namespace):
+        target_namespace = fetch_namespace if use_nondefault_namespace else ""
 
         results = idx.fetch(ids=["1", "2", "4"], namespace=target_namespace)
         assert isinstance(results, FetchResponse) == True
@@ -89,8 +98,8 @@ class TestFetch:
         assert len(results.vectors["1"].values) == self.expected_dimension
 
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
-    def test_fetch_single_by_id(self, idx, namespace, use_nondefault_namespace):
-        target_namespace = namespace if use_nondefault_namespace else ""
+    def test_fetch_single_by_id(self, idx, fetch_namespace, use_nondefault_namespace):
+        target_namespace = fetch_namespace if use_nondefault_namespace else ""
 
         results = idx.fetch(ids=["1"], namespace=target_namespace)
         assert results.namespace == target_namespace
@@ -101,8 +110,8 @@ class TestFetch:
         assert len(results.vectors["1"].values) == self.expected_dimension
 
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
-    def test_fetch_nonexistent_id(self, idx, namespace, use_nondefault_namespace):
-        target_namespace = namespace if use_nondefault_namespace else ""
+    def test_fetch_nonexistent_id(self, idx, fetch_namespace, use_nondefault_namespace):
+        target_namespace = fetch_namespace if use_nondefault_namespace else ""
 
         # Fetch id that is missing
         results = idx.fetch(ids=["100"], namespace=target_namespace)
@@ -118,8 +127,8 @@ class TestFetch:
         assert len(results.vectors) == 0
 
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
-    def test_fetch_with_empty_list_of_ids(self, idx, namespace, use_nondefault_namespace):
-        target_namespace = namespace if use_nondefault_namespace else ""
+    def test_fetch_with_empty_list_of_ids(self, idx, fetch_namespace, use_nondefault_namespace):
+        target_namespace = fetch_namespace if use_nondefault_namespace else ""
 
         # Fetch with empty list of ids
         with pytest.raises(PineconeException) as e:

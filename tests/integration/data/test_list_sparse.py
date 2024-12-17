@@ -40,6 +40,7 @@ def seed_sparse_index(sparse_idx):
     yield
 
 
+@pytest.mark.skip(reason="Sparse indexes are not yet supported")
 @pytest.mark.usefixtures("seed_sparse_index")
 class TestListPaginated_SparseIndex:
     def test_list_when_no_results(self, sparse_idx):
@@ -90,6 +91,8 @@ class TestListPaginated_SparseIndex:
         # assert next_next_results.pagination == None
 
 
+@pytest.mark.skip(reason="Sparse indexes are not yet supported")
+@pytest.mark.usefixtures("seed_sparse_index")
 class TestList:
     def test_list_with_defaults(self, sparse_idx):
         pages = []

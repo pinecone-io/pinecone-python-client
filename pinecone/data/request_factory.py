@@ -16,6 +16,7 @@ from .types import (
     SparseVectorTypedDict,
     VectorMetadataTypedDict,
     VectorTuple,
+    VectorTupleWithMetadata,
     FilterTypedDict,
 )
 from .dataclasses import Vector, SparseValues
@@ -86,7 +87,9 @@ class IndexRequestFactory:
 
     @staticmethod
     def upsert_request(
-        vectors: Union[List[Vector], List[VectorTuple], List[VectorTypedDict]],
+        vectors: Union[
+            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
+        ],
         namespace: Optional[str],
         _check_type: bool,
         **kwargs,
