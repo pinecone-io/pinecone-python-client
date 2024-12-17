@@ -1628,4 +1628,4 @@ grpc = ["googleapis-common-protos", "grpcio", "grpcio", "lz4", "protobuf", "prot
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "648e5233ed7f5cb5ef7b152a01a35eef44c1f8994ea54dc3241131fc5aa4a1f1"
+content-hash = "4d96e143202dabbbb5e19d88ea0a0f8b607a0ade2f0330b3bee3e5b975186a3a"

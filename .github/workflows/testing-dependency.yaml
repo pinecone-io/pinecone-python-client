@@ -67,7 +67,7 @@ jobs:
         protoc-gen-openapiv2:
           - 0.0.1
         googleapis_common_protos_version:
-          - 1.62.0
+          - 1.63.0
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/test-dependency-grpc
