@@ -1,6 +1,6 @@
-from ..helpers import poll_fetch_for_ids_in_namespace
+from ..helpers import poll_fetch_for_ids_in_namespace, embedding_values
 from pinecone import Vector
-from .utils import embedding_values
+
 import itertools
 
 
@@ -43,18 +43,6 @@ def setup_data(idx, target_namespace, wait):
         poll_fetch_for_ids_in_namespace(
             idx, ids=["1", "2", "3", "4", "5", "6", "7", "8", "9"], namespace=target_namespace
         )
-
-
-def setup_list_data(idx, target_namespace, wait):
-    # Upsert a bunch more stuff for testing list pagination
-    for i in range(0, 1000, 50):
-        idx.upsert(
-            vectors=[(str(i + d), embedding_values(2)) for d in range(50)],
-            namespace=target_namespace,
-        )
-
-    if wait:
-        poll_fetch_for_ids_in_namespace(idx, ids=["999"], namespace=target_namespace)
 
 
 def weird_invalid_ids():

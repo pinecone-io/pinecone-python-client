@@ -10,17 +10,23 @@ from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.db_data.api.vector_operations_api import VectorOperationsApi
 from pinecone.core.openapi.db_data import API_VERSION
 from pinecone.core.openapi.db_data.models import (
-    FetchResponse,
     QueryResponse,
     IndexDescription as DescribeIndexStatsResponse,
     UpsertResponse,
-    Vector,
     ListResponse,
-    SparseValues,
 )
+from .dataclasses import Vector, SparseValues, FetchResponse
 from .interfaces import IndexInterface
 from .request_factory import IndexRequestFactory
 from .features.bulk_import import ImportFeatureMixin
+from .types import (
+    SparseVectorTypedDict,
+    VectorTypedDict,
+    VectorMetadataTypedDict,
+    VectorTuple,
+    VectorTupleWithMetadata,
+    FilterTypedDict,
+)
 from ..utils import (
     setup_openapi_client,
     parse_non_empty_args,
@@ -114,7 +120,9 @@ class Index(IndexInterface, ImportFeatureMixin):
     @validate_and_convert_errors
     def upsert(
         self,
-        vectors: Union[List[Vector], List[tuple], List[dict]],
+        vectors: Union[
+            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
+        ],
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,
         show_progress: bool = True,
@@ -149,7 +157,9 @@ class Index(IndexInterface, ImportFeatureMixin):
 
     def _upsert_batch(
         self,
-        vectors: Union[List[Vector], List[tuple], List[dict]],
+        vectors: Union[
+            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
+        ],
         namespace: Optional[str],
         _check_type: bool,
         **kwargs,
@@ -210,7 +220,12 @@ class Index(IndexInterface, ImportFeatureMixin):
     @validate_and_convert_errors
     def fetch(self, ids: List[str], namespace: Optional[str] = None, **kwargs) -> FetchResponse:
         args_dict = parse_non_empty_args([("namespace", namespace)])
-        return self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
+        result = self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
+        return FetchResponse(
+            namespace=result.namespace,
+            vectors={k: Vector.from_dict(v) for k, v in result.vectors.items()},
+            usage=result.usage,
+        )
 
     @validate_and_convert_errors
     def query(
@@ -220,12 +235,10 @@ class Index(IndexInterface, ImportFeatureMixin):
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> Union[QueryResponse, ApplyResult]:
         response = self._query(
@@ -253,18 +266,19 @@ class Index(IndexInterface, ImportFeatureMixin):
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> QueryResponse:
         if len(args) > 0:
             raise ValueError(
                 "The argument order for `query()` has changed; please use keyword arguments instead of positional arguments. Example: index.query(vector=[0.1, 0.2, 0.3], top_k=10, namespace='my_namespace')"
             )
+
+        if top_k < 1:
+            raise ValueError("top_k must be a positive integer")
 
         request = IndexRequestFactory.query_request(
             top_k=top_k,
@@ -282,7 +296,7 @@ class Index(IndexInterface, ImportFeatureMixin):
     @validate_and_convert_errors
     def query_namespaces(
         self,
-        vector: List[float],
+        vector: Optional[List[float]],
         namespaces: List[str],
         metric: Literal["cosine", "euclidean", "dotproduct"],
         top_k: Optional[int] = None,
@@ -296,7 +310,8 @@ class Index(IndexInterface, ImportFeatureMixin):
     ) -> QueryNamespacesResults:
         if namespaces is None or len(namespaces) == 0:
             raise ValueError("At least one namespace must be specified")
-        if len(vector) == 0:
+        if sparse_vector is None and vector is not None and len(vector) == 0:
+            # If querying with a vector, it must not be empty
             raise ValueError("Query vector must not be empty")
 
         overall_topk = top_k if top_k is not None else 10
@@ -332,13 +347,9 @@ class Index(IndexInterface, ImportFeatureMixin):
         self,
         id: str,
         values: Optional[List[float]] = None,
-        set_metadata: Optional[
-            Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]
-        ] = None,
+        set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
-        sparse_values: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         return self._vector_api.update_vector(

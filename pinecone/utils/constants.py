@@ -11,7 +11,7 @@ REQUEST_ID: str = "request_id"
 CLIENT_VERSION = __version__
 CLIENT_ID = f"python-client-{CLIENT_VERSION}"
 
-REQUIRED_VECTOR_FIELDS = {"id", "values"}
-OPTIONAL_VECTOR_FIELDS = {"sparse_values", "metadata"}
+REQUIRED_VECTOR_FIELDS = {"id"}
+OPTIONAL_VECTOR_FIELDS = {"values", "sparse_values", "metadata"}
 
 SOURCE_TAG = "source_tag"

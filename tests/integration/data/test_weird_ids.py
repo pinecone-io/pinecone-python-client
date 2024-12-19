@@ -1,8 +1,25 @@
 import os
 import pytest
-from .seed import weird_valid_ids, weird_invalid_ids
+from ..helpers import random_string
+from .seed import weird_valid_ids, weird_invalid_ids, setup_weird_ids_data
+import logging
+
+logger = logging.getLogger(__name__)
 
 
+@pytest.fixture(scope="session")
+def weird_ids_namespace():
+    return random_string(10)
+
+
+@pytest.fixture(scope="class")
+def seed_weird_ids(idx, weird_ids_namespace):
+    logger.info("Seeding data in weird ids namespace " + weird_ids_namespace)
+    setup_weird_ids_data(idx, weird_ids_namespace, True)
+    yield
+
+
+@pytest.mark.usefixtures("seed_weird_ids")
 @pytest.mark.skipif(
     os.getenv("SKIP_WEIRD") == "true", reason="We don't need to run all of these every time"
 )

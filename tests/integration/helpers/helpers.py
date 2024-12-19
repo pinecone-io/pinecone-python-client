@@ -3,8 +3,15 @@ import os
 import time
 import random
 import string
+import logging
 from typing import Any
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+
+def embedding_values(dimension=2):
+    return [random.random() for _ in range(dimension)]
 
 
 def random_string(length):
@@ -65,7 +72,7 @@ def poll_stats_for_namespace(
     total_time = 0
     done = False
     while not done:
-        print(
+        logger.debug(
             f'Waiting for namespace "{namespace}" to have vectors. Total time waited: {total_time} seconds'
         )
         stats = idx.describe_index_stats()
@@ -87,9 +94,11 @@ def poll_fetch_for_ids_in_namespace(idx, ids, namespace):
     total_time = 0
     done = False
     while not done:
-        print(f'Attempting to fetch from "{namespace}". Total time waited: {total_time} seconds')
+        logger.debug(
+            f'Attempting to fetch from "{namespace}". Total time waited: {total_time} seconds'
+        )
         results = idx.fetch(ids=ids, namespace=namespace)
-        print(results)
+        logger.debug(results)
 
         all_present = all(key in results.vectors for key in ids)
         if all_present:
