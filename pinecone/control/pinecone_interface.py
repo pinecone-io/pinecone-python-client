@@ -379,6 +379,7 @@ class PineconeDBControlInterface(ABC):
         replicas: Optional[int] = None,
         pod_type: Optional[str] = None,
         deletion_protection: Optional[Literal["enabled", "disabled"]] = None,
+        tags: Optional[Dict[str, str]] = None,
     ):
         """This method is used to scale configuration fields for your pod-based Pinecone index.
 
@@ -386,7 +387,8 @@ class PineconeDBControlInterface(ABC):
         :param: replicas: the desired number of replicas, lowest value is 0.
         :param: pod_type: the new pod_type for the index. To learn more about the
             available pod types, please see [Understanding Indexes](https://docs.pinecone.io/docs/indexes)
-
+        :param: deletion_protection: If set to 'enabled', the index cannot be deleted. If 'disabled', the index can be deleted.
+        :param: tags: A dictionary of tags to apply to the index. Tags are key-value pairs that can be used to organize and manage indexes. To remove a tag, set the value to "". Tags passed to configure_index will be merged with existing tags and any with the value empty string will be removed.
 
         ```python
         from pinecone import Pinecone
