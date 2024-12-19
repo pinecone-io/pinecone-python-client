@@ -20,6 +20,7 @@ from pinecone.core.openapi.db_control.models import (
     ConfigureIndexRequestSpecPod,
     DeletionProtection,
     IndexSpec,
+    IndexTags,
     ServerlessSpec as ServerlessSpecModel,
     PodSpec as PodSpecModel,
     PodSpecMetadataConfig,
@@ -173,6 +174,7 @@ class Pinecone(PineconeDBControlInterface):
         timeout: Optional[int] = None,
         deletion_protection: Optional[Literal["enabled", "disabled"]] = "disabled",
         vector_type: Optional[Literal["dense", "sparse"]] = "dense",
+        tags: Optional[Dict[str, str]] = None,
     ):
         api_instance = self.index_api
 
@@ -183,6 +185,11 @@ class Pinecone(PineconeDBControlInterface):
             dp = DeletionProtection(deletion_protection)
         else:
             raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
+
+        if tags is None:
+            tags_obj = None
+        else:
+            tags_obj = IndexTags(**tags)
 
         index_spec = self._parse_index_spec(spec)
 
@@ -196,6 +203,7 @@ class Pinecone(PineconeDBControlInterface):
                         ("spec", index_spec),
                         ("deletion_protection", dp),
                         ("vector_type", vector_type),
+                        ("tags", tags_obj),
                     ]
                 )
             )
@@ -280,16 +288,30 @@ class Pinecone(PineconeDBControlInterface):
         replicas: Optional[int] = None,
         pod_type: Optional[str] = None,
         deletion_protection: Optional[Literal["enabled", "disabled"]] = None,
+        tags: Optional[Dict[str, str]] = None,
     ):
         api_instance = self.index_api
+        description = self.describe_index(name=name)
 
         if deletion_protection is None:
-            description = self.describe_index(name=name)
             dp = DeletionProtection(description.deletion_protection)
         elif deletion_protection in ["enabled", "disabled"]:
             dp = DeletionProtection(deletion_protection)
         else:
             raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
+
+        fetched_tags = description.tags
+        if fetched_tags is None:
+            starting_tags = {}
+        else:
+            starting_tags = fetched_tags.to_dict()
+
+        if tags is None:
+            # Do not modify tags if none are provided
+            tags = starting_tags
+        else:
+            # Merge existing tags with new tags
+            tags = {**starting_tags, **tags}
 
         pod_config_args: Dict[str, Any] = {}
         if pod_type:
@@ -299,9 +321,9 @@ class Pinecone(PineconeDBControlInterface):
 
         if pod_config_args != {}:
             spec = ConfigureIndexRequestSpec(pod=ConfigureIndexRequestSpecPod(**pod_config_args))
-            req = ConfigureIndexRequest(deletion_protection=dp, spec=spec)
+            req = ConfigureIndexRequest(deletion_protection=dp, spec=spec, tags=IndexTags(**tags))
         else:
-            req = ConfigureIndexRequest(deletion_protection=dp)
+            req = ConfigureIndexRequest(deletion_protection=dp, tags=IndexTags(**tags))
 
         api_instance.configure_index(name, configure_index_request=req)
 
