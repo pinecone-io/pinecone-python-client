@@ -41,6 +41,7 @@ from pinecone.core.openapi.db_data.model.search_records_response import SearchRe
 from pinecone.core.openapi.db_data.model.search_records_response_result import (
     SearchRecordsResponseResult,
 )
+from pinecone.core.openapi.db_data.model.search_records_vector import SearchRecordsVector
 from pinecone.core.openapi.db_data.model.search_usage import SearchUsage
 from pinecone.core.openapi.db_data.model.search_vector import SearchVector
 from pinecone.core.openapi.db_data.model.single_query_results import SingleQueryResults

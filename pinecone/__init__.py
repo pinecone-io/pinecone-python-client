@@ -15,3 +15,7 @@ from .data import *
 from .models import *
 
 from .utils import __version__
+
+import logging
+
+logging.getLogger("pinecone_plugin_interface").setLevel(logging.CRITICAL)

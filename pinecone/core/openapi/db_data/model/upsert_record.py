@@ -99,7 +99,7 @@ class UpsertRecord(ModelNormal):
         """UpsertRecord - a model defined in OpenAPI
 
         Args:
-            id (str): The unique ID of the record to upsert.
+            id (str): The unique ID of the record to upsert. Note that `id` can be used as an alias for `_id`.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -186,7 +186,7 @@ class UpsertRecord(ModelNormal):
         """UpsertRecord - a model defined in OpenAPI
 
         Args:
-            id (str): The unique ID of the record to upsert.
+            id (str): The unique ID of the record to upsert. Note that `id` can be used as an alias for `_id`.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
