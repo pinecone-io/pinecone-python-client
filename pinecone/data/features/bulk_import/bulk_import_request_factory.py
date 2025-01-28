@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Literal, Type, TypedDict, cast
+from typing import Optional, Literal, Type, TypedDict, cast, Any
 
 from pinecone.core.openapi.db_data.models import (
     StartImportRequest,
@@ -11,11 +11,6 @@ from pinecone.utils import parse_non_empty_args
 ImportErrorMode: Type[Enum] = cast(
     Type[Enum], Enum("ImportErrorMode", ImportErrorModeClass.allowed_values[("on_error",)])
 )
-
-
-class ListImportsArgs(TypedDict, total=False):
-    limit: Optional[int]
-    pagination_token: Optional[str]
 
 
 class DescribeImportArgs(TypedDict, total=False):
@@ -54,7 +49,7 @@ class BulkImportRequestFactory:
     @staticmethod
     def list_imports_paginated_args(
         limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
-    ) -> ListImportsArgs:
+    ) -> dict[str, Any]:
         return parse_non_empty_args([("limit", limit), ("pagination_token", pagination_token)])
 
     @staticmethod

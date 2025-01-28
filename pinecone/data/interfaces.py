@@ -12,14 +12,23 @@ from pinecone.core.openapi.db_data.models import (
 )
 from .query_results_aggregator import QueryNamespacesResults
 from multiprocessing.pool import ApplyResult
-from .types import VectorTypedDict, SparseVectorTypedDict, VectorMetadataTypedDict, FilterTypedDict
+from .types import (
+    VectorTypedDict,
+    SparseVectorTypedDict,
+    VectorMetadataTypedDict,
+    FilterTypedDict,
+    VectorTuple,
+    VectorTupleWithMetadata,
+)
 
 
 class IndexInterface(ABC):
     @abstractmethod
     def upsert(
         self,
-        vectors: Union[List[Vector], List[tuple], List[VectorTypedDict]],
+        vectors: Union[
+            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
+        ],
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,
         show_progress: bool = True,
@@ -99,7 +108,7 @@ class IndexInterface(ABC):
         ids: Optional[List[str]] = None,
         delete_all: Optional[bool] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """
@@ -174,9 +183,7 @@ class IndexInterface(ABC):
         filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> Union[QueryResponse, ApplyResult]:
         """
@@ -227,7 +234,7 @@ class IndexInterface(ABC):
         vector: List[float],
         namespaces: List[str],
         top_k: Optional[int] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
         sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
@@ -324,7 +331,7 @@ class IndexInterface(ABC):
 
     @abstractmethod
     def describe_index_stats(
-        self, filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None, **kwargs
+        self, filter: Optional[FilterTypedDict] = None, **kwargs
     ) -> DescribeIndexStatsResponse:
         """
         The DescribeIndexStats operation returns statistics about the index's contents.
@@ -410,7 +417,9 @@ class AsyncioIndexInterface(ABC):
     @abstractmethod
     async def upsert(
         self,
-        vectors: Union[List[Vector], List[tuple], List[dict]],
+        vectors: Union[
+            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
+        ],
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,
         show_progress: bool = True,
@@ -490,7 +499,7 @@ class AsyncioIndexInterface(ABC):
         ids: Optional[List[str]] = None,
         delete_all: Optional[bool] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """
@@ -564,12 +573,10 @@ class AsyncioIndexInterface(ABC):
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> QueryResponse:
         """
@@ -619,13 +626,11 @@ class AsyncioIndexInterface(ABC):
         self,
         namespaces: List[str],
         top_k: Optional[int] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
         vector: Optional[List[float]] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         """The query_namespaces() method is used to make a query to multiple namespaces in parallel and combine the results into one result set.
@@ -677,13 +682,9 @@ class AsyncioIndexInterface(ABC):
         self,
         id: str,
         values: Optional[List[float]] = None,
-        set_metadata: Optional[
-            Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]
-        ] = None,
+        set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
-        sparse_values: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """
@@ -721,7 +722,7 @@ class AsyncioIndexInterface(ABC):
 
     @abstractmethod
     async def describe_index_stats(
-        self, filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None, **kwargs
+        self, filter: Optional[FilterTypedDict] = None, **kwargs
     ) -> DescribeIndexStatsResponse:
         """
         The DescribeIndexStats operation returns statistics about the index's contents.

@@ -14,15 +14,12 @@ from pinecone.openapi_support import AsyncioApiClient
 from pinecone.core.openapi.db_data.api.vector_operations_api import AsyncioVectorOperationsApi
 from pinecone.core.openapi.db_data import API_VERSION
 from pinecone.core.openapi.db_data.models import (
-    FetchResponse,
     QueryResponse,
     IndexDescription as DescribeIndexStatsResponse,
     UpsertRequest,
     UpsertResponse,
-    Vector,
     DeleteRequest,
     ListResponse,
-    SparseValues,
 )
 
 from ..utils import (
@@ -31,11 +28,22 @@ from ..utils import (
     build_plugin_setup_client,
     validate_and_convert_errors,
 )
+from .types import (
+    SparseVectorTypedDict,
+    VectorTypedDict,
+    VectorMetadataTypedDict,
+    VectorTuple,
+    VectorTupleWithMetadata,
+    FilterTypedDict,
+)
+from .dataclasses import Vector, SparseValues, FetchResponse
+
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
 from .index import IndexRequestFactory
 
 from .vector_factory import VectorFactory
 from .query_results_aggregator import QueryNamespacesResults
+from .features.bulk_import import ImportFeatureMixinAsyncio
 from pinecone_plugin_interface import load_and_install as install_plugins
 
 logger = logging.getLogger(__name__)
@@ -62,7 +70,7 @@ def parse_query_response(response: QueryResponse):
     return response
 
 
-class _AsyncioIndex(AsyncioIndexInterface):
+class _AsyncioIndex(AsyncioIndexInterface, ImportFeatureMixinAsyncio):
     def __init__(
         self,
         api_key: str,
@@ -72,6 +80,15 @@ class _AsyncioIndex(AsyncioIndexInterface):
         openapi_config=None,
         **kwargs,
     ):
+        super().__init__(
+            api_key=api_key,
+            host=host,
+            pool_threads=pool_threads,
+            additional_headers=additional_headers,
+            openapi_config=openapi_config,
+            **kwargs,
+        )
+
         self.config = ConfigBuilder.build(
             api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
@@ -116,7 +133,9 @@ class _AsyncioIndex(AsyncioIndexInterface):
     @validate_and_convert_errors
     async def upsert(
         self,
-        vectors: Union[List[Vector], List[tuple], List[dict]],
+        vectors: Union[
+            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
+        ],
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,
         show_progress: bool = True,
@@ -147,7 +166,9 @@ class _AsyncioIndex(AsyncioIndexInterface):
     @validate_and_convert_errors
     async def _upsert_batch(
         self,
-        vectors: Union[List[Vector], List[tuple], List[dict]],
+        vectors: Union[
+            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
+        ],
         namespace: Optional[str],
         _check_type: bool,
         **kwargs,
@@ -179,7 +200,7 @@ class _AsyncioIndex(AsyncioIndexInterface):
         ids: Optional[List[str]] = None,
         delete_all: Optional[bool] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         _check_type = kwargs.pop("_check_type", False)
@@ -215,12 +236,10 @@ class _AsyncioIndex(AsyncioIndexInterface):
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> QueryResponse:
         response = await self._query(
@@ -244,12 +263,10 @@ class _AsyncioIndex(AsyncioIndexInterface):
         vector: Optional[List[float]] = None,
         id: Optional[str] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> QueryResponse:
         if len(args) > 0:
@@ -326,13 +343,9 @@ class _AsyncioIndex(AsyncioIndexInterface):
         self,
         id: str,
         values: Optional[List[float]] = None,
-        set_metadata: Optional[
-            Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]
-        ] = None,
+        set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
-        sparse_values: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         return await self._vector_api.update_vector(
@@ -349,7 +362,7 @@ class _AsyncioIndex(AsyncioIndexInterface):
 
     @validate_and_convert_errors
     async def describe_index_stats(
-        self, filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None, **kwargs
+        self, filter: Optional[FilterTypedDict] = None, **kwargs
     ) -> DescribeIndexStatsResponse:
         return await self._vector_api.describe_index_stats(
             IndexRequestFactory.describe_index_stats_request(filter, **kwargs),

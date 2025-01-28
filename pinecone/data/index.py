@@ -366,7 +366,7 @@ class Index(IndexInterface, ImportFeatureMixin):
 
     @validate_and_convert_errors
     def describe_index_stats(
-        self, filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None, **kwargs
+        self, filter: Optional[FilterTypedDict] = None, **kwargs
     ) -> DescribeIndexStatsResponse:
         return self._vector_api.describe_index_stats(
             IndexRequestFactory.describe_index_stats_request(filter, **kwargs),

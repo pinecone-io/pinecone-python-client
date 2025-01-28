@@ -125,7 +125,7 @@ class IndexRequestFactory:
 
     @staticmethod
     def describe_index_stats_request(
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None, **kwargs
+        filter: Optional[FilterTypedDict] = None, **kwargs
     ) -> DescribeIndexStatsRequest:
         _check_type = kwargs.pop("_check_type", False)
         args_dict = parse_non_empty_args([("filter", filter)])
