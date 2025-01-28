@@ -143,9 +143,9 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set.. [optional]  # noqa: E501
-            read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model.. [optional]  # noqa: E501
-            write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model.. [optional]  # noqa: E501
+            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set. [optional]  # noqa: E501
+            read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model. [optional]  # noqa: E501
+            write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -235,9 +235,9 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set.. [optional]  # noqa: E501
-            read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model.. [optional]  # noqa: E501
-            write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model.. [optional]  # noqa: E501
+            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set. [optional]  # noqa: E501
+            read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model. [optional]  # noqa: E501
+            write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

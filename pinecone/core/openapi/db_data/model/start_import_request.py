@@ -147,7 +147,7 @@ class StartImportRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            integration_id (str): The id of the [storage integration](https://docs.pinecone.io/guides/operations/integrations/manage-storage-integrations) that should be used to access the data.. [optional]  # noqa: E501
+            integration_id (str): The id of the [storage integration](https://docs.pinecone.io/guides/operations/integrations/manage-storage-integrations) that should be used to access the data. [optional]  # noqa: E501
             error_mode (ImportErrorMode): [optional]  # noqa: E501
         """
 
@@ -236,7 +236,7 @@ class StartImportRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            integration_id (str): The id of the [storage integration](https://docs.pinecone.io/guides/operations/integrations/manage-storage-integrations) that should be used to access the data.. [optional]  # noqa: E501
+            integration_id (str): The id of the [storage integration](https://docs.pinecone.io/guides/operations/integrations/manage-storage-integrations) that should be used to access the data. [optional]  # noqa: E501
             error_mode (ImportErrorMode): [optional]  # noqa: E501
         """
 

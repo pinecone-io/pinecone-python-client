@@ -145,7 +145,7 @@ class IndexModel(ModelNormal):
             status (IndexModelStatus):
 
         Keyword Args:
-            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified.. defaults to "dense"  # noqa: E501
+            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified. defaults to "dense"  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -176,7 +176,7 @@ class IndexModel(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dimension (int): The dimensions of the vectors to be inserted in the index.. [optional]  # noqa: E501
+            dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
             deletion_protection (DeletionProtection): [optional]  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
             embed (ModelIndexEmbed): [optional]  # noqa: E501
@@ -247,7 +247,7 @@ class IndexModel(ModelNormal):
             status (IndexModelStatus):
 
         Keyword Args:
-            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified.. defaults to "dense"  # noqa: E501
+            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified. defaults to "dense"  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -278,7 +278,7 @@ class IndexModel(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dimension (int): The dimensions of the vectors to be inserted in the index.. [optional]  # noqa: E501
+            dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
             deletion_protection (DeletionProtection): [optional]  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
             embed (ModelIndexEmbed): [optional]  # noqa: E501

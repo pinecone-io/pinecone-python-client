@@ -140,8 +140,8 @@ class SearchUsage(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            embed_total_tokens (int): The number of embedding tokens consumed by this operation.. [optional]  # noqa: E501
-            rerank_units (int): The number of rerank units consumed by this operation.. [optional]  # noqa: E501
+            embed_total_tokens (int): The number of embedding tokens consumed by this operation. [optional]  # noqa: E501
+            rerank_units (int): The number of rerank units consumed by this operation. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -229,8 +229,8 @@ class SearchUsage(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            embed_total_tokens (int): The number of embedding tokens consumed by this operation.. [optional]  # noqa: E501
-            rerank_units (int): The number of rerank units consumed by this operation.. [optional]  # noqa: E501
+            embed_total_tokens (int): The number of embedding tokens consumed by this operation. [optional]  # noqa: E501
+            rerank_units (int): The number of rerank units consumed by this operation. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

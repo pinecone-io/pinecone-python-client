@@ -146,12 +146,12 @@ class ModelIndexEmbed(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set.. [optional]  # noqa: E501
-            dimension (int): The dimensions of the vectors to be inserted in the index.. [optional]  # noqa: E501
-            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified.. [optional] if omitted the server will use the default value of "dense"  # noqa: E501
-            field_map ({str: (bool, dict, float, int, list, str, none_type)}): Identifies the name of the text field from your document model that is embedded.. [optional]  # noqa: E501
-            read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model.. [optional]  # noqa: E501
-            write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model.. [optional]  # noqa: E501
+            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set. [optional]  # noqa: E501
+            dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
+            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified. [optional] if omitted the server will use the default value of "dense".  # noqa: E501
+            field_map ({str: (bool, dict, float, int, list, str, none_type)}): Identifies the name of the text field from your document model that is embedded. [optional]  # noqa: E501
+            read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model. [optional]  # noqa: E501
+            write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -239,12 +239,12 @@ class ModelIndexEmbed(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set.. [optional]  # noqa: E501
-            dimension (int): The dimensions of the vectors to be inserted in the index.. [optional]  # noqa: E501
-            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified.. [optional] if omitted the server will use the default value of "dense"  # noqa: E501
-            field_map ({str: (bool, dict, float, int, list, str, none_type)}): Identifies the name of the text field from your document model that is embedded.. [optional]  # noqa: E501
-            read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model.. [optional]  # noqa: E501
-            write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model.. [optional]  # noqa: E501
+            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set. [optional]  # noqa: E501
+            dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
+            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified. [optional] if omitted the server will use the default value of "dense".  # noqa: E501
+            field_map ({str: (bool, dict, float, int, list, str, none_type)}): Identifies the name of the text field from your document model that is embedded. [optional]  # noqa: E501
+            read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model. [optional]  # noqa: E501
+            write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

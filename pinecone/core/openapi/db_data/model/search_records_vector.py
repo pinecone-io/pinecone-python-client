@@ -142,8 +142,8 @@ class SearchRecordsVector(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             values (VectorValues): [optional]  # noqa: E501
-            sparse_values ([float]): The sparse embedding values.. [optional]  # noqa: E501
-            sparse_indices ([int]): The sparse embedding indices.. [optional]  # noqa: E501
+            sparse_values ([float]): The sparse embedding values. [optional]  # noqa: E501
+            sparse_indices ([int]): The sparse embedding indices. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -228,8 +228,8 @@ class SearchRecordsVector(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             values (VectorValues): [optional]  # noqa: E501
-            sparse_values ([float]): The sparse embedding values.. [optional]  # noqa: E501
-            sparse_indices ([int]): The sparse embedding indices.. [optional]  # noqa: E501
+            sparse_values ([float]): The sparse embedding values. [optional]  # noqa: E501
+            sparse_indices ([int]): The sparse embedding indices. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

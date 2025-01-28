@@ -48,7 +48,7 @@ class BulkOperationsApi(object):
         def __cancel_bulk_import(self, id, **kwargs):
             """Cancel an import  # noqa: E501
 
-            The `cancel_import` operation cancels an import operation if it is not yet finished. It has no effect if the operation is already finished.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
+            Cancel an import operation if it is not yet finished. It has no effect if the operation is already finished.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -126,7 +126,7 @@ class BulkOperationsApi(object):
         def __describe_bulk_import(self, id, **kwargs):
             """Describe an import  # noqa: E501
 
-            The `describe_import` operation returns details of a specific import operation.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
+            Return details of a specific import operation.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -204,7 +204,7 @@ class BulkOperationsApi(object):
         def __list_bulk_imports(self, **kwargs):
             """List imports  # noqa: E501
 
-            The `list_imports` operation lists all recent and ongoing import operations.  By default, `list_imports` returns up to 100 imports per page. If the `limit` parameter is set, `list` returns up to that number of imports instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of imports. When the response does not include a `pagination_token`, there are no more imports to return.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
+            List all recent and ongoing import operations.  By default, this returns up to 100 imports per page. If the `limit` parameter is set, `list` returns up to that number of imports instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of imports. When the response does not include a `pagination_token`, there are no more imports to return.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -213,8 +213,8 @@ class BulkOperationsApi(object):
 
 
             Keyword Args:
-                limit (int): Max number of operations to return per page.. [optional]
-                pagination_token (str): Pagination token to continue a previous listing operation.. [optional]
+                limit (int): Max number of operations to return per page. [optional]
+                pagination_token (str): Pagination token to continue a previous listing operation. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -281,7 +281,7 @@ class BulkOperationsApi(object):
         def __start_bulk_import(self, start_import_request, **kwargs):
             """Start import  # noqa: E501
 
-            The `start_import` operation starts an asynchronous import of vectors from object storage into an index.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
+            Start an asynchronous import of vectors from object storage into an index.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -372,7 +372,7 @@ class AsyncioBulkOperationsApi(object):
         async def __cancel_bulk_import(self, id, **kwargs):
             """Cancel an import  # noqa: E501
 
-            The `cancel_import` operation cancels an import operation if it is not yet finished. It has no effect if the operation is already finished.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
+            Cancel an import operation if it is not yet finished. It has no effect if the operation is already finished.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
 
 
             Args:
@@ -442,7 +442,7 @@ class AsyncioBulkOperationsApi(object):
         async def __describe_bulk_import(self, id, **kwargs):
             """Describe an import  # noqa: E501
 
-            The `describe_import` operation returns details of a specific import operation.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
+            Return details of a specific import operation.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
 
 
             Args:
@@ -512,13 +512,13 @@ class AsyncioBulkOperationsApi(object):
         async def __list_bulk_imports(self, **kwargs):
             """List imports  # noqa: E501
 
-            The `list_imports` operation lists all recent and ongoing import operations.  By default, `list_imports` returns up to 100 imports per page. If the `limit` parameter is set, `list` returns up to that number of imports instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of imports. When the response does not include a `pagination_token`, there are no more imports to return.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
+            List all recent and ongoing import operations.  By default, this returns up to 100 imports per page. If the `limit` parameter is set, `list` returns up to that number of imports instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of imports. When the response does not include a `pagination_token`, there are no more imports to return.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
 
 
 
             Keyword Args:
-                limit (int): Max number of operations to return per page.. [optional]
-                pagination_token (str): Pagination token to continue a previous listing operation.. [optional]
+                limit (int): Max number of operations to return per page. [optional]
+                pagination_token (str): Pagination token to continue a previous listing operation. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -581,7 +581,7 @@ class AsyncioBulkOperationsApi(object):
         async def __start_bulk_import(self, start_import_request, **kwargs):
             """Start import  # noqa: E501
 
-            The `start_import` operation starts an asynchronous import of vectors from object storage into an index.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
+            Start an asynchronous import of vectors from object storage into an index.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
 
 
             Args:

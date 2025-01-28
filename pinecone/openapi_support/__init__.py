@@ -5,6 +5,8 @@
 
 from .api_client import ApiClient
 from .endpoint import Endpoint
+from .asyncio_api_client import AsyncioApiClient
+from .asyncio_endpoint import AsyncioEndpoint
 from .configuration import Configuration
 from .exceptions import (
     PineconeException,
@@ -33,7 +35,10 @@ from .model_utils import (
     file_type,
     none_type,
 )
-from .rest import RESTClientObject, RESTResponse
+from .rest_urllib3 import Urllib3RestClient
+from .rest_aiohttp import AiohttpRestClient
+from .rest_utils import RESTResponse
+
 from .constants import OPENAPI_ENDPOINT_PARAMS
 
 from datetime import date, datetime  # noqa: F401

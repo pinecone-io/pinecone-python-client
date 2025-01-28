@@ -8,11 +8,14 @@ import os
 import re
 from urllib.parse import quote
 from urllib3.fields import RequestField
+import logging
+
+logger = logging.getLogger(__name__)
 
 from typing import Optional, List, Tuple, Dict, Any, Union
 
 
-from .rest_urllib3 import Urllib3RestClient
+from .rest_aiohttp import AiohttpRestClient
 from .configuration import Configuration
 from .exceptions import PineconeApiValueError, PineconeApiException
 from .model_utils import (
@@ -28,7 +31,7 @@ from .model_utils import (
 )
 
 
-class ApiClient(object):
+class AsyncioApiClient(object):
     """Generic API client for OpenAPI client library builds.
 
     :param configuration: .Configuration object for this client
@@ -52,8 +55,7 @@ class ApiClient(object):
         self.configuration = configuration
         self.pool_threads = pool_threads
 
-        # self.rest_client = HttpxRestClient(configuration, http2=False)
-        self.rest_client = Urllib3RestClient(configuration)
+        self.rest_client = AiohttpRestClient(configuration)
 
         self.default_headers = {}
         if header_name is not None:
@@ -68,16 +70,9 @@ class ApiClient(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
 
-    def close(self):
-        if self._threadpool_executor:
-            self._threadpool_executor.shutdown()
-            self._threadpool_executor = None
-        if self._pool:
-            self._pool.close()
-            self._pool.join()
-            self._pool = None
-            if hasattr(atexit, "unregister"):
-                atexit.unregister(self.close)
+    async def close(self):
+        logger.debug("Closing the aiohttp client")
+        await self.rest_client.close()
 
     @property
     def pool(self):
@@ -107,7 +102,7 @@ class ApiClient(object):
     def set_default_header(self, header_name, header_value):
         self.default_headers[header_name] = header_value
 
-    def __call_api(
+    async def __call_api(
         self,
         resource_path: str,
         method: str,
@@ -197,7 +192,7 @@ class ApiClient(object):
 
         try:
             # perform request and return response
-            response_data = self.request(
+            response_data = await self.request(
                 method,
                 url,
                 query_params=processed_query_params,
@@ -341,7 +336,7 @@ class ApiClient(object):
         )
         return deserialized_data
 
-    def call_api(
+    async def call_api(
         self,
         resource_path: str,
         method: str,
@@ -415,70 +410,70 @@ class ApiClient(object):
             If parameter async_req is False or missing,
             then the method will return the response directly.
         """
-        if async_threadpool_executor:
-            return self.threadpool_executor.submit(
-                self.__call_api,
-                resource_path,
-                method,
-                path_params,
-                query_params,
-                header_params,
-                body,
-                post_params,
-                files,
-                response_type,
-                auth_settings,
-                _return_http_data_only,
-                collection_formats,
-                _preload_content,
-                _request_timeout,
-                _host,
-                _check_type,
-            )
+        # if async_threadpool_executor:
+        #     return self.threadpool_executor.submit(
+        #         self.__call_api,
+        #         resource_path,
+        #         method,
+        #         path_params,
+        #         query_params,
+        #         header_params,
+        #         body,
+        #         post_params,
+        #         files,
+        #         response_type,
+        #         auth_settings,
+        #         _return_http_data_only,
+        #         collection_formats,
+        #         _preload_content,
+        #         _request_timeout,
+        #         _host,
+        #         _check_type,
+        #     )
 
-        if not async_req:
-            return self.__call_api(
-                resource_path,
-                method,
-                path_params,
-                query_params,
-                header_params,
-                body,
-                post_params,
-                files,
-                response_type,
-                auth_settings,
-                _return_http_data_only,
-                collection_formats,
-                _preload_content,
-                _request_timeout,
-                _host,
-                _check_type,
-            )
-
-        return self.pool.apply_async(
-            self.__call_api,
-            (
-                resource_path,
-                method,
-                path_params,
-                query_params,
-                header_params,
-                body,
-                post_params,
-                files,
-                response_type,
-                auth_settings,
-                _return_http_data_only,
-                collection_formats,
-                _preload_content,
-                _request_timeout,
-                _host,
-                _check_type,
-            ),
+        # if not async_req:
+        return await self.__call_api(
+            resource_path,
+            method,
+            path_params,
+            query_params,
+            header_params,
+            body,
+            post_params,
+            files,
+            response_type,
+            auth_settings,
+            _return_http_data_only,
+            collection_formats,
+            _preload_content,
+            _request_timeout,
+            _host,
+            _check_type,
         )
 
-    def request(
+        # return self.pool.apply_async(
+        #     self.__call_api,
+        #     (
+        #         resource_path,
+        #         method,
+        #         path_params,
+        #         query_params,
+        #         header_params,
+        #         body,
+        #         post_params,
+        #         files,
+        #         response_type,
+        #         auth_settings,
+        #         _return_http_data_only,
+        #         collection_formats,
+        #         _preload_content,
+        #         _request_timeout,
+        #         _host,
+        #         _check_type,
+        #     ),
+        # )
+
+    async def request(
         self,
         method,
         url,
@@ -491,7 +486,7 @@ class ApiClient(object):
     ):
         """Makes the HTTP request using RESTClient."""
         if method == "GET":
-            return self.rest_client.GET(
+            return await self.rest_client.GET(
                 url,
                 query_params=query_params,
                 _preload_content=_preload_content,
@@ -499,7 +494,7 @@ class ApiClient(object):
                 headers=headers,
             )
         elif method == "HEAD":
-            return self.rest_client.HEAD(
+            return await self.rest_client.HEAD(
                 url,
                 query_params=query_params,
                 _preload_content=_preload_content,
@@ -507,7 +502,7 @@ class ApiClient(object):
                 headers=headers,
             )
         elif method == "OPTIONS":
-            return self.rest_client.OPTIONS(
+            return await self.rest_client.OPTIONS(
                 url,
                 query_params=query_params,
                 headers=headers,
@@ -517,7 +512,7 @@ class ApiClient(object):
                 body=body,
             )
         elif method == "POST":
-            return self.rest_client.POST(
+            return await self.rest_client.POST(
                 url,
                 query_params=query_params,
                 headers=headers,
@@ -527,7 +522,7 @@ class ApiClient(object):
                 body=body,
             )
         elif method == "PUT":
-            return self.rest_client.PUT(
+            return await self.rest_client.PUT(
                 url,
                 query_params=query_params,
                 headers=headers,
@@ -537,7 +532,7 @@ class ApiClient(object):
                 body=body,
             )
         elif method == "PATCH":
-            return self.rest_client.PATCH(
+            return await self.rest_client.PATCH(
                 url,
                 query_params=query_params,
                 headers=headers,
@@ -547,7 +542,7 @@ class ApiClient(object):
                 body=body,
             )
         elif method == "DELETE":
-            return self.rest_client.DELETE(
+            return await self.rest_client.DELETE(
                 url,
                 query_params=query_params,
                 headers=headers,

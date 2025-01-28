@@ -131,8 +131,8 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change.. [optional] if omitted the server will use the default value of 1  # noqa: E501
-            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`.. [optional] if omitted the server will use the default value of "p1.x1"  # noqa: E501
+            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`. [optional] if omitted the server will use the default value of "p1.x1".  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -216,8 +216,8 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change.. [optional] if omitted the server will use the default value of 1  # noqa: E501
-            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`.. [optional] if omitted the server will use the default value of "p1.x1"  # noqa: E501
+            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`. [optional] if omitted the server will use the default value of "p1.x1".  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

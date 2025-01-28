@@ -6,6 +6,7 @@ import urllib3
 
 from http import client as http_client
 from .exceptions import PineconeApiValueError
+from .api_version import API_VERSION
 
 
 JSON_SCHEMA_VALIDATION_KEYWORDS = {
@@ -394,19 +395,6 @@ class Configuration(object):
                 "value": self.get_api_key_with_prefix("ApiKeyAuth"),
             }
         return auth
-
-    def to_debug_report(self):
-        """Gets the essential information for debugging.
-
-        :return: The report for debugging.
-        """
-        return (
-            "Python SDK Debug Report:\n"
-            "OS: {env}\n"
-            "Python Version: {pyversion}\n"
-            "Version of the API: 2024-07\n"
-            "SDK Package Version: 1.0.0".format(env=sys.platform, pyversion=sys.version)
-        )
 
     def get_host_settings(self):
         """Gets an array of host settings

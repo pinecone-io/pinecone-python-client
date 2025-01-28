@@ -148,10 +148,10 @@ class SearchRecordsRequestQuery(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply.. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. [optional]  # noqa: E501
             inputs ({str: (bool, dict, float, int, list, str, none_type)}): [optional]  # noqa: E501
             vector (SearchRecordsVector): [optional]  # noqa: E501
-            id (str): The unique ID of the vector to be used as a query vector.. [optional]  # noqa: E501
+            id (str): The unique ID of the vector to be used as a query vector. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -239,10 +239,10 @@ class SearchRecordsRequestQuery(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply.. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. [optional]  # noqa: E501
             inputs ({str: (bool, dict, float, int, list, str, none_type)}): [optional]  # noqa: E501
             vector (SearchRecordsVector): [optional]  # noqa: E501
-            id (str): The unique ID of the vector to be used as a query vector.. [optional]  # noqa: E501
+            id (str): The unique ID of the vector to be used as a query vector. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

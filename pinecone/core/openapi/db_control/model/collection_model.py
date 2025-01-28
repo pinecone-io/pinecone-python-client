@@ -150,9 +150,9 @@ class CollectionModel(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            size (int): The size of the collection in bytes.. [optional]  # noqa: E501
-            dimension (int): The dimension of the vectors stored in each record held in the collection.. [optional]  # noqa: E501
-            vector_count (int): The number of records stored in the collection.. [optional]  # noqa: E501
+            size (int): The size of the collection in bytes. [optional]  # noqa: E501
+            dimension (int): The dimension of the vectors stored in each record held in the collection. [optional]  # noqa: E501
+            vector_count (int): The number of records stored in the collection. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -244,9 +244,9 @@ class CollectionModel(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            size (int): The size of the collection in bytes.. [optional]  # noqa: E501
-            dimension (int): The dimension of the vectors stored in each record held in the collection.. [optional]  # noqa: E501
-            vector_count (int): The number of records stored in the collection.. [optional]  # noqa: E501
+            size (int): The size of the collection in bytes. [optional]  # noqa: E501
+            dimension (int): The dimension of the vectors stored in each record held in the collection. [optional]  # noqa: E501
+            vector_count (int): The number of records stored in the collection. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

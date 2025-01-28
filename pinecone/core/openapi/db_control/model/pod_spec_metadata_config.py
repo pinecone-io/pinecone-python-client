@@ -129,7 +129,7 @@ class PodSpecMetadataConfig(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            indexed ([str]): By default, all metadata is indexed; to change this behavior, use this property to specify an array of metadata fields that should be indexed.. [optional]  # noqa: E501
+            indexed ([str]): By default, all metadata is indexed; to change this behavior, use this property to specify an array of metadata fields that should be indexed. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -213,7 +213,7 @@ class PodSpecMetadataConfig(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            indexed ([str]): By default, all metadata is indexed; to change this behavior, use this property to specify an array of metadata fields that should be indexed.. [optional]  # noqa: E501
+            indexed ([str]): By default, all metadata is indexed; to change this behavior, use this property to specify an array of metadata fields that should be indexed. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

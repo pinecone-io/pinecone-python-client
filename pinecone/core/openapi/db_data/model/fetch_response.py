@@ -144,7 +144,7 @@ class FetchResponse(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             vectors ({str: (Vector,)}): [optional]  # noqa: E501
-            namespace (str): The namespace of the vectors.. [optional]  # noqa: E501
+            namespace (str): The namespace of the vectors. [optional]  # noqa: E501
             usage (Usage): [optional]  # noqa: E501
         """
 
@@ -230,7 +230,7 @@ class FetchResponse(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             vectors ({str: (Vector,)}): [optional]  # noqa: E501
-            namespace (str): The namespace of the vectors.. [optional]  # noqa: E501
+            namespace (str): The namespace of the vectors. [optional]  # noqa: E501
             usage (Usage): [optional]  # noqa: E501
         """
 

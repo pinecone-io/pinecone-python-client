@@ -162,11 +162,11 @@ class CreateIndexRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dimension (int): The dimensions of the vectors to be inserted in the index.. [optional]  # noqa: E501
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'.. [optional]  # noqa: E501
+            dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
+            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'. [optional]  # noqa: E501
             deletion_protection (DeletionProtection): [optional]  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
-            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified.. [optional] if omitted the server will use the default value of "dense"  # noqa: E501
+            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified. [optional] if omitted the server will use the default value of "dense".  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -256,11 +256,11 @@ class CreateIndexRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dimension (int): The dimensions of the vectors to be inserted in the index.. [optional]  # noqa: E501
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'.. [optional]  # noqa: E501
+            dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
+            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'. [optional]  # noqa: E501
             deletion_protection (DeletionProtection): [optional]  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
-            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified.. [optional] if omitted the server will use the default value of "dense"  # noqa: E501
+            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified. [optional] if omitted the server will use the default value of "dense".  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
