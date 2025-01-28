@@ -1,27 +1,22 @@
-from enum import Enum
-from typing import Optional, Literal, Iterator, List, Type, cast
+from typing import Optional, Literal, Iterator, List
 
 from pinecone.config.config import ConfigBuilder
 from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
 from pinecone.core.openapi.db_data import API_VERSION
 
-from pinecone.utils import parse_non_empty_args, install_json_repr_override, setup_openapi_client
+from pinecone.utils import install_json_repr_override, setup_openapi_client
 
 from pinecone.core.openapi.db_data.models import (
-    StartImportRequest,
     StartImportResponse,
     ListImportsResponse,
     ImportModel,
-    ImportErrorMode as ImportErrorModeClass,
 )
+
+from .bulk_import_request_factory import BulkImportRequestFactory
 
 for m in [StartImportResponse, ListImportsResponse, ImportModel]:
     install_json_repr_override(m)
-
-ImportErrorMode: Type[Enum] = cast(
-    Type[Enum], Enum("ImportErrorMode", ImportErrorModeClass.allowed_values[("on_error",)])
-)
 
 
 class ImportFeatureMixin:
@@ -68,23 +63,10 @@ class ImportFeatureMixin:
         Returns:
             StartImportResponse: Contains the id of the import operation.
         """
-        if isinstance(error_mode, ImportErrorMode):
-            error_mode = error_mode.value
-        elif isinstance(error_mode, str):
-            try:
-                error_mode = ImportErrorMode(error_mode.lower()).value
-            except ValueError:
-                raise ValueError(f"Invalid error_mode value: {error_mode}")
-
-        args_dict = parse_non_empty_args(
-            [
-                ("uri", uri),
-                ("integration_id", integration_id),
-                ("error_mode", ImportErrorModeClass(on_error=error_mode)),
-            ]
+        req = BulkImportRequestFactory.start_import_request(
+            uri=uri, integration_id=integration_id, error_mode=error_mode
         )
-
-        return self.__import_operations_api.start_bulk_import(StartImportRequest(**args_dict))
+        return self.__import_operations_api.start_bulk_import(req)
 
     def list_imports(self, **kwargs) -> Iterator[List[ImportModel]]:
         """
@@ -155,7 +137,9 @@ class ImportFeatureMixin:
         Returns: ListImportsResponse object which contains the list of operations as ImportModel objects, pagination information,
             and usage showing the number of read_units consumed.
         """
-        args_dict = parse_non_empty_args([("limit", limit), ("pagination_token", pagination_token)])
+        args_dict = BulkImportRequestFactory.list_imports_paginated_args(
+            limit=limit, pagination_token=pagination_token, **kwargs
+        )
         return self.__import_operations_api.list_imports(**args_dict)
 
     def describe_import(self, id: str) -> ImportModel:
@@ -169,9 +153,8 @@ class ImportFeatureMixin:
         Returns:
             ImportModel: An object containing operation id, status, and other details.
         """
-        if isinstance(id, int):
-            id = str(id)
-        return self.__import_operations_api.describe_bulk_import(id=id)
+        args = BulkImportRequestFactory.describe_import_args(id=id)
+        return self.__import_operations_api.describe_bulk_import(**args)
 
     def cancel_import(self, id: str):
         """Cancel an import operation.
@@ -179,6 +162,5 @@ class ImportFeatureMixin:
         Args:
             id (str): The id of the import operation to cancel.
         """
-        if isinstance(id, int):
-            id = str(id)
-        return self.__import_operations_api.cancel_import(id=id)
+        args = BulkImportRequestFactory.cancel_import_args(id=id)
+        return self.__import_operations_api.cancel_import(**args)
