@@ -72,16 +72,16 @@ class InferenceRequestBuilder:
         else:
             raise Exception("Invalid type or value for variable 'documents'")
 
-        args = {
+        args: Dict[str, Any] = {
             "model": model,
             "query": query,
             "documents": documents,
             "rank_fields": rank_fields,
             "return_documents": return_documents,
         }
-        if top_n:
+        if top_n is not None:
             args["top_n"] = top_n
-        if parameters:
+        if parameters is not None:
             args["parameters"] = parameters
 
         return RerankRequest(**args)

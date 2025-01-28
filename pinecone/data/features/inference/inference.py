@@ -63,7 +63,7 @@ class Inference:
 
     def embed(
         self,
-        model: Union[EmbedModel, str],
+        model: Union[EmbedModelEnum, str],
         inputs: Union[str, List[Dict], List[str]],
         parameters: Optional[Dict[str, Any]] = None,
     ) -> EmbeddingsList:
@@ -103,7 +103,7 @@ class Inference:
 
     def rerank(
         self,
-        model: Union[RerankModel, str],
+        model: Union[RerankModelEnum, str],
         query: str,
         documents: Union[List[str], List[Dict[str, Any]]],
         rank_fields: List[str] = ["text"],
