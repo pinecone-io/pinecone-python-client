@@ -2,9 +2,11 @@ from tqdm.autonotebook import tqdm
 
 import logging
 import asyncio
+import json
 
 from .interfaces import AsyncioIndexInterface
-from typing import Union, List, Optional, Dict, Any
+from .query_results_aggregator import QueryResultsAggregator
+from typing import Union, List, Optional, Dict, Any, Literal
 
 from pinecone.config import ConfigBuilder
 
@@ -51,7 +53,12 @@ _OPENAPI_ENDPOINT_PARAMS = (
 
 
 def parse_query_response(response: QueryResponse):
-    response._data_store.pop("results", None)
+    if hasattr(response, "_data_store"):
+        # I'm not sure, but I think this is no longer needed. At some point
+        # in the past the query response returned "results" instead of matches
+        # and then for some time it returned both keys even though "results"
+        # was always empty. I'm leaving this here just in case.
+        response._data_store.pop("results", None)
     return response
 
 
@@ -268,18 +275,51 @@ class _AsyncioIndex(AsyncioIndexInterface):
     @validate_and_convert_errors
     async def query_namespaces(
         self,
-        vector: List[float],
         namespaces: List[str],
+        metric: Literal["cosine", "euclidean", "dotproduct"],
         top_k: Optional[int] = None,
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
+        vector: Optional[List[float]] = None,
         sparse_vector: Optional[
             Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
         ] = None,
         **kwargs,
     ) -> QueryNamespacesResults:
-        raise NotImplementedError("query_namespaces is not implemented for asyncio")
+        if namespaces is None or len(namespaces) == 0:
+            raise ValueError("At least one namespace must be specified")
+        if sparse_vector is None and vector is not None and len(vector) == 0:
+            # If querying with a vector, it must not be empty
+            raise ValueError("Query vector must not be empty")
+
+        overall_topk = top_k if top_k is not None else 10
+        aggregator = QueryResultsAggregator(top_k=overall_topk, metric=metric)
+
+        target_namespaces = set(namespaces)  # dedup namespaces
+        tasks = [
+            self.query(
+                vector=vector,
+                namespace=ns,
+                top_k=overall_topk,
+                filter=filter,
+                include_values=include_values,
+                include_metadata=include_metadata,
+                sparse_vector=sparse_vector,
+                async_threadpool_executor=True,
+                _preload_content=False,
+                **kwargs,
+            )
+            for ns in target_namespaces
+        ]
+
+        for task in asyncio.as_completed(tasks):
+            raw_result = await task
+            response = json.loads(raw_result.data.decode("utf-8"))
+            aggregator.add_results(response)
+
+        final_results = aggregator.get_results()
+        return final_results
 
     @validate_and_convert_errors
     async def update(

@@ -70,10 +70,7 @@ def sparse_index_name():
 
 
 def build_asyncioindex_client(client, index_host) -> _AsyncioIndex:
-    if use_grpc():
-        return client.AsyncioIndex(host=index_host)
-    else:
-        return client.AsyncioIndex(host=index_host)
+    return client.AsyncioIndex(host=index_host)
 
 
 @pytest.fixture(scope="session")

@@ -617,12 +617,12 @@ class AsyncioIndexInterface(ABC):
     @abstractmethod
     async def query_namespaces(
         self,
-        vector: List[float],
         namespaces: List[str],
         top_k: Optional[int] = None,
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
+        vector: Optional[List[float]] = None,
         sparse_vector: Optional[
             Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
         ] = None,
