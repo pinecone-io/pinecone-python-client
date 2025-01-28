@@ -30,7 +30,7 @@ class TestAsyncioUpdate:
             fetched_vec = await asyncio_idx.fetch(ids=["1"], namespace=target_namespace)
             return fetched_vec.vectors["1"].values[0] == pytest.approx(new_values[0], 0.01)
 
-        await wait_until(wait_condition, timeout=60, interval=10)
+        await wait_until(wait_condition, timeout=180, interval=10)
 
         fetched_vec = await asyncio_idx.fetch(ids=["1"], namespace=target_namespace)
         assert fetched_vec.vectors["1"].values[0] == pytest.approx(new_values[0], 0.01)

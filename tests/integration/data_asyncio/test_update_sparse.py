@@ -35,16 +35,19 @@ class TestAsyncioUpdateSparse:
             id="1", sparse_values=new_sparse_values, namespace=target_namespace
         )
 
+        # Wait until the update is reflected in the first value of the vector
         async def wait_condition():
             fetched_vec = await asyncio_idx.fetch(ids=["1"], namespace=target_namespace)
             return fetched_vec.vectors["1"].sparse_values.values[0] == pytest.approx(
                 new_sparse_values["values"][0], 0.01
             )
 
-        await wait_until(wait_condition, timeout=60, interval=5)
+        await wait_until(wait_condition, timeout=180, interval=5)
 
         fetched_vec = await asyncio_idx.fetch(ids=["1"], namespace=target_namespace)
         assert len(fetched_vec.vectors["1"].sparse_values.values) == 100
+
+        #  Check that all the values are updated
         for i in range(100):
             assert fetched_vec.vectors["1"].sparse_values.values[i] == pytest.approx(
                 new_sparse_values["values"][i], 0.01

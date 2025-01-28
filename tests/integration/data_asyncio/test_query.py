@@ -82,7 +82,6 @@ async def test_query(pc, index_host, dimension, target_namespace):
         include_values=True,
     )
     assert results3 is not None
-    print(results3)
     assert len(results3.matches) == 2
     assert results3.namespace == target_namespace
     assert results3.matches[0].metadata == {"genre": "action"}
