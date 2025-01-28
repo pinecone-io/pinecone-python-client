@@ -10,8 +10,6 @@ from urllib.parse import quote
 from urllib3.fields import RequestField
 import logging
 
-logger = logging.getLogger(__name__)
-
 from typing import Optional, List, Tuple, Dict, Any, Union
 
 
@@ -29,6 +27,8 @@ from .model_utils import (
     model_to_dict,
     validate_and_convert_types,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class AsyncioApiClient(object):
