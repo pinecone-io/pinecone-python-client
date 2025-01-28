@@ -1167,20 +1167,6 @@ pygments = ">=2.12.0"
 dev = ["hypothesis", "mypy", "pdoc-pyo3-sample-library (==1.0.11)", "pygments (>=2.14.0)", "pytest", "pytest-cov", "pytest-timeout", "ruff", "tox", "types-pygments"]
 
 [[package]]
-name = "pinecone-plugin-inference"
-version = "2.0.0"
-description = "Embeddings plugin for Pinecone SDK"
-optional = false
-python-versions = "<4.0,>=3.8"
-files = [
-    {file = "pinecone_plugin_inference-2.0.0-py3-none-any.whl", hash = "sha256:260368b5584b12196d9031322c115c2329fb6c948a43952e3534061382f0d522"},
-    {file = "pinecone_plugin_inference-2.0.0.tar.gz", hash = "sha256:b29709cd5d82829f8d0361a3f5b51dab622da59533578097be04e73eeecf3ee5"},
-]
-
-[package.dependencies]
-pinecone-plugin-interface = ">=0.0.7,<0.0.8"
-
-[[package]]
 name = "pinecone-plugin-interface"
 version = "0.0.7"
 description = "Plugin interface for the Pinecone python client"
@@ -1924,4 +1910,4 @@ grpc = ["googleapis-common-protos", "grpcio", "grpcio", "lz4", "protobuf", "prot
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "2f6cf4f5393190aa4b8db33f40aa2a56967ee7325713f1e5abea0abac5f2929e"
+content-hash = "ed686662d6a59d70a89367d84a17857aef9143eeff20610190c95dcb5be7c71b"
