@@ -30,7 +30,7 @@ from pinecone.models import ServerlessSpec, PodSpec, IndexModel, IndexList, Coll
 from .langchain_import_warnings import _build_langchain_attribute_error_message
 from pinecone.utils import parse_non_empty_args, docslinks
 
-from pinecone.data import _Index
+from pinecone.data import _Index, _AsyncioIndex
 
 from pinecone_plugin_interface import load_and_install as install_plugins
 
@@ -220,10 +220,16 @@ class Pinecone(PineconeDBControlInterface):
             return
         if timeout is None:
             while not is_ready():
+                logger.debug(
+                    f"Waiting for index {name} to be ready. Total wait time: {total_wait_time}"
+                )
                 total_wait_time += 5
                 time.sleep(5)
         else:
             while (not is_ready()) and timeout >= 0:
+                logger.debug(
+                    f"Waiting for index {name} to be ready. Total wait time: {total_wait_time}"
+                )
                 total_wait_time += 5
                 time.sleep(5)
                 timeout -= 5
@@ -375,6 +381,30 @@ class Pinecone(PineconeDBControlInterface):
             index_host = self.index_host_store.get_host(self.index_api, self.config, name)
 
         return _Index(
+            host=index_host,
+            api_key=api_key,
+            pool_threads=pt,
+            openapi_config=openapi_config,
+            source_tag=self.config.source_tag,
+            **kwargs,
+        )
+
+    def AsyncioIndex(self, name: str = "", host: str = "", **kwargs):
+        if name == "" and host == "":
+            raise ValueError("Either name or host must be specified")
+
+        pt = kwargs.pop("pool_threads", None) or self.pool_threads
+        api_key = self.config.api_key
+        openapi_config = self.openapi_config
+
+        if host != "":
+            # Use host url if it is provided
+            index_host = normalize_host(host)
+        else:
+            # Otherwise, get host url from describe_index using the index name
+            index_host = self.index_host_store.get_host(self.index_api, self.config, name)
+
+        return _AsyncioIndex(
             host=index_host,
             api_key=api_key,
             pool_threads=pt,

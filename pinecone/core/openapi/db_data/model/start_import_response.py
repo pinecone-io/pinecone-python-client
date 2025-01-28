@@ -129,7 +129,7 @@ class StartImportResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            id (str): Unique identifier for the import operation.. [optional]  # noqa: E501
+            id (str): Unique identifier for the import operation. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -213,7 +213,7 @@ class StartImportResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            id (str): Unique identifier for the import operation.. [optional]  # noqa: E501
+            id (str): Unique identifier for the import operation. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

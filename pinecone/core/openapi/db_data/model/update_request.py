@@ -148,10 +148,10 @@ class UpdateRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            values ([float]): Vector data.. [optional]  # noqa: E501
+            values ([float]): Vector data. [optional]  # noqa: E501
             sparse_values (SparseValues): [optional]  # noqa: E501
-            set_metadata ({str: (bool, dict, float, int, list, str, none_type)}): Metadata to set for the vector.. [optional]  # noqa: E501
-            namespace (str): The namespace containing the vector to update.. [optional]  # noqa: E501
+            set_metadata ({str: (bool, dict, float, int, list, str, none_type)}): Metadata to set for the vector. [optional]  # noqa: E501
+            namespace (str): The namespace containing the vector to update. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -239,10 +239,10 @@ class UpdateRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            values ([float]): Vector data.. [optional]  # noqa: E501
+            values ([float]): Vector data. [optional]  # noqa: E501
             sparse_values (SparseValues): [optional]  # noqa: E501
-            set_metadata ({str: (bool, dict, float, int, list, str, none_type)}): Metadata to set for the vector.. [optional]  # noqa: E501
-            namespace (str): The namespace containing the vector to update.. [optional]  # noqa: E501
+            set_metadata ({str: (bool, dict, float, int, list, str, none_type)}): Metadata to set for the vector. [optional]  # noqa: E501
+            namespace (str): The namespace containing the vector to update. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

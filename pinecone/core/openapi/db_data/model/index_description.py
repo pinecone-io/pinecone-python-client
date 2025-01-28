@@ -147,12 +147,12 @@ class IndexDescription(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            namespaces ({str: (NamespaceSummary,)}): A mapping for each namespace in the index from the namespace name to a summary of its contents. If a metadata filter expression is present, the summary will reflect only vectors matching that expression.. [optional]  # noqa: E501
-            dimension (int): The dimension of the indexed vectors. Not specified if `sparse` index.. [optional]  # noqa: E501
-            index_fullness (float): The fullness of the index, regardless of whether a metadata filter expression was passed. The granularity of this metric is 10%.  Serverless indexes scale automatically as needed, so index fullness  is relevant only for pod-based indexes.  The index fullness result may be inaccurate during pod resizing; to get the status of a pod resizing process, use [`describe_index`](https://docs.pinecone.io/reference/api/2024-10/control-plane/describe_index).. [optional]  # noqa: E501
-            total_vector_count (int): The total number of vectors in the index, regardless of whether a metadata filter expression was passed. [optional]  # noqa: E501
-            metric (str): The metric used to measure similarity.. [optional]  # noqa: E501
-            vector_type (str): The type of vectors stored in the index.. [optional]  # noqa: E501
+            namespaces ({str: (NamespaceSummary,)}): A mapping for each namespace in the index from the namespace name to a summary of its contents. If a metadata filter expression is present, the summary will reflect only vectors matching that expression. [optional]  # noqa: E501
+            dimension (int): The dimension of the indexed vectors. Not specified if `sparse` index. [optional]  # noqa: E501
+            index_fullness (float): The fullness of the index, regardless of whether a metadata filter expression was passed. The granularity of this metric is 10%.  Serverless indexes scale automatically as needed, so index fullness  is relevant only for pod-based indexes.  The index fullness result may be inaccurate during pod resizing; to get the status of a pod resizing process, use [`describe_index`](https://docs.pinecone.io/reference/api/2024-10/control-plane/describe_index). [optional]  # noqa: E501
+            total_vector_count (int): The total number of vectors in the index, regardless of whether a metadata filter expression was passed [optional]  # noqa: E501
+            metric (str): The metric used to measure similarity. [optional]  # noqa: E501
+            vector_type (str): The type of vectors stored in the index. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -236,12 +236,12 @@ class IndexDescription(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            namespaces ({str: (NamespaceSummary,)}): A mapping for each namespace in the index from the namespace name to a summary of its contents. If a metadata filter expression is present, the summary will reflect only vectors matching that expression.. [optional]  # noqa: E501
-            dimension (int): The dimension of the indexed vectors. Not specified if `sparse` index.. [optional]  # noqa: E501
-            index_fullness (float): The fullness of the index, regardless of whether a metadata filter expression was passed. The granularity of this metric is 10%.  Serverless indexes scale automatically as needed, so index fullness  is relevant only for pod-based indexes.  The index fullness result may be inaccurate during pod resizing; to get the status of a pod resizing process, use [`describe_index`](https://docs.pinecone.io/reference/api/2024-10/control-plane/describe_index).. [optional]  # noqa: E501
-            total_vector_count (int): The total number of vectors in the index, regardless of whether a metadata filter expression was passed. [optional]  # noqa: E501
-            metric (str): The metric used to measure similarity.. [optional]  # noqa: E501
-            vector_type (str): The type of vectors stored in the index.. [optional]  # noqa: E501
+            namespaces ({str: (NamespaceSummary,)}): A mapping for each namespace in the index from the namespace name to a summary of its contents. If a metadata filter expression is present, the summary will reflect only vectors matching that expression. [optional]  # noqa: E501
+            dimension (int): The dimension of the indexed vectors. Not specified if `sparse` index. [optional]  # noqa: E501
+            index_fullness (float): The fullness of the index, regardless of whether a metadata filter expression was passed. The granularity of this metric is 10%.  Serverless indexes scale automatically as needed, so index fullness  is relevant only for pod-based indexes.  The index fullness result may be inaccurate during pod resizing; to get the status of a pod resizing process, use [`describe_index`](https://docs.pinecone.io/reference/api/2024-10/control-plane/describe_index). [optional]  # noqa: E501
+            total_vector_count (int): The total number of vectors in the index, regardless of whether a metadata filter expression was passed [optional]  # noqa: E501
+            metric (str): The metric used to measure similarity. [optional]  # noqa: E501
+            vector_type (str): The type of vectors stored in the index. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

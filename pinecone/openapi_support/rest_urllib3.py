@@ -1,21 +1,14 @@
-import io
 import json
 import logging
 import re
 import ssl
 import os
 from urllib.parse import urlencode, quote
+from .rest_utils import raise_exceptions_or_return, RESTResponse, RestClientInterface
 
 import urllib3
 
-from .exceptions import (
-    PineconeApiException,
-    UnauthorizedException,
-    ForbiddenException,
-    NotFoundException,
-    ServiceException,
-    PineconeApiValueError,
-)
+from .exceptions import PineconeApiException, PineconeApiValueError
 
 
 class bcolors:
@@ -33,23 +26,7 @@ class bcolors:
 logger = logging.getLogger(__name__)
 
 
-class RESTResponse(io.IOBase):
-    def __init__(self, resp):
-        self.urllib3_response = resp
-        self.status = resp.status
-        self.reason = resp.reason
-        self.data = resp.data
-
-    def getheaders(self):
-        """Returns a dictionary of the response headers."""
-        return self.urllib3_response.headers
-
-    def getheader(self, name, default=None):
-        """Returns a given response header."""
-        return self.urllib3_response.headers.get(name, default)
-
-
-class RESTClientObject(object):
+class Urllib3RestClient(RestClientInterface):
     def __init__(self, configuration, pools_size=4, maxsize=None):
         # urllib3.PoolManager will pass all kw parameters to connectionpool
         # https://github.com/shazow/urllib3/blob/f9409436f83aeb79fbaf090181cd81b784f1b8ce/urllib3/poolmanager.py#L75  # noqa: E501
@@ -132,6 +109,7 @@ class RESTClientObject(object):
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
         """
+        logger.debug("Calling urllib3 request()")
         method = method.upper()
         assert method in ["GET", "HEAD", "DELETE", "POST", "PUT", "PATCH", "OPTIONS"]
 
@@ -253,7 +231,7 @@ class RESTClientObject(object):
             raise PineconeApiException(status=0, reason=msg)
 
         if os.environ.get("PINECONE_DEBUG_CURL"):
-            o = RESTResponse(r)
+            o = RESTResponse(r.status, r.data, r.headers, r.reason)
 
             if o.status <= 300:
                 print(bcolors.OKGREEN + o.data.decode("utf-8") + bcolors.ENDC)
@@ -261,151 +239,9 @@ class RESTClientObject(object):
                 print(bcolors.FAIL + o.data.decode("utf-8") + bcolors.ENDC)
 
         if _preload_content:
-            r = RESTResponse(r)
+            r = RESTResponse(r.status, r.data, r.headers, r.reason)
 
             # log response body
             logger.debug("response body: %s", r.data)
 
-        if not 200 <= r.status <= 299:
-            if r.status == 401:
-                raise UnauthorizedException(http_resp=r)
-
-            if r.status == 403:
-                raise ForbiddenException(http_resp=r)
-
-            if r.status == 404:
-                raise NotFoundException(http_resp=r)
-
-            if 500 <= r.status <= 599:
-                raise ServiceException(http_resp=r)
-
-            raise PineconeApiException(http_resp=r)
-
-        return r
-
-    def GET(
-        self, url, headers=None, query_params=None, _preload_content=True, _request_timeout=None
-    ):
-        return self.request(
-            "GET",
-            url,
-            headers=headers,
-            _preload_content=_preload_content,
-            _request_timeout=_request_timeout,
-            query_params=query_params,
-        )
-
-    def HEAD(
-        self, url, headers=None, query_params=None, _preload_content=True, _request_timeout=None
-    ):
-        return self.request(
-            "HEAD",
-            url,
-            headers=headers,
-            _preload_content=_preload_content,
-            _request_timeout=_request_timeout,
-            query_params=query_params,
-        )
-
-    def OPTIONS(
-        self,
-        url,
-        headers=None,
-        query_params=None,
-        post_params=None,
-        body=None,
-        _preload_content=True,
-        _request_timeout=None,
-    ):
-        return self.request(
-            "OPTIONS",
-            url,
-            headers=headers,
-            query_params=query_params,
-            post_params=post_params,
-            _preload_content=_preload_content,
-            _request_timeout=_request_timeout,
-            body=body,
-        )
-
-    def DELETE(
-        self,
-        url,
-        headers=None,
-        query_params=None,
-        body=None,
-        _preload_content=True,
-        _request_timeout=None,
-    ):
-        return self.request(
-            "DELETE",
-            url,
-            headers=headers,
-            query_params=query_params,
-            _preload_content=_preload_content,
-            _request_timeout=_request_timeout,
-            body=body,
-        )
-
-    def POST(
-        self,
-        url,
-        headers=None,
-        query_params=None,
-        post_params=None,
-        body=None,
-        _preload_content=True,
-        _request_timeout=None,
-    ):
-        return self.request(
-            "POST",
-            url,
-            headers=headers,
-            query_params=query_params,
-            post_params=post_params,
-            _preload_content=_preload_content,
-            _request_timeout=_request_timeout,
-            body=body,
-        )
-
-    def PUT(
-        self,
-        url,
-        headers=None,
-        query_params=None,
-        post_params=None,
-        body=None,
-        _preload_content=True,
-        _request_timeout=None,
-    ):
-        return self.request(
-            "PUT",
-            url,
-            headers=headers,
-            query_params=query_params,
-            post_params=post_params,
-            _preload_content=_preload_content,
-            _request_timeout=_request_timeout,
-            body=body,
-        )
-
-    def PATCH(
-        self,
-        url,
-        headers=None,
-        query_params=None,
-        post_params=None,
-        body=None,
-        _preload_content=True,
-        _request_timeout=None,
-    ):
-        return self.request(
-            "PATCH",
-            url,
-            headers=headers,
-            query_params=query_params,
-            post_params=post_params,
-            _preload_content=_preload_content,
-            _request_timeout=_request_timeout,
-            body=body,
-        )
+        return raise_exceptions_or_return(r)

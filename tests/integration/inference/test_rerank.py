@@ -12,11 +12,7 @@ class TestInferencePluginRerank:
         result = pc.inference.rerank(
             model=model,
             query="i love dogs",
-            documents=[
-                "dogs are pretty cool",
-                "everyone loves dogs",
-                "I'm a cat person",
-            ],
+            documents=["dogs are pretty cool", "everyone loves dogs", "I'm a cat person"],
             top_n=1,
             return_documents=True,
         )
@@ -34,11 +30,7 @@ class TestInferencePluginRerank:
         result = pc.inference.rerank(
             model=model,
             query="i love dogs",
-            documents=[
-                "dogs are pretty cool",
-                "everyone loves dogs",
-                "I'm a cat person",
-            ],
+            documents=["dogs are pretty cool", "everyone loves dogs", "I'm a cat person"],
             top_n=1,
             return_documents=True,
         )
@@ -55,11 +47,7 @@ class TestInferencePluginRerank:
             pc.inference.rerank(
                 model="DOES NOT EXIST",
                 query="i love dogs",
-                documents=[
-                    "dogs are pretty cool",
-                    "everyone loves dogs",
-                    "I'm a cat person",
-                ],
+                documents=["dogs are pretty cool", "everyone loves dogs", "I'm a cat person"],
                 rank_fields=["custom-field"],
                 top_n=1,
                 return_documents=True,

@@ -7,7 +7,7 @@ from pinecone.openapi_support import ApiClient, RESTResponse
 
 
 def fake_response(mocker, body: str, status: int = 200) -> BaseHTTPResponse:
-    resp = HTTPResponse(
+    r = HTTPResponse(
         body=body.encode("utf-8"),
         headers={"content-type": "application/json"},
         status=status,
@@ -15,7 +15,8 @@ def fake_response(mocker, body: str, status: int = 200) -> BaseHTTPResponse:
         preload_content=True,
     )
     api_client = ApiClient()
-    mocker.patch.object(api_client, "request", return_value=RESTResponse(resp))
+    return_value = RESTResponse(r.status, r.data, r.headers, r.reason)
+    mocker.patch.object(api_client, "request", return_value=return_value)
     return api_client
 
 

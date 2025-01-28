@@ -9,6 +9,7 @@ from .index import (
 )
 from .dataclasses import *
 from .import_error import Index, IndexClientInstantiationError
+from .index_asyncio import *
 from .errors import (
     VectorDictionaryMissingKeysError,
     VectorDictionaryExcessKeysError,

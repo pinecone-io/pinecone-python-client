@@ -150,7 +150,7 @@ class SearchRecordsRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            fields ([str]): The fields to return in the search results.. [optional]  # noqa: E501
+            fields ([str]): The fields to return in the search results. [optional]  # noqa: E501
             rerank (SearchRecordsRequestRerank): [optional]  # noqa: E501
         """
 
@@ -239,7 +239,7 @@ class SearchRecordsRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            fields ([str]): The fields to return in the search results.. [optional]  # noqa: E501
+            fields ([str]): The fields to return in the search results. [optional]  # noqa: E501
             rerank (SearchRecordsRequestRerank): [optional]  # noqa: E501
         """
 

@@ -135,10 +135,10 @@ class ConfigureIndexRequestEmbed(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            model (str): The name of the embedding model to use with the index. The index dimension and model dimension must match, and the index similarity metric must be supported by the model. The index embedding model cannot be changed once set.. [optional]  # noqa: E501
-            field_map ({str: (bool, dict, float, int, list, str, none_type)}): Identifies the name of the text field from your document model that will be embedded.. [optional]  # noqa: E501
-            read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model.. [optional]  # noqa: E501
-            write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model.. [optional]  # noqa: E501
+            model (str): The name of the embedding model to use with the index. The index dimension and model dimension must match, and the index similarity metric must be supported by the model. The index embedding model cannot be changed once set. [optional]  # noqa: E501
+            field_map ({str: (bool, dict, float, int, list, str, none_type)}): Identifies the name of the text field from your document model that will be embedded. [optional]  # noqa: E501
+            read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model. [optional]  # noqa: E501
+            write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -222,10 +222,10 @@ class ConfigureIndexRequestEmbed(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            model (str): The name of the embedding model to use with the index. The index dimension and model dimension must match, and the index similarity metric must be supported by the model. The index embedding model cannot be changed once set.. [optional]  # noqa: E501
-            field_map ({str: (bool, dict, float, int, list, str, none_type)}): Identifies the name of the text field from your document model that will be embedded.. [optional]  # noqa: E501
-            read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model.. [optional]  # noqa: E501
-            write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model.. [optional]  # noqa: E501
+            model (str): The name of the embedding model to use with the index. The index dimension and model dimension must match, and the index similarity metric must be supported by the model. The index embedding model cannot be changed once set. [optional]  # noqa: E501
+            field_map ({str: (bool, dict, float, int, list, str, none_type)}): Identifies the name of the text field from your document model that will be embedded. [optional]  # noqa: E501
+            read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model. [optional]  # noqa: E501
+            write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

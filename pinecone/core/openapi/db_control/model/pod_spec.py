@@ -128,7 +128,7 @@ class PodSpec(ModelNormal):
             environment (str): The environment where the index is hosted.
 
         Keyword Args:
-            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`.. defaults to "p1.x1"  # noqa: E501
+            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`. defaults to "p1.x1"  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -159,11 +159,11 @@ class PodSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change.. [optional] if omitted the server will use the default value of 1  # noqa: E501
-            shards (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index.. [optional] if omitted the server will use the default value of 1  # noqa: E501
-            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`.'. [optional] if omitted the server will use the default value of 1  # noqa: E501
+            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            shards (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`.' [optional] if omitted the server will use the default value of 1.  # noqa: E501
             metadata_config (PodSpecMetadataConfig): [optional]  # noqa: E501
-            source_collection (str): The name of the collection to be used as the source for the index.. [optional]  # noqa: E501
+            source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
         """
 
         pod_type = kwargs.get("pod_type", "p1.x1")
@@ -223,7 +223,7 @@ class PodSpec(ModelNormal):
             environment (str): The environment where the index is hosted.
 
         Keyword Args:
-            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`.. defaults to "p1.x1"  # noqa: E501
+            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`. defaults to "p1.x1"  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -254,11 +254,11 @@ class PodSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change.. [optional] if omitted the server will use the default value of 1  # noqa: E501
-            shards (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index.. [optional] if omitted the server will use the default value of 1  # noqa: E501
-            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`.'. [optional] if omitted the server will use the default value of 1  # noqa: E501
+            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            shards (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`.' [optional] if omitted the server will use the default value of 1.  # noqa: E501
             metadata_config (PodSpecMetadataConfig): [optional]  # noqa: E501
-            source_collection (str): The name of the collection to be used as the source for the index.. [optional]  # noqa: E501
+            source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
         """
 
         pod_type = kwargs.get("pod_type", "p1.x1")

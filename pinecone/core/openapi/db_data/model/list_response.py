@@ -149,7 +149,7 @@ class ListResponse(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             vectors ([ListItem]): [optional]  # noqa: E501
             pagination (Pagination): [optional]  # noqa: E501
-            namespace (str): The namespace of the vectors.. [optional]  # noqa: E501
+            namespace (str): The namespace of the vectors. [optional]  # noqa: E501
             usage (Usage): [optional]  # noqa: E501
         """
 
@@ -236,7 +236,7 @@ class ListResponse(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             vectors ([ListItem]): [optional]  # noqa: E501
             pagination (Pagination): [optional]  # noqa: E501
-            namespace (str): The namespace of the vectors.. [optional]  # noqa: E501
+            namespace (str): The namespace of the vectors. [optional]  # noqa: E501
             usage (Usage): [optional]  # noqa: E501
         """
 

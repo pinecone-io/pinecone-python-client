@@ -1,0 +1,45 @@
+name: 'Test Asyncio'
+description: 'Runs tests on the Pinecone data plane'
+
+inputs:
+  spec:
+    description: 'The deploy spec of the index'
+    required: true
+  use_grpc:
+    description: 'Whether to use gRPC or REST'
+    required: true
+  freshness_timeout_seconds:
+    description: 'The number of seconds to wait for the index to become fresh'
+    required: false
+    default: '60'
+  PINECONE_API_KEY:
+    description: 'The Pinecone API key'
+    required: true
+  python_version:
+    description: 'The version of Python to use'
+    required: false
+    default: '3.9'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python_version }}
+
+    - name: Setup Poetry
+      uses: ./.github/actions/setup-poetry
+      with:
+        include_grpc: ${{ inputs.use_grpc }}
+        include_dev: 'true'
+
+    - name: Run data plane tests
+      id: data-plane-asyncio-tests
+      shell: bash
+      run: poetry run pytest tests/integration/data_asyncio -s -vv
+      env:
+        PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
+        USE_GRPC: ${{ inputs.use_grpc }}
+        SPEC: ${{ inputs.spec }}
+        FRESHNESS_TIMEOUT_SECONDS: ${{ inputs.freshness_timeout_seconds }}

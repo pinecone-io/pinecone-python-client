@@ -30,9 +30,9 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
-    from pinecone.core.openapi.db_data.model.vector_values import VectorValues
+    from pinecone.core.openapi.db_data.model.search_records_vector import SearchRecordsVector
 
-    globals()["VectorValues"] = VectorValues
+    globals()["SearchRecordsVector"] = SearchRecordsVector
 
 
 class SearchRecordsRequestQuery(ModelNormal):
@@ -61,7 +61,7 @@ class SearchRecordsRequestQuery(ModelNormal):
 
     allowed_values = {}
 
-    validations = {}
+    validations = {("id",): {"max_length": 512}}
 
     @cached_property
     def additional_properties_type():
@@ -89,7 +89,8 @@ class SearchRecordsRequestQuery(ModelNormal):
             "top_k": (int,),  # noqa: E501
             "filter": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
             "inputs": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
-            "vector": (VectorValues,),  # noqa: E501
+            "vector": (SearchRecordsVector,),  # noqa: E501
+            "id": (str,),  # noqa: E501
         }
 
     @cached_property
@@ -101,6 +102,7 @@ class SearchRecordsRequestQuery(ModelNormal):
         "filter": "filter",  # noqa: E501
         "inputs": "inputs",  # noqa: E501
         "vector": "vector",  # noqa: E501
+        "id": "id",  # noqa: E501
     }
 
     read_only_vars = {}
@@ -146,9 +148,10 @@ class SearchRecordsRequestQuery(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply.. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. [optional]  # noqa: E501
             inputs ({str: (bool, dict, float, int, list, str, none_type)}): [optional]  # noqa: E501
-            vector (VectorValues): [optional]  # noqa: E501
+            vector (SearchRecordsVector): [optional]  # noqa: E501
+            id (str): The unique ID of the vector to be used as a query vector. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -236,9 +239,10 @@ class SearchRecordsRequestQuery(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply.. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. [optional]  # noqa: E501
             inputs ({str: (bool, dict, float, int, list, str, none_type)}): [optional]  # noqa: E501
-            vector (VectorValues): [optional]  # noqa: E501
+            vector (SearchRecordsVector): [optional]  # noqa: E501
+            id (str): The unique ID of the vector to be used as a query vector. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

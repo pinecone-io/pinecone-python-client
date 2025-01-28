@@ -163,14 +163,14 @@ class QueryRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            namespace (str): The namespace to query.. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/data/understanding-metadata).. [optional]  # noqa: E501
-            include_values (bool): Indicates whether vector values are included in the response.. [optional] if omitted the server will use the default value of False  # noqa: E501
-            include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
-            queries ([QueryVector]): DEPRECATED. The query vectors. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`.. [optional]  # noqa: E501
-            vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query` request can contain only one of the parameters `id` or `vector`.. [optional]  # noqa: E501
+            namespace (str): The namespace to query. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/data/understanding-metadata). [optional]  # noqa: E501
+            include_values (bool): Indicates whether vector values are included in the response. [optional] if omitted the server will use the default value of False.  # noqa: E501
+            include_metadata (bool): Indicates whether metadata is included in the response as well as the ids. [optional] if omitted the server will use the default value of False.  # noqa: E501
+            queries ([QueryVector]): DEPRECATED. The query vectors. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`. [optional]  # noqa: E501
+            vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query` request can contain only one of the parameters `id` or `vector`. [optional]  # noqa: E501
             sparse_vector (SparseValues): [optional]  # noqa: E501
-            id (str): The unique ID of the vector to be used as a query vector. Each `query` request can contain only one of the parameters `queries`, `vector`, or  `id`.. [optional]  # noqa: E501
+            id (str): The unique ID of the vector to be used as a query vector. Each `query` request can contain only one of the parameters `queries`, `vector`, or  `id`. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -258,14 +258,14 @@ class QueryRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            namespace (str): The namespace to query.. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/data/understanding-metadata).. [optional]  # noqa: E501
-            include_values (bool): Indicates whether vector values are included in the response.. [optional] if omitted the server will use the default value of False  # noqa: E501
-            include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.. [optional] if omitted the server will use the default value of False  # noqa: E501
-            queries ([QueryVector]): DEPRECATED. The query vectors. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`.. [optional]  # noqa: E501
-            vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query` request can contain only one of the parameters `id` or `vector`.. [optional]  # noqa: E501
+            namespace (str): The namespace to query. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/data/understanding-metadata). [optional]  # noqa: E501
+            include_values (bool): Indicates whether vector values are included in the response. [optional] if omitted the server will use the default value of False.  # noqa: E501
+            include_metadata (bool): Indicates whether metadata is included in the response as well as the ids. [optional] if omitted the server will use the default value of False.  # noqa: E501
+            queries ([QueryVector]): DEPRECATED. The query vectors. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`. [optional]  # noqa: E501
+            vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query` request can contain only one of the parameters `id` or `vector`. [optional]  # noqa: E501
             sparse_vector (SparseValues): [optional]  # noqa: E501
-            id (str): The unique ID of the vector to be used as a query vector. Each `query` request can contain only one of the parameters `queries`, `vector`, or  `id`.. [optional]  # noqa: E501
+            id (str): The unique ID of the vector to be used as a query vector. Each `query` request can contain only one of the parameters `queries`, `vector`, or  `id`. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

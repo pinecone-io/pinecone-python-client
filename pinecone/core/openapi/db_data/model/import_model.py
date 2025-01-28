@@ -154,14 +154,14 @@ class ImportModel(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            id (str): Unique identifier for the import operation.. [optional]  # noqa: E501
-            uri (str): The URI from where the data is imported.. [optional]  # noqa: E501
-            status (str): The status of the operation.. [optional]  # noqa: E501
-            created_at (datetime): The start time of the import operation.. [optional]  # noqa: E501
-            finished_at (datetime): The end time of the import operation.. [optional]  # noqa: E501
-            percent_complete (float): The progress made by the operation, as a percentage.. [optional]  # noqa: E501
-            records_imported (int): The number of records successfully imported.. [optional]  # noqa: E501
-            error (str): The error message if the import process failed.. [optional]  # noqa: E501
+            id (str): Unique identifier for the import operation. [optional]  # noqa: E501
+            uri (str): The URI from where the data is imported. [optional]  # noqa: E501
+            status (str): The status of the operation. [optional]  # noqa: E501
+            created_at (datetime): The start time of the import operation. [optional]  # noqa: E501
+            finished_at (datetime): The end time of the import operation. [optional]  # noqa: E501
+            percent_complete (float): The progress made by the operation, as a percentage. [optional]  # noqa: E501
+            records_imported (int): The number of records successfully imported. [optional]  # noqa: E501
+            error (str): The error message if the import process failed. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -245,14 +245,14 @@ class ImportModel(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            id (str): Unique identifier for the import operation.. [optional]  # noqa: E501
-            uri (str): The URI from where the data is imported.. [optional]  # noqa: E501
-            status (str): The status of the operation.. [optional]  # noqa: E501
-            created_at (datetime): The start time of the import operation.. [optional]  # noqa: E501
-            finished_at (datetime): The end time of the import operation.. [optional]  # noqa: E501
-            percent_complete (float): The progress made by the operation, as a percentage.. [optional]  # noqa: E501
-            records_imported (int): The number of records successfully imported.. [optional]  # noqa: E501
-            error (str): The error message if the import process failed.. [optional]  # noqa: E501
+            id (str): Unique identifier for the import operation. [optional]  # noqa: E501
+            uri (str): The URI from where the data is imported. [optional]  # noqa: E501
+            status (str): The status of the operation. [optional]  # noqa: E501
+            created_at (datetime): The start time of the import operation. [optional]  # noqa: E501
+            finished_at (datetime): The end time of the import operation. [optional]  # noqa: E501
+            percent_complete (float): The progress made by the operation, as a percentage. [optional]  # noqa: E501
+            records_imported (int): The number of records successfully imported. [optional]  # noqa: E501
+            error (str): The error message if the import process failed. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
