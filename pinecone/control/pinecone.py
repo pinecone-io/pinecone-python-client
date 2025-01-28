@@ -220,12 +220,16 @@ class Pinecone(PineconeDBControlInterface):
             return
         if timeout is None:
             while not is_ready():
-                logger.debug(f"Waiting for index {name} to be ready. Total wait time: {total_wait_time}")
+                logger.debug(
+                    f"Waiting for index {name} to be ready. Total wait time: {total_wait_time}"
+                )
                 total_wait_time += 5
                 time.sleep(5)
         else:
             while (not is_ready()) and timeout >= 0:
-                logger.debug(f"Waiting for index {name} to be ready. Total wait time: {total_wait_time}")
+                logger.debug(
+                    f"Waiting for index {name} to be ready. Total wait time: {total_wait_time}"
+                )
                 total_wait_time += 5
                 time.sleep(5)
                 timeout -= 5

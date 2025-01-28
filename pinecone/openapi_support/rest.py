@@ -1,26 +1,5 @@
-import io
-import json
 import logging
-import re
-import ssl
-import os
-from urllib.parse import urlencode, quote
-from abc import ABC, abstractmethod
-import httpx
-import weakref
-import asyncio
 
-import urllib3
-
-
-from .exceptions import (
-    PineconeApiException,
-    UnauthorizedException,
-    ForbiddenException,
-    NotFoundException,
-    ServiceException,
-    PineconeApiValueError,
-)
 
 logging.basicConfig(
     format="%(levelname)s [%(asctime)s] %(name)s - %(message)s",
@@ -29,9 +8,6 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-
-
-
 
 
 # class HttpxRestClient(RestClientInterface):
@@ -76,5 +52,3 @@ logger = logging.getLogger(__name__)
 #         return raise_exceptions_or_return(
 #             RESTResponse(resp.status_code, resp.content, resp.headers, resp.reason_phrase)
 #         )
-
-

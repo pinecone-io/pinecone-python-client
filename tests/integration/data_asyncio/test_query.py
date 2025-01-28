@@ -4,13 +4,9 @@ from pinecone import PineconeApiException
 from .conftest import build_asyncioindex_client, poll_for_freshness
 from ..helpers import random_string, embedding_values
 
+
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "target_namespace",
-    [
-        random_string(20)
-    ],
-)
+@pytest.mark.parametrize("target_namespace", [random_string(20)])
 async def test_query(pc, index_host, dimension, target_namespace):
     asyncio_idx = build_asyncioindex_client(pc, index_host)
 
@@ -157,4 +153,4 @@ async def test_query(pc, index_host, dimension, target_namespace):
             sparse_vector={"indices": [i for i in range(dimension)], "values": emb()},
             namespace=target_namespace,
         )
-    assert "Cannot query index with dense \'vector_type\' with only sparse vector" in str(e.value)
+    assert "Cannot query index with dense 'vector_type' with only sparse vector" in str(e.value)

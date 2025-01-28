@@ -2,6 +2,14 @@ import io
 from abc import ABC, abstractmethod
 import logging
 
+from .exceptions import (
+    PineconeApiException,
+    UnauthorizedException,
+    ForbiddenException,
+    NotFoundException,
+    ServiceException,
+)
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     format="%(levelname)s [%(asctime)s] %(name)s - %(message)s",
@@ -9,14 +17,6 @@ logging.basicConfig(
     level=logging.DEBUG,
 )
 
-from .exceptions import (
-    PineconeApiException,
-    UnauthorizedException,
-    ForbiddenException,
-    NotFoundException,
-    ServiceException,
-    PineconeApiValueError,
-)
 
 class RESTResponse(io.IOBase):
     def __init__(self, status, data, headers, reason=None):
@@ -199,4 +199,3 @@ class RestClientInterface(ABC):
             _request_timeout=_request_timeout,
             body=body,
         )
-

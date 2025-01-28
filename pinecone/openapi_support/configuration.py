@@ -1,12 +1,10 @@
 import copy
 import logging
 import multiprocessing
-import sys
 import urllib3
 
 from http import client as http_client
 from .exceptions import PineconeApiValueError
-from .api_version import API_VERSION
 
 
 JSON_SCHEMA_VALIDATION_KEYWORDS = {

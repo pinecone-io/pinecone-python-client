@@ -2,6 +2,7 @@ import weakref
 import asyncio
 from .rest_utils import RestClientInterface, RESTResponse, raise_exceptions_or_return
 
+
 class AiohttpRestClient(RestClientInterface):
     def __init__(self, configuration, pools_size=4, maxsize=None):
         import aiohttp
@@ -9,17 +10,16 @@ class AiohttpRestClient(RestClientInterface):
         conn = aiohttp.TCPConnector()
         self._session = aiohttp.ClientSession(connector=conn)
         self._finalizer = weakref.finalize(self, self._cleanup)
-        
+
     async def _cleanup(self):
         if not self._session.closed:
             await self._session.close()
-            
+
     def __del__(self):
         """Ensure the session is closed if the object is garbage collected."""
         if not self._session.closed:
             asyncio.run(self._cleanup())
-    
-        
+
     async def close(self):
         await self._session.close()
 

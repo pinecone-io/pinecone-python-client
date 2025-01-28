@@ -8,6 +8,9 @@ from .rest_utils import raise_exceptions_or_return, RESTResponse, RestClientInte
 
 import urllib3
 
+from .exceptions import PineconeApiException, PineconeApiValueError
+
+
 class bcolors:
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
@@ -21,6 +24,7 @@ class bcolors:
 
 
 logger = logging.getLogger(__name__)
+
 
 class Urllib3RestClient(RestClientInterface):
     def __init__(self, configuration, pools_size=4, maxsize=None):
