@@ -59,7 +59,7 @@ jobs:
       fail-fast: false
       matrix:
         python_version: [3.9, 3.12]
-        use_grpc: [false]
+        use_grpc: [false, true]
         spec:
           - '{ "serverless": { "region": "us-west-2", "cloud": "aws" }}'
     steps:
