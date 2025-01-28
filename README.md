@@ -1,9 +1,10 @@
-# Pinecone Python SDK 
+# Pinecone Python SDK
 ![License](https://img.shields.io/github/license/pinecone-io/pinecone-python-client?color=orange) [![CI](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/pr.yaml/badge.svg)](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/pr.yaml)
 
 The official Pinecone Python SDK.
 
 For more information, see the docs at https://docs.pinecone.io
+
 
 ## Documentation
 
@@ -11,7 +12,7 @@ For more information, see the docs at https://docs.pinecone.io
 
 ### Upgrading the SDK
 
-#### Upgrading from `4.x` to `5.x` 
+#### Upgrading from `4.x` to `5.x`
 
 As part of an overall move to stop exposing generated code in the package's public interface, an obscure configuration property (`openapi_config`) was removed in favor of individual configuration options such as `proxy_url`, `proxy_headers`, and `ssl_ca_certs`. All of these properties were available in v3 and v4 releases of the SDK, with deprecation notices shown to affected users.
 
