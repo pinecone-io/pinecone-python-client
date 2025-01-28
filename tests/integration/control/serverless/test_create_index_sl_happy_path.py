@@ -29,3 +29,10 @@ class TestCreateSLIndexHappyPath:
         desc = client.describe_index(create_sl_index_params["name"])
         assert desc.metric == metric
         assert desc.vector_type == "dense"
+
+    def test_create_with_optional_tags(self, client, create_sl_index_params):
+        tags = {"foo": "FOO", "bar": "BAR"}
+        create_sl_index_params["tags"] = tags
+        client.create_index(**create_sl_index_params)
+        desc = client.describe_index(create_sl_index_params["name"])
+        assert desc.tags.to_dict() == tags
