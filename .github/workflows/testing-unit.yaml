@@ -2,13 +2,6 @@ name: "Unit Tests"
 'on':
   workflow_call: {}
 
-env:
-  DD_CIVISIBILITY_AGENTLESS_ENABLED: true
-  DD_API_KEY: ${{ secrets.DATADOG_API_KEY }}
-  DD_SITE: datadoghq.com
-  DD_ENV: ci
-  DD_SERVICE: pinecone-python-client
-
 jobs:
   unit-tests:
     name: Unit tests
@@ -17,7 +10,6 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - 3.8
           - 3.9
           - '3.10'
           - 3.11
@@ -37,10 +29,10 @@ jobs:
           include_grpc: '${{ matrix.use_grpc }}'
           include_types: true
       - name: Run unit tests (REST)
-        run: poetry run pytest --cov=pinecone --timeout=120 tests/unit --ddtrace
+        run: poetry run pytest --cov=pinecone --timeout=120 tests/unit
       - name: Run unit tests (GRPC)
         if: ${{ matrix.use_grpc == true }}
-        run: poetry run pytest --cov=pinecone/grpc --timeout=120 tests/unit_grpc --ddtrace
+        run: poetry run pytest --cov=pinecone/grpc --timeout=120 tests/unit_grpc
       - name: mypy check
         env:
           INCLUDE_GRPC: '${{ matrix.use_grpc }}'

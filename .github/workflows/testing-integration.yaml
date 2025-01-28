@@ -2,20 +2,13 @@ name: "Integration Tests"
 'on':
   workflow_call: {}
 
-env:
-  DD_CIVISIBILITY_AGENTLESS_ENABLED: true
-  DD_API_KEY: ${{ secrets.DATADOG_API_KEY }}
-  DD_SITE: datadoghq.com
-  DD_ENV: ci
-  DD_SERVICE: pinecone-python-client
-
 jobs:
   plugin-inference:
     name: Test inference plugin
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: [3.8, 3.12]
+        python_version: [3.9, 3.12]
     steps:
       - uses: actions/checkout@v4
       - name: 'Set up Python ${{ matrix.python_version }}'
@@ -27,7 +20,7 @@ jobs:
         with:
           include_grpc: 'true'
       - name: 'Run integration tests'
-        run: poetry run pytest tests/integration/inference -s -vv --ddtrace
+        run: poetry run pytest tests/integration/inference -s -vv
         env:
           PINECONE_DEBUG_CURL: 'true'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
@@ -38,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python_version: [3.8, 3.12]
+        python_version: [3.9, 3.12]
         use_grpc: [true, false]
         metric:
           - cosine
@@ -106,7 +99,7 @@ jobs:
         pineconeEnv:
           - prod
         testConfig:
-          - python-version: 3.8
+          - python-version: 3.9
             pod: { environment: 'us-east1-gcp'}
           - python-version: 3.12
             pod: { environment: 'us-east4-gcp'}
@@ -121,7 +114,7 @@ jobs:
         uses: ./.github/actions/setup-poetry
       - name: 'Run integration tests (REST, prod)'
         if: matrix.pineconeEnv == 'prod'
-        run: poetry run pytest tests/integration/control/pod -s -v --ddtrace
+        run: poetry run pytest tests/integration/control/pod -s -v
         env:
           PINECONE_DEBUG_CURL: 'true'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
@@ -131,7 +124,7 @@ jobs:
           METRIC: 'cosine'
       - name: 'Run integration tests (REST, staging)'
         if: matrix.pineconeEnv == 'staging'
-        run: poetry run pytest tests/integration/control/pod -s -v --ddtrace
+        run: poetry run pytest tests/integration/control/pod -s -v
         env:
           PINECONE_DEBUG_CURL: 'true'
           PINECONE_CONTROLLER_HOST: 'https://api-staging.pinecone.io'
@@ -149,7 +142,7 @@ jobs:
         pineconeEnv:
           - prod
         testConfig:
-          - python-version: 3.8 # Do one test run with 3.8 for sanity check
+          - python-version: 3.9 # Do one test run with 3.9 for sanity check
             pod: { environment: 'us-east1-gcp'}
             serverless: { cloud: 'aws', region: 'us-west-2'}
           - python-version: 3.12
@@ -166,7 +159,7 @@ jobs:
         uses: ./.github/actions/setup-poetry
       - name: 'Run integration tests (REST, prod)'
         if: matrix.pineconeEnv == 'prod'
-        run: poetry run pytest tests/integration/control/serverless -s -vv --ddtrace
+        run: poetry run pytest tests/integration/control/serverless -s -vv
         env:
           PINECONE_DEBUG_CURL: 'true'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
@@ -175,7 +168,7 @@ jobs:
           SERVERLESS_REGION: '${{ matrix.testConfig.serverless.region }}'
       - name: 'Run integration tests (REST, staging)'
         if: matrix.pineconeEnv == 'staging'
-        run: poetry run pytest tests/integration/control/serverless -s -vv --ddtrace
+        run: poetry run pytest tests/integration/control/serverless -s -vv
         env:
           PINECONE_DEBUG_CURL: 'true'
           PINECONE_CONTROLLER_HOST: 'https://api-staging.pinecone.io'

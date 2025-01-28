@@ -3,13 +3,6 @@ name: Dependency Testing
 on:
   workflow_call: {}
 
-env:
-  DD_CIVISIBILITY_AGENTLESS_ENABLED: true
-  DD_API_KEY: ${{ secrets.DATADOG_API_KEY }}
-  DD_SITE: datadoghq.com
-  DD_ENV: ci
-  DD_SERVICE: pinecone-python-client
-
 jobs:
   dependency-matrix-setup:
     name: Deps setup
@@ -36,7 +29,6 @@ jobs:
       fail-fast: false
       matrix:
         python_version:
-          - 3.8
           - 3.9
           - "3.10"
         grpcio_version:
@@ -124,7 +116,7 @@ jobs:
       fail-fast: false
       matrix:
         python_version:
-          - 3.8
+          - 3.9
           - 3.11
         urllib3_version:
           - 1.26.0
