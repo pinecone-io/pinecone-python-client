@@ -316,6 +316,7 @@ class Pinecone(PineconeDBControlInterface):
         description = None
 
         def is_ready():
+            nonlocal description
             description = self.describe_index(name=name)
             return description.status.ready
 

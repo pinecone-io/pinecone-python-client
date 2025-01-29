@@ -1,5 +1,6 @@
 import pytest
 from pinecone import (
+    Pinecone,
     Metric,
     VectorType,
     DeletionProtection,
@@ -10,7 +11,7 @@ from pinecone import (
 
 
 class TestCreateSLIndexHappyPath:
-    def test_create_index(self, client, index_name):
+    def test_create_index(self, client: Pinecone, index_name):
         resp = client.create_index(
             name=index_name,
             dimension=10,
