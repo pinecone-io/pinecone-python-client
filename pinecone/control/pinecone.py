@@ -1,6 +1,6 @@
 import time
 import logging
-from typing import Optional, Dict, Any, Union, Literal
+from typing import Optional, Dict, Any, Union
 
 from .index_host_store import IndexHostStore
 from .pinecone_interface import PineconeDBControlInterface
@@ -18,7 +18,7 @@ from pinecone.core.openapi.db_control.models import (
     ConfigureIndexRequest,
     ConfigureIndexRequestSpec,
     ConfigureIndexRequestSpecPod,
-    DeletionProtection,
+    DeletionProtection as DeletionProtectionModel,
     IndexSpec,
     IndexTags,
     ServerlessSpec as ServerlessSpecModel,
@@ -31,6 +31,7 @@ from .langchain_import_warnings import _build_langchain_attribute_error_message
 from pinecone.utils import parse_non_empty_args, docslinks
 
 from pinecone.data import _Index, _AsyncioIndex, _Inference
+from pinecone.enums import Metric, VectorType, DeletionProtection, PodType
 
 from pinecone_plugin_interface import load_and_install as install_plugins
 
@@ -179,19 +180,26 @@ class Pinecone(PineconeDBControlInterface):
         name: str,
         spec: Union[Dict, ServerlessSpec, PodSpec],
         dimension: Optional[int] = None,
-        metric: Optional[Literal["cosine", "euclidean", "dotproduct"]] = "cosine",
+        metric: Optional[Union[Metric, str]] = Metric.COSINE,
         timeout: Optional[int] = None,
-        deletion_protection: Optional[Literal["enabled", "disabled"]] = "disabled",
-        vector_type: Optional[Literal["dense", "sparse"]] = "dense",
+        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        vector_type: Optional[Union[VectorType, str]] = VectorType.DENSE,
         tags: Optional[Dict[str, str]] = None,
     ):
-        api_instance = self.index_api
+        # Convert Enums to their string values if necessary
+        metric = metric.value if isinstance(metric, Metric) else str(metric)
+        vector_type = vector_type.value if isinstance(vector_type, VectorType) else str(vector_type)
+        deletion_protection = (
+            deletion_protection.value
+            if isinstance(deletion_protection, DeletionProtection)
+            else str(deletion_protection)
+        )
 
-        if vector_type == "sparse" and dimension is not None:
+        if vector_type == VectorType.SPARSE.value and dimension is not None:
             raise ValueError("dimension should not be specified for sparse indexes")
 
         if deletion_protection in ["enabled", "disabled"]:
-            dp = DeletionProtection(deletion_protection)
+            dp = DeletionProtectionModel(deletion_protection)
         else:
             raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
 
@@ -202,6 +210,7 @@ class Pinecone(PineconeDBControlInterface):
 
         index_spec = self._parse_index_spec(spec)
 
+        api_instance = self.index_api
         api_instance.create_index(
             create_index_request=CreateIndexRequest(
                 **parse_non_empty_args(
@@ -301,17 +310,19 @@ class Pinecone(PineconeDBControlInterface):
         self,
         name: str,
         replicas: Optional[int] = None,
-        pod_type: Optional[str] = None,
-        deletion_protection: Optional[Literal["enabled", "disabled"]] = None,
+        pod_type: Optional[Union[PodType, str]] = None,
+        deletion_protection: Optional[Union[DeletionProtection, str]] = None,
         tags: Optional[Dict[str, str]] = None,
     ):
         api_instance = self.index_api
         description = self.describe_index(name=name)
 
         if deletion_protection is None:
-            dp = DeletionProtection(description.deletion_protection)
+            dp = DeletionProtectionModel(description.deletion_protection)
+        elif isinstance(deletion_protection, DeletionProtection):
+            dp = DeletionProtectionModel(deletion_protection.value)
         elif deletion_protection in ["enabled", "disabled"]:
-            dp = DeletionProtection(deletion_protection)
+            dp = DeletionProtectionModel(deletion_protection)
         else:
             raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
 
@@ -330,7 +341,8 @@ class Pinecone(PineconeDBControlInterface):
 
         pod_config_args: Dict[str, Any] = {}
         if pod_type:
-            pod_config_args.update(pod_type=pod_type)
+            new_pod_type = pod_type.value if isinstance(pod_type, PodType) else pod_type
+            pod_config_args.update(pod_type=new_pod_type)
         if replicas:
             pod_config_args.update(replicas=replicas)
 

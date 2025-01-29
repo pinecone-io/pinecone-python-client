@@ -1,7 +1,17 @@
 import pytest
 import re
 from unittest.mock import patch, MagicMock
-from pinecone import ConfigBuilder, Pinecone, PodSpec, ServerlessSpec
+from pinecone import (
+    ConfigBuilder,
+    Pinecone,
+    PodSpec,
+    ServerlessSpec,
+    CloudProvider,
+    AwsRegion,
+    GcpRegion,
+    PodIndexEnvironment,
+    PodType,
+)
 from pinecone.core.openapi.db_control.models import IndexList, IndexModel, DeletionProtection
 from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
 
@@ -150,8 +160,19 @@ class TestControl:
     @pytest.mark.parametrize(
         "index_spec",
         [
+            ServerlessSpec(cloud="aws", region="us-west-2"),
+            ServerlessSpec(cloud=CloudProvider.AWS, region=AwsRegion.US_WEST_2),
+            ServerlessSpec(cloud=CloudProvider.AWS, region="us-west-2"),
+            ServerlessSpec(cloud="aws", region="us-west-2"),
+            ServerlessSpec(cloud="aws", region="unknown-region"),
+            ServerlessSpec(cloud=CloudProvider.GCP, region=GcpRegion.US_CENTRAL1),
             {"serverless": {"cloud": "aws", "region": "us-west1"}},
             {"serverless": {"cloud": "aws", "region": "us-west1", "uknown_key": "value"}},
+            PodSpec(environment="us-west1-gcp", pod_type="p1.x1"),
+            PodSpec(environment=PodIndexEnvironment.US_WEST1_GCP, pod_type=PodType.P2_X2),
+            PodSpec(environment=PodIndexEnvironment.US_WEST1_GCP, pod_type="s1.x4"),
+            PodSpec(environment=PodIndexEnvironment.US_EAST1_AWS, pod_type="unknown-pod-type"),
+            PodSpec(environment="us-west1-gcp", pod_type="p1.x1", pods=2, replicas=1, shards=1),
             {"pod": {"environment": "us-west1-gcp", "pod_type": "p1.x1"}},
             {"pod": {"environment": "us-west1-gcp", "pod_type": "p1.x1", "unknown_key": "value"}},
             {

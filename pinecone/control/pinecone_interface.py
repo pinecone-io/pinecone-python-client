@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from typing import Optional, Dict, Union, Literal
+from typing import Optional, Dict, Union
 
 
 from pinecone.config import Config
@@ -9,6 +9,7 @@ from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexe
 
 
 from pinecone.models import ServerlessSpec, PodSpec, IndexList, CollectionList
+from pinecone.enums import Metric, VectorType, DeletionProtection, PodType
 
 
 class PineconeDBControlInterface(ABC):
@@ -177,10 +178,10 @@ class PineconeDBControlInterface(ABC):
         name: str,
         spec: Union[Dict, ServerlessSpec, PodSpec],
         dimension: Optional[int],
-        metric: Optional[Literal["cosine", "euclidean", "dotproduct"]] = "cosine",
+        metric: Optional[Union[Metric, str]] = Metric.COSINE,
         timeout: Optional[int] = None,
-        deletion_protection: Optional[Literal["enabled", "disabled"]] = "disabled",
-        vector_type: Optional[Literal["dense", "sparse"]] = "dense",
+        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        vector_type: Optional[Union[VectorType, str]] = VectorType.DENSE,
     ):
         """Creates a Pinecone index.
 
@@ -377,8 +378,8 @@ class PineconeDBControlInterface(ABC):
         self,
         name: str,
         replicas: Optional[int] = None,
-        pod_type: Optional[str] = None,
-        deletion_protection: Optional[Literal["enabled", "disabled"]] = None,
+        pod_type: Optional[Union[PodType, str]] = None,
+        deletion_protection: Optional[Union[DeletionProtection, str]] = None,
         tags: Optional[Dict[str, str]] = None,
     ):
         """This method is used to scale configuration fields for your pod-based Pinecone index.

@@ -1,8 +1,11 @@
 import pytest
 import random
 import time
+import logging
 from pinecone import Pinecone, NotFoundException, PineconeApiException
 from ...helpers import generate_index_name, get_environment_var
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture()
@@ -101,6 +104,7 @@ def cleanup(client, index_name):
     yield
 
     try:
+        logger.debug("Attempting to delete index with name: " + index_name)
         client.delete_index(index_name, -1)
     except Exception:
         pass

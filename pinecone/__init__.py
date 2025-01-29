@@ -14,6 +14,7 @@ from .exceptions import *
 from .control import *
 from .data import *
 from .models import *
+from .enums import *
 
 from .utils import __version__
 
