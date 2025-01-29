@@ -232,6 +232,8 @@ class Pinecone(PineconeDBControlInterface):
             vector_type = self.__parse_enum_to_string(vector_type)
         if deletion_protection is not None:
             dp = self.__parse_deletion_protection(deletion_protection)
+        else:
+            dp = None
 
         tags_obj = self.__parse_tags(tags)
         index_spec = self.__parse_index_spec(spec)
