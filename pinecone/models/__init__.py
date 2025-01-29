@@ -5,6 +5,7 @@ from .pod_spec import PodSpec
 from .index_list import IndexList
 from .collection_list import CollectionList
 from .index_model import IndexModel
+from .clouds import CloudProvider, AwsRegion, GcpRegion, AzureRegion, PodIndexEnvironment
 
 __all__ = [
     "CollectionDescription",
@@ -15,4 +16,9 @@ __all__ = [
     "IndexList",
     "CollectionList",
     "IndexModel",
+    "CloudProvider",
+    "AwsRegion",
+    "GcpRegion",
+    "AzureRegion",
+    "PodIndexEnvironment",
 ]
