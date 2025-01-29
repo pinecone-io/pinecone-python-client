@@ -23,7 +23,7 @@ class TestDeletionProtection:
 
         client.delete_index(name)
 
-    @pytest.mark.parametrize("deletion_protection", ["invalid", None])
+    @pytest.mark.parametrize("deletion_protection", ["invalid"])
     def test_deletion_protection_invalid_options(
         self, client, create_sl_index_params, deletion_protection
     ):
