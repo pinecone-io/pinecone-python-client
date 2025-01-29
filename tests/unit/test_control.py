@@ -12,10 +12,30 @@ from pinecone import (
     PodIndexEnvironment,
     PodType,
 )
-from pinecone.core.openapi.db_control.models import IndexList, IndexModel, DeletionProtection
+from pinecone.core.openapi.db_control.models import (
+    IndexList,
+    IndexModel,
+    DeletionProtection,
+    IndexModelSpec,
+    ServerlessSpec as ServerlessSpecOpenApi,
+    IndexModelStatus,
+)
 from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
 
 import time
+
+
+def description_with_status(status: bool):
+    state = "Ready" if status else "Initializing"
+    return IndexModel(
+        name="foo",
+        status=IndexModelStatus(ready=status, state=state),
+        dimension=10,
+        deletion_protection=DeletionProtection("enabled"),
+        host="https://foo",
+        metric="euclidean",
+        spec=IndexModelSpec(serverless=ServerlessSpecOpenApi(cloud="aws", region="us-west1")),
+    )
 
 
 @pytest.fixture
@@ -117,20 +137,20 @@ class TestControl:
         "timeout_value, describe_index_responses, expected_describe_index_calls, expected_sleep_calls",
         [
             # When timeout=None, describe_index is called until ready
-            (None, [{"status": {"ready": False}}, {"status": {"ready": True}}], 2, 1),
-            # Timeout of 10 seconds, describe_index called 3 times, sleep twice
+            (None, [description_with_status(False), description_with_status(True)], 2, 1),
+            # # Timeout of 10 seconds, describe_index called 3 times, sleep twice
             (
                 10,
                 [
-                    {"status": {"ready": False}},
-                    {"status": {"ready": False}},
-                    {"status": {"ready": True}},
+                    description_with_status(False),
+                    description_with_status(False),
+                    description_with_status(True),
                 ],
                 3,
                 2,
             ),
-            # When timeout=-1, create_index returns immediately without calling describe_index or sleep
-            (-1, [{"status": {"ready": False}}], 0, 0),
+            # # When timeout=-1, create_index returns immediately without calling sleep
+            (-1, [description_with_status(False)], 0, 0),
         ],
     )
     def test_create_index_with_timeout(
@@ -213,20 +233,20 @@ class TestControl:
         "timeout_value, describe_index_responses, expected_describe_index_calls, expected_sleep_calls",
         [
             # When timeout=None, describe_index is called until ready
-            (None, [{"status": {"ready": False}}, {"status": {"ready": True}}], 2, 1),
+            (None, [description_with_status(False), description_with_status(True)], 2, 1),
             # Timeout of 10 seconds, describe_index called 3 times, sleep twice
             (
                 10,
                 [
-                    {"status": {"ready": False}},
-                    {"status": {"ready": False}},
-                    {"status": {"ready": True}},
+                    description_with_status(False),
+                    description_with_status(False),
+                    description_with_status(True),
                 ],
                 3,
                 2,
             ),
-            # When timeout=-1, create_index returns immediately without calling describe_index or sleep
-            (-1, [{"status": {"ready": False}}], 0, 0),
+            # When timeout=-1, create_index returns immediately without calling sleep
+            (-1, [description_with_status(False)], 0, 0),
         ],
     )
     def test_create_index_from_source_collection(
@@ -258,7 +278,7 @@ class TestControl:
             p = Pinecone(api_key="123-456-789")
             mocker.patch.object(p.index_api, "create_index")
 
-            describe_index_response = [{"status": {"ready": False}}] * 5
+            describe_index_response = [description_with_status(False)] * 5
             mocker.patch.object(p.index_api, "describe_index", side_effect=describe_index_response)
             mocker.patch("time.sleep")
 

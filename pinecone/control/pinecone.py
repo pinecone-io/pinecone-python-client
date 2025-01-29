@@ -59,19 +59,6 @@ logger = logging.getLogger(__name__)
 """ @private """
 
 
-def wait_until(condition, timeout=None, interval=5):
-    """
-    Wait until a condition is met or timeout is reached.
-    """
-    total_wait_time = 0
-    while not condition():
-        if timeout is not None and total_wait_time >= timeout:
-            return False
-        time.sleep(interval)
-        total_wait_time += interval
-    return True
-
-
 class Pinecone(PineconeDBControlInterface):
     """
     A client for interacting with Pinecone's vector database.
@@ -265,10 +252,11 @@ class Pinecone(PineconeDBControlInterface):
         )
 
         req = CreateIndexRequest(**args)
-        self.index_api.create_index(create_index_request=req)
+        resp = self.index_api.create_index(create_index_request=req)
 
-        self.__wait_until_index_ready(name, timeout)
-        return self.describe_index(name)
+        if timeout == -1:
+            return IndexModel(resp)
+        return self.__poll_describe_index_until_ready(name, timeout)
 
     def create_index_for_model(
         self,
@@ -316,19 +304,18 @@ class Pinecone(PineconeDBControlInterface):
         )
 
         req = CreateIndexForModelRequest(**args)
-        self.index_api.create_index_for_model(req)
+        resp = self.index_api.create_index_for_model(req)
 
-        self.__wait_until_index_ready(name, timeout)
-        return self.describe_index(name=name)
+        if timeout == -1:
+            return IndexModel(resp)
+        return self.__poll_describe_index_until_ready(name, timeout)
 
-    def __wait_until_index_ready(self, name: str, timeout: Optional[int] = None):
+    def __poll_describe_index_until_ready(self, name: str, timeout: Optional[int] = None):
+        description = None
+
         def is_ready():
             description = self.describe_index(name=name)
             return description.status.ready
-
-        if timeout == -1:
-            logger.debug(f"Skipping wait for index {name} to be ready")
-            return
 
         total_wait_time = 0
         if timeout is None:
@@ -357,6 +344,8 @@ class Pinecone(PineconeDBControlInterface):
                 total_wait_time += 5
                 time.sleep(5)
                 timeout -= 5
+
+        return description
 
     def delete_index(self, name: str, timeout: Optional[int] = None):
         self.index_api.delete_index(name)
