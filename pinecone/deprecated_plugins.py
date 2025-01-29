@@ -5,11 +5,12 @@ class DeprecatedPluginError(Exception):
 
 def check_for_deprecated_plugins():
     try:
-        from pinecone_plugins.inference import __installables__  # noqa: F401
+        from pinecone_plugins.inference import __installables__  # type: ignore
 
-        raise DeprecatedPluginError(
-            "The `pinecone-plugin-inference` package has been deprecated. The embed and rerank functionality has been incorporated into the core SDK with no need for additional plugins. Please remove the `pinecone-plugin-inference` package from your dependencies to ensure you have the most up-to-date version of these features."
-        )
+        if __installables__ is not None:
+            raise DeprecatedPluginError(
+                "The `pinecone-plugin-inference` package has been deprecated. The embed and rerank functionality has been incorporated into the main `pinecone` package with no need for additional plugins. Please remove the `pinecone-plugin-inference` package from your dependencies to ensure you have the most up-to-date version of these features."
+            )
     except ImportError:
         # ImportError is expected if the plugin is not installed,
         # which is the good case.
