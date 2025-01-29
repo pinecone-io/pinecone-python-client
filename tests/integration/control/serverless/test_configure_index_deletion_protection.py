@@ -1,10 +1,15 @@
 import pytest
+from pinecone import DeletionProtection
 
 
 class TestDeletionProtection:
-    def test_deletion_protection(self, client, create_sl_index_params):
+    @pytest.mark.parametrize(
+        "dp_enabled,dp_disabled",
+        [("enabled", "disabled"), (DeletionProtection.ENABLED, DeletionProtection.DISABLED)],
+    )
+    def test_deletion_protection(self, client, create_sl_index_params, dp_enabled, dp_disabled):
         name = create_sl_index_params["name"]
-        client.create_index(**create_sl_index_params, deletion_protection="enabled")
+        client.create_index(**create_sl_index_params, deletion_protection=dp_enabled)
         desc = client.describe_index(name)
         assert desc.deletion_protection == "enabled"
 
@@ -12,7 +17,7 @@ class TestDeletionProtection:
             client.delete_index(name)
         assert "Deletion protection is enabled for this index" in str(e.value)
 
-        client.configure_index(name, deletion_protection="disabled")
+        client.configure_index(name, deletion_protection=dp_disabled)
         desc = client.describe_index(name)
         assert desc.deletion_protection == "disabled"
 

@@ -1,28 +1,11 @@
 from enum import Enum
 
 
-class CloudProvider(Enum):
-    AWS = "aws"
-    GCP = "gcp"
-    AZURE = "azure"
-
-
-class AwsRegion(Enum):
-    US_EAST_1 = "us-east-1"
-    US_WEST_2 = "us-west-2"
-    EU_WEST_1 = "eu-west-1"
-
-
-class GcpRegion(Enum):
-    US_CENTRAL1 = "us-central1"
-    EUROPE_WEST4 = "europe-west4"
-
-
-class AzureRegion(Enum):
-    EAST_US = "eastus2"
-
-
 class PodIndexEnvironment(Enum):
+    """
+    These environment strings are used to specify where a pod index should be deployed.
+    """
+
     US_WEST1_GCP = "us-west1-gcp"
     US_CENTRAL1_GCP = "us-central1-gcp"
     US_WEST4_GCP = "us-west4-gcp"

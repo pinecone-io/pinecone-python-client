@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Union
 from enum import Enum
 
-from .clouds import CloudProvider, AwsRegion, GcpRegion, AzureRegion
+from ..enums import CloudProvider, AwsRegion, GcpRegion, AzureRegion
 
 
 @dataclass(frozen=True)

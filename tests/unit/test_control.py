@@ -9,6 +9,8 @@ from pinecone import (
     CloudProvider,
     AwsRegion,
     GcpRegion,
+    PodIndexEnvironment,
+    PodType,
 )
 from pinecone.core.openapi.db_control.models import IndexList, IndexModel, DeletionProtection
 from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
@@ -167,6 +169,10 @@ class TestControl:
             {"serverless": {"cloud": "aws", "region": "us-west1"}},
             {"serverless": {"cloud": "aws", "region": "us-west1", "uknown_key": "value"}},
             PodSpec(environment="us-west1-gcp", pod_type="p1.x1"),
+            PodSpec(environment=PodIndexEnvironment.US_WEST1_GCP, pod_type=PodType.P2_X2),
+            PodSpec(environment=PodIndexEnvironment.US_WEST1_GCP, pod_type="s1.x4"),
+            PodSpec(environment=PodIndexEnvironment.US_EAST1_AWS, pod_type="unknown-pod-type"),
+            PodSpec(environment="us-west1-gcp", pod_type="p1.x1", pods=2, replicas=1, shards=1),
             {"pod": {"environment": "us-west1-gcp", "pod_type": "p1.x1"}},
             {"pod": {"environment": "us-west1-gcp", "pod_type": "p1.x1", "unknown_key": "value"}},
             {
