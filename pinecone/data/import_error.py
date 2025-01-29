@@ -25,6 +25,38 @@ class IndexClientInstantiationError(Exception):
         super().__init__(self.message)
 
 
+class InferenceInstantiationError(Exception):
+    def __init__(self):
+        self.message = """You are attempting to access the Inference client directly from the pinecone module. Inference functionality such as `embed` and `rerank` should only be accessed through the parent Pinecone client instance.
+
+    INCORRECT USAGE:
+        ```
+        import pinecone
+
+        pinecone.Inference().embed(...)
+        ```
+
+    CORRECT USAGE:
+        ```
+        from pinecone import Pinecone
+
+        pc = Pinecone(api_key='your-api-key')
+
+        embeddings = pc.inference.embed(
+            model='multilingual-e5-large',
+            inputs=["The quick brown fox jumps over the lazy dog.", "lorem ipsum"],
+            parameters={"input_type": "query", "truncate": "END"},
+        )
+        ```
+        """
+        super().__init__(self.message)
+
+
 class Index:
     def __init__(self, *args, **kwargs):
         raise IndexClientInstantiationError(args, kwargs)
+
+
+class Inference:
+    def __init__(self, *args, **kwargs):
+        raise InferenceInstantiationError()

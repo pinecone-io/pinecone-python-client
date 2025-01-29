@@ -30,7 +30,7 @@ from pinecone.models import ServerlessSpec, PodSpec, IndexModel, IndexList, Coll
 from .langchain_import_warnings import _build_langchain_attribute_error_message
 from pinecone.utils import parse_non_empty_args, docslinks
 
-from pinecone.data import _Index, _AsyncioIndex
+from pinecone.data import _Index, _AsyncioIndex, _Inference
 
 from pinecone_plugin_interface import load_and_install as install_plugins
 
@@ -85,6 +85,8 @@ class Pinecone(PineconeDBControlInterface):
         self.openapi_config = ConfigBuilder.build_openapi_config(self.config, **kwargs)
         self.pool_threads = pool_threads
 
+        self._inference = None  # Lazy initialization
+
         if index_api:
             self.index_api = index_api
         else:
@@ -101,6 +103,13 @@ class Pinecone(PineconeDBControlInterface):
         """ @private """
 
         self.load_plugins()
+
+    @property
+    def inference(self):
+        """Dynamically create and cache the Inference instance."""
+        if self._inference is None:
+            self._inference = _Inference(config=self.config, openapi_config=self.openapi_config)
+        return self._inference
 
     def load_plugins(self):
         """@private"""
