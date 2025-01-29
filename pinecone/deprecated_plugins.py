@@ -1,5 +1,6 @@
 class DeprecatedPluginError(Exception):
-    def __init__(self, message):
+    def __init__(self, plugin_name: str):
+        message = f"The `{plugin_name}` package has been deprecated. The features from that plugin have been incorporated into the main `pinecone` package with no need for additional plugins. Please remove the `{plugin_name}` package from your dependencies to ensure you have the most up-to-date version of these features."
         super().__init__(message)
 
 
@@ -8,10 +9,14 @@ def check_for_deprecated_plugins():
         from pinecone_plugins.inference import __installables__  # type: ignore
 
         if __installables__ is not None:
-            raise DeprecatedPluginError(
-                "The `pinecone-plugin-inference` package has been deprecated. The embed and rerank functionality has been incorporated into the main `pinecone` package with no need for additional plugins. Please remove the `pinecone-plugin-inference` package from your dependencies to ensure you have the most up-to-date version of these features."
-            )
+            raise DeprecatedPluginError("pinecone-plugin-inference")
     except ImportError:
-        # ImportError is expected if the plugin is not installed,
-        # which is the good case.
+        pass
+
+    try:
+        from pinecone_plugins.records import __installables__  # type: ignore
+
+        if __installables__ is not None:
+            raise DeprecatedPluginError("pinecone-plugin-records")
+    except ImportError:
         pass

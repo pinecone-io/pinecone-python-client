@@ -1,6 +1,7 @@
 import time
 import logging
 from typing import Optional, Dict, Any, Union
+from enum import Enum
 
 from .index_host_store import IndexHostStore
 from .pinecone_interface import PineconeDBControlInterface
@@ -14,6 +15,8 @@ from pinecone.openapi_support.api_client import ApiClient
 from pinecone.utils import normalize_host, setup_openapi_client, build_plugin_setup_client
 from pinecone.core.openapi.db_control.models import (
     CreateCollectionRequest,
+    CreateIndexForModelRequest,
+    CreateIndexForModelRequestEmbed,
     CreateIndexRequest,
     ConfigureIndexRequest,
     ConfigureIndexRequestSpec,
@@ -26,17 +29,47 @@ from pinecone.core.openapi.db_control.models import (
     PodSpecMetadataConfig,
 )
 from pinecone.core.openapi.db_control import API_VERSION
-from pinecone.models import ServerlessSpec, PodSpec, IndexModel, IndexList, CollectionList
+from pinecone.models import (
+    ServerlessSpec,
+    PodSpec,
+    IndexModel,
+    IndexList,
+    CollectionList,
+    IndexEmbed,
+)
 from .langchain_import_warnings import _build_langchain_attribute_error_message
 from pinecone.utils import parse_non_empty_args, docslinks
 
 from pinecone.data import _Index, _AsyncioIndex, _Inference
-from pinecone.enums import Metric, VectorType, DeletionProtection, PodType
+from pinecone.enums import (
+    Metric,
+    VectorType,
+    DeletionProtection,
+    PodType,
+    CloudProvider,
+    AwsRegion,
+    GcpRegion,
+    AzureRegion,
+)
+from .types import CreateIndexForModelEmbedTypedDict
 
 from pinecone_plugin_interface import load_and_install as install_plugins
 
 logger = logging.getLogger(__name__)
 """ @private """
+
+
+def wait_until(condition, timeout=None, interval=5):
+    """
+    Wait until a condition is met or timeout is reached.
+    """
+    total_wait_time = 0
+    while not condition():
+        if timeout is not None and total_wait_time >= timeout:
+            return False
+        time.sleep(interval)
+        total_wait_time += interval
+    return True
 
 
 class Pinecone(PineconeDBControlInterface):
@@ -127,7 +160,27 @@ class Pinecone(PineconeDBControlInterface):
         except Exception as e:
             logger.error(f"Error loading plugins: {e}")
 
-    def _parse_index_spec(self, spec: Union[Dict, ServerlessSpec, PodSpec]) -> IndexSpec:
+    def __parse_tags(self, tags: Optional[Dict[str, str]]) -> IndexTags:
+        if tags is None:
+            return IndexTags()
+        else:
+            return IndexTags(**tags)
+
+    def __parse_deletion_protection(
+        self, deletion_protection: Union[DeletionProtection, str]
+    ) -> DeletionProtectionModel:
+        deletion_protection = self.__parse_enum_to_string(deletion_protection)
+        if deletion_protection in ["enabled", "disabled"]:
+            return DeletionProtectionModel(deletion_protection)
+        else:
+            raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
+
+    def __parse_enum_to_string(self, value: Union[Enum, str]) -> str:
+        if isinstance(value, Enum):
+            return value.value
+        return value
+
+    def __parse_index_spec(self, spec: Union[Dict, ServerlessSpec, PodSpec]) -> IndexSpec:
         if isinstance(spec, dict):
             if "serverless" in spec:
                 index_spec = IndexSpec(serverless=ServerlessSpecModel(**spec["serverless"]))
@@ -185,85 +238,128 @@ class Pinecone(PineconeDBControlInterface):
         deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
         vector_type: Optional[Union[VectorType, str]] = VectorType.DENSE,
         tags: Optional[Dict[str, str]] = None,
-    ):
-        # Convert Enums to their string values if necessary
-        metric = metric.value if isinstance(metric, Metric) else str(metric)
-        vector_type = vector_type.value if isinstance(vector_type, VectorType) else str(vector_type)
-        deletion_protection = (
-            deletion_protection.value
-            if isinstance(deletion_protection, DeletionProtection)
-            else str(deletion_protection)
-        )
+    ) -> IndexModel:
+        if metric is not None:
+            metric = self.__parse_enum_to_string(metric)
+        if vector_type is not None:
+            vector_type = self.__parse_enum_to_string(vector_type)
+        if deletion_protection is not None:
+            dp = self.__parse_deletion_protection(deletion_protection)
+
+        tags_obj = self.__parse_tags(tags)
+        index_spec = self.__parse_index_spec(spec)
 
         if vector_type == VectorType.SPARSE.value and dimension is not None:
             raise ValueError("dimension should not be specified for sparse indexes")
 
-        if deletion_protection in ["enabled", "disabled"]:
-            dp = DeletionProtectionModel(deletion_protection)
-        else:
-            raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
-
-        if tags is None:
-            tags_obj = None
-        else:
-            tags_obj = IndexTags(**tags)
-
-        index_spec = self._parse_index_spec(spec)
-
-        api_instance = self.index_api
-        api_instance.create_index(
-            create_index_request=CreateIndexRequest(
-                **parse_non_empty_args(
-                    [
-                        ("name", name),
-                        ("dimension", dimension),
-                        ("metric", metric),
-                        ("spec", index_spec),
-                        ("deletion_protection", dp),
-                        ("vector_type", vector_type),
-                        ("tags", tags_obj),
-                    ]
-                )
-            )
+        args = parse_non_empty_args(
+            [
+                ("name", name),
+                ("dimension", dimension),
+                ("metric", metric),
+                ("spec", index_spec),
+                ("deletion_protection", dp),
+                ("vector_type", vector_type),
+                ("tags", tags_obj),
+            ]
         )
 
-        def is_ready():
-            status = self._get_status(name)
-            ready = status["ready"]
-            return ready
+        req = CreateIndexRequest(**args)
+        self.index_api.create_index(create_index_request=req)
 
-        total_wait_time = 0
+        self.__wait_until_index_ready(name, timeout)
+        return self.describe_index(name)
+
+    def create_index_for_model(
+        self,
+        name: str,
+        cloud: Union[CloudProvider, str],
+        region: Union[AwsRegion, GcpRegion, AzureRegion, str],
+        embed: Union[IndexEmbed, CreateIndexForModelEmbedTypedDict],
+        tags: Optional[Dict[str, str]] = None,
+        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        timeout: Optional[int] = None,
+    ) -> IndexModel:
+        cloud = self.__parse_enum_to_string(cloud)
+        region = self.__parse_enum_to_string(region)
+        if deletion_protection is not None:
+            dp = self.__parse_deletion_protection(deletion_protection)
+        else:
+            dp = None
+        tags_obj = self.__parse_tags(tags)
+
+        if isinstance(embed, IndexEmbed):
+            parsed_embed = embed.as_dict()
+        else:
+            # if dict, we need to parse enum values, if any, to string
+            # and verify required fields are present
+            required_fields = ["model", "field_map"]
+            for field in required_fields:
+                if field not in embed:
+                    raise ValueError(f"{field} is required in embed")
+            parsed_embed = {}
+            for key, value in embed.items():
+                if isinstance(value, Enum):
+                    parsed_embed[key] = value.value
+                else:
+                    parsed_embed[key] = value
+
+        args = parse_non_empty_args(
+            [
+                ("name", name),
+                ("cloud", cloud),
+                ("region", region),
+                ("embed", CreateIndexForModelRequestEmbed(**parsed_embed)),
+                ("deletion_protection", dp),
+                ("tags", tags_obj),
+            ]
+        )
+
+        req = CreateIndexForModelRequest(**args)
+        self.index_api.create_index_for_model(req)
+
+        self.__wait_until_index_ready(name, timeout)
+        return self.describe_index(name=name)
+
+    def __wait_until_index_ready(self, name: str, timeout: Optional[int] = None):
+        def is_ready():
+            description = self.describe_index(name=name)
+            return description.status.ready
+
         if timeout == -1:
             logger.debug(f"Skipping wait for index {name} to be ready")
             return
+
+        total_wait_time = 0
         if timeout is None:
+            # Wait indefinitely
             while not is_ready():
                 logger.debug(
                     f"Waiting for index {name} to be ready. Total wait time: {total_wait_time}"
                 )
                 total_wait_time += 5
                 time.sleep(5)
+
         else:
-            while (not is_ready()) and timeout >= 0:
+            # Wait for a maximum of timeout seconds
+            while not is_ready():
+                if timeout < 0:
+                    logger.error(f"Index {name} is not ready. Timeout reached.")
+                    link = docslinks["API_DESCRIBE_INDEX"]
+                    timeout_msg = (
+                        f"Please call describe_index() to confirm index status. See docs at {link}"
+                    )
+                    raise TimeoutError(timeout_msg)
+
                 logger.debug(
                     f"Waiting for index {name} to be ready. Total wait time: {total_wait_time}"
                 )
                 total_wait_time += 5
                 time.sleep(5)
                 timeout -= 5
-        if timeout and timeout < 0:
-            logger.error(f"Index {name} is not ready. Timeout reached.")
-            raise (
-                TimeoutError(
-                    "Please call the describe_index API ({}) to confirm index status.".format(
-                        docslinks["API_DESCRIBE_INDEX"]
-                    )
-                )
-            )
 
     def delete_index(self, name: str, timeout: Optional[int] = None):
-        api_instance = self.index_api
-        api_instance.delete_index(name)
+        self.index_api.delete_index(name)
         self.index_host_store.delete_host(self.config, name)
 
         def get_remaining():
@@ -292,7 +388,7 @@ class Pinecone(PineconeDBControlInterface):
         response = self.index_api.list_indexes()
         return IndexList(response)
 
-    def describe_index(self, name: str):
+    def describe_index(self, name: str) -> IndexModel:
         api_instance = self.index_api
         description = api_instance.describe_index(name)
         host = description.host
@@ -372,11 +468,6 @@ class Pinecone(PineconeDBControlInterface):
     def describe_collection(self, name: str):
         api_instance = self.index_api
         return api_instance.describe_collection(name).to_dict()
-
-    def _get_status(self, name: str):
-        api_instance = self.index_api
-        response = api_instance.describe_index(name)
-        return response["status"]
 
     @staticmethod
     def from_texts(*args, **kwargs):
