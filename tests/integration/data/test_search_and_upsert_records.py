@@ -3,6 +3,7 @@ import pytest
 from typing import List
 from ..helpers import random_string, embedding_values
 import logging
+import os
 
 from pinecone import RerankModel, PineconeApiException
 from pinecone.data import _Index
@@ -69,6 +70,9 @@ def records_to_upsert():
     ]
 
 
+@pytest.mark.skipif(
+    os.getenv("USE_GRPC") != "false", reason="These actions are not supported in gRPC"
+)
 class TestUpsertAndSearchRecords:
     def test_search_records(self, model_idx, records_to_upsert):
         target_namespace = random_string(10)
@@ -182,6 +186,9 @@ class TestUpsertAndSearchRecords:
         assert response.usage is not None
 
 
+@pytest.mark.skipif(
+    os.getenv("USE_GRPC") != "false", reason="These actions are not supported in gRPC"
+)
 class TestUpsertAndSearchRecordsErrorCases:
     def test_search_with_rerank_nonexistent_model_error(self, model_idx, records_to_upsert):
         target_namespace = random_string(10)
