@@ -1,5 +1,6 @@
 import weakref
 import asyncio
+import json
 from .rest_utils import RestClientInterface, RESTResponse, raise_exceptions_or_return
 
 
@@ -43,13 +44,25 @@ class AiohttpRestClient(RestClientInterface):
         if method in ["POST", "PUT", "PATCH", "OPTIONS"] and ("Content-Type" not in headers):
             headers["Content-Type"] = "application/json"
 
-        async with self._session.request(
-            method, url, params=query_params, headers=headers, json=body
-        ) as resp:
-            content = await resp.read()
-            return raise_exceptions_or_return(
-                RESTResponse(resp.status, content, resp.headers, resp.reason)
-            )
+        if "application/x-ndjson" in headers.get("Content-Type", "").lower():
+            ndjson_data = "\n".join(json.dumps(record) for record in body)
+
+            async with self._session.request(
+                method, url, params=query_params, headers=headers, data=ndjson_data
+            ) as resp:
+                content = await resp.read()
+                return raise_exceptions_or_return(
+                    RESTResponse(resp.status, content, resp.headers, resp.reason)
+                )
+
+        else:
+            async with self._session.request(
+                method, url, params=query_params, headers=headers, json=body
+            ) as resp:
+                content = await resp.read()
+                return raise_exceptions_or_return(
+                    RESTResponse(resp.status, content, resp.headers, resp.reason)
+                )
 
     async def GET(
         self, url, headers=None, query_params=None, _preload_content=True, _request_timeout=None

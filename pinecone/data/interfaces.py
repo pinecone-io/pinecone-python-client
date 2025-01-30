@@ -856,3 +856,53 @@ class AsyncioIndexInterface(ABC):
             namespace (Optional[str]): The namespace to fetch vectors from. If not specified, the default namespace is used. [optional]
         """
         pass
+
+    @abstractmethod
+    async def upsert_records(self, namespace: str, records: List[Dict]):
+        """
+        Upsert records to a namespace.
+
+        Converts records into embeddings and upserts them into a namespacce in the index.
+
+        :param namespace: The namespace of the index to upsert records to.
+        :type namespace: str, required
+        :param records: The records to upsert into the index.
+        :type records: List[Dict], required
+        """
+        pass
+
+    @abstractmethod
+    async def search(
+        self,
+        namespace: str,
+        query: Union[SearchQueryTypedDict, SearchQuery],
+        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+    ) -> SearchRecordsResponse:
+        """
+        Search for records.
+
+        This operation converts a query to a vector embedding and then searches a namespace. You
+        can optionally provide a reranking operation as part of the search.
+
+        :param namespace: The namespace in the index to search.
+        :type namespace: str, required
+        :param query: The SearchQuery to use for the search.
+        :type query: Union[Dict, SearchQuery], required
+        :param rerank: The SearchRerank to use with the search request.
+        :type rerank: Union[Dict, SearchRerank], optional
+        :return: The records that match the search.
+        :rtype: RecordModel
+        """
+        pass
+
+    @abstractmethod
+    async def search_records(
+        self,
+        namespace: str,
+        query: Union[SearchQueryTypedDict, SearchQuery],
+        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+    ) -> SearchRecordsResponse:
+        """Alias of the search() method."""
+        pass

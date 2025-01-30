@@ -20,6 +20,7 @@ from pinecone.core.openapi.db_data.models import (
     UpsertResponse,
     DeleteRequest,
     ListResponse,
+    SearchRecordsResponse,
 )
 
 from ..utils import (
@@ -35,8 +36,10 @@ from .types import (
     VectorTuple,
     VectorTupleWithMetadata,
     FilterTypedDict,
+    SearchQueryTypedDict,
+    SearchRerankTypedDict,
 )
-from .dataclasses import Vector, SparseValues, FetchResponse
+from .dataclasses import Vector, SparseValues, FetchResponse, SearchQuery, SearchRerank
 
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
 from .index import IndexRequestFactory
@@ -399,6 +402,33 @@ class _AsyncioIndex(AsyncioIndexInterface, ImportFeatureMixinAsyncio):
                 kwargs.update({"pagination_token": results.pagination.next})
             else:
                 done = True
+
+    async def upsert_records(self, namespace: str, records: List[Dict]):
+        args = IndexRequestFactory.upsert_records_args(namespace=namespace, records=records)
+        await self._vector_api.upsert_records_namespace(**args)
+
+    async def search(
+        self,
+        namespace: str,
+        query: Union[SearchQueryTypedDict, SearchQuery],
+        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+    ) -> SearchRecordsResponse:
+        if namespace is None:
+            raise Exception("Namespace is required when searching records")
+
+        request = IndexRequestFactory.search_request(query=query, rerank=rerank, fields=fields)
+
+        return await self._vector_api.search_records_namespace(namespace, request)
+
+    async def search_records(
+        self,
+        namespace: str,
+        query: Union[SearchQueryTypedDict, SearchQuery],
+        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+    ) -> SearchRecordsResponse:
+        return await self.search(namespace, query=query, rerank=rerank, fields=fields)
 
     def _openapi_kwargs(self, kwargs):
         return {k: v for k, v in kwargs.items() if k in OPENAPI_ENDPOINT_PARAMS}

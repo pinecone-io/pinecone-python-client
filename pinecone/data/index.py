@@ -215,7 +215,7 @@ class Index(IndexInterface, ImportFeatureMixin):
         rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
         fields: Optional[List[str]] = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
-        if not namespace:
+        if namespace is None:
             raise Exception("Namespace is required when searching records")
 
         request = IndexRequestFactory.search_request(query=query, rerank=rerank, fields=fields)
