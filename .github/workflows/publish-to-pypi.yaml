@@ -74,7 +74,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.x
+          python-version: 3.12
 
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
@@ -109,13 +109,13 @@ jobs:
         run: |
           # Add the original pinecone client version file to git
           # Even though Poetry is now the preferred means of working
-          # with this project, since this __version__ file has been the 
+          # with this project, since this __version__ file has been the
           # one source of truth for our release process. We need to maintain
           # both files for the time being, and they should always contain the
           # identical package version
           git add pinecone/__version__
           # Add also the pyproject.toml, which is Poetry's source of truth, so
-          # that we maintain the exact same version across the two files 
+          # that we maintain the exact same version across the two files
           git add pyproject.toml
           git commit -m "[skip ci] Bump version to ${{ steps.bump.outputs.VERSION_TAG }}"
 
