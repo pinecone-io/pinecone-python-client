@@ -14,7 +14,6 @@ from pinecone.core.openapi.db_data.models import (
     IndexDescription as DescribeIndexStatsResponse,
     UpsertResponse,
     ListResponse,
-    UpsertRecord,
     SearchRecordsResponse,
 )
 from .dataclasses import Vector, SparseValues, FetchResponse, SearchQuery, SearchRerank
@@ -206,24 +205,8 @@ class Index(IndexInterface, ImportFeatureMixin):
         return UpsertResponse(upserted_count=upserted_count)
 
     def upsert_records(self, namespace: str, records: List[Dict]):
-        if namespace is None:
-            raise ValueError("namespace is required when upserting records")
-        if not records or len(records) == 0:
-            raise ValueError("No records provided")
-
-        records_to_upsert = []
-        for record in records:
-            if not record.get("_id") and not record.get("id"):
-                raise ValueError("Each record must have an '_id' or 'id' value")
-
-            records_to_upsert.append(
-                UpsertRecord(
-                    record.get("_id", record.get("id")),
-                    **{k: v for k, v in record.items() if k not in {"_id", "id"}},
-                )
-            )
-
-        self._vector_api.upsert_records_namespace(namespace, records_to_upsert)
+        args = IndexRequestFactory.upsert_records_args(namespace=namespace, records=records)
+        self._vector_api.upsert_records_namespace(**args)
 
     def search(
         self,

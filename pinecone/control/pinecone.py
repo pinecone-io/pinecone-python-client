@@ -1,6 +1,7 @@
 import time
 import logging
 from typing import Optional, Dict, Any, Union
+from enum import Enum
 
 from .index_host_store import IndexHostStore
 from .pinecone_interface import PineconeDBControlInterface
@@ -288,7 +289,10 @@ class Pinecone(PineconeDBControlInterface):
                     raise ValueError(f"{field} is required in embed")
             parsed_embed = {}
             for key, value in embed.items():
-                parsed_embed[key] = convert_enum_to_string(value)
+                if isinstance(value, Enum):
+                    parsed_embed[key] = convert_enum_to_string(value)
+                else:
+                    parsed_embed[key] = value
 
         args = parse_non_empty_args(
             [

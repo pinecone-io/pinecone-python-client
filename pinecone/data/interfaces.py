@@ -20,6 +20,8 @@ from .types import (
     FilterTypedDict,
     VectorTuple,
     VectorTupleWithMetadata,
+    SearchQueryTypedDict,
+    SearchRerankTypedDict,
 )
 from .dataclasses import SearchQuery, SearchRerank
 
@@ -122,8 +124,8 @@ class IndexInterface(ABC):
     def search(
         self,
         namespace: str,
-        query: Union[Dict, SearchQuery],
-        rerank: Optional[Union[Dict, SearchRerank]] = None,
+        query: Union[SearchQueryTypedDict, SearchQuery],
+        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
         fields: Optional[List[str]] = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         """
@@ -147,8 +149,8 @@ class IndexInterface(ABC):
     def search_records(
         self,
         namespace: str,
-        query: Union[Dict, SearchQuery],
-        rerank: Optional[Union[Dict, SearchRerank]] = None,
+        query: Union[SearchQueryTypedDict, SearchQuery],
+        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
         fields: Optional[List[str]] = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         """Alias of the search() method."""

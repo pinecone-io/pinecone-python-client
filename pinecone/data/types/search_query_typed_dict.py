@@ -19,7 +19,7 @@ class SearchQueryTypedDict(TypedDict):
     Required.
     """
 
-    filter: Optional[Dict[str, Any]] = None
+    filter: Optional[Dict[str, Any]]
     """
     The filter to apply to the search.
     Optional.

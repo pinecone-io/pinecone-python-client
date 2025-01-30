@@ -1,5 +1,5 @@
 import logging
-from typing import Union, List, Optional, Dict, Any
+from typing import Union, List, Optional, Dict, Any, cast
 
 from pinecone.core.openapi.db_data.models import (
     QueryRequest,
@@ -12,6 +12,7 @@ from pinecone.core.openapi.db_data.models import (
     SearchRecordsRequestRerank,
     VectorValues,
     SearchRecordsVector,
+    UpsertRecord,
 )
 from ..utils import parse_non_empty_args, convert_enum_to_string
 from .vector_factory import VectorFactory
@@ -183,7 +184,7 @@ class IndexRequestFactory:
         if isinstance(query, SearchQuery):
             query_dict = query.as_dict()
         else:
-            query_dict = query
+            query_dict = cast(dict[str, Any], query)
 
         required_fields = {"top_k"}
         for key in required_fields:
@@ -213,7 +214,7 @@ class IndexRequestFactory:
                 return None
             vector_dict = vector.as_dict()
         else:
-            vector_dict = vector
+            vector_dict = cast(dict[str, Any], vector)
             if (
                 vector_dict.get("values", None) is None
                 and vector_dict.get("sparse_values", None) is None
@@ -236,7 +237,7 @@ class IndexRequestFactory:
         if isinstance(rerank, SearchRerank):
             rerank_dict = rerank.as_dict()
         else:
-            rerank_dict = rerank
+            rerank_dict = cast(dict[str, Any], rerank)
 
         required_fields = {"model", "rank_fields"}
         for key in required_fields:
@@ -246,3 +247,24 @@ class IndexRequestFactory:
         rerank_dict["model"] = convert_enum_to_string(rerank_dict["model"])
 
         return SearchRecordsRequestRerank(**rerank_dict)
+
+    @staticmethod
+    def upsert_records_args(namespace: str, records: List[Dict]):
+        if namespace is None:
+            raise ValueError("namespace is required when upserting records")
+        if not records or len(records) == 0:
+            raise ValueError("No records provided")
+
+        records_to_upsert = []
+        for record in records:
+            if not record.get("_id") and not record.get("id"):
+                raise ValueError("Each record must have an '_id' or 'id' value")
+
+            records_to_upsert.append(
+                UpsertRecord(
+                    record.get("_id", record.get("id")),
+                    **{k: v for k, v in record.items() if k not in {"_id", "id"}},
+                )
+            )
+
+        return {"namespace": namespace, "upsert_record": records_to_upsert}
