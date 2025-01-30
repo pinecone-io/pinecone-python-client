@@ -248,7 +248,10 @@ description = pc.describe_index('my-index')
 # }
 ```
 
-### Create a serverless index on Google Cloud Platform
+#### Create a serverless index on Google Cloud Platform
+
+The following example creates a serverless index in the `us-central1`
+region of GCP. For more information on serverless and regional availability, see [Understanding indexes](https://docs.pinecone.io/guides/indexes/understanding-indexes#serverless-indexes).
 
 ```python
 from pinecone import (
@@ -260,6 +263,7 @@ from pinecone import (
 )
 
 pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+
 pc.create_index(
     name='my-index',
     dimension=1536,
@@ -270,7 +274,78 @@ pc.create_index(
     )
 )
 
+description = pc.describe_index(name='my-index')
+# {
+#     "name": "my-index",
+#     "metric": "cosine",
+#     "host": "my-index-dojoi3u.svc.gcp-us-central1-4a9f.pinecone.io",
+#     "spec": {
+#         "serverless": {
+#             "cloud": "gcp",
+#             "region": "us-central1"
+#         }
+#     },
+#     "status": {
+#         "ready": true,
+#         "state": "Ready"
+#     },
+#     "vector_type": "dense",
+#     "dimension": 1536,
+#     "deletion_protection": "disabled",
+#     "tags": null
+# }
 ```
+
+#### Create a serverless index on Azure
+
+The following example creates a serverless index on Azure. For more information on serverless and regional availability, see [Understanding indexes](https://docs.pinecone.io/guides/indexes/understanding-indexes#serverless-indexes).
+
+```python
+from pinecone import (
+    Pinecone,
+    ServerlessSpec,
+    CloudProvider,
+    AzureRegion,
+    Metric
+)
+
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+
+pc.create_index(
+    name='my-index',
+    dimension=1536,
+    metric=Metric.COSINE,
+    spec=ServerlessSpec(
+        cloud=CloudProvider.AZURE,
+        region=AzureRegion.EASTUS2
+    )
+)
+
+description = pc.describe_index(name='my-index')
+# {
+#     "name": "my-index",
+#     "metric": "cosine",
+#     "host": "my-index-dojoi3u.svc.eastus2-5e25.prod-azure.pinecone.io",
+#     "spec": {
+#         "serverless": {
+#             "cloud": "azure",
+#             "region": "eastus2"
+#         }
+#     },
+#     "status": {
+#         "ready": true,
+#         "state": "Ready"
+#     },
+#     "vector_type": "dense",
+#     "dimension": 1536,
+#     "deletion_protection": "disabled",
+#     "tags": null
+# }
+```
+
+### Storing index metadata with index tags
+
+When working with multiple indexes, it is useful to store metadata about your index. To help with this, Pinecone indexes can be configured with
 
 ### Create a pod index
 

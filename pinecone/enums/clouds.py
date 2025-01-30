@@ -27,4 +27,4 @@ class GcpRegion(Enum):
 class AzureRegion(Enum):
     """Azure regions available for use with Pinecone serverless indexes"""
 
-    EAST_US = "eastus2"
+    EASTUS2 = "eastus2"
