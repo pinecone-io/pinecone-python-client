@@ -48,10 +48,10 @@ pip3 install pinecone
 pip3 install "pinecone[grpc]"
 
 # Install a specific version
-pip3 install pinecone==5.0.0
+pip3 install pinecone==6.0.0
 
 # Install a specific version, with grpc extras
-pip3 install "pinecone[grpc]"==5.0.0
+pip3 install "pinecone[grpc]"==6.0.0
 ```
 
 ### Installing with poetry
@@ -200,23 +200,76 @@ index.query(vector=[...], top_key=10)
 
 ### Create a serverless index
 
+
+#### Create a serverless index on Amazon Web Services (AWS)
+
 The following example creates a serverless index in the `us-west-2`
 region of AWS. For more information on serverless and regional availability, see [Understanding indexes](https://docs.pinecone.io/guides/indexes/understanding-indexes#serverless-indexes).
 
 ```python
-from pinecone import Pinecone, ServerlessSpec
+from pinecone import (
+    Pinecone,
+    ServerlessSpec,
+    CloudProvider,
+    AwsRegion,
+    Metric
+)
 
 pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
 pc.create_index(
     name='my-index',
     dimension=1536,
-    metric='euclidean',
-    deletion_protection='enabled',
+    metric=Metric.COSINE,
     spec=ServerlessSpec(
-        cloud='aws',
-        region='us-west-2'
+        cloud=CloudProvider.GCP,
+        region=AwsRegion.US_WEST_2
     )
 )
+
+description = pc.describe_index('my-index')
+# {
+#     "name": "my-index",
+#     "metric": "cosine",
+#     "host": "my-index-dojoi3u.svc.apw5-4e34-81fa.pinecone.io",
+#     "spec": {
+#         "serverless": {
+#             "cloud": "aws",
+#             "region": "us-west-2"
+#         }
+#     },
+#     "status": {
+#         "ready": true,
+#         "state": "Ready"
+#     },
+#     "vector_type": "dense",
+#     "dimension": 1536,
+#     "deletion_protection": "disabled",
+#     "tags": null
+# }
+```
+
+### Create a serverless index on Google Cloud Platform
+
+```python
+from pinecone import (
+    Pinecone,
+    ServerlessSpec,
+    CloudProvider,
+    GcpRegion,
+    Metric
+)
+
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+pc.create_index(
+    name='my-index',
+    dimension=1536,
+    metric=Metric.COSINE,
+    spec=ServerlessSpec(
+        cloud=CloudProvider.GCP,
+        region=GcpRegion.US_CENTRAL1
+    )
+)
+
 ```
 
 ### Create a pod index
