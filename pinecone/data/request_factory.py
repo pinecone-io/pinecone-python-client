@@ -1,5 +1,5 @@
 import logging
-from typing import Union, List, Optional, Dict, Any
+from typing import Union, List, Optional, Dict, Any, cast
 
 from pinecone.core.openapi.db_data.models import (
     QueryRequest,
@@ -7,8 +7,14 @@ from pinecone.core.openapi.db_data.models import (
     DeleteRequest,
     UpdateRequest,
     DescribeIndexStatsRequest,
+    SearchRecordsRequest,
+    SearchRecordsRequestQuery,
+    SearchRecordsRequestRerank,
+    VectorValues,
+    SearchRecordsVector,
+    UpsertRecord,
 )
-from ..utils import parse_non_empty_args
+from ..utils import parse_non_empty_args, convert_enum_to_string
 from .vector_factory import VectorFactory
 from .sparse_values_factory import SparseValuesFactory
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
@@ -19,8 +25,12 @@ from .types import (
     VectorTuple,
     VectorTupleWithMetadata,
     FilterTypedDict,
+    SearchQueryTypedDict,
+    SearchRerankTypedDict,
+    SearchQueryVectorTypedDict,
 )
-from .dataclasses import Vector, SparseValues
+
+from .dataclasses import Vector, SparseValues, SearchQuery, SearchRerank, SearchQueryVector
 
 logger = logging.getLogger(__name__)
 
@@ -150,3 +160,111 @@ class IndexRequestFactory:
                 ("pagination_token", pagination_token),
             ]
         )
+
+    @staticmethod
+    def search_request(
+        query: Union[SearchQueryTypedDict, SearchQuery],
+        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+    ) -> SearchRecordsRequest:
+        request_args = parse_non_empty_args(
+            [
+                ("query", IndexRequestFactory._parse_search_query(query)),
+                ("fields", fields),
+                ("rerank", IndexRequestFactory._parse_search_rerank(rerank)),
+            ]
+        )
+
+        return SearchRecordsRequest(**request_args)
+
+    @staticmethod
+    def _parse_search_query(
+        query: Union[SearchQueryTypedDict, SearchQuery],
+    ) -> SearchRecordsRequestQuery:
+        if isinstance(query, SearchQuery):
+            query_dict = query.as_dict()
+        else:
+            query_dict = cast(dict[str, Any], query)
+
+        required_fields = {"top_k"}
+        for key in required_fields:
+            if query_dict.get(key, None) is None:
+                raise ValueError(f"Missing required field '{key}' in search query.")
+
+        # User-provided dict could contain object that need conversion
+        if isinstance(query_dict.get("vector", None), SearchQueryVector):
+            query_dict["vector"] = query_dict["vector"].as_dict()
+
+        srrq = SearchRecordsRequestQuery(
+            **{k: v for k, v in query_dict.items() if k not in {"vector"}}
+        )
+        if query_dict.get("vector", None) is not None:
+            srrq.vector = IndexRequestFactory._parse_search_vector(query_dict["vector"])
+        return srrq
+
+    @staticmethod
+    def _parse_search_vector(
+        vector: Optional[Union[SearchQueryVectorTypedDict, SearchQueryVector]],
+    ):
+        if vector is None:
+            return None
+
+        if isinstance(vector, SearchQueryVector):
+            if vector.values is None and vector.sparse_values is None:
+                return None
+            vector_dict = vector.as_dict()
+        else:
+            vector_dict = cast(dict[str, Any], vector)
+            if (
+                vector_dict.get("values", None) is None
+                and vector_dict.get("sparse_values", None) is None
+            ):
+                return None
+
+        srv = SearchRecordsVector(**{k: v for k, v in vector_dict.items() if k not in {"values"}})
+
+        values = vector_dict.get("values", None)
+        if values is not None:
+            srv.values = VectorValues(value=values)
+
+        return srv
+
+    @staticmethod
+    def _parse_search_rerank(rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None):
+        if rerank is None:
+            return None
+
+        if isinstance(rerank, SearchRerank):
+            rerank_dict = rerank.as_dict()
+        else:
+            rerank_dict = cast(dict[str, Any], rerank)
+
+        required_fields = {"model", "rank_fields"}
+        for key in required_fields:
+            if rerank_dict.get(key, None) is None:
+                raise ValueError(f"Missing required field '{key}' in rerank.")
+
+        rerank_dict["model"] = convert_enum_to_string(rerank_dict["model"])
+
+        return SearchRecordsRequestRerank(**rerank_dict)
+
+    @staticmethod
+    def upsert_records_args(namespace: str, records: List[Dict]):
+        if namespace is None:
+            raise ValueError("namespace is required when upserting records")
+        if not records or len(records) == 0:
+            raise ValueError("No records provided")
+
+        records_to_upsert = []
+        for record in records:
+            if not record.get("_id") and not record.get("id"):
+                raise ValueError("Each record must have an '_id' or 'id' value")
+
+            records_to_upsert.append(
+                UpsertRecord(
+                    record.get("_id", record.get("id")),
+                    **{k: v for k, v in record.items() if k not in {"_id", "id"}},
+                )
+            )
+
+        return {"namespace": namespace, "upsert_record": records_to_upsert}

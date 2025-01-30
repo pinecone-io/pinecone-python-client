@@ -7,6 +7,8 @@ from pinecone.data import _AsyncioIndex
 import logging
 from typing import Callable, Optional, Awaitable, Union
 
+from pinecone import CloudProvider, AwsRegion, IndexEmbed, EmbedModel
+
 logger = logging.getLogger(__name__)
 
 
@@ -69,6 +71,11 @@ def sparse_index_name():
     return generate_index_name("sparse")
 
 
+@pytest.fixture(scope="session")
+def model_index_name():
+    return generate_index_name("embed")
+
+
 def build_asyncioindex_client(client, index_host) -> _AsyncioIndex:
     return client.AsyncioIndex(host=index_host)
 
@@ -107,18 +114,44 @@ def sparse_index_host(sparse_index_name, spec):
     pc = build_client()
 
     if sparse_index_name not in pc.list_indexes().names():
-        logger.info("Creating sparse index with name: " + sparse_index_name)
+        logger.info(f"Creating index with name {sparse_index_name}")
         pc.create_index(
             name=sparse_index_name, metric="dotproduct", spec=spec, vector_type="sparse"
         )
     else:
-        logger.info("Sparse index with name " + sparse_index_name + " already exists")
+        logger.info(f"Index with name {sparse_index_name} already exists")
 
     description = pc.describe_index(name=sparse_index_name)
     yield description.host
 
-    logger.info("Deleting sparse index with name: " + sparse_index_name)
+    logger.info(f"Deleting index with name {sparse_index_name}")
     pc.delete_index(sparse_index_name, -1)
+
+
+@pytest.fixture(scope="session")
+def model_index_host(model_index_name):
+    pc = build_client()
+
+    if model_index_name not in pc.list_indexes().names():
+        logger.info(f"Creating index {model_index_name}")
+        pc.create_index_for_model(
+            name=model_index_name,
+            cloud=CloudProvider.AWS,
+            region=AwsRegion.US_WEST_2,
+            embed=IndexEmbed(
+                model=EmbedModel.Multilingual_E5_Large,
+                field_map={"text": "my_text_field"},
+                metric="cosine",
+            ),
+        )
+    else:
+        logger.info(f"Index {model_index_name} already exists")
+
+    description = pc.describe_index(name=model_index_name)
+    yield description.host
+
+    logger.info(f"Deleting index {model_index_name}")
+    pc.delete_index(model_index_name, -1)
 
 
 async def poll_for_freshness(asyncio_idx, target_namespace, target_vector_count):

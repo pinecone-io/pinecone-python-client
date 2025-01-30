@@ -4,6 +4,7 @@ from .user_agent import get_user_agent
 from .deprecation_notice import warn_deprecated
 from .fix_tuple_length import fix_tuple_length
 from .convert_to_list import convert_to_list
+from .convert_enum_to_string import convert_enum_to_string
 from .normalize_host import normalize_host
 from .setup_openapi_client import setup_openapi_client, build_plugin_setup_client
 from .parse_args import parse_non_empty_args
@@ -25,4 +26,5 @@ __all__ = [
     "docslinks",
     "install_json_repr_override",
     "validate_and_convert_errors",
+    "convert_enum_to_string",
 ]

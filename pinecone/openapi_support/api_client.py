@@ -557,8 +557,7 @@ class ApiClient(object):
             )
         else:
             raise PineconeApiValueError(
-                "http method must be `GET`, `HEAD`, `OPTIONS`,"
-                " `POST`, `PATCH`, `PUT` or `DELETE`."
+                "http method must be `GET`, `HEAD`, `OPTIONS`, `POST`, `PATCH`, `PUT` or `DELETE`."
             )
 
     @classmethod

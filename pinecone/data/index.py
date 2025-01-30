@@ -14,8 +14,9 @@ from pinecone.core.openapi.db_data.models import (
     IndexDescription as DescribeIndexStatsResponse,
     UpsertResponse,
     ListResponse,
+    SearchRecordsResponse,
 )
-from .dataclasses import Vector, SparseValues, FetchResponse
+from .dataclasses import Vector, SparseValues, FetchResponse, SearchQuery, SearchRerank
 from .interfaces import IndexInterface
 from .request_factory import IndexRequestFactory
 from .features.bulk_import import ImportFeatureMixin
@@ -26,6 +27,8 @@ from .types import (
     VectorTuple,
     VectorTupleWithMetadata,
     FilterTypedDict,
+    SearchRerankTypedDict,
+    SearchQueryTypedDict,
 )
 from ..utils import (
     setup_openapi_client,
@@ -200,6 +203,33 @@ class Index(IndexInterface, ImportFeatureMixin):
             upserted_count += res.upserted_count
 
         return UpsertResponse(upserted_count=upserted_count)
+
+    def upsert_records(self, namespace: str, records: List[Dict]):
+        args = IndexRequestFactory.upsert_records_args(namespace=namespace, records=records)
+        self._vector_api.upsert_records_namespace(**args)
+
+    def search(
+        self,
+        namespace: str,
+        query: Union[SearchQueryTypedDict, SearchQuery],
+        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+    ) -> SearchRecordsResponse:
+        if namespace is None:
+            raise Exception("Namespace is required when searching records")
+
+        request = IndexRequestFactory.search_request(query=query, rerank=rerank, fields=fields)
+
+        return self._vector_api.search_records_namespace(namespace, request)
+
+    def search_records(
+        self,
+        namespace: str,
+        query: Union[SearchQueryTypedDict, SearchQuery],
+        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+    ) -> SearchRecordsResponse:
+        return self.search(namespace, query=query, rerank=rerank, fields=fields)
 
     @validate_and_convert_errors
     def delete(

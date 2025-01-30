@@ -9,6 +9,7 @@ from pinecone.core.openapi.db_data.models import (
     Vector,
     ListResponse,
     SparseValues,
+    SearchRecordsResponse,
 )
 from .query_results_aggregator import QueryNamespacesResults
 from multiprocessing.pool import ApplyResult
@@ -19,7 +20,10 @@ from .types import (
     FilterTypedDict,
     VectorTuple,
     VectorTupleWithMetadata,
+    SearchQueryTypedDict,
+    SearchRerankTypedDict,
 )
+from .dataclasses import SearchQuery, SearchRerank
 
 
 class IndexInterface(ABC):
@@ -100,6 +104,56 @@ class IndexInterface(ABC):
             batch_size: The number of rows to upsert in a single batch.
             show_progress: Whether to show a progress bar.
         """
+        pass
+
+    @abstractmethod
+    def upsert_records(self, namespace: str, records: List[Dict]):
+        """
+        Upsert records to a namespace.
+
+        Converts records into embeddings and upserts them into a namespacce in the index.
+
+        :param namespace: The namespace of the index to upsert records to.
+        :type namespace: str, required
+        :param records: The records to upsert into the index.
+        :type records: List[Dict], required
+        """
+        pass
+
+    @abstractmethod
+    def search(
+        self,
+        namespace: str,
+        query: Union[SearchQueryTypedDict, SearchQuery],
+        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+    ) -> SearchRecordsResponse:
+        """
+        Search for records.
+
+        This operation converts a query to a vector embedding and then searches a namespace. You
+        can optionally provide a reranking operation as part of the search.
+
+        :param namespace: The namespace in the index to search.
+        :type namespace: str, required
+        :param query: The SearchQuery to use for the search.
+        :type query: Union[Dict, SearchQuery], required
+        :param rerank: The SearchRerank to use with the search request.
+        :type rerank: Union[Dict, SearchRerank], optional
+        :return: The records that match the search.
+        :rtype: RecordModel
+        """
+        pass
+
+    @abstractmethod
+    def search_records(
+        self,
+        namespace: str,
+        query: Union[SearchQueryTypedDict, SearchQuery],
+        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+    ) -> SearchRecordsResponse:
+        """Alias of the search() method."""
         pass
 
     @abstractmethod
@@ -801,4 +855,54 @@ class AsyncioIndexInterface(ABC):
                 in the response if additional results are available. [optional]
             namespace (Optional[str]): The namespace to fetch vectors from. If not specified, the default namespace is used. [optional]
         """
+        pass
+
+    @abstractmethod
+    async def upsert_records(self, namespace: str, records: List[Dict]):
+        """
+        Upsert records to a namespace.
+
+        Converts records into embeddings and upserts them into a namespacce in the index.
+
+        :param namespace: The namespace of the index to upsert records to.
+        :type namespace: str, required
+        :param records: The records to upsert into the index.
+        :type records: List[Dict], required
+        """
+        pass
+
+    @abstractmethod
+    async def search(
+        self,
+        namespace: str,
+        query: Union[SearchQueryTypedDict, SearchQuery],
+        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+    ) -> SearchRecordsResponse:
+        """
+        Search for records.
+
+        This operation converts a query to a vector embedding and then searches a namespace. You
+        can optionally provide a reranking operation as part of the search.
+
+        :param namespace: The namespace in the index to search.
+        :type namespace: str, required
+        :param query: The SearchQuery to use for the search.
+        :type query: Union[Dict, SearchQuery], required
+        :param rerank: The SearchRerank to use with the search request.
+        :type rerank: Union[Dict, SearchRerank], optional
+        :return: The records that match the search.
+        :rtype: RecordModel
+        """
+        pass
+
+    @abstractmethod
+    async def search_records(
+        self,
+        namespace: str,
+        query: Union[SearchQueryTypedDict, SearchQuery],
+        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+    ) -> SearchRecordsResponse:
+        """Alias of the search() method."""
         pass
