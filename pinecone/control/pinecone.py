@@ -1,7 +1,6 @@
 import time
 import logging
 from typing import Optional, Dict, Any, Union
-from enum import Enum
 
 from .index_host_store import IndexHostStore
 from .pinecone_interface import PineconeDBControlInterface
@@ -12,7 +11,12 @@ from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexe
 from pinecone.openapi_support.api_client import ApiClient
 
 
-from pinecone.utils import normalize_host, setup_openapi_client, build_plugin_setup_client
+from pinecone.utils import (
+    normalize_host,
+    setup_openapi_client,
+    build_plugin_setup_client,
+    convert_enum_to_string,
+)
 from pinecone.core.openapi.db_control.models import (
     CreateCollectionRequest,
     CreateIndexForModelRequest,
@@ -156,16 +160,11 @@ class Pinecone(PineconeDBControlInterface):
     def __parse_deletion_protection(
         self, deletion_protection: Union[DeletionProtection, str]
     ) -> DeletionProtectionModel:
-        deletion_protection = self.__parse_enum_to_string(deletion_protection)
+        deletion_protection = convert_enum_to_string(deletion_protection)
         if deletion_protection in ["enabled", "disabled"]:
             return DeletionProtectionModel(deletion_protection)
         else:
             raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
-
-    def __parse_enum_to_string(self, value: Union[Enum, str]) -> str:
-        if isinstance(value, Enum):
-            return value.value
-        return value
 
     def __parse_index_spec(self, spec: Union[Dict, ServerlessSpec, PodSpec]) -> IndexSpec:
         if isinstance(spec, dict):
@@ -227,9 +226,9 @@ class Pinecone(PineconeDBControlInterface):
         tags: Optional[Dict[str, str]] = None,
     ) -> IndexModel:
         if metric is not None:
-            metric = self.__parse_enum_to_string(metric)
+            metric = convert_enum_to_string(metric)
         if vector_type is not None:
-            vector_type = self.__parse_enum_to_string(vector_type)
+            vector_type = convert_enum_to_string(vector_type)
         if deletion_protection is not None:
             dp = self.__parse_deletion_protection(deletion_protection)
         else:
@@ -270,8 +269,8 @@ class Pinecone(PineconeDBControlInterface):
         deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
         timeout: Optional[int] = None,
     ) -> IndexModel:
-        cloud = self.__parse_enum_to_string(cloud)
-        region = self.__parse_enum_to_string(region)
+        cloud = convert_enum_to_string(cloud)
+        region = convert_enum_to_string(region)
         if deletion_protection is not None:
             dp = self.__parse_deletion_protection(deletion_protection)
         else:
@@ -289,10 +288,7 @@ class Pinecone(PineconeDBControlInterface):
                     raise ValueError(f"{field} is required in embed")
             parsed_embed = {}
             for key, value in embed.items():
-                if isinstance(value, Enum):
-                    parsed_embed[key] = value.value
-                else:
-                    parsed_embed[key] = value
+                parsed_embed[key] = convert_enum_to_string(value)
 
         args = parse_non_empty_args(
             [
@@ -325,7 +321,7 @@ class Pinecone(PineconeDBControlInterface):
             # Wait indefinitely
             while not is_ready():
                 logger.debug(
-                    f"Waiting for index {name} to be ready. Total wait time: {total_wait_time}"
+                    f"Waiting for index {name} to be ready. Total wait time {total_wait_time} seconds."
                 )
                 total_wait_time += 5
                 time.sleep(5)

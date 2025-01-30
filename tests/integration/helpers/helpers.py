@@ -6,6 +6,7 @@ import string
 import logging
 from typing import Any
 from datetime import datetime
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -113,3 +114,7 @@ def poll_fetch_for_ids_in_namespace(idx, ids, namespace):
 
 def fake_api_key():
     return "-".join([random_string(x) for x in [8, 4, 4, 4, 12]])
+
+
+def jsonprint(obj):
+    print(json.dumps(obj.to_dict(), indent=2))

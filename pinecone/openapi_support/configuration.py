@@ -418,8 +418,9 @@ class Configuration(object):
             server = servers[index]
         except IndexError:
             raise ValueError(
-                "Invalid index {0} when selecting the host settings. "
-                "Must be less than {1}".format(index, len(servers))
+                "Invalid index {0} when selecting the host settings. Must be less than {1}".format(
+                    index, len(servers)
+                )
             )
 
         url = server["url"]
@@ -430,8 +431,7 @@ class Configuration(object):
 
             if "enum_values" in variable and used_value not in variable["enum_values"]:
                 raise ValueError(
-                    "The variable `{0}` in the host URL has invalid value "
-                    "{1}. Must be {2}.".format(
+                    "The variable `{0}` in the host URL has invalid value {1}. Must be {2}.".format(
                         variable_name, variables[variable_name], variable["enum_values"]
                     )
                 )

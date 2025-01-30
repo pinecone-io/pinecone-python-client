@@ -1653,10 +1653,8 @@ def type_error_message(var_value=None, var_name=None, valid_classes=None, key_ty
     if key_type:
         key_or_value = "key"
     valid_classes_phrase = get_valid_classes_phrase(valid_classes)
-    msg = (
-        "Invalid type for variable '{0}'. Required {1} type {2} and " "passed type was {3}".format(
-            var_name, key_or_value, valid_classes_phrase, type(var_value).__name__
-        )
+    msg = "Invalid type for variable '{0}'. Required {1} type {2} and passed type was {3}".format(
+        var_name, key_or_value, valid_classes_phrase, type(var_value).__name__
     )
     return msg
 

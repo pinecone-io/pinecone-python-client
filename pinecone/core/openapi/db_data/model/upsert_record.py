@@ -78,7 +78,7 @@ class UpsertRecord(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            "id": (str,)  # noqa: E501
+            "_id": (str,)  # noqa: E501
         }
 
     @cached_property
@@ -86,7 +86,7 @@ class UpsertRecord(ModelNormal):
         return None
 
     attribute_map = {
-        "id": "_id"  # noqa: E501
+        "_id": "_id"  # noqa: E501
     }
 
     read_only_vars = {}
@@ -95,11 +95,11 @@ class UpsertRecord(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, id, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, _id, *args, **kwargs):  # noqa: E501
         """UpsertRecord - a model defined in OpenAPI
 
         Args:
-            id (str): The unique ID of the record to upsert. Note that `id` can be used as an alias for `_id`.
+            _id (str): The unique ID of the record to upsert. Note that `id` can be used as an alias for `_id`.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -157,7 +157,7 @@ class UpsertRecord(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.id = id
+        self._id = _id
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -182,11 +182,11 @@ class UpsertRecord(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, id, *args, **kwargs):  # noqa: E501
+    def __init__(self, _id, *args, **kwargs):  # noqa: E501
         """UpsertRecord - a model defined in OpenAPI
 
         Args:
-            id (str): The unique ID of the record to upsert. Note that `id` can be used as an alias for `_id`.
+            _id (str): The unique ID of the record to upsert. Note that `id` can be used as an alias for `_id`.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -242,7 +242,7 @@ class UpsertRecord(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.id = id
+        self._id = _id
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

@@ -134,6 +134,44 @@ remove_shared_classes() {
 	done
 }
 
+# Generated Python code attempts to internally map OpenAPI fields that begin
+# with "_" to a non-underscored alternative. Along with a polymorphic object,
+# this causes collisions and headaches. We massage the generated models to
+# maintain the original field names from the OpenAPI spec and circumvent
+# the remapping behavior as this is simpler for now than creating a fully
+# custom java generator class.
+clean_oas_underscore_manipulation() {
+	temp_file="$(mktemp)"
+
+	db_data_destination="${destination}/db_data"
+
+	# echo "Cleaning up upsert_record.py"
+	sed -i '' \
+	-e "s/'id'/'_id'/g" \
+	-e 's/self.id/self._id/g' \
+	-e 's/id (/_id (/g' \
+	-e 's/= id/= _id/g' \
+	-e 's/id,/_id,/g' \
+	-e "s/'vector\'/'_vector'/g" \
+	-e "s/'embed\'/'_embed'/g" \
+	-e 's/vector (/_vector (/g' \
+	-e 's/embed (/_embed (/g' \
+	"${db_data_destination}/model/upsert_record.py"
+
+	# echo "Cleaning up hit.py"
+	sed -i '' \
+	-e "s/'id'/'_id'/g" \
+	-e "s/'score'/'_score'/g" \
+	-e 's/ id, score,/ _id, _score,/g' \
+	-e 's/id (/_id (/g' \
+	-e 's/score (/_score (/g' \
+	-e 's/self.id/self._id/g' \
+	-e 's/self.score/self._score/g' \
+	-e 's/= id/= _id/g' \
+	-e 's/= score/= _score/g' \
+	"${db_data_destination}/model/hit.py"
+}
+
 update_apis_repo
 update_templates_repo
 verify_spec_version $version
@@ -144,6 +182,7 @@ mkdir -p "${destination}"
 for module in "${modules[@]}"; do
 	generate_client $module
 done
+clean_oas_underscore_manipulation
 
 # This also exists in the generated module code, but we need to reference it
 # in the pinecone.openapi_support package as well without creating a circular

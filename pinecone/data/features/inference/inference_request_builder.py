@@ -7,6 +7,7 @@ from pinecone.core.openapi.inference.models import (
     Document,
     RerankRequest,
 )
+from pinecone.utils import convert_enum_to_string
 
 
 class EmbedModel(Enum):
@@ -27,8 +28,7 @@ class InferenceRequestBuilder:
         inputs: Union[str, List[Dict], List[str]],
         parameters: Optional[Dict[str, Any]] = None,
     ) -> EmbedRequest:
-        if isinstance(model, EmbedModel):
-            model = model.value
+        model = convert_enum_to_string(model)
         embeddings_inputs: List[EmbedRequestInputs] = []
         if isinstance(inputs, str):
             embeddings_inputs = [EmbedRequestInputs(text=inputs)]

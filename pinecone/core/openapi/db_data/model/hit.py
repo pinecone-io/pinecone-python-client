@@ -78,8 +78,8 @@ class Hit(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            "id": (str,),  # noqa: E501
-            "score": (float,),  # noqa: E501
+            "_id": (str,),  # noqa: E501
+            "_score": (float,),  # noqa: E501
             "fields": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
         }
 
@@ -88,8 +88,8 @@ class Hit(ModelNormal):
         return None
 
     attribute_map = {
-        "id": "_id",  # noqa: E501
-        "score": "_score",  # noqa: E501
+        "_id": "_id",  # noqa: E501
+        "_score": "_score",  # noqa: E501
         "fields": "fields",  # noqa: E501
     }
 
@@ -99,12 +99,12 @@ class Hit(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, id, score, fields, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, _id, _score, fields, *args, **kwargs):  # noqa: E501
         """Hit - a model defined in OpenAPI
 
         Args:
-            id (str): The record id of the search hit.
-            score (float): The similarity score of the returned record.
+            _id (str): The record id of the search hit.
+            _score (float): The similarity score of the returned record.
             fields ({str: (bool, dict, float, int, list, str, none_type)}): The selected record fields associated with the search hit.
 
         Keyword Args:
@@ -163,8 +163,8 @@ class Hit(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.id = id
-        self.score = score
+        self._id = _id
+        self._score = _score
         self.fields = fields
         for var_name, var_value in kwargs.items():
             if (
@@ -190,12 +190,12 @@ class Hit(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, id, score, fields, *args, **kwargs):  # noqa: E501
+    def __init__(self, _id, _score, fields, *args, **kwargs):  # noqa: E501
         """Hit - a model defined in OpenAPI
 
         Args:
-            id (str): The record id of the search hit.
-            score (float): The similarity score of the returned record.
+            _id (str): The record id of the search hit.
+            _score (float): The similarity score of the returned record.
             fields ({str: (bool, dict, float, int, list, str, none_type)}): The selected record fields associated with the search hit.
 
         Keyword Args:
@@ -252,8 +252,8 @@ class Hit(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.id = id
-        self.score = score
+        self._id = _id
+        self._score = _score
         self.fields = fields
         for var_name, var_value in kwargs.items():
             if (

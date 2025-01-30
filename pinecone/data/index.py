@@ -14,8 +14,10 @@ from pinecone.core.openapi.db_data.models import (
     IndexDescription as DescribeIndexStatsResponse,
     UpsertResponse,
     ListResponse,
+    UpsertRecord,
+    SearchRecordsResponse,
 )
-from .dataclasses import Vector, SparseValues, FetchResponse
+from .dataclasses import Vector, SparseValues, FetchResponse, SearchQuery, SearchRerank
 from .interfaces import IndexInterface
 from .request_factory import IndexRequestFactory
 from .features.bulk_import import ImportFeatureMixin
@@ -26,6 +28,8 @@ from .types import (
     VectorTuple,
     VectorTupleWithMetadata,
     FilterTypedDict,
+    SearchRerankTypedDict,
+    SearchQueryTypedDict,
 )
 from ..utils import (
     setup_openapi_client,
@@ -200,6 +204,49 @@ class Index(IndexInterface, ImportFeatureMixin):
             upserted_count += res.upserted_count
 
         return UpsertResponse(upserted_count=upserted_count)
+
+    def upsert_records(self, namespace: str, records: List[Dict]):
+        if namespace is None:
+            raise ValueError("namespace is required when upserting records")
+        if not records or len(records) == 0:
+            raise ValueError("No records provided")
+
+        records_to_upsert = []
+        for record in records:
+            if not record.get("_id") and not record.get("id"):
+                raise ValueError("Each record must have an '_id' or 'id' value")
+
+            records_to_upsert.append(
+                UpsertRecord(
+                    record.get("_id", record.get("id")),
+                    **{k: v for k, v in record.items() if k not in {"_id", "id"}},
+                )
+            )
+
+        self._vector_api.upsert_records_namespace(namespace, records_to_upsert)
+
+    def search(
+        self,
+        namespace: str,
+        query: Union[SearchQueryTypedDict, SearchQuery],
+        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+    ) -> SearchRecordsResponse:
+        if not namespace:
+            raise Exception("Namespace is required when searching records")
+
+        request = IndexRequestFactory.search_request(query=query, rerank=rerank, fields=fields)
+
+        return self._vector_api.search_records_namespace(namespace, request)
+
+    def search_records(
+        self,
+        namespace: str,
+        query: Union[SearchQueryTypedDict, SearchQuery],
+        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+    ) -> SearchRecordsResponse:
+        return self.search(namespace, query=query, rerank=rerank, fields=fields)
 
     @validate_and_convert_errors
     def delete(
