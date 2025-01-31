@@ -11,6 +11,7 @@ from .parse_args import parse_non_empty_args
 from .docslinks import docslinks
 from .repr_overrides import install_json_repr_override
 from .error_handling import validate_and_convert_errors
+from .plugin_aware import PluginAware
 
 __all__ = [
     "check_kwargs",
@@ -27,4 +28,5 @@ __all__ = [
     "install_json_repr_override",
     "validate_and_convert_errors",
     "convert_enum_to_string",
+    "PluginAware",
 ]
