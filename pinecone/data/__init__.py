@@ -26,4 +26,9 @@ from .errors import (
 )
 
 from .features.bulk_import import ImportErrorMode
-from .features.inference import Inference as _Inference, RerankModel, EmbedModel
+from .features.inference import (
+    Inference as _Inference,
+    AsyncioInference as _AsyncioInference,
+    RerankModel,
+    EmbedModel,
+)

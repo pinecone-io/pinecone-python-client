@@ -7,8 +7,8 @@ from ..helpers import random_string, embedding_values
 @pytest.mark.asyncio
 @pytest.mark.parametrize("target_namespace", [random_string(20)])
 class TestAsyncioUpdate:
-    async def test_update_values(self, pc, index_host, dimension, target_namespace):
-        asyncio_idx = build_asyncioindex_client(pc, index_host)
+    async def test_update_values(self, index_host, dimension, target_namespace):
+        asyncio_idx = build_asyncioindex_client(index_host)
 
         await asyncio_idx.upsert(
             vectors=[
@@ -37,8 +37,8 @@ class TestAsyncioUpdate:
         assert fetched_vec.vectors["1"].values[1] == pytest.approx(new_values[1], 0.01)
 
     @pytest.mark.skip(reason="Needs troubleshooting, possible bug")
-    async def test_update_metadata(self, pc, index_host, dimension, target_namespace):
-        asyncio_idx = build_asyncioindex_client(pc, index_host)
+    async def test_update_metadata(self, index_host, dimension, target_namespace):
+        asyncio_idx = build_asyncioindex_client(index_host)
 
         await asyncio_idx.upsert(
             vectors=[

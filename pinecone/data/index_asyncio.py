@@ -83,15 +83,6 @@ class _AsyncioIndex(AsyncioIndexInterface, ImportFeatureMixinAsyncio):
         openapi_config=None,
         **kwargs,
     ):
-        super().__init__(
-            api_key=api_key,
-            host=host,
-            pool_threads=pool_threads,
-            additional_headers=additional_headers,
-            openapi_config=openapi_config,
-            **kwargs,
-        )
-
         self.config = ConfigBuilder.build(
             api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
@@ -110,6 +101,12 @@ class _AsyncioIndex(AsyncioIndexInterface, ImportFeatureMixinAsyncio):
             api_version=API_VERSION,
         )
 
+        self._api_client = self._vector_api.api_client
+
+        # Pass the same api_client to the ImportFeatureMixinAsyncio
+        # This is important for async context management to work correctly
+        super().__init__(api_client=self._api_client)
+
         self._load_plugins()
 
     def _load_plugins(self):
@@ -127,11 +124,11 @@ class _AsyncioIndex(AsyncioIndexInterface, ImportFeatureMixinAsyncio):
         except Exception as e:
             logger.error(f"Error loading plugins in Index: {e}")
 
-    def __aenter__(self):
+    async def __aenter__(self):
         return self
 
-    def __aexit__(self, exc_type, exc_value, traceback):
-        self._vector_api.api_client.close()
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        await self._api_client.close()
 
     @validate_and_convert_errors
     async def upsert(

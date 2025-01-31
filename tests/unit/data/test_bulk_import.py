@@ -3,13 +3,12 @@ import pytest
 from urllib3 import BaseHTTPResponse
 
 from pinecone.openapi_support import ApiClient, PineconeApiException
-from pinecone.core.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
 from pinecone.core.openapi.db_data.models import StartImportResponse
 
 from pinecone.data.features.bulk_import import ImportFeatureMixin, ImportErrorMode
 
 
-def build_api_w_faked_response(mocker, body: str, status: int = 200) -> BaseHTTPResponse:
+def build_client_w_faked_response(mocker, body: str, status: int = 200) -> BaseHTTPResponse:
     response = mocker.Mock()
     response.headers = {"content-type": "application/json"}
     response.status = status
@@ -19,14 +18,7 @@ def build_api_w_faked_response(mocker, body: str, status: int = 200) -> BaseHTTP
     mock_request = mocker.patch.object(
         api_client.rest_client.pool_manager, "request", return_value=response
     )
-    return BulkOperationsApi(api_client=api_client), mock_request
-
-
-def build_client_w_faked_response(mocker, body: str, status: int = 200):
-    api_client, mock_req = build_api_w_faked_response(mocker, body, status)
-    return ImportFeatureMixin(
-        __import_operations_api=api_client, api_key="asdf", host="asdf"
-    ), mock_req
+    return ImportFeatureMixin(api_client=api_client), mock_request
 
 
 class TestBulkImportStartImport:

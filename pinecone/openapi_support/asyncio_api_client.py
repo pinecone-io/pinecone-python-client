@@ -1,8 +1,5 @@
 import json
-import atexit
 import mimetypes
-from multiprocessing.pool import ThreadPool
-from concurrent.futures import ThreadPoolExecutor
 import io
 import os
 import re
@@ -32,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class AsyncioApiClient(object):
-    """Generic API client for OpenAPI client library builds.
+    """Generic async API client for OpenAPI client library builds.
 
     :param configuration: .Configuration object for this client
     :param header_name: a header to pass when making calls to the API.
@@ -40,20 +37,14 @@ class AsyncioApiClient(object):
         the API.
     :param cookie: a cookie to include in the header when making calls
         to the API
-    :param pool_threads: The number of threads to use for async requests
-        to the API. More threads means more concurrent API requests.
     """
 
-    _pool = None
-    _threadpool_executor = None
-
     def __init__(
-        self, configuration=None, header_name=None, header_value=None, cookie=None, pool_threads=1
+        self, configuration=None, header_name=None, header_value=None, cookie=None, **kwargs
     ):
         if configuration is None:
             configuration = Configuration.get_default_copy()
         self.configuration = configuration
-        self.pool_threads = pool_threads
 
         self.rest_client = AiohttpRestClient(configuration)
 
@@ -64,31 +55,15 @@ class AsyncioApiClient(object):
         # Set default User-Agent.
         self.user_agent = "OpenAPI-Generator/1.0.0/python"
 
-    def __enter__(self):
+    async def __aenter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        await self.close()
 
     async def close(self):
         logger.debug("Closing the aiohttp client")
         await self.rest_client.close()
-
-    @property
-    def pool(self):
-        """Create thread pool on first request
-        avoids instantiating unused threadpool for blocking clients.
-        """
-        if self._pool is None:
-            atexit.register(self.close)
-            self._pool = ThreadPool(self.pool_threads)
-        return self._pool
-
-    @property
-    def threadpool_executor(self):
-        if self._threadpool_executor is None:
-            self._threadpool_executor = ThreadPoolExecutor(max_workers=self.pool_threads)
-        return self._threadpool_executor
 
     @property
     def user_agent(self):
@@ -348,8 +323,6 @@ class AsyncioApiClient(object):
         files: Optional[Dict[str, List[io.IOBase]]] = None,
         response_type: Optional[Tuple[Any]] = None,
         auth_settings: Optional[List[str]] = None,
-        async_req: Optional[bool] = None,
-        async_threadpool_executor: Optional[bool] = None,
         _return_http_data_only: Optional[bool] = None,
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
@@ -358,8 +331,6 @@ class AsyncioApiClient(object):
         _check_type: Optional[bool] = None,
     ):
         """Makes the HTTP request (synchronous) and returns deserialized data.
-
-        To make an async_req request, set the async_req parameter.
 
         :param resource_path: Path to method endpoint.
         :param method: Method to call.
@@ -384,8 +355,6 @@ class AsyncioApiClient(object):
         :param files: key -> field name, value -> a list of open file
             objects for `multipart/form-data`.
         :type files: dict
-        :param async_req bool: execute request asynchronously
-        :type async_req: bool, optional
         :param _return_http_data_only: response data without head status code
                                        and headers
         :type _return_http_data_only: bool, optional
@@ -403,35 +372,7 @@ class AsyncioApiClient(object):
         :param _check_type: boolean describing if the data back from the server
             should have its type checked.
         :type _check_type: bool, optional
-        :return:
-            If async_req parameter is True,
-            the request will be called asynchronously.
-            The method will return the request thread.
-            If parameter async_req is False or missing,
-            then the method will return the response directly.
         """
-        # if async_threadpool_executor:
-        #     return self.threadpool_executor.submit(
-        #         self.__call_api,
-        #         resource_path,
-        #         method,
-        #         path_params,
-        #         query_params,
-        #         header_params,
-        #         body,
-        #         post_params,
-        #         files,
-        #         response_type,
-        #         auth_settings,
-        #         _return_http_data_only,
-        #         collection_formats,
-        #         _preload_content,
-        #         _request_timeout,
-        #         _host,
-        #         _check_type,
-        #     )
-
-        # if not async_req:
         return await self.__call_api(
             resource_path,
             method,
@@ -450,28 +391,6 @@ class AsyncioApiClient(object):
             _host,
             _check_type,
         )
-
-        # return self.pool.apply_async(
-        #     self.__call_api,
-        #     (
-        #         resource_path,
-        #         method,
-        #         path_params,
-        #         query_params,
-        #         header_params,
-        #         body,
-        #         post_params,
-        #         files,
-        #         response_type,
-        #         auth_settings,
-        #         _return_http_data_only,
-        #         collection_formats,
-        #         _preload_content,
-        #         _request_timeout,
-        #         _host,
-        #         _check_type,
-        #     ),
-        # )
 
     async def request(
         self,

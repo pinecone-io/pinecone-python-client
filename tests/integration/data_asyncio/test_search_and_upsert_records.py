@@ -48,8 +48,8 @@ def records_to_upsert():
 
 @pytest.mark.asyncio
 class TestUpsertAndSearchRecords:
-    async def test_search_records(self, pc, model_index_host, records_to_upsert):
-        model_idx = build_asyncioindex_client(pc, model_index_host)
+    async def test_search_records(self, model_index_host, records_to_upsert):
+        model_idx = build_asyncioindex_client(model_index_host)
 
         target_namespace = random_string(10)
         await model_idx.upsert_records(namespace=target_namespace, records=records_to_upsert)
@@ -90,8 +90,8 @@ class TestUpsertAndSearchRecords:
             assert hit.fields.get("my_text_field") is None
             assert hit.fields.get("more_stuff") is not None
 
-    async def test_search_records_with_vector(self, pc, model_index_host, records_to_upsert):
-        model_idx = build_asyncioindex_client(pc, model_index_host)
+    async def test_search_records_with_vector(self, model_index_host, records_to_upsert):
+        model_idx = build_asyncioindex_client(model_index_host)
 
         target_namespace = random_string(10)
         await model_idx.upsert_records(namespace=target_namespace, records=records_to_upsert)
@@ -109,8 +109,8 @@ class TestUpsertAndSearchRecords:
         assert response == response2
 
     @pytest.mark.parametrize("rerank_model", ["bge-reranker-v2-m3", RerankModel.Bge_Reranker_V2_M3])
-    async def test_search_with_rerank(self, pc, model_index_host, records_to_upsert, rerank_model):
-        model_idx = build_asyncioindex_client(pc, model_index_host)
+    async def test_search_with_rerank(self, model_index_host, records_to_upsert, rerank_model):
+        model_idx = build_asyncioindex_client(model_index_host)
         target_namespace = random_string(10)
         await model_idx.upsert_records(namespace=target_namespace, records=records_to_upsert)
 
@@ -135,8 +135,8 @@ class TestUpsertAndSearchRecords:
             assert hit.fields.get("my_text_field") is not None
             assert hit.fields.get("more_stuff") is not None
 
-    async def test_search_with_rerank_query(self, pc, model_index_host, records_to_upsert):
-        model_idx = build_asyncioindex_client(pc, model_index_host)
+    async def test_search_with_rerank_query(self, model_index_host, records_to_upsert):
+        model_idx = build_asyncioindex_client(model_index_host)
         target_namespace = random_string(10)
         await model_idx.upsert_records(namespace=target_namespace, records=records_to_upsert)
 
@@ -161,9 +161,9 @@ class TestUpsertAndSearchRecords:
 @pytest.mark.asyncio
 class TestUpsertAndSearchRecordsErrorCases:
     async def test_search_with_rerank_nonexistent_model_error(
-        self, pc, model_index_host, records_to_upsert
+        self, model_index_host, records_to_upsert
     ):
-        model_idx = build_asyncioindex_client(pc, model_index_host)
+        model_idx = build_asyncioindex_client(model_index_host)
         target_namespace = random_string(10)
         await model_idx.upsert_records(namespace=target_namespace, records=records_to_upsert)
 
@@ -182,9 +182,9 @@ class TestUpsertAndSearchRecordsErrorCases:
 
     @pytest.mark.skip(reason="Possible bug in the API")
     async def test_search_with_rerank_empty_rank_fields_error(
-        self, pc, model_index_host, records_to_upsert
+        self, model_index_host, records_to_upsert
     ):
-        model_idx = build_asyncioindex_client(pc, model_index_host)
+        model_idx = build_asyncioindex_client(model_index_host)
         target_namespace = random_string(10)
         await model_idx.upsert_records(namespace=target_namespace, records=records_to_upsert)
 

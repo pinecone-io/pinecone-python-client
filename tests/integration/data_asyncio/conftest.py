@@ -1,5 +1,4 @@
 import pytest
-import os
 import json
 import asyncio
 from ..helpers import get_environment_var, generate_index_name
@@ -10,37 +9,6 @@ from typing import Callable, Optional, Awaitable, Union
 from pinecone import CloudProvider, AwsRegion, IndexEmbed, EmbedModel
 
 logger = logging.getLogger(__name__)
-
-
-def api_key():
-    return get_environment_var("PINECONE_API_KEY")
-
-
-def use_grpc():
-    return os.environ.get("USE_GRPC", "false") == "true"
-
-
-def build_client():
-    config = {"api_key": api_key()}
-
-    if use_grpc():
-        from pinecone.grpc import PineconeGRPC
-
-        return PineconeGRPC(**config)
-    else:
-        from pinecone import Pinecone
-
-        return Pinecone(**config)
-
-
-@pytest.fixture(scope="session")
-def api_key_fixture():
-    return api_key()
-
-
-@pytest.fixture(scope="session")
-def pc():
-    return build_client()
 
 
 @pytest.fixture(scope="session")
@@ -76,25 +44,29 @@ def model_index_name():
     return generate_index_name("embed")
 
 
-def build_asyncioindex_client(client, index_host) -> _AsyncioIndex:
-    return client.AsyncioIndex(host=index_host)
+def build_asyncioindex_client(index_host) -> _AsyncioIndex:
+    from pinecone import PineconeAsyncio
+
+    return PineconeAsyncio().Index(host=index_host)
 
 
 @pytest.fixture(scope="session")
 def idx(client, index_name, index_host):
     print("Building client for {}".format(index_name))
-    return build_asyncioindex_client(client, index_host)
+    return build_asyncioindex_client(index_host)
 
 
 @pytest.fixture(scope="session")
 def sparse_idx(client, sparse_index_name, sparse_index_host):
     print("Building client for {}".format(sparse_index_name))
-    return build_asyncioindex_client(client, sparse_index_host)
+    return build_asyncioindex_client(sparse_index_host)
 
 
 @pytest.fixture(scope="session")
 def index_host(index_name, metric, spec, dimension):
-    pc = build_client()
+    from pinecone import Pinecone
+
+    pc = Pinecone()
 
     if index_name not in pc.list_indexes().names():
         logger.info("Creating index with name: " + index_name)
@@ -111,7 +83,9 @@ def index_host(index_name, metric, spec, dimension):
 
 @pytest.fixture(scope="session")
 def sparse_index_host(sparse_index_name, spec):
-    pc = build_client()
+    from pinecone import Pinecone
+
+    pc = Pinecone()
 
     if sparse_index_name not in pc.list_indexes().names():
         logger.info(f"Creating index with name {sparse_index_name}")
@@ -130,7 +104,9 @@ def sparse_index_host(sparse_index_name, spec):
 
 @pytest.fixture(scope="session")
 def model_index_host(model_index_name):
-    pc = build_client()
+    from pinecone import Pinecone
+
+    pc = Pinecone()
 
     if model_index_name not in pc.list_indexes().names():
         logger.info(f"Creating index {model_index_name}")

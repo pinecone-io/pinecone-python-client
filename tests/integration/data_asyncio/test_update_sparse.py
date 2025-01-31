@@ -7,8 +7,8 @@ from ..helpers import random_string, embedding_values
 @pytest.mark.asyncio
 @pytest.mark.parametrize("target_namespace", [random_string(20)])
 class TestAsyncioUpdateSparse:
-    async def test_update_values(self, pc, sparse_index_host, target_namespace):
-        asyncio_idx = build_asyncioindex_client(pc, sparse_index_host)
+    async def test_update_values(self, sparse_index_host, target_namespace):
+        asyncio_idx = build_asyncioindex_client(sparse_index_host)
 
         await asyncio_idx.upsert(
             vectors=[
@@ -54,8 +54,8 @@ class TestAsyncioUpdateSparse:
         #     )
 
     @pytest.mark.skip(reason="Needs troubleshooting, possible bug")
-    async def test_update_metadata(self, pc, sparse_index_host, dimension, target_namespace):
-        asyncio_idx = build_asyncioindex_client(pc, sparse_index_host)
+    async def test_update_metadata(self, sparse_index_host, dimension, target_namespace):
+        asyncio_idx = build_asyncioindex_client(sparse_index_host)
 
         await asyncio_idx.upsert(
             vectors=[

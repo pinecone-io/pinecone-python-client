@@ -1,11 +1,8 @@
 from typing import Optional, Literal, AsyncIterator, List
 
-from pinecone.config.config import ConfigBuilder
-from pinecone.openapi_support import AsyncioApiClient
 from pinecone.core.openapi.db_data.api.bulk_operations_api import AsyncioBulkOperationsApi
-from pinecone.core.openapi.db_data import API_VERSION
 
-from pinecone.utils import install_json_repr_override, setup_openapi_client
+from pinecone.utils import install_json_repr_override
 
 from pinecone.core.openapi.db_data.models import (
     StartImportResponse,
@@ -20,23 +17,8 @@ for m in [StartImportResponse, ListImportsResponse, ImportModel]:
 
 
 class ImportFeatureMixinAsyncio:
-    def __init__(self, **kwargs):
-        config = ConfigBuilder.build(**kwargs)
-        openapi_config = ConfigBuilder.build_openapi_config(
-            config, kwargs.get("openapi_config", None)
-        )
-
-        if kwargs.get("__import_operations_api", None):
-            self.__import_operations_api = kwargs.get("__import_operations_api")
-        else:
-            self.__import_operations_api = setup_openapi_client(
-                api_client_klass=AsyncioApiClient,
-                api_klass=AsyncioBulkOperationsApi,
-                config=config,
-                openapi_config=openapi_config,
-                pool_threads=kwargs.get("pool_threads", 1),
-                api_version=API_VERSION,
-            )
+    def __init__(self, api_client, **kwargs):
+        self.__import_operations_api = AsyncioBulkOperationsApi(api_client)
 
     async def start_import(
         self,
