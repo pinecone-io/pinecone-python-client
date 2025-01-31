@@ -31,6 +31,7 @@ class TestCreateIndexForModel:
             assert index.embed.model == model_val.value
         else:
             assert index.embed.model == model_val
+        await pc.close()
 
     async def test_create_index_for_model_with_index_embed_obj(self, index_name):
         pc = PineconeAsyncio()
@@ -50,6 +51,7 @@ class TestCreateIndexForModel:
         assert index.spec.serverless.region == "us-east-1"
         assert index.embed.field_map == field_map
         assert index.embed.model == EmbedModel.Multilingual_E5_Large.value
+        await pc.close()
 
     @pytest.mark.parametrize(
         "model_val,metric_val",
@@ -73,3 +75,4 @@ class TestCreateIndexForModel:
         assert index.spec.serverless.region == "us-east-1"
         assert index.embed.field_map == field_map
         assert index.embed.model == EmbedModel.Multilingual_E5_Large.value
+        await pc.close()

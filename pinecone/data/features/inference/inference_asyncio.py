@@ -1,10 +1,7 @@
 from typing import Optional, Dict, List, Union, Any
 
-from pinecone.openapi_support import AsyncioApiClient
 from pinecone.core.openapi.inference.api.inference_api import AsyncioInferenceApi
 from pinecone.core.openapi.inference.models import EmbeddingsList, RerankResult
-from pinecone.core.openapi.inference import API_VERSION
-from pinecone.utils import setup_openapi_client
 
 from .inference_request_builder import (
     InferenceRequestBuilder,
@@ -25,17 +22,9 @@ class AsyncioInference:
     EmbedModel = EmbedModelEnum
     RerankModel = RerankModelEnum
 
-    def __init__(self, config, openapi_config, **kwargs):
-        self.config = config
-
-        self.__inference_api = setup_openapi_client(
-            api_client_klass=AsyncioApiClient,
-            api_klass=AsyncioInferenceApi,
-            config=config,
-            openapi_config=openapi_config,
-            pool_threads=kwargs.get("pool_threads", 1),
-            api_version=API_VERSION,
-        )
+    def __init__(self, api_client, **kwargs):
+        self.api_client = api_client
+        self.__inference_api = AsyncioInferenceApi(api_client)
 
     async def embed(
         self,

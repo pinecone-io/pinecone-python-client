@@ -106,13 +106,20 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
 
         self.load_plugins()
 
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        await self.close()
+
+    async def close(self):
+        await self.index_api.api_client.close()
+
     @property
     def inference(self):
         """Dynamically create and cache the Inference instance."""
         if self._inference is None:
-            self._inference = _AsyncioInference(
-                config=self.config, openapi_config=self.openapi_config
-            )
+            self._inference = _AsyncioInference(api_client=self.index_api.api_client)
         return self._inference
 
     def load_plugins(self):

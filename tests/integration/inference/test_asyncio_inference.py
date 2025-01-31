@@ -36,6 +36,7 @@ class TestEmbedAsyncio:
         assert len(embeddings.get("data")[0]["values"]) == 1024
         assert len(embeddings.get("data")[1]["values"]) == 1024
         assert embeddings.get("model") == model_output
+        await pc.close()
 
     @pytest.mark.parametrize(
         "model_input,model_output",
@@ -54,6 +55,7 @@ class TestEmbedAsyncio:
         assert embeddings.vector_type == "sparse"
         assert embeddings.model == model_output
         assert len(embeddings.data) == 2
+        await pc.close()
 
     async def test_create_embeddings_input_objects(self):
         pc = PineconeAsyncio()
@@ -69,6 +71,7 @@ class TestEmbedAsyncio:
         assert len(embeddings.get("data")[0]["values"]) == 1024
         assert len(embeddings.get("data")[1]["values"]) == 1024
         assert embeddings.get("model") == "multilingual-e5-large"
+        await pc.close()
 
     async def test_create_embeddings_input_string(self):
         pc = PineconeAsyncio()
@@ -80,6 +83,7 @@ class TestEmbedAsyncio:
         assert len(embeddings.get("data")) == 1
         assert len(embeddings.get("data")[0]["values"]) == 1024
         assert embeddings.get("model") == "multilingual-e5-large"
+        await pc.close()
 
     async def test_create_embeddings_invalid_input_empty_list(self):
         pc = PineconeAsyncio()
@@ -91,6 +95,7 @@ class TestEmbedAsyncio:
                 parameters={"input_type": "query", "truncate": "END"},
             )
         assert str(excinfo.value).find("Invalid type") >= 0
+        await pc.close()
 
     async def test_create_embeddings_invalid_input(self):
         pc = PineconeAsyncio()
@@ -102,6 +107,7 @@ class TestEmbedAsyncio:
                 parameters={"input_type": "query", "truncate": "END"},
             )
         assert str(excinfo.value).find("INVALID_FIELD") >= 0
+        await pc.close()
 
     async def test_can_attempt_to_use_unknown_models(self):
         pc = PineconeAsyncio()
@@ -116,6 +122,7 @@ class TestEmbedAsyncio:
                 parameters={"input_type": "query", "truncate": "END"},
             )
         assert "Model 'unknown-model' not found" in str(excinfo.value)
+        await pc.close()
 
 
 @pytest.mark.asyncio
@@ -143,6 +150,7 @@ class TestRerankAsyncio:
         assert result.model == model_output
         assert isinstance(result.usage.rerank_units, int)
         assert result.usage.rerank_units == 1
+        await pc.close()
 
     async def test_rerank_basic_document_dicts(self):
         model = "bge-reranker-v2-m3"
@@ -164,6 +172,7 @@ class TestRerankAsyncio:
         assert result.model == model
         assert isinstance(result.usage.rerank_units, int)
         assert result.usage.rerank_units == 1
+        await pc.close()
 
     async def test_rerank_document_dicts_custom_field(self):
         model = "bge-reranker-v2-m3"
@@ -186,6 +195,7 @@ class TestRerankAsyncio:
         assert result.model == model
         assert isinstance(result.usage.rerank_units, int)
         assert result.usage.rerank_units == 1
+        await pc.close()
 
     async def test_rerank_basic_default_top_n(self):
         model = "bge-reranker-v2-m3"
@@ -202,6 +212,7 @@ class TestRerankAsyncio:
         assert result.model == model
         assert isinstance(result.usage.rerank_units, int)
         assert result.usage.rerank_units == 1
+        await pc.close()
 
     async def test_rerank_no_return_documents(self):
         pc = PineconeAsyncio()
@@ -218,6 +229,7 @@ class TestRerankAsyncio:
         assert result.model == model.value
         assert isinstance(result.usage.rerank_units, int)
         assert result.usage.rerank_units == 1
+        await pc.close()
 
     async def test_rerank_allows_unknown_models_to_be_passed(self):
         pc = PineconeAsyncio()
@@ -233,3 +245,4 @@ class TestRerankAsyncio:
                 return_documents=False,
             )
         assert "Model 'unknown-model' not found" in str(excinfo.value)
+        await pc.close()

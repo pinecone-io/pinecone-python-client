@@ -27,6 +27,7 @@ class TestDescribeIndex:
 
         assert description.status.state == "Ready"
         assert description.status.ready == True
+        await pc.close()
 
     async def test_describe_index_when_not_ready(self, notready_sl_index, create_sl_index_params):
         pc = PineconeAsyncio()
@@ -48,3 +49,4 @@ class TestDescribeIndex:
         assert isinstance(description.host, str)
         assert description.host != ""
         assert notready_sl_index in description.host
+        await pc.close()

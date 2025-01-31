@@ -10,6 +10,7 @@ class TestCreateIndexTypeErrorCases:
         create_sl_index_params["dimension"] = "10"
         with pytest.raises(PineconeApiTypeError):
             await pc.create_index(**create_sl_index_params)
+        await pc.close()
 
     async def test_create_index_with_missing_dimension(self, create_sl_index_params):
         pc = PineconeAsyncio()
@@ -17,3 +18,4 @@ class TestCreateIndexTypeErrorCases:
         del create_sl_index_params["dimension"]
         with pytest.raises(PineconeApiException):
             await pc.create_index(**create_sl_index_params)
+        await pc.close()

@@ -12,6 +12,7 @@ class TestHasIndex:
         await pc.create_index(**create_sl_index_params)
         has_index = await pc.has_index(name)
         assert has_index == True
+        await pc.close()
 
     async def test_index_does_not_exist(self):
         pc = PineconeAsyncio()
@@ -19,9 +20,11 @@ class TestHasIndex:
         name = random_string(8)
         has_index = await pc.has_index(name)
         assert has_index == False
+        await pc.close()
 
     async def test_has_index_with_null_index_name(self):
         pc = PineconeAsyncio()
 
         has_index = await pc.has_index("")
         assert has_index == False
+        await pc.close()

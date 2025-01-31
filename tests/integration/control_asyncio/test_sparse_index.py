@@ -29,6 +29,7 @@ class TestSparseIndex:
                 break
             else:
                 assert i.vector_type is not None
+        await pc.close()
 
     async def test_sparse_index_deletion_protection(self, create_sl_index_params):
         pc = PineconeAsyncio()
@@ -56,6 +57,7 @@ class TestSparseIndex:
         assert desc2.deletion_protection == "disabled"
 
         await pc.delete_index(create_sl_index_params["name"], -1)
+        await pc.close()
 
 
 @pytest.mark.asyncio
@@ -70,6 +72,7 @@ class TestSparseIndexErrorCases:
         with pytest.raises(ValueError) as e:
             await pc.create_index(**create_sl_index_params)
         assert "dimension should not be specified for sparse indexes" in str(e.value)
+        await pc.close()
 
     @pytest.mark.parametrize("metric", ["cosine", "euclidean"])
     async def test_sparse_only_supports_dotproduct(self, create_sl_index_params, metric):
@@ -82,3 +85,4 @@ class TestSparseIndexErrorCases:
         with pytest.raises(PineconeApiException) as e:
             await pc.create_index(**create_sl_index_params)
         assert "Sparse vector indexes must use the metric dotproduct." in str(e.value)
+        await pc.close()

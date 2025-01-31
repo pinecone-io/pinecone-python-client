@@ -28,6 +28,7 @@ class TestCreateIndexForModelErrors:
                 timeout=-1,
             )
         assert "Model invalid-model not found." in str(e.value)
+        await pc.close()
 
     async def test_invalid_cloud(self, index_name):
         pc = PineconeAsyncio()
@@ -45,6 +46,7 @@ class TestCreateIndexForModelErrors:
                 timeout=-1,
             )
         assert "Invalid value for `cloud`" in str(e.value)
+        await pc.close()
 
     async def test_invalid_region(self, index_name):
         pc = PineconeAsyncio()
@@ -62,6 +64,7 @@ class TestCreateIndexForModelErrors:
                 timeout=-1,
             )
         assert "invalid-region not found" in str(e.value)
+        await pc.close()
 
     async def test_create_index_for_model_with_invalid_field_map(self, index_name):
         pc = PineconeAsyncio()
@@ -79,6 +82,7 @@ class TestCreateIndexForModelErrors:
                 timeout=-1,
             )
         assert "Missing required key 'text'" in str(e.value)
+        await pc.close()
 
     async def test_create_index_for_model_with_invalid_metric(self, index_name):
         pc = PineconeAsyncio()
@@ -96,6 +100,7 @@ class TestCreateIndexForModelErrors:
                 timeout=-1,
             )
         assert "Invalid value for `metric`" in str(e.value)
+        await pc.close()
 
     async def test_create_index_for_model_with_missing_name(self):
         pc = PineconeAsyncio()
@@ -112,6 +117,7 @@ class TestCreateIndexForModelErrors:
                 timeout=-1,
             )
         assert "name" in str(e.value)
+        await pc.close()
 
     async def test_create_index_with_missing_model(self, index_name):
         pc = PineconeAsyncio()
@@ -125,6 +131,7 @@ class TestCreateIndexForModelErrors:
                 timeout=-1,
             )
         assert "model is required" in str(e.value)
+        await pc.close()
 
     async def test_create_index_with_missing_field_map(self, index_name):
         pc = PineconeAsyncio()
@@ -138,3 +145,4 @@ class TestCreateIndexForModelErrors:
                 timeout=-1,
             )
         assert "field_map is required" in str(e.value)
+        await pc.close()

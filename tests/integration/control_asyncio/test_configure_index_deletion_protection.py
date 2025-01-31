@@ -1,5 +1,5 @@
 import pytest
-from pinecone import DeletionProtection
+from pinecone import DeletionProtection, PineconeAsyncio
 
 
 @pytest.mark.asyncio
@@ -8,36 +8,40 @@ class TestDeletionProtection:
         "dp_enabled,dp_disabled",
         [("enabled", "disabled"), (DeletionProtection.ENABLED, DeletionProtection.DISABLED)],
     )
-    async def test_deletion_protection(
-        self, client, create_sl_index_params, dp_enabled, dp_disabled
-    ):
+    async def test_deletion_protection(self, create_sl_index_params, dp_enabled, dp_disabled):
+        pc = PineconeAsyncio()
         name = create_sl_index_params["name"]
-        client.create_index(**create_sl_index_params, deletion_protection=dp_enabled)
-        desc = client.describe_index(name)
+        await pc.create_index(**create_sl_index_params, deletion_protection=dp_enabled)
+        desc = await pc.describe_index(name)
         assert desc.deletion_protection == "enabled"
 
         with pytest.raises(Exception) as e:
-            client.delete_index(name)
+            await pc.delete_index(name)
         assert "Deletion protection is enabled for this index" in str(e.value)
 
-        client.configure_index(name, deletion_protection=dp_disabled)
-        desc = client.describe_index(name)
+        await pc.configure_index(name, deletion_protection=dp_disabled)
+        desc = await pc.describe_index(name)
         assert desc.deletion_protection == "disabled"
 
-        client.delete_index(name)
+        await pc.delete_index(name)
+        await pc.close()
 
     @pytest.mark.parametrize("deletion_protection", ["invalid"])
-    def test_deletion_protection_invalid_options(
-        self, client, create_sl_index_params, deletion_protection
+    async def test_deletion_protection_invalid_options(
+        self, create_sl_index_params, deletion_protection
     ):
+        pc = PineconeAsyncio()
         with pytest.raises(Exception) as e:
-            client.create_index(**create_sl_index_params, deletion_protection=deletion_protection)
+            await pc.create_index(**create_sl_index_params, deletion_protection=deletion_protection)
         assert "deletion_protection must be either 'enabled' or 'disabled'" in str(e.value)
+        await pc.close()
 
     @pytest.mark.parametrize("deletion_protection", ["invalid"])
-    def test_configure_deletion_protection_invalid_options(
-        self, client, create_sl_index_params, deletion_protection
+    async def test_configure_deletion_protection_invalid_options(
+        self, create_sl_index_params, deletion_protection
     ):
+        pc = PineconeAsyncio()
         with pytest.raises(Exception) as e:
-            client.create_index(**create_sl_index_params, deletion_protection=deletion_protection)
+            await pc.create_index(**create_sl_index_params, deletion_protection=deletion_protection)
         assert "deletion_protection must be either 'enabled' or 'disabled'" in str(e.value)
+        await pc.close()

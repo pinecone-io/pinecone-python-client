@@ -67,15 +67,6 @@ class Index(IndexInterface, ImportFeatureMixin):
         openapi_config=None,
         **kwargs,
     ):
-        super().__init__(
-            api_key=api_key,
-            host=host,
-            pool_threads=pool_threads,
-            additional_headers=additional_headers,
-            openapi_config=openapi_config,
-            **kwargs,
-        )
-
         self.config = ConfigBuilder.build(
             api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
@@ -93,6 +84,11 @@ class Index(IndexInterface, ImportFeatureMixin):
             pool_threads=pool_threads,
             api_version=API_VERSION,
         )
+
+        self._api_client = self._vector_api.api_client
+
+        # Pass the same api_client to the ImportFeatureMixin
+        super().__init__(api_client=self._api_client)
 
         self._load_plugins()
 
@@ -118,6 +114,9 @@ class Index(IndexInterface, ImportFeatureMixin):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        self._vector_api.api_client.close()
+
+    def close(self):
         self._vector_api.api_client.close()
 
     @validate_and_convert_errors
