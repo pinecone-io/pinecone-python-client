@@ -155,6 +155,7 @@ class PineconeDBControlRequestFactory:
 
         return CreateIndexRequest(**args)
 
+    @staticmethod
     def create_index_for_model_request(
         name: str,
         cloud: Union[CloudProvider, str],
