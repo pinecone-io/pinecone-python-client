@@ -9,7 +9,7 @@ from pinecone.config import PineconeConfig, Config, ConfigBuilder
 from pinecone.core.openapi.db_control.api.manage_indexes_api import AsyncioManageIndexesApi
 from pinecone.openapi_support import AsyncioApiClient
 
-from pinecone.utils import normalize_host, setup_openapi_client, build_plugin_setup_client
+from pinecone.utils import normalize_host, setup_openapi_client
 from pinecone.core.openapi.db_control import API_VERSION
 from pinecone.models import (
     ServerlessSpec,
@@ -35,8 +35,6 @@ from pinecone.enums import (
 from .types import CreateIndexForModelEmbedTypedDict
 from .request_factory import PineconeDBControlRequestFactory
 from .pinecone_interface_asyncio import PineconeAsyncioDBControlInterface
-
-from pinecone_plugin_interface import load_and_install as install_plugins
 
 logger = logging.getLogger(__name__)
 """ @private """
@@ -104,8 +102,6 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         self.index_host_store = IndexHostStore()
         """ @private """
 
-        self.load_plugins()
-
     async def __aenter__(self):
         return self
 
@@ -121,21 +117,6 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         if self._inference is None:
             self._inference = _AsyncioInference(api_client=self.index_api.api_client)
         return self._inference
-
-    def load_plugins(self):
-        """@private"""
-        try:
-            # I don't expect this to ever throw, but wrapping this in a
-            # try block just in case to make sure a bad plugin doesn't
-            # halt client initialization.
-            openapi_client_builder = build_plugin_setup_client(
-                config=self.config,
-                openapi_config=self.openapi_config,
-                pool_threads=self.pool_threads,
-            )
-            install_plugins(self, openapi_client_builder)
-        except Exception as e:
-            logger.error(f"Error loading plugins: {e}")
 
     async def create_index(
         self,
