@@ -256,7 +256,8 @@ class PineconeAsyncio:
         return IndexModel(description)
 
     async def has_index(self, name: str) -> bool:
-        if name in await self.list_indexes().names():
+        available_indexes = await self.list_indexes()
+        if name in available_indexes.names():
             return True
         else:
             return False

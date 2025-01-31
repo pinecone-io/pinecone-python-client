@@ -67,8 +67,12 @@ class PineconeDBControlRequestFactory:
     def __parse_index_spec(spec: Union[Dict, ServerlessSpec, PodSpec]) -> IndexSpec:
         if isinstance(spec, dict):
             if "serverless" in spec:
+                spec["serverless"]["cloud"] = convert_enum_to_string(spec["serverless"]["cloud"])
+                spec["serverless"]["region"] = convert_enum_to_string(spec["serverless"]["region"])
+
                 index_spec = IndexSpec(serverless=ServerlessSpecModel(**spec["serverless"]))
             elif "pod" in spec:
+                spec["pod"]["environment"] = convert_enum_to_string(spec["pod"]["environment"])
                 args_dict = parse_non_empty_args(
                     [
                         ("environment", spec["pod"].get("environment")),

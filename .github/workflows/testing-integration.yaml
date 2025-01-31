@@ -3,7 +3,7 @@ name: "Integration Tests"
   workflow_call: {}
 
 jobs:
-  data-plane-serverless:
+  db-data-serverless:
     name: Data plane serverless integration tests
     runs-on: ubuntu-latest
     strategy:
@@ -11,26 +11,19 @@ jobs:
       matrix:
         python_version: [3.9, 3.12]
         use_grpc: [true, false]
-        metric:
-          - cosine
-          # - euclidean
-          # - dotproduct
-        spec:
-          - '{ "serverless": { "region": "us-west-2", "cloud": "aws" }}'
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/test-data-plane
         with:
-          DATADOG_API_KEY: '${{ secrets.DATADOG_API_KEY }}'
           python_version: '${{ matrix.python_version }}'
           use_grpc: '${{ matrix.use_grpc }}'
-          metric: '${{ matrix.metric }}'
-          spec: '${{ matrix.spec }}'
+          metric: 'cosine'
+          spec: '{ "serverless": { "region": "us-west-2", "cloud": "aws" }}'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
           freshness_timeout_seconds: 600
           skip_weird_id_tests: 'true'
 
-  test-asyncio:
+  db-data-asyncio:
     name: Data plane asyncio
     runs-on: ubuntu-latest
     strategy:
@@ -38,15 +31,13 @@ jobs:
       matrix:
         python_version: [3.9, 3.12]
         use_grpc: [false, true]
-        spec:
-          - '{ "serverless": { "region": "us-west-2", "cloud": "aws" }}'
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/test-asyncio
         with:
           python_version: '${{ matrix.python_version }}'
           use_grpc: '${{ matrix.use_grpc }}'
-          spec: '${{ matrix.spec }}'
+          spec: '{ "serverless": { "region": "us-west-2", "cloud": "aws" }}'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
           freshness_timeout_seconds: 600
 
@@ -112,13 +103,11 @@ jobs:
           DIMENSION: 10
           METRIC: 'cosine'
 
-  control-rest-serverless:
+  db-control-rest-serverless:
     name: control plane serverless
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        pineconeEnv:
-          - prod
         testConfig:
           - python-version: 3.9 # Do one test run with 3.9 for sanity check
             pod: { environment: 'us-east1-gcp'}
@@ -136,21 +125,52 @@ jobs:
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
       - name: 'Run integration tests (REST, prod)'
-        if: matrix.pineconeEnv == 'prod'
         run: poetry run pytest tests/integration/control/serverless -s -vv
         env:
           PINECONE_DEBUG_CURL: 'true'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
-          GITHUB_BUILD_NUMBER: '${{ github.run_number }}-p-${{ matrix.testConfig.python-version}}'
           SERVERLESS_CLOUD: '${{ matrix.testConfig.serverless.cloud }}'
           SERVERLESS_REGION: '${{ matrix.testConfig.serverless.region }}'
-      - name: 'Run integration tests (REST, staging)'
-        if: matrix.pineconeEnv == 'staging'
-        run: poetry run pytest tests/integration/control/serverless -s -vv
+
+  db-control-asyncio:
+    name: db control asyncio
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python_version:
+          - 3.9
+          - 3.12
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: 'Set up Python ${{ matrix.python_version }}'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '${{ matrix.python_version }}'
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+      - name: 'Run integration tests (asyncio, prod)'
+        run: poetry run pytest tests/integration/control_asyncio -s -vv
         env:
           PINECONE_DEBUG_CURL: 'true'
-          PINECONE_CONTROLLER_HOST: 'https://api-staging.pinecone.io'
-          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY_STAGING }}'
-          GITHUB_BUILD_NUMBER: '${{ github.run_number }}-s-${{ matrix.testConfig.python-version}}'
-          SERVERLESS_CLOUD: '${{ matrix.testConfig.serverless.cloud }}'
-          SERVERLESS_REGION: '${{ matrix.testConfig.serverless.region }}'
+          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+
+  inference:
+    name: Inference tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python_version: [3.9, 3.12]
+    steps:
+      - uses: actions/checkout@v4
+      - name: 'Set up Python ${{ matrix.python_version }}'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '${{ matrix.python_version }}'
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+      - name: 'Run integration tests'
+        run: poetry run pytest tests/integration/inference -s -vv
+        env:
+          PINECONE_DEBUG_CURL: 'true'
+          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'

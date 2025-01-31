@@ -1,8 +1,9 @@
 import pytest
-from pinecone import Pinecone, PineconeApiException, RerankModel, EmbedModel
+from pinecone import PineconeAsyncio, PineconeApiException, RerankModel, EmbedModel
 
 
-class TestEmbed:
+@pytest.mark.asyncio
+class TestEmbedAsyncio:
     @pytest.mark.parametrize(
         "model_input,model_output",
         [
@@ -10,8 +11,9 @@ class TestEmbed:
             ("multilingual-e5-large", "multilingual-e5-large"),
         ],
     )
-    def test_create_embeddings(self, client: Pinecone, model_input, model_output):
-        embeddings = client.inference.embed(
+    async def test_create_embeddings(self, model_input, model_output):
+        pc = PineconeAsyncio()
+        embeddings = await pc.inference.embed(
             model=model_input,
             inputs=["The quick brown fox jumps over the lazy dog.", "lorem ipsum"],
             parameters={"input_type": "query", "truncate": "END"},
@@ -42,8 +44,9 @@ class TestEmbed:
             ("pinecone-sparse-english-v0", "pinecone-sparse-english-v0"),
         ],
     )
-    def test_create_sparse_embeddings(self, client: Pinecone, model_input, model_output):
-        embeddings = client.inference.embed(
+    async def test_create_sparse_embeddings(self, model_input, model_output):
+        pc = PineconeAsyncio()
+        embeddings = await pc.inference.embed(
             model=model_input,
             inputs=["The quick brown fox jumps over the lazy dog.", "lorem ipsum"],
             parameters={"input_type": "query", "truncate": "END"},
@@ -51,11 +54,11 @@ class TestEmbed:
         assert embeddings.vector_type == "sparse"
         assert embeddings.model == model_output
         assert len(embeddings.data) == 2
-        print(embeddings.data[0].sparse_values)
 
-    def test_create_embeddings_input_objects(self, client):
-        embeddings = client.inference.embed(
-            model=client.inference.EmbedModel.Multilingual_E5_Large,
+    async def test_create_embeddings_input_objects(self):
+        pc = PineconeAsyncio()
+        embeddings = await pc.inference.embed(
+            model=pc.inference.EmbedModel.Multilingual_E5_Large,
             inputs=[
                 {"text": "The quick brown fox jumps over the lazy dog."},
                 {"text": "lorem ipsum"},
@@ -67,8 +70,9 @@ class TestEmbed:
         assert len(embeddings.get("data")[1]["values"]) == 1024
         assert embeddings.get("model") == "multilingual-e5-large"
 
-    def test_create_embeddings_input_string(self, client):
-        embeddings = client.inference.embed(
+    async def test_create_embeddings_input_string(self):
+        pc = PineconeAsyncio()
+        embeddings = await pc.inference.embed(
             model=EmbedModel.Multilingual_E5_Large,
             inputs="The quick brown fox jumps over the lazy dog.",
             parameters={"input_type": "query", "truncate": "END"},
@@ -77,32 +81,36 @@ class TestEmbed:
         assert len(embeddings.get("data")[0]["values"]) == 1024
         assert embeddings.get("model") == "multilingual-e5-large"
 
-    def test_create_embeddings_invalid_input_empty_list(self, client):
+    async def test_create_embeddings_invalid_input_empty_list(self):
+        pc = PineconeAsyncio()
         embedding_model = "multilingual-e5-large"
         with pytest.raises(Exception) as excinfo:
-            client.inference.embed(
+            await pc.inference.embed(
                 model=embedding_model,
                 inputs=[],
                 parameters={"input_type": "query", "truncate": "END"},
             )
         assert str(excinfo.value).find("Invalid type") >= 0
 
-    def test_create_embeddings_invalid_input(self, client):
+    async def test_create_embeddings_invalid_input(self):
+        pc = PineconeAsyncio()
         embedding_model = "multilingual-e5-large"
         with pytest.raises(Exception) as excinfo:
-            client.inference.embed(
+            await pc.inference.embed(
                 model=embedding_model,
                 inputs=[{"INVALID_FIELD": "this should be rejected"}],
                 parameters={"input_type": "query", "truncate": "END"},
             )
         assert str(excinfo.value).find("INVALID_FIELD") >= 0
 
-    def test_can_attempt_to_use_unknown_models(self, client):
+    async def test_can_attempt_to_use_unknown_models(self):
+        pc = PineconeAsyncio()
+
         # We don't want to reject these requests client side because we want
         # to remain forwards compatible with any new models that become available
         model = "unknown-model"
         with pytest.raises(PineconeApiException) as excinfo:
-            client.inference.embed(
+            await pc.inference.embed(
                 model=model,
                 inputs="The quick brown fox jumps over the lazy dog.",
                 parameters={"input_type": "query", "truncate": "END"},
@@ -110,7 +118,8 @@ class TestEmbed:
         assert "Model 'unknown-model' not found" in str(excinfo.value)
 
 
-class TestRerank:
+@pytest.mark.asyncio
+class TestRerankAsyncio:
     @pytest.mark.parametrize(
         "model_input,model_output",
         [
@@ -118,9 +127,10 @@ class TestRerank:
             ("bge-reranker-v2-m3", "bge-reranker-v2-m3"),
         ],
     )
-    def test_rerank_basic(self, client, model_input, model_output):
+    async def test_rerank_basic(self, model_input, model_output):
         # Rerank model can be passed as string or enum
-        result = client.inference.rerank(
+        pc = PineconeAsyncio()
+        result = await pc.inference.rerank(
             model=model_input,
             query="i love dogs",
             documents=["dogs are pretty cool", "everyone loves dogs", "I'm a cat person"],
@@ -134,9 +144,10 @@ class TestRerank:
         assert isinstance(result.usage.rerank_units, int)
         assert result.usage.rerank_units == 1
 
-    def test_rerank_basic_document_dicts(self, client):
+    async def test_rerank_basic_document_dicts(self):
         model = "bge-reranker-v2-m3"
-        result = client.inference.rerank(
+        pc = PineconeAsyncio()
+        result = await pc.inference.rerank(
             model="bge-reranker-v2-m3",
             query="i love dogs",
             documents=[
@@ -154,9 +165,10 @@ class TestRerank:
         assert isinstance(result.usage.rerank_units, int)
         assert result.usage.rerank_units == 1
 
-    def test_rerank_document_dicts_custom_field(self, client):
+    async def test_rerank_document_dicts_custom_field(self):
         model = "bge-reranker-v2-m3"
-        result = client.inference.rerank(
+        pc = PineconeAsyncio()
+        result = await pc.inference.rerank(
             model="bge-reranker-v2-m3",
             query="i love dogs",
             documents=[
@@ -175,9 +187,10 @@ class TestRerank:
         assert isinstance(result.usage.rerank_units, int)
         assert result.usage.rerank_units == 1
 
-    def test_rerank_basic_default_top_n(self, client):
+    async def test_rerank_basic_default_top_n(self):
         model = "bge-reranker-v2-m3"
-        result = client.inference.rerank(
+        pc = PineconeAsyncio()
+        result = await pc.inference.rerank(
             model=model,
             query="i love dogs",
             documents=["dogs are pretty cool", "everyone loves dogs", "I'm a cat person"],
@@ -190,9 +203,10 @@ class TestRerank:
         assert isinstance(result.usage.rerank_units, int)
         assert result.usage.rerank_units == 1
 
-    def test_rerank_no_return_documents(self, client: Pinecone):
-        model = client.inference.RerankModel.Bge_Reranker_V2_M3
-        result = client.inference.rerank(
+    async def test_rerank_no_return_documents(self):
+        pc = PineconeAsyncio()
+        model = pc.inference.RerankModel.Bge_Reranker_V2_M3
+        result = await pc.inference.rerank(
             model=model,
             query="i love dogs",
             documents=["dogs are pretty cool", "everyone loves dogs", "I'm a cat person"],
@@ -205,12 +219,14 @@ class TestRerank:
         assert isinstance(result.usage.rerank_units, int)
         assert result.usage.rerank_units == 1
 
-    def test_rerank_allows_unknown_models_to_be_passed(self, client: Pinecone):
+    async def test_rerank_allows_unknown_models_to_be_passed(self):
+        pc = PineconeAsyncio()
+
         # We don't want to reject these requests client side because we want
         # to remain forwards compatible with any new models that become available
         model = "unknown-model"
         with pytest.raises(PineconeApiException) as excinfo:
-            client.inference.rerank(
+            await pc.inference.rerank(
                 model=model,
                 query="i love dogs",
                 documents=["dogs are pretty cool", "everyone loves dogs", "I'm a cat person"],

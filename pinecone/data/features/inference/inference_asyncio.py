@@ -6,7 +6,11 @@ from pinecone.core.openapi.inference.models import EmbeddingsList, RerankResult
 from pinecone.core.openapi.inference import API_VERSION
 from pinecone.utils import setup_openapi_client
 
-from .inference_request_builder import InferenceRequestBuilder
+from .inference_request_builder import (
+    InferenceRequestBuilder,
+    EmbedModel as EmbedModelEnum,
+    RerankModel as RerankModelEnum,
+)
 
 
 class AsyncioInference:
@@ -17,6 +21,9 @@ class AsyncioInference:
     :param config: A `pinecone.config.Config` object, configured and built in the Pinecone class.
     :type config: `pinecone.config.Config`, required
     """
+
+    EmbedModel = EmbedModelEnum
+    RerankModel = RerankModelEnum
 
     def __init__(self, config, openapi_config, **kwargs):
         self.config = config
