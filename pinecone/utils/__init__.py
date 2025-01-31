@@ -14,6 +14,7 @@ from .error_handling import validate_and_convert_errors
 from .plugin_aware import PluginAware
 
 __all__ = [
+    "PluginAware",
     "check_kwargs",
     "__version__",
     "get_user_agent",
@@ -28,5 +29,4 @@ __all__ = [
     "install_json_repr_override",
     "validate_and_convert_errors",
     "convert_enum_to_string",
-    "PluginAware",
 ]
