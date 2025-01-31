@@ -23,12 +23,7 @@ from pinecone.core.openapi.db_data.models import (
     SearchRecordsResponse,
 )
 
-from ..utils import (
-    setup_openapi_client,
-    parse_non_empty_args,
-    build_plugin_setup_client,
-    validate_and_convert_errors,
-)
+from ..utils import setup_openapi_client, parse_non_empty_args, validate_and_convert_errors
 from .types import (
     SparseVectorTypedDict,
     VectorTypedDict,
@@ -47,7 +42,7 @@ from .index import IndexRequestFactory
 from .vector_factory import VectorFactory
 from .query_results_aggregator import QueryNamespacesResults
 from .features.bulk_import import ImportFeatureMixinAsyncio
-from pinecone_plugin_interface import load_and_install as install_plugins
+
 
 logger = logging.getLogger(__name__)
 
@@ -106,23 +101,6 @@ class _AsyncioIndex(AsyncioIndexInterface, ImportFeatureMixinAsyncio):
         # Pass the same api_client to the ImportFeatureMixinAsyncio
         # This is important for async context management to work correctly
         super().__init__(api_client=self._api_client)
-
-        self._load_plugins()
-
-    def _load_plugins(self):
-        """@private"""
-        try:
-            # I don't expect this to ever throw, but wrapping this in a
-            # try block just in case to make sure a bad plugin doesn't
-            # halt client initialization.
-            openapi_client_builder = build_plugin_setup_client(
-                config=self.config,
-                openapi_config=self._openapi_config,
-                pool_threads=self._pool_threads,
-            )
-            install_plugins(self, openapi_client_builder)
-        except Exception as e:
-            logger.error(f"Error loading plugins in Index: {e}")
 
     async def __aenter__(self):
         return self

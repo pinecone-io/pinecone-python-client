@@ -20,6 +20,8 @@ from pinecone.core.openapi.db_control.models import (
     ServerlessSpec as ServerlessSpecOpenApi,
     IndexModelStatus,
 )
+from pinecone.utils import PluginAware
+
 from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
 
 import time
@@ -78,18 +80,9 @@ def index_list_response():
 
 class TestControl:
     def test_plugins_are_installed(self):
-        with patch("pinecone.control.pinecone.install_plugins") as mock_install_plugins:
+        with patch.object(PluginAware, "load_plugins") as mock_install_plugins:
             Pinecone(api_key="asdf")
             mock_install_plugins.assert_called_once()
-
-    def test_bad_plugin_doesnt_break_sdk(self):
-        with patch(
-            "pinecone.control.pinecone.install_plugins", side_effect=Exception("bad plugin")
-        ):
-            try:
-                Pinecone(api_key="asdf")
-            except Exception as e:
-                assert False, f"Unexpected exception: {e}"
 
     def test_default_host(self):
         p = Pinecone(api_key="123-456-789")

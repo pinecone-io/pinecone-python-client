@@ -33,8 +33,8 @@ from .types import (
 from ..utils import (
     setup_openapi_client,
     parse_non_empty_args,
-    build_plugin_setup_client,
     validate_and_convert_errors,
+    PluginAware,
 )
 from .query_results_aggregator import QueryResultsAggregator, QueryNamespacesResults
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
@@ -42,7 +42,6 @@ from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
 from multiprocessing.pool import ApplyResult
 from concurrent.futures import as_completed
 
-from pinecone_plugin_interface import load_and_install as install_plugins
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +51,7 @@ def parse_query_response(response: QueryResponse):
     return response
 
 
-class Index(IndexInterface, ImportFeatureMixin):
+class Index(IndexInterface, ImportFeatureMixin, PluginAware):
     """
     A client for interacting with a Pinecone index via REST API.
     For improved performance, use the Pinecone GRPC index client.
@@ -70,17 +69,17 @@ class Index(IndexInterface, ImportFeatureMixin):
         self.config = ConfigBuilder.build(
             api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
-        self._openapi_config = ConfigBuilder.build_openapi_config(self.config, openapi_config)
-        self._pool_threads = pool_threads
+        self.openapi_config = ConfigBuilder.build_openapi_config(self.config, openapi_config)
+        self.pool_threads = pool_threads
 
         if kwargs.get("connection_pool_maxsize", None):
-            self._openapi_config.connection_pool_maxsize = kwargs.get("connection_pool_maxsize")
+            self.openapi_config.connection_pool_maxsize = kwargs.get("connection_pool_maxsize")
 
         self._vector_api = setup_openapi_client(
             api_client_klass=ApiClient,
             api_klass=VectorOperationsApi,
             config=self.config,
-            openapi_config=self._openapi_config,
+            openapi_config=self.openapi_config,
             pool_threads=pool_threads,
             api_version=API_VERSION,
         )
@@ -90,22 +89,7 @@ class Index(IndexInterface, ImportFeatureMixin):
         # Pass the same api_client to the ImportFeatureMixin
         super().__init__(api_client=self._api_client)
 
-        self._load_plugins()
-
-    def _load_plugins(self):
-        """@private"""
-        try:
-            # I don't expect this to ever throw, but wrapping this in a
-            # try block just in case to make sure a bad plugin doesn't
-            # halt client initialization.
-            openapi_client_builder = build_plugin_setup_client(
-                config=self.config,
-                openapi_config=self._openapi_config,
-                pool_threads=self._pool_threads,
-            )
-            install_plugins(self, openapi_client_builder)
-        except Exception as e:
-            logger.error(f"Error loading plugins in Index: {e}")
+        self.load_plugins()
 
     def _openapi_kwargs(self, kwargs):
         return {k: v for k, v in kwargs.items() if k in OPENAPI_ENDPOINT_PARAMS}

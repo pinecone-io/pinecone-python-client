@@ -20,8 +20,8 @@ from .utils import __version__
 
 import logging
 
-# Raise an exception if the user is attempting to use the SDK with deprecated plugins
-# installed in their project.
+# Raise an exception if the user is attempting to use the SDK with
+# deprecated plugins installed in their project.
 check_for_deprecated_plugins()
 
 # Silence annoying log messages from the plugin interface
