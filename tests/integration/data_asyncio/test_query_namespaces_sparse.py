@@ -7,8 +7,8 @@ from pinecone import Vector, SparseValues
 
 @pytest.mark.asyncio
 class TestQueryNamespacesRest_Sparse:
-    async def test_query_namespaces(self, pc, sparse_index_host):
-        asyncio_idx = build_asyncioindex_client(pc, sparse_index_host)
+    async def test_query_namespaces(self, sparse_index_host):
+        asyncio_idx = build_asyncioindex_client(sparse_index_host)
 
         ns_prefix = random_string(5)
         ns1 = f"{ns_prefix}-ns1"
@@ -200,8 +200,8 @@ class TestQueryNamespacesRest_Sparse:
         assert len(results6.matches) == 0
         assert results6.usage.read_units > 0
 
-    async def test_missing_namespaces(self, pc, sparse_index_host):
-        asyncio_idx = build_asyncioindex_client(pc, sparse_index_host)
+    async def test_missing_namespaces(self, sparse_index_host):
+        asyncio_idx = build_asyncioindex_client(sparse_index_host)
 
         with pytest.raises(ValueError) as e:
             await asyncio_idx.query_namespaces(

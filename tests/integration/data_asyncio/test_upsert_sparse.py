@@ -9,8 +9,8 @@ from ..helpers import random_string, embedding_values
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("target_namespace", [random_string(20)])
-async def test_upsert_with_batch_size_sparse(pc, sparse_index_host, target_namespace):
-    asyncio_sparse_idx = build_asyncioindex_client(pc, sparse_index_host)
+async def test_upsert_with_batch_size_sparse(sparse_index_host, target_namespace):
+    asyncio_sparse_idx = build_asyncioindex_client(sparse_index_host)
 
     await asyncio_sparse_idx.upsert(
         vectors=[

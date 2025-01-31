@@ -7,8 +7,8 @@ from pinecone import Vector
 
 @pytest.mark.asyncio
 class TestQueryNamespacesRest:
-    async def test_query_namespaces(self, pc, index_host, metric):
-        asyncio_idx = build_asyncioindex_client(pc, index_host)
+    async def test_query_namespaces(self, index_host, metric):
+        asyncio_idx = build_asyncioindex_client(index_host)
 
         ns_prefix = random_string(5)
         ns1 = f"{ns_prefix}-ns1"
@@ -151,8 +151,8 @@ class TestQueryNamespacesRest:
         assert len(results6.matches) == 0
         assert results6.usage.read_units > 0
 
-    async def test_single_result_per_namespace(self, pc, index_host):
-        asyncio_idx = build_asyncioindex_client(pc, index_host)
+    async def test_single_result_per_namespace(self, index_host):
+        asyncio_idx = build_asyncioindex_client(index_host)
 
         ns_prefix = random_string(5)
         ns1 = f"{ns_prefix}-ns1"
@@ -191,8 +191,8 @@ class TestQueryNamespacesRest:
         assert results.matches[1].id == "id5"
         assert results.matches[1].namespace == ns2
 
-    async def test_missing_namespaces(self, pc, index_host):
-        asyncio_idx = build_asyncioindex_client(pc, index_host)
+    async def test_missing_namespaces(self, index_host):
+        asyncio_idx = build_asyncioindex_client(index_host)
 
         with pytest.raises(ValueError) as e:
             await asyncio_idx.query_namespaces(
@@ -218,8 +218,8 @@ class TestQueryNamespacesRest:
             )
         assert str(e.value) == "At least one namespace must be specified"
 
-    async def test_missing_metric(self, pc, index_host):
-        asyncio_idx = build_asyncioindex_client(pc, index_host)
+    async def test_missing_metric(self, index_host):
+        asyncio_idx = build_asyncioindex_client(index_host)
 
         with pytest.raises(TypeError) as e:
             await asyncio_idx.query_namespaces(

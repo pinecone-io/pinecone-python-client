@@ -6,8 +6,8 @@ from ..helpers import random_string, embedding_values
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("target_namespace", [random_string(20)])
-async def test_upsert_with_batch_size_dense(pc, index_host, dimension, target_namespace):
-    asyncio_idx = build_asyncioindex_client(pc, index_host)
+async def test_upsert_with_batch_size_dense(index_host, dimension, target_namespace):
+    asyncio_idx = build_asyncioindex_client(index_host)
 
     await asyncio_idx.upsert(
         vectors=[Vector(id=str(i), values=embedding_values(dimension)) for i in range(100)],
@@ -18,8 +18,8 @@ async def test_upsert_with_batch_size_dense(pc, index_host, dimension, target_na
 
 
 @pytest.mark.asyncio
-async def test_upsert_dense_errors(pc, index_host, dimension):
-    asyncio_idx = build_asyncioindex_client(pc, index_host)
+async def test_upsert_dense_errors(index_host, dimension):
+    asyncio_idx = build_asyncioindex_client(index_host)
 
     # When upserting vectors with incorrect dimension
     with pytest.raises(PineconeApiException) as e:

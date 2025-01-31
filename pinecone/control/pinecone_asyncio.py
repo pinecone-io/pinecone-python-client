@@ -34,6 +34,7 @@ from pinecone.enums import (
 )
 from .types import CreateIndexForModelEmbedTypedDict
 from .request_factory import PineconeDBControlRequestFactory
+from .pinecone_interface_asyncio import PineconeAsyncioDBControlInterface
 
 from pinecone_plugin_interface import load_and_install as install_plugins
 
@@ -41,7 +42,7 @@ logger = logging.getLogger(__name__)
 """ @private """
 
 
-class PineconeAsyncio:
+class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     """
     An asyncio client for interacting with Pinecone's vector database.
 

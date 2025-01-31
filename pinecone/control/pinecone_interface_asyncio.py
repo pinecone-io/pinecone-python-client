@@ -29,7 +29,7 @@ from pinecone.enums import (
 from .types import CreateIndexForModelEmbedTypedDict
 
 
-class PineconeDBControlInterface(ABC):
+class PineconeAsyncioDBControlInterface(ABC):
     @abstractmethod
     def __init__(
         self,
@@ -65,8 +65,8 @@ class PineconeDBControlInterface(ABC):
         :type config: pinecone.config.Config, optional
         :param additional_headers: Additional headers to pass to the API. Default: `{}`
         :type additional_headers: Dict[str, str], optional
-        :param pool_threads: The number of threads to use for the connection pool. Default: `1`
-        :type pool_threads: int, optional
+
+
 
         ### Configuration with environment variables
 
@@ -187,7 +187,7 @@ class PineconeDBControlInterface(ABC):
     pass
 
     @abstractmethod
-    def create_index(
+    async def create_index(
         self,
         name: str,
         spec: Union[Dict, ServerlessSpec, PodSpec],
@@ -227,9 +227,9 @@ class PineconeDBControlInterface(ABC):
         import os
         from pinecone import Pinecone, ServerlessSpec
 
-        client = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
+        pc = PineconeAsyncio(api_key=os.environ.get("PINECONE_API_KEY"))
 
-        client.create_index(
+        await pc.create_index(
             name="my_index",
             dimension=1536,
             metric="cosine",
@@ -244,9 +244,9 @@ class PineconeDBControlInterface(ABC):
         import os
         from pinecone import Pinecone, PodSpec
 
-        client = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
+        pc = PineconeAsyncio(api_key=os.environ.get("PINECONE_API_KEY"))
 
-        client.create_index(
+        await pc.create_index(
             name="my_index",
             dimension=1536,
             metric="cosine",
@@ -261,7 +261,7 @@ class PineconeDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def create_index_for_model(
+    async def create_index_for_model(
         self,
         name: str,
         cloud: Union[CloudProvider, str],
@@ -299,7 +299,7 @@ class PineconeDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def delete_index(self, name: str, timeout: Optional[int] = None):
+    async def delete_index(self, name: str, timeout: Optional[int] = None):
         """Deletes a Pinecone index.
 
         Deleting an index is an irreversible operation. All data in the index will be lost.
@@ -321,7 +321,7 @@ class PineconeDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def list_indexes(self) -> IndexList:
+    async def list_indexes(self) -> IndexList:
         """Lists all indexes.
 
         The results include a description of all indexes in your project, including the
@@ -334,12 +334,12 @@ class PineconeDBControlInterface(ABC):
         ```python
         from pinecone import Pinecone
 
-        client = Pinecone()
+        pc = PineconeAsyncio()
 
         index_name = "my_index"
-        if index_name not in client.list_indexes().names():
+        if index_name not in await pc.list_indexes().names():
             print("Index does not exist, creating...")
-            client.create_index(
+            await pc.create_index(
                 name=index_name,
                 dimension=768,
                 metric="cosine",
@@ -353,9 +353,9 @@ class PineconeDBControlInterface(ABC):
         ```python
         from pinecone import Pinecone
 
-        client = Pinecone()
+        pc = PineconeAsyncio()
 
-        for index in client.list_indexes():
+        await for index in pc.list_indexes():
             print(index.name)
             print(index.dimension)
             print(index.metric)
@@ -368,7 +368,7 @@ class PineconeDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def describe_index(self, name: str) -> IndexModel:
+    async def describe_index(self, name: str) -> IndexModel:
         """Describes a Pinecone index.
 
         :param name: the name of the index to describe.
@@ -388,21 +388,21 @@ class PineconeDBControlInterface(ABC):
         ```python
         from pinecone import Pinecone, Index
 
-        client = Pinecone()
+        pc = PineconeAsyncio()
 
-        description = client.describe_index("my_index")
+        description = await pc.describe_index("my_index")
 
         host = description.host
         print(f"Your index is hosted at {description.host}")
 
-        index = client.Index(name="my_index", host=host)
+        index = await pc.Index(name="my_index", host=host)
         index.upsert(vectors=[...])
         ```
         """
         pass
 
     @abstractmethod
-    def has_index(self, name: str) -> bool:
+    async def has_index(self, name: str) -> bool:
         """Checks if a Pinecone index exists.
 
         :param name: The name of the index to check for existence.
@@ -426,7 +426,7 @@ class PineconeDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def configure_index(
+    async def configure_index(
         self,
         name: str,
         replicas: Optional[int] = None,
@@ -446,21 +446,21 @@ class PineconeDBControlInterface(ABC):
         ```python
         from pinecone import Pinecone
 
-        client = Pinecone()
+        pc = PineconeAsyncio()
 
         # Make a configuration change
-        client.configure_index(name="my_index", replicas=4)
+        await pc.configure_index(name="my_index", replicas=4)
 
         # Call describe_index to see the index status as the
         # change is applied.
-        client.describe_index("my_index")
+        await pc.describe_index("my_index")
         ```
 
         """
         pass
 
     @abstractmethod
-    def create_collection(self, name: str, source: str):
+    async def create_collection(self, name: str, source: str):
         """Create a collection from a pod-based index
 
         :param name: Name of the collection
@@ -469,29 +469,31 @@ class PineconeDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def list_collections(self) -> CollectionList:
+    async def list_collections(self) -> CollectionList:
         """List all collections
 
         ```python
         from pinecone import Pinecone
 
-        client = Pinecone()
+        pc = PineconeAsyncio()
 
-        for collection in client.list_collections():
+        available_collections = await pc.list_collections()
+        for collection in available_collections:
             print(collection.name)
             print(collection.source)
 
         # You can also iterate specifically over the collection
         # names with the .names() helper.
         collection_name="my_collection"
-        for collection_name in client.list_collections().names():
+        available_collections = await pc.list_collections()
+        for collection_name in available_collections.names():
             print(collection_name)
         ```
         """
         pass
 
     @abstractmethod
-    def delete_collection(self, name: str):
+    async def delete_collection(self, name: str):
         """Deletes a collection.
 
         :param: name: The name of the collection
@@ -507,7 +509,7 @@ class PineconeDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def describe_collection(self, name: str):
+    async def describe_collection(self, name: str):
         """Describes a collection.
         :param: The name of the collection
         :return: Description of the collection
@@ -515,9 +517,9 @@ class PineconeDBControlInterface(ABC):
         ```python
         from pinecone import Pinecone
 
-        client = Pinecone()
+        pc = PineconeAsyncio()
 
-        description = client.describe_collection("my_collection")
+        description = await pc.describe_collection("my_collection")
         print(description.name)
         print(description.source)
         print(description.status)
@@ -527,7 +529,7 @@ class PineconeDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def Index(self, name: str = "", host: str = "", **kwargs):
+    async def Index(self, name: str = "", host: str = "", **kwargs):
         """
         Target an index for data operations.
 
