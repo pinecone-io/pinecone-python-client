@@ -5,9 +5,9 @@ from pinecone import IndexModel, PineconeAsyncio
 @pytest.mark.asyncio
 class TestListIndexes:
     async def test_list_indexes_includes_ready_indexes(
-        self, api_key_fixture, ready_sl_index, create_sl_index_params
+        self, ready_sl_index, create_sl_index_params
     ):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+        pc = PineconeAsyncio()
 
         list_response = await pc.list_indexes()
         assert len(list_response.indexes) != 0
@@ -21,10 +21,8 @@ class TestListIndexes:
         assert created_index.metric == create_sl_index_params["metric"]
         assert ready_sl_index in created_index.host
 
-    async def test_list_indexes_includes_not_ready_indexes(
-        self, api_key_fixture, notready_sl_index
-    ):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_list_indexes_includes_not_ready_indexes(self, notready_sl_index):
+        pc = PineconeAsyncio()
 
         list_response = await pc.list_indexes()
         assert len(list_response.indexes) != 0

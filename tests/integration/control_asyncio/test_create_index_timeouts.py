@@ -4,8 +4,8 @@ import pytest
 
 @pytest.mark.asyncio
 class TestCreateIndexWithTimeout:
-    async def test_create_index_default_timeout(self, api_key_fixture, create_sl_index_params):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_create_index_default_timeout(self, create_sl_index_params):
+        pc = PineconeAsyncio()
 
         create_sl_index_params["timeout"] = None
         await pc.create_index(**create_sl_index_params)
@@ -13,8 +13,8 @@ class TestCreateIndexWithTimeout:
         desc = await pc.describe_index(create_sl_index_params["name"])
         assert desc.status.ready == True
 
-    async def test_create_index_when_timeout_set(self, api_key_fixture, create_sl_index_params):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_create_index_when_timeout_set(self, create_sl_index_params):
+        pc = PineconeAsyncio()
 
         create_sl_index_params["timeout"] = (
             1000  # effectively infinite, but different code path from None
@@ -23,10 +23,8 @@ class TestCreateIndexWithTimeout:
         desc = await pc.describe_index(create_sl_index_params["name"])
         assert desc.status.ready == True
 
-    async def test_create_index_with_negative_timeout(
-        self, api_key_fixture, create_sl_index_params
-    ):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_create_index_with_negative_timeout(self, create_sl_index_params):
+        pc = PineconeAsyncio()
 
         create_sl_index_params["timeout"] = -1
         await pc.create_index(**create_sl_index_params)

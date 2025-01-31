@@ -12,10 +12,8 @@ class TestCreateIndexForModel:
             (EmbedModel.Pinecone_Sparse_English_V0, CloudProvider.AWS, AwsRegion.US_EAST_1),
         ],
     )
-    async def test_create_index_for_model(
-        self, api_key_fixture, model_val, index_name, cloud_val, region_val
-    ):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_create_index_for_model(self, model_val, index_name, cloud_val, region_val):
+        pc = PineconeAsyncio()
 
         field_map = {"text": "my-sample-text"}
         index = await pc.create_index_for_model(
@@ -34,8 +32,8 @@ class TestCreateIndexForModel:
         else:
             assert index.embed.model == model_val
 
-    async def test_create_index_for_model_with_index_embed_obj(self, api_key_fixture, index_name):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_create_index_for_model_with_index_embed_obj(self, index_name):
+        pc = PineconeAsyncio()
 
         field_map = {"text": "my-sample-text"}
         index = await pc.create_index_for_model(
@@ -58,9 +56,9 @@ class TestCreateIndexForModel:
         [(EmbedModel.Multilingual_E5_Large, Metric.COSINE), ("multilingual-e5-large", "cosine")],
     )
     async def test_create_index_for_model_with_index_embed_dict(
-        self, api_key_fixture, index_name, model_val, metric_val
+        self, index_name, model_val, metric_val
     ):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+        pc = PineconeAsyncio()
 
         field_map = {"text": "my-sample-text"}
         index = await pc.create_index_for_model(

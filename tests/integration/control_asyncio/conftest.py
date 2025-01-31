@@ -17,16 +17,10 @@ from pinecone import (
 logger = logging.getLogger(__name__)
 
 
-def api_key():
-    return get_environment_var("PINECONE_API_KEY")
-
-
 def build_client():
-    config = {"api_key": api_key()}
-
     from pinecone import PineconeAsyncio
 
-    return PineconeAsyncio(**config)
+    return PineconeAsyncio()
 
 
 @pytest.fixture(scope="session")
@@ -35,17 +29,12 @@ def client():
     # but can be used to help with cleanup after test runs
     from pinecone import Pinecone
 
-    return Pinecone(api_key=api_key())
+    return Pinecone()
 
 
 @pytest.fixture(scope="session")
 def build_pc():
     return build_client
-
-
-@pytest.fixture(scope="session")
-def api_key_fixture():
-    return api_key()
 
 
 async def poll_for_freshness(asyncio_idx, target_namespace, target_vector_count):

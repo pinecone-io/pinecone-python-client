@@ -4,10 +4,8 @@ from pinecone import IndexModel, PineconeAsyncio
 
 @pytest.mark.asyncio
 class TestDescribeIndex:
-    async def test_describe_index_when_ready(
-        self, api_key_fixture, ready_sl_index, create_sl_index_params
-    ):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_describe_index_when_ready(self, ready_sl_index, create_sl_index_params):
+        pc = PineconeAsyncio()
         description = await pc.describe_index(ready_sl_index)
 
         assert isinstance(description, IndexModel)
@@ -30,10 +28,8 @@ class TestDescribeIndex:
         assert description.status.state == "Ready"
         assert description.status.ready == True
 
-    async def test_describe_index_when_not_ready(
-        self, api_key_fixture, notready_sl_index, create_sl_index_params
-    ):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_describe_index_when_not_ready(self, notready_sl_index, create_sl_index_params):
+        pc = PineconeAsyncio()
         description = await pc.describe_index(notready_sl_index)
 
         assert isinstance(description, IndexModel)

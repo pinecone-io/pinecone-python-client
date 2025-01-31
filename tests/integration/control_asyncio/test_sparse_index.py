@@ -5,8 +5,8 @@ from pinecone import PineconeAsyncio
 
 @pytest.mark.asyncio
 class TestSparseIndex:
-    async def test_create_sparse_index_with_metric(self, api_key_fixture, create_sl_index_params):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_create_sparse_index_with_metric(self, create_sl_index_params):
+        pc = PineconeAsyncio()
 
         create_sl_index_params["metric"] = "dotproduct"
 
@@ -30,8 +30,8 @@ class TestSparseIndex:
             else:
                 assert i.vector_type is not None
 
-    async def test_sparse_index_deletion_protection(self, api_key_fixture, create_sl_index_params):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_sparse_index_deletion_protection(self, create_sl_index_params):
+        pc = PineconeAsyncio()
 
         create_sl_index_params["metric"] = "dotproduct"
         create_sl_index_params["vector_type"] = "sparse"
@@ -60,8 +60,8 @@ class TestSparseIndex:
 
 @pytest.mark.asyncio
 class TestSparseIndexErrorCases:
-    async def test_exception_when_passing_dimension(self, api_key_fixture, create_sl_index_params):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_exception_when_passing_dimension(self, create_sl_index_params):
+        pc = PineconeAsyncio()
 
         create_sl_index_params["metric"] = "dotproduct"
         create_sl_index_params["dimension"] = 10
@@ -72,10 +72,8 @@ class TestSparseIndexErrorCases:
         assert "dimension should not be specified for sparse indexes" in str(e.value)
 
     @pytest.mark.parametrize("metric", ["cosine", "euclidean"])
-    async def test_sparse_only_supports_dotproduct(
-        self, api_key_fixture, create_sl_index_params, metric
-    ):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_sparse_only_supports_dotproduct(self, create_sl_index_params, metric):
+        pc = PineconeAsyncio()
 
         create_sl_index_params["metric"] = metric
         create_sl_index_params["vector_type"] = "sparse"

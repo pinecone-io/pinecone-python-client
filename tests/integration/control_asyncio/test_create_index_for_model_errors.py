@@ -12,8 +12,8 @@ from pinecone import (
 
 @pytest.mark.asyncio
 class TestCreateIndexForModelErrors:
-    async def test_create_index_for_model_with_invalid_model(self, api_key_fixture, index_name):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_create_index_for_model_with_invalid_model(self, index_name):
+        pc = PineconeAsyncio()
 
         with pytest.raises(PineconeApiException) as e:
             await pc.create_index_for_model(
@@ -29,8 +29,8 @@ class TestCreateIndexForModelErrors:
             )
         assert "Model invalid-model not found." in str(e.value)
 
-    async def test_invalid_cloud(self, api_key_fixture, index_name):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_invalid_cloud(self, index_name):
+        pc = PineconeAsyncio()
 
         with pytest.raises(PineconeApiValueError) as e:
             await pc.create_index_for_model(
@@ -46,8 +46,8 @@ class TestCreateIndexForModelErrors:
             )
         assert "Invalid value for `cloud`" in str(e.value)
 
-    async def test_invalid_region(self, api_key_fixture, index_name):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_invalid_region(self, index_name):
+        pc = PineconeAsyncio()
 
         with pytest.raises(PineconeApiException) as e:
             await pc.create_index_for_model(
@@ -63,8 +63,8 @@ class TestCreateIndexForModelErrors:
             )
         assert "invalid-region not found" in str(e.value)
 
-    async def test_create_index_for_model_with_invalid_field_map(self, api_key_fixture, index_name):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_create_index_for_model_with_invalid_field_map(self, index_name):
+        pc = PineconeAsyncio()
 
         with pytest.raises(PineconeApiException) as e:
             await pc.create_index_for_model(
@@ -80,8 +80,8 @@ class TestCreateIndexForModelErrors:
             )
         assert "Missing required key 'text'" in str(e.value)
 
-    async def test_create_index_for_model_with_invalid_metric(self, api_key_fixture, index_name):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_create_index_for_model_with_invalid_metric(self, index_name):
+        pc = PineconeAsyncio()
 
         with pytest.raises(PineconeApiValueError) as e:
             await pc.create_index_for_model(
@@ -97,8 +97,8 @@ class TestCreateIndexForModelErrors:
             )
         assert "Invalid value for `metric`" in str(e.value)
 
-    async def test_create_index_for_model_with_missing_name(self, api_key_fixture):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_create_index_for_model_with_missing_name(self):
+        pc = PineconeAsyncio()
 
         with pytest.raises(TypeError) as e:
             await pc.create_index_for_model(
@@ -113,8 +113,8 @@ class TestCreateIndexForModelErrors:
             )
         assert "name" in str(e.value)
 
-    async def test_create_index_with_missing_model(self, api_key_fixture, index_name):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_create_index_with_missing_model(self, index_name):
+        pc = PineconeAsyncio()
 
         with pytest.raises(ValueError) as e:
             await pc.create_index_for_model(
@@ -126,8 +126,8 @@ class TestCreateIndexForModelErrors:
             )
         assert "model is required" in str(e.value)
 
-    async def test_create_index_with_missing_field_map(self, api_key_fixture, index_name):
-        pc = PineconeAsyncio(api_key=api_key_fixture)
+    async def test_create_index_with_missing_field_map(self, index_name):
+        pc = PineconeAsyncio()
 
         with pytest.raises(ValueError) as e:
             await pc.create_index_for_model(
