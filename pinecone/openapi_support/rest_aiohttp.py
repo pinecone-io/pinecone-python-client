@@ -3,7 +3,7 @@ from .rest_utils import RestClientInterface, RESTResponse, raise_exceptions_or_r
 
 
 class AiohttpRestClient(RestClientInterface):
-    def __init__(self, configuration, pools_size=4, maxsize=None):
+    def __init__(self, configuration, pools_size=4, maxsize=None) -> None:
         import aiohttp
 
         conn = aiohttp.TCPConnector()
@@ -27,12 +27,6 @@ class AiohttpRestClient(RestClientInterface):
         _preload_content=True,
         _request_timeout=None,
     ):
-        # print(f"Requesting {method} {url}")
-        # print(f"Query params: {query_params}")
-        # print(f"Headers: {headers}")
-        # print(f"Post params: {post_params}")
-        # print(f"Preload content: {_preload_content}")
-
         if method in ["POST", "PUT", "PATCH", "OPTIONS"] and ("Content-Type" not in headers):
             headers["Content-Type"] = "application/json"
 

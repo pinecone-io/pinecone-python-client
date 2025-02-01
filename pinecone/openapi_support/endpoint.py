@@ -6,17 +6,46 @@ from .model_utils import (
     validate_and_convert_types,
     check_validations,
 )
+from typing import Optional, Dict, Tuple, TypedDict, List, Literal, Callable
+from .types import PropertyValidationTypedDict
+from .api_client import ApiClient
+
+
+class EndpointSettingsDict(TypedDict):
+    response_type: Optional[Tuple]
+    auth: List[str]
+    endpoint_path: str
+    operation_id: str
+    http_method: Literal["POST", "PUT", "PATCH", "GET", "DELETE"]
+    servers: Optional[List[str]]
+
+
+class EndpointParamsMapDict(TypedDict):
+    all: List[str]
+    required: List[str]
+    nullable: List[str]
+    enum: List[str]
+    validation: List[str]
+
+
+class EndpointRootMapDict(TypedDict):
+    validations: Dict[Tuple[str], PropertyValidationTypedDict]
+    allowed_values: Dict[Tuple[str], Dict]
+    openapi_types: Dict[str, Tuple]
+    attribute_map: Dict[str, str]
+    location_map: Dict[str, str]
+    collection_format_map: Dict[str, str]
 
 
 class Endpoint(object):
     def __init__(
         self,
-        settings=None,
-        params_map=None,
-        root_map=None,
-        headers_map=None,
-        api_client=None,
-        callable=None,
+        settings: EndpointSettingsDict,
+        params_map: EndpointParamsMapDict,
+        root_map: EndpointRootMapDict,
+        headers_map: Dict[str, List[str]],
+        api_client: ApiClient,
+        callable: Callable,
     ):
         """Creates an endpoint
 

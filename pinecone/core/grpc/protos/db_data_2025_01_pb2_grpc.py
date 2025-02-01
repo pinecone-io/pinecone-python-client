@@ -10,7 +10,7 @@ class VectorServiceStub(object):
     This service could also be called a `gRPC` service or a `REST`-like api.
     """
 
-    def __init__(self, channel):
+    def __init__(self, channel) -> None:
         """Constructor.
 
         Args:

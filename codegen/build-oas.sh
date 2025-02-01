@@ -34,7 +34,7 @@ update_templates_repo() {
 	echo "Updating templates repo"
 	pushd codegen/python-oas-templates
 		git fetch
-		git checkout main
+		git checkout jhamon/core-sdk
 		git pull
 	popd
 }

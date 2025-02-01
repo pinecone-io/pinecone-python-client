@@ -7,19 +7,21 @@ import logging
 from typing import Any
 from datetime import datetime
 import json
+from pinecone.data import _Index
+from typing import List
 
 logger = logging.getLogger(__name__)
 
 
-def embedding_values(dimension=2):
+def embedding_values(dimension: int = 2) -> list[float]:
     return [random.random() for _ in range(dimension)]
 
 
-def random_string(length):
+def random_string(length: int) -> str:
     return "".join(random.choice(string.ascii_lowercase) for i in range(length))
 
 
-def generate_collection_name(label):
+def generate_collection_name(label: str) -> str:
     return generate_index_name(label)
 
 
@@ -67,8 +69,11 @@ def get_environment_var(name: str, defaultVal: Any = None) -> str:
 
 
 def poll_stats_for_namespace(
-    idx, namespace, expected_count, max_sleep=int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 60))
-):
+    idx: _Index,
+    namespace: str,
+    expected_count: int,
+    max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 60)),
+) -> None:
     delta_t = 5
     total_time = 0
     done = False
@@ -89,7 +94,7 @@ def poll_stats_for_namespace(
             time.sleep(delta_t)
 
 
-def poll_fetch_for_ids_in_namespace(idx, ids, namespace):
+def poll_fetch_for_ids_in_namespace(idx: _Index, ids: List[str], namespace: str) -> None:
     max_sleep = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 60))
     delta_t = 5
     total_time = 0

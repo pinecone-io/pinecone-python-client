@@ -16,7 +16,7 @@ class ScoredVectorWithNamespace:
     sparse_values: dict
     metadata: dict
 
-    def __init__(self, aggregate_results_heap_tuple: Tuple[float, int, object, str]):
+    def __init__(self, aggregate_results_heap_tuple: Tuple[float, int, object, str]) -> None:
         json_vector = aggregate_results_heap_tuple[2]
         self.namespace = aggregate_results_heap_tuple[3]
         self.id = json_vector.get("id")  # type: ignore
@@ -89,12 +89,12 @@ class QueryNamespacesResults:
 
 
 class QueryResultsAggregatorInvalidTopKError(Exception):
-    def __init__(self, top_k: int):
+    def __init__(self, top_k: int) -> None:
         super().__init__(f"Invalid top_k value {top_k}. top_k must be at least 1.")
 
 
 class QueryResultsAggregator:
-    def __init__(self, top_k: int, metric: Literal["cosine", "euclidean", "dotproduct"]):
+    def __init__(self, top_k: int, metric: Literal["cosine", "euclidean", "dotproduct"]) -> None:
         if top_k < 1:
             raise QueryResultsAggregatorInvalidTopKError(top_k)
 

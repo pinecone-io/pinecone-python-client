@@ -17,7 +17,7 @@ class AsyncioEndpoint(object):
         headers_map=None,
         api_client=None,
         callable=None,
-    ):
+    ) -> None:
         """Creates an endpoint
 
         Args:

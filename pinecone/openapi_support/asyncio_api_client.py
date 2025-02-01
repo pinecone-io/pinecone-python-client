@@ -41,7 +41,7 @@ class AsyncioApiClient(object):
 
     def __init__(
         self, configuration=None, header_name=None, header_value=None, cookie=None, **kwargs
-    ):
+    ) -> None:
         if configuration is None:
             configuration = Configuration.get_default_copy()
         self.configuration = configuration

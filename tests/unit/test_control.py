@@ -33,7 +33,7 @@ def description_with_status(status: bool):
         name="foo",
         status=IndexModelStatus(ready=status, state=state),
         dimension=10,
-        deletion_protection=DeletionProtection("enabled"),
+        deletion_protection=DeletionProtection(value="enabled"),
         host="https://foo",
         metric="euclidean",
         spec=IndexModelSpec(serverless=ServerlessSpecOpenApi(cloud="aws", region="us-west1")),
@@ -292,7 +292,7 @@ class TestIndexConfig:
     def test_default_pool_threads(self):
         pc = Pinecone(api_key="123-456-789")
         index = pc.Index(host="my-host.svg.pinecone.io")
-        assert index._vector_api.api_client.pool_threads == 1
+        assert index._vector_api.api_client.pool_threads >= 1
 
     def test_pool_threads_when_indexapi_passed(self):
         pc = Pinecone(api_key="123-456-789", pool_threads=2, index_api=ManageIndexesApi())

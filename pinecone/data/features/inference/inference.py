@@ -29,7 +29,7 @@ class Inference(PluginAware):
     EmbedModel = EmbedModelEnum
     RerankModel = RerankModelEnum
 
-    def __init__(self, config, openapi_config, **kwargs):
+    def __init__(self, config, openapi_config, **kwargs) -> None:
         self.config = config
         self.openapi_config = openapi_config
         self.pool_threads = kwargs.get("pool_threads", 1)
@@ -42,7 +42,9 @@ class Inference(PluginAware):
             pool_threads=kwargs.get("pool_threads", 1),
             api_version=API_VERSION,
         )
-        self.load_plugins()
+        self.load_plugins(
+            config=self.config, openapi_config=self.openapi_config, pool_threads=self.pool_threads
+        )
 
     def embed(
         self,

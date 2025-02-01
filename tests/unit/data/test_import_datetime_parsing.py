@@ -1,4 +1,4 @@
-from urllib3 import BaseHTTPResponse, HTTPResponse
+from urllib3 import HTTPResponse
 
 from datetime import datetime, date
 
@@ -6,7 +6,7 @@ from pinecone.core.openapi.db_data.api.bulk_operations_api import BulkOperations
 from pinecone.openapi_support import ApiClient, RESTResponse
 
 
-def fake_response(mocker, body: str, status: int = 200) -> BaseHTTPResponse:
+def fake_response(mocker, body: str, status: int = 200):
     r = HTTPResponse(
         body=body.encode("utf-8"),
         headers={"content-type": "application/json"},

@@ -23,7 +23,12 @@ from pinecone.core.openapi.db_data.models import (
     SearchRecordsResponse,
 )
 
-from ..utils import setup_openapi_client, parse_non_empty_args, validate_and_convert_errors
+from ..utils import (
+    setup_async_openapi_client,
+    parse_non_empty_args,
+    validate_and_convert_errors,
+    filter_dict,
+)
 from .types import (
     SparseVectorTypedDict,
     VectorTypedDict,
@@ -73,7 +78,6 @@ class _AsyncioIndex(AsyncioIndexInterface, ImportFeatureMixinAsyncio):
         self,
         api_key: str,
         host: str,
-        pool_threads: Optional[int] = 1,
         additional_headers: Optional[Dict[str, str]] = {},
         openapi_config=None,
         **kwargs,
@@ -82,17 +86,15 @@ class _AsyncioIndex(AsyncioIndexInterface, ImportFeatureMixinAsyncio):
             api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
         self._openapi_config = ConfigBuilder.build_openapi_config(self.config, openapi_config)
-        self._pool_threads = pool_threads
 
         if kwargs.get("connection_pool_maxsize", None):
             self._openapi_config.connection_pool_maxsize = kwargs.get("connection_pool_maxsize")
 
-        self._vector_api = setup_openapi_client(
+        self._vector_api = setup_async_openapi_client(
             api_client_klass=AsyncioApiClient,
             api_klass=AsyncioVectorOperationsApi,
             config=self.config,
             openapi_config=self._openapi_config,
-            pool_threads=pool_threads,
             api_version=API_VERSION,
         )
 
@@ -405,5 +407,5 @@ class _AsyncioIndex(AsyncioIndexInterface, ImportFeatureMixinAsyncio):
     ) -> SearchRecordsResponse:
         return await self.search(namespace, query=query, rerank=rerank, fields=fields)
 
-    def _openapi_kwargs(self, kwargs):
-        return {k: v for k, v in kwargs.items() if k in OPENAPI_ENDPOINT_PARAMS}
+    def _openapi_kwargs(self, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        return filter_dict(kwargs, OPENAPI_ENDPOINT_PARAMS)

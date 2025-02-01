@@ -46,7 +46,7 @@ class ApiClient(object):
 
     def __init__(
         self, configuration=None, header_name=None, header_value=None, cookie=None, pool_threads=1
-    ):
+    ) -> None:
         if configuration is None:
             configuration = Configuration.get_default_copy()
         self.configuration = configuration
@@ -331,6 +331,7 @@ class ApiClient(object):
 
         # store our data under the key of 'received_data' so users have some
         # context if they are deserializing a string and the data type is wrong
+
         deserialized_data = validate_and_convert_types(
             received_data,
             response_type,

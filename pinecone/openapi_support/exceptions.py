@@ -3,7 +3,7 @@ class PineconeException(Exception):
 
 
 class PineconeApiTypeError(PineconeException, TypeError):
-    def __init__(self, msg, path_to_item=None, valid_classes=None, key_type=None):
+    def __init__(self, msg, path_to_item=None, valid_classes=None, key_type=None) -> None:
         """Raises an exception for TypeErrors
 
         Args:
@@ -31,7 +31,7 @@ class PineconeApiTypeError(PineconeException, TypeError):
 
 
 class PineconeApiValueError(PineconeException, ValueError):
-    def __init__(self, msg, path_to_item=None):
+    def __init__(self, msg, path_to_item=None) -> None:
         """
         Args:
             msg (str): the exception message
@@ -49,7 +49,7 @@ class PineconeApiValueError(PineconeException, ValueError):
 
 
 class PineconeApiAttributeError(PineconeException, AttributeError):
-    def __init__(self, msg, path_to_item=None):
+    def __init__(self, msg, path_to_item=None) -> None:
         """
         Raised when an attribute reference or assignment fails.
 
@@ -68,7 +68,7 @@ class PineconeApiAttributeError(PineconeException, AttributeError):
 
 
 class PineconeApiKeyError(PineconeException, KeyError):
-    def __init__(self, msg, path_to_item=None):
+    def __init__(self, msg, path_to_item=None) -> None:
         """
         Args:
             msg (str): the exception message
@@ -85,7 +85,7 @@ class PineconeApiKeyError(PineconeException, KeyError):
 
 
 class PineconeApiException(PineconeException):
-    def __init__(self, status=None, reason=None, http_resp=None):
+    def __init__(self, status=None, reason=None, http_resp=None) -> None:
         if http_resp:
             self.status = http_resp.status
             self.reason = http_resp.reason
@@ -110,22 +110,22 @@ class PineconeApiException(PineconeException):
 
 
 class NotFoundException(PineconeApiException):
-    def __init__(self, status=None, reason=None, http_resp=None):
+    def __init__(self, status=None, reason=None, http_resp=None) -> None:
         super(NotFoundException, self).__init__(status, reason, http_resp)
 
 
 class UnauthorizedException(PineconeApiException):
-    def __init__(self, status=None, reason=None, http_resp=None):
+    def __init__(self, status=None, reason=None, http_resp=None) -> None:
         super(UnauthorizedException, self).__init__(status, reason, http_resp)
 
 
 class ForbiddenException(PineconeApiException):
-    def __init__(self, status=None, reason=None, http_resp=None):
+    def __init__(self, status=None, reason=None, http_resp=None) -> None:
         super(ForbiddenException, self).__init__(status, reason, http_resp)
 
 
 class ServiceException(PineconeApiException):
-    def __init__(self, status=None, reason=None, http_resp=None):
+    def __init__(self, status=None, reason=None, http_resp=None) -> None:
         super(ServiceException, self).__init__(status, reason, http_resp)
 
 

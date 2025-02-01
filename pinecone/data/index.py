@@ -34,12 +34,14 @@ from ..utils import (
     setup_openapi_client,
     parse_non_empty_args,
     validate_and_convert_errors,
+    filter_dict,
     PluginAware,
 )
 from .query_results_aggregator import QueryResultsAggregator, QueryNamespacesResults
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
 
 from multiprocessing.pool import ApplyResult
+from multiprocessing import cpu_count
 from concurrent.futures import as_completed
 
 
@@ -61,7 +63,7 @@ class Index(IndexInterface, ImportFeatureMixin, PluginAware):
         self,
         api_key: str,
         host: str,
-        pool_threads: Optional[int] = 1,
+        pool_threads: Optional[int] = None,
         additional_headers: Optional[Dict[str, str]] = {},
         openapi_config=None,
         **kwargs,
@@ -70,7 +72,11 @@ class Index(IndexInterface, ImportFeatureMixin, PluginAware):
             api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
         self.openapi_config = ConfigBuilder.build_openapi_config(self.config, openapi_config)
-        self.pool_threads = pool_threads
+
+        if pool_threads is None:
+            self.pool_threads = 5 * cpu_count()
+        else:
+            self.pool_threads = pool_threads
 
         if kwargs.get("connection_pool_maxsize", None):
             self.openapi_config.connection_pool_maxsize = kwargs.get("connection_pool_maxsize")
@@ -89,10 +95,12 @@ class Index(IndexInterface, ImportFeatureMixin, PluginAware):
         # Pass the same api_client to the ImportFeatureMixin
         super().__init__(api_client=self._api_client)
 
-        self.load_plugins()
+        self.load_plugins(
+            config=self.config, openapi_config=self.openapi_config, pool_threads=self.pool_threads
+        )
 
-    def _openapi_kwargs(self, kwargs):
-        return {k: v for k, v in kwargs.items() if k in OPENAPI_ENDPOINT_PARAMS}
+    def _openapi_kwargs(self, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        return filter_dict(kwargs, OPENAPI_ENDPOINT_PARAMS)
 
     def __enter__(self):
         return self

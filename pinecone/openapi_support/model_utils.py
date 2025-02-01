@@ -45,7 +45,7 @@ class cached_property(object):
     # into cached properties
     result_key = "_results"
 
-    def __init__(self, fn):
+    def __init__(self, fn) -> None:
         self._fn = fn
 
     def __get__(self, instance, cls=None):
@@ -1086,6 +1086,7 @@ def get_required_type_classes(required_types_mixed, spec_property_naming):
     """
     valid_classes = []
     child_req_types_by_current_type = {}
+
     for required_type in required_types_mixed:
         if isinstance(required_type, list):
             valid_classes.append(list)
@@ -1577,7 +1578,7 @@ def model_to_dict(model_instance, serialize=True):
     result = {}
 
     model_instances = [model_instance]
-    if model_instance._composed_schemas:
+    if hasattr(model_instance, "_composed_schemas") and model_instance._composed_schemas:
         model_instances.extend(model_instance._composed_instances)
     seen_json_attribute_names = set()
     used_fallback_python_attribute_names = set()
