@@ -178,16 +178,17 @@ jobs:
       matrix:
         python_version:
           - 3.9
-          - 3.10
+          - '3.10'
           - 3.11
           - 3.12
+          - 3.13
         aiohttp_version:
           - ^3.9.0
           - ^3.10.0
           - ^3.11.5
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/test-dependency-rest
+      - uses: ./.github/actions/test-dependency-asyncio-rest
         with:
           python_version: '${{ matrix.python_version }}'
           index_name: '${{ needs.dependency-matrix-setup.outputs.index_name }}'
