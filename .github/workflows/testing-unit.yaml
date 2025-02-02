@@ -39,4 +39,4 @@ jobs:
           INCLUDE_GRPC: '${{ matrix.use_grpc }}'
         run: >
           GRPC_FLAG=$( [ "$INCLUDE_GRPC" = "false" ] && echo "--exclude pinecone/grpc" || echo "" )
-          poetry run mypy pinecone --exclude pinecone/core $GRPC_FLAG
+          poetry run mypy pinecone $GRPC_FLAG
