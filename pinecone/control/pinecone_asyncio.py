@@ -2,14 +2,12 @@ import logging
 import asyncio
 from typing import Optional, Dict, Union
 
-from .index_host_store import IndexHostStore
-
-from pinecone.config import PineconeConfig, Config, ConfigBuilder
+from pinecone.config import PineconeConfig, ConfigBuilder
 
 from pinecone.core.openapi.db_control.api.manage_indexes_api import AsyncioManageIndexesApi
 from pinecone.openapi_support import AsyncioApiClient
 
-from pinecone.utils import normalize_host, setup_openapi_client
+from pinecone.utils import normalize_host, setup_async_openapi_client
 from pinecone.core.openapi.db_control import API_VERSION
 from pinecone.models import (
     ServerlessSpec,
@@ -56,51 +54,30 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         proxy_headers: Optional[Dict[str, str]] = None,
         ssl_ca_certs: Optional[str] = None,
         ssl_verify: Optional[bool] = None,
-        config: Optional[Config] = None,
         additional_headers: Optional[Dict[str, str]] = {},
         **kwargs,
     ):
-        if config:
-            if not isinstance(config, Config):
-                raise TypeError("config must be of type pinecone.config.Config")
-            else:
-                self.config = config
-        else:
-            self.config = PineconeConfig.build(
-                api_key=api_key,
-                host=host,
-                additional_headers=additional_headers,
-                proxy_url=proxy_url,
-                proxy_headers=proxy_headers,
-                ssl_ca_certs=ssl_ca_certs,
-                ssl_verify=ssl_verify,
-                **kwargs,
-            )
-
-        if kwargs.get("openapi_config", None):
-            raise Exception(
-                "Passing openapi_config is no longer supported. Please pass settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at https://github.com/pinecone-io/pinecone-python-client for examples."
-            )
-
+        self.config = PineconeConfig.build(
+            api_key=api_key,
+            host=host,
+            additional_headers=additional_headers,
+            proxy_url=proxy_url,
+            proxy_headers=proxy_headers,
+            ssl_ca_certs=ssl_ca_certs,
+            ssl_verify=ssl_verify,
+            **kwargs,
+        )
         self.openapi_config = ConfigBuilder.build_openapi_config(self.config, **kwargs)
-
-        # I am pretty sure these aren't used, but need to pass a
-        # value for now to satisfy the method signatures
-        self.pool_threads = 1
 
         self._inference = None  # Lazy initialization
 
-        self.index_api = setup_openapi_client(
+        self.index_api = setup_async_openapi_client(
             api_client_klass=AsyncioApiClient,
             api_klass=AsyncioManageIndexesApi,
             config=self.config,
             openapi_config=self.openapi_config,
-            pool_threads=self.pool_threads,
             api_version=API_VERSION,
         )
-
-        self.index_host_store = IndexHostStore()
-        """ @private """
 
     async def __aenter__(self):
         return self
@@ -171,7 +148,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     async def __poll_describe_index_until_ready(self, name: str, timeout: Optional[int] = None):
         description = None
 
-        async def is_ready():
+        async def is_ready() -> bool:
             nonlocal description
             description = await self.describe_index(name=name)
             return description.status.ready
@@ -208,20 +185,15 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
 
     async def delete_index(self, name: str, timeout: Optional[int] = None):
         await self.index_api.delete_index(name)
-        self.index_host_store.delete_host(self.config, name)
-
-        async def get_remaining():
-            available_indexes = await self.list_indexes()
-            return name in available_indexes.names()
 
         if timeout == -1:
             return
 
         if timeout is None:
-            while await get_remaining():
+            while await self.has_index(name):
                 await asyncio.sleep(5)
         else:
-            while await get_remaining() and timeout >= 0:
+            while await self.has_index(name) and timeout >= 0:
                 await asyncio.sleep(5)
                 timeout -= 5
         if timeout and timeout < 0:
@@ -239,9 +211,6 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
 
     async def describe_index(self, name: str) -> IndexModel:
         description = await self.index_api.describe_index(name)
-        host = description.host
-        self.index_host_store.set_host(self.config, name, host)
-
         return IndexModel(description)
 
     async def has_index(self, name: str) -> bool:
@@ -284,25 +253,17 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     async def describe_collection(self, name: str):
         return await self.index_api.describe_collection(name).to_dict()
 
-    def Index(self, name: str = "", host: str = "", **kwargs):
-        if name == "" and host == "":
-            raise ValueError("Either name or host must be specified")
-
-        pt = kwargs.pop("pool_threads", None) or self.pool_threads
+    def Index(self, host: str, **kwargs):
         api_key = self.config.api_key
         openapi_config = self.openapi_config
 
-        if host != "":
-            # Use host url if it is provided
-            index_host = normalize_host(host)
-        else:
-            # Otherwise, get host url from describe_index using the index name
-            index_host = self.index_host_store.get_host(self.index_api, self.config, name)
+        index_host = normalize_host(host)
+        if index_host == "":
+            raise ValueError("host must be specified")
 
         return _AsyncioIndex(
             host=index_host,
             api_key=api_key,
-            pool_threads=pt,
             openapi_config=openapi_config,
             source_tag=self.config.source_tag,
             **kwargs,

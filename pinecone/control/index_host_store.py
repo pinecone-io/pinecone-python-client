@@ -18,7 +18,9 @@ class SingletonMeta(type):
 
 
 class IndexHostStore(metaclass=SingletonMeta):
-    def __init__(self):
+    _indexHosts: Dict[str, str]
+
+    def __init__(self) -> None:
         self._indexHosts = {}
 
     def _key(self, config: Config, index_name: str) -> str:

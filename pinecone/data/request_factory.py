@@ -35,7 +35,7 @@ from .dataclasses import Vector, SparseValues, SearchQuery, SearchRerank, Search
 logger = logging.getLogger(__name__)
 
 
-def non_openapi_kwargs(kwargs):
+def non_openapi_kwargs(kwargs: Dict[str, Any]) -> Dict[str, Any]:
     return {k: v for k, v in kwargs.items() if k not in OPENAPI_ENDPOINT_PARAMS}
 
 

@@ -22,7 +22,7 @@ class AsyncioInference:
     EmbedModel = EmbedModelEnum
     RerankModel = RerankModelEnum
 
-    def __init__(self, api_client, **kwargs):
+    def __init__(self, api_client, **kwargs) -> None:
         self.api_client = api_client
         self.__inference_api = AsyncioInferenceApi(api_client)
 

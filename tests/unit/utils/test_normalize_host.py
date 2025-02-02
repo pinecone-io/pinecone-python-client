@@ -2,7 +2,7 @@ from pinecone.utils import normalize_host
 
 
 def test_when_url_is_none():
-    assert normalize_host(None) is None
+    assert normalize_host(None) == ""
 
 
 def test_when_url_is_https():

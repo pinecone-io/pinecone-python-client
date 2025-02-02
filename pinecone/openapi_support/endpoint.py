@@ -1,22 +1,25 @@
-from .exceptions import PineconeApiValueError, PineconeApiTypeError
-from .model_utils import (
-    none_type,
-    file_type,
-    check_allowed_values,
-    validate_and_convert_types,
-    check_validations,
+from .model_utils import none_type
+from typing import Dict, List, Callable
+from .api_client import ApiClient
+from .api_client_utils import HeaderUtil
+from .endpoint_utils import (
+    EndpointUtils,
+    EndpointParamsMapDict,
+    EndpointRootMapDict,
+    EndpointSettingsDict,
+    ExtraOpenApiKwargsTypedDict,
 )
 
 
-class Endpoint(object):
+class Endpoint:
     def __init__(
         self,
-        settings=None,
-        params_map=None,
-        root_map=None,
-        headers_map=None,
-        api_client=None,
-        callable=None,
+        settings: EndpointSettingsDict,
+        params_map: EndpointParamsMapDict,
+        root_map: EndpointRootMapDict,
+        headers_map: Dict[str, List[str]],
+        api_client: ApiClient,
+        callable: Callable,
     ):
         """Creates an endpoint
 
@@ -57,7 +60,6 @@ class Endpoint(object):
             [
                 "async_req",
                 "async_threadpool_executor",
-                "_host_index",
                 "_preload_content",
                 "_request_timeout",
                 "_return_http_data_only",
@@ -72,7 +74,6 @@ class Endpoint(object):
         extra_types = {
             "async_req": (bool,),
             "async_threadpool_executor": (bool,),
-            "_host_index": (none_type, int),
             "_preload_content": (bool,),
             "_request_timeout": (none_type, float, (float,), [float], int, (int,), [int]),
             "_return_http_data_only": (bool,),
@@ -86,70 +87,6 @@ class Endpoint(object):
         self.headers_map = headers_map
         self.api_client = api_client
         self.callable = callable
-
-    def __validate_inputs(self, kwargs):
-        for param in self.params_map["enum"]:
-            if param in kwargs:
-                check_allowed_values(self.allowed_values, (param,), kwargs[param])
-
-        for param in self.params_map["validation"]:
-            if param in kwargs:
-                check_validations(
-                    self.validations,
-                    (param,),
-                    kwargs[param],
-                    configuration=self.api_client.configuration,
-                )
-
-        if kwargs["_check_input_type"] is False:
-            return
-
-        for key, value in kwargs.items():
-            fixed_val = validate_and_convert_types(
-                value,
-                self.openapi_types[key],
-                [key],
-                False,
-                kwargs["_check_input_type"],
-                configuration=self.api_client.configuration,
-            )
-            kwargs[key] = fixed_val
-
-    def __gather_params(self, kwargs):
-        params = {
-            "body": None,
-            "collection_format": {},
-            "file": {},
-            "form": [],
-            "header": {},
-            "path": {},
-            "query": [],
-        }
-
-        for param_name, param_value in kwargs.items():
-            param_location = self.location_map.get(param_name)
-            if param_location is None:
-                continue
-            if param_location:
-                if param_location == "body":
-                    params["body"] = param_value
-                    continue
-                base_name = self.attribute_map[param_name]
-                if param_location == "form" and self.openapi_types[param_name] == (file_type,):
-                    params["file"][param_name] = [param_value]
-                elif param_location == "form" and self.openapi_types[param_name] == ([file_type],):
-                    # param_value is already a list
-                    params["file"][param_name] = param_value
-                elif param_location in {"form", "query"}:
-                    param_value_full = (base_name, param_value)
-                    params[param_location].append(param_value_full)
-                if param_location not in {"form", "query"}:
-                    params[param_location][base_name] = param_value
-                collection_format = self.collection_format_map.get(param_name)
-                if collection_format:
-                    params["collection_format"][base_name] = collection_format
-
-        return params
 
     def __call__(self, *args, **kwargs):
         """This method is invoked when endpoints are called
@@ -165,72 +102,41 @@ class Endpoint(object):
         return self.callable(self, *args, **kwargs)
 
     def call_with_http_info(self, **kwargs):
-        try:
-            index = (
-                self.api_client.configuration.server_operation_index.get(
-                    self.settings["operation_id"], self.api_client.configuration.server_index
-                )
-                if kwargs["_host_index"] is None
-                else kwargs["_host_index"]
-            )
-            server_variables = self.api_client.configuration.server_operation_variables.get(
-                self.settings["operation_id"], self.api_client.configuration.server_variables
-            )
-            _host = self.api_client.configuration.get_host_from_settings(
-                index, variables=server_variables, servers=self.settings["servers"]
-            )
-        except IndexError:
-            if self.settings["servers"]:
-                raise PineconeApiValueError(
-                    "Invalid host index. Must be 0 <= index < %s" % len(self.settings["servers"])
-                )
-            _host = None
+        _host = self.api_client.configuration.host
 
-        for key, value in kwargs.items():
-            if key not in self.params_map["all"]:
-                raise PineconeApiTypeError(
-                    "Got an unexpected parameter '%s'"
-                    " to method `%s`" % (key, self.settings["operation_id"])
-                )
-            # only throw this nullable PineconeApiValueError if _check_input_type
-            # is False, if _check_input_type==True we catch this case
-            # in self.__validate_inputs
-            if (
-                key not in self.params_map["nullable"]
-                and value is None
-                and kwargs["_check_input_type"] is False
-            ):
-                raise PineconeApiValueError(
-                    "Value may not be None for non-nullable parameter `%s`"
-                    " when calling `%s`" % (key, self.settings["operation_id"])
-                )
+        EndpointUtils.raise_if_unexpected_param(
+            params_map=self.params_map, settings=self.settings, kwargs=kwargs
+        )
 
-        for key in self.params_map["required"]:
-            if key not in kwargs.keys():
-                raise PineconeApiValueError(
-                    "Missing the required parameter `%s` when calling "
-                    "`%s`" % (key, self.settings["operation_id"])
-                )
+        EndpointUtils.raise_if_missing_required_params(
+            params_map=self.params_map, settings=self.settings, kwargs=kwargs
+        )
 
-        self.__validate_inputs(kwargs)
+        EndpointUtils.raise_if_invalid_inputs(
+            config=self.api_client.configuration,
+            params_map=self.params_map,
+            allowed_values=self.allowed_values,
+            validations=self.validations,
+            openapi_types=self.openapi_types,
+            kwargs=kwargs,
+        )
 
-        params = self.__gather_params(kwargs)
+        params = EndpointUtils.gather_params(
+            attribute_map=self.attribute_map,
+            location_map=self.location_map,
+            openapi_types=self.openapi_types,
+            collection_format_map=self.collection_format_map,
+            kwargs=kwargs,
+        )
 
-        accept_headers_list = self.headers_map["accept"]
-        if accept_headers_list:
-            params["header"]["Accept"] = self.api_client.select_header_accept(accept_headers_list)
-
-        content_type_headers_list = self.headers_map["content_type"]
-        if content_type_headers_list:
-            header_list = self.api_client.select_header_content_type(content_type_headers_list)
-            params["header"]["Content-Type"] = header_list
+        HeaderUtil.prepare_headers(headers_map=self.headers_map, params=params)
 
         return self.api_client.call_api(
             self.settings["endpoint_path"],
             self.settings["http_method"],
-            params["path"],
-            params["query"],
-            params["header"],
+            path_params=params["path"],
+            query_params=params["query"],
+            header_params=params["header"],
             body=params["body"],
             post_params=params["form"],
             files=params["file"],
@@ -245,3 +151,14 @@ class Endpoint(object):
             _host=_host,
             collection_formats=params["collection_format"],
         )
+
+    def _process_openapi_kwargs(
+        self, kwargs: ExtraOpenApiKwargsTypedDict
+    ) -> ExtraOpenApiKwargsTypedDict:
+        kwargs["async_req"] = kwargs.get("async_req", False)
+        kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+        kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+        kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+        kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+        kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+        return kwargs

@@ -1,6 +1,7 @@
 import time
 import logging
 from typing import Optional, Dict, Union
+from multiprocessing import cpu_count
 
 from .index_host_store import IndexHostStore
 from .pinecone_interface import PineconeDBControlInterface
@@ -60,7 +61,7 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
         ssl_verify: Optional[bool] = None,
         config: Optional[Config] = None,
         additional_headers: Optional[Dict[str, str]] = {},
-        pool_threads: Optional[int] = 1,
+        pool_threads: Optional[int] = None,
         **kwargs,
     ):
         if config:
@@ -86,7 +87,11 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
             )
 
         self.openapi_config = ConfigBuilder.build_openapi_config(self.config, **kwargs)
-        self.pool_threads = pool_threads
+
+        if pool_threads is None:
+            self.pool_threads = 5 * cpu_count()
+        else:
+            self.pool_threads = pool_threads
 
         self._inference = None  # Lazy initialization
 
@@ -102,7 +107,9 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
         self.index_host_store = IndexHostStore()
         """ @private """
 
-        self.load_plugins()
+        self.load_plugins(
+            config=self.config, openapi_config=self.openapi_config, pool_threads=self.pool_threads
+        )
 
     @property
     def inference(self):
@@ -164,7 +171,7 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
     def __poll_describe_index_until_ready(self, name: str, timeout: Optional[int] = None):
         description = None
 
-        def is_ready():
+        def is_ready() -> bool:
             nonlocal description
             description = self.describe_index(name=name)
             return description.status.ready
@@ -203,17 +210,14 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
         self.index_api.delete_index(name)
         self.index_host_store.delete_host(self.config, name)
 
-        def get_remaining():
-            return name in self.list_indexes().names()
-
         if timeout == -1:
             return
 
         if timeout is None:
-            while get_remaining():
+            while self.has_index(name):
                 time.sleep(5)
         else:
-            while get_remaining() and timeout >= 0:
+            while self.has_index(name) and timeout >= 0:
                 time.sleep(5)
                 timeout -= 5
         if timeout and timeout < 0:

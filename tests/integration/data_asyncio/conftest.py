@@ -166,7 +166,7 @@ async def poll_for_freshness(asyncio_idx, target_namespace, target_vector_count)
 
 async def wait_until(
     condition: Union[Callable[[], bool], Callable[[], Awaitable[bool]]],
-    timeout: Optional[float] = None,
+    timeout: Optional[float] = 10,
     interval: float = 0.1,
 ) -> None:
     """
@@ -190,9 +190,14 @@ async def wait_until(
         if timeout is not None and (asyncio.get_event_loop().time() - start_time) > timeout:
             raise asyncio.TimeoutError("Condition not met within the timeout period.")
 
+        remaining_time = (
+            (start_time + timeout) - asyncio.get_event_loop().time()
+            if timeout is not None
+            else None
+        )
         logger.debug(
             "Condition not met yet. Waiting for %.2f seconds. Timeout in %.2f seconds.",
             interval,
-            (start_time + timeout) - asyncio.get_event_loop().time(),
+            remaining_time,
         )
         await asyncio.sleep(interval)

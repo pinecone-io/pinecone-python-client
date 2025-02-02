@@ -5,6 +5,7 @@
 
 from .api_client import ApiClient
 from .endpoint import Endpoint
+from .endpoint_utils import ExtraOpenApiKwargsTypedDict, KwargsWithOpenApiKwargDefaultsTypedDict
 from .asyncio_api_client import AsyncioApiClient
 from .asyncio_endpoint import AsyncioEndpoint
 from .configuration import Configuration
@@ -43,3 +44,6 @@ from .constants import OPENAPI_ENDPOINT_PARAMS
 
 from datetime import date, datetime  # noqa: F401
 from dateutil.parser import parse
+
+from .types import PropertyValidationTypedDict
+from .cached_class_property import cached_class_property

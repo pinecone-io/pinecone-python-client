@@ -8,9 +8,9 @@ from pinecone.core.openapi.inference.models import (
 )
 
 
-def present_list(mylist):
+def present_list(mylist) -> str:
     if not mylist:
-        return []
+        return "[]"
     if len(mylist) <= 5:
         # Show list as usual when fewer than 5 items.
         # This number is arbitrary and can be adjusted

@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class RESTResponse(io.IOBase):
-    def __init__(self, status, data, headers, reason=None):
+    def __init__(self, status, data, headers, reason=None) -> None:
         self.status = status
         self.reason = reason
         self.data = data
@@ -51,7 +51,7 @@ def raise_exceptions_or_return(r: RESTResponse):
 
 
 class RestClientInterface(ABC):
-    def __init__(self, configuration, **kwargs):
+    def __init__(self, configuration, **kwargs) -> None:
         pass
 
     @abstractmethod

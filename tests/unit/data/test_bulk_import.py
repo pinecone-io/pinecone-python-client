@@ -1,14 +1,15 @@
 import pytest
 
-from urllib3 import BaseHTTPResponse
-
 from pinecone.openapi_support import ApiClient, PineconeApiException
-from pinecone.core.openapi.db_data.models import StartImportResponse
+from pinecone.core.openapi.db_data.models import (
+    StartImportResponse,
+    ImportErrorMode as ImportErrorModeGeneratedClass,
+)
 
 from pinecone.data.features.bulk_import import ImportFeatureMixin, ImportErrorMode
 
 
-def build_client_w_faked_response(mocker, body: str, status: int = 200) -> BaseHTTPResponse:
+def build_client_w_faked_response(mocker, body: str, status: int = 200):
     response = mocker.Mock()
     response.headers = {"content-type": "application/json"}
     response.status = status
@@ -108,7 +109,7 @@ class TestBulkImportStartImport:
         with pytest.raises(ValueError) as e:
             client.start_import(uri="s3://path/to/file.parquet", error_mode="unknown")
 
-        assert "Invalid error_mode value: unknown" in str(e.value)
+        assert "Invalid error_mode: unknown" in str(e.value)
 
     def test_start_invalid_uri(self, mocker):
         body = """
@@ -136,6 +137,11 @@ class TestBulkImportStartImport:
             client.start_import()
 
         assert "missing 1 required positional argument" in str(e.value)
+
+    def test_enums_are_aligned(self):
+        modes = dir(ImportErrorMode)
+        for key, _ in ImportErrorModeGeneratedClass().allowed_values[("on_error",)].items():
+            assert key in modes
 
 
 class TestDescribeImport:

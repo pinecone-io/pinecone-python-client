@@ -1,4 +1,4 @@
-from typing import Optional, Literal, Iterator, List
+from typing import Optional, Literal, Iterator, List, Union
 
 from pinecone.core.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
 
@@ -10,21 +10,23 @@ from pinecone.core.openapi.db_data.models import (
     ImportModel,
 )
 
-from .bulk_import_request_factory import BulkImportRequestFactory
+from .bulk_import_request_factory import BulkImportRequestFactory, ImportErrorMode
 
 for m in [StartImportResponse, ListImportsResponse, ImportModel]:
     install_json_repr_override(m)
 
 
 class ImportFeatureMixin:
-    def __init__(self, api_client, **kwargs):
+    def __init__(self, api_client, **kwargs) -> None:
         self.__import_operations_api = BulkOperationsApi(api_client)
 
     def start_import(
         self,
         uri: str,
         integration_id: Optional[str] = None,
-        error_mode: Optional[Literal["CONTINUE", "ABORT"]] = "CONTINUE",
+        error_mode: Optional[
+            Union[ImportErrorMode, Literal["CONTINUE", "ABORT"], str]
+        ] = "CONTINUE",
     ) -> StartImportResponse:
         """Import data from a storage provider into an index. The uri must start with the scheme of a supported
         storage provider. For buckets that are not publicly readable, you will also need to separately configure
@@ -122,7 +124,7 @@ class ImportFeatureMixin:
         args_dict = BulkImportRequestFactory.list_imports_paginated_args(
             limit=limit, pagination_token=pagination_token, **kwargs
         )
-        return self.__import_operations_api.list_imports(**args_dict)
+        return self.__import_operations_api.list_bulk_imports(**args_dict)
 
     def describe_import(self, id: str) -> ImportModel:
         """
@@ -145,4 +147,4 @@ class ImportFeatureMixin:
             id (str): The id of the import operation to cancel.
         """
         args = BulkImportRequestFactory.cancel_import_args(id=id)
-        return self.__import_operations_api.cancel_import(**args)
+        return self.__import_operations_api.cancel_bulk_import(**args)

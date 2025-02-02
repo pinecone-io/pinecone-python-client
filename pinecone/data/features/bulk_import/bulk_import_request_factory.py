@@ -1,16 +1,17 @@
 from enum import Enum
-from typing import Optional, Literal, Type, TypedDict, cast, Any
+from typing import Optional, TypedDict, Any, Union
 
 from pinecone.core.openapi.db_data.models import (
     StartImportRequest,
     ImportErrorMode as ImportErrorModeClass,
 )
 
-from pinecone.utils import parse_non_empty_args
+from pinecone.utils import parse_non_empty_args, convert_enum_to_string
 
-ImportErrorMode: Type[Enum] = cast(
-    Type[Enum], Enum("ImportErrorMode", ImportErrorModeClass.allowed_values[("on_error",)])
-)
+
+class ImportErrorMode(Enum):
+    CONTINUE = "CONTINUE"
+    ABORT = "ABORT"
 
 
 class DescribeImportArgs(TypedDict, total=False):
@@ -26,21 +27,22 @@ class BulkImportRequestFactory:
     def start_import_request(
         uri: str,
         integration_id: Optional[str] = None,
-        error_mode: Optional[Literal["CONTINUE", "ABORT"]] = "CONTINUE",
+        error_mode: Optional[Union[ImportErrorMode, str]] = "CONTINUE",
     ) -> StartImportRequest:
-        if isinstance(error_mode, ImportErrorMode):
-            error_mode = error_mode.value
-        elif isinstance(error_mode, str):
-            try:
-                error_mode = ImportErrorMode(error_mode.lower()).value
-            except ValueError:
-                raise ValueError(f"Invalid error_mode value: {error_mode}")
+        if error_mode is None:
+            error_mode = "CONTINUE"
+        error_mode_str = convert_enum_to_string(error_mode).lower()
+        valid_error_modes = [mode.value.lower() for mode in ImportErrorMode]
+        if error_mode_str not in valid_error_modes:
+            raise ValueError(
+                f"Invalid error_mode: {error_mode}. Must be one of {valid_error_modes}"
+            )
 
         args_dict = parse_non_empty_args(
             [
                 ("uri", uri),
                 ("integration_id", integration_id),
-                ("error_mode", ImportErrorModeClass(on_error=error_mode)),
+                ("error_mode", ImportErrorModeClass(on_error=error_mode_str)),
             ]
         )
 

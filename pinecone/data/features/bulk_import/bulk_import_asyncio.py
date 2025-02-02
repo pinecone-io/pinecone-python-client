@@ -17,7 +17,7 @@ for m in [StartImportResponse, ListImportsResponse, ImportModel]:
 
 
 class ImportFeatureMixinAsyncio:
-    def __init__(self, api_client, **kwargs):
+    def __init__(self, api_client, **kwargs) -> None:
         self.__import_operations_api = AsyncioBulkOperationsApi(api_client)
 
     async def start_import(
@@ -113,7 +113,7 @@ class ImportFeatureMixinAsyncio:
         args_dict = BulkImportRequestFactory.list_imports_paginated_args(
             limit=limit, pagination_token=pagination_token, **kwargs
         )
-        return await self.__import_operations_api.list_imports(**args_dict)
+        return await self.__import_operations_api.list_bulk_imports(**args_dict)
 
     async def describe_import(self, id: str) -> ImportModel:
         """
@@ -136,4 +136,4 @@ class ImportFeatureMixinAsyncio:
             id (str): The id of the import operation to cancel.
         """
         args = BulkImportRequestFactory.cancel_import_args(id=id)
-        return await self.__import_operations_api.cancel_import(**args)
+        return await self.__import_operations_api.cancel_bulk_import(**args)

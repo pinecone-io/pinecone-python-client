@@ -1,5 +1,5 @@
 class IndexClientInstantiationError(Exception):
-    def __init__(self, index_args, index_kwargs):
+    def __init__(self, index_args, index_kwargs) -> None:
         formatted_args = ", ".join(map(repr, index_args))
         formatted_kwargs = ", ".join(f"{key}={repr(value)}" for key, value in index_kwargs.items())
         combined_args = ", ".join([a for a in [formatted_args, formatted_kwargs] if a.strip()])
@@ -26,7 +26,7 @@ class IndexClientInstantiationError(Exception):
 
 
 class InferenceInstantiationError(Exception):
-    def __init__(self):
+    def __init__(self) -> None:
         self.message = """You are attempting to access the Inference client directly from the pinecone module. Inference functionality such as `embed` and `rerank` should only be accessed through the parent Pinecone client instance.
 
     INCORRECT USAGE:
@@ -53,10 +53,10 @@ class InferenceInstantiationError(Exception):
 
 
 class Index:
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         raise IndexClientInstantiationError(args, kwargs)
 
 
 class Inference:
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         raise InferenceInstantiationError()

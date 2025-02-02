@@ -3,8 +3,6 @@ from abc import ABC, abstractmethod
 from typing import Optional, Dict, Union
 
 
-from pinecone.config import Config
-
 from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
 
 
@@ -39,7 +37,6 @@ class PineconeDBControlInterface(ABC):
         proxy_headers: Optional[Dict[str, str]] = None,
         ssl_ca_certs: Optional[str] = None,
         ssl_verify: Optional[bool] = None,
-        config: Optional[Config] = None,
         additional_headers: Optional[Dict[str, str]] = {},
         pool_threads: Optional[int] = 1,
         index_api: Optional[ManageIndexesApi] = None,
@@ -61,8 +58,6 @@ class PineconeDBControlInterface(ABC):
         :type ssl_ca_certs: str, optional
         :param ssl_verify: SSL verification is performed by default, but can be disabled using the boolean flag. Default: `True`
         :type ssl_verify: bool, optional
-        :param config: A `pinecone.config.Config` object. If passed, the `api_key` and `host` parameters will be ignored.
-        :type config: pinecone.config.Config, optional
         :param additional_headers: Additional headers to pass to the API. Default: `{}`
         :type additional_headers: Dict[str, str], optional
         :param pool_threads: The number of threads to use for the connection pool. Default: `1`
