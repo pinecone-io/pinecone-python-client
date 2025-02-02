@@ -14,15 +14,17 @@ jobs:
   integration-tests:
       uses: './.github/workflows/testing-integration.yaml'
       secrets: inherit
+      needs: unit-tests
   dependency-tests:
     uses: './.github/workflows/testing-dependency.yaml'
     secrets: inherit
+    needs: unit-tests
   package:
     name: Check packaging
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9, 3.12]
+        python-version: [3.9, 3.13]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
