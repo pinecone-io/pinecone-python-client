@@ -2,7 +2,6 @@ import json
 import mimetypes
 import io
 import os
-import re
 from urllib.parse import quote
 from urllib3.fields import RequestField
 import logging
@@ -13,7 +12,6 @@ from typing import Optional, List, Tuple, Dict, Any, Union
 from .rest_aiohttp import AiohttpRestClient
 from .configuration import Configuration
 from .exceptions import PineconeApiValueError, PineconeApiException
-from .model_utils import file_type
 from .api_client_utils import parameters_to_tuples
 from .serializer import Serializer
 from .deserializer import Deserializer
@@ -169,15 +167,7 @@ class AsyncioApiClient(object):
 
         # deserialize response data
         if response_type:
-            if response_type != (file_type,):
-                encoding = "utf-8"
-                content_type = response_data.getheader("content-type")
-                if content_type is not None:
-                    match = re.search(r"charset=([a-zA-Z\-\d]+)[\s\;]?", content_type)
-                    if match:
-                        encoding = match.group(1)
-                response_data.data = response_data.data.decode(encoding)
-
+            Deserializer.decode_response(response_type=response_type, response=response_data)
             return_data = Deserializer.deserialize(
                 response_data, response_type, self.configuration, _check_type
             )

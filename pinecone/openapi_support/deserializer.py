@@ -1,10 +1,21 @@
 import json
-
+import re
 
 from .model_utils import deserialize_file, file_type, validate_and_convert_types
 
 
 class Deserializer:
+    @staticmethod
+    def decode_response(response_type, response):
+        if response_type != (file_type,):
+            encoding = "utf-8"
+            content_type = response.getheader("content-type")
+            if content_type is not None and "charset=" in content_type:
+                match = re.search(r"charset=([a-zA-Z\-\d]+)[\s\;]?", content_type)
+                if match:
+                    encoding = match.group(1)
+            response.data = response.data.decode(encoding)
+
     @staticmethod
     def deserialize(response, response_type, config, _check_type):
         """Deserializes response into an object.
