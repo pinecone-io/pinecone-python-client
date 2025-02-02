@@ -1,6 +1,6 @@
 from .model_utils import none_type
 from .api_client_utils import HeaderUtil
-from .endpoint_utils import EndpointUtils
+from .endpoint_utils import EndpointUtils, ExtraOpenApiKwargsTypedDict
 
 
 class AsyncioEndpoint(object):
@@ -137,3 +137,13 @@ class AsyncioEndpoint(object):
             _host=_host,
             collection_formats=params["collection_format"],
         )
+
+    def _process_openapi_kwargs(
+        self, kwargs: ExtraOpenApiKwargsTypedDict
+    ) -> ExtraOpenApiKwargsTypedDict:
+        kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+        kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+        kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+        kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+        kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+        return kwargs

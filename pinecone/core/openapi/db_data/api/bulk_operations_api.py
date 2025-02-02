@@ -357,11 +357,7 @@ class AsyncioBulkOperationsApi:
             Returns:
                 {str: (bool, dict, float, int, list, str, none_type)}
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["id"] = id
             return await self.call_with_http_info(**kwargs)
 
@@ -423,11 +419,7 @@ class AsyncioBulkOperationsApi:
             Returns:
                 ImportModel
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["id"] = id
             return await self.call_with_http_info(**kwargs)
 
@@ -489,11 +481,7 @@ class AsyncioBulkOperationsApi:
             Returns:
                 ListImportsResponse
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             return await self.call_with_http_info(**kwargs)
 
         self.list_bulk_imports = _AsyncioEndpoint(
@@ -554,11 +542,7 @@ class AsyncioBulkOperationsApi:
             Returns:
                 StartImportResponse
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["start_import_request"] = start_import_request
             return await self.call_with_http_info(**kwargs)
 

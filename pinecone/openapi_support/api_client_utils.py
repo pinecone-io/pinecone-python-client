@@ -80,7 +80,12 @@ def process_query_params(query_params, collection_formats):
     return processed_query_params
 
 
-def process_params(default_headers, header_params, path_params, collection_formats):
+def process_params(
+    default_headers: Dict[str, str],
+    header_params: Dict[str, Any],
+    path_params,
+    collection_formats: Dict[str, str],
+):
     # header parameters
     processed_header_params = HeaderUtil.process_header_params(
         default_headers, header_params, collection_formats

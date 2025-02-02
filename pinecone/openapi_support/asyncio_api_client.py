@@ -84,6 +84,13 @@ class AsyncioApiClient(object):
     ):
         config = self.configuration
 
+        path_params = path_params or {}
+        query_params = query_params or []
+        header_params = header_params or {}
+        post_params = post_params or []
+        files = files or {}
+        collection_formats = collection_formats or {}
+
         processed_header_params, processed_path_params, sanitized_path_params = process_params(
             default_headers=self.default_headers,
             header_params=header_params,

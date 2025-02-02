@@ -772,11 +772,7 @@ class AsyncioManageIndexesApi:
             Returns:
                 IndexModel
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["index_name"] = index_name
             kwargs["configure_index_request"] = configure_index_request
             return await self.call_with_http_info(**kwargs)
@@ -842,11 +838,7 @@ class AsyncioManageIndexesApi:
             Returns:
                 CollectionModel
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["create_collection_request"] = create_collection_request
             return await self.call_with_http_info(**kwargs)
 
@@ -908,11 +900,7 @@ class AsyncioManageIndexesApi:
             Returns:
                 IndexModel
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["create_index_request"] = create_index_request
             return await self.call_with_http_info(**kwargs)
 
@@ -974,11 +962,7 @@ class AsyncioManageIndexesApi:
             Returns:
                 IndexModel
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["create_index_for_model_request"] = create_index_for_model_request
             return await self.call_with_http_info(**kwargs)
 
@@ -1040,11 +1024,7 @@ class AsyncioManageIndexesApi:
             Returns:
                 None
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["collection_name"] = collection_name
             return await self.call_with_http_info(**kwargs)
 
@@ -1106,11 +1086,7 @@ class AsyncioManageIndexesApi:
             Returns:
                 None
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["index_name"] = index_name
             return await self.call_with_http_info(**kwargs)
 
@@ -1172,11 +1148,7 @@ class AsyncioManageIndexesApi:
             Returns:
                 CollectionModel
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["collection_name"] = collection_name
             return await self.call_with_http_info(**kwargs)
 
@@ -1238,11 +1210,7 @@ class AsyncioManageIndexesApi:
             Returns:
                 IndexModel
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["index_name"] = index_name
             return await self.call_with_http_info(**kwargs)
 
@@ -1302,11 +1270,7 @@ class AsyncioManageIndexesApi:
             Returns:
                 CollectionList
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             return await self.call_with_http_info(**kwargs)
 
         self.list_collections = _AsyncioEndpoint(
@@ -1359,11 +1323,7 @@ class AsyncioManageIndexesApi:
             Returns:
                 IndexList
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             return await self.call_with_http_info(**kwargs)
 
         self.list_indexes = _AsyncioEndpoint(

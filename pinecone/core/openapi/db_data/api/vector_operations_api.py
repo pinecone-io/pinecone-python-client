@@ -744,11 +744,7 @@ class AsyncioVectorOperationsApi:
             Returns:
                 {str: (bool, dict, float, int, list, str, none_type)}
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["delete_request"] = delete_request
             return await self.call_with_http_info(**kwargs)
 
@@ -810,11 +806,7 @@ class AsyncioVectorOperationsApi:
             Returns:
                 IndexDescription
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["describe_index_stats_request"] = describe_index_stats_request
             return await self.call_with_http_info(**kwargs)
 
@@ -877,11 +869,7 @@ class AsyncioVectorOperationsApi:
             Returns:
                 FetchResponse
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["ids"] = ids
             return await self.call_with_http_info(**kwargs)
 
@@ -945,11 +933,7 @@ class AsyncioVectorOperationsApi:
             Returns:
                 ListResponse
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             return await self.call_with_http_info(**kwargs)
 
         self.list_vectors = _AsyncioEndpoint(
@@ -1025,11 +1009,7 @@ class AsyncioVectorOperationsApi:
             Returns:
                 QueryResponse
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["query_request"] = query_request
             return await self.call_with_http_info(**kwargs)
 
@@ -1092,11 +1072,7 @@ class AsyncioVectorOperationsApi:
             Returns:
                 SearchRecordsResponse
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["namespace"] = namespace
             kwargs["search_records_request"] = search_records_request
             return await self.call_with_http_info(**kwargs)
@@ -1162,11 +1138,7 @@ class AsyncioVectorOperationsApi:
             Returns:
                 {str: (bool, dict, float, int, list, str, none_type)}
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["update_request"] = update_request
             return await self.call_with_http_info(**kwargs)
 
@@ -1229,11 +1201,7 @@ class AsyncioVectorOperationsApi:
             Returns:
                 None
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["namespace"] = namespace
             kwargs["upsert_record"] = upsert_record
             return await self.call_with_http_info(**kwargs)
@@ -1296,11 +1264,7 @@ class AsyncioVectorOperationsApi:
             Returns:
                 UpsertResponse
             """
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+            self._process_openapi_kwargs(kwargs)
             kwargs["upsert_request"] = upsert_request
             return await self.call_with_http_info(**kwargs)
 

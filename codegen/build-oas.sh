@@ -119,19 +119,6 @@ remove_shared_classes() {
 			rm "${source_directory}/${file}.py"
 		done
 	done
-
-	# Adjust import paths in every file
-	find "${destination}" -name "*.py" | while IFS= read -r file; do
-		sed -i '' "s/from \.\.model_utils/from pinecone\.openapi_support\.model_utils/g" "$file"
-
-		for module in "${modules[@]}"; do
-			sed -i '' "s/from pinecone\.$py_module_name\.openapi\.$module import rest/from pinecone\.openapi_support import rest/g" "$file"
-
-			for sharedFile in "${sharedFiles[@]}"; do
-				sed -i '' "s/from pinecone\.$py_module_name\.openapi\.$module\.$sharedFile/from pinecone\.openapi_support/g" "$file"
-			done
-		done
-	done
 }
 
 # Generated Python code attempts to internally map OpenAPI fields that begin
@@ -203,3 +190,5 @@ remove_shared_classes
 
 # Format generated files
 poetry run ruff format "${destination}"
+
+rm -rf "$build_dir"

@@ -2,6 +2,7 @@ from .model_utils import file_type
 from .exceptions import PineconeApiTypeError, PineconeApiValueError
 from typing import Optional, Dict, Tuple, TypedDict, List, Literal
 from .types import PropertyValidationTypedDict
+from .configuration import Configuration
 from .model_utils import validate_and_convert_types, check_allowed_values, check_validations
 
 
@@ -38,6 +39,9 @@ class EndpointParamsMapDict(TypedDict):
     nullable: List[str]
     enum: List[str]
     validation: List[str]
+
+
+AllowedValuesDict = Dict[Tuple[str], Dict]
 
 
 class EndpointRootMapDict(TypedDict):
@@ -88,7 +92,9 @@ class EndpointUtils:
         return params
 
     @staticmethod
-    def raise_if_missing_required_params(params_map, settings, kwargs):
+    def raise_if_missing_required_params(
+        params_map: EndpointParamsMapDict, settings: EndpointSettingsDict, kwargs
+    ):
         for key in params_map["required"]:
             if key not in kwargs.keys():
                 raise PineconeApiValueError(
@@ -97,7 +103,9 @@ class EndpointUtils:
                 )
 
     @staticmethod
-    def raise_if_unexpected_param(params_map, settings, kwargs):
+    def raise_if_unexpected_param(
+        params_map: EndpointParamsMapDict, settings: EndpointSettingsDict, kwargs
+    ):
         for key, value in kwargs.items():
             if key not in params_map["all"]:
                 raise PineconeApiTypeError(
@@ -119,7 +127,12 @@ class EndpointUtils:
 
     @staticmethod
     def raise_if_invalid_inputs(
-        config, params_map, allowed_values, validations, openapi_types, kwargs
+        config: Configuration,
+        params_map: EndpointParamsMapDict,
+        allowed_values: AllowedValuesDict,
+        validations: PropertyValidationTypedDict,
+        openapi_types,
+        kwargs,
     ):
         for param in params_map["enum"]:
             if param in kwargs:

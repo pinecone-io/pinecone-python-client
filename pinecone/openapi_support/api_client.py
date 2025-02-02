@@ -103,7 +103,7 @@ class ApiClient(object):
         files: Optional[Dict[str, List[io.IOBase]]] = None,
         response_type: Optional[Tuple[Any]] = None,
         auth_settings: Optional[List[str]] = None,
-        _return_http_data_only: Optional[bool] = None,
+        _return_http_data_only: Optional[bool] = True,
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
         _request_timeout: Optional[Union[int, float, Tuple]] = None,
@@ -111,6 +111,17 @@ class ApiClient(object):
         _check_type: Optional[bool] = None,
     ):
         config = self.configuration
+
+        path_params = path_params or {}
+        query_params = query_params or []
+        header_params = header_params or {}
+        post_params = post_params or []
+        files = files or {}
+        collection_formats = collection_formats or {}
+
+        #     kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+        #     kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+        #     kwargs["create_index_for_model_request"] = create_index_for_model_request
 
         processed_header_params, processed_path_params, sanitized_path_params = process_params(
             default_headers=self.default_headers,
