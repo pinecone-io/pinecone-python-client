@@ -10,33 +10,20 @@ from urllib.parse import quote
 from urllib3.fields import RequestField
 
 from typing import Optional, List, Tuple, Dict, Any, Union
+from .serializer import Serializer
+from .deserializer import Deserializer
 
 
 from .rest_urllib3 import Urllib3RestClient
 from .configuration import Configuration
 from .exceptions import PineconeApiValueError, PineconeApiException
-from .model_utils import (
-    ModelNormal,
-    ModelSimple,
-    ModelComposed,
-    date,
-    datetime,
-    deserialize_file,
-    file_type,
-    model_to_dict,
-    validate_and_convert_types,
-)
+from .model_utils import file_type
 
 
 class ApiClient(object):
     """Generic API client for OpenAPI client library builds.
 
     :param configuration: .Configuration object for this client
-    :param header_name: a header to pass when making calls to the API.
-    :param header_value: a header value to pass when making calls to
-        the API.
-    :param cookie: a cookie to include in the header when making calls
-        to the API
     :param pool_threads: The number of threads to use for async requests
         to the API. More threads means more concurrent API requests.
     """
@@ -127,13 +114,17 @@ class ApiClient(object):
         header_params = header_params or {}
         header_params.update(self.default_headers)
         if header_params:
-            sanitized_header_params: Dict[str, Any] = self.sanitize_for_serialization(header_params)
+            sanitized_header_params: Dict[str, Any] = Serializer.sanitize_for_serialization(
+                header_params
+            )
             processed_header_params: Dict[str, Any] = dict(
                 self.parameters_to_tuples(sanitized_header_params, collection_formats)
             )
 
         # path parameters
-        sanitized_path_params: Dict[str, Any] = self.sanitize_for_serialization(path_params or {})
+        sanitized_path_params: Dict[str, Any] = Serializer.sanitize_for_serialization(
+            path_params or {}
+        )
         processed_path_params: List[Tuple[str, Any]] = self.parameters_to_tuples(
             sanitized_path_params, collection_formats
         )
@@ -146,7 +137,7 @@ class ApiClient(object):
 
         # query parameters
         if query_params:
-            sanitized_query_params = self.sanitize_for_serialization(query_params)
+            sanitized_query_params = Serializer.sanitize_for_serialization(query_params)
             processed_query_params = self.parameters_to_tuples(
                 sanitized_query_params, collection_formats
             )
@@ -156,7 +147,7 @@ class ApiClient(object):
         # post parameters
         if post_params or files:
             post_params = post_params if post_params else []
-            sanitized_post_params = self.sanitize_for_serialization(post_params)
+            sanitized_post_params = Serializer.sanitize_for_serialization(post_params)
             if sanitized_path_params:
                 processed_post_params = self.parameters_to_tuples(
                     sanitized_post_params, collection_formats
@@ -169,7 +160,7 @@ class ApiClient(object):
 
         # body
         if body:
-            body = self.sanitize_for_serialization(body)
+            body = Serializer.sanitize_for_serialization(body)
 
         # auth setting
         self.update_params_for_auth(
@@ -222,7 +213,12 @@ class ApiClient(object):
                         encoding = match.group(1)
                 response_data.data = response_data.data.decode(encoding)
 
-            return_data = self.deserialize(response_data, response_type, _check_type)
+            return_data = Deserializer.deserialize(
+                response=response_data,
+                response_type=response_type,
+                config=self.configuration,
+                _check_type=_check_type,
+            )
         else:
             return_data = None
 
@@ -252,88 +248,6 @@ class ApiClient(object):
             else:
                 new_params.append((k, v))
         return new_params
-
-    @classmethod
-    def sanitize_for_serialization(cls, obj) -> Any:
-        """Prepares data for transmission before it is sent with the rest client
-        If obj is None, return None.
-        If obj is str, int, long, float, bool, return directly.
-        If obj is datetime.datetime, datetime.date
-            convert to string in iso8601 format.
-        If obj is list, sanitize each element in the list.
-        If obj is dict, return the dict.
-        If obj is OpenAPI model, return the properties dict.
-        If obj is io.IOBase, return the bytes
-        :param obj: The data to serialize.
-        :return: The serialized form of data.
-        """
-        if isinstance(obj, (ModelNormal, ModelComposed)):
-            return {
-                key: cls.sanitize_for_serialization(val)
-                for key, val in model_to_dict(obj, serialize=True).items()
-            }
-        elif isinstance(obj, io.IOBase):
-            return cls.get_file_data_and_close_file(obj)
-        elif isinstance(obj, (str, int, float, bool)) or obj is None:
-            return obj
-        elif isinstance(obj, (datetime, date)):
-            return obj.isoformat()
-        elif isinstance(obj, ModelSimple):
-            return cls.sanitize_for_serialization(obj.value)
-        elif isinstance(obj, (list, tuple)):
-            return [cls.sanitize_for_serialization(item) for item in obj]
-        if isinstance(obj, dict):
-            return {key: cls.sanitize_for_serialization(val) for key, val in obj.items()}
-        raise PineconeApiValueError(
-            "Unable to prepare type {} for serialization".format(obj.__class__.__name__)
-        )
-
-    def deserialize(self, response, response_type, _check_type):
-        """Deserializes response into an object.
-
-        :param response: RESTResponse object to be deserialized.
-        :param response_type: For the response, a tuple containing:
-            valid classes
-            a list containing valid classes (for list schemas)
-            a dict containing a tuple of valid classes as the value
-            Example values:
-            (str,)
-            (Pet,)
-            (float, none_type)
-            ([int, none_type],)
-            ({str: (bool, str, int, float, date, datetime, str, none_type)},)
-        :param _check_type: boolean, whether to check the types of the data
-            received from the server
-        :type _check_type: bool
-
-        :return: deserialized object.
-        """
-        # handle file downloading
-        # save response body into a tmp file and return the instance
-        if response_type == (file_type,):
-            content_disposition = response.getheader("Content-Disposition")
-            return deserialize_file(
-                response.data, self.configuration, content_disposition=content_disposition
-            )
-
-        # fetch data from response object
-        try:
-            received_data = json.loads(response.data)
-        except ValueError:
-            received_data = response.data
-
-        # store our data under the key of 'received_data' so users have some
-        # context if they are deserializing a string and the data type is wrong
-
-        deserialized_data = validate_and_convert_types(
-            received_data,
-            response_type,
-            ["received_data"],
-            True,
-            _check_type,
-            configuration=self.configuration,
-        )
-        return deserialized_data
 
     def call_api(
         self,
@@ -588,12 +502,6 @@ class ApiClient(object):
                 new_params.append((k, v))
         return new_params
 
-    @staticmethod
-    def get_file_data_and_close_file(file_instance: io.IOBase) -> bytes:
-        file_data = file_instance.read()
-        file_instance.close()
-        return file_data
-
     def files_parameters(self, files: Optional[Dict[str, List[io.IOBase]]] = None):
         """Builds form parameters.
 
@@ -619,7 +527,7 @@ class ApiClient(object):
                         "for %s must be open." % param_name
                     )
                 filename = os.path.basename(file_instance.name)  # type: ignore
-                filedata = self.get_file_data_and_close_file(file_instance)
+                filedata = Serializer.get_file_data_and_close_file(file_instance)
                 mimetype = mimetypes.guess_type(filename)[0] or "application/octet-stream"
                 params.append(tuple([param_name, tuple([filename, filedata, mimetype])]))
 
