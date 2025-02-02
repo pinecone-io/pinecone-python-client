@@ -43,7 +43,8 @@ class TestSanityRest:
             assert len(query_results.matches) == 3
 
             # Call a bulk import api method, should not raise an exception
-            await idx.list_imports()
+            async for i in idx.list_imports():
+                assert i is not None
 
             # Call an inference method, should not raise an exception
             from pinecone import EmbedModel
