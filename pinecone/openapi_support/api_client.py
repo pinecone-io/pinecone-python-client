@@ -18,6 +18,8 @@ from .rest_urllib3 import Urllib3RestClient
 from .configuration import Configuration
 from .exceptions import PineconeApiValueError, PineconeApiException
 from .model_utils import file_type
+from .api_client_utils import parameters_to_tuples
+from .header_util import HeaderUtil
 
 
 class ApiClient(object):
@@ -111,21 +113,15 @@ class ApiClient(object):
         config = self.configuration
 
         # header parameters
-        header_params = header_params or {}
-        header_params.update(self.default_headers)
-        if header_params:
-            sanitized_header_params: Dict[str, Any] = Serializer.sanitize_for_serialization(
-                header_params
-            )
-            processed_header_params: Dict[str, Any] = dict(
-                self.parameters_to_tuples(sanitized_header_params, collection_formats)
-            )
+        processed_header_params = HeaderUtil.process_header_params(
+            self.default_headers, header_params, collection_formats
+        )
 
         # path parameters
         sanitized_path_params: Dict[str, Any] = Serializer.sanitize_for_serialization(
             path_params or {}
         )
-        processed_path_params: List[Tuple[str, Any]] = self.parameters_to_tuples(
+        processed_path_params: List[Tuple[str, Any]] = parameters_to_tuples(
             sanitized_path_params, collection_formats
         )
 
@@ -138,7 +134,7 @@ class ApiClient(object):
         # query parameters
         if query_params:
             sanitized_query_params = Serializer.sanitize_for_serialization(query_params)
-            processed_query_params = self.parameters_to_tuples(
+            processed_query_params = parameters_to_tuples(
                 sanitized_query_params, collection_formats
             )
         else:
@@ -149,7 +145,7 @@ class ApiClient(object):
             post_params = post_params if post_params else []
             sanitized_post_params = Serializer.sanitize_for_serialization(post_params)
             if sanitized_path_params:
-                processed_post_params = self.parameters_to_tuples(
+                processed_post_params = parameters_to_tuples(
                     sanitized_post_params, collection_formats
                 )
                 processed_post_params.extend(self.files_parameters(files))
@@ -468,40 +464,6 @@ class ApiClient(object):
                 "http method must be `GET`, `HEAD`, `OPTIONS`, `POST`, `PATCH`, `PUT` or `DELETE`."
             )
 
-    @classmethod
-    def parameters_to_tuples(
-        cls,
-        params: Union[Dict[str, Any], List[Tuple[str, Any]]],
-        collection_formats: Optional[Dict[str, str]],
-    ) -> List[Tuple[str, str]]:
-        """Get parameters as list of tuples, formatting collections.
-
-        :param params: Parameters as dict or list of two-tuples
-        :param dict collection_formats: Parameter collection formats
-        :return: Parameters as list of tuples, collections formatted
-        """
-        new_params: List[Tuple[str, Any]] = []
-        if collection_formats is None:
-            collection_formats = {}
-        for k, v in params.items() if isinstance(params, dict) else params:  # noqa: E501
-            if k in collection_formats:
-                collection_format = collection_formats[k]
-                if collection_format == "multi":
-                    new_params.extend((k, value) for value in v)
-                else:
-                    if collection_format == "ssv":
-                        delimiter = " "
-                    elif collection_format == "tsv":
-                        delimiter = "\t"
-                    elif collection_format == "pipes":
-                        delimiter = "|"
-                    else:  # csv is the default
-                        delimiter = ","
-                    new_params.append((k, delimiter.join(str(value) for value in v)))
-            else:
-                new_params.append((k, v))
-        return new_params
-
     def files_parameters(self, files: Optional[Dict[str, List[io.IOBase]]] = None):
         """Builds form parameters.
 
@@ -532,38 +494,6 @@ class ApiClient(object):
                 params.append(tuple([param_name, tuple([filename, filedata, mimetype])]))
 
         return params
-
-    def select_header_accept(self, accepts):
-        """Returns `Accept` based on an array of accepts provided.
-
-        :param accepts: List of headers.
-        :return: Accept (e.g. application/json).
-        """
-        if not accepts:
-            return
-
-        accepts = [x.lower() for x in accepts]
-
-        if "application/json" in accepts:
-            return "application/json"
-        else:
-            return ", ".join(accepts)
-
-    def select_header_content_type(self, content_types: List[str]) -> str:
-        """Returns `Content-Type` based on an array of content_types provided.
-
-        :param content_types: List of content-types.
-        :return: Content-Type (e.g. application/json).
-        """
-        if not content_types:
-            return "application/json"
-
-        content_types = [x.lower() for x in content_types]
-
-        if "application/json" in content_types or "*/*" in content_types:
-            return "application/json"
-        else:
-            return content_types[0]
 
     def update_params_for_auth(self, headers, querys, auth_settings, resource_path, method, body):
         """Updates header and query params based on authentication setting.

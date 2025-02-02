@@ -9,6 +9,7 @@ from .model_utils import (
 from typing import Optional, Dict, Tuple, TypedDict, List, Literal, Callable
 from .types import PropertyValidationTypedDict
 from .api_client import ApiClient
+from .header_util import HeaderUtil
 
 
 class ExtraOpenApiKwargsTypedDict(TypedDict, total=False):
@@ -267,11 +268,11 @@ class Endpoint(object):
 
         accept_headers_list = self.headers_map["accept"]
         if accept_headers_list:
-            params["header"]["Accept"] = self.api_client.select_header_accept(accept_headers_list)
+            params["header"]["Accept"] = HeaderUtil.select_header_accept(accept_headers_list)
 
         content_type_headers_list = self.headers_map["content_type"]
         if content_type_headers_list:
-            header_list = self.api_client.select_header_content_type(content_type_headers_list)
+            header_list = HeaderUtil.select_header_content_type(content_type_headers_list)
             params["header"]["Content-Type"] = header_list
 
         return self.api_client.call_api(

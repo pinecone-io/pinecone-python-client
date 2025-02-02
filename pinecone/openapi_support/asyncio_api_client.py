@@ -13,17 +13,11 @@ from typing import Optional, List, Tuple, Dict, Any, Union
 from .rest_aiohttp import AiohttpRestClient
 from .configuration import Configuration
 from .exceptions import PineconeApiValueError, PineconeApiException
-from .model_utils import (
-    ModelNormal,
-    ModelSimple,
-    ModelComposed,
-    date,
-    datetime,
-    deserialize_file,
-    file_type,
-    model_to_dict,
-    validate_and_convert_types,
-)
+from .model_utils import file_type
+from .api_client_utils import parameters_to_tuples
+from .serializer import Serializer
+from .deserializer import Deserializer
+from .header_util import HeaderUtil
 
 logger = logging.getLogger(__name__)
 
@@ -32,16 +26,9 @@ class AsyncioApiClient(object):
     """Generic async API client for OpenAPI client library builds.
 
     :param configuration: .Configuration object for this client
-    :param header_name: a header to pass when making calls to the API.
-    :param header_value: a header value to pass when making calls to
-        the API.
-    :param cookie: a cookie to include in the header when making calls
-        to the API
     """
 
-    def __init__(
-        self, configuration=None, header_name=None, header_value=None, cookie=None, **kwargs
-    ) -> None:
+    def __init__(self, configuration=None, **kwargs) -> None:
         if configuration is None:
             configuration = Configuration.get_default_copy()
         self.configuration = configuration
@@ -49,9 +36,6 @@ class AsyncioApiClient(object):
         self.rest_client = AiohttpRestClient(configuration)
 
         self.default_headers = {}
-        if header_name is not None:
-            self.default_headers[header_name] = header_value
-        self.cookie = cookie
         # Set default User-Agent.
         self.user_agent = "OpenAPI-Generator/1.0.0/python"
 
@@ -98,20 +82,15 @@ class AsyncioApiClient(object):
     ):
         config = self.configuration
 
-        # header parameters
-        header_params = header_params or {}
-        header_params.update(self.default_headers)
-        if self.cookie:
-            header_params["Cookie"] = self.cookie
-        if header_params:
-            sanitized_header_params: Dict[str, Any] = self.sanitize_for_serialization(header_params)
-            processed_header_params: Dict[str, Any] = dict(
-                self.parameters_to_tuples(sanitized_header_params, collection_formats)
-            )
+        processed_header_params = HeaderUtil.process_header_params(
+            self.default_headers, header_params, collection_formats
+        )
 
         # path parameters
-        sanitized_path_params: Dict[str, Any] = self.sanitize_for_serialization(path_params or {})
-        processed_path_params: List[Tuple[str, Any]] = self.parameters_to_tuples(
+        sanitized_path_params: Dict[str, Any] = Serializer.sanitize_for_serialization(
+            path_params or {}
+        )
+        processed_path_params: List[Tuple[str, Any]] = parameters_to_tuples(
             sanitized_path_params, collection_formats
         )
 
@@ -123,8 +102,8 @@ class AsyncioApiClient(object):
 
         # query parameters
         if query_params:
-            sanitized_query_params = self.sanitize_for_serialization(query_params)
-            processed_query_params = self.parameters_to_tuples(
+            sanitized_query_params = Serializer.sanitize_for_serialization(query_params)
+            processed_query_params = parameters_to_tuples(
                 sanitized_query_params, collection_formats
             )
         else:
@@ -133,9 +112,9 @@ class AsyncioApiClient(object):
         # post parameters
         if post_params or files:
             post_params = post_params if post_params else []
-            sanitized_post_params = self.sanitize_for_serialization(post_params)
+            sanitized_post_params = Serializer.sanitize_for_serialization(post_params)
             if sanitized_path_params:
-                processed_post_params = self.parameters_to_tuples(
+                processed_post_params = parameters_to_tuples(
                     sanitized_post_params, collection_formats
                 )
                 processed_post_params.extend(self.files_parameters(files))
@@ -146,7 +125,7 @@ class AsyncioApiClient(object):
 
         # body
         if body:
-            body = self.sanitize_for_serialization(body)
+            body = Serializer.sanitize_for_serialization(body)
 
         # auth setting
         self.update_params_for_auth(
@@ -199,7 +178,9 @@ class AsyncioApiClient(object):
                         encoding = match.group(1)
                 response_data.data = response_data.data.decode(encoding)
 
-            return_data = self.deserialize(response_data, response_type, _check_type)
+            return_data = Deserializer.deserialize(
+                response_data, response_type, self.configuration, _check_type
+            )
         else:
             return_data = None
 
@@ -229,87 +210,6 @@ class AsyncioApiClient(object):
             else:
                 new_params.append((k, v))
         return new_params
-
-    @classmethod
-    def sanitize_for_serialization(cls, obj) -> Any:
-        """Prepares data for transmission before it is sent with the rest client
-        If obj is None, return None.
-        If obj is str, int, long, float, bool, return directly.
-        If obj is datetime.datetime, datetime.date
-            convert to string in iso8601 format.
-        If obj is list, sanitize each element in the list.
-        If obj is dict, return the dict.
-        If obj is OpenAPI model, return the properties dict.
-        If obj is io.IOBase, return the bytes
-        :param obj: The data to serialize.
-        :return: The serialized form of data.
-        """
-        if isinstance(obj, (ModelNormal, ModelComposed)):
-            return {
-                key: cls.sanitize_for_serialization(val)
-                for key, val in model_to_dict(obj, serialize=True).items()
-            }
-        elif isinstance(obj, io.IOBase):
-            return cls.get_file_data_and_close_file(obj)
-        elif isinstance(obj, (str, int, float, bool)) or obj is None:
-            return obj
-        elif isinstance(obj, (datetime, date)):
-            return obj.isoformat()
-        elif isinstance(obj, ModelSimple):
-            return cls.sanitize_for_serialization(obj.value)
-        elif isinstance(obj, (list, tuple)):
-            return [cls.sanitize_for_serialization(item) for item in obj]
-        if isinstance(obj, dict):
-            return {key: cls.sanitize_for_serialization(val) for key, val in obj.items()}
-        raise PineconeApiValueError(
-            "Unable to prepare type {} for serialization".format(obj.__class__.__name__)
-        )
-
-    def deserialize(self, response, response_type, _check_type):
-        """Deserializes response into an object.
-
-        :param response: RESTResponse object to be deserialized.
-        :param response_type: For the response, a tuple containing:
-            valid classes
-            a list containing valid classes (for list schemas)
-            a dict containing a tuple of valid classes as the value
-            Example values:
-            (str,)
-            (Pet,)
-            (float, none_type)
-            ([int, none_type],)
-            ({str: (bool, str, int, float, date, datetime, str, none_type)},)
-        :param _check_type: boolean, whether to check the types of the data
-            received from the server
-        :type _check_type: bool
-
-        :return: deserialized object.
-        """
-        # handle file downloading
-        # save response body into a tmp file and return the instance
-        if response_type == (file_type,):
-            content_disposition = response.getheader("Content-Disposition")
-            return deserialize_file(
-                response.data, self.configuration, content_disposition=content_disposition
-            )
-
-        # fetch data from response object
-        try:
-            received_data = json.loads(response.data)
-        except ValueError:
-            received_data = response.data
-
-        # store our data under the key of 'received_data' so users have some
-        # context if they are deserializing a string and the data type is wrong
-        deserialized_data = validate_and_convert_types(
-            received_data,
-            response_type,
-            ["received_data"],
-            True,
-            _check_type,
-            configuration=self.configuration,
-        )
-        return deserialized_data
 
     async def call_api(
         self,
@@ -544,38 +444,6 @@ class AsyncioApiClient(object):
                 params.append(tuple([param_name, tuple([filename, filedata, mimetype])]))
 
         return params
-
-    def select_header_accept(self, accepts):
-        """Returns `Accept` based on an array of accepts provided.
-
-        :param accepts: List of headers.
-        :return: Accept (e.g. application/json).
-        """
-        if not accepts:
-            return
-
-        accepts = [x.lower() for x in accepts]
-
-        if "application/json" in accepts:
-            return "application/json"
-        else:
-            return ", ".join(accepts)
-
-    def select_header_content_type(self, content_types: List[str]) -> str:
-        """Returns `Content-Type` based on an array of content_types provided.
-
-        :param content_types: List of content-types.
-        :return: Content-Type (e.g. application/json).
-        """
-        if not content_types:
-            return "application/json"
-
-        content_types = [x.lower() for x in content_types]
-
-        if "application/json" in content_types or "*/*" in content_types:
-            return "application/json"
-        else:
-            return content_types[0]
 
     def update_params_for_auth(self, headers, querys, auth_settings, resource_path, method, body):
         """Updates header and query params based on authentication setting.

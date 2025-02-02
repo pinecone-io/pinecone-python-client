@@ -6,6 +6,7 @@ from .model_utils import (
     validate_and_convert_types,
     check_validations,
 )
+from .header_util import HeaderUtil
 
 
 class AsyncioEndpoint(object):
@@ -214,11 +215,11 @@ class AsyncioEndpoint(object):
 
         accept_headers_list = self.headers_map["accept"]
         if accept_headers_list:
-            params["header"]["Accept"] = self.api_client.select_header_accept(accept_headers_list)
+            params["header"]["Accept"] = HeaderUtil.select_header_accept(accept_headers_list)
 
         content_type_headers_list = self.headers_map["content_type"]
         if content_type_headers_list:
-            header_list = self.api_client.select_header_content_type(content_type_headers_list)
+            header_list = HeaderUtil.select_header_content_type(content_type_headers_list)
             params["header"]["Content-Type"] = header_list
 
         return await self.api_client.call_api(
