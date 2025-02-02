@@ -119,8 +119,7 @@ jobs:
         python_version:
           - 3.13
         grpcio_version:
-          - 1.59.3
-          - 1.60.0
+          - 1.68.0
         lz4_version:
           - 3.1.3
           - 4.3.3
