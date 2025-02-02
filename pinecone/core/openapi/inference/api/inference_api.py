@@ -45,7 +45,7 @@ class InferenceApi(object):
             api_client = ApiClient()
         self.api_client = api_client
 
-        def __embed(self, **kwargs: ExtraOpenApiKwargsTypedDict) -> EmbeddingsList:
+        def __embed(self, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Embed data  # noqa: E501
 
             Generate embeddings for input data.  For guidance and examples, see [Generate embeddings](https://docs.pinecone.io/guides/inference/generate-embeddings).  # noqa: E501
@@ -115,7 +115,7 @@ class InferenceApi(object):
             callable=__embed,
         )
 
-        def __rerank(self, **kwargs: ExtraOpenApiKwargsTypedDict) -> RerankResult:
+        def __rerank(self, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Rerank documents  # noqa: E501
 
             Rerank documents according to their relevance to a query.  For guidance and examples, see [Rerank documents](https://docs.pinecone.io/guides/inference/rerank).  # noqa: E501

@@ -38,8 +38,6 @@ class Configuration(object):
         :param api_key_prefix: Dict to store API prefix (e.g. Bearer)
           The dict key is the name of the security scheme in the OAS specification.
           The dict value is an API key prefix when generating the auth data.
-        :param username: Username for HTTP basic authentication
-        :param password: Password for HTTP basic authentication
         :param discard_unknown_keys: Boolean value indicating whether to discard
           unknown properties. A server may send a response that includes additional
           properties that are not known by the client in the following scenarios:
@@ -105,9 +103,6 @@ class Configuration(object):
         host=None,
         api_key=None,
         api_key_prefix=None,
-        access_token=None,
-        username=None,
-        password=None,
         discard_unknown_keys=False,
         disabled_client_side_validations="",
         server_index=None,
@@ -132,7 +127,6 @@ class Configuration(object):
         """Temp file folder for downloading files
         """
         # Authentication Settings
-        self.access_token = access_token
         self.api_key = {}
         if api_key:
             self.api_key = api_key
@@ -145,12 +139,6 @@ class Configuration(object):
         """
         self.refresh_api_key_hook = None
         """function hook to refresh API key if expired
-        """
-        self.username = username
-        """Username for HTTP basic authentication
-        """
-        self.password = password
-        """Password for HTTP basic authentication
         """
         self.discard_unknown_keys = discard_unknown_keys
         self.disabled_client_side_validations = disabled_client_side_validations
@@ -459,10 +447,7 @@ class Configuration(object):
             f"host={self.host}",
             "api_key=***",
             f"api_key_prefix={self.api_key_prefix}",
-            f"access_token={self.access_token}",
             f"connection_pool_maxsize={self.connection_pool_maxsize}",
-            f"username={self.username}",
-            f"password={self.password}",
             f"discard_unknown_keys={self.discard_unknown_keys}",
             f"disabled_client_side_validations={self.disabled_client_side_validations}",
             f"server_index={self.server_index}",

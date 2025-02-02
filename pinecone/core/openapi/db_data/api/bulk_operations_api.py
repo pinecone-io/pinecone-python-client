@@ -45,9 +45,7 @@ class BulkOperationsApi(object):
             api_client = ApiClient()
         self.api_client = api_client
 
-        def __cancel_bulk_import(
-            self, id, **kwargs: ExtraOpenApiKwargsTypedDict
-        ) -> {str: (bool, dict, float, int, list, str, none_type)}:
+        def __cancel_bulk_import(self, id, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Cancel an import  # noqa: E501
 
             Cancel an import operation if it is not yet finished. It has no effect if the operation is already finished.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
@@ -119,7 +117,7 @@ class BulkOperationsApi(object):
             callable=__cancel_bulk_import,
         )
 
-        def __describe_bulk_import(self, id, **kwargs: ExtraOpenApiKwargsTypedDict) -> ImportModel:
+        def __describe_bulk_import(self, id, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Describe an import  # noqa: E501
 
             Return details of a specific import operation.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
@@ -191,7 +189,7 @@ class BulkOperationsApi(object):
             callable=__describe_bulk_import,
         )
 
-        def __list_bulk_imports(self, **kwargs: ExtraOpenApiKwargsTypedDict) -> ListImportsResponse:
+        def __list_bulk_imports(self, **kwargs: ExtraOpenApiKwargsTypedDict):
             """List imports  # noqa: E501
 
             List all recent and ongoing import operations.  By default, this returns up to 100 imports per page. If the `limit` parameter is set, `list` returns up to that number of imports instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of imports. When the response does not include a `pagination_token`, there are no more imports to return.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
@@ -262,9 +260,7 @@ class BulkOperationsApi(object):
             callable=__list_bulk_imports,
         )
 
-        def __start_bulk_import(
-            self, start_import_request, **kwargs: ExtraOpenApiKwargsTypedDict
-        ) -> StartImportResponse:
+        def __start_bulk_import(self, start_import_request, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Start import  # noqa: E501
 
             Start an asynchronous import of vectors from object storage into an index.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501

@@ -298,7 +298,7 @@ class Endpoint(object):
 
     def _process_openapi_kwargs(
         self, kwargs: ExtraOpenApiKwargsTypedDict
-    ) -> KwargsWithOpenApiKwargDefaultsTypedDict:
+    ) -> ExtraOpenApiKwargsTypedDict:
         kwargs["async_req"] = kwargs.get("async_req", False)
         kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
         kwargs["_preload_content"] = kwargs.get("_preload_content", True)

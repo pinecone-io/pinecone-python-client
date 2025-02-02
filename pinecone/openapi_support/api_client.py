@@ -42,7 +42,7 @@ class ApiClient(object):
 
         self.rest_client = Urllib3RestClient(configuration)
 
-        self.default_headers = {}
+        self.default_headers: Dict[str, str] = {}
         self.user_agent = "OpenAPI-Generator/1.0.0/python"
 
     def __enter__(self):

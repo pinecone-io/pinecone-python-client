@@ -53,7 +53,7 @@ class ManageIndexesApi(object):
 
         def __configure_index(
             self, index_name, configure_index_request, **kwargs: ExtraOpenApiKwargsTypedDict
-        ) -> IndexModel:
+        ):
             """Configure an index  # noqa: E501
 
             This operation configures an existing index.   For serverless indexes, you can configure index deletion protection, tags, and integrated inference embedding settings for the index. For pod-based indexes, you can configure the pod size, number of replicas, tags, and index deletion protection.  It is not possible to change the pod type of a pod-based index. However, you can create a collection from a pod-based index and then [create a new pod-based index with a different pod type](http://docs.pinecone.io/guides/indexes/pods/create-a-pod-based-index#create-a-pod-index-from-a-collection) from the collection. For guidance and examples, see [Configure an index](http://docs.pinecone.io/guides/indexes/pods/manage-pod-based-indexes).  # noqa: E501
@@ -132,7 +132,7 @@ class ManageIndexesApi(object):
 
         def __create_collection(
             self, create_collection_request, **kwargs: ExtraOpenApiKwargsTypedDict
-        ) -> CollectionModel:
+        ):
             """Create a collection  # noqa: E501
 
             This operation creates a Pinecone collection.    Serverless indexes do not support collections.   # noqa: E501
@@ -204,9 +204,7 @@ class ManageIndexesApi(object):
             callable=__create_collection,
         )
 
-        def __create_index(
-            self, create_index_request, **kwargs: ExtraOpenApiKwargsTypedDict
-        ) -> IndexModel:
+        def __create_index(self, create_index_request, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Create an index  # noqa: E501
 
             This operation deploys a Pinecone index. This is where you specify the measure of similarity, the dimension of vectors to be stored in the index, which cloud provider you would like to deploy with, and more.  For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/indexes/create-an-index#create-a-serverless-index).  # noqa: E501
@@ -280,7 +278,7 @@ class ManageIndexesApi(object):
 
         def __create_index_for_model(
             self, create_index_for_model_request, **kwargs: ExtraOpenApiKwargsTypedDict
-        ) -> IndexModel:
+        ):
             """Create an index for an embedding model  # noqa: E501
 
             This operation creates a serverless integrated inference index for a specific embedding model.  Refer to the [model guide](https://docs.pinecone.io/guides/inference/understanding-inference#embedding-models) for available models and model details.  # noqa: E501
@@ -352,9 +350,7 @@ class ManageIndexesApi(object):
             callable=__create_index_for_model,
         )
 
-        def __delete_collection(
-            self, collection_name, **kwargs: ExtraOpenApiKwargsTypedDict
-        ) -> None:
+        def __delete_collection(self, collection_name, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Delete a collection  # noqa: E501
 
             This operation deletes an existing collection. Serverless indexes do not support collections.   # noqa: E501
@@ -426,7 +422,7 @@ class ManageIndexesApi(object):
             callable=__delete_collection,
         )
 
-        def __delete_index(self, index_name, **kwargs: ExtraOpenApiKwargsTypedDict) -> None:
+        def __delete_index(self, index_name, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Delete an index  # noqa: E501
 
             This operation deletes an existing index.  # noqa: E501
@@ -498,9 +494,7 @@ class ManageIndexesApi(object):
             callable=__delete_index,
         )
 
-        def __describe_collection(
-            self, collection_name, **kwargs: ExtraOpenApiKwargsTypedDict
-        ) -> CollectionModel:
+        def __describe_collection(self, collection_name, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Describe a collection  # noqa: E501
 
             This operation gets a description of a collection. Serverless indexes do not support collections.   # noqa: E501
@@ -572,7 +566,7 @@ class ManageIndexesApi(object):
             callable=__describe_collection,
         )
 
-        def __describe_index(self, index_name, **kwargs: ExtraOpenApiKwargsTypedDict) -> IndexModel:
+        def __describe_index(self, index_name, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Describe an index  # noqa: E501
 
             Get a description of an index.  # noqa: E501
@@ -644,7 +638,7 @@ class ManageIndexesApi(object):
             callable=__describe_index,
         )
 
-        def __list_collections(self, **kwargs: ExtraOpenApiKwargsTypedDict) -> CollectionList:
+        def __list_collections(self, **kwargs: ExtraOpenApiKwargsTypedDict):
             """List collections  # noqa: E501
 
             This operation returns a list of all collections in a project. Serverless indexes do not support collections.   # noqa: E501
@@ -707,7 +701,7 @@ class ManageIndexesApi(object):
             callable=__list_collections,
         )
 
-        def __list_indexes(self, **kwargs: ExtraOpenApiKwargsTypedDict) -> IndexList:
+        def __list_indexes(self, **kwargs: ExtraOpenApiKwargsTypedDict):
             """List indexes  # noqa: E501
 
             This operation returns a list of all indexes in a project.  # noqa: E501

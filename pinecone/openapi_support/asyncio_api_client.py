@@ -34,7 +34,7 @@ class AsyncioApiClient(object):
 
         self.rest_client = AiohttpRestClient(configuration)
 
-        self.default_headers = {}
+        self.default_headers: Dict[str, str] = {}
         # Set default User-Agent.
         self.user_agent = "OpenAPI-Generator/1.0.0/python"
 

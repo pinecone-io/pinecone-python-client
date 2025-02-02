@@ -22,14 +22,14 @@ class HeaderUtil:
             return content_types[0]
 
     @staticmethod
-    def select_header_accept(accepts):
+    def select_header_accept(accepts: List[str]) -> str:
         """Returns `Accept` based on an array of accepts provided.
 
         :param accepts: List of headers.
         :return: Accept (e.g. application/json).
         """
         if not accepts:
-            return
+            return ""
 
         accepts = [x.lower() for x in accepts]
 
