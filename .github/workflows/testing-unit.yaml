@@ -7,7 +7,7 @@ jobs:
     name: Type checking
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         python-version:
           - 3.9
@@ -28,13 +28,13 @@ jobs:
           include_types: true
 
       - name: mypy check
-        run: poetry run mypy pinecone tests
+        run: poetry run mypy pinecone
 
   unit-tests:
     name: Unit tests
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         python-version:
           - 3.9
