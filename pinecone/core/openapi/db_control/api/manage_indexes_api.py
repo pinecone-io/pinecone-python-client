@@ -9,9 +9,6 @@ The version of the OpenAPI document: 2025-01
 Contact: support@pinecone.io
 """
 
-import re  # noqa: F401
-import sys  # noqa: F401
-
 from pinecone.openapi_support import (
     ApiClient,
     Endpoint as _Endpoint,

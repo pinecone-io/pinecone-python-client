@@ -1,24 +1,24 @@
-import json
 import atexit
-import mimetypes
 from multiprocessing.pool import ThreadPool
 from concurrent.futures import ThreadPoolExecutor
 import io
-import os
 from urllib.parse import quote
-from urllib3.fields import RequestField
 
 from typing import Optional, List, Tuple, Dict, Any, Union
-from .serializer import Serializer
 from .deserializer import Deserializer
 
 
 from .rest_urllib3 import Urllib3RestClient
 from .configuration import Configuration
 from .exceptions import PineconeApiValueError, PineconeApiException
-from .api_client_utils import parameters_to_tuples
-from .header_util import HeaderUtil
+from .api_client_utils import (
+    parameters_to_tuples,
+    files_parameters,
+    parameters_to_multipart,
+    HeaderUtil,
+)
 from .auth_util import AuthUtil
+from .serializer import Serializer
 
 
 class ApiClient(object):
@@ -147,9 +147,9 @@ class ApiClient(object):
                 processed_post_params = parameters_to_tuples(
                     sanitized_post_params, collection_formats
                 )
-                processed_post_params.extend(self.files_parameters(files))
+                processed_post_params.extend(files_parameters(files))
             if processed_header_params["Content-Type"].startswith("multipart"):
-                processed_post_params = self.parameters_to_multipart(sanitized_post_params, (dict))
+                processed_post_params = parameters_to_multipart(sanitized_post_params, (dict))
         else:
             processed_post_params = None
 
@@ -211,28 +211,6 @@ class ApiClient(object):
             return return_data
         else:
             return (return_data, response_data.status, response_data.getheaders())
-
-    def parameters_to_multipart(self, params, collection_types):
-        """Get parameters as list of tuples, formatting as json if value is collection_types
-
-        :param params: Parameters as list of two-tuples
-        :param dict collection_types: Parameter collection types
-        :return: Parameters as list of tuple or urllib3.fields.RequestField
-        """
-        new_params = []
-        if collection_types is None:
-            collection_types = dict
-        for k, v in params.items() if isinstance(params, dict) else params:  # noqa: E501
-            if isinstance(
-                v, collection_types
-            ):  # v is instance of collection_type, formatting as application/json
-                v = json.dumps(v, ensure_ascii=False).encode("utf-8")
-                field = RequestField(k, v)
-                field.make_multipart(content_type="application/json; charset=utf-8")
-                new_params.append(field)
-            else:
-                new_params.append((k, v))
-        return new_params
 
     def call_api(
         self,
@@ -452,34 +430,3 @@ class ApiClient(object):
             raise PineconeApiValueError(
                 "http method must be `GET`, `HEAD`, `OPTIONS`, `POST`, `PATCH`, `PUT` or `DELETE`."
             )
-
-    def files_parameters(self, files: Optional[Dict[str, List[io.IOBase]]] = None):
-        """Builds form parameters.
-
-        :param files: None or a dict with key=param_name and
-            value is a list of open file objects
-        :return: List of tuples of form parameters with file data
-        """
-        if files is None:
-            return []
-
-        params = []
-        for param_name, file_instances in files.items():
-            if file_instances is None:
-                # if the file field is nullable, skip None values
-                continue
-            for file_instance in file_instances:
-                if file_instance is None:
-                    # if the file field is nullable, skip None values
-                    continue
-                if file_instance.closed is True:
-                    raise PineconeApiValueError(
-                        "Cannot read a closed file. The passed in file_type "
-                        "for %s must be open." % param_name
-                    )
-                filename = os.path.basename(file_instance.name)  # type: ignore
-                filedata = Serializer.get_file_data_and_close_file(file_instance)
-                mimetype = mimetypes.guess_type(filename)[0] or "application/octet-stream"
-                params.append(tuple([param_name, tuple([filename, filedata, mimetype])]))
-
-        return params

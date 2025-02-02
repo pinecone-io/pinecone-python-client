@@ -6,7 +6,7 @@ from .model_utils import (
     validate_and_convert_types,
     check_validations,
 )
-from .header_util import HeaderUtil
+from .api_client_utils import HeaderUtil
 
 
 class AsyncioEndpoint(object):

@@ -9,7 +9,7 @@ from .model_utils import (
 from typing import Optional, Dict, Tuple, TypedDict, List, Literal, Callable
 from .types import PropertyValidationTypedDict
 from .api_client import ApiClient
-from .header_util import HeaderUtil
+from .api_client_utils import HeaderUtil
 
 
 class ExtraOpenApiKwargsTypedDict(TypedDict, total=False):

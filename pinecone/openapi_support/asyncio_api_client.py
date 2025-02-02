@@ -1,7 +1,5 @@
 import json
-import mimetypes
 import io
-import os
 from urllib.parse import quote
 from urllib3.fields import RequestField
 import logging
@@ -12,10 +10,14 @@ from typing import Optional, List, Tuple, Dict, Any, Union
 from .rest_aiohttp import AiohttpRestClient
 from .configuration import Configuration
 from .exceptions import PineconeApiValueError, PineconeApiException
-from .api_client_utils import parameters_to_tuples
+from .api_client_utils import (
+    parameters_to_tuples,
+    files_parameters,
+    parameters_to_multipart,
+    HeaderUtil,
+)
 from .serializer import Serializer
 from .deserializer import Deserializer
-from .header_util import HeaderUtil
 from .auth_util import AuthUtil
 
 logger = logging.getLogger(__name__)
@@ -116,9 +118,9 @@ class AsyncioApiClient(object):
                 processed_post_params = parameters_to_tuples(
                     sanitized_post_params, collection_formats
                 )
-                processed_post_params.extend(self.files_parameters(files))
+                processed_post_params.extend(files_parameters(files))
             if processed_header_params["Content-Type"].startswith("multipart"):
-                processed_post_params = self.parameters_to_multipart(sanitized_post_params, (dict))
+                processed_post_params = parameters_to_multipart(sanitized_post_params, (dict))
         else:
             processed_post_params = None
 
@@ -363,102 +365,8 @@ class AsyncioApiClient(object):
                 "http method must be `GET`, `HEAD`, `OPTIONS`, `POST`, `PATCH`, `PUT` or `DELETE`."
             )
 
-    @classmethod
-    def parameters_to_tuples(
-        cls,
-        params: Union[Dict[str, Any], List[Tuple[str, Any]]],
-        collection_formats: Optional[Dict[str, str]],
-    ) -> List[Tuple[str, str]]:
-        """Get parameters as list of tuples, formatting collections.
-
-        :param params: Parameters as dict or list of two-tuples
-        :param dict collection_formats: Parameter collection formats
-        :return: Parameters as list of tuples, collections formatted
-        """
-        new_params: List[Tuple[str, Any]] = []
-        if collection_formats is None:
-            collection_formats = {}
-        for k, v in params.items() if isinstance(params, dict) else params:  # noqa: E501
-            if k in collection_formats:
-                collection_format = collection_formats[k]
-                if collection_format == "multi":
-                    new_params.extend((k, value) for value in v)
-                else:
-                    if collection_format == "ssv":
-                        delimiter = " "
-                    elif collection_format == "tsv":
-                        delimiter = "\t"
-                    elif collection_format == "pipes":
-                        delimiter = "|"
-                    else:  # csv is the default
-                        delimiter = ","
-                    new_params.append((k, delimiter.join(str(value) for value in v)))
-            else:
-                new_params.append((k, v))
-        return new_params
-
     @staticmethod
     def get_file_data_and_close_file(file_instance: io.IOBase) -> bytes:
         file_data = file_instance.read()
         file_instance.close()
         return file_data
-
-    def files_parameters(self, files: Optional[Dict[str, List[io.IOBase]]] = None):
-        """Builds form parameters.
-
-        :param files: None or a dict with key=param_name and
-            value is a list of open file objects
-        :return: List of tuples of form parameters with file data
-        """
-        if files is None:
-            return []
-
-        params = []
-        for param_name, file_instances in files.items():
-            if file_instances is None:
-                # if the file field is nullable, skip None values
-                continue
-            for file_instance in file_instances:
-                if file_instance is None:
-                    # if the file field is nullable, skip None values
-                    continue
-                if file_instance.closed is True:
-                    raise PineconeApiValueError(
-                        "Cannot read a closed file. The passed in file_type "
-                        "for %s must be open." % param_name
-                    )
-                filename = os.path.basename(file_instance.name)  # type: ignore
-                filedata = self.get_file_data_and_close_file(file_instance)
-                mimetype = mimetypes.guess_type(filename)[0] or "application/octet-stream"
-                params.append(tuple([param_name, tuple([filename, filedata, mimetype])]))
-
-        return params
-
-    def update_params_for_auth(self, headers, querys, auth_settings, resource_path, method, body):
-        """Updates header and query params based on authentication setting.
-
-        :param headers: Header parameters dict to be updated.
-        :param querys: Query parameters tuple list to be updated.
-        :param auth_settings: Authentication setting identifiers list.
-        :param resource_path: A string representation of the HTTP request resource path.
-        :param method: A string representation of the HTTP request method.
-        :param body: A object representing the body of the HTTP request.
-            The object type is the return value of _encoder.default().
-        """
-        if not auth_settings:
-            return
-
-        for auth in auth_settings:
-            auth_setting = self.configuration.auth_settings().get(auth)
-            if auth_setting:
-                if auth_setting["in"] == "cookie":
-                    headers["Cookie"] = auth_setting["value"]
-                elif auth_setting["in"] == "header":
-                    if auth_setting["type"] != "http-signature":
-                        headers[auth_setting["key"]] = auth_setting["value"]
-                elif auth_setting["in"] == "query":
-                    querys.append((auth_setting["key"], auth_setting["value"]))
-                else:
-                    raise PineconeApiValueError(
-                        "Authentication token must be in `query` or `header`"
-                    )
