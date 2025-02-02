@@ -9,7 +9,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python_version: [3.9, 3.12]
+        python_version:
+          # - 3.9,
+          # - 3.12
+          - 3.13
         use_grpc: [true, false]
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +32,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python_version: [3.9, 3.12]
+        python_version:
+          # - 3.9
+          # - 3.12
+          - 3.13
         use_grpc: [false, true]
     steps:
       - uses: actions/checkout@v4
@@ -68,9 +74,9 @@ jobs:
         pineconeEnv:
           - prod
         testConfig:
-          - python-version: 3.9
-            pod: { environment: 'us-east1-gcp'}
-          - python-version: 3.12
+          # - python-version: 3.9
+          #   pod: { environment: 'us-east1-gcp'}
+          - python-version: 3.13
             pod: { environment: 'us-east4-gcp'}
       fail-fast: false
     steps:
@@ -109,10 +115,10 @@ jobs:
     strategy:
       matrix:
         testConfig:
-          - python-version: 3.9 # Do one test run with 3.9 for sanity check
-            pod: { environment: 'us-east1-gcp'}
-            serverless: { cloud: 'aws', region: 'us-west-2'}
-          - python-version: 3.12
+          # - python-version: 3.9 # Do one test run with 3.9 for sanity check
+          #   pod: { environment: 'us-east1-gcp'}
+          #   serverless: { cloud: 'aws', region: 'us-west-2'}
+          - python-version: 3.13
             pod: { environment: 'us-east1-gcp'}
             serverless: { cloud: 'aws', region: 'us-west-2'}
       fail-fast: false
