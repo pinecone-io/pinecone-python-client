@@ -13,7 +13,6 @@ jobs:
       matrix:
         python_version:
           - 3.9,
-          - 3.12
           - 3.13
         use_grpc: [true, false]
     steps:
@@ -38,7 +37,6 @@ jobs:
       matrix:
         python_version:
           - 3.9
-          - 3.12
           - 3.13
         use_grpc: [false, true]
     steps:
@@ -77,8 +75,6 @@ jobs:
       - inference
     strategy:
       matrix:
-        pineconeEnv:
-          - prod
         testConfig:
           - python-version: 3.9
             pod: { environment: 'us-east1-gcp'}
@@ -94,24 +90,12 @@ jobs:
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
       - name: 'Run integration tests (REST, prod)'
-        if: matrix.pineconeEnv == 'prod'
         run: poetry run pytest tests/integration/control/pod -s -v
         env:
           PINECONE_DEBUG_CURL: 'true'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
           PINECONE_ENVIRONMENT: '${{ matrix.testConfig.pod.environment }}'
           GITHUB_BUILD_NUMBER: '${{ github.run_number }}-s-${{ matrix.testConfig.python-version}}'
-          DIMENSION: 10
-          METRIC: 'cosine'
-      - name: 'Run integration tests (REST, staging)'
-        if: matrix.pineconeEnv == 'staging'
-        run: poetry run pytest tests/integration/control/pod -s -v
-        env:
-          PINECONE_DEBUG_CURL: 'true'
-          PINECONE_CONTROLLER_HOST: 'https://api-staging.pinecone.io'
-          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY_STAGING }}'
-          PINECONE_ENVIRONMENT: '${{ matrix.testConfig.pod.environment }}'
-          GITHUB_BUILD_NUMBER: '${{ github.run_number }}-p-${{ matrix.testConfig.python-version}}'
           DIMENSION: 10
           METRIC: 'cosine'
 
