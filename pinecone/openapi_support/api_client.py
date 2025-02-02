@@ -119,10 +119,6 @@ class ApiClient(object):
         files = files or {}
         collection_formats = collection_formats or {}
 
-        #     kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-        #     kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-        #     kwargs["create_index_for_model_request"] = create_index_for_model_request
-
         processed_header_params, processed_path_params, sanitized_path_params = process_params(
             default_headers=self.default_headers,
             header_params=header_params,

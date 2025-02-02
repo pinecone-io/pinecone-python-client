@@ -83,7 +83,7 @@ def process_query_params(query_params, collection_formats):
 def process_params(
     default_headers: Dict[str, str],
     header_params: Dict[str, Any],
-    path_params,
+    path_params: Dict[str, Any],
     collection_formats: Dict[str, str],
 ):
     # header parameters

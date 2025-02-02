@@ -134,9 +134,9 @@ class Endpoint:
         return self.api_client.call_api(
             self.settings["endpoint_path"],
             self.settings["http_method"],
-            params["path"],
-            params["query"],
-            params["header"],
+            path_params=params["path"],
+            query_params=params["query"],
+            header_params=params["header"],
             body=params["body"],
             post_params=params["form"],
             files=params["file"],

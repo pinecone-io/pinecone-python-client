@@ -1,6 +1,6 @@
 from .model_utils import file_type
 from .exceptions import PineconeApiTypeError, PineconeApiValueError
-from typing import Optional, Dict, Tuple, TypedDict, List, Literal
+from typing import Optional, Dict, Tuple, TypedDict, List, Literal, Any
 from .types import PropertyValidationTypedDict
 from .configuration import Configuration
 from .model_utils import validate_and_convert_types, check_allowed_values, check_validations
@@ -43,20 +43,46 @@ class EndpointParamsMapDict(TypedDict):
 
 AllowedValuesDict = Dict[Tuple[str], Dict]
 
+AttributeMapDictType = Dict[str, str]
+LocationMapDictType = Dict[str, str]
+OpenapiTypesDictType = Dict[str, Tuple]
+
 
 class EndpointRootMapDict(TypedDict):
     validations: Dict[Tuple[str], PropertyValidationTypedDict]
     allowed_values: Dict[Tuple[str], Dict]
-    openapi_types: Dict[str, Tuple]
-    attribute_map: Dict[str, str]
-    location_map: Dict[str, str]
+    openapi_types: OpenapiTypesDictType
+    attribute_map: AttributeMapDictType
+    location_map: LocationMapDictType
     collection_format_map: Dict[str, str]
 
 
+class CombinedParamsMapDict(TypedDict):
+    body: Any
+    collection_format: Dict[str, str]
+    file: Dict[str, List[file_type]]
+    form: List[Tuple[str, Any]]
+    header: Dict[str, Any]
+    path: Dict[str, Any]
+    query: List[Tuple[str, Any]]
+
+
 class EndpointUtils:
+    #     attribute_map=self.attribute_map,
+    # location_map=self.location_map,
+    # openapi_types=self.openapi_types,
+    # collection_format_map=self.collection_format_map,
+    # kwargs=kwargs,
+
     @staticmethod
-    def gather_params(attribute_map, location_map, openapi_types, collection_format_map, kwargs):
-        params = {
+    def gather_params(
+        attribute_map: AttributeMapDictType,
+        location_map: LocationMapDictType,
+        openapi_types: OpenapiTypesDictType,
+        collection_format_map: Dict[str, str],
+        kwargs: Dict[str, Any],
+    ) -> CombinedParamsMapDict:
+        params: CombinedParamsMapDict = {
             "body": None,
             "collection_format": {},
             "file": {},
@@ -80,11 +106,19 @@ class EndpointUtils:
                 elif param_location == "form" and openapi_types[param_name] == ([file_type],):
                     # param_value is already a list
                     params["file"][param_name] = param_value
-                elif param_location in {"form", "query"}:
+                elif param_location == "form":
                     param_value_full = (base_name, param_value)
-                    params[param_location].append(param_value_full)
-                if param_location not in {"form", "query"}:
-                    params[param_location][base_name] = param_value
+                    params["form"].append(param_value_full)
+                elif param_location == "query":
+                    param_value_full = (base_name, param_value)
+                    params["query"].append(param_value_full)
+                elif param_location == "header":
+                    params["header"][base_name] = param_value
+                elif param_location == "path":
+                    params["path"][base_name] = param_value
+                else:
+                    raise PineconeApiTypeError("Got an unexpected location '%s' for parameter `%s`")
+
                 collection_format = collection_format_map.get(param_name)
                 if collection_format:
                     params["collection_format"][base_name] = collection_format
@@ -93,8 +127,8 @@ class EndpointUtils:
 
     @staticmethod
     def raise_if_missing_required_params(
-        params_map: EndpointParamsMapDict, settings: EndpointSettingsDict, kwargs
-    ):
+        params_map: EndpointParamsMapDict, settings: EndpointSettingsDict, kwargs: Dict[str, Any]
+    ) -> None:
         for key in params_map["required"]:
             if key not in kwargs.keys():
                 raise PineconeApiValueError(
@@ -104,8 +138,8 @@ class EndpointUtils:
 
     @staticmethod
     def raise_if_unexpected_param(
-        params_map: EndpointParamsMapDict, settings: EndpointSettingsDict, kwargs
-    ):
+        params_map: EndpointParamsMapDict, settings: EndpointSettingsDict, kwargs: Dict[str, Any]
+    ) -> None:
         for key, value in kwargs.items():
             if key not in params_map["all"]:
                 raise PineconeApiTypeError(
@@ -131,9 +165,9 @@ class EndpointUtils:
         params_map: EndpointParamsMapDict,
         allowed_values: AllowedValuesDict,
         validations: PropertyValidationTypedDict,
-        openapi_types,
-        kwargs,
-    ):
+        openapi_types: OpenapiTypesDictType,
+        kwargs: Dict[str, Any],
+    ) -> None:
         for param in params_map["enum"]:
             if param in kwargs:
                 check_allowed_values(allowed_values, (param,), kwargs[param])
