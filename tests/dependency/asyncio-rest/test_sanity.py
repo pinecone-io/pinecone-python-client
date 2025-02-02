@@ -14,7 +14,7 @@ def index_name():
 
 @pytest.mark.asyncio
 class TestSanityRest:
-    async def test_sanity(self, index_name, client):
+    async def test_sanity(self, index_name):
         async with PineconeAsyncio() as pc:
             print("Testing with index name: " + index_name)
             assert index_name != ""
