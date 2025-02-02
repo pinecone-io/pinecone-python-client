@@ -11,6 +11,26 @@ from .types import PropertyValidationTypedDict
 from .api_client import ApiClient
 
 
+class ExtraOpenApiKwargsTypedDict(TypedDict, total=False):
+    _return_http_data_only: Optional[bool]
+    _preload_content: Optional[bool]
+    _request_timeout: Optional[int]
+    _check_input_type: Optional[bool]
+    _check_return_type: Optional[bool]
+    _host_index: Optional[int]
+    async_req: Optional[bool]
+
+
+class KwargsWithOpenApiKwargDefaultsTypedDict(TypedDict, total=False):
+    _return_http_data_only: bool
+    _preload_content: bool
+    _request_timeout: int
+    _check_input_type: bool
+    _check_return_type: bool
+    _host_index: Optional[int]
+    async_req: bool
+
+
 class EndpointSettingsDict(TypedDict):
     response_type: Optional[Tuple]
     auth: List[str]
@@ -274,3 +294,15 @@ class Endpoint(object):
             _host=_host,
             collection_formats=params["collection_format"],
         )
+
+    def _process_openapi_kwargs(
+        self, kwargs: ExtraOpenApiKwargsTypedDict
+    ) -> KwargsWithOpenApiKwargDefaultsTypedDict:
+        kwargs["async_req"] = kwargs.get("async_req", False)
+        kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
+        kwargs["_preload_content"] = kwargs.get("_preload_content", True)
+        kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
+        kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
+        kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
+        kwargs["_host_index"] = kwargs.get("_host_index")
+        return kwargs

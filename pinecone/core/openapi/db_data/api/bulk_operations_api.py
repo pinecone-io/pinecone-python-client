@@ -17,10 +17,10 @@ from pinecone.openapi_support import (
     Endpoint as _Endpoint,
     AsyncioApiClient,
     AsyncioEndpoint as _AsyncioEndpoint,
+    ExtraOpenApiKwargsTypedDict,
+    KwargsWithOpenApiKwargDefaultsTypedDict,
 )
 from pinecone.openapi_support import (  # noqa: F401
-    check_allowed_values,
-    check_validations,
     date,
     datetime,
     file_type,
@@ -45,7 +45,9 @@ class BulkOperationsApi(object):
             api_client = ApiClient()
         self.api_client = api_client
 
-        def __cancel_bulk_import(self, id, **kwargs):
+        def __cancel_bulk_import(
+            self, id, **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> {str: (bool, dict, float, int, list, str, none_type)}:
             """Cancel an import  # noqa: E501
 
             Cancel an import operation if it is not yet finished. It has no effect if the operation is already finished.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
@@ -84,13 +86,7 @@ class BulkOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs["async_req"] = kwargs.get("async_req", False)
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["id"] = id
             return self.call_with_http_info(**kwargs)
 
@@ -123,7 +119,7 @@ class BulkOperationsApi(object):
             callable=__cancel_bulk_import,
         )
 
-        def __describe_bulk_import(self, id, **kwargs):
+        def __describe_bulk_import(self, id, **kwargs: ExtraOpenApiKwargsTypedDict) -> ImportModel:
             """Describe an import  # noqa: E501
 
             Return details of a specific import operation.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
@@ -162,13 +158,7 @@ class BulkOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs["async_req"] = kwargs.get("async_req", False)
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["id"] = id
             return self.call_with_http_info(**kwargs)
 
@@ -201,7 +191,7 @@ class BulkOperationsApi(object):
             callable=__describe_bulk_import,
         )
 
-        def __list_bulk_imports(self, **kwargs):
+        def __list_bulk_imports(self, **kwargs: ExtraOpenApiKwargsTypedDict) -> ListImportsResponse:
             """List imports  # noqa: E501
 
             List all recent and ongoing import operations.  By default, this returns up to 100 imports per page. If the `limit` parameter is set, `list` returns up to that number of imports instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of imports. When the response does not include a `pagination_token`, there are no more imports to return.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
@@ -240,13 +230,7 @@ class BulkOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs["async_req"] = kwargs.get("async_req", False)
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs = self._process_openapi_kwargs(kwargs)
             return self.call_with_http_info(**kwargs)
 
         self.list_bulk_imports = _Endpoint(
@@ -278,7 +262,9 @@ class BulkOperationsApi(object):
             callable=__list_bulk_imports,
         )
 
-        def __start_bulk_import(self, start_import_request, **kwargs):
+        def __start_bulk_import(
+            self, start_import_request, **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> StartImportResponse:
             """Start import  # noqa: E501
 
             Start an asynchronous import of vectors from object storage into an index.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/data/import-data).  # noqa: E501
@@ -317,13 +303,7 @@ class BulkOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs["async_req"] = kwargs.get("async_req", False)
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["start_import_request"] = start_import_request
             return self.call_with_http_info(**kwargs)
 

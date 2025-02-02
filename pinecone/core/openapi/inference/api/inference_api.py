@@ -17,10 +17,10 @@ from pinecone.openapi_support import (
     Endpoint as _Endpoint,
     AsyncioApiClient,
     AsyncioEndpoint as _AsyncioEndpoint,
+    ExtraOpenApiKwargsTypedDict,
+    KwargsWithOpenApiKwargDefaultsTypedDict,
 )
 from pinecone.openapi_support import (  # noqa: F401
-    check_allowed_values,
-    check_validations,
     date,
     datetime,
     file_type,
@@ -45,7 +45,7 @@ class InferenceApi(object):
             api_client = ApiClient()
         self.api_client = api_client
 
-        def __embed(self, **kwargs):
+        def __embed(self, **kwargs: ExtraOpenApiKwargsTypedDict) -> EmbeddingsList:
             """Embed data  # noqa: E501
 
             Generate embeddings for input data.  For guidance and examples, see [Generate embeddings](https://docs.pinecone.io/guides/inference/generate-embeddings).  # noqa: E501
@@ -83,13 +83,7 @@ class InferenceApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs["async_req"] = kwargs.get("async_req", False)
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs = self._process_openapi_kwargs(kwargs)
             return self.call_with_http_info(**kwargs)
 
         self.embed = _Endpoint(
@@ -121,7 +115,7 @@ class InferenceApi(object):
             callable=__embed,
         )
 
-        def __rerank(self, **kwargs):
+        def __rerank(self, **kwargs: ExtraOpenApiKwargsTypedDict) -> RerankResult:
             """Rerank documents  # noqa: E501
 
             Rerank documents according to their relevance to a query.  For guidance and examples, see [Rerank documents](https://docs.pinecone.io/guides/inference/rerank).  # noqa: E501
@@ -159,13 +153,7 @@ class InferenceApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs["async_req"] = kwargs.get("async_req", False)
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs = self._process_openapi_kwargs(kwargs)
             return self.call_with_http_info(**kwargs)
 
         self.rerank = _Endpoint(

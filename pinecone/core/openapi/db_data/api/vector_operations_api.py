@@ -17,10 +17,10 @@ from pinecone.openapi_support import (
     Endpoint as _Endpoint,
     AsyncioApiClient,
     AsyncioEndpoint as _AsyncioEndpoint,
+    ExtraOpenApiKwargsTypedDict,
+    KwargsWithOpenApiKwargDefaultsTypedDict,
 )
 from pinecone.openapi_support import (  # noqa: F401
-    check_allowed_values,
-    check_validations,
     date,
     datetime,
     file_type,
@@ -56,7 +56,9 @@ class VectorOperationsApi(object):
             api_client = ApiClient()
         self.api_client = api_client
 
-        def __delete_vectors(self, delete_request, **kwargs):
+        def __delete_vectors(
+            self, delete_request, **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> {str: (bool, dict, float, int, list, str, none_type)}:
             """Delete vectors  # noqa: E501
 
             Delete vectors, by id, from a single namespace.  For guidance and examples, see [Delete data](https://docs.pinecone.io/guides/data/delete-data).  # noqa: E501
@@ -95,13 +97,7 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs["async_req"] = kwargs.get("async_req", False)
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["delete_request"] = delete_request
             return self.call_with_http_info(**kwargs)
 
@@ -134,7 +130,9 @@ class VectorOperationsApi(object):
             callable=__delete_vectors,
         )
 
-        def __describe_index_stats(self, describe_index_stats_request, **kwargs):
+        def __describe_index_stats(
+            self, describe_index_stats_request, **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> IndexDescription:
             """Get index stats  # noqa: E501
 
             Return statistics about the contents of an index, including the vector count per namespace, the number of dimensions, and the index fullness.  Serverless indexes scale automatically as needed, so index fullness is relevant only for pod-based indexes.  # noqa: E501
@@ -173,13 +171,7 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs["async_req"] = kwargs.get("async_req", False)
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["describe_index_stats_request"] = describe_index_stats_request
             return self.call_with_http_info(**kwargs)
 
@@ -212,7 +204,7 @@ class VectorOperationsApi(object):
             callable=__describe_index_stats,
         )
 
-        def __fetch_vectors(self, ids, **kwargs):
+        def __fetch_vectors(self, ids, **kwargs: ExtraOpenApiKwargsTypedDict) -> FetchResponse:
             """Fetch vectors  # noqa: E501
 
             Look up and return vectors, by ID, from a single namespace. The returned vectors include the vector data and/or metadata.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/data/fetch-data).  # noqa: E501
@@ -252,13 +244,7 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs["async_req"] = kwargs.get("async_req", False)
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["ids"] = ids
             return self.call_with_http_info(**kwargs)
 
@@ -291,7 +277,7 @@ class VectorOperationsApi(object):
             callable=__fetch_vectors,
         )
 
-        def __list_vectors(self, **kwargs):
+        def __list_vectors(self, **kwargs: ExtraOpenApiKwargsTypedDict) -> ListResponse:
             """List vector IDs  # noqa: E501
 
             List the IDs of vectors in a single namespace of a serverless index. An optional prefix can be passed to limit the results to IDs with a common prefix.  This returns up to 100 IDs at a time by default in sorted order (bitwise \"C\" collation). If the `limit` parameter is set, `list` returns up to that number of IDs instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of IDs. When the response does not include a `pagination_token`, there are no more IDs to return.  For guidance and examples, see [List record IDs](https://docs.pinecone.io/guides/data/list-record-ids).  **Note:** `list` is supported only for serverless indexes.  # noqa: E501
@@ -332,13 +318,7 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs["async_req"] = kwargs.get("async_req", False)
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs = self._process_openapi_kwargs(kwargs)
             return self.call_with_http_info(**kwargs)
 
         self.list_vectors = _Endpoint(
@@ -385,7 +365,9 @@ class VectorOperationsApi(object):
             callable=__list_vectors,
         )
 
-        def __query_vectors(self, query_request, **kwargs):
+        def __query_vectors(
+            self, query_request, **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> QueryResponse:
             """Query vectors  # noqa: E501
 
             Search a namespace, using a query vector. It retrieves the ids of the most similar items in a namespace, along with their similarity scores.  For guidance and examples, see [Query data](https://docs.pinecone.io/guides/data/query-data).  # noqa: E501
@@ -424,13 +406,7 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs["async_req"] = kwargs.get("async_req", False)
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["query_request"] = query_request
             return self.call_with_http_info(**kwargs)
 
@@ -463,7 +439,9 @@ class VectorOperationsApi(object):
             callable=__query_vectors,
         )
 
-        def __search_records_namespace(self, namespace, search_records_request, **kwargs):
+        def __search_records_namespace(
+            self, namespace, search_records_request, **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> SearchRecordsResponse:
             """Search a namespace  # noqa: E501
 
             This operation converts a query to a vector embedding and then searches a namespace using the embedding. It returns the most similar records in the namespace, along with their similarity scores.  # noqa: E501
@@ -503,13 +481,7 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs["async_req"] = kwargs.get("async_req", False)
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["namespace"] = namespace
             kwargs["search_records_request"] = search_records_request
             return self.call_with_http_info(**kwargs)
@@ -546,7 +518,9 @@ class VectorOperationsApi(object):
             callable=__search_records_namespace,
         )
 
-        def __update_vector(self, update_request, **kwargs):
+        def __update_vector(
+            self, update_request, **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> {str: (bool, dict, float, int, list, str, none_type)}:
             """Update a vector  # noqa: E501
 
             Update a vector in a namespace. If a value is included, it will overwrite the previous value. If a `set_metadata` is included, the values of the fields specified in it will be added or overwrite the previous value.  For guidance and examples, see [Update data](https://docs.pinecone.io/guides/data/update-data).  # noqa: E501
@@ -585,13 +559,7 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs["async_req"] = kwargs.get("async_req", False)
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["update_request"] = update_request
             return self.call_with_http_info(**kwargs)
 
@@ -624,7 +592,9 @@ class VectorOperationsApi(object):
             callable=__update_vector,
         )
 
-        def __upsert_records_namespace(self, namespace, upsert_record, **kwargs):
+        def __upsert_records_namespace(
+            self, namespace, upsert_record, **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> None:
             """Upsert records into a namespace  # noqa: E501
 
             This operation converts input data to vector embeddings and then upserts the embeddings into a namespace.  # noqa: E501
@@ -664,13 +634,7 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs["async_req"] = kwargs.get("async_req", False)
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["namespace"] = namespace
             kwargs["upsert_record"] = upsert_record
             return self.call_with_http_info(**kwargs)
@@ -704,7 +668,9 @@ class VectorOperationsApi(object):
             callable=__upsert_records_namespace,
         )
 
-        def __upsert_vectors(self, upsert_request, **kwargs):
+        def __upsert_vectors(
+            self, upsert_request, **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> UpsertResponse:
             """Upsert vectors  # noqa: E501
 
             Write vectors into a namespace. If a new value is upserted for an existing vector ID, it will overwrite the previous value.  For guidance and examples, see [Upsert data](https://docs.pinecone.io/guides/data/upsert-data).  # noqa: E501
@@ -743,13 +709,7 @@ class VectorOperationsApi(object):
                     If the method is called asynchronously, returns the request
                     thread.
             """
-            kwargs["async_req"] = kwargs.get("async_req", False)
-            kwargs["_return_http_data_only"] = kwargs.get("_return_http_data_only", True)
-            kwargs["_preload_content"] = kwargs.get("_preload_content", True)
-            kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
-            kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
-            kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
+            kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["upsert_request"] = upsert_request
             return self.call_with_http_info(**kwargs)
 

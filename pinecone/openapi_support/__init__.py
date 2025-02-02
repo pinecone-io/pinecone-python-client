@@ -4,7 +4,7 @@
 # any dynamic content so they didn't need to be part of the generation process.
 
 from .api_client import ApiClient
-from .endpoint import Endpoint
+from .endpoint import Endpoint, ExtraOpenApiKwargsTypedDict, KwargsWithOpenApiKwargDefaultsTypedDict
 from .asyncio_api_client import AsyncioApiClient
 from .asyncio_endpoint import AsyncioEndpoint
 from .configuration import Configuration
