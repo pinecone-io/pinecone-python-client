@@ -69,9 +69,6 @@ class InferenceApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -139,9 +136,6 @@ class InferenceApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -217,9 +211,6 @@ class AsyncioInferenceApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 EmbeddingsList
@@ -229,7 +220,6 @@ class AsyncioInferenceApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             return await self.call_with_http_info(**kwargs)
 
         self.embed = _AsyncioEndpoint(
@@ -285,9 +275,6 @@ class AsyncioInferenceApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 RerankResult
@@ -297,7 +284,6 @@ class AsyncioInferenceApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             return await self.call_with_http_info(**kwargs)
 
         self.rerank = _AsyncioEndpoint(

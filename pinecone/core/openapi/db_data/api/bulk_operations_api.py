@@ -70,9 +70,6 @@ class BulkOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -142,9 +139,6 @@ class BulkOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -214,9 +208,6 @@ class BulkOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -285,9 +276,6 @@ class BulkOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -365,9 +353,6 @@ class AsyncioBulkOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 {str: (bool, dict, float, int, list, str, none_type)}
@@ -377,7 +362,6 @@ class AsyncioBulkOperationsApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["id"] = id
             return await self.call_with_http_info(**kwargs)
 
@@ -435,9 +419,6 @@ class AsyncioBulkOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 ImportModel
@@ -447,7 +428,6 @@ class AsyncioBulkOperationsApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["id"] = id
             return await self.call_with_http_info(**kwargs)
 
@@ -505,9 +485,6 @@ class AsyncioBulkOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 ListImportsResponse
@@ -517,7 +494,6 @@ class AsyncioBulkOperationsApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             return await self.call_with_http_info(**kwargs)
 
         self.list_bulk_imports = _AsyncioEndpoint(
@@ -574,9 +550,6 @@ class AsyncioBulkOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 StartImportResponse
@@ -586,7 +559,6 @@ class AsyncioBulkOperationsApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["start_import_request"] = start_import_request
             return await self.call_with_http_info(**kwargs)
 

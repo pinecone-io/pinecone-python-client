@@ -79,9 +79,6 @@ class ManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -157,9 +154,6 @@ class ManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -229,9 +223,6 @@ class ManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -303,9 +294,6 @@ class ManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -375,9 +363,6 @@ class ManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -447,9 +432,6 @@ class ManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -519,9 +501,6 @@ class ManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -591,9 +570,6 @@ class ManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -661,9 +637,6 @@ class ManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -724,9 +697,6 @@ class ManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -798,9 +768,6 @@ class AsyncioManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 IndexModel
@@ -810,7 +777,6 @@ class AsyncioManageIndexesApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["index_name"] = index_name
             kwargs["configure_index_request"] = configure_index_request
             return await self.call_with_http_info(**kwargs)
@@ -872,9 +838,6 @@ class AsyncioManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 CollectionModel
@@ -884,7 +847,6 @@ class AsyncioManageIndexesApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["create_collection_request"] = create_collection_request
             return await self.call_with_http_info(**kwargs)
 
@@ -942,9 +904,6 @@ class AsyncioManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 IndexModel
@@ -954,7 +913,6 @@ class AsyncioManageIndexesApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["create_index_request"] = create_index_request
             return await self.call_with_http_info(**kwargs)
 
@@ -1012,9 +970,6 @@ class AsyncioManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 IndexModel
@@ -1024,7 +979,6 @@ class AsyncioManageIndexesApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["create_index_for_model_request"] = create_index_for_model_request
             return await self.call_with_http_info(**kwargs)
 
@@ -1082,9 +1036,6 @@ class AsyncioManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 None
@@ -1094,7 +1045,6 @@ class AsyncioManageIndexesApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["collection_name"] = collection_name
             return await self.call_with_http_info(**kwargs)
 
@@ -1152,9 +1102,6 @@ class AsyncioManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 None
@@ -1164,7 +1111,6 @@ class AsyncioManageIndexesApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["index_name"] = index_name
             return await self.call_with_http_info(**kwargs)
 
@@ -1222,9 +1168,6 @@ class AsyncioManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 CollectionModel
@@ -1234,7 +1177,6 @@ class AsyncioManageIndexesApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["collection_name"] = collection_name
             return await self.call_with_http_info(**kwargs)
 
@@ -1292,9 +1234,6 @@ class AsyncioManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 IndexModel
@@ -1304,7 +1243,6 @@ class AsyncioManageIndexesApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["index_name"] = index_name
             return await self.call_with_http_info(**kwargs)
 
@@ -1360,9 +1298,6 @@ class AsyncioManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 CollectionList
@@ -1372,7 +1307,6 @@ class AsyncioManageIndexesApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             return await self.call_with_http_info(**kwargs)
 
         self.list_collections = _AsyncioEndpoint(
@@ -1421,9 +1355,6 @@ class AsyncioManageIndexesApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 IndexList
@@ -1433,7 +1364,6 @@ class AsyncioManageIndexesApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             return await self.call_with_http_info(**kwargs)
 
         self.list_indexes = _AsyncioEndpoint(

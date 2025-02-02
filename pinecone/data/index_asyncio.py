@@ -59,7 +59,6 @@ _OPENAPI_ENDPOINT_PARAMS = (
     "_request_timeout",
     "_check_input_type",
     "_check_return_type",
-    "_host_index",
 )
 
 

@@ -50,7 +50,6 @@ class AsyncioEndpoint(object):
         self.params_map = params_map
         self.params_map["all"].extend(
             [
-                "_host_index",
                 "_preload_content",
                 "_request_timeout",
                 "_return_http_data_only",
@@ -63,7 +62,6 @@ class AsyncioEndpoint(object):
         self.allowed_values = root_map["allowed_values"]
         self.openapi_types = root_map["openapi_types"]
         extra_types = {
-            "_host_index": (none_type, int),
             "_preload_content": (bool,),
             "_request_timeout": (none_type, float, (float,), [float], int, (int,), [int]),
             "_return_http_data_only": (bool,),

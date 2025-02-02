@@ -81,9 +81,6 @@ class VectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -155,9 +152,6 @@ class VectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -228,9 +222,6 @@ class VectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -302,9 +293,6 @@ class VectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -388,9 +376,6 @@ class VectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -463,9 +448,6 @@ class VectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -539,9 +521,6 @@ class VectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -614,9 +593,6 @@ class VectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -687,9 +663,6 @@ class VectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
                 async_req (bool): execute request asynchronously
 
             Returns:
@@ -767,9 +740,6 @@ class AsyncioVectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 {str: (bool, dict, float, int, list, str, none_type)}
@@ -779,7 +749,6 @@ class AsyncioVectorOperationsApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["delete_request"] = delete_request
             return await self.call_with_http_info(**kwargs)
 
@@ -837,9 +806,6 @@ class AsyncioVectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 IndexDescription
@@ -849,7 +815,6 @@ class AsyncioVectorOperationsApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["describe_index_stats_request"] = describe_index_stats_request
             return await self.call_with_http_info(**kwargs)
 
@@ -908,9 +873,6 @@ class AsyncioVectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 FetchResponse
@@ -920,7 +882,6 @@ class AsyncioVectorOperationsApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["ids"] = ids
             return await self.call_with_http_info(**kwargs)
 
@@ -980,9 +941,6 @@ class AsyncioVectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 ListResponse
@@ -992,7 +950,6 @@ class AsyncioVectorOperationsApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             return await self.call_with_http_info(**kwargs)
 
         self.list_vectors = _AsyncioEndpoint(
@@ -1064,9 +1021,6 @@ class AsyncioVectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 QueryResponse
@@ -1076,7 +1030,6 @@ class AsyncioVectorOperationsApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["query_request"] = query_request
             return await self.call_with_http_info(**kwargs)
 
@@ -1135,9 +1088,6 @@ class AsyncioVectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 SearchRecordsResponse
@@ -1147,7 +1097,6 @@ class AsyncioVectorOperationsApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["namespace"] = namespace
             kwargs["search_records_request"] = search_records_request
             return await self.call_with_http_info(**kwargs)
@@ -1209,9 +1158,6 @@ class AsyncioVectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 {str: (bool, dict, float, int, list, str, none_type)}
@@ -1221,7 +1167,6 @@ class AsyncioVectorOperationsApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["update_request"] = update_request
             return await self.call_with_http_info(**kwargs)
 
@@ -1280,9 +1225,6 @@ class AsyncioVectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 None
@@ -1292,7 +1234,6 @@ class AsyncioVectorOperationsApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["namespace"] = namespace
             kwargs["upsert_record"] = upsert_record
             return await self.call_with_http_info(**kwargs)
@@ -1351,9 +1292,6 @@ class AsyncioVectorOperationsApi:
                 _check_return_type (bool): specifies if type checking
                     should be done one the data received from the server.
                     Default is True.
-                _host_index (int/None): specifies the index of the server
-                    that we want to use.
-                    Default is read from the configuration.
 
             Returns:
                 UpsertResponse
@@ -1363,7 +1301,6 @@ class AsyncioVectorOperationsApi:
             kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
             kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
             kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-            kwargs["_host_index"] = kwargs.get("_host_index")
             kwargs["upsert_request"] = upsert_request
             return await self.call_with_http_info(**kwargs)
 

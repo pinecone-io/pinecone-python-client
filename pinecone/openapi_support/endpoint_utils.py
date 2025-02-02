@@ -11,7 +11,6 @@ class ExtraOpenApiKwargsTypedDict(TypedDict, total=False):
     _request_timeout: Optional[int]
     _check_input_type: Optional[bool]
     _check_return_type: Optional[bool]
-    _host_index: Optional[int]
     async_req: Optional[bool]
 
 
@@ -21,7 +20,6 @@ class KwargsWithOpenApiKwargDefaultsTypedDict(TypedDict, total=False):
     _request_timeout: int
     _check_input_type: bool
     _check_return_type: bool
-    _host_index: Optional[int]
     async_req: bool
 
 

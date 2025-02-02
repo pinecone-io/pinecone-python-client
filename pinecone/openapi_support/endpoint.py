@@ -60,7 +60,6 @@ class Endpoint:
             [
                 "async_req",
                 "async_threadpool_executor",
-                "_host_index",
                 "_preload_content",
                 "_request_timeout",
                 "_return_http_data_only",
@@ -75,7 +74,6 @@ class Endpoint:
         extra_types = {
             "async_req": (bool,),
             "async_threadpool_executor": (bool,),
-            "_host_index": (none_type, int),
             "_preload_content": (bool,),
             "_request_timeout": (none_type, float, (float,), [float], int, (int,), [int]),
             "_return_http_data_only": (bool,),
@@ -163,5 +161,4 @@ class Endpoint:
         kwargs["_request_timeout"] = kwargs.get("_request_timeout", None)
         kwargs["_check_input_type"] = kwargs.get("_check_input_type", True)
         kwargs["_check_return_type"] = kwargs.get("_check_return_type", True)
-        kwargs["_host_index"] = kwargs.get("_host_index")
         return kwargs
