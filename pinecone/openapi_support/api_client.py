@@ -45,21 +45,16 @@ class ApiClient(object):
     _threadpool_executor = None
 
     def __init__(
-        self, configuration=None, header_name=None, header_value=None, cookie=None, pool_threads=1
+        self, configuration: Optional[Configuration] = None, pool_threads: Optional[int] = 1
     ) -> None:
         if configuration is None:
             configuration = Configuration.get_default_copy()
         self.configuration = configuration
         self.pool_threads = pool_threads
 
-        # self.rest_client = HttpxRestClient(configuration, http2=False)
         self.rest_client = Urllib3RestClient(configuration)
 
         self.default_headers = {}
-        if header_name is not None:
-            self.default_headers[header_name] = header_value
-        self.cookie = cookie
-        # Set default User-Agent.
         self.user_agent = "OpenAPI-Generator/1.0.0/python"
 
     def __enter__(self):
@@ -131,8 +126,6 @@ class ApiClient(object):
         # header parameters
         header_params = header_params or {}
         header_params.update(self.default_headers)
-        if self.cookie:
-            header_params["Cookie"] = self.cookie
         if header_params:
             sanitized_header_params: Dict[str, Any] = self.sanitize_for_serialization(header_params)
             processed_header_params: Dict[str, Any] = dict(
