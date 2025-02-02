@@ -54,9 +54,7 @@ protobuf = { version = "^5.29", optional = true }
 protoc-gen-openapiv2 = {version = "^0.0.1", optional = true }
 pinecone-plugin-interface = "^0.0.7"
 python-dateutil = ">=2.5.3"
-aiohttp = "^3.11.5"
-httpx = "^0.28.1"
-pytest-asyncio = "^0.25.2"
+aiohttp = ">=3.9.0"
 
 [tool.poetry.group.types]
 optional = true
@@ -85,6 +83,7 @@ pandas = [
 ]
 pdoc = "^14.1.0"
 pytest = "8.2.0"
+pytest-asyncio = "^0.25.2"
 pytest-cov = "2.10.1"
 pytest-mock = "3.6.1"
 pytest-timeout = "2.2.0"
