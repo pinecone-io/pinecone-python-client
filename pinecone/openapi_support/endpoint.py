@@ -1,4 +1,3 @@
-from .exceptions import PineconeApiValueError
 from .model_utils import none_type
 from typing import Dict, List, Callable
 from .api_client import ApiClient
@@ -105,26 +104,7 @@ class Endpoint:
         return self.callable(self, *args, **kwargs)
 
     def call_with_http_info(self, **kwargs):
-        try:
-            if kwargs["_host_index"] is None:
-                index = self.api_client.configuration.server_operation_index.get(
-                    self.settings["operation_id"], self.api_client.configuration.server_index
-                )
-            else:
-                index = kwargs["_host_index"]
-
-            server_variables = self.api_client.configuration.server_operation_variables.get(
-                self.settings["operation_id"], self.api_client.configuration.server_variables
-            )
-            _host = self.api_client.configuration.get_host_from_settings(
-                index, variables=server_variables, servers=self.settings["servers"]
-            )
-        except IndexError:
-            if self.settings["servers"]:
-                raise PineconeApiValueError(
-                    "Invalid host index. Must be 0 <= index < %s" % len(self.settings["servers"])
-                )
-            _host = None
+        _host = self.api_client.configuration.host
 
         EndpointUtils.raise_if_unexpected_param(
             params_map=self.params_map, settings=self.settings, kwargs=kwargs
