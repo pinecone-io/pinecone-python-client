@@ -62,18 +62,12 @@ class CombinedParamsMapDict(TypedDict):
     collection_format: Dict[str, str]
     file: Dict[str, List[file_type]]
     form: List[Tuple[str, Any]]
-    header: Dict[str, Any]
+    header: Dict[str, List[str]]
     path: Dict[str, Any]
     query: List[Tuple[str, Any]]
 
 
 class EndpointUtils:
-    #     attribute_map=self.attribute_map,
-    # location_map=self.location_map,
-    # openapi_types=self.openapi_types,
-    # collection_format_map=self.collection_format_map,
-    # kwargs=kwargs,
-
     @staticmethod
     def gather_params(
         attribute_map: AttributeMapDictType,

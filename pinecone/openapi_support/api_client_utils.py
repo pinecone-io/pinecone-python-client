@@ -46,8 +46,9 @@ class HeaderUtil:
             return ", ".join(accepts)
 
     @staticmethod
-    def process_header_params(default_headers, header_params, collection_formats):
-        header_params = header_params or {}
+    def process_header_params(
+        default_headers: Dict[str, str], header_params: Dict[str, str], collection_formats
+    ) -> Dict[str, Any]:
         header_params.update(default_headers)
         if header_params:
             sanitized_header_params: Dict[str, Any] = Serializer.sanitize_for_serialization(
@@ -59,7 +60,8 @@ class HeaderUtil:
         return processed_header_params
 
     @staticmethod
-    def prepare_headers(headers_map, params):
+    def prepare_headers(headers_map: Dict[str, List[str]], params) -> None:
+        """Mutates the params to set Accept and Content-Type headers."""
         accept_headers_list = headers_map["accept"]
         if accept_headers_list:
             params["header"]["Accept"] = HeaderUtil.select_header_accept(accept_headers_list)
@@ -87,17 +89,17 @@ def process_params(
     collection_formats: Dict[str, str],
 ):
     # header parameters
-    processed_header_params = HeaderUtil.process_header_params(
+    headers_tuple = HeaderUtil.process_header_params(
         default_headers, header_params, collection_formats
     )
 
     # path parameters
     sanitized_path_params: Dict[str, Any] = Serializer.sanitize_for_serialization(path_params or {})
-    processed_path_params: List[Tuple[str, Any]] = parameters_to_tuples(
+    path_parm: List[Tuple[str, Any]] = parameters_to_tuples(
         sanitized_path_params, collection_formats
     )
 
-    return processed_header_params, processed_path_params, sanitized_path_params
+    return headers_tuple, path_parm, sanitized_path_params
 
 
 def parameters_to_multipart(params, collection_types):

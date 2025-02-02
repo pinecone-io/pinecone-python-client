@@ -119,7 +119,7 @@ class ApiClient(object):
         files = files or {}
         collection_formats = collection_formats or {}
 
-        processed_header_params, processed_path_params, sanitized_path_params = process_params(
+        headers_tuple, path_params_tuple, sanitized_path_params = process_params(
             default_headers=self.default_headers,
             header_params=header_params,
             path_params=path_params,
@@ -137,7 +137,7 @@ class ApiClient(object):
                     sanitized_post_params, collection_formats
                 )
                 processed_post_params.extend(files_parameters(files))
-            if processed_header_params["Content-Type"].startswith("multipart"):
+            if headers_tuple["Content-Type"].startswith("multipart"):
                 processed_post_params = parameters_to_multipart(sanitized_post_params, (dict))
         else:
             processed_post_params = None
@@ -150,13 +150,13 @@ class ApiClient(object):
         AuthUtil.update_params_for_auth(
             configuration=config,
             endpoint_auth_settings=auth_settings,
-            headers=processed_header_params,
+            headers=headers_tuple,
             querys=processed_query_params,
         )
 
         url = build_request_url(
             config=config,
-            processed_path_params=processed_path_params,
+            processed_path_params=path_params_tuple,
             resource_path=resource_path,
             _host=_host,
         )
@@ -167,7 +167,7 @@ class ApiClient(object):
                 method,
                 url,
                 query_params=processed_query_params,
-                headers=processed_header_params,
+                headers=headers_tuple,
                 post_params=processed_post_params,
                 body=body,
                 _preload_content=_preload_content,
