@@ -14,10 +14,10 @@ Contact: support@pinecone.io
 __version__ = "1.0.0"
 
 # import ApiClient
-from pinecone.openapi_support import ApiClient
+from pinecone.openapi_support.api_client import ApiClient
 
 # import Configuration
-from pinecone.openapi_support import Configuration
+from pinecone.openapi_support.configuration import Configuration
 
 # import exceptions
 from pinecone.openapi_support.exceptions import PineconeException

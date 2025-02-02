@@ -9,11 +9,12 @@ The version of the OpenAPI document: 2025-01
 Contact: support@pinecone.io
 """
 
-from pinecone.openapi_support import (  # noqa: F401
+from pinecone.openapi_support.model_utils import (  # noqa: F401
     PineconeApiTypeError,
     ModelComposed,
     ModelNormal,
     ModelSimple,
+    OpenApiModel,
     cached_property,
     change_keys_js_to_python,
     convert_js_args_to_python_args,
@@ -23,7 +24,6 @@ from pinecone.openapi_support import (  # noqa: F401
     none_type,
     validate_get_composed_info,
 )
-from pinecone.openapi_support.model_utils import OpenApiModel
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 

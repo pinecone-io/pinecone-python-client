@@ -9,15 +9,14 @@ The version of the OpenAPI document: 2025-01
 Contact: support@pinecone.io
 """
 
-from pinecone.openapi_support import (
-    ApiClient,
-    Endpoint as _Endpoint,
-    AsyncioApiClient,
-    AsyncioEndpoint as _AsyncioEndpoint,
+from pinecone.openapi_support import ApiClient, AsyncioApiClient
+from pinecone.openapi_support.endpoint_utils import (
     ExtraOpenApiKwargsTypedDict,
     KwargsWithOpenApiKwargDefaultsTypedDict,
 )
-from pinecone.openapi_support import (  # noqa: F401
+from pinecone.openapi_support.endpoint import Endpoint as _Endpoint, ExtraOpenApiKwargsTypedDict
+from pinecone.openapi_support.asyncio_endpoint import AsyncioEndpoint as _AsyncioEndpoint
+from pinecone.openapi_support.model_utils import (  # noqa: F401
     date,
     datetime,
     file_type,
@@ -37,7 +36,7 @@ from pinecone.core.openapi.db_control.model.index_list import IndexList
 from pinecone.core.openapi.db_control.model.index_model import IndexModel
 
 
-class ManageIndexesApi(object):
+class ManageIndexesApi:
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -762,7 +761,7 @@ class ManageIndexesApi(object):
         )
 
 
-class AsyncioManageIndexesApi(object):
+class AsyncioManageIndexesApi:
     """NOTE: This class is @generated using OpenAPI
 
     Do not edit the class manually.

@@ -26,7 +26,7 @@ JSON_SCHEMA_VALIDATION_KEYWORDS = {
 }
 
 
-class Configuration(object):
+class Configuration:
     """Class to hold the configuration of the API client.
 
         :param host: Base url

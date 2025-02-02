@@ -3,6 +3,7 @@ import mimetypes
 import io
 import os
 from urllib3.fields import RequestField
+from urllib.parse import quote
 
 from typing import Optional, List, Tuple, Dict, Any, Union
 from .serializer import Serializer
@@ -56,6 +57,42 @@ class HeaderUtil:
                 parameters_to_tuples(sanitized_header_params, collection_formats)
             )
         return processed_header_params
+
+    @staticmethod
+    def prepare_headers(headers_map, params):
+        accept_headers_list = headers_map["accept"]
+        if accept_headers_list:
+            params["header"]["Accept"] = HeaderUtil.select_header_accept(accept_headers_list)
+
+        content_type_headers_list = headers_map["content_type"]
+        if content_type_headers_list:
+            header_list = HeaderUtil.select_header_content_type(content_type_headers_list)
+            params["header"]["Content-Type"] = header_list
+
+
+def process_query_params(query_params, collection_formats):
+    if query_params:
+        sanitized_query_params = Serializer.sanitize_for_serialization(query_params)
+        processed_query_params = parameters_to_tuples(sanitized_query_params, collection_formats)
+    else:
+        processed_query_params = []
+
+    return processed_query_params
+
+
+def process_params(default_headers, header_params, path_params, collection_formats):
+    # header parameters
+    processed_header_params = HeaderUtil.process_header_params(
+        default_headers, header_params, collection_formats
+    )
+
+    # path parameters
+    sanitized_path_params: Dict[str, Any] = Serializer.sanitize_for_serialization(path_params or {})
+    processed_path_params: List[Tuple[str, Any]] = parameters_to_tuples(
+        sanitized_path_params, collection_formats
+    )
+
+    return processed_header_params, processed_path_params, sanitized_path_params
 
 
 def parameters_to_multipart(params, collection_types):
@@ -144,3 +181,16 @@ def parameters_to_tuples(
         else:
             new_params.append((k, v))
     return new_params
+
+
+def build_request_url(config, processed_path_params, resource_path, _host):
+    for k, v in processed_path_params:
+        # specified safe chars, encode everything
+        resource_path = resource_path.replace(
+            "{%s}" % k, quote(str(v), safe=config.safe_chars_for_path_param)
+        )
+
+    # _host is a host override passed for an individual operation
+    host = _host if _host is not None else config.host
+
+    return host + resource_path

@@ -1,6 +1,5 @@
 import json
 import io
-from urllib.parse import quote
 from urllib3.fields import RequestField
 import logging
 
@@ -14,7 +13,9 @@ from .api_client_utils import (
     parameters_to_tuples,
     files_parameters,
     parameters_to_multipart,
-    HeaderUtil,
+    process_params,
+    process_query_params,
+    build_request_url,
 )
 from .serializer import Serializer
 from .deserializer import Deserializer
@@ -83,32 +84,14 @@ class AsyncioApiClient(object):
     ):
         config = self.configuration
 
-        processed_header_params = HeaderUtil.process_header_params(
-            self.default_headers, header_params, collection_formats
+        processed_header_params, processed_path_params, sanitized_path_params = process_params(
+            default_headers=self.default_headers,
+            header_params=header_params,
+            path_params=path_params,
+            collection_formats=collection_formats,
         )
 
-        # path parameters
-        sanitized_path_params: Dict[str, Any] = Serializer.sanitize_for_serialization(
-            path_params or {}
-        )
-        processed_path_params: List[Tuple[str, Any]] = parameters_to_tuples(
-            sanitized_path_params, collection_formats
-        )
-
-        for k, v in processed_path_params:
-            # specified safe chars, encode everything
-            resource_path = resource_path.replace(
-                "{%s}" % k, quote(str(v), safe=config.safe_chars_for_path_param)
-            )
-
-        # query parameters
-        if query_params:
-            sanitized_query_params = Serializer.sanitize_for_serialization(query_params)
-            processed_query_params = parameters_to_tuples(
-                sanitized_query_params, collection_formats
-            )
-        else:
-            processed_query_params = []
+        processed_query_params = process_query_params(query_params, collection_formats)
 
         # post parameters
         if post_params or files:
@@ -136,12 +119,12 @@ class AsyncioApiClient(object):
             querys=processed_query_params,
         )
 
-        # request url
-        if _host is None:
-            url = self.configuration.host + resource_path
-        else:
-            # use server/host defined in path or operation instead
-            url = _host + resource_path
+        url = build_request_url(
+            config=config,
+            processed_path_params=processed_path_params,
+            resource_path=resource_path,
+            _host=_host,
+        )
 
         try:
             # perform request and return response
