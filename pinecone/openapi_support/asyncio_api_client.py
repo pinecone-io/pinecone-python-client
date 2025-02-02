@@ -16,6 +16,7 @@ from .api_client_utils import parameters_to_tuples
 from .serializer import Serializer
 from .deserializer import Deserializer
 from .header_util import HeaderUtil
+from .auth_util import AuthUtil
 
 logger = logging.getLogger(__name__)
 
@@ -126,13 +127,11 @@ class AsyncioApiClient(object):
             body = Serializer.sanitize_for_serialization(body)
 
         # auth setting
-        self.update_params_for_auth(
-            processed_header_params,
-            processed_query_params,
-            auth_settings,
-            resource_path,
-            method,
-            body,
+        AuthUtil.update_params_for_auth(
+            configuration=self.configuration,
+            endpoint_auth_settings=auth_settings,
+            headers=processed_header_params,
+            querys=processed_query_params,
         )
 
         # request url

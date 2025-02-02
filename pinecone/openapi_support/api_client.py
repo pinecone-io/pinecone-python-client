@@ -18,6 +18,7 @@ from .configuration import Configuration
 from .exceptions import PineconeApiValueError, PineconeApiException
 from .api_client_utils import parameters_to_tuples
 from .header_util import HeaderUtil
+from .auth_util import AuthUtil
 
 
 class ApiClient(object):
@@ -157,13 +158,11 @@ class ApiClient(object):
             body = Serializer.sanitize_for_serialization(body)
 
         # auth setting
-        self.update_params_for_auth(
-            processed_header_params,
-            processed_query_params,
-            auth_settings,
-            resource_path,
-            method,
-            body,
+        AuthUtil.update_params_for_auth(
+            configuration=self.configuration,
+            endpoint_auth_settings=auth_settings,
+            headers=processed_header_params,
+            querys=processed_query_params,
         )
 
         # request url
@@ -484,32 +483,3 @@ class ApiClient(object):
                 params.append(tuple([param_name, tuple([filename, filedata, mimetype])]))
 
         return params
-
-    def update_params_for_auth(self, headers, querys, auth_settings, resource_path, method, body):
-        """Updates header and query params based on authentication setting.
-
-        :param headers: Header parameters dict to be updated.
-        :param querys: Query parameters tuple list to be updated.
-        :param auth_settings: Authentication setting identifiers list.
-        :param resource_path: A string representation of the HTTP request resource path.
-        :param method: A string representation of the HTTP request method.
-        :param body: A object representing the body of the HTTP request.
-            The object type is the return value of _encoder.default().
-        """
-        if not auth_settings:
-            return
-
-        for auth in auth_settings:
-            auth_setting = self.configuration.auth_settings().get(auth)
-            if auth_setting:
-                if auth_setting["in"] == "cookie":
-                    headers["Cookie"] = auth_setting["value"]
-                elif auth_setting["in"] == "header":
-                    if auth_setting["type"] != "http-signature":
-                        headers[auth_setting["key"]] = auth_setting["value"]
-                elif auth_setting["in"] == "query":
-                    querys.append((auth_setting["key"], auth_setting["value"]))
-                else:
-                    raise PineconeApiValueError(
-                        "Authentication token must be in `query` or `header`"
-                    )
