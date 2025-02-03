@@ -61,7 +61,7 @@ jobs:
           - python-version: 3.9
             pod: { environment: 'us-east1-gcp'}
           - python-version: 3.13
-            pod: { environment: 'us-east4-gcp'}
+            pod: { environment: 'us-east1-gcp'}
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
