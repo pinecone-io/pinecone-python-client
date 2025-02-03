@@ -109,6 +109,9 @@ class _AsyncioIndex(AsyncioIndexInterface, ImportFeatureMixinAsyncio):
     async def __aexit__(self, exc_type, exc_value, traceback):
         await self._api_client.close()
 
+    async def close(self):
+        await self._api_client.close()
+
     @validate_and_convert_errors
     async def upsert(
         self,

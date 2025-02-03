@@ -42,3 +42,15 @@ class TestSanityRest:
         query_results = idx.query(id="1", top_k=10, include_values=True)
         assert query_results.matches[0].id == "1"
         assert len(query_results.matches) == 3
+
+        # Call a bulk import api method, should not raise an exception
+        idx.list_imports()
+
+        # Call an inference method, should not raise an exception
+        from pinecone import EmbedModel
+
+        client.inference.embed(
+            model=EmbedModel.Multilingual_E5_Large,
+            inputs=["Hello, how are you?", "I am doing well, thank you for asking."],
+            parameters={"input_type": "passage", "truncate": "END"},
+        )

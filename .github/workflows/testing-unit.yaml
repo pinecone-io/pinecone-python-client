@@ -3,17 +3,42 @@ name: "Unit Tests"
   workflow_call: {}
 
 jobs:
+  type-checking:
+    name: Type checking
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version:
+          - 3.9
+          - 3.13
+        use_grpc:
+          - true
+          - false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+        with:
+          include_grpc: '${{ matrix.use_grpc }}'
+          include_types: true
+
+      - name: mypy check
+        run: poetry run mypy pinecone
+
   unit-tests:
     name: Unit tests
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         python-version:
           - 3.9
-          - '3.10'
-          - 3.11
-          - 3.12
+          - 3.13
         use_grpc:
           - true
           - false
@@ -23,19 +48,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '${{ matrix.python-version }}'
+
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
         with:
           include_grpc: '${{ matrix.use_grpc }}'
-          include_types: true
+          include_types: false
+
       - name: Run unit tests (REST)
         run: poetry run pytest --cov=pinecone --timeout=120 tests/unit
       - name: Run unit tests (GRPC)
         if: ${{ matrix.use_grpc == true }}
         run: poetry run pytest --cov=pinecone/grpc --timeout=120 tests/unit_grpc
-      - name: mypy check
-        env:
-          INCLUDE_GRPC: '${{ matrix.use_grpc }}'
-        run: >
-          GRPC_FLAG=$( [ "$INCLUDE_GRPC" = "false" ] && echo "--exclude pinecone/grpc" || echo "" )
-          poetry run mypy pinecone --exclude pinecone/core $GRPC_FLAG
