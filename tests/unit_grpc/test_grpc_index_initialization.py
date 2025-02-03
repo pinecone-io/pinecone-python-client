@@ -5,7 +5,7 @@ from pinecone.grpc import PineconeGRPC, GRPCClientConfig
 class TestGRPCIndexInitialization:
     def test_init_with_default_config(self):
         pc = PineconeGRPC(api_key="YOUR_API_KEY")
-        index = pc.Index(name="my-index", host="host")
+        index = pc.Index(name="my-index", host="host.pinecone.io")
 
         assert index.grpc_client_config.secure == True
         assert index.grpc_client_config.timeout == 20
@@ -18,7 +18,7 @@ class TestGRPCIndexInitialization:
     def test_init_with_grpc_config_from_dict(self):
         pc = PineconeGRPC(api_key="YOUR_API_KEY")
         config = GRPCClientConfig._from_dict({"timeout": 10})
-        index = pc.Index(name="my-index", host="host", grpc_config=config)
+        index = pc.Index(name="my-index", host="host.pinecone.io", grpc_config=config)
 
         assert index.grpc_client_config.timeout == 10
 
@@ -29,7 +29,7 @@ class TestGRPCIndexInitialization:
     def test_init_with_grpc_config_non_dict(self):
         pc = PineconeGRPC(api_key="YOUR_API_KEY")
         config = GRPCClientConfig(timeout=10, secure=False)
-        index = pc.Index(name="my-index", host="host", grpc_config=config)
+        index = pc.Index(name="my-index", host="host.pinecone.io", grpc_config=config)
 
         assert index.grpc_client_config.timeout == 10
         assert index.grpc_client_config.secure == False
@@ -58,7 +58,7 @@ class TestGRPCIndexInitialization:
     def test_config_passed_when_target_by_host(self):
         pc = PineconeGRPC(api_key="YOUR_API_KEY")
         config = GRPCClientConfig(timeout=5, secure=True)
-        index = pc.Index(host="myhost", grpc_config=config)
+        index = pc.Index(host="myhost.pinecone.io", grpc_config=config)
 
         assert index.grpc_client_config.timeout == 5
         assert index.grpc_client_config.secure == True

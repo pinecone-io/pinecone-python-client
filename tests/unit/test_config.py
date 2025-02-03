@@ -100,9 +100,11 @@ class TestConfig:
             PineconeConfig.build()
 
     def test_config_pool_threads(self):
-        pc = Pinecone(api_key="test-api-key", host="test-controller-host", pool_threads=10)
+        pc = Pinecone(
+            api_key="test-api-key", host="test-controller-host.pinecone.io", pool_threads=10
+        )
         assert pc.index_api.api_client.pool_threads == 10
-        idx = pc.Index(host="my-index-host", name="my-index-name")
+        idx = pc.Index(host="my-index-host.pinecone.io", name="my-index-name")
         assert idx._vector_api.api_client.pool_threads == 10
 
     def test_ssl_config_passed_to_index_client(self):
@@ -112,7 +114,7 @@ class TestConfig:
         assert pc.openapi_config.ssl_ca_cert == "path/to/cert"
         assert pc.openapi_config.proxy_headers == proxy_headers
 
-        idx = pc.Index(host="host")
+        idx = pc.Index(host="host.pinecone.io")
         assert idx._vector_api.api_client.configuration.ssl_ca_cert == "path/to/cert"
         assert idx._vector_api.api_client.configuration.proxy_headers == proxy_headers
 
@@ -124,10 +126,10 @@ class TestConfig:
         assert pc.openapi_config.proxy_headers == proxy_headers
         assert pc.openapi_config.host == "https://api.pinecone.io"
 
-        idx = pc.Index(host="host")
+        idx = pc.Index(host="host.pinecone.io")
         assert idx._vector_api.api_client.configuration.ssl_ca_cert == "path/to/cert"
         assert idx._vector_api.api_client.configuration.proxy_headers == proxy_headers
-        assert idx._vector_api.api_client.configuration.host == "https://host"
+        assert idx._vector_api.api_client.configuration.host == "https://host.pinecone.io"
 
         assert pc.openapi_config.host == "https://api.pinecone.io"
 

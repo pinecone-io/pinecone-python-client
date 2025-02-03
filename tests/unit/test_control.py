@@ -33,7 +33,7 @@ def description_with_status(status: bool):
         status=IndexModelStatus(ready=status, state=state),
         dimension=10,
         deletion_protection=DeletionProtection(value="enabled"),
-        host="https://foo",
+        host="https://foo.pinecone.io",
         metric="euclidean",
         spec=IndexModelSpec(serverless=ServerlessSpecOpenApi(cloud="aws", region="us-west1")),
     )
@@ -47,7 +47,7 @@ def index_list_response():
                 name="index1",
                 dimension=10,
                 metric="euclidean",
-                host="asdf",
+                host="asdf.pinecone.io",
                 status={"ready": True},
                 spec={},
                 deletion_protection=DeletionProtection("enabled"),
@@ -57,7 +57,7 @@ def index_list_response():
                 name="index2",
                 dimension=10,
                 metric="euclidean",
-                host="asdf",
+                host="asdf.pinecone.io",
                 status={"ready": True},
                 spec={},
                 deletion_protection=DeletionProtection("enabled"),
@@ -67,7 +67,7 @@ def index_list_response():
                 name="index3",
                 dimension=10,
                 metric="euclidean",
-                host="asdf",
+                host="asdf.pinecone.io",
                 status={"ready": True},
                 spec={},
                 deletion_protection=DeletionProtection("disabled"),
@@ -88,8 +88,8 @@ class TestControl:
         assert p.index_api.api_client.configuration.host == "https://api.pinecone.io"
 
     def test_passing_host(self):
-        p = Pinecone(api_key="123-456-789", host="my-host")
-        assert p.index_api.api_client.configuration.host == "https://my-host"
+        p = Pinecone(api_key="123-456-789", host="my-host.pinecone.io")
+        assert p.index_api.api_client.configuration.host == "https://my-host.pinecone.io"
 
     def test_passing_additional_headers(self):
         extras = {"header1": "my-value", "header2": "my-value2"}
