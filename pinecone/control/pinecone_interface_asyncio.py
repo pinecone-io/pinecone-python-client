@@ -529,7 +529,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    async def Index(self, host: str, **kwargs):
+    def Index(self, host: str, **kwargs):
         """
         Target an index for data operations.
 

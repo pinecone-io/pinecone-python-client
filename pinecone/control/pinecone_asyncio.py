@@ -50,21 +50,27 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         self,
         api_key: Optional[str] = None,
         host: Optional[str] = None,
-        proxy_url: Optional[str] = None,
-        proxy_headers: Optional[Dict[str, str]] = None,
-        ssl_ca_certs: Optional[str] = None,
-        ssl_verify: Optional[bool] = None,
+        # proxy_url: Optional[str] = None,
+        # proxy_headers: Optional[Dict[str, str]] = None,
+        # ssl_ca_certs: Optional[str] = None,
+        # ssl_verify: Optional[bool] = None,
         additional_headers: Optional[Dict[str, str]] = {},
         **kwargs,
     ):
+        for kwarg in {"proxy_url", "proxy_headers", "ssl_ca_certs", "ssl_verify"}:
+            if kwarg in kwargs:
+                raise NotImplementedError(
+                    f"You have passed {kwarg} but support for proxies is not yet implemented in PineconeAsyncio."
+                )
+
         self.config = PineconeConfig.build(
             api_key=api_key,
             host=host,
             additional_headers=additional_headers,
-            proxy_url=proxy_url,
-            proxy_headers=proxy_headers,
-            ssl_ca_certs=ssl_ca_certs,
-            ssl_verify=ssl_verify,
+            proxy_url=None,
+            proxy_headers=None,
+            ssl_ca_certs=None,
+            ssl_verify=None,
             **kwargs,
         )
         self.openapi_config = ConfigBuilder.build_openapi_config(self.config, **kwargs)
@@ -259,7 +265,17 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
 
         index_host = normalize_host(host)
         if index_host == "":
-            raise ValueError("host must be specified")
+            raise ValueError("A host must be specified")
+
+        if "." not in index_host or "localhost" in index_host:
+            # If someone accidentally passes an index name instead of a host,
+            # they will see this error. Index names do not contain periods.
+            # If we don't trap this case, they will get an error about failed
+            # DNS resolution when attempting to connect to some address that
+            # does not exist.
+            raise ValueError(
+                f"You passed {index_host} as the host but this does not appear to be valid. Call describe_index() to confirm the host of the index."
+            )
 
         return _AsyncioIndex(
             host=index_host,
