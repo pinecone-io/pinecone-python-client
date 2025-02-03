@@ -3,6 +3,11 @@ name: "Integration Tests"
   workflow_call: {}
 
 jobs:
+  dependency-test-asyncio:
+    uses: './.github/workflows/testing-integration-asyncio.yaml'
+    secrets: inherit
+    needs: inference
+
   db-data-serverless:
     name: db_data rest
     runs-on: ubuntu-latest
@@ -49,7 +54,6 @@ jobs:
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
           freshness_timeout_seconds: 600
 
-
   db-control-rest-pod:
     name: db_control pod/collection tests
     runs-on: ubuntu-latest
@@ -71,7 +75,9 @@ jobs:
           python-version: '${{ matrix.testConfig.python-version }}'
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
-      - name: 'Run integration tests (REST, prod)'
+        with:
+          include_asyncio: true
+      - name: 'Run integration tests (REST)'
         run: poetry run pytest tests/integration/control/pod -s -v
         env:
           PINECONE_DEBUG_CURL: 'true'
@@ -104,7 +110,7 @@ jobs:
           python-version: '${{ matrix.testConfig.python-version }}'
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
-      - name: 'Run integration tests (REST, prod)'
+      - name: 'Run integration tests (REST)'
         run: poetry run pytest tests/integration/control/serverless -s -vv
         env:
           PINECONE_DEBUG_CURL: 'true'
@@ -131,7 +137,9 @@ jobs:
           python-version: '${{ matrix.python_version }}'
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
-      - name: 'Run integration tests (asyncio, prod)'
+        with:
+          include_asyncio: true
+      - name: 'Run integration tests (asyncio)'
         run: poetry run pytest tests/integration/control_asyncio -s -vv
         env:
           PINECONE_DEBUG_CURL: 'true'

@@ -29,6 +29,7 @@ runs:
       with:
         include_grpc: false
         include_types: false
+        include_asyncio: true
 
     - name: 'Install aiohttp ${{ matrix.aiohttp-version }}'
       run: 'poetry add aiohttp==${{ matrix.aiohttp-version }}'

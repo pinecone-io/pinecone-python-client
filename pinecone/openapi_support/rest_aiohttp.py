@@ -3,15 +3,16 @@ from .rest_utils import RestClientInterface, RESTResponse, raise_exceptions_or_r
 
 
 class AiohttpRestClient(RestClientInterface):
-    def __init__(self, configuration, pools_size=4, maxsize=None) -> None:
-        import aiohttp
+    def __init__(self, configuration) -> None:
+        try:
+            import aiohttp
+        except ImportError:
+            raise ImportError(
+                "Additional dependencies are required to use Pinecone with asyncio. Include these extra dependencies in your project by installing `pinecone[asyncio]`."
+            ) from None
 
         conn = aiohttp.TCPConnector()
         self._session = aiohttp.ClientSession(connector=conn)
-
-    # async def _cleanup(self):
-    #     if not self._session.closed:
-    #         await self._session.close()
 
     async def close(self):
         await self._session.close()
