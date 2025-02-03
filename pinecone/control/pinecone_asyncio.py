@@ -269,19 +269,20 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         api_key = self.config.api_key
         openapi_config = self.openapi_config
 
-        index_host = normalize_host(host)
-        if index_host == "":
+        if host is None or host == "":
             raise ValueError("A host must be specified")
 
-        if "." not in index_host or "localhost" in index_host:
+        if "." not in host or "localhost" not in host:
             # If someone accidentally passes an index name instead of a host,
             # they will see this error. Index names do not contain periods.
             # If we don't trap this case, they will get an error about failed
             # DNS resolution when attempting to connect to some address that
             # does not exist.
             raise ValueError(
-                f"You passed {index_host} as the host but this does not appear to be valid. Call describe_index() to confirm the host of the index."
+                f"You passed '{host}' as the host but this does not appear to be valid. Call describe_index() to confirm the host of the index."
             )
+
+        index_host = normalize_host(host)
 
         return _AsyncioIndex(
             host=index_host,
