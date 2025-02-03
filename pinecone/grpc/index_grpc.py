@@ -3,7 +3,7 @@ from typing import Optional, Dict, Union, List, Tuple, Any, Iterable, cast, Lite
 
 from google.protobuf import json_format
 
-from tqdm.autonotebook import tqdm
+from pinecone.utils.tqdm import tqdm
 from concurrent.futures import as_completed, Future
 
 

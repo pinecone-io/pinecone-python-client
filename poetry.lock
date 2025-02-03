@@ -1619,26 +1619,6 @@ files = [
 ]
 
 [[package]]
-name = "tqdm"
-version = "4.66.3"
-description = "Fast, Extensible Progress Meter"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "tqdm-4.66.3-py3-none-any.whl", hash = "sha256:4f41d54107ff9a223dca80b53efe4fb654c67efaba7f47bada3ee9d50e05bd53"},
-    {file = "tqdm-4.66.3.tar.gz", hash = "sha256:23097a41eba115ba99ecae40d06444c15d1c0c698d527a01c6c8bd1c5d0647e5"},
-]
-
-[package.dependencies]
-colorama = {version = "*", markers = "platform_system == \"Windows\""}
-
-[package.extras]
-dev = ["pytest (>=6)", "pytest-cov", "pytest-timeout", "pytest-xdist"]
-notebook = ["ipywidgets (>=6)"]
-slack = ["slack-sdk"]
-telegram = ["requests"]
-
-[[package]]
 name = "types-protobuf"
 version = "4.24.0.4"
 description = "Typing stubs for protobuf"
@@ -1869,4 +1849,4 @@ grpc = ["googleapis-common-protos", "grpcio", "grpcio", "grpcio", "lz4", "protob
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "a2fbf9fee6a7ff0e7e8065df37e07b4e0cc58818f0d60c58cc074aae2eae9d56"
+content-hash = "77c1844df36ad78e1d4609f1a135804cf35da0ef5a8df8eaf0c7b177c663139a"
