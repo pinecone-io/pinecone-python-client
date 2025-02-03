@@ -6,7 +6,7 @@ from multiprocessing import cpu_count
 from .index_host_store import IndexHostStore
 from .pinecone_interface import PineconeDBControlInterface
 
-from pinecone.config import PineconeConfig, Config, ConfigBuilder
+from pinecone.config import PineconeConfig, ConfigBuilder
 
 from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
 from pinecone.openapi_support.api_client import ApiClient
@@ -59,32 +59,29 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
         proxy_headers: Optional[Dict[str, str]] = None,
         ssl_ca_certs: Optional[str] = None,
         ssl_verify: Optional[bool] = None,
-        config: Optional[Config] = None,
         additional_headers: Optional[Dict[str, str]] = {},
         pool_threads: Optional[int] = None,
         **kwargs,
     ):
-        if config:
-            if not isinstance(config, Config):
-                raise TypeError("config must be of type pinecone.config.Config")
-            else:
-                self.config = config
-        else:
-            self.config = PineconeConfig.build(
-                api_key=api_key,
-                host=host,
-                additional_headers=additional_headers,
-                proxy_url=proxy_url,
-                proxy_headers=proxy_headers,
-                ssl_ca_certs=ssl_ca_certs,
-                ssl_verify=ssl_verify,
-                **kwargs,
+        if kwargs.get("config", None):
+            raise Exception(
+                "Passing config is no longer supported. Please pass individual settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at https://github.com/pinecone-io/pinecone-python-client for examples."
             )
-
         if kwargs.get("openapi_config", None):
             raise Exception(
-                "Passing openapi_config is no longer supported. Please pass settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at https://github.com/pinecone-io/pinecone-python-client for examples."
+                "Passing openapi_config is no longer supported. Please pass individual settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at https://github.com/pinecone-io/pinecone-python-client for examples."
             )
+
+        self.config = PineconeConfig.build(
+            api_key=api_key,
+            host=host,
+            additional_headers=additional_headers,
+            proxy_url=proxy_url,
+            proxy_headers=proxy_headers,
+            ssl_ca_certs=ssl_ca_certs,
+            ssl_verify=ssl_verify,
+            **kwargs,
+        )
 
         self.openapi_config = ConfigBuilder.build_openapi_config(self.config, **kwargs)
 

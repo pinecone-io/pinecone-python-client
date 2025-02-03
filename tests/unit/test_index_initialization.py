@@ -1,6 +1,6 @@
 import pytest
 import re
-from pinecone import ConfigBuilder, Pinecone
+from pinecone import Pinecone
 
 
 class TestIndexClientInitialization:
@@ -48,13 +48,4 @@ class TestIndexClientInitialization:
         pc = Pinecone(api_key="123-456-789", source_tag="test_source_tag")
         assert (
             re.search(r"source_tag=test_source_tag", pc.index_api.api_client.user_agent) is not None
-        )
-
-    def test_set_source_tag_via_config(self):
-        config = ConfigBuilder.build(
-            api_key="YOUR_API_KEY", host="https://my-host", source_tag="my_source_tag"
-        )
-        pc = Pinecone(config=config)
-        assert (
-            re.search(r"source_tag=my_source_tag", pc.index_api.api_client.user_agent) is not None
         )
