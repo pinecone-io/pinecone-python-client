@@ -6,7 +6,7 @@ from pinecone.grpc.utils import dict_to_proto_struct
 
 class TestGrpcIndexUpdate:
     def setup_method(self):
-        self.config = Config(api_key="test-api-key", host="foo")
+        self.config = Config(api_key="test-api-key", host="foo.pinecone.io")
         self.index = GRPCIndex(
             config=self.config, index_name="example-name", _endpoint_override="test-endpoint"
         )
