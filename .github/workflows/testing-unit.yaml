@@ -54,6 +54,7 @@ jobs:
         with:
           include_grpc: '${{ matrix.use_grpc }}'
           include_types: false
+          include_asyncio: true
 
       - name: Run unit tests (REST)
         run: poetry run pytest --cov=pinecone --timeout=120 tests/unit
