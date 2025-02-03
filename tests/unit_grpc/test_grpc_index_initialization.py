@@ -58,7 +58,7 @@ class TestGRPCIndexInitialization:
     def test_config_passed_when_target_by_host(self):
         pc = PineconeGRPC(api_key="YOUR_API_KEY")
         config = GRPCClientConfig(timeout=5, secure=True)
-        index = pc.Index(host="myhost.pinecone.io", grpc_config=config)
+        index = pc.Index(host="localhost", grpc_config=config)
 
         assert index.grpc_client_config.timeout == 5
         assert index.grpc_client_config.secure == True
@@ -68,7 +68,7 @@ class TestGRPCIndexInitialization:
         assert index.grpc_client_config.conn_timeout == 1
 
         # Endpoint port defaults to 443
-        assert index._endpoint() == "myhost:443"
+        assert index._endpoint() == "localhost:443"
 
     def test_config_passed_when_target_by_host_and_port(self):
         pc = PineconeGRPC(api_key="YOUR_API_KEY")
