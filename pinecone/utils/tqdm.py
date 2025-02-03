@@ -4,20 +4,25 @@ try:
 except ImportError:
     # Fallback: define a dummy tqdm that supports the same interface.
     class tqdm:
-        def __init__(self, total=None, desc=None, disable=False, *args, **kwargs):
+        def __init__(self, iterable=None, total=None, desc="", **kwargs):
+            self.iterable = iterable
             self.total = total
             self.desc = desc
-            self.disable = disable
-            self.current = 0  # to keep track of progress
+            # You can store additional kwargs if needed
+
+        def __iter__(self):
+            # Just iterate over the underlying iterable
+            for item in self.iterable:
+                yield item
 
         def update(self, n=1):
-            # Simply increment the internal counter.
-            self.current += n
+            # No-op: This stub doesn't track progress
+            pass
 
         def __enter__(self):
-            # When entering the context, just return self.
+            # Allow use as a context manager
             return self
 
         def __exit__(self, exc_type, exc_value, traceback):
-            # Nothing special to do when exiting the context.
+            # Nothing to cleanup
             pass
