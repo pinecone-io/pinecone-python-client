@@ -54,19 +54,25 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         # proxy_headers: Optional[Dict[str, str]] = None,
         # ssl_ca_certs: Optional[str] = None,
         # ssl_verify: Optional[bool] = None,
-        additional_headers: Optional[Dict[str, str]] = {},
+        # additional_headers: Optional[Dict[str, str]] = {},
         **kwargs,
     ):
-        for kwarg in {"proxy_url", "proxy_headers", "ssl_ca_certs", "ssl_verify"}:
+        for kwarg in {
+            "additional_headers",
+            "proxy_url",
+            "proxy_headers",
+            "ssl_ca_certs",
+            "ssl_verify",
+        }:
             if kwarg in kwargs:
                 raise NotImplementedError(
-                    f"You have passed {kwarg} but support for proxies is not yet implemented in PineconeAsyncio."
+                    f"You have passed {kwarg} but this configuration has not been implemented yet for PineconeAsyncio."
                 )
 
         self.config = PineconeConfig.build(
             api_key=api_key,
             host=host,
-            additional_headers=additional_headers,
+            additional_headers=None,
             proxy_url=None,
             proxy_headers=None,
             ssl_ca_certs=None,
