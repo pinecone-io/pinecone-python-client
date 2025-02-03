@@ -159,6 +159,8 @@ jobs:
           python-version: '${{ matrix.python_version }}'
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
+        with:
+          include_asyncio: true
       - name: 'Run integration tests'
         run: poetry run pytest tests/integration/inference -s -vv
         env:
