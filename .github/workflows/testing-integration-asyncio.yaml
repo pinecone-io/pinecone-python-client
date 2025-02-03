@@ -3,28 +3,6 @@ name: "DB Integration: Asyncio"
   workflow_call: {}
 
 jobs:
-  db-data-serverless:
-    name: db_data rest
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python_version:
-          - 3.9
-          - 3.13
-        use_grpc: [true, false]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/test-data-plane
-        with:
-          python_version: '${{ matrix.python_version }}'
-          use_grpc: '${{ matrix.use_grpc }}'
-          metric: 'cosine'
-          spec: '{ "serverless": { "region": "us-west-2", "cloud": "aws" }}'
-          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
-          freshness_timeout_seconds: 600
-          skip_weird_id_tests: 'true'
-
   db-data-asyncio:
     name: db_data asyncio
     runs-on: ubuntu-latest
