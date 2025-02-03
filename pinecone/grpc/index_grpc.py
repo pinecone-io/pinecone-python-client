@@ -3,7 +3,7 @@ from typing import Optional, Dict, Union, List, Tuple, Any, Iterable, cast, Lite
 
 from google.protobuf import json_format
 
-from tqdm.autonotebook import tqdm
+from pinecone.utils.tqdm import tqdm
 from concurrent.futures import as_completed, Future
 
 
@@ -207,7 +207,9 @@ class GRPCIndex(GRPCIndexBase):
             results = [
                 async_result.result()
                 for async_result in tqdm(
-                    cast_results, disable=not show_progress, desc="collecting async responses"
+                    iterable=cast_results,
+                    disable=not show_progress,
+                    desc="collecting async responses",
                 )
             ]
 

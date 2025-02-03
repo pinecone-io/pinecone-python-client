@@ -38,7 +38,6 @@ urllib3 = [
   { version = ">=1.26.0", python = ">=3.8,<3.12" },
   { version = ">=1.26.5", python = "^3.12" }
 ]
-tqdm = ">=4.64.1"
 # certifi does not follow semver. Should always be
 # on latest but setting a broad range to have maximum
 # compatibility with libraries that may pin version.

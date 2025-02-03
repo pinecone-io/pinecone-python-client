@@ -2,11 +2,6 @@
 .. include:: ../README.md
 """
 
-import warnings
-from tqdm import TqdmExperimentalWarning
-
-warnings.filterwarnings("ignore", category=TqdmExperimentalWarning)
-
 from .deprecated_plugins import check_for_deprecated_plugins
 from .deprecation_warnings import *
 from .config import *

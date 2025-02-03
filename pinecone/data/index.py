@@ -1,4 +1,4 @@
-from tqdm.autonotebook import tqdm
+from pinecone.utils.tqdm import tqdm
 
 import logging
 import json
