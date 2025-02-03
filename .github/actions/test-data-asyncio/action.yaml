@@ -33,6 +33,7 @@ runs:
       with:
         include_grpc: ${{ inputs.use_grpc }}
         include_dev: 'true'
+        include_asyncio: 'true'
 
     - name: Run data plane tests
       id: data-plane-asyncio-tests
