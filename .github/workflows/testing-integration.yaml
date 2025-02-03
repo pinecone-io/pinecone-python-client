@@ -4,7 +4,7 @@ name: "Integration Tests"
 
 jobs:
   db-data-serverless:
-    name: db_data serverless integration tests
+    name: db_data rest
     runs-on: ubuntu-latest
     needs:
       - inference

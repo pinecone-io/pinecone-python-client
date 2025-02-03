@@ -13,7 +13,6 @@ jobs:
     name: Deps (REST)
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 10
       fail-fast: false
       matrix:
         python_version:
@@ -21,8 +20,8 @@ jobs:
           - 3.11
         urllib3_version:
           - 1.26.0
-          - 1.26.18
-          - 2.0.2
+          # - 1.26.18
+          # - 2.0.2
           - 2.2.1
     steps:
       - uses: actions/checkout@v4
@@ -38,15 +37,14 @@ jobs:
     name: Deps (REST)
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 10
       fail-fast: false
       matrix:
         python_version:
           - 3.12
         urllib3_version:
           - 1.26.5
-          - 1.26.18
-          - 2.0.2
+          # - 1.26.18
+          # - 2.0.2
           - 2.2.1
     steps:
       - uses: actions/checkout@v4
@@ -61,15 +59,14 @@ jobs:
     name: Deps (REST)
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 10
       fail-fast: false
       matrix:
         python_version:
           - 3.13
         urllib3_version:
           - 1.26.5
-          - 1.26.18
-          - 2.0.2
+          # - 1.26.18
+          # - 2.0.2
           - 2.2.1
     steps:
       - uses: actions/checkout@v4

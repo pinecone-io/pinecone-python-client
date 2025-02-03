@@ -12,7 +12,6 @@ jobs:
     name: Deps (Asyncio REST)
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 10
       fail-fast: false
       matrix:
         python_version:
