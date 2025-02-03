@@ -3,6 +3,30 @@ name: "Integration Tests"
   workflow_call: {}
 
 jobs:
+
+  inference:
+    name: Inference tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python_version: [3.9, 3.12]
+    steps:
+      - uses: actions/checkout@v4
+      - name: 'Set up Python ${{ matrix.python_version }}'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '${{ matrix.python_version }}'
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+        with:
+          include_asyncio: true
+      - name: 'Run integration tests'
+        run: poetry run pytest tests/integration/inference -s -vv
+        env:
+          PINECONE_DEBUG_CURL: 'true'
+          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+
+
   dependency-test-asyncio:
     uses: './.github/workflows/testing-integration-asyncio.yaml'
     secrets: inherit
@@ -31,28 +55,6 @@ jobs:
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
           freshness_timeout_seconds: 600
           skip_weird_id_tests: 'true'
-
-  db-data-asyncio:
-    name: db_data asyncio
-    runs-on: ubuntu-latest
-    needs:
-      - inference
-    strategy:
-      fail-fast: false
-      matrix:
-        python_version:
-          - 3.9
-          - 3.13
-        use_grpc: [false, true]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/test-asyncio
-        with:
-          python_version: '${{ matrix.python_version }}'
-          use_grpc: '${{ matrix.use_grpc }}'
-          spec: '{ "serverless": { "region": "us-west-2", "cloud": "aws" }}'
-          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
-          freshness_timeout_seconds: 600
 
   db-control-rest-pod:
     name: db_control pod/collection tests
@@ -117,52 +119,3 @@ jobs:
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
           SERVERLESS_CLOUD: '${{ matrix.testConfig.serverless.cloud }}'
           SERVERLESS_REGION: '${{ matrix.testConfig.serverless.region }}'
-
-  db-control-asyncio:
-    name: db_control asyncio
-    runs-on: ubuntu-latest
-    needs:
-      - inference
-    strategy:
-      matrix:
-        python_version:
-          - 3.9
-          - 3.12
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-      - name: 'Set up Python ${{ matrix.python_version }}'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '${{ matrix.python_version }}'
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
-        with:
-          include_asyncio: true
-      - name: 'Run integration tests (asyncio)'
-        run: poetry run pytest tests/integration/control_asyncio -s -vv
-        env:
-          PINECONE_DEBUG_CURL: 'true'
-          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
-
-  inference:
-    name: Inference tests
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python_version: [3.9, 3.12]
-    steps:
-      - uses: actions/checkout@v4
-      - name: 'Set up Python ${{ matrix.python_version }}'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '${{ matrix.python_version }}'
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
-        with:
-          include_asyncio: true
-      - name: 'Run integration tests'
-        run: poetry run pytest tests/integration/inference -s -vv
-        env:
-          PINECONE_DEBUG_CURL: 'true'
-          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
