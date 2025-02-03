@@ -87,7 +87,7 @@ def expected_vec_md_sparse2(vals2, md2, sparse_indices_2, sparse_values_2):
 
 class TestGrpcIndexUpsert:
     def setup_method(self):
-        self.config = Config(api_key="test-api-key", host="foo")
+        self.config = Config(api_key="test-api-key", host="foo.pinecone.io")
         self.index = GRPCIndex(
             config=self.config, index_name="example-name", _endpoint_override="test-endpoint"
         )

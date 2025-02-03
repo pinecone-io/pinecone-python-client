@@ -5,7 +5,7 @@ from pinecone.core.grpc.protos.db_data_2025_01_pb2 import FetchRequest
 
 class TestGrpcIndexFetch:
     def setup_method(self):
-        self.config = Config(api_key="test-api-key", host="foo")
+        self.config = Config(api_key="test-api-key", host="foo.pinecone.io")
         self.index = GRPCIndex(
             config=self.config, index_name="example-name", _endpoint_override="test-endpoint"
         )

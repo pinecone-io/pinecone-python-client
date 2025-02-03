@@ -33,6 +33,7 @@ from pinecone.enums import (
 from .types import CreateIndexForModelEmbedTypedDict
 from .request_factory import PineconeDBControlRequestFactory
 from .pinecone_interface_asyncio import PineconeAsyncioDBControlInterface
+from .pinecone import check_realistic_host
 
 logger = logging.getLogger(__name__)
 """ @private """
@@ -50,21 +51,33 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         self,
         api_key: Optional[str] = None,
         host: Optional[str] = None,
-        proxy_url: Optional[str] = None,
-        proxy_headers: Optional[Dict[str, str]] = None,
-        ssl_ca_certs: Optional[str] = None,
-        ssl_verify: Optional[bool] = None,
-        additional_headers: Optional[Dict[str, str]] = {},
+        # proxy_url: Optional[str] = None,
+        # proxy_headers: Optional[Dict[str, str]] = None,
+        # ssl_ca_certs: Optional[str] = None,
+        # ssl_verify: Optional[bool] = None,
+        # additional_headers: Optional[Dict[str, str]] = {},
         **kwargs,
     ):
+        for kwarg in {
+            "additional_headers",
+            "proxy_url",
+            "proxy_headers",
+            "ssl_ca_certs",
+            "ssl_verify",
+        }:
+            if kwarg in kwargs:
+                raise NotImplementedError(
+                    f"You have passed {kwarg} but this configuration has not been implemented yet for PineconeAsyncio."
+                )
+
         self.config = PineconeConfig.build(
             api_key=api_key,
             host=host,
-            additional_headers=additional_headers,
-            proxy_url=proxy_url,
-            proxy_headers=proxy_headers,
-            ssl_ca_certs=ssl_ca_certs,
-            ssl_verify=ssl_verify,
+            additional_headers=None,
+            proxy_url=None,
+            proxy_headers=None,
+            ssl_ca_certs=None,
+            ssl_verify=None,
             **kwargs,
         )
         self.openapi_config = ConfigBuilder.build_openapi_config(self.config, **kwargs)
@@ -257,9 +270,11 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         api_key = self.config.api_key
         openapi_config = self.openapi_config
 
+        if host is None or host == "":
+            raise ValueError("A host must be specified")
+
+        check_realistic_host(host)
         index_host = normalize_host(host)
-        if index_host == "":
-            raise ValueError("host must be specified")
 
         return _AsyncioIndex(
             host=index_host,
