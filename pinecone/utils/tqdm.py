@@ -3,7 +3,7 @@ try:
     from tqdm.auto import tqdm
 except ImportError:
     # Fallback: define a dummy tqdm that supports the same interface.
-    class tqdm:
+    class tqdm:  # type: ignore
         def __init__(self, iterable=None, total=None, desc="", **kwargs):
             self.iterable = iterable
             self.total = total
