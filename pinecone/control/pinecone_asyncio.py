@@ -33,6 +33,7 @@ from pinecone.enums import (
 from .types import CreateIndexForModelEmbedTypedDict
 from .request_factory import PineconeDBControlRequestFactory
 from .pinecone_interface_asyncio import PineconeAsyncioDBControlInterface
+from .pinecone import check_realistic_host
 
 logger = logging.getLogger(__name__)
 """ @private """
@@ -272,16 +273,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         if host is None or host == "":
             raise ValueError("A host must be specified")
 
-        if "." not in host or "localhost" not in host:
-            # If someone accidentally passes an index name instead of a host,
-            # they will see this error. Index names do not contain periods.
-            # If we don't trap this case, they will get an error about failed
-            # DNS resolution when attempting to connect to some address that
-            # does not exist.
-            raise ValueError(
-                f"You passed '{host}' as the host but this does not appear to be valid. Call describe_index() to confirm the host of the index."
-            )
-
+        check_realistic_host(host)
         index_host = normalize_host(host)
 
         return _AsyncioIndex(

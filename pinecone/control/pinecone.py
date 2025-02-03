@@ -297,6 +297,8 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
         openapi_config = self.openapi_config
 
         if host != "":
+            check_realistic_host(host)
+
             # Use host url if it is provided
             index_host = normalize_host(host)
         else:
@@ -310,4 +312,20 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
             openapi_config=openapi_config,
             source_tag=self.config.source_tag,
             **kwargs,
+        )
+
+
+def check_realistic_host(host: str) -> None:
+    """@private
+
+    Checks whether a user-provided host string seems plausible.
+    Someone could erroneously pass an index name as the host by
+    mistake, and if they have done that we'd like to give them a
+    simple error message as feedback rather than attempting to
+    call the url and getting a more cryptic DNS resolution error.
+    """
+
+    if "." not in host and "localhost" not in host:
+        raise ValueError(
+            f"You passed '{host}' as the host but this does not appear to be valid. Call describe_index() to confirm the host of the index."
         )
