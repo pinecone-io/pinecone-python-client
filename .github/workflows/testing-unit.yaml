@@ -26,6 +26,7 @@ jobs:
         with:
           include_grpc: '${{ matrix.use_grpc }}'
           include_types: true
+          include_asyncio: true
 
       - name: mypy check
         run: poetry run mypy pinecone
