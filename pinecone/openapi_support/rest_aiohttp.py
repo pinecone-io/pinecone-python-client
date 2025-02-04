@@ -1,9 +1,12 @@
+import ssl
+import certifi
 import json
 from .rest_utils import RestClientInterface, RESTResponse, raise_exceptions_or_return
+from .configuration import Configuration
 
 
 class AiohttpRestClient(RestClientInterface):
-    def __init__(self, configuration) -> None:
+    def __init__(self, configuration: Configuration) -> None:
         try:
             import aiohttp
         except ImportError:
@@ -11,8 +14,19 @@ class AiohttpRestClient(RestClientInterface):
                 "Additional dependencies are required to use Pinecone with asyncio. Include these extra dependencies in your project by installing `pinecone[asyncio]`."
             ) from None
 
-        conn = aiohttp.TCPConnector()
-        self._session = aiohttp.ClientSession(connector=conn)
+        if configuration.ssl_ca_cert is not None:
+            ca_certs = configuration.ssl_ca_cert
+        else:
+            ca_certs = certifi.where()
+
+        ssl_context = ssl.create_default_context(cafile=ca_certs)
+
+        conn = aiohttp.TCPConnector(verify_ssl=configuration.verify_ssl, ssl=ssl_context)
+
+        if configuration.proxy:
+            self._session = aiohttp.ClientSession(connector=conn, proxy=configuration.proxy)
+        else:
+            self._session = aiohttp.ClientSession(connector=conn)
 
     async def close(self):
         await self._session.close()

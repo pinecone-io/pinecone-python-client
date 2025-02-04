@@ -51,33 +51,33 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         self,
         api_key: Optional[str] = None,
         host: Optional[str] = None,
-        # proxy_url: Optional[str] = None,
+        proxy_url: Optional[str] = None,
         # proxy_headers: Optional[Dict[str, str]] = None,
-        # ssl_ca_certs: Optional[str] = None,
-        # ssl_verify: Optional[bool] = None,
-        # additional_headers: Optional[Dict[str, str]] = {},
+        ssl_ca_certs: Optional[str] = None,
+        ssl_verify: Optional[bool] = None,
+        additional_headers: Optional[Dict[str, str]] = {},
         **kwargs,
     ):
-        for kwarg in {
-            "additional_headers",
-            "proxy_url",
-            "proxy_headers",
-            "ssl_ca_certs",
-            "ssl_verify",
-        }:
-            if kwarg in kwargs:
+        for deprecated_kwarg in {"config", "openapi_config"}:
+            if deprecated_kwarg in kwargs:
                 raise NotImplementedError(
-                    f"You have passed {kwarg} but this configuration has not been implemented yet for PineconeAsyncio."
+                    f"Passing {deprecated_kwarg} is no longer supported. Please pass individual settings such as proxy_url, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at {docslinks['README']} for examples."
+                )
+
+        for unimplemented_kwarg in {"proxy_headers"}:
+            if unimplemented_kwarg in kwargs:
+                raise NotImplementedError(
+                    f"You have passed {unimplemented_kwarg} but this configuration has not been implemented for PineconeAsyncio."
                 )
 
         self.config = PineconeConfig.build(
             api_key=api_key,
             host=host,
-            additional_headers=None,
-            proxy_url=None,
+            additional_headers=additional_headers,
+            proxy_url=proxy_url,
             proxy_headers=None,
-            ssl_ca_certs=None,
-            ssl_verify=None,
+            ssl_ca_certs=ssl_ca_certs,
+            ssl_verify=ssl_verify,
             **kwargs,
         )
         self.openapi_config = ConfigBuilder.build_openapi_config(self.config, **kwargs)
