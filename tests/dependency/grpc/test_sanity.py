@@ -28,6 +28,9 @@ class TestSanityRest:
         assert description.dimension == 2
 
         idx = client.Index(index_name)
+        idx.describe_index_stats()
+
+        # Upsert some data
         idx.upsert(vectors=[("1", [1.0, 2.0]), ("2", [3.0, 4.0]), ("3", [5.0, 6.0])])
 
         # Wait for index freshness
