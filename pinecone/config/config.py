@@ -62,7 +62,9 @@ class ConfigBuilder:
         source_tag = kwargs.pop("source_tag", None)
 
         if not api_key:
-            raise PineconeConfigurationError("You haven't specified an Api-Key.")
+            raise PineconeConfigurationError(
+                "You haven't specified an API key. Please either set the PINECONE_API_KEY environment variable or pass the 'api_key' keyword argument to the Pinecone client constructor."
+            )
         if not host:
             raise PineconeConfigurationError("You haven't specified a host.")
 

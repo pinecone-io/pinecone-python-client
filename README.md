@@ -12,17 +12,7 @@ For more information, see the docs at https://docs.pinecone.io
 
 ### Upgrading the SDK
 
-#### Upgrading from `4.x` to `5.x`
 
-As part of an overall move to stop exposing generated code in the package's public interface, an obscure configuration property (`openapi_config`) was removed in favor of individual configuration options such as `proxy_url`, `proxy_headers`, and `ssl_ca_certs`. All of these properties were available in v3 and v4 releases of the SDK, with deprecation notices shown to affected users.
-
-It is no longer necessary to install a separate plugin, `pinecone-plugin-inference`, to try out the [Inference API](https://docs.pinecone.io/guides/inference/understanding-inference); that plugin is now installed by default in the v5 SDK. See [usage instructions below](#inference-api).
-
-#### Older releases
-
-- **Upgrading to `4.x`** : For this upgrade you are unlikely to be impacted by breaking changes unless you are using the `grpc` extras (see install steps below). Read full details in these [v4 Release Notes](https://github.com/pinecone-io/pinecone-python-client/releases/tag/v4.0.0).
-
-- **Upgrading to `3.x`**: Many things were changed in the v3 SDK to pave the way for Pinecone's new Serverless index offering. These changes are covered in detail in the [**v3 Migration Guide**](https://canyon-quilt-082.notion.site/Pinecone-Python-SDK-v3-0-0-Migration-Guide-056d3897d7634bf7be399676a4757c7b#a21aff70b403416ba352fd30e300bce3). Serverless indexes are only available in `3.x` release versions or greater.
 
 ### Example code
 
@@ -30,44 +20,47 @@ Many of the brief examples shown in this README are using very small vectors to 
 
 ## Prerequisites
 
-The Pinecone Python SDK is compatible with Python 3.8 and greater.
+The Pinecone Python SDK is compatible with Python 3.9 and greater. It has been tested with CPython versions from 3.9 to 3.13.
 
 ## Installation
 
-There are two flavors of the Pinecone Python SDK. The default flavor installed from PyPI as `pinecone` has a minimal set of dependencies and interacts with Pinecone via HTTP requests.
+The Pinecone Python SDK is distributed on PyPI using the package name `pinecone`. By default the `pinecone` has a minimal set of dependencies, but you can install some extras to unlock additional functionality.
 
-If you are aiming to maximimize performance, you can install additional gRPC dependencies to access an alternate SDK implementation that relies on gRPC for data operations. See the guide on [tuning performance](https://docs.pinecone.io/docs/performance-tuning).
+Available extras:
 
-### Installing with pip
+- `pinecone[asyncio]` will add a dependency on `aiohttp` and enable usage of `PineconeAsyncio`, the asyncio-enabled version of the client for use with highly asynchronous modern web frameworks such as FastAPI.
+- `pinecone[grpc]` will add dependencies on `grpcio` and related libraries needed to make pinecone data calls such as `upsert` and `query` over [GRPC](https://grpc.io/) for a modest performance improvement. See the guide on [tuning performance](https://docs.pinecone.io/docs/performance-tuning).
+
+#### Installing with pip
 
 ```shell
 # Install the latest version
 pip3 install pinecone
 
-# Install the latest version, with extra grpc dependencies
-pip3 install "pinecone[grpc]"
-
-# Install a specific version
-pip3 install pinecone==6.0.0
-
-# Install a specific version, with grpc extras
-pip3 install "pinecone[grpc]"==6.0.0
+# Install the latest version, with optional dependencies
+pip3 install "pinecone[asyncio,grpc]"
 ```
 
-### Installing with poetry
+#### Installing with uv
+
+[uv](https://docs.astral.sh/uv/) is a modern package manager that runs 10-100x faster than pip and supports most pip syntax.
+
+```shell
+# Install the latest version
+uv install pinecone
+
+# Install the latest version, optional dependencies
+uv install "pinecone[asyncio,grpc]"
+```
+
+#### Installing with [poetry](https://python-poetry.org/)
 
 ```shell
 # Install the latest version
 poetry add pinecone
 
-# Install the latest version, with grpc extras
-poetry add pinecone --extras grpc
-
-# Install a specific version
-poetry add pinecone==5.0.0
-
-# Install a specific version, with grpc extras
-poetry add pinecone==5.0.0 --extras grpc
+# Install the latest version, with optional dependencies
+poetry add pinecone --extras asyncio --extras grpc
 ```
 
 ## Usage
@@ -102,98 +95,6 @@ from pinecone import Pinecone
 pc = Pinecone(api_key=os.environ.get('CUSTOM_VAR'))
 ```
 
-### Proxy configuration
-
-If your network setup requires you to interact with Pinecone via a proxy, you will need
-to pass additional configuration using optional keyword parameters. These optional parameters are forwarded to `urllib3`, which is the underlying library currently used by the Pinecone SDK to make HTTP requests. You may find it helpful to refer to the [urllib3 documentation on working with proxies](https://urllib3.readthedocs.io/en/stable/advanced-usage.html#http-and-https-proxies) while troubleshooting these settings.
-
-Here is a basic example:
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(
-    api_key='YOUR_API_KEY',
-    proxy_url='https://your-proxy.com'
-)
-
-pc.list_indexes()
-```
-
-If your proxy requires authentication, you can pass those values in a header dictionary using the `proxy_headers` parameter.
-
-```python
-from pinecone import Pinecone
-import urllib3 import make_headers
-
-pc = Pinecone(
-    api_key='YOUR_API_KEY',
-    proxy_url='https://your-proxy.com',
-    proxy_headers=make_headers(proxy_basic_auth='username:password')
-)
-
-pc.list_indexes()
-```
-
-### Using proxies with self-signed certificates
-
-By default the Pinecone Python SDK will perform SSL certificate verification
-using the CA bundle maintained by Mozilla in the [certifi](https://pypi.org/project/certifi/) package.
-
-If your proxy server is using a self-signed certificate, you will need to pass the path to the certificate in PEM format using the `ssl_ca_certs` parameter.
-
-```python
-from pinecone import Pinecone
-import urllib3 import make_headers
-
-pc = Pinecone(
-    api_key="YOUR_API_KEY",
-    proxy_url='https://your-proxy.com',
-    proxy_headers=make_headers(proxy_basic_auth='username:password'),
-    ssl_ca_certs='path/to/cert-bundle.pem'
-)
-
-pc.list_indexes()
-```
-
-### Disabling SSL verification
-
-If you would like to disable SSL verification, you can pass the `ssl_verify`
-parameter with a value of `False`. We do not recommend going to production with SSL verification disabled.
-
-```python
-from pinecone import Pinecone
-import urllib3 import make_headers
-
-pc = Pinecone(
-    api_key='YOUR_API_KEY',
-    proxy_url='https://your-proxy.com',
-    proxy_headers=make_headers(proxy_basic_auth='username:password'),
-    ssl_ca_certs='path/to/cert-bundle.pem',
-    ssl_verify=False
-)
-
-pc.list_indexes()
-
-```
-
-### Working with GRPC (for improved performance)
-
-If you've followed instructions above to install with optional `grpc` extras, you can unlock some performance improvements by working with an alternative version of the SDK imported from the `pinecone.grpc` subpackage.
-
-```python
-import os
-from pinecone.grpc import PineconeGRPC
-
-pc = PineconeGRPC(api_key=os.environ.get('PINECONE_API_KEY'))
-
-# From here on, everything is identical to the REST-based SDK.
-index = pc.Index(host='my-index-8833ca1.svc.us-east1-gcp.pinecone.io')
-
-index.upsert(vectors=[])
-index.query(vector=[...], top_key=10)
-```
-
 # Indexes
 
 ## Create Index
@@ -212,7 +113,8 @@ from pinecone import (
     ServerlessSpec,
     CloudProvider,
     AwsRegion,
-    Metric
+    Metric,
+    VectorType
 )
 
 pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
@@ -221,31 +123,11 @@ pc.create_index(
     dimension=1536,
     metric=Metric.COSINE,
     spec=ServerlessSpec(
-        cloud=CloudProvider.GCP,
+        cloud=CloudProvider.AWS,
         region=AwsRegion.US_WEST_2
-    )
+    ),
+    vector_type=VectorType.DENSE
 )
-
-description = pc.describe_index('my-index')
-# {
-#     "name": "my-index",
-#     "metric": "cosine",
-#     "host": "my-index-dojoi3u.svc.apw5-4e34-81fa.pinecone.io",
-#     "spec": {
-#         "serverless": {
-#             "cloud": "aws",
-#             "region": "us-west-2"
-#         }
-#     },
-#     "status": {
-#         "ready": true,
-#         "state": "Ready"
-#     },
-#     "vector_type": "dense",
-#     "dimension": 1536,
-#     "deletion_protection": "disabled",
-#     "tags": null
-# }
 ```
 
 #### Create a serverless index on Google Cloud Platform
@@ -273,27 +155,6 @@ pc.create_index(
         region=GcpRegion.US_CENTRAL1
     )
 )
-
-description = pc.describe_index(name='my-index')
-# {
-#     "name": "my-index",
-#     "metric": "cosine",
-#     "host": "my-index-dojoi3u.svc.gcp-us-central1-4a9f.pinecone.io",
-#     "spec": {
-#         "serverless": {
-#             "cloud": "gcp",
-#             "region": "us-central1"
-#         }
-#     },
-#     "status": {
-#         "ready": true,
-#         "state": "Ready"
-#     },
-#     "vector_type": "dense",
-#     "dimension": 1536,
-#     "deletion_protection": "disabled",
-#     "tags": null
-# }
 ```
 
 #### Create a serverless index on Azure
@@ -320,40 +181,26 @@ pc.create_index(
         region=AzureRegion.EASTUS2
     )
 )
-
-description = pc.describe_index(name='my-index')
-# {
-#     "name": "my-index",
-#     "metric": "cosine",
-#     "host": "my-index-dojoi3u.svc.eastus2-5e25.prod-azure.pinecone.io",
-#     "spec": {
-#         "serverless": {
-#             "cloud": "azure",
-#             "region": "eastus2"
-#         }
-#     },
-#     "status": {
-#         "ready": true,
-#         "state": "Ready"
-#     },
-#     "vector_type": "dense",
-#     "dimension": 1536,
-#     "deletion_protection": "disabled",
-#     "tags": null
-# }
 ```
-
-### Storing index metadata with index tags
-
-When working with multiple indexes, it is useful to store metadata about your index. To help with this, Pinecone indexes can be configured with
 
 ### Create a pod index
 
 The following example creates an index without a metadata
 configuration. By default, Pinecone indexes all metadata.
 
+Many of these fields accept string literals if you know
+the values you want to use, but enum objects such as
+`PodIndexEnvironment`, `PodType`, `Metric` and more can
+help you discover available options.
+
 ```python
-from pinecone import Pinecone, PodSpec
+from pinecone import (
+    Pinecone,
+    PodSpec,
+    Metric,
+    PodType,
+    PodIndexEnvironment
+)
 
 pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
 pc.create_index(
@@ -362,34 +209,149 @@ pc.create_index(
     metric="cosine",
     deletion_protection='enabled',
     spec=PodSpec(
-        environment='us-west-2',
-        pod_type='p1.x1'
+        environment=PodIndexEnvironment.EU_WEST1_GCP,
+        pod_type=PodType.P1_X1
     )
 )
 ```
 
-Pod indexes support many optional configuration fields. For example,
-the following example creates an index that only indexes
-the "color" metadata field. Queries against this index
-cannot filter based on any other metadata field.
+#### Optional configurations for pod indexes
+
+Pod indexes support many optional configuration fields through
+the spec object. For example, the following example creates
+an index that only indexes the "color" metadata field for queries
+with filtering; with this metadata configuration, queries against the
+index cannot filter based on any other metadata field.
+
+This example also demonstrates horizontal scaling to multiple `replicas`.
+See [Scale pod-based indexes](https://docs.pinecone.io/guides/indexes/pods/scale-pod-based-indexes) for more information on scaling.
 
 ```python
 from pinecone import Pinecone, PodSpec
 
 pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
 
-metadata_config = {
-    "indexed": ["color"]
-}
-
 pc.create_index(
-    "example-index-2",
+    name="example-index-2",
     dimension=1536,
     spec=PodSpec(
-        environment='us-west-2',
+        environment="eu-west1-gcp",
         pod_type='p1.x1',
-        metadata_config=metadata_config
+        metadata_config={
+            "indexed": ["color"]
+        },
+        replicas=2
     )
+)
+```
+
+
+### Labeling indexes with index tags
+
+Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Tags are flexible and can be tailored to your needs, but some common use cases for them might be to label an index with the relevant deployment `environment`, `application`, `team`, or `owner`.
+
+Tags can be set during index creation by passing an optional dictionary with the `tags` keyword argument.
+
+```python
+from pinecone import (
+    Pinecone,
+    ServerlessSpec,
+    CloudProvider,
+    GcpRegion,
+    Metric
+)
+
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+
+pc.create_index(
+    name='my-index',
+    dimension=1536,
+    metric=Metric.COSINE,
+    spec=ServerlessSpec(
+        cloud=CloudProvider.GCP,
+        region=GcpRegion.US_CENTRAL1
+    ),
+    tags={
+        "environment": "testing",
+        "owner": "jsmith",
+    }
+)
+```
+
+#### Modifying tags
+
+To modify the tags of an existing index, use `configure_index()`. The `configure_index` method can be used to change the value of an existing tag, add new tags, or delete tags by setting the value to empty string.
+
+Here's an example showing different ways of modifying tags.
+
+#### Viewing tags with describe_index
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+
+desc = pc.describe_index(name='my-index')
+print(desc.tags)
+# {
+#   'environment': 'testing',
+#   'owner': 'jsmith'
+# }
+```
+
+#### Modifying an existing tag with configure_index
+
+You can modify an existing tag by passing the key-value pair to `configure_index()`. Other tags on the index will not be changed.
+
+````python
+pc.configure_index(
+    name='my-index',
+    tags={"environment": "production"}
+)
+
+desc = pc.describe_index(
+    name=index_name,
+)
+print(desc.tags)
+# {
+#   'environment': 'production',
+#   'owner': 'jsmith'
+# }
+````
+
+#### Adding a new tag to an existing index
+
+Tags passed to the `configure_index` method are merged with any tags that an index already has.
+
+```python
+pc.configure_index(
+    name='my-index',
+    tags={"purpose": "for testing the new chatbot feature"}
+)
+
+desc = pc.describe_index(
+    name=index_name,
+)
+print(desc.tags)
+# {
+#     'purpose': 'for testing the new chatbot feature',
+#     'environment': 'production',
+#     'owner': 'jsmith'
+# }
+```
+
+#### Removing a tag
+
+To remove a tag, pass the value empty string.
+
+```python
+pc.configure_index(
+    name='my-index',
+    tags={
+        "purpose": "",
+        "environment": "",
+        "owner": ""
+    }
 )
 ```
 
@@ -711,6 +673,7 @@ query_embeddings = pc.inference.embed(
 
 # Send query to Pinecone index to retrieve similar documents
 ```
+
 
 # Contributing
 
