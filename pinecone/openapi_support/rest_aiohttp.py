@@ -19,7 +19,7 @@ class AiohttpRestClient(RestClientInterface):
         else:
             ca_certs = certifi.where()
 
-        ssl_context = ssl.create_default_context(cafile=ca_certs, purpose=ssl.Purpose.CLIENT_AUTH)
+        ssl_context = ssl.create_default_context(cafile=ca_certs)
 
         conn = aiohttp.TCPConnector(verify_ssl=configuration.verify_ssl, ssl=ssl_context)
 
