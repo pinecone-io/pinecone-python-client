@@ -63,14 +63,11 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
         pool_threads: Optional[int] = None,
         **kwargs,
     ):
-        if kwargs.get("config", None):
-            raise Exception(
-                "Passing config is no longer supported. Please pass individual settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at https://github.com/pinecone-io/pinecone-python-client for examples."
-            )
-        if kwargs.get("openapi_config", None):
-            raise Exception(
-                "Passing openapi_config is no longer supported. Please pass individual settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at https://github.com/pinecone-io/pinecone-python-client for examples."
-            )
+        for deprecated_kwarg in {"config", "openapi_config"}:
+            if deprecated_kwarg in kwargs:
+                raise NotImplementedError(
+                    f"Passing {deprecated_kwarg} is no longer supported. Please pass individual settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at {docslinks['README']} for examples."
+                )
 
         self.config = PineconeConfig.build(
             api_key=api_key,
