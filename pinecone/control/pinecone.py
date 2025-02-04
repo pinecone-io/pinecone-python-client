@@ -25,7 +25,7 @@ from pinecone.models import (
 from .langchain_import_warnings import _build_langchain_attribute_error_message
 from pinecone.utils import docslinks
 
-from pinecone.data import _Index, _Inference
+from pinecone.data import _Index, _Inference, _AsyncioIndex
 from pinecone.enums import (
     Metric,
     VectorType,
@@ -306,6 +306,24 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
             host=index_host,
             api_key=api_key,
             pool_threads=pt,
+            openapi_config=openapi_config,
+            source_tag=self.config.source_tag,
+            **kwargs,
+        )
+
+    def IndexAsyncio(self, host: str, **kwargs):
+        api_key = self.config.api_key
+        openapi_config = self.openapi_config
+
+        if host is None or host == "":
+            raise ValueError("A host must be specified")
+
+        check_realistic_host(host)
+        index_host = normalize_host(host)
+
+        return _AsyncioIndex(
+            host=index_host,
+            api_key=api_key,
             openapi_config=openapi_config,
             source_tag=self.config.source_tag,
             **kwargs,
