@@ -89,6 +89,7 @@ class TestUpsertAndSearchRecords:
         for hit in response_filtered.result.hits:
             assert hit.fields.get("my_text_field") is None
             assert hit.fields.get("more_stuff") is not None
+        await model_idx.close()
 
     async def test_search_records_with_vector(self, model_index_host, records_to_upsert):
         model_idx = build_asyncioindex_client(model_index_host)
@@ -107,6 +108,7 @@ class TestUpsertAndSearchRecords:
         # Test search alias
         response2 = await model_idx.search(namespace=target_namespace, query=search_query)
         assert response == response2
+        await model_idx.close()
 
     @pytest.mark.parametrize("rerank_model", ["bge-reranker-v2-m3", RerankModel.Bge_Reranker_V2_M3])
     async def test_search_with_rerank(self, model_index_host, records_to_upsert, rerank_model):
@@ -134,6 +136,7 @@ class TestUpsertAndSearchRecords:
             assert hit._score > 0
             assert hit.fields.get("my_text_field") is not None
             assert hit.fields.get("more_stuff") is not None
+        await model_idx.close()
 
     async def test_search_with_rerank_query(self, model_index_host, records_to_upsert):
         model_idx = build_asyncioindex_client(model_index_host)
@@ -156,6 +159,7 @@ class TestUpsertAndSearchRecords:
         )
         assert len(response.result.hits) == 3
         assert response.usage is not None
+        await model_idx.close()
 
 
 @pytest.mark.asyncio
@@ -179,6 +183,7 @@ class TestUpsertAndSearchRecordsErrorCases:
                     "top_n": 3,
                 },
             )
+        await model_idx.close()
 
     @pytest.mark.skip(reason="Possible bug in the API")
     async def test_search_with_rerank_empty_rank_fields_error(
@@ -198,3 +203,4 @@ class TestUpsertAndSearchRecordsErrorCases:
                 query={"inputs": {"text": "Apple corporation"}, "top_k": 3},
                 rerank={"model": "bge-reranker-v2-m3", "rank_fields": [], "top_n": 3},
             )
+        await model_idx.close()

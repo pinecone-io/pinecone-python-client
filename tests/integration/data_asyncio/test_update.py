@@ -35,6 +35,7 @@ class TestAsyncioUpdate:
         fetched_vec = await asyncio_idx.fetch(ids=["1"], namespace=target_namespace)
         assert fetched_vec.vectors["1"].values[0] == pytest.approx(new_values[0], 0.01)
         assert fetched_vec.vectors["1"].values[1] == pytest.approx(new_values[1], 0.01)
+        await asyncio_idx.close()
 
     @pytest.mark.skip(reason="Needs troubleshooting, possible bug")
     async def test_update_metadata(self, index_host, dimension, target_namespace):
@@ -65,3 +66,4 @@ class TestAsyncioUpdate:
 
         fetched_vec = await asyncio_idx.fetch(ids=["1", "2"], namespace=target_namespace)
         assert fetched_vec.vectors["2"].metadata == {"genre": "comedy"}
+        await asyncio_idx.close()

@@ -45,9 +45,9 @@ def model_index_name():
 
 
 def build_asyncioindex_client(index_host) -> _IndexAsyncio:
-    from pinecone import PineconeAsyncio
+    from pinecone import Pinecone
 
-    return PineconeAsyncio().Index(host=index_host)
+    return Pinecone().IndexAsyncio(host=index_host)
 
 
 @pytest.fixture(scope="session")
