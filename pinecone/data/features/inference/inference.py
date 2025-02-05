@@ -15,6 +15,7 @@ from .inference_request_builder import (
 )
 
 logger = logging.getLogger(__name__)
+""" @private """
 
 
 class Inference(PluginAware):

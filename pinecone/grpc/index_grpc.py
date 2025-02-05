@@ -54,6 +54,7 @@ from ..data.types import (
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues"]
 
 _logger = logging.getLogger(__name__)
+""" @private """
 
 
 class GRPCIndex(GRPCIndexBase):

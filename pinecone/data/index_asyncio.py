@@ -51,6 +51,7 @@ from .features.bulk_import import ImportFeatureMixinAsyncio
 
 
 logger = logging.getLogger(__name__)
+""" @private """
 
 __all__ = ["_IndexAsyncio"]
 
@@ -61,6 +62,7 @@ _OPENAPI_ENDPOINT_PARAMS = (
     "_check_input_type",
     "_check_return_type",
 )
+""" @private """
 
 
 def parse_query_response(response: QueryResponse):

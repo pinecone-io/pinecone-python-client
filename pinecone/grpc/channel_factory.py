@@ -11,6 +11,7 @@ from pinecone.utils.constants import MAX_MSG_SIZE
 from pinecone.utils.user_agent import get_user_agent_grpc
 
 _logger = logging.getLogger(__name__)
+""" @private """
 
 
 class GrpcChannelFactory:

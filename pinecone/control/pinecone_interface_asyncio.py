@@ -455,7 +455,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         )
 
         async def main():
-            with PineconeAsyncio() as pc:
+            async with PineconeAsyncio() as pc:
                 if not await pc.has_index("book-search"):
                     desc = await pc.create_index_for_model(
                         name="book-search",
@@ -627,7 +627,7 @@ class PineconeAsyncioDBControlInterface(ABC):
             print(f"Your index is hosted at {description.host}")
             await pc.close()
 
-            with Pinecone().IndexAsyncio(host=description.host) as idx:
+            async with Pinecone().IndexAsyncio(host=description.host) as idx:
                 await idx.upsert(vectors=[...])
 
         asyncio.run(main())
@@ -648,7 +648,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         from pinecone import PineconeAsyncio, ServerlessSpec
 
         async def main():
-            with PineconeAsyncio() as pc:
+            async with PineconeAsyncio() as pc:
                 index_name = "my_index"
                 if not await pc.has_index(index_name):
                     print("Index does not exist, creating...")
@@ -697,7 +697,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         from pinecone import PineconeAsyncio, PodType
 
         async def main():
-            with PineconeAsyncio() as pc:
+            async with PineconeAsyncio() as pc:
                 await pc.configure_index(
                     name="my_index",
                     replicas=2,
@@ -719,7 +719,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         from pinecone import PineconeAsyncio, DeletionProtection
 
         async def main():
-            with PineconeAsyncio() as pc:
+            async with PineconeAsyncio() as pc:
                 # Enable deletion protection
                 await pc.configure_index(
                     name="my_index",
@@ -750,7 +750,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         from pinecone import PineconeAsyncio
 
         async def main():
-            with PineconeAsyncio() as pc:
+            async with PineconeAsyncio() as pc:
                 # Add a tag
                 await pc.configure_index(name="my_index", tags={"environment": "staging"})
 
@@ -845,7 +845,7 @@ class PineconeAsyncioDBControlInterface(ABC):
 
 
         async def main():
-            with PineconeAsyncio() as pc:
+            async with PineconeAsyncio() as pc:
                 description = await pc.describe_collection("my_collection")
                 print(description.name)
                 print(description.source)
