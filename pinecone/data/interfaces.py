@@ -467,7 +467,7 @@ class IndexInterface(ABC):
         pass
 
 
-class AsyncioIndexInterface(ABC):
+class IndexAsyncioInterface(ABC):
     @abstractmethod
     async def upsert(
         self,

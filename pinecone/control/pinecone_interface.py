@@ -307,6 +307,26 @@ class PineconeDBControlInterface(ABC):
         timeout: Optional[int] = None,
     ) -> IndexModel:
         """
+        :param name: The name of the index to create. Must be unique within your project and
+            cannot be changed once created. Allowed characters are lowercase letters, numbers,
+            and hyphens and the name may not begin or end with hyphens. Maximum length is 45 characters.
+        :type name: str
+        :param cloud: The cloud provider to use for the index. One of `{"aws", "gcp", "azure"}`.
+        :type cloud: str
+        :param region: The region to use for the index. Enum objects `AwsRegion`, `GcpRegion`, and `AzureRegion` are also available to help you quickly set these parameters, but may not be up to date as new regions become available.
+        :type region: str
+        :param embed: The embedding configuration for the index. This param accepts a dictionary or an instance of the `IndexEmbed` object.
+        :type embed: Union[Dict, IndexEmbed]
+        :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
+        :type tags: Optional[Dict[str, str]]
+        :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. This setting can be changed with `configure_index`.
+        :type deletion_protection: Optional[Literal["enabled", "disabled"]]
+        :type timeout: Optional[int]
+        :param timeout: Specify the number of seconds to wait until index is ready to receive data. If None, wait indefinitely; if >=0, time out after this many seconds;
+            if -1, return immediately and do not wait.
+        :return: A description of the index that was created.
+        :rtype: IndexModel
+
         This method is used to create a Serverless index that is configured for use with Pinecone's integrated inference models.
 
         The resulting index can be described, listed, configured, and deleted like any other Pinecone index with the `describe_index`, `list_indexes`, `configure_index`, and `delete_index` methods.
@@ -343,32 +363,20 @@ class PineconeDBControlInterface(ABC):
         To see the available cloud regions, see this [Pinecone documentation](https://docs.pinecone.io/troubleshooting/available-cloud-regions) page.
 
         See the [Model Gallery](https://docs.pinecone.io/models/overview) to learn about available models.
-
-        :param name: The name of the index to create. Must be unique within your project and
-            cannot be changed once created. Allowed characters are lowercase letters, numbers,
-            and hyphens and the name may not begin or end with hyphens. Maximum length is 45 characters.
-        :type name: str
-        :param cloud: The cloud provider to use for the index. One of `{"aws", "gcp", "azure"}`.
-        :type cloud: str
-        :param region: The region to use for the index. Enum objects `AwsRegion`, `GcpRegion`, and `AzureRegion` are also available to help you quickly set these parameters, but may not be up to date as new regions become available.
-        :type region: str
-        :param embed: The embedding configuration for the index. This param accepts a dictionary or an instance of the `IndexEmbed` object.
-        :type embed: Union[Dict, IndexEmbed]
-        :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
-        :type tags: Optional[Dict[str, str]]
-        :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. This setting can be changed with `configure_index`.
-        :type deletion_protection: Optional[Literal["enabled", "disabled"]]
-        :type timeout: Optional[int]
-        :param timeout: Specify the number of seconds to wait until index is ready to receive data. If None, wait indefinitely; if >=0, time out after this many seconds;
-            if -1, return immediately and do not wait.
-        :return: A description of the index that was created.
-        :rtype: IndexModel
         """
         pass
 
     @abstractmethod
     def delete_index(self, name: str, timeout: Optional[int] = None):
-        """Deletes a Pinecone index.
+        """
+        :param name: the name of the index.
+        :type name: str
+        :param timeout: Number of seconds to poll status checking whether the index has been deleted. If None,
+            wait indefinitely; if >=0, time out after this many seconds;
+            if -1, return immediately and do not wait.
+        :type timeout: int, optional
+
+        Deletes a Pinecone index.
 
         Deleting an index is an irreversible operation. All data in the index will be lost.
         When you use this command, a request is sent to the Pinecone control plane to delete
@@ -402,19 +410,18 @@ class PineconeDBControlInterface(ABC):
 
         pc.delete_index(name=index_name)
         ```
-
-        :param name: the name of the index.
-        :type name: str
-        :param timeout: Number of seconds to poll status checking whether the index has been deleted. If None,
-            wait indefinitely; if >=0, time out after this many seconds;
-            if -1, return immediately and do not wait.
-        :type timeout: int, optional
         """
         pass
 
     @abstractmethod
     def list_indexes(self) -> IndexList:
-        """Lists all indexes.
+        """
+        :return: Returns an `IndexList` object, which is iterable and contains a
+            list of `IndexModel` objects. The `IndexList` also has a convenience method `names()`
+            which returns a list of index names for situations where you just want to iterate over
+            all index names.
+
+        Lists all indexes in your project.
 
         The results include a description of all indexes in your project, including the
         index name, dimension, metric, status, and spec.
@@ -436,24 +443,19 @@ class PineconeDBControlInterface(ABC):
             print(index.host)
             print(index.spec)
         ```
-
-        :return: Returns an `IndexList` object, which is iterable and contains a
-            list of `IndexModel` objects. The `IndexList` also has a convenience method `names()`
-            which returns a list of index names for situations where you just want to iterate over
-            all index names.
-
         """
         pass
 
     @abstractmethod
     def describe_index(self, name: str) -> IndexModel:
-        """Describes a Pinecone index.
-
+        """
         :param name: the name of the index to describe.
         :return: Returns an `IndexModel` object
         which gives access to properties such as the
         index name, dimension, metric, host url, status,
         and spec.
+
+        Describes a Pinecone index.
 
         ### Getting your index host url
 
@@ -503,7 +505,11 @@ class PineconeDBControlInterface(ABC):
 
     @abstractmethod
     def has_index(self, name: str) -> bool:
-        """Checks if a Pinecone index exists.
+        """
+        :param name: The name of the index to check for existence.
+        :return: Returns `True` if the index exists, `False` otherwise.
+
+        Checks if a Pinecone index exists.
 
         ```python
         from pinecone import Pinecone, ServerlessSpec
@@ -520,9 +526,6 @@ class PineconeDBControlInterface(ABC):
                 spec=ServerlessSpec(cloud="aws", region="us-west-2")
             )
         ```
-
-        :param name: The name of the index to check for existence.
-        :return: Returns `True` if the index exists, `False` otherwise.
         """
         pass
 
@@ -535,7 +538,15 @@ class PineconeDBControlInterface(ABC):
         deletion_protection: Optional[Union[DeletionProtection, str]] = None,
         tags: Optional[Dict[str, str]] = None,
     ):
-        """This method is used to modify an index's configuration. It can be used to:
+        """
+        :param: name: the name of the Index
+        :param: replicas: the desired number of replicas, lowest value is 0.
+        :param: pod_type: the new pod_type for the index. To learn more about the
+            available pod types, please see [Understanding Indexes](https://docs.pinecone.io/docs/indexes)
+        :param: deletion_protection: If set to 'enabled', the index cannot be deleted. If 'disabled', the index can be deleted.
+        :param: tags: A dictionary of tags to apply to the index. Tags are key-value pairs that can be used to organize and manage indexes. To remove a tag, set the value to "". Tags passed to configure_index will be merged with existing tags and any with the value empty string will be removed.
+
+        This method is used to modify an index's configuration. It can be used to:
 
         - Scale a pod-based index horizontally using `replicas`
         - Scale a pod-based index vertically using `pod_type`
@@ -544,18 +555,16 @@ class PineconeDBControlInterface(ABC):
 
         ## Scaling pod-based indexes
 
-        To scale your pod-based index, you pass a spec param to the `configure_index` method.
+        To scale your pod-based index, you pass a `replicas` and/or `pod_type` param to the `configure_index` method. `pod_type` may be a string or a value from the `PodType` enum.
 
         ```python
-        from pinecone import Pinecone, PodSpec, PodType
+        from pinecone import Pinecone, PodType
 
         pc = Pinecone()
         pc.configure_index(
             name="my_index",
-            spec=PodSpec(
-                replicas=2,
-                pod_type=PodType.P1_X2
-            )
+            replicas=2,
+            pod_type=PodType.P1_X2
         )
         ```
 
@@ -609,13 +618,6 @@ class PineconeDBControlInterface(ABC):
         # Call describe_index to view the tags are changed
         print(pc.describe_index("my_index").tags)
         ```
-
-        :param: name: the name of the Index
-        :param: replicas: the desired number of replicas, lowest value is 0.
-        :param: pod_type: the new pod_type for the index. To learn more about the
-            available pod types, please see [Understanding Indexes](https://docs.pinecone.io/docs/indexes)
-        :param: deletion_protection: If set to 'enabled', the index cannot be deleted. If 'disabled', the index can be deleted.
-        :param: tags: A dictionary of tags to apply to the index. Tags are key-value pairs that can be used to organize and manage indexes. To remove a tag, set the value to "". Tags passed to configure_index will be merged with existing tags and any with the value empty string will be removed.
         """
         pass
 
@@ -651,8 +653,11 @@ class PineconeDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def delete_collection(self, name: str):
-        """Deletes a collection.
+    def delete_collection(self, name: str) -> None:
+        """
+        :param name: The name of the collection to delete.
+
+        Deletes a collection.
 
         Deleting a collection is an irreversible operation. All data
         in the collection will be lost.
@@ -669,8 +674,6 @@ class PineconeDBControlInterface(ABC):
 
         pc.delete_collection(name="my_collection")
         ```
-
-        :param name: The name of the collection to delete.
         """
         pass
 
@@ -697,6 +700,14 @@ class PineconeDBControlInterface(ABC):
     @abstractmethod
     def Index(self, name: str = "", host: str = "", **kwargs):
         """
+        :param name: The name of the index to target. If you specify the name of the index, the client will
+            fetch the host url from the Pinecone control plane.
+        :param host: The host url of the index to target. If you specify the host url, the client will use
+            the host url directly without making any additional calls to the control plane.
+        :param pool_threads: The number of threads to use when making parallel requests by calling index methods with optional kwarg async_req=True, or using methods that make use of thread-based parallelism automatically such as query_namespaces().
+        :param connection_pool_maxsize: The maximum number of connections to keep in the connection pool.
+        :return: An instance of the `Index` class.
+
         Target an index for data operations.
 
         ### Target an index by host url
@@ -767,14 +778,15 @@ class PineconeDBControlInterface(ABC):
         # Now you're ready to perform data operations
         index.query(vector=[...], top_k=10)
         ```
+        """
+        pass
 
+    def IndexAsyncio(self, host: str, **kwargs):
+        """Build an asyncio-compatible Index object.
 
-        :param name: The name of the index to target. If you specify the name of the index, the client will
-            fetch the host url from the Pinecone control plane.
-        :param host: The host url of the index to target. If you specify the host url, the client will use
-            the host url directly without making any additional calls to the control plane.
-        :param pool_threads: The number of threads to use when making parallel requests by calling index methods with optional kwarg async_req=True, or using methods that make use of parallelism automatically such as query_namespaces().
-        :param connection_pool_maxsize: The maximum number of connections to keep in the connection pool.
-        :return: An instance of the `Index` class.
+        :param host: The host url of the index to target. You can find this url in the Pinecone
+            web console or by calling describe_index method of `Pinecone` or `PineconeAsyncio`.
+
+        :return: An instance of the `IndexAsyncio` class.
         """
         pass

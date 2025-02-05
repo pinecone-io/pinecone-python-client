@@ -32,7 +32,7 @@ class ImportFeatureMixinAsyncio:
 
         Examples:
             >>> from pinecone import Pinecone
-            >>> index = Pinecone().AsyncioIndex(host="example-index.svc.aped-4627-b74a.pinecone.io")
+            >>> index = Pinecone().IndexAsyncio(host="example-index.svc.aped-4627-b74a.pinecone.io")
             >>> await index.start_import(uri="s3://bucket-name/path/to/data.parquet")
             { id: "1" }
 

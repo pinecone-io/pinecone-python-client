@@ -5,7 +5,7 @@ import logging
 import asyncio
 import json
 
-from .interfaces import AsyncioIndexInterface
+from .interfaces import IndexAsyncioInterface
 from .query_results_aggregator import QueryResultsAggregator
 from typing import Union, List, Optional, Dict, Any, Literal
 
@@ -52,7 +52,7 @@ from .features.bulk_import import ImportFeatureMixinAsyncio
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["_AsyncioIndex"]
+__all__ = ["_IndexAsyncio"]
 
 _OPENAPI_ENDPOINT_PARAMS = (
     "_return_http_data_only",
@@ -73,7 +73,7 @@ def parse_query_response(response: QueryResponse):
     return response
 
 
-class _AsyncioIndex(AsyncioIndexInterface, ImportFeatureMixinAsyncio):
+class _IndexAsyncio(IndexAsyncioInterface, ImportFeatureMixinAsyncio):
     def __init__(
         self,
         api_key: str,

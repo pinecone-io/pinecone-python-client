@@ -19,7 +19,7 @@ from pinecone.models import (
 )
 from pinecone.utils import docslinks
 
-from pinecone.data import _AsyncioIndex, _AsyncioInference
+from pinecone.data import _IndexAsyncio, _AsyncioInference
 from pinecone.enums import (
     Metric,
     VectorType,
@@ -41,10 +41,23 @@ logger = logging.getLogger(__name__)
 
 class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     """
-    An asyncio client for interacting with Pinecone's vector database.
+    PineconeAsyncio is an asyncio client for interacting with Pinecone's control plane API.
 
     This class implements methods for managing and interacting with Pinecone resources
     such as collections and indexes.
+
+    To perform data operations such as inserting and querying vectors, use the `IndexAsyncio` class.
+
+    ```python
+    import asyncio
+    from pinecone import Pinecone
+
+    async def main():
+        with Pinecone.IndexAsyncio(host="my-index.pinecone.io") as idx:
+            await idx.upsert(vectors=[(1, [1, 2, 3]), (2, [4, 5, 6])])
+
+    asyncio.run(main())
+    ```
     """
 
     def __init__(
@@ -80,9 +93,13 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
             ssl_verify=ssl_verify,
             **kwargs,
         )
+        """ @private """
+
         self.openapi_config = ConfigBuilder.build_openapi_config(self.config, **kwargs)
+        """ @private """
 
         self._inference = None  # Lazy initialization
+        """ @private """
 
         self.index_api = setup_async_openapi_client(
             api_client_klass=AsyncioApiClient,
@@ -91,6 +108,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
             openapi_config=self.openapi_config,
             api_version=API_VERSION,
         )
+        """ @private """
 
     async def __aenter__(self):
         return self
@@ -266,14 +284,14 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     async def describe_collection(self, name: str):
         return await self.index_api.describe_collection(name).to_dict()
 
-    def Index(self, host: str, **kwargs) -> _AsyncioIndex:
-        """Instantiate an AsyncioIndex client targeting a specific host.
+    def Index(self, host: str, **kwargs) -> _IndexAsyncio:
+        """Instantiate an IndexAsyncio client targeting a specific host.
 
         Args:
             host (str): The host of your index. Find this in the Pinecone Console or by calling `describe_index`.
 
         Returns:
-            _type_: An instance of the AsyncioIndex class.
+            _type_: An instance of the IndexAsyncio class.
         """
         api_key = self.config.api_key
         openapi_config = self.openapi_config
@@ -284,7 +302,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         check_realistic_host(host)
         index_host = normalize_host(host)
 
-        return _AsyncioIndex(
+        return _IndexAsyncio(
             host=index_host,
             api_key=api_key,
             openapi_config=openapi_config,

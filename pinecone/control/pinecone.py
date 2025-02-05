@@ -25,7 +25,7 @@ from pinecone.models import (
 from .langchain_import_warnings import _build_langchain_attribute_error_message
 from pinecone.utils import docslinks
 
-from pinecone.data import _Index, _Inference, _AsyncioIndex
+from pinecone.data import _Index, _Inference, _IndexAsyncio
 from pinecone.enums import (
     Metric,
     VectorType,
@@ -329,7 +329,7 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
         check_realistic_host(host)
         index_host = normalize_host(host)
 
-        return _AsyncioIndex(
+        return _IndexAsyncio(
             host=index_host,
             api_key=api_key,
             openapi_config=openapi_config,

@@ -2,7 +2,7 @@ import pytest
 import json
 import asyncio
 from ..helpers import get_environment_var, generate_index_name
-from pinecone.data import _AsyncioIndex
+from pinecone.data import _IndexAsyncio
 import logging
 from typing import Callable, Optional, Awaitable, Union
 
@@ -44,7 +44,7 @@ def model_index_name():
     return generate_index_name("embed")
 
 
-def build_asyncioindex_client(index_host) -> _AsyncioIndex:
+def build_asyncioindex_client(index_host) -> _IndexAsyncio:
     from pinecone import PineconeAsyncio
 
     return PineconeAsyncio().Index(host=index_host)
