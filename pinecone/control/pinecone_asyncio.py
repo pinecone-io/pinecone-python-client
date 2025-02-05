@@ -266,7 +266,15 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     async def describe_collection(self, name: str):
         return await self.index_api.describe_collection(name).to_dict()
 
-    def Index(self, host: str, **kwargs):
+    def Index(self, host: str, **kwargs) -> _AsyncioIndex:
+        """Instantiate an AsyncioIndex client targeting a specific host.
+
+        Args:
+            host (str): The host of your index. Find this in the Pinecone Console or by calling `describe_index`.
+
+        Returns:
+            _type_: An instance of the AsyncioIndex class.
+        """
         api_key = self.config.api_key
         openapi_config = self.openapi_config
 
@@ -283,3 +291,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
             source_tag=self.config.source_tag,
             **kwargs,
         )
+
+    def IndexAsyncio(self, host: str, **kwargs):
+        """Alias of Index"""
+        return self.Index(host, **kwargs)

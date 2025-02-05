@@ -196,6 +196,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         timeout: Optional[int] = None,
         deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
         vector_type: Optional[Union[VectorType, str]] = VectorType.DENSE,
+        tags: Optional[Dict[str, str]] = None,
     ):
         """Creates a Pinecone index.
 
@@ -411,13 +412,11 @@ class PineconeAsyncioDBControlInterface(ABC):
         ### Example Usage
 
         ```python
-        import os
         from pinecone import Pinecone
 
-        api_key = os.environ.get("PINECONE_API_KEY")
         pc = Pinecone(api_key=api_key)
 
-        if pc.has_index("my_index_name"):
+        if pc.has_index(name="my_index_name"):
             print("The index exists")
         else:
             print("The index does not exist")
@@ -434,7 +433,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         deletion_protection: Optional[Union[DeletionProtection, str]] = None,
         tags: Optional[Dict[str, str]] = None,
     ):
-        """This method is used to scale configuration fields for your pod-based Pinecone index.
+        """This method is used to modify configuration fields for your index. For pod-based Pinecone index.
 
         :param: name: the name of the Index
         :param: replicas: the desired number of replicas, lowest value is 0.

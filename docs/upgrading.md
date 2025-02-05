@@ -7,6 +7,88 @@
 
 ## Useful additions in 6.x:
 
+## Compatibility with `asyncio`
+
+The v6 Python SDK introduces a new client variants, `PineconeAsyncio` and `IndexAsyncio`, which provide `async` methods for use with [asyncio](https://docs.python.org/3/library/asyncio.html). This should unblock those who wish to use Pinecone with modern async web frameworks such as [FastAPI](https://fastapi.tiangolo.com/), [Quart](https://quart.palletsprojects.com/en/latest/), [Sanic](https://sanic.dev/), etc.
+
+Those trying to onboard to Pinecone and upsert large amounts of data should significantly benefit from the efficiency of running many upserts in parallel.
+
+Calls to `api.pinecone.io` for creating, configuring, or deleting indexes are made with `PineconeAsyncio`.
+
+```python
+import asyncio
+
+from pinecone import (
+    PineconeAsyncio,
+    IndexEmbed,
+    CloudProvider,
+    AwsRegion,
+    EmbedModel
+)
+
+async def main():
+    async with PineconeAsyncio() as pc:
+        if not await pc.has_index(index_name):
+            desc = await pc.create_index_for_model(
+                name="book-search",
+                cloud=CloudProvider.AWS,
+                region=AwsRegion.US_EAST_1,
+                embed=IndexEmbed(
+                    model=EmbedModel.Multilingual_E5_Large,
+                    metric="cosine",
+                    field_map={
+                        "text": "description",
+                    },
+                )
+            )
+
+    async with PineconeAsyncio().Index(host="")
+
+asyncio.run(main())
+```
+
+Interactions with a deployed index are done via `IndexAsyncio`:
+
+```python
+import asyncio
+
+from pinecone import Pinecone
+
+async def main():
+    host="book-search-dojoi3u.svc.aped-4627-b74a.pinecone.io"
+    async with Pinecone().IndexAsyncio(host=host) as idx:
+        await idx.upsert_records(
+            namespace="",
+            records=[
+                {
+                    "id": "1",
+                    "title": "The Great Gatsby",
+                    "author": "F. Scott Fitzgerald",
+                    "description": "The story of the mysteriously wealthy Jay Gatsby and his love for the beautiful Daisy Buchanan.",
+                    "year": 1925,
+                },
+                {
+                    "id": "2",
+                    "title": "To Kill a Mockingbird",
+                    "author": "Harper Lee",
+                    "description": "A young girl comes of age in the segregated American South and witnesses her father's courageous defense of an innocent black man.",
+                    "year": 1960,
+                },
+                {
+                    "id": "3",
+                    "title": "1984",
+                    "author": "George Orwell",
+                    "description": "In a dystopian future, a totalitarian regime exercises absolute control through pervasive surveillance and propaganda.",
+                    "year": 1949,
+                },
+            ]
+        )
+
+
+asyncio.run(main())
+```
+
+
 ### Sparse indexes
 
 These are created using the same methods as before but using different configuration options. For sparse indexes, you must omit `dimension`, `metric="dotproduct`, and `vector_type="sparse"`.
@@ -70,45 +152,6 @@ sparse_index.query(
     sparse_vector={"indices":[1,2,3,4,5], "values": [random.random()]*5}
 )
 ```
-
-## Work async with PineconeAsyncio
-
-The v6 Python SDK introduces a new client variant, `PineconeAsyncio`, which provides `async` methods for use with [asyncio](https://docs.python.org/3/library/asyncio.html). This should unblock those who wish to use Pinecone with modern async web frameworks such as [FastAPI](https://fastapi.tiangolo.com/), [Quart](https://quart.palletsprojects.com/en/latest/), [Sanic](https://sanic.dev/), etc.
-
-Those trying to onboard to Pinecone and upsert large amounts of data should significantly benefit from the efficiency of running many upserts in parallel.
-
-```python
-import asyncio
-
-from pinecone import (
-    PineconeAsyncio,
-    IndexEmbed,
-    CloudProvider,
-    AwsRegion,
-    EmbedModel
-)
-
-async def main():
-    async with PineconeAsyncio() as pc:
-        if not await pc.has_index(index_name):
-            desc = await pc.create_index_for_model(
-                name="book-search",
-                cloud=CloudProvider.AWS,
-                region=AwsRegion.US_EAST_1,
-                embed=IndexEmbed(
-                    model=EmbedModel.Multilingual_E5_Large,
-                    metric="cosine",
-                    field_map={
-                        "text": "description",
-                    },
-                )
-            )
-
-    async with PineconeAsyncio().Index(host="")
-
-asyncio.run(main())
-```
-
 
 ## Configuration UX with enums
 
