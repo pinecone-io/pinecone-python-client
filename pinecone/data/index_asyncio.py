@@ -5,7 +5,7 @@ import logging
 import asyncio
 import json
 
-from .interfaces import IndexAsyncioInterface
+from .index_asyncio_interface import IndexAsyncioInterface
 from .query_results_aggregator import QueryResultsAggregator
 from typing import Union, List, Optional, Dict, Any, Literal
 
