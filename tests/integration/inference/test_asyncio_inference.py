@@ -19,23 +19,32 @@ class TestEmbedAsyncio:
             parameters={"input_type": "query", "truncate": "END"},
         )
         assert embeddings.vector_type == "dense"
-        assert embeddings.model == model_output
-        assert len(embeddings.data) == 2
-        assert len(embeddings.data[0].values) == 1024
-        assert len(embeddings.data[1].values) == 1024
-
-        # Dict-style bracket accessors
-        assert embeddings["vector_type"] == "dense"
-        assert embeddings["model"] == model_output
-        assert len(embeddings["data"]) == 2
-
-        # Dict-style get accessors for embeddings
         assert embeddings.get("vector_type") == "dense"
+        assert embeddings.model == model_output
         assert embeddings.get("model") == model_output
+        assert len(embeddings.data) == 2
         assert len(embeddings.get("data")) == 2
-        assert len(embeddings.get("data")[0]["values"]) == 1024
-        assert len(embeddings.get("data")[1]["values"]) == 1024
-        assert embeddings.get("model") == model_output
+        assert embeddings.usage is not None
+
+        individual_embedding = embeddings[0]
+        assert len(individual_embedding.values) == 1024
+        assert individual_embedding.vector_type.value == "dense"
+        assert len(individual_embedding["values"]) == 1024
+
+        await pc.close()
+
+    async def test_embedding_result_is_iterable(self):
+        pc = PineconeAsyncio()
+        embeddings = await pc.inference.embed(
+            model=EmbedModel.Multilingual_E5_Large,
+            inputs=["The quick brown fox jumps over the lazy dog.", "lorem ipsum"],
+            parameters={"input_type": "query", "truncate": "END"},
+        )
+        iter_count = 0
+        for embedding in embeddings:
+            iter_count += 1
+            assert len(embedding.values) == 1024
+        assert iter_count == 2
         await pc.close()
 
     @pytest.mark.parametrize(
