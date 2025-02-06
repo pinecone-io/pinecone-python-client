@@ -3,7 +3,7 @@ from typing import Optional, Dict, List, Union, Any
 
 from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.inference.apis import InferenceApi
-from pinecone.core.openapi.inference.models import EmbeddingsList, RerankResult
+from .models import EmbeddingsList, RerankResult
 from pinecone.core.openapi.inference import API_VERSION
 from pinecone.utils import setup_openapi_client, PluginAware
 
@@ -84,7 +84,8 @@ class Inference(PluginAware):
         request_body = InferenceRequestBuilder.embed_request(
             model=model, inputs=inputs, parameters=parameters
         )
-        return self.__inference_api.embed(embed_request=request_body)
+        resp = self.__inference_api.embed(embed_request=request_body)
+        return EmbeddingsList(resp)
 
     def rerank(
         self,
@@ -162,4 +163,5 @@ class Inference(PluginAware):
             top_n=top_n,
             parameters=parameters,
         )
-        return self.__inference_api.rerank(rerank_request=rerank_request)
+        resp = self.__inference_api.rerank(rerank_request=rerank_request)
+        return RerankResult(resp)

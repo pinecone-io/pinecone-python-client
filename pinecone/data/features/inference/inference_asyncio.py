@@ -1,7 +1,7 @@
 from typing import Optional, Dict, List, Union, Any
 
 from pinecone.core.openapi.inference.api.inference_api import AsyncioInferenceApi
-from pinecone.core.openapi.inference.models import EmbeddingsList, RerankResult
+from .models import EmbeddingsList, RerankResult
 
 from .inference_request_builder import (
     InferenceRequestBuilder,
@@ -64,7 +64,8 @@ class AsyncioInference:
         request_body = InferenceRequestBuilder.embed_request(
             model=model, inputs=inputs, parameters=parameters
         )
-        return await self.__inference_api.embed(embed_request=request_body)
+        resp = await self.__inference_api.embed(embed_request=request_body)
+        return EmbeddingsList(resp)
 
     async def rerank(
         self,
@@ -142,4 +143,5 @@ class AsyncioInference:
             top_n=top_n,
             parameters=parameters,
         )
-        return await self.__inference_api.rerank(rerank_request=rerank_request)
+        resp = await self.__inference_api.rerank(rerank_request=rerank_request)
+        return RerankResult(resp)
