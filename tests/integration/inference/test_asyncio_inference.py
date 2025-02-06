@@ -33,6 +33,20 @@ class TestEmbedAsyncio:
 
         await pc.close()
 
+    async def test_embedding_result_is_iterable(self):
+        pc = PineconeAsyncio()
+        embeddings = await pc.inference.embed(
+            model=EmbedModel.Multilingual_E5_Large,
+            inputs=["The quick brown fox jumps over the lazy dog.", "lorem ipsum"],
+            parameters={"input_type": "query", "truncate": "END"},
+        )
+        iter_count = 0
+        for embedding in embeddings:
+            iter_count += 1
+            assert len(embedding.values) == 1024
+        assert iter_count == 2
+        await pc.close()
+
     @pytest.mark.parametrize(
         "model_input,model_output",
         [
