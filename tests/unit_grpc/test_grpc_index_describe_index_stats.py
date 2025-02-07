@@ -1,12 +1,12 @@
 from pinecone import Config
 from pinecone.grpc import GRPCIndex
-from pinecone.core.grpc.protos.vector_service_pb2 import DescribeIndexStatsRequest
+from pinecone.core.grpc.protos.db_data_2025_01_pb2 import DescribeIndexStatsRequest
 from pinecone.grpc.utils import dict_to_proto_struct
 
 
 class TestGrpcIndexDescribeIndexStats:
     def setup_method(self):
-        self.config = Config(api_key="test-api-key", host="foo")
+        self.config = Config(api_key="test-api-key", host="foo.pinecone.io")
         self.index = GRPCIndex(
             config=self.config, index_name="example-name", _endpoint_override="test-endpoint"
         )

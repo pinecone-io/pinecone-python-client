@@ -3,15 +3,25 @@ import os
 import time
 import random
 import string
+import logging
 from typing import Any
 from datetime import datetime
+import json
+from pinecone.data import _Index
+from typing import List
+
+logger = logging.getLogger(__name__)
 
 
-def random_string(length):
+def embedding_values(dimension: int = 2) -> list[float]:
+    return [random.random() for _ in range(dimension)]
+
+
+def random_string(length: int) -> str:
     return "".join(random.choice(string.ascii_lowercase) for i in range(length))
 
 
-def generate_collection_name(label):
+def generate_collection_name(label: str) -> str:
     return generate_index_name(label)
 
 
@@ -59,13 +69,16 @@ def get_environment_var(name: str, defaultVal: Any = None) -> str:
 
 
 def poll_stats_for_namespace(
-    idx, namespace, expected_count, max_sleep=int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 60))
-):
+    idx: _Index,
+    namespace: str,
+    expected_count: int,
+    max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 60)),
+) -> None:
     delta_t = 5
     total_time = 0
     done = False
     while not done:
-        print(
+        logger.debug(
             f'Waiting for namespace "{namespace}" to have vectors. Total time waited: {total_time} seconds'
         )
         stats = idx.describe_index_stats()
@@ -81,15 +94,17 @@ def poll_stats_for_namespace(
             time.sleep(delta_t)
 
 
-def poll_fetch_for_ids_in_namespace(idx, ids, namespace):
+def poll_fetch_for_ids_in_namespace(idx: _Index, ids: List[str], namespace: str) -> None:
     max_sleep = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 60))
     delta_t = 5
     total_time = 0
     done = False
     while not done:
-        print(f'Attempting to fetch from "{namespace}". Total time waited: {total_time} seconds')
+        logger.debug(
+            f'Attempting to fetch from "{namespace}". Total time waited: {total_time} seconds'
+        )
         results = idx.fetch(ids=ids, namespace=namespace)
-        print(results)
+        logger.debug(results)
 
         all_present = all(key in results.vectors for key in ids)
         if all_present:
@@ -104,3 +119,7 @@ def poll_fetch_for_ids_in_namespace(idx, ids, namespace):
 
 def fake_api_key():
     return "-".join([random_string(x) for x in [8, 4, 4, 4, 12]])
+
+
+def jsonprint(obj):
+    print(json.dumps(obj.to_dict(), indent=2))

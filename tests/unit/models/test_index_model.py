@@ -1,4 +1,4 @@
-from pinecone.core.openapi.control.models import (
+from pinecone.core.openapi.db_control.models import (
     IndexModel as OpenApiIndexModel,
     IndexModelStatus,
     IndexModelSpec,
@@ -6,6 +6,7 @@ from pinecone.core.openapi.control.models import (
     DeletionProtection,
 )
 from pinecone.models import IndexModel
+from pinecone import CloudProvider, AwsRegion
 
 
 class TestIndexModel:
@@ -17,7 +18,11 @@ class TestIndexModel:
             host="https://test-index-1.pinecone.io",
             status=IndexModelStatus(ready=True, state="Ready"),
             deletion_protection=DeletionProtection("enabled"),
-            spec=IndexModelSpec(serverless=ServerlessSpec(cloud="aws", region="us-west-1")),
+            spec=IndexModelSpec(
+                serverless=ServerlessSpec(
+                    cloud=CloudProvider.AWS.value, region=AwsRegion.US_EAST_1.value
+                )
+            ),
         )
 
         wrapped = IndexModel(openapi_model)

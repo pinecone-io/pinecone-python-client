@@ -1,9 +1,9 @@
 from typing import Dict
 from pinecone.config import Config
-from pinecone.core.openapi.control.api.manage_indexes_api import (
+from pinecone.core.openapi.db_control.api.manage_indexes_api import (
     ManageIndexesApi as IndexOperationsApi,
 )
-from pinecone.core.openapi.shared.exceptions import PineconeException
+from pinecone.openapi_support.exceptions import PineconeException
 from pinecone.utils import normalize_host
 
 
@@ -18,7 +18,9 @@ class SingletonMeta(type):
 
 
 class IndexHostStore(metaclass=SingletonMeta):
-    def __init__(self):
+    _indexHosts: Dict[str, str]
+
+    def __init__(self) -> None:
         self._indexHosts = {}
 
     def _key(self, config: Config, index_name: str) -> str:

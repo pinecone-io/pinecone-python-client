@@ -1,10 +1,66 @@
 import os
 import pytest
+from ..helpers import poll_fetch_for_ids_in_namespace, embedding_values, random_string
+from pinecone import Vector
+import logging
+
+logger = logging.getLogger(__name__)
 
 if os.environ.get("USE_GRPC") == "true":
     from pinecone.grpc import PineconeGrpcFuture
 
 
+@pytest.fixture(scope="session")
+def fetch_namespace_future():
+    return random_string(10)
+
+
+@pytest.mark.usefixtures("fetch_namespace_future")
+@pytest.fixture(scope="class")
+def seed_for_fetch(idx, fetch_namespace_future):
+    # Upsert without metadata
+    logger.info("Seeding vectors without metadata")
+    idx.upsert(
+        vectors=[
+            ("1", embedding_values(2)),
+            ("2", embedding_values(2)),
+            ("3", embedding_values(2)),
+        ],
+        namespace=fetch_namespace_future,
+    )
+
+    # Upsert with metadata
+    logger.info("Seeding vectors with metadata")
+    idx.upsert(
+        vectors=[
+            Vector(
+                id="4", values=embedding_values(2), metadata={"genre": "action", "runtime": 120}
+            ),
+            Vector(id="5", values=embedding_values(2), metadata={"genre": "comedy", "runtime": 90}),
+            Vector(
+                id="6", values=embedding_values(2), metadata={"genre": "romance", "runtime": 240}
+            ),
+        ],
+        namespace=fetch_namespace_future,
+    )
+
+    # Upsert with dict
+    idx.upsert(
+        vectors=[
+            {"id": "7", "values": embedding_values(2)},
+            {"id": "8", "values": embedding_values(2)},
+            {"id": "9", "values": embedding_values(2)},
+        ],
+        namespace=fetch_namespace_future,
+    )
+
+    poll_fetch_for_ids_in_namespace(
+        idx, ids=["1", "2", "3", "4", "5", "6", "7", "8", "9"], namespace=fetch_namespace_future
+    )
+    yield
+
+
+@pytest.mark.usefixtures("seed_for_fetch")
 @pytest.mark.skipif(
     os.getenv("USE_GRPC") != "true", reason="PineconeGrpcFutures only returned from grpc client"
 )
@@ -12,8 +68,8 @@ class TestFetchFuture:
     def setup_method(self):
         self.expected_dimension = 2
 
-    def test_fetch_multiple_by_id(self, idx, namespace):
-        target_namespace = namespace
+    def test_fetch_multiple_by_id(self, idx, fetch_namespace_future):
+        target_namespace = fetch_namespace_future
 
         results = idx.fetch(ids=["1", "2", "4"], namespace=target_namespace, async_req=True)
         assert isinstance(results, PineconeGrpcFuture)
@@ -41,8 +97,8 @@ class TestFetchFuture:
         assert results.vectors["1"].values is not None
         assert len(results.vectors["1"].values) == self.expected_dimension
 
-    def test_fetch_single_by_id(self, idx, namespace):
-        target_namespace = namespace
+    def test_fetch_single_by_id(self, idx, fetch_namespace_future):
+        target_namespace = fetch_namespace_future
 
         future = idx.fetch(ids=["1"], namespace=target_namespace, async_req=True)
 
@@ -58,8 +114,8 @@ class TestFetchFuture:
         assert results.vectors["1"].values is not None
         assert len(results.vectors["1"].values) == self.expected_dimension
 
-    def test_fetch_nonexistent_id(self, idx, namespace):
-        target_namespace = namespace
+    def test_fetch_nonexistent_id(self, idx, fetch_namespace_future):
+        target_namespace = fetch_namespace_future
 
         # Fetch id that is missing
         future = idx.fetch(ids=["100"], namespace=target_namespace, async_req=True)

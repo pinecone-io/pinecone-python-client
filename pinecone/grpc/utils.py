@@ -4,16 +4,16 @@ from google.protobuf.message import Message
 
 import uuid
 
-from pinecone.core.openapi.data.models import (
+from pinecone.core.openapi.db_data.models import (
     Vector as _Vector,
     Usage,
     ScoredVector,
     SparseValues,
-    FetchResponse,
     QueryResponse,
-    DescribeIndexStatsResponse,
+    IndexDescription as DescribeIndexStatsResponse,
     NamespaceSummary,
 )
+from pinecone.data.dataclasses import FetchResponse
 
 from google.protobuf.struct_pb2 import Struct
 
@@ -55,10 +55,7 @@ def parse_fetch_response(response: Message):
         )
 
     return FetchResponse(
-        vectors=vd,
-        namespace=namespace,
-        usage=parse_usage(json_response.get("usage", {})),
-        _check_type=False,
+        vectors=vd, namespace=namespace, usage=parse_usage(json_response.get("usage", {}))
     )
 
 

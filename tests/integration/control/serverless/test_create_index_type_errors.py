@@ -1,5 +1,5 @@
 import pytest
-from pinecone import PineconeApiTypeError
+from pinecone import PineconeApiException, PineconeApiTypeError
 
 
 class TestCreateIndexTypeErrorCases:
@@ -10,5 +10,5 @@ class TestCreateIndexTypeErrorCases:
 
     def test_create_index_with_missing_dimension(self, client, create_sl_index_params):
         del create_sl_index_params["dimension"]
-        with pytest.raises(TypeError):
+        with pytest.raises(PineconeApiException):
             client.create_index(**create_sl_index_params)

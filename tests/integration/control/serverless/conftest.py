@@ -1,9 +1,12 @@
-import os
 import pytest
 import random
 import time
+import logging
 from pinecone import Pinecone, NotFoundException, PineconeApiException
 from ...helpers import generate_index_name, get_environment_var
+
+logger = logging.getLogger(__name__)
+""" @private """
 
 
 @pytest.fixture()
@@ -102,20 +105,7 @@ def cleanup(client, index_name):
     yield
 
     try:
+        logger.debug("Attempting to delete index with name: " + index_name)
         client.delete_index(index_name, -1)
     except Exception:
         pass
-
-
-@pytest.fixture(autouse=True, scope="session")
-def cleanup_all():
-    yield
-
-    client = Pinecone(additional_headers={"sdk-test-suite": "pinecone-python-client"})
-    for index in client.list_indexes():
-        buildNumber = os.getenv("GITHUB_BUILD_NUMBER")
-        if index.name.startswith(buildNumber):
-            try:
-                delete_with_retry(client, index.name)
-            except Exception:
-                pass

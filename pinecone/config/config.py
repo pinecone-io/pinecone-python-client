@@ -3,9 +3,18 @@ import os
 
 from pinecone.exceptions.exceptions import PineconeConfigurationError
 from pinecone.config.openapi import OpenApiConfigFactory
-from pinecone.core.openapi.shared.configuration import Configuration as OpenApiConfiguration
-from pinecone.utils import normalize_host
-from pinecone.utils.constants import SOURCE_TAG
+from pinecone.openapi_support.configuration import Configuration as OpenApiConfiguration
+
+
+# Duplicated this util to help resolve circular imports
+def normalize_host(host: Optional[str]) -> str:
+    if host is None:
+        return ""
+    if host.startswith("https://"):
+        return host
+    if host.startswith("http://"):
+        return host
+    return "https://" + host
 
 
 class Config(NamedTuple):
@@ -50,10 +59,12 @@ class ConfigBuilder:
         api_key = api_key or kwargs.pop("api_key", None) or os.getenv("PINECONE_API_KEY")
         host = host or kwargs.pop("host", None)
         host = normalize_host(host)
-        source_tag = kwargs.pop(SOURCE_TAG, None)
+        source_tag = kwargs.pop("source_tag", None)
 
         if not api_key:
-            raise PineconeConfigurationError("You haven't specified an Api-Key.")
+            raise PineconeConfigurationError(
+                "You haven't specified an API key. Please either set the PINECONE_API_KEY environment variable or pass the 'api_key' keyword argument to the Pinecone client constructor."
+            )
         if not host:
             raise PineconeConfigurationError("You haven't specified a host.")
 

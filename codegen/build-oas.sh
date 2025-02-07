@@ -8,12 +8,12 @@ is_early_access=$2 # e.g. true
 # if is_early_access is true, add the "ea" module
 if [ "$is_early_access" = "true" ]; then
 	destination="pinecone/core_ea/openapi"
-	modules=("db_control" "db_data")
+	modules=("db_control" "db_data" "inference")
 	py_module_name="core_ea"
 	template_dir="codegen/python-oas-templates/templates5.2.0"
 else
 	destination="pinecone/core/openapi"
-	modules=("control" "data")
+	modules=("db_control" "db_data" "inference")
 	py_module_name="core"
 	template_dir="codegen/python-oas-templates/templates5.2.0"
 fi
@@ -34,7 +34,7 @@ update_templates_repo() {
 	echo "Updating templates repo"
 	pushd codegen/python-oas-templates
 		git fetch
-		git checkout main
+		git checkout jhamon/core-sdk
 		git pull
 	popd
 }
@@ -83,7 +83,7 @@ generate_client() {
 	docker run --rm -v $(pwd):/workspace openapitools/openapi-generator-cli:v5.2.0 generate \
 		--input-spec "/workspace/$oas_file" \
 		--generator-name python \
-		--additional-properties=packageName=$package_name,pythonAttrNoneIfUnset=true,exceptionsPackageName=pinecone.core.openapi.shared.exceptions \
+		--additional-properties=packageName=$package_name,pythonAttrNoneIfUnset=true,exceptionsPackageName=pinecone.openapi_support.exceptions \
 		--output "/workspace/${build_dir}" \
 		--template-dir "/workspace/$template_dir"
 
@@ -97,12 +97,10 @@ generate_client() {
 	rm -rf "${destination}/${module_name}"
 	mkdir -p "${destination}"
 	cp -r "build/pinecone/$py_module_name/openapi/${module_name}" "${destination}/${module_name}"
+	echo "API_VERSION = '${version}'" >> "${destination}/${module_name}/__init__.py"
 }
 
-extract_shared_classes() {
-	target_directory="${destination}/shared"
-	mkdir -p "$target_directory"
-
+remove_shared_classes() {
 	# Define the list of shared source files
 	sharedFiles=(
 		"api_client"
@@ -114,11 +112,6 @@ extract_shared_classes() {
 
 	source_directory="${destination}/${modules[0]}"
 
-	# Loop through each file we want to share and copy it to the target directory
-	for file in "${sharedFiles[@]}"; do
-		cp "${source_directory}/${file}.py" "$target_directory"
-	done
-
 	# Cleanup shared files in each module
 	for module in "${modules[@]}"; do
 		source_directory="${destination}/${module}"
@@ -126,27 +119,44 @@ extract_shared_classes() {
 			rm "${source_directory}/${file}.py"
 		done
 	done
+}
 
-	# Remove the docstring headers that aren't really correct in the
-	# context of this new shared package structure
-	find "$target_directory" -name "*.py" -print0 | xargs -0 -I {} sh -c 'sed -i "" "/^\"\"\"/,/^\"\"\"/d" "{}"'
+# Generated Python code attempts to internally map OpenAPI fields that begin
+# with "_" to a non-underscored alternative. Along with a polymorphic object,
+# this causes collisions and headaches. We massage the generated models to
+# maintain the original field names from the OpenAPI spec and circumvent
+# the remapping behavior as this is simpler for now than creating a fully
+# custom java generator class.
+clean_oas_underscore_manipulation() {
+	temp_file="$(mktemp)"
 
-	echo "All shared files have been copied to $target_directory."
+	db_data_destination="${destination}/db_data"
 
-	# Adjust import paths in every file
-	find "${destination}" -name "*.py" | while IFS= read -r file; do
-		sed -i '' "s/from \.\.model_utils/from pinecone\.$py_module_name\.openapi\.shared\.model_utils/g" "$file"
+	# echo "Cleaning up upsert_record.py"
+	sed -i '' \
+	-e "s/'id'/'_id'/g" \
+	-e 's/self.id/self._id/g' \
+	-e 's/id (/_id (/g' \
+	-e 's/= id/= _id/g' \
+	-e 's/id,/_id,/g' \
+	-e "s/'vector\'/'_vector'/g" \
+	-e "s/'embed\'/'_embed'/g" \
+	-e 's/vector (/_vector (/g' \
+	-e 's/embed (/_embed (/g' \
+	"${db_data_destination}/model/upsert_record.py"
 
-		for module in "${modules[@]}"; do
-			sed -i '' "s/from pinecone\.$py_module_name\.openapi\.$module import rest/from pinecone\.$py_module_name\.openapi\.shared import rest/g" "$file"
-
-			for sharedFile in "${sharedFiles[@]}"; do
-				sed -i '' "s/from pinecone\.$py_module_name\.openapi\.$module\.$sharedFile/from pinecone\.$py_module_name\.openapi\.shared\.$sharedFile/g" "$file"
-			done
-		done
-	done
-
-	echo "API_VERSION = '${version}'" > "${target_directory}/__init__.py"
+	# echo "Cleaning up hit.py"
+	sed -i '' \
+	-e "s/'id'/'_id'/g" \
+	-e "s/'score'/'_score'/g" \
+	-e 's/ id, score,/ _id, _score,/g' \
+	-e 's/id (/_id (/g' \
+	-e 's/score (/_score (/g' \
+	-e 's/self.id/self._id/g' \
+	-e 's/self.score/self._score/g' \
+	-e 's/= id/= _id/g' \
+	-e 's/= score/= _score/g' \
+	"${db_data_destination}/model/hit.py"
 }
 
 update_apis_repo
@@ -159,11 +169,26 @@ mkdir -p "${destination}"
 for module in "${modules[@]}"; do
 	generate_client $module
 done
+clean_oas_underscore_manipulation
+
+# This also exists in the generated module code, but we need to reference it
+# in the pinecone.openapi_support package as well without creating a circular
+# dependency.
+version_file="pinecone/openapi_support/api_version.py"
+echo "# This file is generated by codegen/build-oas.sh" > $version_file
+echo "# Do not edit this file manually." >> $version_file
+echo "" >> $version_file
+
+echo "API_VERSION = '${version}'" >> $version_file
+echo "APIS_REPO_SHA = '$(git rev-parse :codegen/apis)'" >> $version_file
 
 # Even though we want to generate multiple packages, we
 # don't want to duplicate every exception and utility class.
-# So we do a bit of surgery to combine the shared files.
-extract_shared_classes
+# So we do a bit of surgery to find these shared files
+# elsewhere, in the pinecone.openapi_support package.
+remove_shared_classes
 
 # Format generated files
 poetry run ruff format "${destination}"
+
+rm -rf "$build_dir"

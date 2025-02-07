@@ -60,7 +60,7 @@ runs:
         timeout_minutes: 5
         max_attempts: 3
         retry_on: error
-        command: poetry run pytest tests/dependency/grpc -s -v --ddtrace
+        command: poetry run pytest tests/dependency/grpc -s -v
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         INDEX_NAME: ${{ inputs.index_name }}

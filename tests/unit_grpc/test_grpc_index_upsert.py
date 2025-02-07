@@ -6,7 +6,7 @@ import pytest
 
 from pinecone import Config
 from pinecone.grpc import GRPCIndex
-from pinecone.core.grpc.protos.vector_service_pb2 import (
+from pinecone.core.grpc.protos.db_data_2025_01_pb2 import (
     Vector,
     UpsertRequest,
     UpsertResponse,
@@ -87,7 +87,7 @@ def expected_vec_md_sparse2(vals2, md2, sparse_indices_2, sparse_values_2):
 
 class TestGrpcIndexUpsert:
     def setup_method(self):
-        self.config = Config(api_key="test-api-key", host="foo")
+        self.config = Config(api_key="test-api-key", host="foo.pinecone.io")
         self.index = GRPCIndex(
             config=self.config, index_name="example-name", _endpoint_override="test-endpoint"
         )
@@ -284,8 +284,6 @@ class TestGrpcIndexUpsert:
             ("values", 0.5),
             ("metadata", np.nan),
             ("metadata", ["key1", "key2"]),
-            ("sparse_values", "cat"),
-            ("sparse_values", []),
         ],
     )
     def test_upsert_dict_with_invalid_values(
@@ -305,6 +303,25 @@ class TestGrpcIndexUpsert:
         with pytest.raises(TypeError) as e:
             self.index.upsert([dict1])
         assert key in str(e.value)
+
+    @pytest.mark.parametrize("key,new_val", [("sparse_values", "cat"), ("sparse_values", [])])
+    def test_upsert_dict_with_invalid_sparse_values_type(
+        self, mocker, key, new_val, vals1, md1, sparse_indices_1, sparse_values_1
+    ):
+        mocker.patch.object(self.index.runner, "run", autospec=True)
+
+        full_dict1 = {
+            "id": "vec1",
+            "values": vals1,
+            "sparse_values": {"indices": sparse_indices_1, "values": sparse_values_1},
+            "metadata": md1,
+        }
+
+        dict1 = deepcopy(full_dict1)
+        dict1[key] = new_val
+        with pytest.raises(ValueError) as e:
+            self.index.upsert([dict1])
+        assert "SparseValuesFactory does not know how to handle input type" in str(e.value)
 
     @pytest.mark.parametrize("key,new_val", [("id", 4.2), ("id", ["vec1"])])
     def test_upsert_dict_with_invalid_ids(
@@ -343,7 +360,7 @@ class TestGrpcIndexUpsert:
 
         dict1 = deepcopy(full_dict1)
         dict1["sparse_values"][key] = new_val
-        with pytest.raises(TypeError) as e:
+        with pytest.raises(ValueError) as e:
             self.index.upsert([dict1])
         assert "sparse" in str(e.value)
         assert key in str(e.value)

@@ -1,0 +1,56 @@
+name: "DB Integration: Asyncio"
+'on':
+  workflow_call: {}
+
+jobs:
+  db-data-asyncio:
+    name: db_data asyncio
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python_version:
+          - 3.9
+          - 3.13
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python_version }}
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+        with:
+          include_dev: true
+          include_asyncio: true
+      - name: Run data plane tests
+        id: data-plane-asyncio-tests
+        shell: bash
+        run: poetry run pytest tests/integration/data_asyncio -s -vv
+        env:
+            PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+
+  db-control-asyncio:
+    name: db_control asyncio
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python_version:
+          - 3.9
+          - 3.12
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: 'Set up Python ${{ matrix.python_version }}'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '${{ matrix.python_version }}'
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+        with:
+          include_asyncio: true
+          include_dev: true
+      - name: 'db_control asyncio'
+        run: poetry run pytest tests/integration/control_asyncio -s -vv
+        env:
+          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'

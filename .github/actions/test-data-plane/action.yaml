@@ -1,13 +1,6 @@
 name: 'Test Data Plane'
 description: 'Runs tests on the Pinecone data plane'
 
-# - pod vs serverless
-# - grpc vs rest
-# - metric -> vector vs sparse vector
-# - namespace: default vs custom
-# - environment: free vs paid
-# - with metadata vs without metadata
-
 inputs:
   metric:
     description: 'The metric of the index'
@@ -59,13 +52,8 @@ runs:
     - name: Run data plane tests
       id: data-plane-tests
       shell: bash
-      run: poetry run pytest tests/integration/data --ddtrace
+      run: poetry run pytest tests/integration/data
       env:
-        DD_CIVISIBILITY_AGENTLESS_ENABLED: true
-        DD_API_KEY: ${{ inputs.DATADOG_API_KEY }}
-        DD_SITE: datadoghq.com
-        DD_ENV: ci
-        DD_SERVICE: pinecone-python-client
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         USE_GRPC: ${{ inputs.use_grpc }}
         METRIC: ${{ inputs.metric }}

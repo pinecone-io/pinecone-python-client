@@ -1,3 +1,5 @@
+scratch
+
 # IDEs
 .idea
 
@@ -137,11 +139,11 @@ venv.bak/
 .ropeproject
 
 # pdocs documentation
-#   We want to exclude any locally generated artifacts, but we rely on 
+#   We want to exclude any locally generated artifacts, but we rely on
 #   keeping documentation assets in the docs/ folder.
-docs/*
-!docs/pinecone-python-client-fork.png
-!docs/favicon-32x32.png
+pdoc/*
+!pdoc/pinecone-python-client-fork.png
+!pdoc/favicon-32x32.png
 
 # mypy
 .mypy_cache/

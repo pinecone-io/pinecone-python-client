@@ -8,6 +8,7 @@ import grpc
 
 
 _logger = logging.getLogger(__name__)
+""" @private """
 
 
 class SleepPolicy(abc.ABC):

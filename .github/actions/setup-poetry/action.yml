@@ -13,6 +13,10 @@ inputs:
     description: 'Install typing dependencies (mypy, type stubs, etc)'
     required: true
     default: 'true'
+  include_asyncio:
+    description: 'Install asyncio dependencies'
+    required: true
+    default: 'false'
 
 runs:
   using: 'composite'
@@ -26,8 +30,10 @@ runs:
         INCLUDE_GRPC: ${{ inputs.include_grpc }}
         INCLUDE_DEV: ${{ inputs.include_dev }}
         INCLUDE_TYPES: ${{ inputs.include_types }}
+        INCLUDE_ASYNCIO: ${{ inputs.include_asyncio }}
       run: |
         GRPC_FLAG=$( [ "$INCLUDE_GRPC" = "true" ] && echo "--extras grpc" || echo "" )
+        ASYNCIO_FLAG=$( [ "$INCLUDE_ASYNCIO" = "true" ] && echo "--extras asyncio" || echo "" )
         DEV_FLAG=$( [ "$INCLUDE_DEV" = "false" ] && echo "--without dev" || echo "" )
         TYPING_FLAG=$( [ "$INCLUDE_TYPES" = "true" ] && echo "--with types" || echo "" )
-        poetry install $DEV_FLAG $TYPING_FLAG $GRPC_FLAG
+        poetry install $DEV_FLAG $TYPING_FLAG $GRPC_FLAG $ASYNCIO_FLAG

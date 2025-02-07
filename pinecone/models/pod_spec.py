@@ -1,7 +1,11 @@
-from typing import NamedTuple, Optional, Dict
+from dataclasses import dataclass, field
+from typing import Optional, Dict, Union
+
+from ..enums import PodIndexEnvironment, PodType
 
 
-class PodSpec(NamedTuple):
+@dataclass(frozen=True)
+class PodSpec:
     """
     PodSpec represents the configuration used to deploy a pod-based index.
 
@@ -33,32 +37,16 @@ class PodSpec(NamedTuple):
     This value combines pod type and pod size into a single string. This configuration is your main lever for vertical scaling.
     """
 
-    metadata_config: Optional[Dict] = {}
+    metadata_config: Optional[Dict] = field(default_factory=dict)
     """
-    If you are storing a lot of metadata, you can use this configuration to limit the fields which are indexed for search. 
+    If you are storing a lot of metadata, you can use this configuration to limit the fields which are indexed for search.
 
     This configuration should be a dictionary with the key 'indexed' and the value as a list of fields to index.
 
-    For example, if your vectors have metadata along like this:
-    
-    ```python
-    from pinecone import Vector
-
-    vector = Vector(
-        id='237438191', 
-        values=[...], 
-        metadata={
-            'productId': '237438191',
-            'description': 'Stainless Steel Tumbler with Straw',
-            'category': 'kitchen',
-            'price': '19.99'
-        }
-    )
-    ```
-
-    You might want to limit which fields are indexed with metadata config such as this: 
+    Example:
     ```
     {'indexed': ['field1', 'field2']}
+    ```
     """
 
     source_collection: Optional[str] = None
@@ -66,8 +54,34 @@ class PodSpec(NamedTuple):
     The name of the collection to use as the source for the pod index. This configuration is only used when creating a pod index from an existing collection.
     """
 
-    def asdict(self):
+    def __init__(
+        self,
+        environment: Union[PodIndexEnvironment, str],
+        pod_type: Union[PodType, str] = "p1.x1",
+        replicas: Optional[int] = None,
+        shards: Optional[int] = None,
+        pods: Optional[int] = None,
+        metadata_config: Optional[Dict] = None,
+        source_collection: Optional[str] = None,
+    ):
+        object.__setattr__(
+            self,
+            "environment",
+            environment.value if isinstance(environment, PodIndexEnvironment) else str(environment),
+        )
+        object.__setattr__(
+            self, "pod_type", pod_type.value if isinstance(pod_type, PodType) else str(pod_type)
+        )
+        object.__setattr__(self, "replicas", replicas)
+        object.__setattr__(self, "shards", shards)
+        object.__setattr__(self, "pods", pods)
+        object.__setattr__(
+            self, "metadata_config", metadata_config if metadata_config is not None else {}
+        )
+        object.__setattr__(self, "source_collection", source_collection)
+
+    def asdict(self) -> Dict:
         """
         Returns the PodSpec as a dictionary.
         """
-        return {"pod": self._asdict()}
+        return {"pod": self.__dict__}

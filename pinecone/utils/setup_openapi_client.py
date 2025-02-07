@@ -2,6 +2,25 @@ from .user_agent import get_user_agent
 import copy
 
 
+def setup_async_openapi_client(
+    api_client_klass, api_klass, config, openapi_config, api_version=None, **kwargs
+):
+    if kwargs.get("host"):
+        openapi_config = copy.deepcopy(openapi_config)
+        openapi_config._base_path = kwargs["host"]
+
+    api_client = api_client_klass(configuration=openapi_config)
+    api_client.user_agent = get_user_agent(config)
+    extra_headers = config.additional_headers or {}
+    for key, value in extra_headers.items():
+        api_client.set_default_header(key, value)
+
+    if api_version:
+        api_client.set_default_header("X-Pinecone-API-Version", api_version)
+    client = api_klass(api_client)
+    return client
+
+
 def setup_openapi_client(
     api_client_klass, api_klass, config, openapi_config, pool_threads, api_version=None, **kwargs
 ):
