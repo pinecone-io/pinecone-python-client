@@ -24,8 +24,8 @@ from pinecone.models import (
 )
 from .langchain_import_warnings import _build_langchain_attribute_error_message
 from pinecone.utils import docslinks
-
 from pinecone.data import _Index, _Inference, _IndexAsyncio
+
 from pinecone.enums import (
     Metric,
     VectorType,
