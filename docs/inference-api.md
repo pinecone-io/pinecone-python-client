@@ -2,7 +2,6 @@
 
 The Pinecone SDK now supports creating embeddings via the [Inference API](https://docs.pinecone.io/guides/inference/understanding-inference).
 
-
 ```python
 from pinecone import Pinecone, EmbedModel
 

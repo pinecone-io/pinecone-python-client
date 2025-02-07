@@ -74,7 +74,7 @@ instead of waiting for the index to be ready for use, you can add a
 `timeout=-1` argument to your `create_index` call.
 
 
-## Optional spepc configurations when creating pod indexes
+## Optional spec configurations when creating pod indexes
 
 Pod indexes support many optional configuration fields through
 the spec object. For example, if your workload requires a more powerful
@@ -91,7 +91,7 @@ metadata field for queries with filtering; with this metadata configuration,
 queries against the index cannot filter based on any other metadata field.
 
 ```python
-from pinecone import Pinecone, PodSpec
+from pinecone import Pinecone, PodSpec, PodType, PodIndexEnvironment
 
 pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
 
@@ -99,8 +99,8 @@ pc.create_index(
     name="example-index-2",
     dimension=1536,
     spec=PodSpec(
-        environment="eu-west1-gcp",
-        pod_type='p1.x1',
+        environment=PodIndexEnvironment.EU_WEST1_GCP,
+        pod_type=PodType.P1_X1,
         metadata_config={
             "indexed": ["color"]
         },
@@ -150,3 +150,7 @@ pc.configure_index(
     pod_type=PodType.P1_X2
 )
 ```
+
+# Configuring, listing, describing, and deleting
+
+See [shared index actions](shared-index-actions.md) to learn about how to manage the lifecycle of your index after it is created.

@@ -69,7 +69,8 @@ from pinecone import (
     Pinecone,
     ServerlessSpec,
     CloudProvider,
-    AwsRegion
+    AwsRegion,
+    VectorType
 )
 
 # 1. Instantiate the Pinecone client
@@ -82,7 +83,8 @@ index_config = pc.create_index(
     spec=ServerlessSpec(
         cloud=CloudProvider.AWS,
         region=AwsRegion.US_EAST_1
-    )
+    ),
+    vector_type=VectorType.DENSE
 )
 
 # 3. Instantiate an Index client
@@ -189,13 +191,13 @@ response = index.search_records(
 Detailed information on specific ways of using the SDK are covered in these other pages.
 
 - Store and query your vectors
-    - [Serverless Indexes](./docs/db_control/serverless-indexes.md)
-    - [Pod Indexes](./docs/db_control/pod-indexes.md)
-    - [Working with vectors](./docs/db_data/index-usage-byov.md)
+  - [Serverless Indexes](./docs/db_control/serverless-indexes.md)
+  - [Pod Indexes](./docs/db_control/pod-indexes.md)
+  - [Working with vectors](./docs/db_data/index-usage-byov.md)
 
 - Integrated inference: Store and search records using Pinecone-hosted inference models
-    - [create_index_for_model](./docs/db_control/create-index-for-model.md)
-    - [Working with records](./docs/db_data/integrated-inference.md)
+  - [create_index_for_model](./docs/db_control/create-index-for-model.md)
+  - [Working with records](./docs/db_data/integrated-inference.md)
 
 - [Inference API](./docs/inference-api.md)
 - [FAQ](./docs/faq.md)

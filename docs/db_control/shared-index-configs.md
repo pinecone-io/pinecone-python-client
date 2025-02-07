@@ -1,6 +1,10 @@
-# Tags
+# Optional Index configurations
 
-## Organizing indexes with index tags
+This page covers some optional configurations that can be used with all index types.
+
+## Tags
+
+### Organizing indexes with index tags
 
 Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Tags are flexible and can be tailored to your needs, but some common use cases for them might be to label an index with the relevant deployment `environment`, `application`, `team`, or `owner`.
 
@@ -32,13 +36,13 @@ pc.create_index(
 )
 ```
 
-## Modifying tags
+### Modifying tags
 
 To modify the tags of an existing index, use `configure_index()`. The `configure_index` method can be used to change the value of an existing tag, add new tags, or delete tags by setting the value to empty string.
 
 Here's an example showing different ways of modifying tags.
 
-## Viewing tags with describe_index
+### Viewing tags with describe_index
 
 ```python
 from pinecone import Pinecone
@@ -53,7 +57,7 @@ print(desc.tags)
 # }
 ```
 
-## Modifying an existing tag with configure_index
+### Modifying an existing tag with configure_index
 
 You can modify an existing tag by passing the key-value pair to `configure_index()`. Other tags on the index will not be changed.
 
@@ -73,7 +77,7 @@ print(desc.tags)
 # }
 ````
 
-## Adding a new tag to an existing index
+### Adding a new tag to an existing index
 
 Tags passed to the `configure_index` method are merged with any tags that an index already has.
 
@@ -94,7 +98,7 @@ print(desc.tags)
 # }
 ```
 
-## Removing a tag
+### Removing a tag
 
 To remove a tag, pass the value empty string.
 
@@ -109,13 +113,13 @@ pc.configure_index(
 )
 ```
 
-# Deletion Protection
+## Deletion Protection
 
 Deletion protection prevents indexes from being accidentally deleted.
 
 The `deletion_protection` configuration is available on all index types that can be set to either `"enabled"` or `"disabled"`. When enabled, an index will not be able to be deleted using the `delete_index` method. The setting can be changed after an index is created using the `configure_index` method.
 
-## Enabling deletion protection during index creation.
+### Enabling deletion protection during index creation.
 
 Deletion protection is disabled by default, but you can enable it at the time an index is created by passing an optional keyword argument to `create_index` or `create_index_for_model`.
 
@@ -143,7 +147,7 @@ pc.create_index(
 ```
 
 
-## Configuring deletion protection
+### Configuring deletion protection
 
 If you would like to enable deletion protection, which prevents an index from being deleted, the `configure_index` method also handles that via an optional `deletion_protection` keyword argument.
 
