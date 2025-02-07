@@ -95,5 +95,5 @@ pc.delete_index(name="example-index")
 ## Configure index
 
 All indexes can have their configurations modified using the `configure_index` method, although not all indexes will support all properties.
-The `configure_index` method can be used to modify [tags](shared-index-configs.md#tags) and [deletion_protection][shared-index-configs.md#deletion-protection].
+The `configure_index` method can be used to modify [tags](shared-index-configs.md#tags) and [deletion protection][shared-index-configs.md#deletion-protection].
 For pod-based indexes, options are accepted to help with scaling. See [Scaling pod-based indexes](https://docs.pinecone.io/guides/indexes/pods/scale-pod-based-indexes) for more info.
