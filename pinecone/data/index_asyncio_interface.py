@@ -67,7 +67,7 @@ class IndexAsyncioInterface(ABC):
 
         async def main():
             pc = Pinecone()
-            with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
                 # A Vector object
                 await idx.upsert(
                     namespace = 'my-namespace',
@@ -110,7 +110,7 @@ class IndexAsyncioInterface(ABC):
 
         async def main():
             pc = Pinecone()
-            with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
                 # A Vector object
                 await idx.upsert(
                     namespace = 'my-namespace',
@@ -140,7 +140,7 @@ class IndexAsyncioInterface(ABC):
 
         async def main():
             pc = Pinecone()
-            with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
 
             await idx.upsert(
                 namespace = 'my-namespace',
@@ -216,7 +216,7 @@ class IndexAsyncioInterface(ABC):
 
         async def main():
             pc = Pinecone()
-            with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
                 # Delete specific ids
                 await idx.delete(
                     ids=['id1', 'id2'],
@@ -258,7 +258,7 @@ class IndexAsyncioInterface(ABC):
 
         async def main():
             pc = Pinecone()
-            with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
                 # Fetch specific ids in namespace
                 fetched = await idx.fetch(
                     ids=['id1', 'id2'],
@@ -310,7 +310,7 @@ class IndexAsyncioInterface(ABC):
 
         async def main():
             pc = Pinecone()
-            with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
                 query_embedding = [0.1, 0.2, 0.3, ...] # An embedding that matches the index dimension
 
                 # Query by vector values
@@ -342,7 +342,7 @@ class IndexAsyncioInterface(ABC):
 
         async def main():
             pc = Pinecone()
-            with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
                 query_embedding = [0.1, 0.2, 0.3, ...] # An embedding that matches the index dimension
 
                 # Query by vector values
@@ -416,34 +416,6 @@ class IndexAsyncioInterface(ABC):
     ) -> QueryNamespacesResults:
         """The query_namespaces() method is used to make a query to multiple namespaces in parallel and combine the results into one result set.
 
-        Since several asynchronous calls are made on your behalf when calling this method, you will need to tune the pool_threads and connection_pool_maxsize parameter of the Index constructor to suite your workload.
-
-        Examples:
-
-        ```python
-        from pinecone import Pinecone
-
-        pc = Pinecone(api_key="your-api-key")
-        index = pc.Index(
-            host="index-name",
-            pool_threads=32,
-            connection_pool_maxsize=32
-        )
-
-        query_vec = [0.1, 0.2, 0.3] # An embedding that matches the index dimension
-        combined_results = index.query_namespaces(
-            vector=query_vec,
-            namespaces=['ns1', 'ns2', 'ns3', 'ns4'],
-            top_k=10,
-            filter={'genre': {"$eq": "drama"}},
-            include_values=True,
-            include_metadata=True
-        )
-        for vec in combined_results.matches:
-            print(vec.id, vec.score)
-        print(combined_results.usage)
-        ```
-
         Args:
             vector (List[float]): The query vector, must be the same length as the dimension of the index being queried.
             namespaces (List[str]): The list of namespaces to query.
@@ -455,6 +427,36 @@ class IndexAsyncioInterface(ABC):
 
         Returns:
             QueryNamespacesResults: A QueryNamespacesResults object containing the combined results from all namespaces, as well as the combined usage cost in read units.
+
+        Examples:
+
+        ```python
+        import asyncio
+        from pinecone import Pinecone
+
+        async def main():
+            pc = Pinecone(api_key="your-api-key")
+            idx = pc.IndexAsyncio(
+                host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io",
+            )
+
+            query_vec = [0.1, 0.2, 0.3] # An embedding that matches the index dimension
+            combined_results = await idx.query_namespaces(
+                vector=query_vec,
+                namespaces=['ns1', 'ns2', 'ns3', 'ns4'],
+                top_k=10,
+                filter={'genre': {"$eq": "drama"}},
+                include_values=True,
+                include_metadata=True
+            )
+            for vec in combined_results.matches:
+                print(vec.id, vec.score)
+            print(combined_results.usage)
+
+            await idx.close()
+
+        asyncio.run(main())
+        ```
         """
         pass
 
@@ -470,19 +472,6 @@ class IndexAsyncioInterface(ABC):
     ) -> Dict[str, Any]:
         """
         The Update operation updates vector in a namespace.
-        If a value is included, it will overwrite the previous value.
-        If a set_metadata is included,
-        the values of the fields specified in it will be added or overwrite the previous value.
-
-        API reference: https://docs.pinecone.io/reference/update
-
-        Examples:
-            >>> index.update(id='id1', values=[1, 2, 3], namespace='my_namespace')
-            >>> index.update(id='id1', set_metadata={'key': 'value'}, namespace='my_namespace')
-            >>> index.update(id='id1', values=[1, 2, 3], sparse_values={'indices': [1, 2], 'values': [0.2, 0.4]},
-            >>>              namespace='my_namespace')
-            >>> index.update(id='id1', values=[1, 2, 3], sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]),
-            >>>              namespace='my_namespace')
 
         Args:
             id (str): Vector's unique id.
@@ -494,7 +483,51 @@ class IndexAsyncioInterface(ABC):
                            Expected to be either a SparseValues object or a dict of the form:
                            {'indices': List[int], 'values': List[float]} where the lists each have the same length.
 
-        Returns: An empty dictionary if the update was successful.
+        If a value is included, it will overwrite the previous value.
+        If a set_metadata is included,
+        the values of the fields specified in it will be added or overwrite the previous value.
+
+        API reference: https://docs.pinecone.io/reference/update
+
+        Examples:
+        ```python
+        import asyncio
+        from pinecone import Pinecone, Vector, SparseValues
+
+        async def main():
+            pc = Pinecone()
+            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+                # Update vector values
+                await idx.update(
+                    id='id1',
+                    values=[0.1, 0.2, 0.3, ...],
+                    namespace='my_namespace'
+                )
+
+                # Update metadata
+                await idx.update(
+                    id='id1',
+                    set_metadata={'key': 'value'},
+                    namespace='my_namespace'
+                )
+
+                # Update sparse values
+                await idx.update(
+                    id='id1',
+                    sparse_values={'indices': [1, 2], 'values': [0.2, 0.4]},
+                    namespace='my_namespace'
+                )
+
+                # Update sparse values with SparseValues object
+                await idx.update(
+                    id='id1',
+                    sparse_values=SparseValues(indices=[234781, 5432], values=[0.2, 0.4]),
+                    namespace='my_namespace'
+                )
+
+        asyncio.run(main())
+        ```
+
         """
         pass
 
@@ -508,16 +541,24 @@ class IndexAsyncioInterface(ABC):
 
         API reference: https://docs.pinecone.io/reference/describe_index_stats_post
 
-        Examples:
-            >>> index.describe_index_stats()
-            >>> index.describe_index_stats(filter={'key': 'value'})
-
         Args:
             filter (Dict[str, Union[str, float, int, bool, List, dict]]):
             If this parameter is present, the operation only returns statistics for vectors that satisfy the filter.
             See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
 
         Returns: DescribeIndexStatsResponse object which contains stats about the index.
+
+        ```python
+        import asyncio
+        from pinecone import Pinecone, Vector, SparseValues
+
+        async def main():
+            pc = Pinecone()
+            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+                print(await idx.describe_index_stats())
+
+        asyncio.run(main())
+        ```
         """
         pass
 
@@ -598,6 +639,7 @@ class IndexAsyncioInterface(ABC):
         the specified namespacce of the index.
 
         ```python
+        import asyncio
         from pinecone import (
             Pinecone,
             CloudProvider,
@@ -606,70 +648,59 @@ class IndexAsyncioInterface(ABC):
             IndexEmbed
         )
 
-        pc = Pinecone(api_key="<<PINECONE_API_KEY>>")
+        async def main():
+            pc = Pinecone()
+            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+                # upsert records
+                await idx.upsert_records(
+                    namespace="my-namespace",
+                    records=[
+                        {
+                            "_id": "test1",
+                            "my_text_field": "Apple is a popular fruit known for its sweetness and crisp texture.",
+                        },
+                        {
+                            "_id": "test2",
+                            "my_text_field": "The tech company Apple is known for its innovative products like the iPhone.",
+                        },
+                        {
+                            "_id": "test3",
+                            "my_text_field": "Many people enjoy eating apples as a healthy snack.",
+                        },
+                        {
+                            "_id": "test4",
+                            "my_text_field": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
+                        },
+                        {
+                            "_id": "test5",
+                            "my_text_field": "An apple a day keeps the doctor away, as the saying goes.",
+                        },
+                        {
+                            "_id": "test6",
+                            "my_text_field": "Apple Computer Company was founded on April 1, 1976, by Steve Jobs, Steve Wozniak, and Ronald Wayne as a partnership.",
+                        },
+                    ],
+                )
 
-        # Create an index for your embedding model
-        index_model = pc.create_index_for_model(
-            name="my-model-index",
-            cloud=CloudProvider.AWS,
-            region=AwsRegion.US_WEST_2,
-            embed=IndexEmbed(
-                model=EmbedModel.Multilingual_E5_Large,
-                field_map={"text": "my_text_field"}
-            )
-        )
+                from pinecone import SearchQuery, SearchRerank, RerankModel
 
-        # Instantiate the index client
-        idx = pc.Index(host=index_model.host)
+                # search for similar records
+                response = await idx.search_records(
+                    namespace="my-namespace",
+                    query=SearchQuery(
+                        inputs={
+                            "text": "Apple corporation",
+                        },
+                        top_k=3,
+                    ),
+                    rerank=SearchRerank(
+                        model=RerankModel.Bge_Reranker_V2_M3,
+                        rank_fields=["my_text_field"],
+                        top_n=3,
+                    ),
+                )
 
-        # upsert records
-        idx.upsert_records(
-            namespace="my-namespace",
-            records=[
-                {
-                    "_id": "test1",
-                    "my_text_field": "Apple is a popular fruit known for its sweetness and crisp texture.",
-                },
-                {
-                    "_id": "test2",
-                    "my_text_field": "The tech company Apple is known for its innovative products like the iPhone.",
-                },
-                {
-                    "_id": "test3",
-                    "my_text_field": "Many people enjoy eating apples as a healthy snack.",
-                },
-                {
-                    "_id": "test4",
-                    "my_text_field": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
-                },
-                {
-                    "_id": "test5",
-                    "my_text_field": "An apple a day keeps the doctor away, as the saying goes.",
-                },
-                {
-                    "_id": "test6",
-                    "my_text_field": "Apple Computer Company was founded on April 1, 1976, by Steve Jobs, Steve Wozniak, and Ronald Wayne as a partnership.",
-                },
-            ],
-        )
-
-        from pinecone import SearchQuery, SearchRerank, RerankModel
-
-        # search for similar records
-        response = idx.search_records(
-            namespace="my-namespace",
-            query=SearchQuery(
-                inputs={
-                    "text": "Apple corporation",
-                },
-                top_k=3,
-            ),
-            rerank=SearchRerank(
-                model=RerankModel.Bge_Reranker_V2_M3,
-                rank_fields=["my_text_field"],
-                top_n=3,
-            ),
-        )
+        asyncio.run(main())
         ```
         """
         pass
@@ -697,6 +728,7 @@ class IndexAsyncioInterface(ABC):
         can optionally provide a reranking operation as part of the search.
 
         ```python
+        import asyncio
         from pinecone import (
             Pinecone,
             CloudProvider,
@@ -705,71 +737,61 @@ class IndexAsyncioInterface(ABC):
             IndexEmbed
         )
 
-        pc = Pinecone(api_key="<<PINECONE_API_KEY>>")
+        async def main():
+            pc = Pinecone()
+            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+                # upsert records
+                await idx.upsert_records(
+                    namespace="my-namespace",
+                    records=[
+                        {
+                            "_id": "test1",
+                            "my_text_field": "Apple is a popular fruit known for its sweetness and crisp texture.",
+                        },
+                        {
+                            "_id": "test2",
+                            "my_text_field": "The tech company Apple is known for its innovative products like the iPhone.",
+                        },
+                        {
+                            "_id": "test3",
+                            "my_text_field": "Many people enjoy eating apples as a healthy snack.",
+                        },
+                        {
+                            "_id": "test4",
+                            "my_text_field": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
+                        },
+                        {
+                            "_id": "test5",
+                            "my_text_field": "An apple a day keeps the doctor away, as the saying goes.",
+                        },
+                        {
+                            "_id": "test6",
+                            "my_text_field": "Apple Computer Company was founded on April 1, 1976, by Steve Jobs, Steve Wozniak, and Ronald Wayne as a partnership.",
+                        },
+                    ],
+                )
 
-        # Create an index for your embedding model
-        index_model = pc.create_index_for_model(
-            name="my-model-index",
-            cloud=CloudProvider.AWS,
-            region=AwsRegion.US_WEST_2,
-            embed=IndexEmbed(
-                model=EmbedModel.Multilingual_E5_Large,
-                field_map={"text": "my_text_field"}
-            )
-        )
+                from pinecone import SearchQuery, SearchRerank, RerankModel
 
-        # Instantiate the index client
-        idx = pc.Index(host=index_model.host)
+                # search for similar records
+                response = await idx.search_records(
+                    namespace="my-namespace",
+                    query=SearchQuery(
+                        inputs={
+                            "text": "Apple corporation",
+                        },
+                        top_k=3,
+                    ),
+                    rerank=SearchRerank(
+                        model=RerankModel.Bge_Reranker_V2_M3,
+                        rank_fields=["my_text_field"],
+                        top_n=3,
+                    ),
+                )
 
-        # upsert records
-        idx.upsert_records(
-            namespace="my-namespace",
-            records=[
-                {
-                    "_id": "test1",
-                    "my_text_field": "Apple is a popular fruit known for its sweetness and crisp texture.",
-                },
-                {
-                    "_id": "test2",
-                    "my_text_field": "The tech company Apple is known for its innovative products like the iPhone.",
-                },
-                {
-                    "_id": "test3",
-                    "my_text_field": "Many people enjoy eating apples as a healthy snack.",
-                },
-                {
-                    "_id": "test4",
-                    "my_text_field": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
-                },
-                {
-                    "_id": "test5",
-                    "my_text_field": "An apple a day keeps the doctor away, as the saying goes.",
-                },
-                {
-                    "_id": "test6",
-                    "my_text_field": "Apple Computer Company was founded on April 1, 1976, by Steve Jobs, Steve Wozniak, and Ronald Wayne as a partnership.",
-                },
-            ],
-        )
-
-        from pinecone import SearchQuery, SearchRerank, RerankModel
-
-        # search for similar records
-        response = idx.search_records(
-            namespace="my-namespace",
-            query=SearchQuery(
-                inputs={
-                    "text": "Apple corporation",
-                },
-                top_k=3,
-            ),
-            rerank=SearchRerank(
-                model=RerankModel.Bge_Reranker_V2_M3,
-                rank_fields=["my_text_field"],
-                top_n=3,
-            ),
-        )
+        asyncio.run(main())
         ```
+
         """
         pass
 

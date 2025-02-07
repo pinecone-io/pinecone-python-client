@@ -53,7 +53,8 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     from pinecone import Pinecone
 
     async def main():
-        with Pinecone.IndexAsyncio(host="my-index.pinecone.io") as idx:
+        pc = Pinecone()
+        async with pc.IndexAsyncio(host="my-index.pinecone.io") as idx:
             await idx.upsert(vectors=[(1, [1, 2, 3]), (2, [4, 5, 6])])
 
     asyncio.run(main())
