@@ -195,13 +195,15 @@ Detailed information on specific ways of using the SDK are covered in these othe
   - [Pod Indexes](./docs/db_control/pod-indexes.md)
   - [Working with vectors](./docs/db_data/index-usage-byov.md)
 
-- Integrated inference: Store and search records using Pinecone-hosted inference models
-  - [create_index_for_model](./docs/db_control/create-index-for-model.md)
-  - [Working with records](./docs/db_data/integrated-inference.md)
-
 - [Inference API](./docs/inference-api.md)
 - [FAQ](./docs/faq.md)
 
+
+# Issues & Bugs
+
+If you notice bugs or have feedback, please [file an issue](https://github.com/pinecone-io/pinecone-python-client/issues).
+
+You can also get help in the [Pinecone Community Forum](https://community.pinecone.io/).
 
 # Contributing
 
