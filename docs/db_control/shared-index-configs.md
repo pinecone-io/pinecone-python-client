@@ -1,8 +1,10 @@
-# Labeling indexes with index tags
+# Tags
+
+## Organizing indexes with index tags
 
 Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Tags are flexible and can be tailored to your needs, but some common use cases for them might be to label an index with the relevant deployment `environment`, `application`, `team`, or `owner`.
 
-Tags can be set during index creation by passing an optional dictionary with the `tags` keyword argument.
+Tags can be set during index creation by passing an optional dictionary with the `tags` keyword argument to the `create_index` and `create_index_for_model` methods. Here's an example demonstrating how tags can be passed to `create_index`.
 
 ```python
 from pinecone import (
@@ -105,4 +107,58 @@ pc.configure_index(
         "owner": ""
     }
 )
+```
+
+# Deletion Protection
+
+Deletion protection prevents indexes from being accidentally deleted.
+
+The `deletion_protection` configuration is available on all index types that can be set to either `"enabled"` or `"disabled"`. When enabled, an index will not be able to be deleted using the `delete_index` method. The setting can be changed after an index is created using the `configure_index` method.
+
+## Enabling deletion protection during index creation.
+
+Deletion protection is disabled by default, but you can enable it at the time an index is created by passing an optional keyword argument to `create_index` or `create_index_for_model`.
+
+```python
+from pinecone import (
+    Pinecone,
+    ServerlessSpec,
+    CloudProvider,
+    GcpRegion,
+    Metric
+)
+
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+
+pc.create_index(
+    name='my-index',
+    dimension=1536,
+    metric=Metric.COSINE,
+    deletion_protection=DeletionProtection.ENABLED,
+    spec=ServerlessSpec(
+        cloud=CloudProvider.GCP,
+        region=GcpRegion.US_CENTRAL1
+    )
+)
+```
+
+
+## Configuring deletion protection
+
+If you would like to enable deletion protection, which prevents an index from being deleted, the `configure_index` method also handles that via an optional `deletion_protection` keyword argument.
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+
+# To enable deletion protection
+pc.configure_index("example-index", deletion_protection='enabled')
+
+# Disable deletion protection
+pc.configure_index("example-index", deletion_protection='disabled')
+
+# Call describe index to verify the configuration change has been applied
+desc = pc.describe_index("example-index")
+print(desc.deletion_protection)
 ```

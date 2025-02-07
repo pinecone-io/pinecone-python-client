@@ -1,5 +1,7 @@
 # Pinecone serverless indexes
 
+For introductory information on indexes, please see [Understanding indexes](https://docs.pinecone.io/guides/indexes/understanding-indexes#serverless-indexes)
+
 ## Create a serverless index on Amazon Web Services (AWS)
 
 The following example creates a serverless index in the `us-west-2`
@@ -27,7 +29,6 @@ pc.create_index(
     vector_type=VectorType.DENSE
 )
 ```
-
 
 ## Create a serverless index on Google Cloud Platform
 
@@ -80,40 +81,4 @@ pc.create_index(
         region=AzureRegion.EASTUS2
     )
 )
-```
-
-## List indexes
-
-The following example returns all indexes in your project.
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-for index in pc.list_indexes():
-    print(index['name'])
-```
-
-## Describe index
-
-The following example returns information about the index `example-index`.
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-
-index_description = pc.describe_index("example-index")
-```
-
-## Delete an index
-
-The following example deletes the index named `example-index`. Only indexes which are not protected by deletion protection may be deleted.
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-
-pc.delete_index("example-index")
 ```

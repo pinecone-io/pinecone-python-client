@@ -1,4 +1,3 @@
-
 # Advanced topics
 
 ## Proxy configuration
