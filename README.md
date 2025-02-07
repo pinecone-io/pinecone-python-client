@@ -16,7 +16,8 @@ For notes on changes between major versions, see [Upgrading](./docs/upgrading.md
 
 ## Prerequisites
 
-The Pinecone Python SDK is compatible with Python 3.9 and greater. It has been tested with CPython versions from 3.9 to 3.13.
+- The Pinecone Python SDK is compatible with Python 3.9 and greater. It has been tested with CPython versions from 3.9 to 3.13.
+- Before you can use the Pinecone SDK, you must sign up for an account and find your API key in the Pinecone console dashboard at [https://app.pinecone.io](https://app.pinecone.io).
 
 ## Installation
 
@@ -59,46 +60,145 @@ poetry add pinecone
 poetry add pinecone --extras asyncio --extras grpc
 ```
 
-## Usage
+# Quickstart
 
-Bring your own vector:
-- [Serverless Indexes](./docs/serverless-indexes.md)
-- [Pod Indexes](./docs/pod-indexes.md)
-
-
-# Inference API
-
-The Pinecone SDK now supports creating embeddings via the [Inference API](https://docs.pinecone.io/guides/inference/understanding-inference).
+## Bringing your own vectors to Pinecone
 
 ```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key="YOUR_API_KEY")
-model = "multilingual-e5-large"
-
-# Embed documents
-text = [
-    "Turkey is a classic meat to eat at American Thanksgiving.",
-    "Many people enjoy the beautiful mosques in Turkey.",
-]
-text_embeddings = pc.inference.embed(
-    model=model,
-    inputs=text,
-    parameters={"input_type": "passage", "truncate": "END"},
+from pinecone import (
+    Pinecone,
+    ServerlessSpec,
+    CloudProvider,
+    AwsRegion
 )
 
-# Upsert documents into Pinecone index
+# 1. Instantiate the Pinecone client
+pc = Pinecone(api_key='YOUR_API_KEY')
 
-# Embed a query
-query = ["How should I prepare my turkey?"]
-query_embeddings = pc.inference.embed(
-    model=model,
-    inputs=query,
-    parameters={"input_type": "query", "truncate": "END"},
+# 2. Create an index
+index_config = pc.create_index(
+    name="index-name",
+    dimension=1536,
+    spec=ServerlessSpec(
+        cloud=CloudProvider.AWS,
+        region=AwsRegion.US_EAST_1
+    )
 )
 
-# Send query to Pinecone index to retrieve similar documents
+# 3. Instantiate an Index client
+idx = pc.Index(host=index_config.host)
+
+# 4. Upsert embeddings
+idx.upsert(
+    vectors=[
+        ("id1", [0.1, 0.2, 0.3, 0.4, ...], {"metadata_key": "value1"}),
+        ("id2", [0.2, 0.3, 0.4, 0.5, ...], {"metadata_key": "value2"}),
+    ],
+    namespace="example-namespace"
+)
+
+# 5. Query your index using an embedding
+query_embedding = [...] # list should have length == index dimension
+idx.query(
+    vector=query_embedding,
+    top_k=10,
+    include_metadata=True,
+    filter={"metadata_key": { "$eq": "value1" }}
+)
 ```
+
+## Bring your own data using Pinecone integrated inference
+
+```python
+from pinecone import (
+    Pinecone,
+    CloudProvider,
+    AwsRegion,
+    EmbedModel,
+)
+
+# 1. Instantiate the Pinecone client
+pc = Pinecone(api_key="<<PINECONE_API_KEY>>")
+
+# 2. Create an index configured for use with a particular model
+index_config = pc.create_index_for_model(
+    name="my-model-index",
+    cloud=CloudProvider.AWS,
+    region=AwsRegion.US_EAST_1,
+    embed=IndexEmbed(
+        model=EmbedModel.Multilingual_E5_Large,
+        field_map={"text": "my_text_field"}
+    )
+)
+
+# 3. Instantiate an Index client
+idx = pc.Index(host=index_config.host)
+
+# 4. Upsert records
+idx.upsert_records(
+    namespace="my-namespace",
+    records=[
+        {
+            "_id": "test1",
+            "my_text_field": "Apple is a popular fruit known for its sweetness and crisp texture.",
+        },
+        {
+            "_id": "test2",
+            "my_text_field": "The tech company Apple is known for its innovative products like the iPhone.",
+        },
+        {
+            "_id": "test3",
+            "my_text_field": "Many people enjoy eating apples as a healthy snack.",
+        },
+        {
+            "_id": "test4",
+            "my_text_field": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
+        },
+        {
+            "_id": "test5",
+            "my_text_field": "An apple a day keeps the doctor away, as the saying goes.",
+        },
+        {
+            "_id": "test6",
+            "my_text_field": "Apple Computer Company was founded on April 1, 1976, by Steve Jobs, Steve Wozniak, and Ronald Wayne as a partnership.",
+        },
+    ],
+)
+
+# 5. Search for similar records
+from pinecone import SearchQuery, SearchRerank, RerankModel
+
+response = index.search_records(
+    namespace="my-namespace",
+    query=SearchQuery(
+        inputs={
+            "text": "Apple corporation",
+        },
+        top_k=3
+    ),
+    rerank=SearchRerank(
+        model=RerankModel.Bge_Reranker_V2_M3,
+        rank_fields=["my_text_field"],
+        top_n=3,
+    ),
+)
+```
+
+## More information on usage
+
+Detailed information on specific ways of using the SDK are covered in these other pages.
+
+- Store and query your vectors
+    - [Serverless Indexes](./docs/db_control/serverless-indexes.md)
+    - [Pod Indexes](./docs/db_control/pod-indexes.md)
+    - [Working with vectors](./docs/db_data/index-usage-byov.md)
+
+- Integrated inference: Store and search records using Pinecone-hosted inference models
+    - [create_index_for_model](./docs/db_control/create-index-for-model.md)
+    - [Working with records](./docs/db_data/integrated-inference.md)
+
+- [Inference API](./docs/inference-api.md)
+- [FAQ](./docs/faq.md)
 
 
 # Contributing
