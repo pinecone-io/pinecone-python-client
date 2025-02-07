@@ -15,6 +15,7 @@ async def test_upsert_with_batch_size_dense(index_host, dimension, target_namesp
         batch_size=10,
         show_progress=False,
     )
+    await asyncio_idx.close()
 
 
 @pytest.mark.asyncio
@@ -58,3 +59,4 @@ async def test_upsert_dense_errors(index_host, dimension):
     with pytest.raises(PineconeApiException) as e:
         await asyncio_idx.upsert(vectors=[])
     assert "Invalid request" in str(e.value)
+    await asyncio_idx.close()

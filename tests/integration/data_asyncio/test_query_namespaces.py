@@ -150,6 +150,7 @@ class TestQueryNamespacesRest:
         )
         assert len(results6.matches) == 0
         assert results6.usage.read_units > 0
+        await asyncio_idx.close()
 
     async def test_single_result_per_namespace(self, index_host):
         asyncio_idx = build_asyncioindex_client(index_host)
@@ -190,6 +191,7 @@ class TestQueryNamespacesRest:
         assert results.matches[0].namespace == ns1
         assert results.matches[1].id == "id5"
         assert results.matches[1].namespace == ns2
+        await asyncio_idx.close()
 
     async def test_missing_namespaces(self, index_host):
         asyncio_idx = build_asyncioindex_client(index_host)
@@ -217,6 +219,7 @@ class TestQueryNamespacesRest:
                 top_k=2,
             )
         assert str(e.value) == "At least one namespace must be specified"
+        await asyncio_idx.close()
 
     async def test_missing_metric(self, index_host):
         asyncio_idx = build_asyncioindex_client(index_host)
@@ -231,3 +234,4 @@ class TestQueryNamespacesRest:
                 top_k=2,
             )
         assert "query_namespaces() missing 1 required positional argument: 'metric'" in str(e.value)
+        await asyncio_idx.close()

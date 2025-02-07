@@ -32,3 +32,4 @@ async def test_list(index_host, dimension, target_namespace):
         pages += 1
         assert len(ids_list) <= 4
     assert pages == 25
+    await asyncio_idx.close()

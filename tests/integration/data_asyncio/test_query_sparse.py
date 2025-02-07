@@ -215,3 +215,4 @@ async def test_query_sparse(sparse_index_host, target_namespace):
             namespace=target_namespace,
         )
     assert "Index configuration does not support dense values" in str(e.value)
+    await asyncio_sparse_idx.close()

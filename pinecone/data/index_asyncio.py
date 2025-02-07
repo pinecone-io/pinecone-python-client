@@ -5,7 +5,7 @@ import logging
 import asyncio
 import json
 
-from .interfaces import AsyncioIndexInterface
+from .index_asyncio_interface import IndexAsyncioInterface
 from .query_results_aggregator import QueryResultsAggregator
 from typing import Union, List, Optional, Dict, Any, Literal
 
@@ -51,8 +51,9 @@ from .features.bulk_import import ImportFeatureMixinAsyncio
 
 
 logger = logging.getLogger(__name__)
+""" @private """
 
-__all__ = ["_AsyncioIndex"]
+__all__ = ["_IndexAsyncio"]
 
 _OPENAPI_ENDPOINT_PARAMS = (
     "_return_http_data_only",
@@ -61,6 +62,7 @@ _OPENAPI_ENDPOINT_PARAMS = (
     "_check_input_type",
     "_check_return_type",
 )
+""" @private """
 
 
 def parse_query_response(response: QueryResponse):
@@ -73,7 +75,60 @@ def parse_query_response(response: QueryResponse):
     return response
 
 
-class _AsyncioIndex(AsyncioIndexInterface, ImportFeatureMixinAsyncio):
+class _IndexAsyncio(IndexAsyncioInterface, ImportFeatureMixinAsyncio):
+    """
+    The `IndexAsyncio` class provides an asynchronous interface to interact with Pinecone indexes.
+
+    Like the `Index` class, it provides methods to upsert, delete, fetch, and query vectors in a Pinecone index.
+
+    The `IndexAsyncio` class is instantiated through a helper method of the `Pinecone` class. It is not meant to be instantiated directly.
+    This is to ensure that configuration is handled consistently across all Pinecone objects.
+
+    ## Managing the async context
+
+    The `IndexAsyncio` class relies on an underlying `aiohttp` `ClientSession` to make asynchronous HTTP requests. To ensure that the session is properly closed, you
+    should use the `async with` syntax when creating a `IndexAsyncio` object to use it as an async context manager. This will ensure that the session is properly
+    closed when the context is exited.
+
+    ```python
+    import asyncio
+    from pinecone import Pinecone
+
+    async def main():
+        pc = Pinecone(api_key='YOUR_API_KEY')
+        async with pc.IndexAsyncio(host='example-index-dojoi3u.svc.eu-west1-gcp.pinecone.io') as idx:
+            # Do async things
+            await idx.upsert(
+                vectors=[
+                    ...
+                ]
+            )
+
+    asyncio.run(main())
+    ```
+
+    As an alternative, if you prefer to avoid code with a nested appearance and are willing to manage cleanup yourself, you can await the `close()` method to close the session when you are done.
+
+    ```python
+    import asyncio
+    from pinecone import Pinecone
+
+    async def main():
+        pc = Pinecone(api_key='YOUR_API_KEY')
+        idx = pc.IndexAsyncio(host='example-index-dojoi3u.svc.eu-west1-gcp.pinecone.io')
+
+        # Do async things
+        await idx.describe_index_stats()
+
+        # After you're done, you're responsible for calling this yourself
+        await pc.close()
+
+    asyncio.run(main())
+    ```
+
+    Failing to do this may result in error messages appearing from the underlyling aiohttp library.
+    """
+
     def __init__(
         self,
         api_key: str,
@@ -85,7 +140,9 @@ class _AsyncioIndex(AsyncioIndexInterface, ImportFeatureMixinAsyncio):
         self.config = ConfigBuilder.build(
             api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
+        """ @private """
         self._openapi_config = ConfigBuilder.build_openapi_config(self.config, openapi_config)
+        """ @private """
 
         if kwargs.get("connection_pool_maxsize", None):
             self._openapi_config.connection_pool_maxsize = kwargs.get("connection_pool_maxsize")
@@ -97,8 +154,10 @@ class _AsyncioIndex(AsyncioIndexInterface, ImportFeatureMixinAsyncio):
             openapi_config=self._openapi_config,
             api_version=API_VERSION,
         )
+        """ @private """
 
         self._api_client = self._vector_api.api_client
+        """ @private """
 
         # Pass the same api_client to the ImportFeatureMixinAsyncio
         # This is important for async context management to work correctly
@@ -111,6 +170,56 @@ class _AsyncioIndex(AsyncioIndexInterface, ImportFeatureMixinAsyncio):
         await self._api_client.close()
 
     async def close(self):
+        """Cleanup resources used by the Pinecone Index client.
+
+        This method should be called when the client is no longer needed so that
+        it can cleanup the aioahttp session and other resources.
+
+        After close has been called, the client instance should not be used.
+
+        ```python
+        import asyncio
+        from pinecone import Pinecone
+
+        async def main():
+            pc = Pinecone()
+            idx = pc.IndexAsyncio(host='example-index-dojoi3u.svc.eu-west1-gcp.pinecone.io')
+            await idx.upsert_records(
+                namespace='my-namespace',
+                records=[
+                    ...
+                ]
+            )
+
+            # Close the client when done
+            await idx.close()
+
+        asyncio.run(main())
+        ```
+
+        If you are using the client as a context manager, the close method is called automatically
+        when exiting.
+
+        ```python
+        import asyncio
+        from pinecone import Pinecone
+
+        async def main():
+            pc = Pinecone()
+            async with pc.IndexAscynio(host='example-index-dojoi3u.svc.eu-west1-gcp.pinecone.io') as idx:
+                await idx.upsert_records(
+                    namespace='my-namespace',
+                    records=[
+                        ...
+                    ]
+                )
+
+        # No need to call close in this case because the "async with" syntax
+        # automatically calls close when exiting the block.
+        asyncio.run(main())
+        ```
+
+        """
         await self._api_client.close()
 
     @validate_and_convert_errors

@@ -22,6 +22,7 @@ from .deserializer import Deserializer
 from .auth_util import AuthUtil
 
 logger = logging.getLogger(__name__)
+""" @private """
 
 
 class AsyncioApiClient(object):

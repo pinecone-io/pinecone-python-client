@@ -46,6 +46,7 @@ class TestAsyncioUpdateSparse:
 
         fetched_vec = await asyncio_idx.fetch(ids=["1"], namespace=target_namespace)
         assert len(fetched_vec.vectors["1"].sparse_values.values) == 100
+        await asyncio_idx.close()
 
         # #  Check that all the values are updated
         # for i in range(100):
@@ -82,3 +83,4 @@ class TestAsyncioUpdateSparse:
 
         fetched_vec = await asyncio_idx.fetch(ids=["2"], namespace=target_namespace)
         assert fetched_vec.vectors["2"].metadata == {"genre": "comedy"}
+        await asyncio_idx.close()

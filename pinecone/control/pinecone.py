@@ -24,8 +24,8 @@ from pinecone.models import (
 )
 from .langchain_import_warnings import _build_langchain_attribute_error_message
 from pinecone.utils import docslinks
+from pinecone.data import _Index, _Inference, _IndexAsyncio
 
-from pinecone.data import _Index, _Inference, _AsyncioIndex
 from pinecone.enums import (
     Metric,
     VectorType,
@@ -63,7 +63,7 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
         pool_threads: Optional[int] = None,
         **kwargs,
     ):
-        for deprecated_kwarg in {"config", "openapi_config"}:
+        for deprecated_kwarg in {"config", "openapi_config", "index_api"}:
             if deprecated_kwarg in kwargs:
                 raise NotImplementedError(
                     f"Passing {deprecated_kwarg} is no longer supported. Please pass individual settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at {docslinks['README']} for examples."
@@ -79,15 +79,20 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
             ssl_verify=ssl_verify,
             **kwargs,
         )
+        """ @private """
 
         self.openapi_config = ConfigBuilder.build_openapi_config(self.config, **kwargs)
+        """ @private """
 
         if pool_threads is None:
             self.pool_threads = 5 * cpu_count()
+            """ @private """
         else:
             self.pool_threads = pool_threads
+            """ @private """
 
         self._inference = None  # Lazy initialization
+        """ @private """
 
         self.index_api = setup_openapi_client(
             api_client_klass=ApiClient,
@@ -97,6 +102,7 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
             pool_threads=pool_threads,
             api_version=API_VERSION,
         )
+        """ @private """
 
         self.index_host_store = IndexHostStore()
         """ @private """
@@ -107,7 +113,9 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
 
     @property
     def inference(self):
-        """Dynamically create and cache the Inference instance."""
+        """
+        Inference is a namespace where an instance of the `pinecone.data.features.inference.inference.Inference` class is lazily created and cached.
+        """
         if self._inference is None:
             self._inference = _Inference(config=self.config, openapi_config=self.openapi_config)
         return self._inference
@@ -261,7 +269,7 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
         )
         api_instance.configure_index(name, configure_index_request=req)
 
-    def create_collection(self, name: str, source: str):
+    def create_collection(self, name: str, source: str) -> None:
         req = PineconeDBControlRequestFactory.create_collection_request(name=name, source=source)
         self.index_api.create_collection(create_collection_request=req)
 
@@ -269,7 +277,7 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
         response = self.index_api.list_collections()
         return CollectionList(response)
 
-    def delete_collection(self, name: str):
+    def delete_collection(self, name: str) -> None:
         self.index_api.delete_collection(name)
 
     def describe_collection(self, name: str):
@@ -321,7 +329,7 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
         check_realistic_host(host)
         index_host = normalize_host(host)
 
-        return _AsyncioIndex(
+        return _IndexAsyncio(
             host=index_host,
             api_key=api_key,
             openapi_config=openapi_config,

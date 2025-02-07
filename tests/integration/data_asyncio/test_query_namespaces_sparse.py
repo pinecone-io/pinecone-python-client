@@ -199,6 +199,7 @@ class TestQueryNamespacesRest_Sparse:
         )
         assert len(results6.matches) == 0
         assert results6.usage.read_units > 0
+        await asyncio_idx.close()
 
     async def test_missing_namespaces(self, sparse_index_host):
         asyncio_idx = build_asyncioindex_client(sparse_index_host)
@@ -226,3 +227,4 @@ class TestQueryNamespacesRest_Sparse:
                 top_k=2,
             )
         assert str(e.value) == "At least one namespace must be specified"
+        await asyncio_idx.close()

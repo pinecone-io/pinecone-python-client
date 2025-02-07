@@ -11,6 +11,7 @@ from .exceptions import (
 )
 
 logger = logging.getLogger(__name__)
+""" @private """
 
 
 class RESTResponse(io.IOBase):

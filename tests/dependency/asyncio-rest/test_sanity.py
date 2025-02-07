@@ -26,7 +26,7 @@ class TestSanityRest:
             description = await pc.describe_index(name=index_name)
             assert description.dimension == 2
 
-            idx = pc.Index(description.host)
+            idx = pc.IndexAsyncio(host=description.host)
             await idx.upsert(vectors=[("1", [1.0, 2.0]), ("2", [3.0, 4.0]), ("3", [5.0, 6.0])])
 
             # Wait for index freshness

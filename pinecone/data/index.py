@@ -46,9 +46,11 @@ from concurrent.futures import as_completed
 
 
 logger = logging.getLogger(__name__)
+""" @private """
 
 
 def parse_query_response(response: QueryResponse):
+    """@private"""
     response._data_store.pop("results", None)
     return response
 
@@ -71,12 +73,16 @@ class Index(IndexInterface, ImportFeatureMixin, PluginAware):
         self.config = ConfigBuilder.build(
             api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
+        """ @private """
         self.openapi_config = ConfigBuilder.build_openapi_config(self.config, openapi_config)
+        """ @private """
 
         if pool_threads is None:
             self.pool_threads = 5 * cpu_count()
+            """ @private """
         else:
             self.pool_threads = pool_threads
+            """ @private """
 
         if kwargs.get("connection_pool_maxsize", None):
             self.openapi_config.connection_pool_maxsize = kwargs.get("connection_pool_maxsize")
@@ -169,6 +175,7 @@ class Index(IndexInterface, ImportFeatureMixin, PluginAware):
             batch = df.iloc[i : i + batch_size].to_dict(orient="records")
             yield batch
 
+    @validate_and_convert_errors
     def upsert_from_dataframe(
         self, df, namespace: Optional[str] = None, batch_size: int = 500, show_progress: bool = True
     ) -> UpsertResponse:
@@ -199,6 +206,7 @@ class Index(IndexInterface, ImportFeatureMixin, PluginAware):
         args = IndexRequestFactory.upsert_records_args(namespace=namespace, records=records)
         self._vector_api.upsert_records_namespace(**args)
 
+    @validate_and_convert_errors
     def search(
         self,
         namespace: str,
@@ -213,6 +221,7 @@ class Index(IndexInterface, ImportFeatureMixin, PluginAware):
 
         return self._vector_api.search_records_namespace(namespace, request)
 
+    @validate_and_convert_errors
     def search_records(
         self,
         namespace: str,

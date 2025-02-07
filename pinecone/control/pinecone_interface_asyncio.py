@@ -46,8 +46,10 @@ class PineconeAsyncioDBControlInterface(ABC):
         **kwargs,
     ):
         """
-        The `Pinecone` class is the main entry point for interacting with Pinecone via this Python SDK.
-        It is used to create, delete, and manage your indexes and collections.
+        The `PineconeAsyncio` class is the main entry point for interacting with Pinecone using asyncio.
+        It is used to create, delete, and manage your indexes and collections. Except for needing to use
+        `async with` when instantiating the client and `await` when calling its methods, the functionality
+        provided by this class is extremely similar to the functionality of the `Pinecone` class.
 
         :param api_key: The API key to use for authentication. If not passed via kwarg, the API key will be read from the environment variable `PINECONE_API_KEY`.
         :type api_key: str, optional
@@ -67,15 +69,99 @@ class PineconeAsyncioDBControlInterface(ABC):
         :type additional_headers: Dict[str, str], optional
 
 
+        ### Managing the async context
+
+        The `PineconeAsyncio` class relies on an underlying `aiohttp` `ClientSession` to make asynchronous HTTP requests. To ensure that the session is properly closed, you
+        should use the `async with` syntax when creating a `PineconeAsyncio` object. This will ensure that the session is properly closed when the context is exited.
+
+        ```python
+        import asyncio
+        from pinecone import PineconeAsyncio
+
+        async def main():
+            async with PineconeAsyncio(api_key='YOUR_API_KEY') as pc:
+                # Do async things
+                index_list = await pc.list_indexes()
+
+        asyncio.run(main())
+        ```
+
+        As an alternative, if you prefer to avoid code with a nested appearance and are willing to manage cleanup yourself, you can await the `close()` method to close the session when you are done.
+
+        ```python
+        import asyncio
+        from pinecone import PineconeAsyncio
+
+        async def main():
+            pc = PineconeAsyncio(api_key='YOUR_API_KEY')
+
+            # Do async things
+            index_list = await pc.list_indexes()
+
+            # You're responsible for calling this yourself
+            await pc.close()
+
+        asyncio.run(main())
+        ```
+
+        Failing to do this may result in error messages appearing from the underlyling aiohttp library.
 
         ### Configuration with environment variables
 
         If you instantiate the Pinecone client with no arguments, it will attempt to read the API key from the environment variable `PINECONE_API_KEY`.
 
         ```python
-        from pinecone import Pinecone
+        import asyncio
+        from pinecone import PineconeAsyncio
 
-        pc = Pinecone()
+        async def main():
+            async with PineconeAsyncio() as pc:
+                # Do async things
+                index_list = await pc.list_indexes()
+
+        asyncio.run(main())
+        ```
+
+        ### Configuration with keyword arguments
+
+        If you prefer being more explicit in your code, you can also pass the API  as
+
+        ### Configuration with environment variables
+
+        If you instantiate the Pinecone client with no arguments, it will attempt to read the API key from the environment variable `PINECONE_API_KEY`.
+
+        ```python
+        import asyncio
+        from pinecone import PineconeAsyncio
+
+        async def main():
+            async with PineconeAsyncio() as pc:
+                # Do async things
+                index_list = await pc.list_indexes()
+
+        asyncio.run(main())
+        ```
+
+        ### Configuration with keyword arguments
+
+        If you prefer being more explicit in your code, you can also pass the API  as
+
+
+
+        ### Configuration with environment variables
+
+        If you instantiate the Pinecone client with no arguments, it will attempt to read the API key from the environment variable `PINECONE_API_KEY`.
+
+        ```python
+        import asyncio
+        from pinecone import PineconeAsyncio
+
+        async def main():
+            async with PineconeAsyncio() as pc:
+                # Do async things
+                index_list = await pc.list_indexes()
+
+        asyncio.run(main())
         ```
 
         ### Configuration with keyword arguments
@@ -84,9 +170,15 @@ class PineconeAsyncioDBControlInterface(ABC):
 
         ```python
         import os
-        from pinecone import Pinecone
+        import asyncio
+        from pinecone import PineconeAsyncio
 
-        pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
+        async def main():
+            async with Pinecone(api_key=os.environ.get("PINECONE_API_KEY")) as pc:
+                # Do async things
+                index_list = await pc.list_indexes()
+
+        asyncio.run(main())
         ```
 
         ### Environment variables
@@ -96,49 +188,28 @@ class PineconeAsyncioDBControlInterface(ABC):
         - `PINECONE_API_KEY`: The API key to use for authentication. If not passed via
         kwarg, the API key will be read from the environment variable `PINECONE_API_KEY`.
 
-        - `PINECONE_DEBUG_CURL`: When troubleshooting it can be very useful to run curl
-        commands against the control plane API to see exactly what data is being sent
-        and received without all the abstractions and transformations applied by the Python
-        SDK. If you set this environment variable to `true`, the Pinecone client will use
-        request parameters to print out an equivalent curl command that you can run yourself
-        or share with Pinecone support. **Be very careful with this option, as it will print out
-        your API key** which forms part of a required authentication header. Default: `false`
-
         ### Proxy configuration
 
         If your network setup requires you to interact with Pinecone via a proxy, you will need
         to pass additional configuration using optional keyword parameters. These optional parameters
-        are forwarded to `urllib3`, which is the underlying library currently used by the Pinecone client to
-        make HTTP requests. You may find it helpful to refer to the
-        [urllib3 documentation on working with proxies](https://urllib3.readthedocs.io/en/stable/advanced-usage.html#http-and-https-proxies)
-        while troubleshooting these settings.
+        are used to configure an SSL context and passed to `aiohttp`, which is the underlying library
+        currently used by the PineconeAsyncio client to make HTTP requests.
 
         Here is a basic example:
 
         ```python
-        from pinecone import Pinecone
+        import asyncio
+        from pinecone import PineconeAsyncio
 
-        pc = Pinecone(
-            api_key='YOUR_API_KEY',
-            proxy_url='https://your-proxy.com'
-        )
+        async def main():
+            async with PineconeAsyncio(
+                api_key='YOUR_API_KEY',
+                proxy_url='https://your-proxy.com'
+            ) as pc:
+                # Do async things
+                index_list = await pc.list_indexes()
 
-        pc.list_indexes()
-        ```
-
-        If your proxy requires authentication, you can pass those values in a header dictionary using the `proxy_headers` parameter.
-
-        ```python
-        from pinecone import Pinecone
-        import urllib3 import make_headers
-
-        pc = Pinecone(
-            api_key='YOUR_API_KEY',
-            proxy_url='https://your-proxy.com',
-            proxy_headers=make_headers(proxy_basic_auth='username:password')
-        )
-
-        pc.list_indexes()
+        asyncio.run(main())
         ```
 
         ### Using proxies with self-signed certificates
@@ -149,38 +220,68 @@ class PineconeAsyncioDBControlInterface(ABC):
         in PEM format using the `ssl_ca_certs` parameter.
 
         ```python
-        from pinecone import Pinecone
-        import urllib3 import make_headers
+        import asyncio
+        from pinecone import PineconeAsyncio
 
-        pc = Pinecone(
-            api_key='YOUR_API_KEY',
-            proxy_url='https://your-proxy.com',
-            proxy_headers=make_headers(proxy_basic_auth='username:password'),
-            ssl_ca_certs='path/to/cert-bundle.pem'
-        )
+        async def main():
+            async with PineconeAsyncio(
+                api_key='YOUR_API_KEY',
+                proxy_url='https://your-proxy.com',
+                ssl_ca_certs='path/to/cert-bundle.pem'
+            ) as pc:
+                # Do async things
+                await pc.list_indexes()
 
-        pc.list_indexes()
+        asyncio.run(main())
         ```
 
         ### Disabling SSL verification
 
         If you would like to disable SSL verification, you can pass the `ssl_verify`
-        parameter with a value of `False`. We do not recommend going to production with SSL verification disabled.
+        parameter with a value of `False`. We do not recommend going to production with SSL verification disabled
+        but there are situations where this is useful such as testing with Pinecone Local running in a docker
+        container.
 
         ```python
-        from pinecone import Pinecone
-        import urllib3 import make_headers
+        import asyncio
+        from pinecone import PineconeAsyncio
 
-        pc = Pinecone(
-            api_key='YOUR_API_KEY',
-            proxy_url='https://your-proxy.com',
-            proxy_headers=make_headers(proxy_basic_auth='username:password'),
-            ssl_ca_certs='path/to/cert-bundle.pem',
-            ssl_verify=False
-        )
+        async def main():
+            async with PineconeAsyncio(
+                api_key='YOUR_API_KEY',
+                ssl_verify=False
+            ) as pc:
+                if not await pc.has_index('my_index'):
+                    await pc.create_index(
+                        name='my_index',
+                        dimension=1536,
+                        metric='cosine',
+                        spec=ServerlessSpec(cloud='aws', region='us-west-2')
+                    )
 
-        pc.list_indexes()
+        asyncio.run(main())
+        ```
 
+        ### Passing additional headers
+
+        If you need to pass additional headers with each request to the Pinecone API, you can do so using the
+        `additional_headers` parameter. This is primarily for internal testing and end-users shouldn't need to
+        do this unless specifically instructed to do so.
+
+        ```python
+        import asyncio
+        from pinecone import PineconeAsyncio
+
+        async def main():
+            async with PineconeAsyncio(
+                api_key='YOUR_API_KEY',
+                host='https://api-staging.pinecone.io',
+                additional_headers={'X-My-Header': 'my-value'}
+            ) as pc:
+                # Do async things
+                await pc.list_indexes()
+
+        asyncio.run(main())
         ```
         """
 
@@ -196,6 +297,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         timeout: Optional[int] = None,
         deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
         vector_type: Optional[Union[VectorType, str]] = VectorType.DENSE,
+        tags: Optional[Dict[str, str]] = None,
     ):
         """Creates a Pinecone index.
 
@@ -203,59 +305,101 @@ class PineconeAsyncioDBControlInterface(ABC):
             cannot be changed once created. Allowed characters are lowercase letters, numbers,
             and hyphens and the name may not begin or end with hyphens. Maximum length is 45 characters.
         :type name: str
-        :param metric: Type of metric used in the vector index when querying, one of `{"cosine", "dotproduct", "euclidean"}`. Defaults to `"cosine"`.
-            Defaults to `"cosine"`.
+        :param metric: Type of similarity metric used in the vector index when querying, one of `{"cosine", "dotproduct", "euclidean"}`.
         :type metric: str, optional
         :param spec: A dictionary containing configurations describing how the index should be deployed. For serverless indexes,
             specify region and cloud. For pod indexes, specify replicas, shards, pods, pod_type, metadata_config, and source_collection.
+            Alternatively, use the `ServerlessSpec` or `PodSpec` objects to specify these configurations.
         :type spec: Dict
-        :param dimension: The dimension of vectors that will be inserted in the index. This should
-            match the dimension of the embeddings you will be inserting. For example, if you are using
+        :param dimension: If you are creating an index with `vector_type="dense"` (which is the default), you need to specify `dimension` to indicate the size of your vectors.
+            This should match the dimension of the embeddings you will be inserting. For example, if you are using
             OpenAI's CLIP model, you should use `dimension=1536`. Dimension is a required field when
-            creating an index with vector_type="dense".
+            creating an index with `vector_type="dense"` and should not be passed when `vector_type="sparse"`.
         :type dimension: int
         :type timeout: int, optional
         :param timeout: Specify the number of seconds to wait until index gets ready. If None, wait indefinitely; if >=0, time out after this many seconds;
-            if -1, return immediately and do not wait. Default: None
-        :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. Default: "disabled"
-        :param vector_type: The type of vectors to be stored in the index. One of `{"dense", "sparse"}`. Default: "dense"
+            if -1, return immediately and do not wait.
+        :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted.
+        :type deletion_protection: Optional[Literal["enabled", "disabled"]]
+        :param vector_type: The type of vectors to be stored in the index. One of `{"dense", "sparse"}`.
         :type vector_type: str, optional
+        :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
+        :type tags: Optional[Dict[str, str]]
+        :return: A `IndexModel` instance containing a description of the index that was created.
 
         ### Creating a serverless index
 
         ```python
         import os
-        from pinecone import Pinecone, ServerlessSpec
+        import asyncio
 
-        pc = PineconeAsyncio(api_key=os.environ.get("PINECONE_API_KEY"))
-
-        await pc.create_index(
-            name="my_index",
-            dimension=1536,
-            metric="cosine",
-            spec=ServerlessSpec(cloud="aws", region="us-west-2"),
-            deletion_protection="enabled"
+        from pinecone import (
+            PineconeAsyncio,
+            ServerlessSpec,
+            CloudProvider,
+            AwsRegion,
+            Metric,
+            DeletionProtection,
+            VectorType
         )
+
+        async def main():
+            async with PineconeAsyncio(api_key=os.environ.get("PINECONE_API_KEY")) as pc:
+                await pc.create_index(
+                    name="my_index",
+                    dimension=1536,
+                    metric=Metric.COSINE,
+                    spec=ServerlessSpec(
+                        cloud=CloudProvider.AWS,
+                        region=AwsRegion.US_WEST_2
+                    ),
+                    deletion_protection=DeletionProtection.DISABLED,
+                    vector_type=VectorType.DENSE,
+                    tags={
+                        "model": "clip",
+                        "app": "image-search",
+                        "env": "testing"
+                    }
+                )
+
+        asyncio.run(main())
         ```
 
         ### Creating a pod index
 
         ```python
         import os
-        from pinecone import Pinecone, PodSpec
+        import asyncio
 
-        pc = PineconeAsyncio(api_key=os.environ.get("PINECONE_API_KEY"))
-
-        await pc.create_index(
-            name="my_index",
-            dimension=1536,
-            metric="cosine",
-            spec=PodSpec(
-                environment="us-east1-gcp",
-                pod_type="p1.x1"
-            ),
-            deletion_protection="enabled"
+        from pinecone import (
+            Pinecone,
+            PodSpec,
+            PodIndexEnvironment,
+            PodType,
+            Metric,
+            DeletionProtection,
+            VectorType
         )
+
+        async def main():
+            async with Pinecone(api_key=os.environ.get("PINECONE_API_KEY")) as pc:
+                await pc.create_index(
+                    name="my_index",
+                    dimension=1536,
+                    metric=Metric.COSINE,
+                    spec=PodSpec(
+                        environment=PodIndexEnvironment.US_EAST4_GCP,
+                        pod_type=PodType.P1_X1
+                    ),
+                    deletion_protection=DeletionProtection.DISABLED,
+                    tags={
+                        "model": "clip",
+                        "app": "image-search",
+                        "env": "testing"
+                    }
+                )
+
+        asyncio.run(main())
         ```
         """
         pass
@@ -272,110 +416,173 @@ class PineconeAsyncioDBControlInterface(ABC):
         timeout: Optional[int] = None,
     ) -> IndexModel:
         """
-        Create an index for a model.
-
-        This operation creates a serverless index for a model. The index is used to store embeddings generated by the model. The index can be used to search and retrieve embeddings.
-
         :param name: The name of the index to create. Must be unique within your project and
             cannot be changed once created. Allowed characters are lowercase letters, numbers,
             and hyphens and the name may not begin or end with hyphens. Maximum length is 45 characters.
         :type name: str
-        :param cloud: The cloud provider to use for the index.
+        :param cloud: The cloud provider to use for the index. One of `{"aws", "gcp", "azure"}`.
         :type cloud: str
-        :param region: The region to use for the index.
+        :param region: The region to use for the index. Enum objects `AwsRegion`, `GcpRegion`, and `AzureRegion` are also available to help you quickly set these parameters, but may not be up to date as new regions become available.
         :type region: str
-        :param embed: The embedding configuration for the index.
+        :param embed: The embedding configuration for the index. This param accepts a dictionary or an instance of the `IndexEmbed` object.
         :type embed: Union[Dict, IndexEmbed]
-        :param tags: A dictionary of tags to associate with the index.
+        :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
         :type tags: Optional[Dict[str, str]]
-        :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. Default: "disabled"
+        :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. This setting can be changed with `configure_index`.
         :type deletion_protection: Optional[Literal["enabled", "disabled"]]
         :type timeout: Optional[int]
-        :param timeout: Specify the number of seconds to wait until index gets ready. If None, wait indefinitely; if >=0, time out after this many seconds;
-            if -1, return immediately and do not wait. Default: None
-        :return: The index that was created.
+        :param timeout: Specify the number of seconds to wait until index is ready to receive data. If None, wait indefinitely; if >=0, time out after this many seconds;
+            if -1, return immediately and do not wait.
+        :return: A description of the index that was created.
         :rtype: IndexModel
+
+        This method is used to create a Serverless index that is configured for use with Pinecone's integrated inference models.
+
+        The resulting index can be described, listed, configured, and deleted like any other Pinecone index with the `describe_index`, `list_indexes`, `configure_index`, and `delete_index` methods.
+
+        After the model is created, you can upsert records into the index with the `upsert_records` method, and search your records with the `search` method.
+
+        ```python
+        import asyncio
+
+        from pinecone import (
+            PineconeAsyncio,
+            IndexEmbed,
+            CloudProvider,
+            AwsRegion,
+            EmbedModel,
+            Metric,
+        )
+
+        async def main():
+            async with PineconeAsyncio() as pc:
+                if not await pc.has_index("book-search"):
+                    desc = await pc.create_index_for_model(
+                        name="book-search",
+                        cloud=CloudProvider.AWS,
+                        region=AwsRegion.US_EAST_1,
+                        embed=IndexEmbed(
+                            model=EmbedModel.Multilingual_E5_Large,
+                            metric=Metric.COSINE,
+                            field_map={
+                                "text": "description",
+                            },
+                        )
+                    )
+
+        asyncio.run(main())
+        ```
+
+        To see the available cloud regions, see this [Pinecone documentation](https://docs.pinecone.io/troubleshooting/available-cloud-regions) page.
+
+        See the [Model Gallery](https://docs.pinecone.io/models/overview) to learn about available models.
         """
         pass
 
     @abstractmethod
     async def delete_index(self, name: str, timeout: Optional[int] = None):
-        """Deletes a Pinecone index.
+        """
+        :param name: the name of the index.
+        :type name: str
+        :param timeout: Number of seconds to poll status checking whether the index has been deleted. If None,
+            wait indefinitely; if >=0, time out after this many seconds;
+            if -1, return immediately and do not wait.
+        :type timeout: int, optional
+
+        Deletes a Pinecone index.
 
         Deleting an index is an irreversible operation. All data in the index will be lost.
         When you use this command, a request is sent to the Pinecone control plane to delete
         the index, but the termination is not synchronous because resources take a few moments to
         be released.
 
-        You can check the status of the index by calling the `describe_index()` command.
-        With repeated polling of the describe_index command, you will see the index transition to a
-        `Terminating` state before eventually resulting in a 404 after it has been removed.
+        By default the `delete_index` method will block until polling of the `describe_index` method
+        shows that the delete operation has completed. If you prefer to return immediately and not
+        wait for the index to be deleted, you can pass `timeout=-1` to the method.
 
-        :param name: the name of the index.
-        :type name: str
-        :param timeout: Number of seconds to poll status checking whether the index has been deleted. If None,
-            wait indefinitely; if >=0, time out after this many seconds;
-            if -1, return immediately and do not wait. Default: None
-        :type timeout: int, optional
+        After the delete request is submitted, polling `describe_index` will show that the index
+        transitions into a `Terminating` state before eventually resulting in a 404 after it has been removed.
+
+        This operation can fail if the index is configured with `deletion_protection="enabled"`.
+        In this case, you will need to call `configure_index` to disable deletion protection before
+        you can delete the index.
+
+        ```python
+        import asyncio
+
+        from pinecone import PineconeAsyncio
+
+        async def main():
+            pc = PineconeAsyncio()
+
+            index_name = "my_index"
+            desc = await pc.describe_index(name=index_name)
+
+            if desc.deletion_protection == "enabled":
+                # If for some reason deletion protection is enabled, you will need to disable it first
+                # before you can delete the index. But use caution as this operation is not reversible
+                # and if somebody enabled deletion protection, they probably had a good reason.
+                await pc.configure_index(name=index_name, deletion_protection="disabled")
+
+            await pc.delete_index(name=index_name)
+            await pc.close()
+
+        asyncio.run(main())
+        ```
         """
         pass
 
     @abstractmethod
     async def list_indexes(self) -> IndexList:
-        """Lists all indexes.
+        """
+        :return: Returns an `IndexList` object, which is iterable and contains a
+            list of `IndexModel` objects. The `IndexList` also has a convenience method `names()`
+            which returns a list of index names for situations where you just want to iterate over
+            all index names.
+
+        Lists all indexes in your project.
 
         The results include a description of all indexes in your project, including the
         index name, dimension, metric, status, and spec.
 
-        :return: Returns an `IndexList` object, which is iterable and contains a
-            list of `IndexModel` objects. It also has a convenience method `names()`
-            which returns a list of index names.
+        If you simply want to check whether an index exists, see the `has_index()` convenience method.
+
+        You can use the `list_indexes()` method to iterate over descriptions of every index in your project.
 
         ```python
-        from pinecone import Pinecone
+        import asyncio
 
-        pc = PineconeAsyncio()
+        from pinecone import PineconeAsyncio
 
-        index_name = "my_index"
-        if index_name not in await pc.list_indexes().names():
-            print("Index does not exist, creating...")
-            await pc.create_index(
-                name=index_name,
-                dimension=768,
-                metric="cosine",
-                spec=ServerlessSpec(cloud="aws", region="us-west-2")
-            )
+        async def main():
+            pc = PineconeAsyncio()
+
+            available_indexes = await pc.list_indexes()
+            for index in available_indexes:
+                print(index.name)
+                print(index.dimension)
+                print(index.metric)
+                print(index.status)
+                print(index.host)
+                print(index.spec)
+
+            await pc.close()
+
+        asyncio.run(main())
         ```
-
-        You can also use the `list_indexes()` method to iterate over all indexes in your project
-        and get other information besides just names.
-
-        ```python
-        from pinecone import Pinecone
-
-        pc = PineconeAsyncio()
-
-        await for index in pc.list_indexes():
-            print(index.name)
-            print(index.dimension)
-            print(index.metric)
-            print(index.status)
-            print(index.host)
-            print(index.spec)
-        ```
-
         """
         pass
 
     @abstractmethod
     async def describe_index(self, name: str) -> IndexModel:
-        """Describes a Pinecone index.
-
+        """
         :param name: the name of the index to describe.
         :return: Returns an `IndexModel` object
         which gives access to properties such as the
         index name, dimension, metric, host url, status,
         and spec.
+
+        Describes a Pinecone index.
 
         ### Getting your index host url
 
@@ -386,41 +593,73 @@ class PineconeAsyncioDBControlInterface(ABC):
         shows how to get the value from the API using describe_index.
 
         ```python
-        from pinecone import Pinecone, Index
+        import asyncio
+        from pinecone import Pinecone, PineconeAsyncio, Index
 
-        pc = PineconeAsyncio()
+        async def main():
+            pc = PineconeAsyncio()
 
-        description = await pc.describe_index("my_index")
+            index_name="my_index"
+            description = await pc.describe_index(name=index_name)
+            print(description)
+            # {
+            #     "name": "my_index",
+            #     "metric": "cosine",
+            #     "host": "my_index-dojoi3u.svc.aped-4627-b74a.pinecone.io",
+            #     "spec": {
+            #         "serverless": {
+            #             "cloud": "aws",
+            #             "region": "us-east-1"
+            #         }
+            #     },
+            #     "status": {
+            #         "ready": true,
+            #         "state": "Ready"
+            #     },
+            #     "vector_type": "dense",
+            #     "dimension": 1024,
+            #     "deletion_protection": "enabled",
+            #     "tags": {
+            #         "environment": "production"
+            #     }
+            # }
 
-        host = description.host
-        print(f"Your index is hosted at {description.host}")
+            print(f"Your index is hosted at {description.host}")
+            await pc.close()
 
-        index = await pc.Index(name="my_index", host=host)
-        index.upsert(vectors=[...])
+            async with Pinecone().IndexAsyncio(host=description.host) as idx:
+                await idx.upsert(vectors=[...])
+
+        asyncio.run(main())
         ```
         """
         pass
 
     @abstractmethod
     async def has_index(self, name: str) -> bool:
-        """Checks if a Pinecone index exists.
-
+        """
         :param name: The name of the index to check for existence.
         :return: Returns `True` if the index exists, `False` otherwise.
 
-        ### Example Usage
+        Checks if a Pinecone index exists.
 
         ```python
-        import os
-        from pinecone import Pinecone
+        import asyncio
+        from pinecone import PineconeAsyncio, ServerlessSpec
 
-        api_key = os.environ.get("PINECONE_API_KEY")
-        pc = Pinecone(api_key=api_key)
+        async def main():
+            async with PineconeAsyncio() as pc:
+                index_name = "my_index"
+                if not await pc.has_index(index_name):
+                    print("Index does not exist, creating...")
+                    pc.create_index(
+                        name=index_name,
+                        dimension=768,
+                        metric="cosine",
+                        spec=ServerlessSpec(cloud="aws", region="us-west-2")
+                    )
 
-        if pc.has_index("my_index_name"):
-            print("The index exists")
-        else:
-            print("The index does not exist")
+        asyncio.run(main())
         ```
         """
         pass
@@ -434,8 +673,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         deletion_protection: Optional[Union[DeletionProtection, str]] = None,
         tags: Optional[Dict[str, str]] = None,
     ):
-        """This method is used to scale configuration fields for your pod-based Pinecone index.
-
+        """
         :param: name: the name of the Index
         :param: replicas: the desired number of replicas, lowest value is 0.
         :param: pod_type: the new pod_type for the index. To learn more about the
@@ -443,19 +681,91 @@ class PineconeAsyncioDBControlInterface(ABC):
         :param: deletion_protection: If set to 'enabled', the index cannot be deleted. If 'disabled', the index can be deleted.
         :param: tags: A dictionary of tags to apply to the index. Tags are key-value pairs that can be used to organize and manage indexes. To remove a tag, set the value to "". Tags passed to configure_index will be merged with existing tags and any with the value empty string will be removed.
 
+        This method is used to modify an index's configuration. It can be used to:
+
+        - Scale a pod-based index horizontally using `replicas`
+        - Scale a pod-based index vertically using `pod_type`
+        - Enable or disable deletion protection using `deletion_protection`
+        - Add, change, or remove tags using `tags`
+
+        ## Scaling pod-based indexes
+
+        To scale your pod-based index, you pass a `replicas` and/or `pod_type` param to the `configure_index` method. `pod_type` may be a string or a value from the `PodType` enum.
+
         ```python
-        from pinecone import Pinecone
+        import asyncio
+        from pinecone import PineconeAsyncio, PodType
 
-        pc = PineconeAsyncio()
+        async def main():
+            async with PineconeAsyncio() as pc:
+                await pc.configure_index(
+                    name="my_index",
+                    replicas=2,
+                    pod_type=PodType.P1_X2
+                )
 
-        # Make a configuration change
-        await pc.configure_index(name="my_index", replicas=4)
-
-        # Call describe_index to see the index status as the
-        # change is applied.
-        await pc.describe_index("my_index")
+        asyncio.run(main())
         ```
 
+        After providing these new configurations, you must call `describe_index` to see the status of the index as the changes are applied.
+
+        ## Enabling or disabling deletion protection
+
+        To enable or disable deletion protection, pass the `deletion_protection` parameter to the `configure_index` method. When deletion protection
+        is enabled, the index cannot be deleted with the `delete_index` method.
+
+        ```python
+        import asyncio
+        from pinecone import PineconeAsyncio, DeletionProtection
+
+        async def main():
+            async with PineconeAsyncio() as pc:
+                # Enable deletion protection
+                await pc.configure_index(
+                    name="my_index",
+                    deletion_protection=DeletionProtection.ENABLED
+                )
+
+                # Call describe_index to see the change was applied.
+                desc = await pc.describe_index("my_index")
+                assert desc.deletion_protection == "enabled"
+
+                # Disable deletion protection
+                await pc.configure_index(
+                    name="my_index",
+                    deletion_protection=DeletionProtection.DISABLED
+                )
+
+        asyncio.run(main())
+        ```
+
+        ## Adding, changing, or removing tags
+
+        To add, change, or remove tags, pass the `tags` parameter to the `configure_index` method. When tags are passed using `configure_index`,
+        they are merged with any existing tags already on the index. To remove a tag, set the value of the key to an empty string.
+
+        ```python
+        import asyncio
+
+        from pinecone import PineconeAsyncio
+
+        async def main():
+            async with PineconeAsyncio() as pc:
+                # Add a tag
+                await pc.configure_index(name="my_index", tags={"environment": "staging"})
+
+                # Change a tag
+                await pc.configure_index(name="my_index", tags={"environment": "production"})
+
+                # Remove a tag
+                await pc.configure_index(name="my_index", tags={"environment": ""})
+
+                # Call describe_index to view the tags are changed
+                await pc.describe_index("my_index")
+                print(desc.tags)
+
+        asyncio.run(main())
+        ```
         """
         pass
 
@@ -473,38 +783,53 @@ class PineconeAsyncioDBControlInterface(ABC):
         """List all collections
 
         ```python
-        from pinecone import Pinecone
+        import asyncio
+        from pinecone import PineconeAsyncio
 
-        pc = PineconeAsyncio()
+        async def main():
+            pc = PineconeAsyncio()
 
-        available_collections = await pc.list_collections()
-        for collection in available_collections:
-            print(collection.name)
-            print(collection.source)
+            collections = await pc.list_collections()
+            for collection in collections:
+                print(collection.name)
+                print(collection.source)
 
-        # You can also iterate specifically over the collection
-        # names with the .names() helper.
-        collection_name="my_collection"
-        available_collections = await pc.list_collections()
-        for collection_name in available_collections.names():
-            print(collection_name)
+            # You can also iterate specifically over
+            # a list of collection names by calling
+            # the .names() helper.
+            collection_name = "my_collection"
+            collections = await pc.list_collections()
+            if collection_name in collections.names():
+                print('Collection exists')
+
+            await pc.close()
+
+        asyncio.run(main())
         ```
         """
         pass
 
     @abstractmethod
     async def delete_collection(self, name: str):
-        """Deletes a collection.
+        """Describes a collection.
+        :param: The name of the collection
+        :return: Description of the collection
 
-        :param: name: The name of the collection
+        ```python
+        import asyncio
+        from pinecone import PineconeAsyncio
 
-        Deleting a collection is an irreversible operation. All data
-        in the collection will be lost.
+        async def main():
+            async with PineconeAsyncio() as pc:
 
-        This method tells Pinecone you would like to delete a collection,
-        but it takes a few moments to complete the operation. Use the
-        `describe_collection()` method to confirm that the collection
-        has been deleted.
+                description = await pc.describe_collection("my_collection")
+                print(description.name)
+                print(description.source)
+                print(description.status)
+                print(description.size)
+
+        asyncio.run(main())
+        ```
         """
         pass
 
@@ -515,96 +840,87 @@ class PineconeAsyncioDBControlInterface(ABC):
         :return: Description of the collection
 
         ```python
-        from pinecone import Pinecone
+        import asyncio
+        from pinecone import PineconeAsyncio
 
-        pc = PineconeAsyncio()
 
-        description = await pc.describe_collection("my_collection")
-        print(description.name)
-        print(description.source)
-        print(description.status)
-        print(description.size)
+        async def main():
+            async with PineconeAsyncio() as pc:
+                description = await pc.describe_collection("my_collection")
+                print(description.name)
+                print(description.source)
+                print(description.status)
+                print(description.size)
+
+        asyncio.run(main())
         ```
         """
         pass
 
     @abstractmethod
-    def Index(self, host: str, **kwargs):
+    def IndexAsyncio(self, host, **kwargs):
         """
-        Target an index for data operations.
+        Build an asyncio-compatible client for index data operations.
 
-        ### Target an index by host url
-
-        In production situations, you want to uspert or query your data as quickly
-        as possible. If you know in advance the host url of your index, you can
-        eliminate a round trip to the Pinecone control plane by specifying the
-        host of the index.
+        :param host: The host url of the index.
 
         ```python
         import os
-        from pinecone import Pinecone
+        import asyncio
+
+        from pinecone import PineconeAsyncio
 
         api_key = os.environ.get("PINECONE_API_KEY")
         index_host = os.environ.get("PINECONE_INDEX_HOST")
 
-        pc = Pinecone(api_key=api_key)
-        index = pc.Index(host=index_host)
+        async def main():
+            async with Pinecone(api_key=api_key) as pc:
+                async with pc.Index(host=index_host) as idx:
+                    # Now you're ready to perform data operations
+                    await index.query(vector=[...], top_k=10)
 
-        # Now you're ready to perform data operations
-        index.query(vector=[...], top_k=10)
+        asyncio.run(main())
         ```
 
-        To find your host url, you can use the Pinecone control plane to describe
-        the index. The host url is returned in the response. Or, alternatively, the
+        To find your host url, you can use the `describe_index`. Or, alternatively, the
         host is displayed in the Pinecone web console.
 
         ```python
         import os
-        from pinecone import Pinecone
+        import asyncio
 
-        pc = Pinecone(
-            api_key=os.environ.get("PINECONE_API_KEY")
-        )
+        from pinecone import PineconeAsyncio
 
-        host = pc.describe_index('index-name').host
+        async def main():
+            async with PineconeAsyncio(
+                api_key=os.environ.get("PINECONE_API_KEY")
+            ) as pc:
+                host = await pc.describe_index('index-name').host
+
+        asyncio.run(main())
         ```
 
-        ### Target an index by name (not recommended for production)
+        ## Alternative setup
 
-        For more casual usage, such as when you are playing and exploring with Pinecone
-        in a notebook setting, you can also target an index by name. If you use this
-        approach, the client may need to perform an extra call to the Pinecone control
-        plane to get the host url on your behalf to get the index host.
-
-        The client will cache the index host for future use whenever it is seen, so you
-        will only incur the overhead of only one call. But this approach is not
-        recommended for production usage.
+        Like instances of the `PineconeAsyncio` class, instances of `IndexAsyncio` have async context that
+        needs to be cleaned up when you are done with it in order to avoid error messages about unclosed session from
+        aiohttp. Nesting these in code is a bit cumbersome, so if you are only planning to do data operations you
+        may prefer to setup the `IndexAsyncio` object via the `Pinecone` class which will avoid creating an outer async context.
 
         ```python
         import os
-        from pinecone import Pinecone, ServerlessSpec
+        import asyncio
+        from pinecone import Pinecone
 
         api_key = os.environ.get("PINECONE_API_KEY")
 
-        pc = Pinecone(api_key=api_key)
-        pc.create_index(
-            name='my_index',
-            dimension=1536,
-            metric='cosine',
-            spec=ServerlessSpec(cloud='aws', region='us-west-2')
-        )
-        index = pc.Index('my_index')
+        async def main():
+            pc = Pinecone(api_key=api_key) # sync client, so no async context to worry about
 
-        # Now you're ready to perform data operations
-        index.query(vector=[...], top_k=10)
+            async with pc.AsyncioIndex(host='your_index_host') as idx:
+                # Now you're ready to perform data operations
+                await idx.query(vector=[...], top_k=10)
+
         ```
-
-        Arguments:
-            name: The name of the index to target. If you specify the name of the index, the client will
-                fetch the host url from the Pinecone control plane.
-            host: The host url of the index to target. If you specify the host url, the client will use
-                the host url directly without making any additional calls to the control plane.
-            pool_threads: The number of threads to use when making parallel requests by calling index methods with optional kwarg async_req=True, or using methods that make use of parallelism automatically such as query_namespaces(). Default: 1
-            connection_pool_maxsize: The maximum number of connections to keep in the connection pool. Default: 5 * multiprocessing.cpu_count()
         """
         pass

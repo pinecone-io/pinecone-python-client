@@ -34,7 +34,7 @@ class TestConfigBuilder:
     def test_build_errors_when_no_api_key_is_present(self):
         with pytest.raises(PineconeConfigurationError) as e:
             ConfigBuilder.build()
-        assert str(e.value) == "You haven't specified an Api-Key."
+        assert "You haven't specified an API key." in str(e.value)
 
     def test_build_errors_when_no_host_is_present(self):
         with pytest.raises(PineconeConfigurationError) as e:

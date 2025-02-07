@@ -57,3 +57,4 @@ async def test_upsert_with_batch_size_sparse(sparse_index_host, target_namespace
             namespace=target_namespace,
             batch_size=10,
         )
+    await asyncio_sparse_idx.close()

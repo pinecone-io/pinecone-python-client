@@ -12,577 +12,198 @@ For more information, see the docs at https://docs.pinecone.io
 
 ### Upgrading the SDK
 
-#### Upgrading from `4.x` to `5.x`
-
-As part of an overall move to stop exposing generated code in the package's public interface, an obscure configuration property (`openapi_config`) was removed in favor of individual configuration options such as `proxy_url`, `proxy_headers`, and `ssl_ca_certs`. All of these properties were available in v3 and v4 releases of the SDK, with deprecation notices shown to affected users.
-
-It is no longer necessary to install a separate plugin, `pinecone-plugin-inference`, to try out the [Inference API](https://docs.pinecone.io/guides/inference/understanding-inference); that plugin is now installed by default in the v5 SDK. See [usage instructions below](#inference-api).
-
-#### Older releases
-
-- **Upgrading to `4.x`** : For this upgrade you are unlikely to be impacted by breaking changes unless you are using the `grpc` extras (see install steps below). Read full details in these [v4 Release Notes](https://github.com/pinecone-io/pinecone-python-client/releases/tag/v4.0.0).
-
-- **Upgrading to `3.x`**: Many things were changed in the v3 SDK to pave the way for Pinecone's new Serverless index offering. These changes are covered in detail in the [**v3 Migration Guide**](https://canyon-quilt-082.notion.site/Pinecone-Python-SDK-v3-0-0-Migration-Guide-056d3897d7634bf7be399676a4757c7b#a21aff70b403416ba352fd30e300bce3). Serverless indexes are only available in `3.x` release versions or greater.
-
-### Example code
-
-Many of the brief examples shown in this README are using very small vectors to keep the documentation concise, but most real world usage will involve much larger embedding vectors. To see some more realistic examples of how this SDK can be used, explore some of our many Jupyter notebooks in the [examples](https://github.com/pinecone-io/examples) repository.
+For notes on changes between major versions, see [Upgrading](./docs/upgrading.md)
 
 ## Prerequisites
 
-The Pinecone Python SDK is compatible with Python 3.8 and greater.
+- The Pinecone Python SDK is compatible with Python 3.9 and greater. It has been tested with CPython versions from 3.9 to 3.13.
+- Before you can use the Pinecone SDK, you must sign up for an account and find your API key in the Pinecone console dashboard at [https://app.pinecone.io](https://app.pinecone.io).
 
 ## Installation
 
-There are two flavors of the Pinecone Python SDK. The default flavor installed from PyPI as `pinecone` has a minimal set of dependencies and interacts with Pinecone via HTTP requests.
+The Pinecone Python SDK is distributed on PyPI using the package name `pinecone`. By default the `pinecone` has a minimal set of dependencies, but you can install some extras to unlock additional functionality.
 
-If you are aiming to maximimize performance, you can install additional gRPC dependencies to access an alternate SDK implementation that relies on gRPC for data operations. See the guide on [tuning performance](https://docs.pinecone.io/docs/performance-tuning).
+Available extras:
 
-### Installing with pip
+- `pinecone[asyncio]` will add a dependency on `aiohttp` and enable usage of `PineconeAsyncio`, the asyncio-enabled version of the client for use with highly asynchronous modern web frameworks such as FastAPI.
+- `pinecone[grpc]` will add dependencies on `grpcio` and related libraries needed to make pinecone data calls such as `upsert` and `query` over [GRPC](https://grpc.io/) for a modest performance improvement. See the guide on [tuning performance](https://docs.pinecone.io/docs/performance-tuning).
+
+#### Installing with pip
 
 ```shell
 # Install the latest version
 pip3 install pinecone
 
-# Install the latest version, with extra grpc dependencies
-pip3 install "pinecone[grpc]"
-
-# Install a specific version
-pip3 install pinecone==5.0.0
-
-# Install a specific version, with grpc extras
-pip3 install "pinecone[grpc]"==5.0.0
+# Install the latest version, with optional dependencies
+pip3 install "pinecone[asyncio,grpc]"
 ```
 
-### Installing with poetry
+#### Installing with uv
+
+[uv](https://docs.astral.sh/uv/) is a modern package manager that runs 10-100x faster than pip and supports most pip syntax.
+
+```shell
+# Install the latest version
+uv install pinecone
+
+# Install the latest version, optional dependencies
+uv install "pinecone[asyncio,grpc]"
+```
+
+#### Installing with [poetry](https://python-poetry.org/)
 
 ```shell
 # Install the latest version
 poetry add pinecone
 
-# Install the latest version, with grpc extras
-poetry add pinecone --extras grpc
-
-# Install a specific version
-poetry add pinecone==5.0.0
-
-# Install a specific version, with grpc extras
-poetry add pinecone==5.0.0 --extras grpc
+# Install the latest version, with optional dependencies
+poetry add pinecone --extras asyncio --extras grpc
 ```
 
-## Usage
+# Quickstart
 
-### Initializing the client
-
-Before you can use the Pinecone SDK, you must sign up for an account and find your API key in the Pinecone console dashboard at [https://app.pinecone.io](https://app.pinecone.io).
-
-#### Using environment variables
-
-The `Pinecone` class is your main entry point into the Pinecone python SDK. If you have set your API Key in the `PINECONE_API_KEY` environment variable, you can instantiate the client with no other arguments.
+## Bringing your own vectors to Pinecone
 
 ```python
-from pinecone import Pinecone
-
-pc = Pinecone() # This reads the PINECONE_API_KEY env var
-```
-
-#### Using configuration keyword params
-
-If you prefer to pass configuration in code, for example if you have a complex application that needs to interact with multiple different Pinecone projects, the constructor accepts a keyword argument for `api_key`.
-
-If you pass configuration in this way, you can have full control over what name to use for the environment variable, sidestepping any issues that would result
-from two different client instances both needing to read the same `PINECONE_API_KEY` variable that the client implicitly checks for.
-
-Configuration passed with keyword arguments takes precedence over environment variables.
-
-```python
-import os
-from pinecone import Pinecone
-
-pc = Pinecone(api_key=os.environ.get('CUSTOM_VAR'))
-```
-
-### Proxy configuration
-
-If your network setup requires you to interact with Pinecone via a proxy, you will need
-to pass additional configuration using optional keyword parameters. These optional parameters are forwarded to `urllib3`, which is the underlying library currently used by the Pinecone SDK to make HTTP requests. You may find it helpful to refer to the [urllib3 documentation on working with proxies](https://urllib3.readthedocs.io/en/stable/advanced-usage.html#http-and-https-proxies) while troubleshooting these settings.
-
-Here is a basic example:
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(
-    api_key='YOUR_API_KEY',
-    proxy_url='https://your-proxy.com'
+from pinecone import (
+    Pinecone,
+    ServerlessSpec,
+    CloudProvider,
+    AwsRegion,
+    VectorType
 )
 
-pc.list_indexes()
-```
+# 1. Instantiate the Pinecone client
+pc = Pinecone(api_key='YOUR_API_KEY')
 
-If your proxy requires authentication, you can pass those values in a header dictionary using the `proxy_headers` parameter.
-
-```python
-from pinecone import Pinecone
-import urllib3 import make_headers
-
-pc = Pinecone(
-    api_key='YOUR_API_KEY',
-    proxy_url='https://your-proxy.com',
-    proxy_headers=make_headers(proxy_basic_auth='username:password')
-)
-
-pc.list_indexes()
-```
-
-### Using proxies with self-signed certificates
-
-By default the Pinecone Python SDK will perform SSL certificate verification
-using the CA bundle maintained by Mozilla in the [certifi](https://pypi.org/project/certifi/) package.
-
-If your proxy server is using a self-signed certificate, you will need to pass the path to the certificate in PEM format using the `ssl_ca_certs` parameter.
-
-```python
-from pinecone import Pinecone
-import urllib3 import make_headers
-
-pc = Pinecone(
-    api_key="YOUR_API_KEY",
-    proxy_url='https://your-proxy.com',
-    proxy_headers=make_headers(proxy_basic_auth='username:password'),
-    ssl_ca_certs='path/to/cert-bundle.pem'
-)
-
-pc.list_indexes()
-```
-
-### Disabling SSL verification
-
-If you would like to disable SSL verification, you can pass the `ssl_verify`
-parameter with a value of `False`. We do not recommend going to production with SSL verification disabled.
-
-```python
-from pinecone import Pinecone
-import urllib3 import make_headers
-
-pc = Pinecone(
-    api_key='YOUR_API_KEY',
-    proxy_url='https://your-proxy.com',
-    proxy_headers=make_headers(proxy_basic_auth='username:password'),
-    ssl_ca_certs='path/to/cert-bundle.pem',
-    ssl_verify=False
-)
-
-pc.list_indexes()
-
-```
-
-### Working with GRPC (for improved performance)
-
-If you've followed instructions above to install with optional `grpc` extras, you can unlock some performance improvements by working with an alternative version of the SDK imported from the `pinecone.grpc` subpackage.
-
-```python
-import os
-from pinecone.grpc import PineconeGRPC
-
-pc = PineconeGRPC(api_key=os.environ.get('PINECONE_API_KEY'))
-
-# From here on, everything is identical to the REST-based SDK.
-index = pc.Index(host='my-index-8833ca1.svc.us-east1-gcp.pinecone.io')
-
-index.upsert(vectors=[])
-index.query(vector=[...], top_key=10)
-```
-
-# Indexes
-
-## Create Index
-
-### Create a serverless index
-
-The following example creates a serverless index in the `us-west-2`
-region of AWS. For more information on serverless and regional availability, see [Understanding indexes](https://docs.pinecone.io/guides/indexes/understanding-indexes#serverless-indexes).
-
-```python
-from pinecone import Pinecone, ServerlessSpec
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-pc.create_index(
-    name='my-index',
+# 2. Create an index
+index_config = pc.create_index(
+    name="index-name",
     dimension=1536,
-    metric='euclidean',
-    deletion_protection='enabled',
     spec=ServerlessSpec(
-        cloud='aws',
-        region='us-west-2'
-    )
+        cloud=CloudProvider.AWS,
+        region=AwsRegion.US_EAST_1
+    ),
+    vector_type=VectorType.DENSE
 )
-```
 
-### Create a pod index
+# 3. Instantiate an Index client
+idx = pc.Index(host=index_config.host)
 
-The following example creates an index without a metadata
-configuration. By default, Pinecone indexes all metadata.
-
-```python
-from pinecone import Pinecone, PodSpec
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-pc.create_index(
-    name="example-index",
-    dimension=1536,
-    metric="cosine",
-    deletion_protection='enabled',
-    spec=PodSpec(
-        environment='us-west-2',
-        pod_type='p1.x1'
-    )
-)
-```
-
-Pod indexes support many optional configuration fields. For example,
-the following example creates an index that only indexes
-the "color" metadata field. Queries against this index
-cannot filter based on any other metadata field.
-
-```python
-from pinecone import Pinecone, PodSpec
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-
-metadata_config = {
-    "indexed": ["color"]
-}
-
-pc.create_index(
-    "example-index-2",
-    dimension=1536,
-    spec=PodSpec(
-        environment='us-west-2',
-        pod_type='p1.x1',
-        metadata_config=metadata_config
-    )
-)
-```
-
-## List indexes
-
-The following example returns all indexes in your project.
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-for index in pc.list_indexes():
-    print(index['name'])
-```
-
-## Describe index
-
-The following example returns information about the index `example-index`.
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-
-index_description = pc.describe_index("example-index")
-```
-
-## Delete an index
-
-The following example deletes the index named `example-index`. Only indexes which are not protected by deletion protection may be deleted.
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-
-pc.delete_index("example-index")
-```
-
-## Scale replicas
-
-The following example changes the number of replicas for `example-index`.
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-
-new_number_of_replicas = 4
-pc.configure_index("example-index", replicas=new_number_of_replicas)
-```
-
-## Configuring deletion protection
-
-If you would like to enable deletion protection, which prevents an index from being deleted, the `configure_index` method also handles that via an optional `deletion_protection` keyword argument.
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-
-# To enable deletion protection
-pc.configure_index("example-index", deletion_protection='enabled')
-
-# Disable deletion protection
-pc.configure_index("example-index", deletion_protection='disabled')
-
-# Call describe index to verify the configuration change has been applied
-desc = pc.describe_index("example-index")
-print(desc.deletion_protection)
-```
-
-## Describe index statistics
-
-The following example returns statistics about the index `example-index`.
-
-```python
-import os
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-index = pc.Index(host=os.environ.get('INDEX_HOST'))
-
-index_stats_response = index.describe_index_stats()
-```
-
-## Upsert vectors
-
-The following example upserts vectors to `example-index`.
-
-```python
-import os
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-index = pc.Index(host=os.environ.get('INDEX_HOST'))
-
-upsert_response = index.upsert(
+# 4. Upsert embeddings
+idx.upsert(
     vectors=[
-        ("vec1", [0.1, 0.2, 0.3, 0.4], {"genre": "drama"}),
-        ("vec2", [0.2, 0.3, 0.4, 0.5], {"genre": "action"}),
+        ("id1", [0.1, 0.2, 0.3, 0.4, ...], {"metadata_key": "value1"}),
+        ("id2", [0.2, 0.3, 0.4, 0.5, ...], {"metadata_key": "value2"}),
     ],
     namespace="example-namespace"
 )
-```
 
-## Query an index
-
-The following example queries the index `example-index` with metadata
-filtering.
-
-```python
-import os
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-
-# Find your index host by calling describe_index
-# through the Pinecone web console
-index = pc.Index(host=os.environ.get('INDEX_HOST'))
-
-query_response = index.query(
-    namespace="example-namespace",
-    vector=[0.1, 0.2, 0.3, 0.4],
+# 5. Query your index using an embedding
+query_embedding = [...] # list should have length == index dimension
+idx.query(
+    vector=query_embedding,
     top_k=10,
-    include_values=True,
     include_metadata=True,
-    filter={
-        "genre": {"$in": ["comedy", "documentary", "drama"]}
-    }
+    filter={"metadata_key": { "$eq": "value1" }}
 )
 ```
 
-## Delete vectors
-
-The following example deletes vectors by ID.
+## Bring your own data using Pinecone integrated inference
 
 ```python
-import os
-from pinecone import Pinecone
+from pinecone import (
+    Pinecone,
+    CloudProvider,
+    AwsRegion,
+    EmbedModel,
+)
 
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+# 1. Instantiate the Pinecone client
+pc = Pinecone(api_key="<<PINECONE_API_KEY>>")
 
-# Find your index host by calling describe_index
-# through the Pinecone web console
-index = pc.Index(host=os.environ.get('INDEX_HOST'))
+# 2. Create an index configured for use with a particular model
+index_config = pc.create_index_for_model(
+    name="my-model-index",
+    cloud=CloudProvider.AWS,
+    region=AwsRegion.US_EAST_1,
+    embed=IndexEmbed(
+        model=EmbedModel.Multilingual_E5_Large,
+        field_map={"text": "my_text_field"}
+    )
+)
 
-delete_response = index.delete(ids=["vec1", "vec2"], namespace="example-namespace")
-```
+# 3. Instantiate an Index client
+idx = pc.Index(host=index_config.host)
 
-## Fetch vectors
+# 4. Upsert records
+idx.upsert_records(
+    namespace="my-namespace",
+    records=[
+        {
+            "_id": "test1",
+            "my_text_field": "Apple is a popular fruit known for its sweetness and crisp texture.",
+        },
+        {
+            "_id": "test2",
+            "my_text_field": "The tech company Apple is known for its innovative products like the iPhone.",
+        },
+        {
+            "_id": "test3",
+            "my_text_field": "Many people enjoy eating apples as a healthy snack.",
+        },
+        {
+            "_id": "test4",
+            "my_text_field": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
+        },
+        {
+            "_id": "test5",
+            "my_text_field": "An apple a day keeps the doctor away, as the saying goes.",
+        },
+        {
+            "_id": "test6",
+            "my_text_field": "Apple Computer Company was founded on April 1, 1976, by Steve Jobs, Steve Wozniak, and Ronald Wayne as a partnership.",
+        },
+    ],
+)
 
-The following example fetches vectors by ID.
+# 5. Search for similar records
+from pinecone import SearchQuery, SearchRerank, RerankModel
 
-```python
-import os
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-
-# Find your index host by calling describe_index
-# through the Pinecone web console
-index = pc.Index(host=os.environ.get('INDEX_HOST'))
-
-fetch_response = index.fetch(ids=["vec1", "vec2"], namespace="example-namespace")
-```
-
-## Update vectors
-
-The following example updates vectors by ID.
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-
-# Find your index host by calling describe_index
-# through the Pinecone web console
-index = pc.Index(host=os.environ.get('INDEX_HOST'))
-
-update_response = index.update(
-    id="vec1",
-    values=[0.1, 0.2, 0.3, 0.4],
-    set_metadata={"genre": "drama"},
-    namespace="example-namespace"
+response = index.search_records(
+    namespace="my-namespace",
+    query=SearchQuery(
+        inputs={
+            "text": "Apple corporation",
+        },
+        top_k=3
+    ),
+    rerank=SearchRerank(
+        model=RerankModel.Bge_Reranker_V2_M3,
+        rank_fields=["my_text_field"],
+        top_n=3,
+    ),
 )
 ```
 
-## List vectors
+## More information on usage
 
-The `list` and `list_paginated` methods can be used to list vector ids matching a particular id prefix.
-With clever assignment of vector ids, this can be used to help model hierarchical relationships between
-different vectors such as when there are embeddings for multiple chunks or fragments related to the
-same document.
+Detailed information on specific ways of using the SDK are covered in these other pages.
 
-The `list` method returns a generator that handles pagination on your behalf.
+- Store and query your vectors
+  - [Serverless Indexes](./docs/db_control/serverless-indexes.md)
+  - [Pod Indexes](./docs/db_control/pod-indexes.md)
+  - [Working with vectors](./docs/db_data/index-usage-byov.md)
 
-```python
-from pinecone import Pinecone
+- [Inference API](./docs/inference-api.md)
+- [FAQ](./docs/faq.md)
 
-pc = Pinecone(api_key='xxx')
-index = pc.Index(host='hosturl')
 
-# To iterate over all result pages using a generator function
-namespace = 'foo-namespace'
-for ids in index.list(prefix='pref', limit=3, namespace=namespace):
-    print(ids) # ['pref1', 'pref2', 'pref3']
+# Issues & Bugs
 
-    # Now you can pass this id array to other methods, such as fetch or delete.
-    vectors = index.fetch(ids=ids, namespace=namespace)
-```
+If you notice bugs or have feedback, please [file an issue](https://github.com/pinecone-io/pinecone-python-client/issues).
 
-There is also an option to fetch each page of results yourself with `list_paginated`.
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='xxx')
-index = pc.Index(host='hosturl')
-
-# For manual control over pagination
-results = index.list_paginated(
-    prefix='pref',
-    limit=3,
-    namespace='foo',
-    pagination_token='eyJza2lwX3Bhc3QiOiI5IiwicHJlZml4IjpudWxsfQ=='
-)
-print(results.namespace) # 'foo'
-print([v.id for v in results.vectors]) # ['pref1', 'pref2', 'pref3']
-print(results.pagination.next) # 'eyJza2lwX3Bhc3QiOiI5IiwicHJlZml4IjpudWxsfQ=='
-print(results.usage) # { 'read_units': 1 }
-```
-
-# Collections
-
-## Create collection
-
-The following example creates the collection `example-collection` from
-`example-index`.
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-
-pc.create_collection(
-    name="example-collection",
-    source="example-index"
-)
-```
-
-## List collections
-
-The following example returns a list of the collections in the current project.
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-
-active_collections = pc.list_collections()
-```
-
-## Describe a collection
-
-The following example returns a description of the collection
-`example-collection`.
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-
-collection_description = pc.describe_collection("example-collection")
-```
-
-## Delete a collection
-
-The following example deletes the collection `example-collection`.
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
-
-pc.delete_collection("example-collection")
-```
-
-# Inference API
-
-The Pinecone SDK now supports creating embeddings via the [Inference API](https://docs.pinecone.io/guides/inference/understanding-inference).
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key="YOUR_API_KEY")
-model = "multilingual-e5-large"
-
-# Embed documents
-text = [
-    "Turkey is a classic meat to eat at American Thanksgiving.",
-    "Many people enjoy the beautiful mosques in Turkey.",
-]
-text_embeddings = pc.inference.embed(
-    model=model,
-    inputs=text,
-    parameters={"input_type": "passage", "truncate": "END"},
-)
-
-# Upsert documents into Pinecone index
-
-# Embed a query
-query = ["How should I prepare my turkey?"]
-query_embeddings = pc.inference.embed(
-    model=model,
-    inputs=query,
-    parameters={"input_type": "query", "truncate": "END"},
-)
-
-# Send query to Pinecone index to retrieve similar documents
-```
+You can also get help in the [Pinecone Community Forum](https://community.pinecone.io/).
 
 # Contributing
 

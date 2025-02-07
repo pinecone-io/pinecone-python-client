@@ -153,3 +153,4 @@ async def test_query(index_host, dimension, target_namespace):
             namespace=target_namespace,
         )
     assert "Cannot query index with dense 'vector_type' with only sparse vector" in str(e.value)
+    await asyncio_idx.close()
