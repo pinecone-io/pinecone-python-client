@@ -21,7 +21,6 @@ from pinecone.core.openapi.db_control.models import (
 )
 from pinecone.utils import PluginAware
 
-from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
 
 import time
 
@@ -285,11 +284,6 @@ class TestIndexConfig:
         pc = Pinecone(api_key="123-456-789")
         index = pc.Index(host="my-host.svg.pinecone.io")
         assert index._vector_api.api_client.pool_threads >= 1
-
-    def test_pool_threads_when_indexapi_passed(self):
-        pc = Pinecone(api_key="123-456-789", pool_threads=2, index_api=ManageIndexesApi())
-        index = pc.Index(host="my-host.svg.pinecone.io")
-        assert index._vector_api.api_client.pool_threads == 2
 
     def test_target_index_with_pool_threads_inherited(self):
         pc = Pinecone(api_key="123-456-789", pool_threads=10, foo="bar")
