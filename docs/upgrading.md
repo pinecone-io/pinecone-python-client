@@ -42,8 +42,6 @@ async def main():
                 )
             )
 
-    async with PineconeAsyncio().Index(host="")
-
 asyncio.run(main())
 ```
 
