@@ -44,6 +44,7 @@ Change directory into the repository, as we'll be setting up a virtualenv from w
 ### Step 1. Install Poetry
 
 Visit [the Poetry site](https://python-poetry.org/) for installation instructions.
+To use the [Poetry `shell` command](https://python-poetry.org/docs/cli#shell), install the [`shell` plugin](https://github.com/python-poetry/poetry-plugin-shell).
 
 ### Step 2. Install dependencies
 
