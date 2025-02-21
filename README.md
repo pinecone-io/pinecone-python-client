@@ -3,12 +3,10 @@
 
 The official Pinecone Python SDK.
 
-For more information, see the docs at https://docs.pinecone.io
-
-
 ## Documentation
 
-- [**Reference Documentation**](https://sdk.pinecone.io/python/index.html)
+- [**Conceptual docs and guides**](https://docs.pinecone.io)
+- [**Python Reference Documentation**](https://sdk.pinecone.io/python/index.html)
 
 ### Upgrading the SDK
 
