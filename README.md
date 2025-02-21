@@ -12,6 +12,11 @@ For more information, see the docs at https://docs.pinecone.io
 
 ### Upgrading the SDK
 
+> [!NOTE]
+> The official SDK package was renamed from `pinecone-client` to `pinecone` beginning in version 5.1.0.
+> Please remove `pinecone-client` from your project dependencies and add `pinecone` instead to get
+> the latest updates.
+
 For notes on changes between major versions, see [Upgrading](./docs/upgrading.md)
 
 ## Prerequisites
