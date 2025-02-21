@@ -65,7 +65,7 @@ jobs:
 
       - name: Verify unique release number
         run: |
-          TAG_NAME=${{ steps.bump.outputs.VERSION_TAG }}
+          TAG_NAME=pinecone-client-${{ steps.bump.outputs.VERSION_TAG }}
           if git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null; then
             echo "Tag $TAG_NAME already exists."
             exit 1

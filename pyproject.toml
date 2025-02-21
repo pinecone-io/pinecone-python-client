@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "pinecone"
-version = "6.0.1"
+name = "pinecone-client"
+version = "5.9.9"
 packages = [
     { include="pinecone", from="." },
 ]
-description = "Pinecone client and SDK"
+description = "Pinecone client (DEPRECATED)"
 authors = ["Pinecone Systems, Inc. <support@pinecone.io>"]
 license = "Apache-2.0"
 readme = "README.md"
