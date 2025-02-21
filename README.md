@@ -11,7 +11,7 @@ The official Pinecone Python SDK.
 ### Upgrading the SDK
 
 > [!NOTE]
-> The official SDK package was renamed from `pinecone-client` to `pinecone` beginning in version 5.1.0.
+> The official SDK package was renamed from `pinecone-client` to `pinecone` beginning in version `5.1.0`.
 > Please remove `pinecone-client` from your project dependencies and add `pinecone` instead to get
 > the latest updates.
 
