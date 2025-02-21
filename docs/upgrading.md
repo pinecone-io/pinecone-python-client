@@ -1,3 +1,8 @@
+> [!NOTE]
+> The official SDK package was renamed from `pinecone-client` to `pinecone` beginning in version 5.1.0.
+> Please remove `pinecone-client` from your project dependencies and add `pinecone` instead to get
+> the latest updates.
+
 # Upgrading from `5.x` to `6.x`
 
 ## Breaking changes in 6.x
