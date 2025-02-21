@@ -121,7 +121,7 @@ jobs:
 
       - name: Tag version
         run: |
-          newVersionTag="${{ steps.bump.outputs.VERSION_TAG }}"
+          newVersionTag="pinecone-client-${{ steps.bump.outputs.VERSION_TAG }}"
           git tag -a $newVersionTag -m "Release $newVersionTag"
 
       - name: Push tags (prerelease)
