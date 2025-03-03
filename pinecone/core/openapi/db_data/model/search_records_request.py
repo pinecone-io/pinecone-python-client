@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-01
+The version of the OpenAPI document: 2025-04
 Contact: support@pinecone.io
 """
 
@@ -156,7 +156,7 @@ class SearchRecordsRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            fields ([str]): The fields to return in the search results. [optional]  # noqa: E501
+            fields ([str]): The fields to return in the search results. If not specified, the response will include all fields. [optional]  # noqa: E501
             rerank (SearchRecordsRequestRerank): [optional]  # noqa: E501
         """
 
@@ -245,7 +245,7 @@ class SearchRecordsRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            fields ([str]): The fields to return in the search results. [optional]  # noqa: E501
+            fields ([str]): The fields to return in the search results. If not specified, the response will include all fields. [optional]  # noqa: E501
             rerank (SearchRecordsRequestRerank): [optional]  # noqa: E501
         """
 
