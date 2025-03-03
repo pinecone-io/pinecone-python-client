@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-01
+The version of the OpenAPI document: 2025-04
 Contact: support@pinecone.io
 """
 

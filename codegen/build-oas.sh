@@ -2,21 +2,13 @@
 
 set -eux -o pipefail
 
-version=$1 # e.g. 2024-07
-is_early_access=$2 # e.g. true
+version=$1 # e.g. 2025-01
 
-# if is_early_access is true, add the "ea" module
-if [ "$is_early_access" = "true" ]; then
-	destination="pinecone/core_ea/openapi"
-	modules=("db_control" "db_data" "inference")
-	py_module_name="core_ea"
-	template_dir="codegen/python-oas-templates/templates5.2.0"
-else
-	destination="pinecone/core/openapi"
-	modules=("db_control" "db_data" "inference")
-	py_module_name="core"
-	template_dir="codegen/python-oas-templates/templates5.2.0"
-fi
+
+destination="pinecone/core/openapi"
+modules=("db_control" "db_data" "inference")
+py_module_name="core"
+template_dir="codegen/python-oas-templates/templates5.2.0"
 
 build_dir="build"
 
