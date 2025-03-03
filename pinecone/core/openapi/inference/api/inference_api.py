@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-01
+The version of the OpenAPI document: 2025-04
 Contact: support@pinecone.io
 """
 
@@ -42,9 +42,9 @@ class InferenceApi:
         self.api_client = api_client
 
         def __embed(self, **kwargs: ExtraOpenApiKwargsTypedDict):
-            """Embed data  # noqa: E501
+            """Generate vectors  # noqa: E501
 
-            Generate embeddings for input data.  For guidance and examples, see [Generate embeddings](https://docs.pinecone.io/guides/inference/generate-embeddings).  # noqa: E501
+            Generate vector embeddings for input data. This endpoint uses [Pinecone Inference](https://docs.pinecone.io/guides/inference/understanding-inference).  For guidance and examples, see [Embed data](https://docs.pinecone.io/guides/inference/generate-embeddings).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -188,9 +188,9 @@ class AsyncioInferenceApi:
         self.api_client = api_client
 
         async def __embed(self, **kwargs):
-            """Embed data  # noqa: E501
+            """Generate vectors  # noqa: E501
 
-            Generate embeddings for input data.  For guidance and examples, see [Generate embeddings](https://docs.pinecone.io/guides/inference/generate-embeddings).  # noqa: E501
+            Generate vector embeddings for input data. This endpoint uses [Pinecone Inference](https://docs.pinecone.io/guides/inference/understanding-inference).  For guidance and examples, see [Embed data](https://docs.pinecone.io/guides/inference/generate-embeddings).  # noqa: E501
 
 
 
