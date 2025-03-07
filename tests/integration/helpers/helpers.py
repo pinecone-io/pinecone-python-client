@@ -116,6 +116,11 @@ def poll_fetch_for_ids_in_namespace(idx: _Index, ids: List[str], namespace: str)
             total_time += delta_t
             time.sleep(delta_t)
 
+    logger.debug(
+        "Extra 30 second sleep to account for freshness being turned off for internal project index"
+    )
+    time.sleep(30)
+
 
 def fake_api_key():
     return "-".join([random_string(x) for x in [8, 4, 4, 4, 12]])
