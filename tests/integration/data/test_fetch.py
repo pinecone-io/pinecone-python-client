@@ -7,6 +7,7 @@ from ..helpers import (
     embedding_values,
     random_string,
 )
+import time
 
 from pinecone import PineconeException, FetchResponse, Vector, SparseValues
 
@@ -64,6 +65,7 @@ def seed(idx, namespace):
 def seed_for_fetch(idx, fetch_namespace):
     seed(idx, fetch_namespace)
     seed(idx, "")
+    time.sleep(30)
     yield
 
 
