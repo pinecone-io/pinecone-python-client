@@ -1,6 +1,7 @@
 import logging
 import pytest
 from ..helpers import poll_fetch_for_ids_in_namespace, embedding_values, random_string
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,11 @@ def seed_for_list(idx, list_namespace, wait=True):
 
     if wait:
         poll_fetch_for_ids_in_namespace(idx, ids=["999"], namespace=list_namespace)
+
+    logger.debug(
+        "Sleeping for 30 seconds to account for freshness being turned off for internal project index"
+    )
+    time.sleep(30)
 
     yield
 
