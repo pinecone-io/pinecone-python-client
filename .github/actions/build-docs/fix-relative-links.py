@@ -32,7 +32,7 @@ def replace_relative_links(html):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python script.py input.html [output.html]")
+        print("Usage: python fix-relative-links.py input-dir [output-dir]")
         sys.exit(1)
 
     input_dir = sys.argv[1]
