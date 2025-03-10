@@ -17,8 +17,16 @@ runs:
       uses: ./.github/actions/setup-poetry
       with:
         include_grpc: 'true'
+        include_dev: 'true'
 
     - name: Build html documentation
       shell: bash
       run: |
         poetry run pdoc pinecone '!pinecone.core' '!pinecone.utils' --favicon ./favicon-32x32.png --docformat google -o ./pdoc
+
+    - name: Fix relative links
+      shell: bash
+      run: |
+        poetry run python3 fix-relative-links.py ./pdoc ./pdoc
+      env:
+        BASE_URL: "https://github.com/pinecone-io/pinecone-python-client/blob/main/"

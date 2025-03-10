@@ -62,6 +62,7 @@ class GRPCIndex(GRPCIndexBase):
 
     @property
     def stub_class(self):
+        """@private"""
         return VectorServiceStub
 
     def upsert(

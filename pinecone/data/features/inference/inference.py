@@ -23,6 +23,20 @@ class Inference(PluginAware):
     The `Inference` class configures and uses the Pinecone Inference API to generate embeddings and
     rank documents.
 
+    It is generally not instantiated directly, but rather accessed through a parent `Pinecone` client
+    object that is responsible for managing shared configurations.
+
+    ```python
+    from pinecone import Pinecone
+
+    pc = Pinecone()
+    embeddings = pc.inference.embed(
+        model="text-embedding-3-small",
+        inputs=["Hello, world!"],
+        parameters={"input_type": "passage", "truncate": "END"}
+    )
+    ```
+
     :param config: A `pinecone.config.Config` object, configured and built in the Pinecone class.
     :type config: `pinecone.config.Config`, required
     """
@@ -32,8 +46,13 @@ class Inference(PluginAware):
 
     def __init__(self, config, openapi_config, **kwargs) -> None:
         self.config = config
+        """ @private """
+
         self.openapi_config = openapi_config
+        """ @private """
+
         self.pool_threads = kwargs.get("pool_threads", 1)
+        """ @private """
 
         self.__inference_api = setup_openapi_client(
             api_client_klass=ApiClient,
@@ -43,6 +62,7 @@ class Inference(PluginAware):
             pool_threads=kwargs.get("pool_threads", 1),
             api_version=API_VERSION,
         )
+
         self.load_plugins(
             config=self.config, openapi_config=self.openapi_config, pool_threads=self.pool_threads
         )
