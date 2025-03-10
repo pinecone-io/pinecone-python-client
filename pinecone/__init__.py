@@ -1,5 +1,5 @@
 """
-.. include:: ../README.md
+.. include:: ../pdoc/README.md
 """
 
 from .deprecated_plugins import check_for_deprecated_plugins
