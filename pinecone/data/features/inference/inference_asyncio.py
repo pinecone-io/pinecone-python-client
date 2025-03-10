@@ -12,8 +12,22 @@ from .inference_request_builder import (
 
 class AsyncioInference:
     """
-    The `Inference` class configures and uses the Pinecone Inference API to generate embeddings and
+    The `AsyncioInference` class configures and uses the Pinecone Inference API to generate embeddings and
     rank documents.
+
+    This class is generally not instantiated directly, but rather accessed through a parent `Pinecone` client
+    object that is responsible for managing shared configurations.
+
+    ```python
+    from pinecone import PineconeAsyncio
+
+    pc = PineconeAsyncio()
+    embeddings = await pc.inference.embed(
+        model="text-embedding-3-small",
+        inputs=["Hello, world!"],
+        parameters={"input_type": "passage", "truncate": "END"}
+    )
+    ```
 
     :param config: A `pinecone.config.Config` object, configured and built in the Pinecone class.
     :type config: `pinecone.config.Config`, required
@@ -24,7 +38,10 @@ class AsyncioInference:
 
     def __init__(self, api_client, **kwargs) -> None:
         self.api_client = api_client
+        """ @private """
+
         self.__inference_api = AsyncioInferenceApi(api_client)
+        """ @private """
 
     async def embed(
         self,

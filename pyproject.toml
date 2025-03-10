@@ -92,6 +92,7 @@ pytest-benchmark = [
 urllib3_mock = "0.3.3"
 responses = ">=0.8.1"
 ruff = "^0.9.3"
+beautifulsoup4 = "^4.13.3"
 
 
 [tool.poetry.extras]
