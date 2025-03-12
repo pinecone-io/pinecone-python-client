@@ -93,11 +93,6 @@ def poll_stats_for_namespace(
             total_time += delta_t
             time.sleep(delta_t)
 
-    logger.debug(
-        "Sleeping for 30 seconds to account for freshness being turned off for internal project index"
-    )
-    time.sleep(30)
-
 
 def poll_fetch_for_ids_in_namespace(idx: _Index, ids: List[str], namespace: str) -> None:
     max_sleep = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 60))
@@ -120,11 +115,6 @@ def poll_fetch_for_ids_in_namespace(idx: _Index, ids: List[str], namespace: str)
         else:
             total_time += delta_t
             time.sleep(delta_t)
-
-    logger.debug(
-        "Extra 30 second sleep to account for freshness being turned off for internal project index"
-    )
-    time.sleep(30)
 
 
 def fake_api_key():
