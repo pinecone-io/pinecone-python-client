@@ -28,6 +28,7 @@ def seed_for_list2(idx, list_errors_namespace, wait=True):
 
 @pytest.mark.usefixtures("seed_for_list2")
 class TestListErrors:
+    @pytest.mark.skip(reason="Bug filed https://github.com/pinecone-io/pinecone-db/issues/9578")
     def test_list_change_prefix_while_fetching_next_page(self, idx, list_errors_namespace):
         results = idx.list_paginated(prefix="99", limit=5, namespace=list_errors_namespace)
         with pytest.raises(PineconeException) as e:
