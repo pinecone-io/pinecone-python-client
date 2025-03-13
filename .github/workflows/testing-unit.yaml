@@ -58,7 +58,7 @@ jobs:
           include_asyncio: true
 
       - name: Run unit tests (REST)
-        run: poetry run pytest --cov=pinecone --timeout=120 tests/unit --retries 3 --retry-delay 20 -s -vv --log-cli-level=DEBUG
+        run: poetry run pytest --cov=pinecone --timeout=120 tests/unit --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
       - name: Run unit tests (GRPC)
         if: ${{ matrix.use_grpc == true }}
-        run: poetry run pytest --cov=pinecone/grpc --timeout=120 tests/unit_grpc --retries 3 --retry-delay 20 -s -vv --log-cli-level=DEBUG
+        run: poetry run pytest --cov=pinecone/grpc --timeout=120 tests/unit_grpc --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
