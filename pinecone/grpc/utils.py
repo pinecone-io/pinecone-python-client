@@ -48,8 +48,8 @@ def parse_fetch_response(response: Message):
     for id, vec in vectors.items():
         vd[id] = _Vector(
             id=vec["id"],
-            values=vec["values"],
-            sparse_values=parse_sparse_values(vec.get("sparseValues")),
+            values=vec.get("values", None),
+            sparse_values=parse_sparse_values(vec.get("sparseValues", None)),
             metadata=vec.get("metadata", None),
             _check_type=False,
         )

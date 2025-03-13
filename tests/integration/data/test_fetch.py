@@ -143,7 +143,6 @@ class TestFetch:
         assert results.vectors["1"].values is not None
         assert results.vectors["4"].metadata is not None
 
-    @pytest.mark.skip(reason="Backend implementation not ready")
     def test_fetch_sparse_index(self, sparse_idx):
         sparse_idx.upsert(
             vectors=[
@@ -165,9 +164,11 @@ class TestFetch:
         assert fetch_results.namespace == ""
         assert len(fetch_results.vectors) == 10
         for i in range(10):
+            logger.debug(fetch_results.vectors[str(i)])
             assert fetch_results.vectors[str(i)].id == str(i)
-            assert fetch_results.vectors[str(i)].values is not None
-            assert len(fetch_results.vectors[str(i)].values) == 2
+            assert fetch_results.vectors[str(i)].sparse_values is not None
+            assert len(fetch_results.vectors[str(i)].sparse_values.indices) == 2
+            assert len(fetch_results.vectors[str(i)].sparse_values.values) == 2
             assert fetch_results.vectors[str(i)].metadata is not None
             assert fetch_results.vectors[str(i)].metadata["genre"] == "action"
             assert fetch_results.vectors[str(i)].metadata["runtime"] == 120
