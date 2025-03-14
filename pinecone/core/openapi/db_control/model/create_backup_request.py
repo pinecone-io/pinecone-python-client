@@ -27,23 +27,13 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
-def lazy_import():
-    from pinecone.core.openapi.db_control.model.dedicated_spec import DedicatedSpec
-    from pinecone.core.openapi.db_control.model.pod_spec import PodSpec
-    from pinecone.core.openapi.db_control.model.serverless_spec import ServerlessSpec
-
-    globals()["DedicatedSpec"] = DedicatedSpec
-    globals()["PodSpec"] = PodSpec
-    globals()["ServerlessSpec"] = ServerlessSpec
-
-
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="IndexModelSpec")
+T = TypeVar("T", bound="CreateBackupRequest")
 
 
-class IndexModelSpec(ModelNormal):
+class CreateBackupRequest(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -71,7 +61,9 @@ class IndexModelSpec(ModelNormal):
 
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
+        ("name",): {"max_length": 45, "min_length": 1}
+    }
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -79,7 +71,6 @@ class IndexModelSpec(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -94,11 +85,9 @@ class IndexModelSpec(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
-            "dedicated": (DedicatedSpec,),  # noqa: E501
-            "pod": (PodSpec,),  # noqa: E501
-            "serverless": (ServerlessSpec,),  # noqa: E501
+            "name": (str,),  # noqa: E501
+            "description": (str,),  # noqa: E501
         }
 
     @cached_class_property
@@ -106,9 +95,8 @@ class IndexModelSpec(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "dedicated": "dedicated",  # noqa: E501
-        "pod": "pod",  # noqa: E501
-        "serverless": "serverless",  # noqa: E501
+        "name": "name",  # noqa: E501
+        "description": "description",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -118,7 +106,7 @@ class IndexModelSpec(ModelNormal):
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """IndexModelSpec - a model defined in OpenAPI
+        """CreateBackupRequest - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -151,9 +139,8 @@ class IndexModelSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dedicated (DedicatedSpec): [optional]  # noqa: E501
-            pod (PodSpec): [optional]  # noqa: E501
-            serverless (ServerlessSpec): [optional]  # noqa: E501
+            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.  [optional]  # noqa: E501
+            description (str): A description of the backup. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -204,7 +191,7 @@ class IndexModelSpec(ModelNormal):
 
     @convert_js_args_to_python_args
     def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """IndexModelSpec - a model defined in OpenAPI
+        """CreateBackupRequest - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -237,9 +224,8 @@ class IndexModelSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dedicated (DedicatedSpec): [optional]  # noqa: E501
-            pod (PodSpec): [optional]  # noqa: E501
-            serverless (ServerlessSpec): [optional]  # noqa: E501
+            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.  [optional]  # noqa: E501
+            description (str): A description of the backup. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
