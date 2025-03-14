@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-01
+The version of the OpenAPI document: 2025-04
 Contact: support@pinecone.io
 """
 
@@ -121,7 +121,7 @@ class SearchRecordsRequestQuery(ModelNormal):
         """SearchRecordsRequestQuery - a model defined in OpenAPI
 
         Args:
-            top_k (int): The number of results to return for each search.
+            top_k (int): The number of similar records to return.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -154,7 +154,7 @@ class SearchRecordsRequestQuery(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/data/understanding-metadata). [optional]  # noqa: E501
             inputs ({str: (bool, dict, float, int, list, str, none_type)}): [optional]  # noqa: E501
             vector (SearchRecordsVector): [optional]  # noqa: E501
             id (str): The unique ID of the vector to be used as a query vector. [optional]  # noqa: E501
@@ -212,7 +212,7 @@ class SearchRecordsRequestQuery(ModelNormal):
         """SearchRecordsRequestQuery - a model defined in OpenAPI
 
         Args:
-            top_k (int): The number of results to return for each search.
+            top_k (int): The number of similar records to return.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -245,7 +245,7 @@ class SearchRecordsRequestQuery(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/data/understanding-metadata). [optional]  # noqa: E501
             inputs ({str: (bool, dict, float, int, list, str, none_type)}): [optional]  # noqa: E501
             vector (SearchRecordsVector): [optional]  # noqa: E501
             id (str): The unique ID of the vector to be used as a query vector. [optional]  # noqa: E501
