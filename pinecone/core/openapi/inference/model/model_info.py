@@ -1,5 +1,5 @@
 """
-Pinecone Control Plane API
+Pinecone Inference API
 
 Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
@@ -28,22 +28,24 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
-    from pinecone.core.openapi.db_control.model.dedicated_spec import DedicatedSpec
-    from pinecone.core.openapi.db_control.model.pod_spec import PodSpec
-    from pinecone.core.openapi.db_control.model.serverless_spec import ServerlessSpec
+    from pinecone.core.openapi.inference.model.model_info_supported_metrics import (
+        ModelInfoSupportedMetrics,
+    )
+    from pinecone.core.openapi.inference.model.model_info_supported_parameter import (
+        ModelInfoSupportedParameter,
+    )
 
-    globals()["DedicatedSpec"] = DedicatedSpec
-    globals()["PodSpec"] = PodSpec
-    globals()["ServerlessSpec"] = ServerlessSpec
+    globals()["ModelInfoSupportedMetrics"] = ModelInfoSupportedMetrics
+    globals()["ModelInfoSupportedParameter"] = ModelInfoSupportedParameter
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="IndexModelSpec")
+T = TypeVar("T", bound="ModelInfo")
 
 
-class IndexModelSpec(ModelNormal):
+class ModelInfo(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -69,9 +71,16 @@ class IndexModelSpec(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
+        ("type",): {"EMBED": "embed", "RERANK": "rerank"},
+        ("vector_type",): {"DENSE": "dense", "SPARSE": "sparse"},
+    }
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
+        ("dimension",): {"inclusive_maximum": 20000, "inclusive_minimum": 1},
+        ("sequence_length",): {"inclusive_minimum": 1},
+        ("batch_size",): {"inclusive_minimum": 1},
+    }
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -96,9 +105,16 @@ class IndexModelSpec(ModelNormal):
         """
         lazy_import()
         return {
-            "dedicated": (DedicatedSpec,),  # noqa: E501
-            "pod": (PodSpec,),  # noqa: E501
-            "serverless": (ServerlessSpec,),  # noqa: E501
+            "name": (str,),  # noqa: E501
+            "short_description": (str,),  # noqa: E501
+            "type": (str,),  # noqa: E501
+            "supported_parameters": ([ModelInfoSupportedParameter],),  # noqa: E501
+            "vector_type": (str,),  # noqa: E501
+            "dimension": (int,),  # noqa: E501
+            "modality": (str,),  # noqa: E501
+            "sequence_length": (int,),  # noqa: E501
+            "batch_size": (int,),  # noqa: E501
+            "supported_metrics": (ModelInfoSupportedMetrics,),  # noqa: E501
         }
 
     @cached_class_property
@@ -106,9 +122,16 @@ class IndexModelSpec(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "dedicated": "dedicated",  # noqa: E501
-        "pod": "pod",  # noqa: E501
-        "serverless": "serverless",  # noqa: E501
+        "name": "name",  # noqa: E501
+        "short_description": "short_description",  # noqa: E501
+        "type": "type",  # noqa: E501
+        "supported_parameters": "supported_parameters",  # noqa: E501
+        "vector_type": "vector_type",  # noqa: E501
+        "dimension": "dimension",  # noqa: E501
+        "modality": "modality",  # noqa: E501
+        "sequence_length": "sequence_length",  # noqa: E501
+        "batch_size": "batch_size",  # noqa: E501
+        "supported_metrics": "supported_metrics",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -117,8 +140,16 @@ class IndexModelSpec(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """IndexModelSpec - a model defined in OpenAPI
+    def _from_openapi_data(
+        cls: Type[T], name, short_description, type, supported_parameters, *args, **kwargs
+    ) -> T:  # noqa: E501
+        """ModelInfo - a model defined in OpenAPI
+
+        Args:
+            name (str): The name of the model.
+            short_description (str): A summary of the model.
+            type (str): The type of model (e.g. 'embed' or 'rerank').
+            supported_parameters ([ModelInfoSupportedParameter]):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -151,9 +182,12 @@ class IndexModelSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dedicated (DedicatedSpec): [optional]  # noqa: E501
-            pod (PodSpec): [optional]  # noqa: E501
-            serverless (ServerlessSpec): [optional]  # noqa: E501
+            vector_type (str): Whether the embedding model produces 'dense' or 'sparse' embeddings. [optional]  # noqa: E501
+            dimension (int): The embedding model dimension (applies to dense embedding models only). [optional]  # noqa: E501
+            modality (str): The modality of the model (e.g. 'text'). [optional]  # noqa: E501
+            sequence_length (int): The maximum tokens per sequence supported by the model. [optional]  # noqa: E501
+            batch_size (int): The maximum batch size (number of sequences) supported by the model. [optional]  # noqa: E501
+            supported_metrics (ModelInfoSupportedMetrics): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -179,6 +213,10 @@ class IndexModelSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.name = name
+        self.short_description = short_description
+        self.type = type
+        self.supported_parameters = supported_parameters
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -203,8 +241,16 @@ class IndexModelSpec(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """IndexModelSpec - a model defined in OpenAPI
+    def __init__(
+        self, name, short_description, type, supported_parameters, *args, **kwargs
+    ) -> None:  # noqa: E501
+        """ModelInfo - a model defined in OpenAPI
+
+        Args:
+            name (str): The name of the model.
+            short_description (str): A summary of the model.
+            type (str): The type of model (e.g. 'embed' or 'rerank').
+            supported_parameters ([ModelInfoSupportedParameter]):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -237,9 +283,12 @@ class IndexModelSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dedicated (DedicatedSpec): [optional]  # noqa: E501
-            pod (PodSpec): [optional]  # noqa: E501
-            serverless (ServerlessSpec): [optional]  # noqa: E501
+            vector_type (str): Whether the embedding model produces 'dense' or 'sparse' embeddings. [optional]  # noqa: E501
+            dimension (int): The embedding model dimension (applies to dense embedding models only). [optional]  # noqa: E501
+            modality (str): The modality of the model (e.g. 'text'). [optional]  # noqa: E501
+            sequence_length (int): The maximum tokens per sequence supported by the model. [optional]  # noqa: E501
+            batch_size (int): The maximum batch size (number of sequences) supported by the model. [optional]  # noqa: E501
+            supported_metrics (ModelInfoSupportedMetrics): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -263,6 +312,10 @@ class IndexModelSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.name = name
+        self.short_description = short_description
+        self.type = type
+        self.supported_parameters = supported_parameters
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
