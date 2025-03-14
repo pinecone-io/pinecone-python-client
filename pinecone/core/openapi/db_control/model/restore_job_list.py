@@ -28,22 +28,20 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
-    from pinecone.core.openapi.db_control.model.dedicated_spec import DedicatedSpec
-    from pinecone.core.openapi.db_control.model.pod_spec import PodSpec
-    from pinecone.core.openapi.db_control.model.serverless_spec import ServerlessSpec
+    from pinecone.core.openapi.db_control.model.pagination_response import PaginationResponse
+    from pinecone.core.openapi.db_control.model.restore_job_model import RestoreJobModel
 
-    globals()["DedicatedSpec"] = DedicatedSpec
-    globals()["PodSpec"] = PodSpec
-    globals()["ServerlessSpec"] = ServerlessSpec
+    globals()["PaginationResponse"] = PaginationResponse
+    globals()["RestoreJobModel"] = RestoreJobModel
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="IndexModelSpec")
+T = TypeVar("T", bound="RestoreJobList")
 
 
-class IndexModelSpec(ModelNormal):
+class RestoreJobList(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -96,9 +94,8 @@ class IndexModelSpec(ModelNormal):
         """
         lazy_import()
         return {
-            "dedicated": (DedicatedSpec,),  # noqa: E501
-            "pod": (PodSpec,),  # noqa: E501
-            "serverless": (ServerlessSpec,),  # noqa: E501
+            "data": ([RestoreJobModel],),  # noqa: E501
+            "pagination": (PaginationResponse,),  # noqa: E501
         }
 
     @cached_class_property
@@ -106,9 +103,8 @@ class IndexModelSpec(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "dedicated": "dedicated",  # noqa: E501
-        "pod": "pod",  # noqa: E501
-        "serverless": "serverless",  # noqa: E501
+        "data": "data",  # noqa: E501
+        "pagination": "pagination",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -117,8 +113,11 @@ class IndexModelSpec(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """IndexModelSpec - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], data, *args, **kwargs) -> T:  # noqa: E501
+        """RestoreJobList - a model defined in OpenAPI
+
+        Args:
+            data ([RestoreJobModel]):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -151,9 +150,7 @@ class IndexModelSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dedicated (DedicatedSpec): [optional]  # noqa: E501
-            pod (PodSpec): [optional]  # noqa: E501
-            serverless (ServerlessSpec): [optional]  # noqa: E501
+            pagination (PaginationResponse): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -179,6 +176,7 @@ class IndexModelSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.data = data
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -203,8 +201,11 @@ class IndexModelSpec(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """IndexModelSpec - a model defined in OpenAPI
+    def __init__(self, data, *args, **kwargs) -> None:  # noqa: E501
+        """RestoreJobList - a model defined in OpenAPI
+
+        Args:
+            data ([RestoreJobModel]):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -237,9 +238,7 @@ class IndexModelSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dedicated (DedicatedSpec): [optional]  # noqa: E501
-            pod (PodSpec): [optional]  # noqa: E501
-            serverless (ServerlessSpec): [optional]  # noqa: E501
+            pagination (PaginationResponse): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -263,6 +262,7 @@ class IndexModelSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.data = data
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

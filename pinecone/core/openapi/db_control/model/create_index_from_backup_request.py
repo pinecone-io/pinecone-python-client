@@ -28,22 +28,20 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
-    from pinecone.core.openapi.db_control.model.dedicated_spec import DedicatedSpec
-    from pinecone.core.openapi.db_control.model.pod_spec import PodSpec
-    from pinecone.core.openapi.db_control.model.serverless_spec import ServerlessSpec
+    from pinecone.core.openapi.db_control.model.deletion_protection import DeletionProtection
+    from pinecone.core.openapi.db_control.model.index_tags import IndexTags
 
-    globals()["DedicatedSpec"] = DedicatedSpec
-    globals()["PodSpec"] = PodSpec
-    globals()["ServerlessSpec"] = ServerlessSpec
+    globals()["DeletionProtection"] = DeletionProtection
+    globals()["IndexTags"] = IndexTags
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="IndexModelSpec")
+T = TypeVar("T", bound="CreateIndexFromBackupRequest")
 
 
-class IndexModelSpec(ModelNormal):
+class CreateIndexFromBackupRequest(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -71,7 +69,9 @@ class IndexModelSpec(ModelNormal):
 
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
+        ("name",): {"max_length": 45, "min_length": 1}
+    }
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -96,9 +96,9 @@ class IndexModelSpec(ModelNormal):
         """
         lazy_import()
         return {
-            "dedicated": (DedicatedSpec,),  # noqa: E501
-            "pod": (PodSpec,),  # noqa: E501
-            "serverless": (ServerlessSpec,),  # noqa: E501
+            "name": (str,),  # noqa: E501
+            "tags": (IndexTags,),  # noqa: E501
+            "deletion_protection": (DeletionProtection,),  # noqa: E501
         }
 
     @cached_class_property
@@ -106,9 +106,9 @@ class IndexModelSpec(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "dedicated": "dedicated",  # noqa: E501
-        "pod": "pod",  # noqa: E501
-        "serverless": "serverless",  # noqa: E501
+        "name": "name",  # noqa: E501
+        "tags": "tags",  # noqa: E501
+        "deletion_protection": "deletion_protection",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -117,8 +117,11 @@ class IndexModelSpec(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """IndexModelSpec - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], name, *args, **kwargs) -> T:  # noqa: E501
+        """CreateIndexFromBackupRequest - a model defined in OpenAPI
+
+        Args:
+            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -151,9 +154,8 @@ class IndexModelSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dedicated (DedicatedSpec): [optional]  # noqa: E501
-            pod (PodSpec): [optional]  # noqa: E501
-            serverless (ServerlessSpec): [optional]  # noqa: E501
+            tags (IndexTags): [optional]  # noqa: E501
+            deletion_protection (DeletionProtection): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -179,6 +181,7 @@ class IndexModelSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.name = name
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -203,8 +206,11 @@ class IndexModelSpec(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """IndexModelSpec - a model defined in OpenAPI
+    def __init__(self, name, *args, **kwargs) -> None:  # noqa: E501
+        """CreateIndexFromBackupRequest - a model defined in OpenAPI
+
+        Args:
+            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -237,9 +243,8 @@ class IndexModelSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dedicated (DedicatedSpec): [optional]  # noqa: E501
-            pod (PodSpec): [optional]  # noqa: E501
-            serverless (ServerlessSpec): [optional]  # noqa: E501
+            tags (IndexTags): [optional]  # noqa: E501
+            deletion_protection (DeletionProtection): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -263,6 +268,7 @@ class IndexModelSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.name = name
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

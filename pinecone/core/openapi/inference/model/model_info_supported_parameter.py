@@ -1,5 +1,5 @@
 """
-Pinecone Control Plane API
+Pinecone Inference API
 
 Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
@@ -27,23 +27,13 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
-def lazy_import():
-    from pinecone.core.openapi.db_control.model.dedicated_spec import DedicatedSpec
-    from pinecone.core.openapi.db_control.model.pod_spec import PodSpec
-    from pinecone.core.openapi.db_control.model.serverless_spec import ServerlessSpec
-
-    globals()["DedicatedSpec"] = DedicatedSpec
-    globals()["PodSpec"] = PodSpec
-    globals()["ServerlessSpec"] = ServerlessSpec
-
-
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="IndexModelSpec")
+T = TypeVar("T", bound="ModelInfoSupportedParameter")
 
 
-class IndexModelSpec(ModelNormal):
+class ModelInfoSupportedParameter(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -79,7 +69,6 @@ class IndexModelSpec(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -94,11 +83,15 @@ class IndexModelSpec(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
-            "dedicated": (DedicatedSpec,),  # noqa: E501
-            "pod": (PodSpec,),  # noqa: E501
-            "serverless": (ServerlessSpec,),  # noqa: E501
+            "parameter": (str,),  # noqa: E501
+            "type": (str,),  # noqa: E501
+            "value_type": (str,),  # noqa: E501
+            "required": (bool,),  # noqa: E501
+            "allowed_values": ([dict],),  # noqa: E501
+            "min": (float,),  # noqa: E501
+            "max": (float,),  # noqa: E501
+            "default": (dict,),  # noqa: E501
         }
 
     @cached_class_property
@@ -106,9 +99,14 @@ class IndexModelSpec(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "dedicated": "dedicated",  # noqa: E501
-        "pod": "pod",  # noqa: E501
-        "serverless": "serverless",  # noqa: E501
+        "parameter": "parameter",  # noqa: E501
+        "type": "type",  # noqa: E501
+        "value_type": "value_type",  # noqa: E501
+        "required": "required",  # noqa: E501
+        "allowed_values": "allowed_values",  # noqa: E501
+        "min": "min",  # noqa: E501
+        "max": "max",  # noqa: E501
+        "default": "default",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -117,8 +115,16 @@ class IndexModelSpec(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """IndexModelSpec - a model defined in OpenAPI
+    def _from_openapi_data(
+        cls: Type[T], parameter, type, value_type, required, *args, **kwargs
+    ) -> T:  # noqa: E501
+        """ModelInfoSupportedParameter - a model defined in OpenAPI
+
+        Args:
+            parameter (str): The name of the parameter.
+            type (str): The parameter type e.g. 'one_of', 'numeric_range', or 'any'.  If the type is 'one_of', then 'allowed_values' will be set, and the value specified must be one of the allowed values. 'one_of' is only compatible with value_type 'string' or 'integer'.  If 'numeric_range', then 'min' and 'max' will be set, then the value specified must adhere to the value_type and must fall within the `[min, max]` range (inclusive).  If 'any' then any value is allowed, as long as it adheres to the value_type.
+            value_type (str): The type of value the parameter accepts, e.g. 'string', 'integer', 'float', or 'boolean'.
+            required (bool): Whether the parameter is required (true) or optional (false).
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -151,9 +157,10 @@ class IndexModelSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dedicated (DedicatedSpec): [optional]  # noqa: E501
-            pod (PodSpec): [optional]  # noqa: E501
-            serverless (ServerlessSpec): [optional]  # noqa: E501
+            allowed_values ([dict]): The allowed parameter values when the type is 'one_of'. [optional]  # noqa: E501
+            min (float): The minimum allowed value (inclusive) when the type is 'numeric_range'. [optional]  # noqa: E501
+            max (float): The maximum allowed value (inclusive) when the type is 'numeric_range'. [optional]  # noqa: E501
+            default (dict): The default value for the parameter when a parameter is optional. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -179,6 +186,10 @@ class IndexModelSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.parameter = parameter
+        self.type = type
+        self.value_type = value_type
+        self.required = required
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -203,8 +214,14 @@ class IndexModelSpec(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """IndexModelSpec - a model defined in OpenAPI
+    def __init__(self, parameter, type, value_type, required, *args, **kwargs) -> None:  # noqa: E501
+        """ModelInfoSupportedParameter - a model defined in OpenAPI
+
+        Args:
+            parameter (str): The name of the parameter.
+            type (str): The parameter type e.g. 'one_of', 'numeric_range', or 'any'.  If the type is 'one_of', then 'allowed_values' will be set, and the value specified must be one of the allowed values. 'one_of' is only compatible with value_type 'string' or 'integer'.  If 'numeric_range', then 'min' and 'max' will be set, then the value specified must adhere to the value_type and must fall within the `[min, max]` range (inclusive).  If 'any' then any value is allowed, as long as it adheres to the value_type.
+            value_type (str): The type of value the parameter accepts, e.g. 'string', 'integer', 'float', or 'boolean'.
+            required (bool): Whether the parameter is required (true) or optional (false).
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -237,9 +254,10 @@ class IndexModelSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dedicated (DedicatedSpec): [optional]  # noqa: E501
-            pod (PodSpec): [optional]  # noqa: E501
-            serverless (ServerlessSpec): [optional]  # noqa: E501
+            allowed_values ([dict]): The allowed parameter values when the type is 'one_of'. [optional]  # noqa: E501
+            min (float): The minimum allowed value (inclusive) when the type is 'numeric_range'. [optional]  # noqa: E501
+            max (float): The maximum allowed value (inclusive) when the type is 'numeric_range'. [optional]  # noqa: E501
+            default (dict): The default value for the parameter when a parameter is optional. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -263,6 +281,10 @@ class IndexModelSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.parameter = parameter
+        self.type = type
+        self.value_type = value_type
+        self.required = required
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
