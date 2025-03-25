@@ -1,14 +1,31 @@
 # Pinecone Python SDK
-![License](https://img.shields.io/github/license/pinecone-io/pinecone-python-client?color=orange) [![CI](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/pr.yaml/badge.svg)](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/pr.yaml)
+![License](https://img.shields.io/github/license/pinecone-io/pinecone-python-client?color=orange)
 
 The official Pinecone Python SDK.
 
 ## Documentation
 
 - [**Conceptual docs and guides**](https://docs.pinecone.io)
-- [**Python Reference Documentation**](https://sdk.pinecone.io/python/index.html)
+- [**Github Source**](https://github.com/pinecone-io/pinecone-python-client)
 
-### Upgrading the SDK
+## Points of interest
+
+**DB control plane**
+
+- [`Pinecone`](./pinecone/control/pinecone.html)
+- [`PineconeAsyncio`](./pinecone/control/pinecone_asyncio.html)
+- [`PineconeGRPC`](./pinecone/grpc/pinecone.html)
+
+**DB data operations**
+- [`Index`](./pinecone/data/index.html)
+- [`IndexAsyncio`](./pinecone/data/index_asyncio.html)
+- [`IndexGRPC`](./pinecone/grpc/index_grpc.html)
+
+**Inference API**
+- [`Inference`](./pinecone/data/features/inference/inference.html)
+- [`InferenceAsyncio`](./pinecone/data/features/inference/inference_asyncio.html)
+
+## Upgrading the SDK
 
 > [!NOTE]
 > The official SDK package was renamed from `pinecone-client` to `pinecone` beginning in version `5.1.0`.
@@ -189,26 +206,14 @@ response = index.search_records(
 )
 ```
 
-## Pinecone Assistant
-### Installing the Pinecone Assistant Python plugin
-
-To interact with Pinecone Assistant using the Python SDK, install the `pinecone-plugin-assistant` package:
-
-```shell
-pip install --upgrade pinecone pinecone-plugin-assistant
-```
-For more information on Pinecone Assistant, see the [Pinecone Assistant documentation](https://docs.pinecone.io/guides/assistant/overview).
-
-
 ## More information on usage
 
 Detailed information on specific ways of using the SDK are covered in these other pages.
 
-- Store and query your vectors
-  - [Serverless Indexes](./docs/db_control/serverless-indexes.md)
-  - [Pod Indexes](./docs/db_control/pod-indexes.md)
-  - [Working with vectors](./docs/db_data/index-usage-byov.md)
 
+- [Serverless Indexes](./docs/db_control/serverless-indexes.md)
+- [Pod Indexes](./docs/db_control/pod-indexes.md)
+- [Working with vectors](./docs/db_data/index-usage-byov.md)
 - [Inference API](./docs/inference-api.md)
 - [FAQ](./docs/faq.md)
 
@@ -218,7 +223,3 @@ Detailed information on specific ways of using the SDK are covered in these othe
 If you notice bugs or have feedback, please [file an issue](https://github.com/pinecone-io/pinecone-python-client/issues).
 
 You can also get help in the [Pinecone Community Forum](https://community.pinecone.io/).
-
-# Contributing
-
-If you'd like to make a contribution, or get setup locally to develop the Pinecone Python SDK, please see our [contributing guide](https://github.com/pinecone-io/pinecone-python-client/blob/main/CONTRIBUTING.md)

@@ -115,7 +115,11 @@ class TestQuery:
         assert isinstance(results, QueryResponse) == True
         assert results.namespace == target_namespace
 
-        matches_with_metadata = [match for match in results.matches if match.metadata is not None]
+        matches_with_metadata = [
+            match
+            for match in results.matches
+            if match.metadata is not None and match.metadata != {}
+        ]
         assert len(matches_with_metadata) == 3
         assert find_by_id(results.matches, "4").metadata["genre"] == "action"
 
@@ -134,7 +138,11 @@ class TestQuery:
         assert isinstance(results, QueryResponse) == True
         assert results.namespace == target_namespace
 
-        matches_with_metadata = [match for match in results.matches if match.metadata is not None]
+        matches_with_metadata = [
+            match
+            for match in results.matches
+            if match.metadata is not None and match.metadata != {}
+        ]
         assert len(matches_with_metadata) == 3
         assert find_by_id(results.matches, "4").metadata["genre"] == "action"
         assert len(results.matches[0].values) == self.expected_dimension

@@ -1,6 +1,12 @@
+import warnings
+
+__all__ = ["tqdm"]
+
 try:
-    # Use the notebook-friendly auto selection if tqdm is installed.
-    from tqdm.auto import tqdm
+    # Suppress the specific tqdm warning about IProgress
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning, module="tqdm")
+        from tqdm.auto import tqdm
 except ImportError:
     # Fallback: define a dummy tqdm that supports the same interface.
     class tqdm:  # type: ignore
