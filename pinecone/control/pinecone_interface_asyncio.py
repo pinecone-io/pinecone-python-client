@@ -1,32 +1,31 @@
 from abc import ABC, abstractmethod
 
-from typing import Optional, Dict, Union
+from typing import Optional, Dict, Union, TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from pinecone.config import Config
 
-from pinecone.config import Config
+    from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
 
-from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
-
-
-from pinecone.models import (
-    ServerlessSpec,
-    PodSpec,
-    IndexList,
-    CollectionList,
-    IndexModel,
-    IndexEmbed,
-)
-from pinecone.enums import (
-    Metric,
-    VectorType,
-    DeletionProtection,
-    PodType,
-    CloudProvider,
-    AwsRegion,
-    GcpRegion,
-    AzureRegion,
-)
-from .types import CreateIndexForModelEmbedTypedDict
+    from pinecone.models import (
+        ServerlessSpec,
+        PodSpec,
+        IndexList,
+        CollectionList,
+        IndexModel,
+        IndexEmbed,
+    )
+    from pinecone.enums import (
+        Metric,
+        VectorType,
+        DeletionProtection,
+        PodType,
+        CloudProvider,
+        AwsRegion,
+        GcpRegion,
+        AzureRegion,
+    )
+    from .types import CreateIndexForModelEmbedTypedDict
 
 
 class PineconeAsyncioDBControlInterface(ABC):
@@ -39,10 +38,10 @@ class PineconeAsyncioDBControlInterface(ABC):
         proxy_headers: Optional[Dict[str, str]] = None,
         ssl_ca_certs: Optional[str] = None,
         ssl_verify: Optional[bool] = None,
-        config: Optional[Config] = None,
+        config: Optional["Config"] = None,
         additional_headers: Optional[Dict[str, str]] = {},
         pool_threads: Optional[int] = 1,
-        index_api: Optional[ManageIndexesApi] = None,
+        index_api: Optional["ManageIndexesApi"] = None,
         **kwargs,
     ):
         """
@@ -291,12 +290,14 @@ class PineconeAsyncioDBControlInterface(ABC):
     async def create_index(
         self,
         name: str,
-        spec: Union[Dict, ServerlessSpec, PodSpec],
+        spec: Union[Dict, "ServerlessSpec", "PodSpec"],
         dimension: Optional[int],
-        metric: Optional[Union[Metric, str]] = Metric.COSINE,
+        metric: Optional[Union["Metric", str]] = "Metric.COSINE",
         timeout: Optional[int] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
-        vector_type: Optional[Union[VectorType, str]] = VectorType.DENSE,
+        deletion_protection: Optional[
+            Union["DeletionProtection", str]
+        ] = "DeletionProtection.DISABLED",
+        vector_type: Optional[Union["VectorType", str]] = "VectorType.DENSE",
         tags: Optional[Dict[str, str]] = None,
     ):
         """Creates a Pinecone index.
@@ -408,13 +409,15 @@ class PineconeAsyncioDBControlInterface(ABC):
     async def create_index_for_model(
         self,
         name: str,
-        cloud: Union[CloudProvider, str],
-        region: Union[AwsRegion, GcpRegion, AzureRegion, str],
-        embed: Union[IndexEmbed, CreateIndexForModelEmbedTypedDict],
+        cloud: Union["CloudProvider", str],
+        region: Union["AwsRegion", "GcpRegion", "AzureRegion", str],
+        embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
         tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        deletion_protection: Optional[
+            Union["DeletionProtection", str]
+        ] = "DeletionProtection.DISABLED",
         timeout: Optional[int] = None,
-    ) -> IndexModel:
+    ) -> "IndexModel":
         """
         :param name: The name of the index to create. Must be unique within your project and
             cannot be changed once created. Allowed characters are lowercase letters, numbers,
@@ -533,7 +536,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    async def list_indexes(self) -> IndexList:
+    async def list_indexes(self) -> "IndexList":
         """
         :return: Returns an `IndexList` object, which is iterable and contains a
             list of `IndexModel` objects. The `IndexList` also has a convenience method `names()`
@@ -574,7 +577,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    async def describe_index(self, name: str) -> IndexModel:
+    async def describe_index(self, name: str) -> "IndexModel":
         """
         :param name: the name of the index to describe.
         :return: Returns an `IndexModel` object
@@ -669,8 +672,8 @@ class PineconeAsyncioDBControlInterface(ABC):
         self,
         name: str,
         replicas: Optional[int] = None,
-        pod_type: Optional[Union[PodType, str]] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = None,
+        pod_type: Optional[Union["PodType", str]] = None,
+        deletion_protection: Optional[Union["DeletionProtection", str]] = None,
         tags: Optional[Dict[str, str]] = None,
     ):
         """
@@ -779,7 +782,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    async def list_collections(self) -> CollectionList:
+    async def list_collections(self) -> "CollectionList":
         """List all collections
 
         ```python

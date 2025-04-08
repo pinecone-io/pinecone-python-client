@@ -1,49 +1,47 @@
-import time
 import logging
-from typing import Optional, Dict, Union
+from typing import Optional, Dict, Union, TYPE_CHECKING
 from multiprocessing import cpu_count
 
-from .index_host_store import IndexHostStore
-from .pinecone_interface import PineconeDBControlInterface
+from .legacy_pinecone_interface import LegacyPineconeDBControlInterface
 
 from pinecone.config import PineconeConfig, ConfigBuilder
 
-from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
-from pinecone.openapi_support.api_client import ApiClient
-
-
-from pinecone.utils import normalize_host, setup_openapi_client, PluginAware
-from pinecone.core.openapi.db_control import API_VERSION
-from pinecone.models import (
-    ServerlessSpec,
-    PodSpec,
-    IndexModel,
-    IndexList,
-    CollectionList,
-    IndexEmbed,
-)
+from pinecone.utils import normalize_host, PluginAware
 from .langchain_import_warnings import _build_langchain_attribute_error_message
 from pinecone.utils import docslinks
-from pinecone.data import _Index, _Inference, _IndexAsyncio
-
-from pinecone.enums import (
-    Metric,
-    VectorType,
-    DeletionProtection,
-    PodType,
-    CloudProvider,
-    AwsRegion,
-    GcpRegion,
-    AzureRegion,
-)
-from .types import CreateIndexForModelEmbedTypedDict
-from .request_factory import PineconeDBControlRequestFactory
 
 logger = logging.getLogger(__name__)
 """ @private """
 
+if TYPE_CHECKING:
+    from .db_control import DBControl
+    from pinecone.data import (
+        _Index as Index,
+        _Inference as Inference,
+        _IndexAsyncio as IndexAsyncio,
+    )
+    from pinecone.enums import (
+        Metric,
+        VectorType,
+        DeletionProtection,
+        PodType,
+        CloudProvider,
+        AwsRegion,
+        GcpRegion,
+        AzureRegion,
+    )
+    from pinecone.models import (
+        ServerlessSpec,
+        PodSpec,
+        IndexModel,
+        IndexList,
+        CollectionList,
+        IndexEmbed,
+    )
+    from .types import CreateIndexForModelEmbedTypedDict
 
-class Pinecone(PluginAware, PineconeDBControlInterface):
+
+class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
     """
     A client for interacting with Pinecone's vector database.
 
@@ -91,196 +89,126 @@ class Pinecone(PluginAware, PineconeDBControlInterface):
             self.pool_threads = pool_threads
             """ @private """
 
-        self._inference = None  # Lazy initialization
+        self._inference: Optional["Inference"] = None  # Lazy initialization
         """ @private """
 
-        self.index_api = setup_openapi_client(
-            api_client_klass=ApiClient,
-            api_klass=ManageIndexesApi,
-            config=self.config,
-            openapi_config=self.openapi_config,
-            pool_threads=pool_threads,
-            api_version=API_VERSION,
-        )
-        """ @private """
-
-        self.index_host_store = IndexHostStore()
+        self._db_control: Optional["DBControl"] = None  # Lazy initialization
         """ @private """
 
         # Initialize PluginAware first, which will then call PineconeDBControlInterface.__init__
         super().__init__()
 
     @property
-    def inference(self):
+    def inference(self) -> "Inference":
         """
         Inference is a namespace where an instance of the `pinecone.data.features.inference.inference.Inference` class is lazily created and cached.
         """
         if self._inference is None:
+            from pinecone.data import _Inference
+
             self._inference = _Inference(config=self.config, openapi_config=self.openapi_config)
         return self._inference
+
+    @property
+    def db(self) -> "DBControl":
+        """
+        DBControl is a namespace where an instance of the `pinecone.control.db_control.DBControl` class is lazily created and cached.
+        """
+        if self._db_control is None:
+            from .db_control import DBControl
+
+            self._db_control = DBControl(
+                config=self.config,
+                openapi_config=self.openapi_config,
+                pool_threads=self.pool_threads,
+            )
+        return self._db_control
 
     def create_index(
         self,
         name: str,
-        spec: Union[Dict, ServerlessSpec, PodSpec],
+        spec: Union[Dict, "ServerlessSpec", "PodSpec"],
         dimension: Optional[int] = None,
-        metric: Optional[Union[Metric, str]] = Metric.COSINE,
+        metric: Optional[Union["Metric", str]] = "Metric.COSINE",
         timeout: Optional[int] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
-        vector_type: Optional[Union[VectorType, str]] = VectorType.DENSE,
+        deletion_protection: Optional[
+            Union["DeletionProtection", str]
+        ] = "DeletionProtection.DISABLED",
+        vector_type: Optional[Union["VectorType", str]] = "VectorType.DENSE",
         tags: Optional[Dict[str, str]] = None,
-    ) -> IndexModel:
-        req = PineconeDBControlRequestFactory.create_index_request(
+    ) -> "IndexModel":
+        return self.db.index.create(
             name=name,
             spec=spec,
             dimension=dimension,
             metric=metric,
+            timeout=timeout,
             deletion_protection=deletion_protection,
             vector_type=vector_type,
             tags=tags,
         )
-        resp = self.index_api.create_index(create_index_request=req)
-
-        if timeout == -1:
-            return IndexModel(resp)
-        return self.__poll_describe_index_until_ready(name, timeout)
 
     def create_index_for_model(
         self,
         name: str,
-        cloud: Union[CloudProvider, str],
-        region: Union[AwsRegion, GcpRegion, AzureRegion, str],
-        embed: Union[IndexEmbed, CreateIndexForModelEmbedTypedDict],
+        cloud: Union["CloudProvider", str],
+        region: Union["AwsRegion", "GcpRegion", "AzureRegion", str],
+        embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
         tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        deletion_protection: Optional[
+            Union["DeletionProtection", str]
+        ] = "DeletionProtection.DISABLED",
         timeout: Optional[int] = None,
-    ) -> IndexModel:
-        req = PineconeDBControlRequestFactory.create_index_for_model_request(
+    ) -> "IndexModel":
+        return self.db.index.create_for_model(
             name=name,
             cloud=cloud,
             region=region,
             embed=embed,
             tags=tags,
             deletion_protection=deletion_protection,
+            timeout=timeout,
         )
-        resp = self.index_api.create_index_for_model(req)
-
-        if timeout == -1:
-            return IndexModel(resp)
-        return self.__poll_describe_index_until_ready(name, timeout)
-
-    def __poll_describe_index_until_ready(self, name: str, timeout: Optional[int] = None):
-        description = None
-
-        def is_ready() -> bool:
-            nonlocal description
-            description = self.describe_index(name=name)
-            return description.status.ready
-
-        total_wait_time = 0
-        if timeout is None:
-            # Wait indefinitely
-            while not is_ready():
-                logger.debug(
-                    f"Waiting for index {name} to be ready. Total wait time {total_wait_time} seconds."
-                )
-                total_wait_time += 5
-                time.sleep(5)
-
-        else:
-            # Wait for a maximum of timeout seconds
-            while not is_ready():
-                if timeout < 0:
-                    logger.error(f"Index {name} is not ready. Timeout reached.")
-                    link = docslinks["API_DESCRIBE_INDEX"]
-                    timeout_msg = (
-                        f"Please call describe_index() to confirm index status. See docs at {link}"
-                    )
-                    raise TimeoutError(timeout_msg)
-
-                logger.debug(
-                    f"Waiting for index {name} to be ready. Total wait time: {total_wait_time}"
-                )
-                total_wait_time += 5
-                time.sleep(5)
-                timeout -= 5
-
-        return description
 
     def delete_index(self, name: str, timeout: Optional[int] = None):
-        self.index_api.delete_index(name)
-        self.index_host_store.delete_host(self.config, name)
+        return self.db.index.delete(name=name, timeout=timeout)
 
-        if timeout == -1:
-            return
+    def list_indexes(self) -> "IndexList":
+        return self.db.index.list()
 
-        if timeout is None:
-            while self.has_index(name):
-                time.sleep(5)
-        else:
-            while self.has_index(name) and timeout >= 0:
-                time.sleep(5)
-                timeout -= 5
-        if timeout and timeout < 0:
-            raise (
-                TimeoutError(
-                    "Please call the list_indexes API ({}) to confirm if index is deleted".format(
-                        "https://www.pinecone.io/docs/api/operation/list_indexes/"
-                    )
-                )
-            )
-
-    def list_indexes(self) -> IndexList:
-        response = self.index_api.list_indexes()
-        return IndexList(response)
-
-    def describe_index(self, name: str) -> IndexModel:
-        api_instance = self.index_api
-        description = api_instance.describe_index(name)
-        host = description.host
-        self.index_host_store.set_host(self.config, name, host)
-
-        return IndexModel(description)
+    def describe_index(self, name: str) -> "IndexModel":
+        return self.db.index.describe(name=name)
 
     def has_index(self, name: str) -> bool:
-        if name in self.list_indexes().names():
-            return True
-        else:
-            return False
+        return self.db.index.has(name=name)
 
     def configure_index(
         self,
         name: str,
         replicas: Optional[int] = None,
-        pod_type: Optional[Union[PodType, str]] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = None,
+        pod_type: Optional[Union["PodType", str]] = None,
+        deletion_protection: Optional[Union["DeletionProtection", str]] = None,
         tags: Optional[Dict[str, str]] = None,
     ):
-        api_instance = self.index_api
-        description = self.describe_index(name=name)
-
-        req = PineconeDBControlRequestFactory.configure_index_request(
-            description=description,
+        return self.db.index.configure(
+            name=name,
             replicas=replicas,
             pod_type=pod_type,
             deletion_protection=deletion_protection,
             tags=tags,
         )
-        api_instance.configure_index(name, configure_index_request=req)
 
     def create_collection(self, name: str, source: str) -> None:
-        req = PineconeDBControlRequestFactory.create_collection_request(name=name, source=source)
-        self.index_api.create_collection(create_collection_request=req)
+        return self.db.collection.create(name=name, source=source)
 
-    def list_collections(self) -> CollectionList:
-        response = self.index_api.list_collections()
-        return CollectionList(response)
+    def list_collections(self) -> "CollectionList":
+        return self.db.collection.list()
 
     def delete_collection(self, name: str) -> None:
-        self.index_api.delete_collection(name)
+        return self.db.collection.delete(name=name)
 
     def describe_collection(self, name: str):
-        return self.index_api.describe_collection(name).to_dict()
+        return self.db.collection.describe(name=name)
 
     @staticmethod
     def from_texts(*args, **kwargs):
@@ -292,7 +220,9 @@ class Pinecone(PluginAware, PineconeDBControlInterface):
         """@private"""
         raise AttributeError(_build_langchain_attribute_error_message("from_documents"))
 
-    def Index(self, name: str = "", host: str = "", **kwargs):
+    def Index(self, name: str = "", host: str = "", **kwargs) -> "Index":
+        from pinecone.data import _Index
+
         if name == "" and host == "":
             raise ValueError("Either name or host must be specified")
 
@@ -318,7 +248,9 @@ class Pinecone(PluginAware, PineconeDBControlInterface):
             **kwargs,
         )
 
-    def IndexAsyncio(self, host: str, **kwargs):
+    def IndexAsyncio(self, host: str, **kwargs) -> "IndexAsyncio":
+        from pinecone.data import _IndexAsyncio
+
         api_key = self.config.api_key
         openapi_config = self.openapi_config
 
