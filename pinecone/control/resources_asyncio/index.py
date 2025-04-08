@@ -16,8 +16,8 @@ from pinecone.enums import (
     GcpRegion,
     AzureRegion,
 )
-from .types import CreateIndexForModelEmbedTypedDict
-from .request_factory import PineconeDBControlRequestFactory
+from pinecone.control.types import CreateIndexForModelEmbedTypedDict
+from pinecone.control.request_factory import PineconeDBControlRequestFactory
 
 logger = logging.getLogger(__name__)
 """ @private """
