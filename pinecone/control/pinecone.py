@@ -238,7 +238,7 @@ class Pinecone(LegacyPineconeDBControlInterface, PluginAware):
             index_host = normalize_host(host)
         else:
             # Otherwise, get host url from describe_index using the index name
-            index_host = self.index_host_store.get_host(self.index_api, self.config, name)
+            index_host = self.db.index._get_host(name)
 
         return _Index(
             host=index_host,

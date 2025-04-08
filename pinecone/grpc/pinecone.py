@@ -122,7 +122,7 @@ class PineconeGRPC(Pinecone):
             raise ValueError("Either name or host must be specified")
 
         # Use host if it is provided, otherwise get host from describe_index
-        index_host = host or self.index_host_store.get_host(self.index_api, self.config, name)
+        index_host = host or self.db.index._get_host(name)
 
         pt = kwargs.pop("pool_threads", None) or self.pool_threads
 

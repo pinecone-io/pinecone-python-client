@@ -131,10 +131,10 @@ class IndexResource:
             return
 
         if timeout is None:
-            while self.has_index(name):
+            while self.has(name):
                 time.sleep(5)
         else:
-            while self.has_index(name) and timeout >= 0:
+            while self.has(name) and timeout >= 0:
                 time.sleep(5)
                 timeout -= 5
         if timeout and timeout < 0:
@@ -183,3 +183,9 @@ class IndexResource:
             tags=tags,
         )
         api_instance.configure_index(name, configure_index_request=req)
+
+    def _get_host(self, name: str) -> str:
+        """@private"""
+        return self.index_host_store.get_host(
+            api=self.index_api, config=self.config, index_name=name
+        )
