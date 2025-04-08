@@ -1,30 +1,30 @@
 from abc import ABC, abstractmethod
 
-from typing import Optional, Dict, Union
+from typing import Optional, Dict, Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.models import (
+        ServerlessSpec,
+        PodSpec,
+        IndexList,
+        CollectionList,
+        IndexModel,
+        IndexEmbed,
+    )
+    from pinecone.enums import (
+        Metric,
+        VectorType,
+        DeletionProtection,
+        PodType,
+        CloudProvider,
+        AwsRegion,
+        GcpRegion,
+        AzureRegion,
+    )
+    from .types import CreateIndexForModelEmbedTypedDict
 
 
-from pinecone.models import (
-    ServerlessSpec,
-    PodSpec,
-    IndexList,
-    CollectionList,
-    IndexModel,
-    IndexEmbed,
-)
-from pinecone.enums import (
-    Metric,
-    VectorType,
-    DeletionProtection,
-    PodType,
-    CloudProvider,
-    AwsRegion,
-    GcpRegion,
-    AzureRegion,
-)
-from .types import CreateIndexForModelEmbedTypedDict
-
-
-class PineconeDBControlInterface(ABC):
+class LegacyPineconeDBControlInterface(ABC):
     @abstractmethod
     def __init__(
         self,
@@ -190,14 +190,16 @@ class PineconeDBControlInterface(ABC):
     def create_index(
         self,
         name: str,
-        spec: Union[Dict, ServerlessSpec, PodSpec],
+        spec: Union[Dict, "ServerlessSpec", "PodSpec"],
         dimension: Optional[int],
-        metric: Optional[Union[Metric, str]] = Metric.COSINE,
+        metric: Optional[Union["Metric", str]] = "Metric.COSINE",
         timeout: Optional[int] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
-        vector_type: Optional[Union[VectorType, str]] = VectorType.DENSE,
+        deletion_protection: Optional[
+            Union["DeletionProtection", str]
+        ] = "DeletionProtection.DISABLED",
+        vector_type: Optional[Union["VectorType", str]] = "VectorType.DENSE",
         tags: Optional[Dict[str, str]] = None,
-    ) -> IndexModel:
+    ) -> "IndexModel":
         """Creates a Pinecone index.
 
         :param name: The name of the index to create. Must be unique within your project and
@@ -299,13 +301,15 @@ class PineconeDBControlInterface(ABC):
     def create_index_for_model(
         self,
         name: str,
-        cloud: Union[CloudProvider, str],
-        region: Union[AwsRegion, GcpRegion, AzureRegion, str],
-        embed: Union[IndexEmbed, CreateIndexForModelEmbedTypedDict],
+        cloud: Union["CloudProvider", str],
+        region: Union["AwsRegion", "GcpRegion", "AzureRegion", str],
+        embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
         tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        deletion_protection: Optional[
+            Union["DeletionProtection", str]
+        ] = "DeletionProtection.DISABLED",
         timeout: Optional[int] = None,
-    ) -> IndexModel:
+    ) -> "IndexModel":
         """
         :param name: The name of the index to create. Must be unique within your project and
             cannot be changed once created. Allowed characters are lowercase letters, numbers,
@@ -414,7 +418,7 @@ class PineconeDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def list_indexes(self) -> IndexList:
+    def list_indexes(self) -> "IndexList":
         """
         :return: Returns an `IndexList` object, which is iterable and contains a
             list of `IndexModel` objects. The `IndexList` also has a convenience method `names()`
@@ -447,7 +451,7 @@ class PineconeDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def describe_index(self, name: str) -> IndexModel:
+    def describe_index(self, name: str) -> "IndexModel":
         """
         :param name: the name of the index to describe.
         :return: Returns an `IndexModel` object
@@ -534,8 +538,8 @@ class PineconeDBControlInterface(ABC):
         self,
         name: str,
         replicas: Optional[int] = None,
-        pod_type: Optional[Union[PodType, str]] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = None,
+        pod_type: Optional[Union["PodType", str]] = None,
+        deletion_protection: Optional[Union["DeletionProtection", str]] = None,
         tags: Optional[Dict[str, str]] = None,
     ):
         """
@@ -622,7 +626,7 @@ class PineconeDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def create_collection(self, name: str, source: str):
+    def create_collection(self, name: str, source: str) -> None:
         """Create a collection from a pod-based index
 
         :param name: Name of the collection
@@ -631,7 +635,7 @@ class PineconeDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def list_collections(self) -> CollectionList:
+    def list_collections(self) -> "CollectionList":
         """List all collections
 
         ```python
