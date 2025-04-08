@@ -94,6 +94,8 @@ urllib3_mock = "0.3.3"
 responses = ">=0.8.1"
 ruff = "^0.9.3"
 beautifulsoup4 = "^4.13.3"
+vprof = "^0.38"
+tuna = "^0.5.11"
 
 
 [tool.poetry.extras]
