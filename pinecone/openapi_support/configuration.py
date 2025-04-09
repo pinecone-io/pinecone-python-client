@@ -1,1 +1,0 @@
-from pinecone.config import OpenApiConfiguration as Configuration

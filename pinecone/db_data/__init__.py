@@ -30,6 +30,7 @@ from .features.bulk_import import ImportErrorMode
 
 import warnings
 
+
 def _get_deprecated_import(name, from_module, to_module):
     warnings.warn(
         f"The import of `{name}` from `{from_module}` has moved to `{to_module}`. "
@@ -39,10 +40,18 @@ def _get_deprecated_import(name, from_module, to_module):
         DeprecationWarning,
     )
     # Import from the new location
-    from pinecone.inference import Inference as _Inference, AsyncioInference as _AsyncioInference, RerankModel, EmbedModel
+    from pinecone.inference import (
+        Inference as _Inference,
+        AsyncioInference as _AsyncioInference,
+        RerankModel,
+        EmbedModel,
+    )
+
     return locals()[name]
 
+
 moved = ["_Inference", "_AsyncioInference", "RerankModel", "EmbedModel"]
+
 
 def __getattr__(name):
     if name in locals():
@@ -50,4 +59,3 @@ def __getattr__(name):
     elif name in moved:
         return _get_deprecated_import(name, "pinecone.data", "pinecone.inference")
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
-

@@ -3,10 +3,10 @@ from enum import Enum
 
 class CloudProvider(Enum):
     """Cloud providers available for use with Pinecone serverless indexes
-    
+
     This list could expand or change over time as more cloud providers are supported.
-    Check the Pinecone documentation for the most up-to-date list of supported cloud 
-    providers. If you want to use a cloud provider that is not listed here, you can 
+    Check the Pinecone documentation for the most up-to-date list of supported cloud
+    providers. If you want to use a cloud provider that is not listed here, you can
     pass a string value directly without using this enum.
     """
 
@@ -17,10 +17,10 @@ class CloudProvider(Enum):
 
 class AwsRegion(Enum):
     """AWS (Amazon Web Services) regions available for use with Pinecone serverless indexes
-    
+
     This list could expand or change over time as more regions are supported.
-    Check the Pinecone documentation for the most up-to-date list of supported 
-    regions. If you want to use a region that is not listed here, you can 
+    Check the Pinecone documentation for the most up-to-date list of supported
+    regions. If you want to use a region that is not listed here, you can
     pass a string value directly without using this enum.
     """
 
@@ -31,10 +31,10 @@ class AwsRegion(Enum):
 
 class GcpRegion(Enum):
     """GCP (Google Cloud Platform) regions available for use with Pinecone serverless indexes
-    
+
     This list could expand or change over time as more regions are supported.
-    Check the Pinecone documentation for the most up-to-date list of supported 
-    regions. If you want to use a region that is not listed here, you can 
+    Check the Pinecone documentation for the most up-to-date list of supported
+    regions. If you want to use a region that is not listed here, you can
     pass a string value directly without using this enum.
     """
 
@@ -44,10 +44,10 @@ class GcpRegion(Enum):
 
 class AzureRegion(Enum):
     """Azure regions available for use with Pinecone serverless indexes
-    
+
     This list could expand or change over time as more regions are supported.
-    Check the Pinecone documentation for the most up-to-date list of supported 
-    regions. If you want to use a region that is not listed here, you can 
+    Check the Pinecone documentation for the most up-to-date list of supported
+    regions. If you want to use a region that is not listed here, you can
     pass a string value directly without using this enum.
     """
 

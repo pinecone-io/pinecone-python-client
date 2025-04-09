@@ -181,14 +181,14 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         tags: Optional[Dict[str, str]] = None,
     ) -> "IndexModel":
         resp = await self.db.index.create(
-            name=name, 
-            spec=spec, 
-            dimension=dimension, 
-            metric=metric, 
-            deletion_protection=deletion_protection, 
-            vector_type=vector_type, 
+            name=name,
+            spec=spec,
+            dimension=dimension,
+            metric=metric,
+            deletion_protection=deletion_protection,
+            vector_type=vector_type,
             tags=tags,
-            timeout=timeout
+            timeout=timeout,
         )
         return resp
 

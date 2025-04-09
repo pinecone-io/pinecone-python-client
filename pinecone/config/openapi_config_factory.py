@@ -71,9 +71,7 @@ class OpenApiConfigFactory:
         # Source: https://www.finbourne.com/blog/the-mysterious-hanging-client-tcp-keep-alives
 
         # urllib3.connection.HTTPConnection.default_socket_options
-        socket_params = [
-            (socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        ]
+        socket_params = [(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)]
         if not do_keep_alive:
             return socket_params
 

@@ -70,6 +70,7 @@ class ApiClient(object):
         """
         if self._pool is None:
             from multiprocessing.pool import ThreadPool
+
             atexit.register(self.close)
             self._pool = ThreadPool(self.pool_threads)
         return self._pool
@@ -78,6 +79,7 @@ class ApiClient(object):
     def threadpool_executor(self) -> "ThreadPoolExecutor":
         if self._threadpool_executor is None:
             from concurrent.futures import ThreadPoolExecutor
+
             self._threadpool_executor = ThreadPoolExecutor(max_workers=self.pool_threads)
         return self._threadpool_executor
 
@@ -189,6 +191,7 @@ class ApiClient(object):
         # deserialize response data
         if response_type:
             from .deserializer import Deserializer
+
             Deserializer.decode_response(response_type=response_type, response=response_data)
             return_data = Deserializer.deserialize(
                 response=response_data,
