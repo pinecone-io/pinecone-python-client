@@ -7,7 +7,7 @@ import logging
 from typing import Any
 from datetime import datetime
 import json
-from pinecone.data import _Index
+from pinecone.db_data import _Index
 from typing import List
 
 logger = logging.getLogger(__name__)

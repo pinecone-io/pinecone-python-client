@@ -8,7 +8,7 @@ from .endpoint import Endpoint
 from .endpoint_utils import ExtraOpenApiKwargsTypedDict, KwargsWithOpenApiKwargDefaultsTypedDict
 from .asyncio_api_client import AsyncioApiClient
 from .asyncio_endpoint import AsyncioEndpoint
-from .configuration import Configuration
+from .configuration_lazy import Configuration
 from .exceptions import (
     PineconeException,
     PineconeApiAttributeError,

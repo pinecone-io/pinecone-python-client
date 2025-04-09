@@ -1,5 +1,5 @@
-from ..control.pinecone import Pinecone
-from ..config.config import ConfigBuilder
+from pinecone import Pinecone
+from pinecone.config import ConfigBuilder
 from .index_grpc import GRPCIndex
 
 

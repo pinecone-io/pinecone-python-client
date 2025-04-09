@@ -1,5 +1,4 @@
 from datetime import date, datetime  # noqa: F401
-from dateutil.parser import parse
 
 import inspect
 import io
@@ -1149,6 +1148,8 @@ def deserialize_primitive(data, klass, path_to_item):
     additional_message = ""
     try:
         if klass in {datetime, date}:
+            from dateutil.parser import parse
+
             additional_message = (
                 "If you need your parameter to have a fallback "
                 "string value, please set its type as `type: {}` in your "

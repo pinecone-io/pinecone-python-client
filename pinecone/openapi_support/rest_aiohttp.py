@@ -2,7 +2,7 @@ import ssl
 import certifi
 import json
 from .rest_utils import RestClientInterface, RESTResponse, raise_exceptions_or_return
-from .configuration import Configuration
+from ..config.openapi_configuration import Configuration
 
 
 class AiohttpRestClient(RestClientInterface):

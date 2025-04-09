@@ -1,5 +1,5 @@
 import pandas as pd
-from pinecone.data import _Index
+from pinecone.db_data import _Index
 from ..helpers import embedding_values, random_string
 
 

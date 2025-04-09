@@ -1,6 +1,6 @@
 import pytest
 from ..helpers import random_string, poll_stats_for_namespace
-from pinecone.data.query_results_aggregator import QueryResultsAggregatorInvalidTopKError
+from pinecone.db_data.query_results_aggregator import QueryResultsAggregatorInvalidTopKError
 
 from pinecone import Vector, SparseValues
 

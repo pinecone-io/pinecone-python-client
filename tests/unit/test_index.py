@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from pinecone.data import _Index
+from pinecone.db_data import _Index
 import pinecone.core.openapi.db_data.models as oai
 from pinecone import QueryResponse, UpsertResponse, Vector
 

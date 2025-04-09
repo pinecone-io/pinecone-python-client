@@ -6,7 +6,7 @@ import logging
 import os
 
 from pinecone import RerankModel, PineconeApiException
-from pinecone.data import _Index
+from pinecone.db_data import _Index
 
 logger = logging.getLogger(__name__)
 

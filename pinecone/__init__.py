@@ -4,12 +4,12 @@
 
 from .deprecated_plugins import check_for_deprecated_plugins
 from .deprecation_warnings import *
-from .config import *
+from .pinecone import Pinecone
+from .pinecone_asyncio import PineconeAsyncio
 from .exceptions import *
-from .control import *
-from .data import *
-from .models import *
-from .enums import *
+# from .config import *
+# from .db_control import *
+# from .db_data import *
 
 from .utils import __version__
 

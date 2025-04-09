@@ -1,4 +1,7 @@
-from pinecone.openapi_support.exceptions import (
+from .exceptions import (
+    PineconeConfigurationError,
+    PineconeProtocolError,
+    ListConversionException,
     PineconeException,
     PineconeApiAttributeError,
     PineconeApiTypeError,
@@ -10,7 +13,6 @@ from pinecone.openapi_support.exceptions import (
     ForbiddenException,
     ServiceException,
 )
-from .exceptions import PineconeConfigurationError, PineconeProtocolError, ListConversionException
 
 __all__ = [
     "PineconeConfigurationError",

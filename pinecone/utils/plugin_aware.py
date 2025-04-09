@@ -1,7 +1,7 @@
 from typing import Any
 from .setup_openapi_client import build_plugin_setup_client
 from pinecone.config import Config
-from pinecone.openapi_support.configuration import Configuration as OpenApiConfig
+from pinecone.config.openapi_configuration import Configuration as OpenApiConfig
 
 from pinecone_plugin_interface import load_and_install as install_plugins
 import logging

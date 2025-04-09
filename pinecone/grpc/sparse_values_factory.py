@@ -3,8 +3,8 @@ from typing import Union, Optional
 
 from ..utils import convert_to_list
 
-from ..data import SparseValuesTypeError, SparseValuesMissingKeysError
-from ..data.types import SparseVectorTypedDict
+from ..db_data import SparseValuesTypeError, SparseValuesMissingKeysError
+from ..db_data.types import SparseVectorTypedDict
 
 from pinecone.core.grpc.protos.db_data_2025_01_pb2 import SparseValues as GRPCSparseValues
 from pinecone.core.openapi.db_data.models import SparseValues as OpenApiSparseValues
