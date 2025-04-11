@@ -77,9 +77,12 @@ def index_list_response():
 
 
 class TestControl:
-    def test_plugins_are_installed(self):
+    def test_plugins_are_lazily_loaded(self):
         with patch.object(PluginAware, "load_plugins") as mock_install_plugins:
-            Pinecone(api_key="asdf")
+            pc = Pinecone(api_key="asdf")
+            mock_install_plugins.assert_not_called()
+            with pytest.raises(AttributeError):
+                pc.foo()  # Accessing a non-existent attribute should raise an AttributeError after PluginAware installs any applicable plugins
             mock_install_plugins.assert_called_once()
 
     def test_default_host(self):
