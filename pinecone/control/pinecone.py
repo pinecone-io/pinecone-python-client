@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 """ @private """
 
 
-class Pinecone(PineconeDBControlInterface, PluginAware):
+class Pinecone(PluginAware, PineconeDBControlInterface):
     """
     A client for interacting with Pinecone's vector database.
 
@@ -107,9 +107,8 @@ class Pinecone(PineconeDBControlInterface, PluginAware):
         self.index_host_store = IndexHostStore()
         """ @private """
 
-        self.load_plugins(
-            config=self.config, openapi_config=self.openapi_config, pool_threads=self.pool_threads
-        )
+        # Initialize PluginAware first, which will then call PineconeDBControlInterface.__init__
+        super().__init__()
 
     @property
     def inference(self):

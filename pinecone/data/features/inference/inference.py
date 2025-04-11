@@ -63,9 +63,7 @@ class Inference(PluginAware):
             api_version=API_VERSION,
         )
 
-        self.load_plugins(
-            config=self.config, openapi_config=self.openapi_config, pool_threads=self.pool_threads
-        )
+        super().__init__()  # Initialize PluginAware
 
     def embed(
         self,

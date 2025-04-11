@@ -55,7 +55,7 @@ def parse_query_response(response: QueryResponse):
     return response
 
 
-class Index(IndexInterface, ImportFeatureMixin, PluginAware):
+class Index(PluginAware, IndexInterface, ImportFeatureMixin):
     """
     A client for interacting with a Pinecone index via REST API.
     For improved performance, use the Pinecone GRPC index client.
@@ -100,10 +100,6 @@ class Index(IndexInterface, ImportFeatureMixin, PluginAware):
 
         # Pass the same api_client to the ImportFeatureMixin
         super().__init__(api_client=self._api_client)
-
-        self.load_plugins(
-            config=self.config, openapi_config=self.openapi_config, pool_threads=self.pool_threads
-        )
 
     def _openapi_kwargs(self, kwargs: Dict[str, Any]) -> Dict[str, Any]:
         return filter_dict(kwargs, OPENAPI_ENDPOINT_PARAMS)
