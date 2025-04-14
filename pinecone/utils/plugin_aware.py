@@ -34,6 +34,9 @@ class PluginAware:
         """
         logger.debug("PluginAware __init__ called for %s", self.__class__.__name__)
 
+        self._plugins_loaded = False
+        """ @private """
+
         # Check for required attributes after super().__init__ has been called
         missing_attrs = []
         if not hasattr(self, "config"):
@@ -50,9 +53,6 @@ class PluginAware:
                 f"before calling super().__init__()."
             )
 
-        self._plugins_loaded = False
-        """ @private """
-
     def __getattr__(self, name: str) -> Any:
         """
         Called when an attribute is not found through the normal lookup process.
@@ -67,17 +67,32 @@ class PluginAware:
         Raises:
             AttributeError: If the attribute cannot be found after loading plugins.
         """
+        # Check if this is one of the required attributes that should be set by subclasses
+        required_attrs = ["config", "openapi_config", "pool_threads"]
+        if name in required_attrs:
+            raise AttributeError(
+                f"'{self.__class__.__name__}' object has no attribute '{name}'. "
+                f"This attribute must be set in the subclass's __init__ method "
+                f"before calling super().__init__()."
+            )
+
         if not self._plugins_loaded:
             logger.debug("Loading plugins for %s", self.__class__.__name__)
-            self.load_plugins(
-                config=self.config,
-                openapi_config=self.openapi_config,
-                pool_threads=self.pool_threads,
-            )
-            self._plugins_loaded = True
+            # Use object.__getattribute__ to avoid triggering __getattr__ again
             try:
-                return object.__getattribute__(self, name)
+                config = object.__getattribute__(self, "config")
+                openapi_config = object.__getattribute__(self, "openapi_config")
+                pool_threads = object.__getattribute__(self, "pool_threads")
+                self.load_plugins(
+                    config=config, openapi_config=openapi_config, pool_threads=pool_threads
+                )
+                self._plugins_loaded = True
+                try:
+                    return object.__getattribute__(self, name)
+                except AttributeError:
+                    pass
             except AttributeError:
+                # If we can't get the required attributes, we can't load plugins
                 pass
 
         raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
