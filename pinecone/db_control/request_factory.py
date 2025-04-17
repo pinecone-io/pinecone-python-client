@@ -2,25 +2,35 @@ import logging
 from typing import Optional, Dict, Any, Union
 from enum import Enum
 
+from pinecone.utils import parse_non_empty_args, convert_enum_to_string
 
-from pinecone.utils import convert_enum_to_string
-from pinecone.core.openapi.db_control.models import (
-    CreateCollectionRequest,
+from pinecone.core.openapi.db_control.model.create_collection_request import CreateCollectionRequest
+from pinecone.core.openapi.db_control.model.create_index_for_model_request import (
     CreateIndexForModelRequest,
-    CreateIndexForModelRequestEmbed,
-    CreateIndexRequest,
-    ConfigureIndexRequest,
-    ConfigureIndexRequestSpec,
-    ConfigureIndexRequestSpecPod,
-    DeletionProtection as DeletionProtectionModel,
-    IndexSpec,
-    IndexTags,
-    ServerlessSpec as ServerlessSpecModel,
-    PodSpec as PodSpecModel,
-    PodSpecMetadataConfig,
 )
+from pinecone.core.openapi.db_control.model.create_index_for_model_request_embed import (
+    CreateIndexForModelRequestEmbed,
+)
+from pinecone.core.openapi.db_control.model.create_index_request import CreateIndexRequest
+from pinecone.core.openapi.db_control.model.configure_index_request import ConfigureIndexRequest
+from pinecone.core.openapi.db_control.model.configure_index_request_spec import (
+    ConfigureIndexRequestSpec,
+)
+from pinecone.core.openapi.db_control.model.configure_index_request_spec_pod import (
+    ConfigureIndexRequestSpecPod,
+)
+from pinecone.core.openapi.db_control.model.deletion_protection import (
+    DeletionProtection as DeletionProtectionModel,
+)
+from pinecone.core.openapi.db_control.model.index_spec import IndexSpec
+from pinecone.core.openapi.db_control.model.index_tags import IndexTags
+from pinecone.core.openapi.db_control.model.serverless_spec import (
+    ServerlessSpec as ServerlessSpecModel,
+)
+from pinecone.core.openapi.db_control.model.pod_spec import PodSpec as PodSpecModel
+from pinecone.core.openapi.db_control.model.pod_spec_metadata_config import PodSpecMetadataConfig
+
 from pinecone.db_control.models import ServerlessSpec, PodSpec, IndexModel, IndexEmbed
-from pinecone.utils import parse_non_empty_args
 
 from pinecone.db_control.enums import (
     Metric,
@@ -58,6 +68,7 @@ class PineconeDBControlRequestFactory:
         deletion_protection: Union[DeletionProtection, str],
     ) -> DeletionProtectionModel:
         deletion_protection = convert_enum_to_string(deletion_protection)
+        print(deletion_protection)
         if deletion_protection in ["enabled", "disabled"]:
             return DeletionProtectionModel(deletion_protection)
         else:

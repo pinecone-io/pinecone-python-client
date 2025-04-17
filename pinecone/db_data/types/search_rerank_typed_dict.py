@@ -1,5 +1,5 @@
 from typing import TypedDict, Optional, Union, Dict, Any
-from ..features.inference import RerankModel
+from pinecone.inference import RerankModel
 
 
 class SearchRerankTypedDict(TypedDict):

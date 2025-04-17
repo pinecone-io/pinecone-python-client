@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional, Dict, Any, List
-from ..features.inference import RerankModel
+from pinecone.inference import RerankModel
 
 
 @dataclass

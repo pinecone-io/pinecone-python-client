@@ -1,5 +1,5 @@
 import json
-from pinecone.core.openapi.db_control.models import IndexList as OpenAPIIndexList
+from pinecone.core.openapi.db_control.model.index_list import IndexList as OpenAPIIndexList
 from .index_model import IndexModel
 from typing import List
 

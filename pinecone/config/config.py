@@ -5,7 +5,7 @@ from pinecone.exceptions import PineconeConfigurationError
 from pinecone.config.openapi_config_factory import OpenApiConfigFactory
 
 if TYPE_CHECKING:
-    from pinecone.openapi_support.configuration import Configuration as OpenApiConfiguration
+    from pinecone.config.openapi_configuration import Configuration as OpenApiConfiguration
 
 
 # Duplicated this util to help resolve circular imports

@@ -1,7 +1,6 @@
 import pytest
 from pinecone.utils.plugin_aware import PluginAware
-from pinecone.config import Config
-from pinecone.openapi_support.configuration import Configuration as OpenApiConfig
+from pinecone.config import Config, OpenApiConfiguration
 
 
 class TestPluginAware:
@@ -22,7 +21,7 @@ class TestPluginAware:
         class Foo(PluginAware):
             def __init__(self):
                 self.config = Config()
-                self.openapi_config = OpenApiConfig()
+                self.openapi_config = OpenApiConfiguration()
                 self.pool_threads = 1
 
                 super().__init__()
@@ -38,7 +37,7 @@ class TestPluginAware:
         class Pinecone(PluginAware):
             def __init__(self):
                 self.config = Config()
-                self.openapi_config = OpenApiConfig()
+                self.openapi_config = OpenApiConfiguration()
                 self.pool_threads = 10
 
                 super().__init__()

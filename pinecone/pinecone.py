@@ -42,10 +42,7 @@ if TYPE_CHECKING:
 
 class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
     """
-    A client for interacting with Pinecone's vector database.
-
-    This class implements methods for managing and interacting with Pinecone resources
-    such as collections and indexes.
+    A client for interacting with Pinecone APIs.
     """
 
     def __init__(
@@ -127,12 +124,10 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         name: str,
         spec: Union[Dict, "ServerlessSpec", "PodSpec"],
         dimension: Optional[int] = None,
-        metric: Optional[Union["Metric", str]] = "Metric.COSINE",
+        metric: Optional[Union["Metric", str]] = "cosine",
         timeout: Optional[int] = None,
-        deletion_protection: Optional[
-            Union["DeletionProtection", str]
-        ] = "DeletionProtection.DISABLED",
-        vector_type: Optional[Union["VectorType", str]] = "VectorType.DENSE",
+        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
+        vector_type: Optional[Union["VectorType", str]] = "dense",
         tags: Optional[Dict[str, str]] = None,
     ) -> "IndexModel":
         return self.db.index.create(

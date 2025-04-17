@@ -82,7 +82,7 @@ class Configuration:
 
         You can programmatically set the cookie:
 
-    conf = pinecone.openapi_support.Configuration(
+    conf = pinecone.config.openapi_configuration.Configuration(
         api_key={'cookieAuth': 'abc123'}
         api_key_prefix={'cookieAuth': 'JSESSIONID'}
     )
