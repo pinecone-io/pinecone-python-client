@@ -37,6 +37,22 @@ _db_data_lazy_imports = {
     "UpsertResponse": ("pinecone.db_data.models", "UpsertResponse"),
     "UpdateRequest": ("pinecone.db_data.models", "UpdateRequest"),
     "SparseValues": ("pinecone.db_data.models", "SparseValues"),
+    "ImportErrorMode": ("pinecone.core.openapi.db_data.model", "ImportErrorMode"),
+    "VectorDictionaryMissingKeysError": (
+        "pinecone.db_data.errors",
+        "VectorDictionaryMissingKeysError",
+    ),
+    "VectorDictionaryExcessKeysError": (
+        "pinecone.db_data.errors",
+        "VectorDictionaryExcessKeysError",
+    ),
+    "VectorTupleLengthError": ("pinecone.db_data.errors", "VectorTupleLengthError"),
+    "SparseValuesTypeError": ("pinecone.db_data.errors", "SparseValuesTypeError"),
+    "SparseValuesMissingKeysError": ("pinecone.db_data.errors", "SparseValuesMissingKeysError"),
+    "SparseValuesDictionaryExpectedError": (
+        "pinecone.db_data.errors",
+        "SparseValuesDictionaryExpectedError",
+    ),
 }
 
 _db_control_lazy_imports = {
@@ -105,7 +121,7 @@ __all__ = [
     "Config",
     "ConfigBuilder",
     "PineconeConfig",
-    # DB control classes
+    # OpenAPI classes
     "CloudProvider",
     "AwsRegion",
     "GcpRegion",
@@ -119,6 +135,7 @@ __all__ = [
     "IndexList",
     "IndexModel",
     "IndexEmbed",
+    "ImportErrorMode",
     "ServerlessSpec",
     "ServerlessSpecDefinition",
     "PodSpec",
@@ -158,4 +175,10 @@ __all__ = [
     "ForbiddenException",
     "ServiceException",
     "ListConversionException",
+    "VectorDictionaryMissingKeysError",
+    "VectorDictionaryExcessKeysError",
+    "VectorTupleLengthError",
+    "SparseValuesTypeError",
+    "SparseValuesMissingKeysError",
+    "SparseValuesDictionaryExpectedError",
 ]
