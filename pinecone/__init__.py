@@ -21,7 +21,11 @@ _inference_lazy_imports = {
 }
 
 _db_data_lazy_imports = {
-    "Vector": ("pinecone.db_data.models", "Vector"),
+    "Vector": ("pinecone.db_data.dataclasses", "Vector"),
+    "SparseValues": ("pinecone.db_data.dataclasses", "SparseValues"),
+    "SearchQuery": ("pinecone.db_data.dataclasses", "SearchQuery"),
+    "SearchQueryVector": ("pinecone.db_data.dataclasses", "SearchQueryVector"),
+    "SearchRerank": ("pinecone.db_data.dataclasses", "SearchRerank"),
     "FetchResponse": ("pinecone.db_data.models", "FetchResponse"),
     "DeleteRequest": ("pinecone.db_data.models", "DeleteRequest"),
     "DescribeIndexStatsRequest": ("pinecone.db_data.models", "DescribeIndexStatsRequest"),
@@ -31,12 +35,8 @@ _db_data_lazy_imports = {
     "SingleQueryResults": ("pinecone.db_data.models", "SingleQueryResults"),
     "QueryRequest": ("pinecone.db_data.models", "QueryRequest"),
     "QueryResponse": ("pinecone.db_data.models", "QueryResponse"),
-    "SearchQuery": ("pinecone.db_data.dataclasses", "SearchQuery"),
-    "SearchQueryVector": ("pinecone.db_data.dataclasses", "SearchQueryVector"),
-    "SearchRerank": ("pinecone.db_data.dataclasses", "SearchRerank"),
     "UpsertResponse": ("pinecone.db_data.models", "UpsertResponse"),
     "UpdateRequest": ("pinecone.db_data.models", "UpdateRequest"),
-    "SparseValues": ("pinecone.db_data.models", "SparseValues"),
     "ImportErrorMode": ("pinecone.core.openapi.db_data.model", "ImportErrorMode"),
     "VectorDictionaryMissingKeysError": (
         "pinecone.db_data.errors",

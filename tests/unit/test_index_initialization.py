@@ -51,5 +51,6 @@ class TestIndexClientInitialization:
     def test_set_source_tag(self):
         pc = Pinecone(api_key="123-456-789", source_tag="test_source_tag")
         assert (
-            re.search(r"source_tag=test_source_tag", pc.index_api.api_client.user_agent) is not None
+            re.search(r"source_tag=test_source_tag", pc.db.index_api.api_client.user_agent)
+            is not None
         )

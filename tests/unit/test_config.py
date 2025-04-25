@@ -103,7 +103,11 @@ class TestConfig:
         pc = Pinecone(
             api_key="test-api-key", host="test-controller-host.pinecone.io", pool_threads=10
         )
-        assert pc.index_api.api_client.pool_threads == 10
+        # DBControl object is created lazily, so we need to access this property
+        # to trigger the setup so we can inspect the config
+        assert pc.db is not None
+
+        assert pc.db.index_api.api_client.pool_threads == 10
         idx = pc.Index(host="my-index-host.pinecone.io", name="my-index-name")
         assert idx._vector_api.api_client.pool_threads == 10
 
@@ -146,5 +150,9 @@ class TestConfig:
         assert pc.openapi_config.proxy == "http://localhost:8080"
         assert pc.openapi_config.ssl_ca_cert == "path/to/cert-bundle.pem"
 
-        assert pc.index_api.api_client.configuration.proxy == "http://localhost:8080"
-        assert pc.index_api.api_client.configuration.ssl_ca_cert == "path/to/cert-bundle.pem"
+        # DBControl object is created lazily, so we need to access this property
+        # to trigger the setup so we can inspect the config
+        assert pc.db is not None
+
+        assert pc.db.index_api.api_client.configuration.proxy == "http://localhost:8080"
+        assert pc.db.index_api.api_client.configuration.ssl_ca_cert == "path/to/cert-bundle.pem"
