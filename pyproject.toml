@@ -97,6 +97,7 @@ beautifulsoup4 = "^4.13.3"
 pinecone-plugin-assistant = "^1.6.0"
 vprof = "^0.38"
 tuna = "^0.5.11"
+python-dotenv = "^1.1.0"
 
 
 [tool.poetry.extras]

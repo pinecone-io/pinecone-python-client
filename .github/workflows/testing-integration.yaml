@@ -3,6 +3,31 @@ name: "Integration Tests"
   workflow_call: {}
 
 jobs:
+  reorg:
+    name: Reorg tests
+    runs-on: ubuntu-latest
+    env:
+      PINECONE_DEBUG_CURL: 'true'
+      PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+      PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
+    strategy:
+      matrix:
+        python_version: [3.9, 3.12]
+    steps:
+      - uses: actions/checkout@v4
+      - name: 'Set up Python ${{ matrix.python_version }}'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '${{ matrix.python_version }}'
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+        with:
+          include_asyncio: true
+      - name: 'Run index tests'
+        run: poetry run pytest tests/integration/control/index --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
+      - name: 'Run collection tests'
+        run: poetry run pytest tests/integration/control/collections --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
+
 
   inference:
     name: Inference tests

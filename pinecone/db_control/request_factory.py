@@ -68,7 +68,6 @@ class PineconeDBControlRequestFactory:
         deletion_protection: Union[DeletionProtection, str],
     ) -> DeletionProtectionModel:
         deletion_protection = convert_enum_to_string(deletion_protection)
-        print(deletion_protection)
         if deletion_protection in ["enabled", "disabled"]:
             return DeletionProtectionModel(deletion_protection)
         else:
