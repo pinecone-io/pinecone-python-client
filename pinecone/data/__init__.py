@@ -1,10 +1,10 @@
 import warnings
 
+from pinecone.db_data import *
+
 warnings.warn(
     "The module at `pinecone.data` has moved to `pinecone.db_data`. "
     "Please update your imports. "
     "This warning will become an error in a future version of the Pinecone Python SDK.",
     DeprecationWarning,
 )
-
-from pinecone.db_data import *

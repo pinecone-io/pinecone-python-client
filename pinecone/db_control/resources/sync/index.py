@@ -27,13 +27,13 @@ logger = logging.getLogger(__name__)
 
 class IndexResource:
     def __init__(self, index_api, config):
-        self.index_api = index_api
+        self._index_api = index_api
         """ @private """
 
-        self.config = config
+        self._config = config
         """ @private """
 
-        self.index_host_store = IndexHostStore()
+        self._index_host_store = IndexHostStore()
         """ @private """
 
     def create(
@@ -56,7 +56,7 @@ class IndexResource:
             vector_type=vector_type,
             tags=tags,
         )
-        resp = self.index_api.create_index(create_index_request=req)
+        resp = self._index_api.create_index(create_index_request=req)
 
         if timeout == -1:
             return IndexModel(resp)
@@ -80,7 +80,7 @@ class IndexResource:
             tags=tags,
             deletion_protection=deletion_protection,
         )
-        resp = self.index_api.create_index_for_model(req)
+        resp = self._index_api.create_index_for_model(req)
 
         if timeout == -1:
             return IndexModel(resp)
@@ -125,8 +125,8 @@ class IndexResource:
         return description
 
     def delete(self, name: str, timeout: Optional[int] = None):
-        self.index_api.delete_index(name)
-        self.index_host_store.delete_host(self.config, name)
+        self._index_api.delete_index(name)
+        self._index_host_store.delete_host(self._config, name)
 
         if timeout == -1:
             return
@@ -148,14 +148,14 @@ class IndexResource:
             )
 
     def list(self) -> IndexList:
-        response = self.index_api.list_indexes()
+        response = self._index_api.list_indexes()
         return IndexList(response)
 
     def describe(self, name: str) -> IndexModel:
-        api_instance = self.index_api
+        api_instance = self._index_api
         description = api_instance.describe_index(name)
         host = description.host
-        self.index_host_store.set_host(self.config, name, host)
+        self._index_host_store.set_host(self._config, name, host)
 
         return IndexModel(description)
 
@@ -173,7 +173,7 @@ class IndexResource:
         deletion_protection: Optional[Union[DeletionProtection, str]] = None,
         tags: Optional[Dict[str, str]] = None,
     ):
-        api_instance = self.index_api
+        api_instance = self._index_api
         description = self.describe(name=name)
 
         req = PineconeDBControlRequestFactory.configure_index_request(
@@ -187,6 +187,6 @@ class IndexResource:
 
     def _get_host(self, name: str) -> str:
         """@private"""
-        return self.index_host_store.get_host(
-            api=self.index_api, config=self.config, index_name=name
+        return self._index_host_store.get_host(
+            api=self._index_api, config=self._config, index_name=name
         )

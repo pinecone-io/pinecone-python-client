@@ -1,4 +1,5 @@
 import logging
+import warnings
 from typing import Optional, Dict, Union, TYPE_CHECKING
 
 from pinecone.config import PineconeConfig, ConfigBuilder
@@ -30,6 +31,8 @@ if TYPE_CHECKING:
         CollectionList,
         IndexEmbed,
     )
+    from pinecone.core.openapi.db_control.api.manage_indexes_api import IndexOperationsApi
+    from pinecone.db_control.index_host_store import IndexHostStore
 
 logger = logging.getLogger(__name__)
 """ @private """
@@ -166,6 +169,26 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
                 pool_threads=self.pool_threads,
             )
         return self._db_control
+
+    @property
+    def index_host_store(self) -> "IndexHostStore":
+        """@private"""
+        warnings.warn(
+            "The `index_host_store` property is deprecated. This warning will become an error in a future version of the Pinecone Python SDK.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.db.index._index_host_store
+
+    @property
+    def index_api(self) -> "IndexOperationsApi":
+        """@private"""
+        warnings.warn(
+            "The `index_api` property is deprecated. This warning will become an error in a future version of the Pinecone Python SDK.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.db._index_api
 
     async def create_index(
         self,

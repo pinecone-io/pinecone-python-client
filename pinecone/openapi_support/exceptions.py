@@ -1,1 +1,1 @@
-from pinecone.exceptions import *
+from pinecone.exceptions import *  # noqa: F403

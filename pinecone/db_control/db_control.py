@@ -27,7 +27,7 @@ class DBControl:
         self.pool_threads = pool_threads
         """ @private """
 
-        self.index_api = setup_openapi_client(
+        self._index_api = setup_openapi_client(
             api_client_klass=ApiClient,
             api_klass=ManageIndexesApi,
             config=self.config,
@@ -48,7 +48,7 @@ class DBControl:
         if self._index_resource is None:
             from .resources.sync.index import IndexResource
 
-            self._index_resource = IndexResource(index_api=self.index_api, config=self.config)
+            self._index_resource = IndexResource(index_api=self._index_api, config=self.config)
         return self._index_resource
 
     @property
@@ -56,5 +56,5 @@ class DBControl:
         if self._collection_resource is None:
             from .resources.sync.collection import CollectionResource
 
-            self._collection_resource = CollectionResource(self.index_api)
+            self._collection_resource = CollectionResource(self._index_api)
         return self._collection_resource
