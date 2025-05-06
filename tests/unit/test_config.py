@@ -107,7 +107,7 @@ class TestConfig:
         # to trigger the setup so we can inspect the config
         assert pc.db is not None
 
-        assert pc.db.index_api.api_client.pool_threads == 10
+        assert pc.db._index_api.api_client.pool_threads == 10
         idx = pc.Index(host="my-index-host.pinecone.io", name="my-index-name")
         assert idx._vector_api.api_client.pool_threads == 10
 
@@ -154,5 +154,5 @@ class TestConfig:
         # to trigger the setup so we can inspect the config
         assert pc.db is not None
 
-        assert pc.db.index_api.api_client.configuration.proxy == "http://localhost:8080"
-        assert pc.db.index_api.api_client.configuration.ssl_ca_cert == "path/to/cert-bundle.pem"
+        assert pc.db._index_api.api_client.configuration.proxy == "http://localhost:8080"
+        assert pc.db._index_api.api_client.configuration.ssl_ca_cert == "path/to/cert-bundle.pem"

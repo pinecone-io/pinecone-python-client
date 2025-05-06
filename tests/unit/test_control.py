@@ -87,37 +87,37 @@ class TestControl:
 
     def test_default_host(self):
         p = Pinecone(api_key="123-456-789")
-        assert p.db.index_api.api_client.configuration.host == "https://api.pinecone.io"
+        assert p.db._index_api.api_client.configuration.host == "https://api.pinecone.io"
 
     def test_passing_host(self):
         p = Pinecone(api_key="123-456-789", host="my-host.pinecone.io")
-        assert p.db.index_api.api_client.configuration.host == "https://my-host.pinecone.io"
+        assert p.db._index_api.api_client.configuration.host == "https://my-host.pinecone.io"
 
     def test_passing_additional_headers(self):
         extras = {"header1": "my-value", "header2": "my-value2"}
         p = Pinecone(api_key="123-456-789", additional_headers=extras)
 
         for key, value in extras.items():
-            assert p.db.index_api.api_client.default_headers[key] == value
-        assert "User-Agent" in p.db.index_api.api_client.default_headers
-        assert "X-Pinecone-API-Version" in p.db.index_api.api_client.default_headers
-        assert "header1" in p.db.index_api.api_client.default_headers
-        assert "header2" in p.db.index_api.api_client.default_headers
-        assert len(p.db.index_api.api_client.default_headers) == 4
+            assert p.db._index_api.api_client.default_headers[key] == value
+        assert "User-Agent" in p.db._index_api.api_client.default_headers
+        assert "X-Pinecone-API-Version" in p.db._index_api.api_client.default_headers
+        assert "header1" in p.db._index_api.api_client.default_headers
+        assert "header2" in p.db._index_api.api_client.default_headers
+        assert len(p.db._index_api.api_client.default_headers) == 4
 
     def test_overwrite_useragent(self):
         # This doesn't seem like a common use case, but we may want to allow this
         # when embedding the client in other pinecone tools such as canopy.
         extras = {"User-Agent": "test-user-agent"}
         p = Pinecone(api_key="123-456-789", additional_headers=extras)
-        assert "X-Pinecone-API-Version" in p.db.index_api.api_client.default_headers
-        assert p.db.index_api.api_client.default_headers["User-Agent"] == "test-user-agent"
-        assert len(p.db.index_api.api_client.default_headers) == 2
+        assert "X-Pinecone-API-Version" in p.db._index_api.api_client.default_headers
+        assert p.db._index_api.api_client.default_headers["User-Agent"] == "test-user-agent"
+        assert len(p.db._index_api.api_client.default_headers) == 2
 
     def test_set_source_tag_in_useragent(self):
         p = Pinecone(api_key="123-456-789", source_tag="test_source_tag")
         assert (
-            re.search(r"source_tag=test_source_tag", p.db.index_api.api_client.user_agent)
+            re.search(r"source_tag=test_source_tag", p.db._index_api.api_client.user_agent)
             is not None
         )
 
@@ -150,8 +150,8 @@ class TestControl:
         expected_sleep_calls,
     ):
         p = Pinecone(api_key="123-456-789")
-        mocker.patch.object(p.db.index_api, "describe_index", side_effect=describe_index_responses)
-        mocker.patch.object(p.db.index_api, "create_index")
+        mocker.patch.object(p.db._index_api, "describe_index", side_effect=describe_index_responses)
+        mocker.patch.object(p.db._index_api, "create_index")
         mocker.patch("time.sleep")
 
         p.create_index(
@@ -161,8 +161,8 @@ class TestControl:
             timeout=timeout_value,
         )
 
-        assert p.db.index_api.create_index.call_count == 1
-        assert p.db.index_api.describe_index.call_count == expected_describe_index_calls
+        assert p.db._index_api.create_index.call_count == 1
+        assert p.db._index_api.describe_index.call_count == expected_describe_index_calls
         assert time.sleep.call_count == expected_sleep_calls
 
     @pytest.mark.parametrize(
@@ -211,7 +211,7 @@ class TestControl:
         p = Pinecone(api_key="123-456-789")
 
         mock_api = MagicMock()
-        mocker.patch.object(p.db, "index_api", mock_api)
+        mocker.patch.object(p.db, "_index_api", mock_api)
 
         p.create_index(name="my-index", dimension=10, spec=index_spec)
 
@@ -246,8 +246,8 @@ class TestControl:
         expected_sleep_calls,
     ):
         p = Pinecone(api_key="123-456-789")
-        mocker.patch.object(p.db.index_api, "describe_index", side_effect=describe_index_responses)
-        mocker.patch.object(p.db.index_api, "create_index")
+        mocker.patch.object(p.db._index_api, "describe_index", side_effect=describe_index_responses)
+        mocker.patch.object(p.db._index_api, "create_index")
         mocker.patch("time.sleep")
 
         p.create_index(
@@ -257,18 +257,18 @@ class TestControl:
             timeout=timeout_value,
         )
 
-        assert p.db.index_api.create_index.call_count == 1
-        assert p.db.index_api.describe_index.call_count == expected_describe_index_calls
+        assert p.db._index_api.create_index.call_count == 1
+        assert p.db._index_api.describe_index.call_count == expected_describe_index_calls
         assert time.sleep.call_count == expected_sleep_calls
 
     def test_create_index_when_timeout_exceeded(self, mocker):
         with pytest.raises(TimeoutError):
             p = Pinecone(api_key="123-456-789")
-            mocker.patch.object(p.db.index_api, "create_index")
+            mocker.patch.object(p.db._index_api, "create_index")
 
             describe_index_response = [description_with_status(False)] * 5
             mocker.patch.object(
-                p.db.index_api, "describe_index", side_effect=describe_index_response
+                p.db._index_api, "describe_index", side_effect=describe_index_response
             )
             mocker.patch("time.sleep")
 
@@ -279,7 +279,7 @@ class TestControl:
     def test_list_indexes_returns_iterable(self, mocker, index_list_response):
         p = Pinecone(api_key="123-456-789")
 
-        mocker.patch.object(p.db.index_api, "list_indexes", side_effect=[index_list_response])
+        mocker.patch.object(p.db._index_api, "list_indexes", side_effect=[index_list_response])
 
         response = p.list_indexes()
         assert [i.name for i in response] == ["index1", "index2", "index3"]
