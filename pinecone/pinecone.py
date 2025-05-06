@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     )
     from pinecone.db_control import DBControl
     from pinecone.db_control.index_host_store import IndexHostStore
-    from pinecone.core.openapi.db_control.api.manage_indexes_api import IndexOperationsApi
+    from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
     from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict
     from pinecone.db_control.enums import (
         Metric,
@@ -133,7 +133,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         return self.db.index._index_host_store
 
     @property
-    def index_api(self) -> "IndexOperationsApi":
+    def index_api(self) -> "ManageIndexesApi":
         """@private"""
         warnings.warn(
             "The `index_api` property is deprecated. This warning will become an error in a future version of the Pinecone Python SDK.",

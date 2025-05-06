@@ -31,7 +31,7 @@ if TYPE_CHECKING:
         CollectionList,
         IndexEmbed,
     )
-    from pinecone.core.openapi.db_control.api.manage_indexes_api import IndexOperationsApi
+    from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
     from pinecone.db_control.index_host_store import IndexHostStore
 
 logger = logging.getLogger(__name__)
@@ -181,7 +181,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         return self.db.index._index_host_store
 
     @property
-    def index_api(self) -> "IndexOperationsApi":
+    def index_api(self) -> "ManageIndexesApi":
         """@private"""
         warnings.warn(
             "The `index_api` property is deprecated. This warning will become an error in a future version of the Pinecone Python SDK.",
