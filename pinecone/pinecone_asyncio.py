@@ -83,7 +83,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
                     f"You have passed {unimplemented_kwarg} but this configuration has not been implemented for PineconeAsyncio."
                 )
 
-        self.config = PineconeConfig.build(
+        self._config = PineconeConfig.build(
             api_key=api_key,
             host=host,
             additional_headers=additional_headers,
@@ -95,7 +95,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         )
         """ @private """
 
-        self.openapi_config = ConfigBuilder.build_openapi_config(self.config, **kwargs)
+        self._openapi_config = ConfigBuilder.build_openapi_config(self._config, **kwargs)
         """ @private """
 
         self._inference = None  # Lazy initialization
@@ -147,7 +147,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         ```
 
         """
-        await self.index_api.api_client.close()
+        await self.db._index_api.api_client.close()
 
     @property
     def inference(self):
@@ -155,7 +155,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         if self._inference is None:
             from pinecone.db_data import _AsyncioInference
 
-            self._inference = _AsyncioInference(api_client=self.index_api.api_client)
+            self._inference = _AsyncioInference(api_client=self.db._index_api.api_client)
         return self._inference
 
     @property
@@ -164,7 +164,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
             from .db_control.db_control_asyncio import DBControlAsyncio
 
             self._db_control = DBControlAsyncio(
-                config=self.config, openapi_config=self.openapi_config
+                config=self._config, openapi_config=self._openapi_config
             )
         return self._db_control
 

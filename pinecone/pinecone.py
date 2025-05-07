@@ -295,8 +295,8 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
     def IndexAsyncio(self, host: str, **kwargs) -> "IndexAsyncio":
         from pinecone.db_data import _IndexAsyncio
 
-        api_key = self.config.api_key
-        openapi_config = self.openapi_config
+        api_key = self._config.api_key
+        openapi_config = self._openapi_config
 
         if host is None or host == "":
             raise ValueError("A host must be specified")
