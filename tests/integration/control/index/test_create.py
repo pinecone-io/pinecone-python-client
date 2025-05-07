@@ -203,7 +203,7 @@ class TestCreatePodIndexApiErrorCases:
             pc.db.index.create(
                 name=index_name,
                 metric="dotproduct",
-                spec=PodSpec(environment=PodIndexEnvironment.AWS_US_EAST_1),
+                spec=PodSpec(environment=PodIndexEnvironment.US_EAST1_AWS),
                 vector_type="sparse",
                 tags=index_tags,
             )

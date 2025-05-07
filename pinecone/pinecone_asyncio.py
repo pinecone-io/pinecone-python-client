@@ -164,9 +164,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
             from .db_control.db_control_asyncio import DBControlAsyncio
 
             self._db_control = DBControlAsyncio(
-                config=self.config,
-                openapi_config=self.openapi_config,
-                pool_threads=self.pool_threads,
+                config=self.config, openapi_config=self.openapi_config
             )
         return self._db_control
 

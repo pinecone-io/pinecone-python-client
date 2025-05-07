@@ -124,13 +124,13 @@ class PineconeGRPC(Pinecone):
         # Use host if it is provided, otherwise get host from describe_index
         index_host = host or self.db.index._get_host(name)
 
-        pt = kwargs.pop("pool_threads", None) or self.pool_threads
+        pt = kwargs.pop("pool_threads", None) or self._pool_threads
 
         config = ConfigBuilder.build(
-            api_key=self.config.api_key,
+            api_key=self._config.api_key,
             host=index_host,
-            source_tag=self.config.source_tag,
-            proxy_url=self.config.proxy_url,
-            ssl_ca_certs=self.config.ssl_ca_certs,
+            source_tag=self._config.source_tag,
+            proxy_url=self._config.proxy_url,
+            ssl_ca_certs=self._config.ssl_ca_certs,
         )
         return GRPCIndex(index_name=name, config=config, pool_threads=pt, **kwargs)

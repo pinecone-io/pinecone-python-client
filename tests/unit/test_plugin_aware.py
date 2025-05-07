@@ -13,16 +13,16 @@ class TestPluginAware:
         with pytest.raises(AttributeError) as e:
             Foo()
 
-        assert "config" in str(e.value)
-        assert "openapi_config" in str(e.value)
-        assert "pool_threads" in str(e.value)
+        assert "_config" in str(e.value)
+        assert "_openapi_config" in str(e.value)
+        assert "_pool_threads" in str(e.value)
 
     def test_correctly_raise_attribute_errors(self):
         class Foo(PluginAware):
             def __init__(self):
                 self.config = Config()
-                self.openapi_config = OpenApiConfiguration()
-                self.pool_threads = 1
+                self._openapi_config = OpenApiConfiguration()
+                self._pool_threads = 1
 
                 super().__init__()
 
@@ -37,8 +37,8 @@ class TestPluginAware:
         class Pinecone(PluginAware):
             def __init__(self):
                 self.config = Config()
-                self.openapi_config = OpenApiConfiguration()
-                self.pool_threads = 10
+                self._openapi_config = OpenApiConfiguration()
+                self._pool_threads = 10
 
                 super().__init__()
 

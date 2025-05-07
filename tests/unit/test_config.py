@@ -115,8 +115,8 @@ class TestConfig:
         proxy_headers = make_headers(proxy_basic_auth="asdf")
         pc = Pinecone(api_key="key", ssl_ca_certs="path/to/cert", proxy_headers=proxy_headers)
 
-        assert pc.openapi_config.ssl_ca_cert == "path/to/cert"
-        assert pc.openapi_config.proxy_headers == proxy_headers
+        assert pc._openapi_config.ssl_ca_cert == "path/to/cert"
+        assert pc._openapi_config.proxy_headers == proxy_headers
 
         idx = pc.Index(host="host.pinecone.io")
         assert idx._vector_api.api_client.configuration.ssl_ca_cert == "path/to/cert"
@@ -126,16 +126,16 @@ class TestConfig:
         proxy_headers = make_headers(proxy_basic_auth="asdf")
         pc = Pinecone(api_key="key", ssl_ca_certs="path/to/cert", proxy_headers=proxy_headers)
 
-        assert pc.openapi_config.ssl_ca_cert == "path/to/cert"
-        assert pc.openapi_config.proxy_headers == proxy_headers
-        assert pc.openapi_config.host == "https://api.pinecone.io"
+        assert pc._openapi_config.ssl_ca_cert == "path/to/cert"
+        assert pc._openapi_config.proxy_headers == proxy_headers
+        assert pc._openapi_config.host == "https://api.pinecone.io"
 
         idx = pc.Index(host="host.pinecone.io")
         assert idx._vector_api.api_client.configuration.ssl_ca_cert == "path/to/cert"
         assert idx._vector_api.api_client.configuration.proxy_headers == proxy_headers
         assert idx._vector_api.api_client.configuration.host == "https://host.pinecone.io"
 
-        assert pc.openapi_config.host == "https://api.pinecone.io"
+        assert pc._openapi_config.host == "https://api.pinecone.io"
 
     def test_proxy_config(self):
         pc = Pinecone(
@@ -144,11 +144,11 @@ class TestConfig:
             ssl_ca_certs="path/to/cert-bundle.pem",
         )
 
-        assert pc.config.proxy_url == "http://localhost:8080"
-        assert pc.config.ssl_ca_certs == "path/to/cert-bundle.pem"
+        assert pc._config.proxy_url == "http://localhost:8080"
+        assert pc._config.ssl_ca_certs == "path/to/cert-bundle.pem"
 
-        assert pc.openapi_config.proxy == "http://localhost:8080"
-        assert pc.openapi_config.ssl_ca_cert == "path/to/cert-bundle.pem"
+        assert pc._openapi_config.proxy == "http://localhost:8080"
+        assert pc._openapi_config.ssl_ca_cert == "path/to/cert-bundle.pem"
 
         # DBControl object is created lazily, so we need to access this property
         # to trigger the setup so we can inspect the config

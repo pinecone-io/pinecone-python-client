@@ -1,5 +1,6 @@
 import logging
-from typing import Optional, Dict, List, Union, Any
+import warnings
+from typing import Optional, Dict, List, Union, Any, TYPE_CHECKING
 
 from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.inference.apis import InferenceApi
@@ -7,12 +8,14 @@ from .models import EmbeddingsList, RerankResult
 from pinecone.core.openapi.inference import API_VERSION
 from pinecone.utils import setup_openapi_client, PluginAware
 
-
 from .inference_request_builder import (
     InferenceRequestBuilder,
     EmbedModel as EmbedModelEnum,
     RerankModel as RerankModelEnum,
 )
+
+if TYPE_CHECKING:
+    from pinecone.config import Config, OpenApiConfiguration
 
 logger = logging.getLogger(__name__)
 """ @private """
@@ -44,14 +47,14 @@ class Inference(PluginAware):
     EmbedModel = EmbedModelEnum
     RerankModel = RerankModelEnum
 
-    def __init__(self, config, openapi_config, **kwargs) -> None:
-        self.config = config
+    def __init__(self, config: "Config", openapi_config: "OpenApiConfiguration", **kwargs) -> None:
+        self._config = config
         """ @private """
 
-        self.openapi_config = openapi_config
+        self._openapi_config = openapi_config
         """ @private """
 
-        self.pool_threads = kwargs.get("pool_threads", 1)
+        self._pool_threads = kwargs.get("pool_threads", 1)
         """ @private """
 
         self.__inference_api = setup_openapi_client(
@@ -59,11 +62,38 @@ class Inference(PluginAware):
             api_klass=InferenceApi,
             config=config,
             openapi_config=openapi_config,
-            pool_threads=kwargs.get("pool_threads", 1),
+            pool_threads=self._pool_threads,
             api_version=API_VERSION,
         )
 
         super().__init__()  # Initialize PluginAware
+
+    @property
+    def config(self) -> "Config":
+        """@private"""
+        # The config property is considered private, but the name cannot be changed to include underscore
+        # without breaking compatibility with plugins in the wild.
+        return self._config
+
+    @property
+    def openapi_config(self) -> "OpenApiConfiguration":
+        """@private"""
+        warnings.warn(
+            "The `openapi_config` property has been renamed to `_openapi_config`. It is considered private and should not be used directly. This warning will become an error in a future version of the Pinecone Python SDK.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._openapi_config
+
+    @property
+    def pool_threads(self) -> int:
+        """@private"""
+        warnings.warn(
+            "The `pool_threads` property has been renamed to `_pool_threads`. It is considered private and should not be used directly. This warning will become an error in a future version of the Pinecone Python SDK.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._pool_threads
 
     def embed(
         self,

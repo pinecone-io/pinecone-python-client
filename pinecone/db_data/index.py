@@ -1,8 +1,8 @@
 from pinecone.utils.tqdm import tqdm
-
+import warnings
 import logging
 import json
-from typing import Union, List, Optional, Dict, Any, Literal
+from typing import Union, List, Optional, Dict, Any, Literal, TYPE_CHECKING
 
 from pinecone.config import ConfigBuilder
 
@@ -45,6 +45,9 @@ from multiprocessing import cpu_count
 from concurrent.futures import as_completed
 
 
+if TYPE_CHECKING:
+    from pinecone.config import Config, OpenApiConfiguration
+
 logger = logging.getLogger(__name__)
 """ @private """
 
@@ -70,29 +73,29 @@ class Index(PluginAware, IndexInterface, ImportFeatureMixin):
         openapi_config=None,
         **kwargs,
     ):
-        self.config = ConfigBuilder.build(
+        self._config = ConfigBuilder.build(
             api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
         """ @private """
-        self.openapi_config = ConfigBuilder.build_openapi_config(self.config, openapi_config)
+        self._openapi_config = ConfigBuilder.build_openapi_config(self._config, openapi_config)
         """ @private """
 
         if pool_threads is None:
-            self.pool_threads = 5 * cpu_count()
+            self._pool_threads = 5 * cpu_count()
             """ @private """
         else:
-            self.pool_threads = pool_threads
+            self._pool_threads = pool_threads
             """ @private """
 
         if kwargs.get("connection_pool_maxsize", None):
-            self.openapi_config.connection_pool_maxsize = kwargs.get("connection_pool_maxsize")
+            self._openapi_config.connection_pool_maxsize = kwargs.get("connection_pool_maxsize")
 
         self._vector_api = setup_openapi_client(
             api_client_klass=ApiClient,
             api_klass=VectorOperationsApi,
-            config=self.config,
-            openapi_config=self.openapi_config,
-            pool_threads=pool_threads,
+            config=self._config,
+            openapi_config=self._openapi_config,
+            pool_threads=self._pool_threads,
             api_version=API_VERSION,
         )
 
@@ -100,6 +103,31 @@ class Index(PluginAware, IndexInterface, ImportFeatureMixin):
 
         # Pass the same api_client to the ImportFeatureMixin
         super().__init__(api_client=self._api_client)
+
+    @property
+    def config(self) -> "Config":
+        """@private"""
+        return self._config
+
+    @property
+    def openapi_config(self) -> "OpenApiConfiguration":
+        """@private"""
+        warnings.warn(
+            "The `openapi_config` property has been renamed to `_openapi_config`. It is considered private and should not be used directly. This warning will become an error in a future version of the Pinecone Python SDK.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._openapi_config
+
+    @property
+    def pool_threads(self) -> int:
+        """@private"""
+        warnings.warn(
+            "The `pool_threads` property has been renamed to `_pool_threads`. It is considered private and should not be used directly. This warning will become an error in a future version of the Pinecone Python SDK.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._pool_threads
 
     def _openapi_kwargs(self, kwargs: Dict[str, Any]) -> Dict[str, Any]:
         return filter_dict(kwargs, OPENAPI_ENDPOINT_PARAMS)

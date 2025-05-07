@@ -18,21 +18,21 @@ if TYPE_CHECKING:
 
 class DBControl:
     def __init__(self, config, openapi_config, pool_threads):
-        self.config = config
+        self._config = config
         """ @private """
 
-        self.openapi_config = openapi_config
+        self._openapi_config = openapi_config
         """ @private """
 
-        self.pool_threads = pool_threads
+        self._pool_threads = pool_threads
         """ @private """
 
         self._index_api = setup_openapi_client(
             api_client_klass=ApiClient,
             api_klass=ManageIndexesApi,
-            config=self.config,
-            openapi_config=self.openapi_config,
-            pool_threads=pool_threads,
+            config=self._config,
+            openapi_config=self._openapi_config,
+            pool_threads=self._pool_threads,
             api_version=API_VERSION,
         )
         """ @private """
@@ -48,7 +48,7 @@ class DBControl:
         if self._index_resource is None:
             from .resources.sync.index import IndexResource
 
-            self._index_resource = IndexResource(index_api=self._index_api, config=self.config)
+            self._index_resource = IndexResource(index_api=self._index_api, config=self._config)
         return self._index_resource
 
     @property

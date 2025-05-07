@@ -3,9 +3,9 @@ from typing import Optional, Dict, Union, TYPE_CHECKING
 from multiprocessing import cpu_count
 import warnings
 
-from .legacy_pinecone_interface import LegacyPineconeDBControlInterface
-
 from pinecone.config import PineconeConfig, ConfigBuilder
+
+from .legacy_pinecone_interface import LegacyPineconeDBControlInterface
 
 from pinecone.utils import normalize_host, PluginAware, docslinks
 from .langchain_import_warnings import _build_langchain_attribute_error_message
@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 """ @private """
 
 if TYPE_CHECKING:
+    from pinecone.config import Config, OpenApiConfiguration
     from pinecone.db_data import (
         _Index as Index,
         _Inference as Inference,
@@ -66,7 +67,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
                     f"Passing {deprecated_kwarg} is no longer supported. Please pass individual settings such as proxy_url, proxy_headers, ssl_ca_certs, and ssl_verify directly to the Pinecone constructor as keyword arguments. See the README at {docslinks['README']} for examples."
                 )
 
-        self.config = PineconeConfig.build(
+        self._config = PineconeConfig.build(
             api_key=api_key,
             host=host,
             additional_headers=additional_headers,
@@ -78,14 +79,14 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         )
         """ @private """
 
-        self.openapi_config = ConfigBuilder.build_openapi_config(self.config, **kwargs)
+        self._openapi_config = ConfigBuilder.build_openapi_config(self._config, **kwargs)
         """ @private """
 
         if pool_threads is None:
-            self.pool_threads = 5 * cpu_count()
+            self._pool_threads = 5 * cpu_count()
             """ @private """
         else:
-            self.pool_threads = pool_threads
+            self._pool_threads = pool_threads
             """ @private """
 
         self._inference: Optional["Inference"] = None  # Lazy initialization
@@ -104,7 +105,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         if self._inference is None:
             from pinecone.db_data import _Inference
 
-            self._inference = _Inference(config=self.config, openapi_config=self.openapi_config)
+            self._inference = _Inference(config=self._config, openapi_config=self._openapi_config)
         return self._inference
 
     @property
@@ -116,9 +117,9 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
             from pinecone.db_control import DBControl
 
             self._db_control = DBControl(
-                config=self.config,
-                openapi_config=self.openapi_config,
-                pool_threads=self.pool_threads,
+                config=self._config,
+                openapi_config=self._openapi_config,
+                pool_threads=self._pool_threads,
             )
         return self._db_control
 
@@ -131,6 +132,33 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
             stacklevel=2,
         )
         return self.db.index._index_host_store
+
+    @property
+    def config(self) -> "Config":
+        """@private"""
+        # The config property is considered private, but the name cannot be changed to include underscore
+        # without breaking compatibility with plugins in the wild.
+        return self._config
+
+    @property
+    def openapi_config(self) -> "OpenApiConfiguration":
+        """@private"""
+        warnings.warn(
+            "The `openapi_config` property has been renamed to `_openapi_config`. It is considered private and should not be used directly. This warning will become an error in a future version of the Pinecone Python SDK.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._openapi_config
+
+    @property
+    def pool_threads(self) -> int:
+        """@private"""
+        warnings.warn(
+            "The `pool_threads` property has been renamed to `_pool_threads`. It is considered private and should not be used directly. This warning will become an error in a future version of the Pinecone Python SDK.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._pool_threads
 
     @property
     def index_api(self) -> "ManageIndexesApi":
@@ -242,9 +270,9 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         if name == "" and host == "":
             raise ValueError("Either name or host must be specified")
 
-        pt = kwargs.pop("pool_threads", None) or self.pool_threads
-        api_key = self.config.api_key
-        openapi_config = self.openapi_config
+        pt = kwargs.pop("pool_threads", None) or self._pool_threads
+        api_key = self._config.api_key
+        openapi_config = self._openapi_config
 
         if host != "":
             check_realistic_host(host)

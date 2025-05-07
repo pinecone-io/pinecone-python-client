@@ -17,8 +17,12 @@ class PluginAware:
     This class provides functionality to lazily load plugins when they are first accessed.
     Subclasses must set the following attributes before calling super().__init__():
     - config: Config
-    - openapi_config: OpenApiConfig
-    - pool_threads: int
+    - _openapi_config: OpenApiConfig
+    - _pool_threads: int
+
+    These attributes are considered private and should not be used by end users. The config property
+    is also considered private, but it was originally named without the underscore and this name
+    can't be changed without breaking compatibility with plugins in the wild.
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -41,12 +45,17 @@ class PluginAware:
         missing_attrs = []
         if not hasattr(self, "config"):
             missing_attrs.append("config")
-        if not hasattr(self, "openapi_config"):
-            missing_attrs.append("openapi_config")
-        if not hasattr(self, "pool_threads"):
-            missing_attrs.append("pool_threads")
+        if not hasattr(self, "_openapi_config"):
+            missing_attrs.append("_openapi_config")
+        if not hasattr(self, "_pool_threads"):
+            missing_attrs.append("_pool_threads")
 
         if missing_attrs:
+            logger.error(
+                f"PluginAware class requires the following attributes: {', '.join(missing_attrs)}. "
+                f"These must be set in the {self.__class__.__name__} class's __init__ method "
+                f"before calling super().__init__()."
+            )
             raise AttributeError(
                 f"PluginAware class requires the following attributes: {', '.join(missing_attrs)}. "
                 f"These must be set in the {self.__class__.__name__} class's __init__ method "
@@ -67,8 +76,9 @@ class PluginAware:
         Raises:
             AttributeError: If the attribute cannot be found after loading plugins.
         """
+        logger.debug("__getattr__ called for %s", name)
         # Check if this is one of the required attributes that should be set by subclasses
-        required_attrs = ["config", "openapi_config", "pool_threads"]
+        required_attrs = ["config", "_openapi_config", "_pool_threads"]
         if name in required_attrs:
             raise AttributeError(
                 f"'{self.__class__.__name__}' object has no attribute '{name}'. "
@@ -81,8 +91,8 @@ class PluginAware:
             # Use object.__getattribute__ to avoid triggering __getattr__ again
             try:
                 config = object.__getattribute__(self, "config")
-                openapi_config = object.__getattribute__(self, "openapi_config")
-                pool_threads = object.__getattribute__(self, "pool_threads")
+                openapi_config = object.__getattribute__(self, "_openapi_config")
+                pool_threads = object.__getattribute__(self, "_pool_threads")
                 self.load_plugins(
                     config=config, openapi_config=openapi_config, pool_threads=pool_threads
                 )

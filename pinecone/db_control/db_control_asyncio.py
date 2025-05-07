@@ -17,15 +17,18 @@ if TYPE_CHECKING:
 
 
 class DBControlAsyncio:
-    def __init__(self, config, openapi_config, pool_threads):
-        self.config = config
+    def __init__(self, config, openapi_config):
+        self._config = config
         """ @private """
 
-        self.index_api = setup_async_openapi_client(
+        self._openapi_config = openapi_config
+        """ @private """
+
+        self._index_api = setup_async_openapi_client(
             api_client_klass=AsyncioApiClient,
             api_klass=AsyncioManageIndexesApi,
-            config=self.config,
-            openapi_config=self.openapi_config,
+            config=self._config,
+            openapi_config=self._openapi_config,
             api_version=API_VERSION,
         )
         """ @private """
@@ -42,7 +45,7 @@ class DBControlAsyncio:
             from .resources.asyncio.index import IndexResourceAsyncio
 
             self._index_resource = IndexResourceAsyncio(
-                index_api=self.index_api, config=self.config
+                index_api=self._index_api, config=self._config
             )
         return self._index_resource
 
@@ -51,5 +54,5 @@ class DBControlAsyncio:
         if self._collection_resource is None:
             from .resources.asyncio.collection import CollectionResourceAsyncio
 
-            self._collection_resource = CollectionResourceAsyncio(self.index_api)
+            self._collection_resource = CollectionResourceAsyncio(self._index_api)
         return self._collection_resource
