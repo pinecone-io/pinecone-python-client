@@ -30,7 +30,7 @@ def pytest_sessionfinish(session, exitstatus):
 
                 if datetime.now(created_at.tzinfo) - created_at > timedelta(hours=1):
                     logger.info(f"Cleaning up old test index: {index_name}")
-                    pc.delete_index(index_name, timeout=-1)
+                    pc.delete_index(name=index_name, timeout=-1)
             except Exception as e:
                 logger.warning(f"Failed to clean up index {index_name}: {str(e)}")
 

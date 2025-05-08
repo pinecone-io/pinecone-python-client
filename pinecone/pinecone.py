@@ -199,9 +199,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         region: Union["AwsRegion", "GcpRegion", "AzureRegion", str],
         embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
         tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[
-            Union["DeletionProtection", str]
-        ] = "DeletionProtection.DISABLED",
+        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
         timeout: Optional[int] = None,
     ) -> "IndexModel":
         return self.db.index.create_for_model(

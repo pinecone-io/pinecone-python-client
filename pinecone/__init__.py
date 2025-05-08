@@ -26,7 +26,7 @@ _db_data_lazy_imports = {
     "SearchQuery": ("pinecone.db_data.dataclasses", "SearchQuery"),
     "SearchQueryVector": ("pinecone.db_data.dataclasses", "SearchQueryVector"),
     "SearchRerank": ("pinecone.db_data.dataclasses", "SearchRerank"),
-    "FetchResponse": ("pinecone.db_data.models", "FetchResponse"),
+    "FetchResponse": ("pinecone.db_data.dataclasses", "FetchResponse"),
     "DeleteRequest": ("pinecone.db_data.models", "DeleteRequest"),
     "DescribeIndexStatsRequest": ("pinecone.db_data.models", "DescribeIndexStatsRequest"),
     "DescribeIndexStatsResponse": ("pinecone.db_data.models", "IndexDescription"),

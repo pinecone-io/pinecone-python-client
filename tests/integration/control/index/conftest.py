@@ -3,10 +3,8 @@ import uuid
 import time
 import logging
 import dotenv
-import os
-from datetime import datetime
 from pinecone import Pinecone, NotFoundException, PineconeApiException
-from ...helpers import generate_index_name, get_environment_var
+from ...helpers import generate_index_name, get_environment_var, index_tags as index_tags_helper
 
 dotenv.load_dotenv()
 
@@ -19,22 +17,7 @@ RUN_ID = str(uuid.uuid4())
 
 @pytest.fixture()
 def index_tags(request):
-    test_name = request.node.name
-    if test_name is None:
-        test_name = ""
-    else:
-        test_name = test_name.replace(":", "_").replace("[", "_").replace("]", "_")
-
-    tags = {
-        "test-suite": "pinecone-python-client",
-        "test-run": RUN_ID,
-        "test": test_name,
-        "created-at": datetime.now().strftime("%Y-%m-%d"),
-    }
-
-    if os.getenv("USER"):
-        tags["user"] = os.getenv("USER")
-    return tags
+    return index_tags_helper(request, RUN_ID)
 
 
 @pytest.fixture()
