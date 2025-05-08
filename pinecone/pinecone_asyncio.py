@@ -193,12 +193,10 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         name: str,
         spec: Union[Dict, "ServerlessSpec", "PodSpec"],
         dimension: Optional[int] = None,
-        metric: Optional[Union["Metric", str]] = "Metric.COSINE",
+        metric: Optional[Union["Metric", str]] = "cosine",
         timeout: Optional[int] = None,
-        deletion_protection: Optional[
-            Union["DeletionProtection", str]
-        ] = "DeletionProtection.DISABLED",
-        vector_type: Optional[Union["VectorType", str]] = "VectorType.DENSE",
+        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
+        vector_type: Optional[Union["VectorType", str]] = "dense",
         tags: Optional[Dict[str, str]] = None,
     ) -> "IndexModel":
         resp = await self.db.index.create(

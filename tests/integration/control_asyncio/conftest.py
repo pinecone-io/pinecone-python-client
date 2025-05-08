@@ -201,6 +201,6 @@ def cleanup(client, index_name):
 
     try:
         logger.debug("Attempting to delete index with name: " + index_name)
-        client.delete_index(index_name, -1)
+        client.delete_index(name=index_name, timeout=-1)
     except Exception:
         pass
