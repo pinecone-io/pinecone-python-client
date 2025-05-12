@@ -21,7 +21,7 @@ from pinecone.core.openapi.db_data.models import (
     QueryResponse,
     IndexDescription as DescribeIndexStatsResponse,
 )
-from pinecone.models.list_response import ListResponse as SimpleListResponse, Pagination
+from pinecone.db_control.models.list_response import ListResponse as SimpleListResponse, Pagination
 from pinecone.core.grpc.protos.db_data_2025_01_pb2 import (
     Vector as GRPCVector,
     QueryVector as GRPCQueryVector,
@@ -38,11 +38,11 @@ from pinecone.core.grpc.protos.db_data_2025_01_pb2 import (
     SparseValues as GRPCSparseValues,
 )
 from pinecone import Vector, SparseValues
-from pinecone.data.query_results_aggregator import QueryNamespacesResults, QueryResultsAggregator
+from pinecone.db_data.query_results_aggregator import QueryNamespacesResults, QueryResultsAggregator
 from pinecone.core.grpc.protos.db_data_2025_01_pb2_grpc import VectorServiceStub
 from .base import GRPCIndexBase
 from .future import PineconeGrpcFuture
-from ..data.types import (
+from ..db_data.types import (
     SparseVectorTypedDict,
     VectorTypedDict,
     VectorTuple,

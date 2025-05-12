@@ -1,6 +1,9 @@
-from .pinecone import Pinecone
-from .pinecone_asyncio import PineconeAsyncio
+import warnings
 
-from .repr_overrides import install_repr_overrides
+from pinecone.db_control import *
 
-install_repr_overrides()
+warnings.warn(
+    "The module at `pinecone.control` has moved to `pinecone.db_control`. "
+    "This warning will become an error in a future version of the Pinecone Python SDK.",
+    DeprecationWarning,
+)

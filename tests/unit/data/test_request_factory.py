@@ -1,5 +1,5 @@
 import pytest
-from pinecone.data.request_factory import (
+from pinecone.db_data.request_factory import (
     IndexRequestFactory,
     SearchQuery,
     SearchQueryVector,

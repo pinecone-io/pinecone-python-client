@@ -1,20 +1,9 @@
-from .index_description import ServerlessSpecDefinition, PodSpecDefinition
-from .collection_description import CollectionDescription
-from .serverless_spec import ServerlessSpec
-from .pod_spec import PodSpec
-from .index_list import IndexList
-from .collection_list import CollectionList
-from .index_model import IndexModel
-from .index_embed import IndexEmbed
+import warnings
 
-__all__ = [
-    "CollectionDescription",
-    "PodSpec",
-    "PodSpecDefinition",
-    "ServerlessSpec",
-    "ServerlessSpecDefinition",
-    "IndexList",
-    "CollectionList",
-    "IndexModel",
-    "IndexEmbed",
-]
+from pinecone.db_control.models import *
+
+warnings.warn(
+    "The module at `pinecone.models` has moved to `pinecone.db_control.models`. "
+    "This warning will become an error in a future version of the Pinecone Python SDK.",
+    DeprecationWarning,
+)

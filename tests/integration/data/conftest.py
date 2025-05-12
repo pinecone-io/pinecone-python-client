@@ -1,11 +1,19 @@
 import pytest
 import os
 import json
-from ..helpers import get_environment_var, generate_index_name
+import uuid
+from ..helpers import get_environment_var, generate_index_name, index_tags as index_tags_helper
 import logging
 from pinecone import EmbedModel, CloudProvider, AwsRegion, IndexEmbed
 
 logger = logging.getLogger(__name__)
+
+RUN_ID = str(uuid.uuid4())
+
+
+@pytest.fixture(scope="session")
+def index_tags(request):
+    return index_tags_helper(request, RUN_ID)
 
 
 def api_key():
@@ -90,7 +98,7 @@ def model_idx(client, model_index_name, model_index_host):
 
 
 @pytest.fixture(scope="session")
-def model_index_host(model_index_name):
+def model_index_host(model_index_name, index_tags):
     pc = build_client()
 
     if model_index_name not in pc.list_indexes().names():
@@ -104,6 +112,7 @@ def model_index_host(model_index_name):
                 field_map={"text": "my_text_field"},
                 metric="cosine",
             ),
+            tags=index_tags,
         )
     else:
         logger.info(f"Index {model_index_name} already exists")
@@ -116,12 +125,12 @@ def model_index_host(model_index_name):
 
 
 @pytest.fixture(scope="session")
-def index_host(index_name, metric, spec):
+def index_host(index_name, metric, spec, index_tags):
     pc = build_client()
 
     if index_name not in pc.list_indexes().names():
         logger.info(f"Creating index {index_name}")
-        pc.create_index(name=index_name, dimension=2, metric=metric, spec=spec)
+        pc.create_index(name=index_name, dimension=2, metric=metric, spec=spec, tags=index_tags)
     else:
         logger.info(f"Index {index_name} already exists")
 
@@ -133,13 +142,17 @@ def index_host(index_name, metric, spec):
 
 
 @pytest.fixture(scope="session")
-def sparse_index_host(sparse_index_name, spec):
+def sparse_index_host(sparse_index_name, spec, index_tags):
     pc = build_client()
 
     if sparse_index_name not in pc.list_indexes().names():
         logger.info(f"Creating index {sparse_index_name}")
         pc.create_index(
-            name=sparse_index_name, metric="dotproduct", spec=spec, vector_type="sparse"
+            name=sparse_index_name,
+            metric="dotproduct",
+            spec=spec,
+            vector_type="sparse",
+            tags=index_tags,
         )
     else:
         logger.info(f"Index {sparse_index_name} already exists")

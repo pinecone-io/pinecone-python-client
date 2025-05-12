@@ -7,7 +7,7 @@ from typing import Optional, List, Tuple, Dict, Any, Union
 
 
 from .rest_aiohttp import AiohttpRestClient
-from .configuration import Configuration
+from ..config.openapi_configuration import Configuration
 from .exceptions import PineconeApiValueError, PineconeApiException
 from .api_client_utils import (
     parameters_to_tuples,

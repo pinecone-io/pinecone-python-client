@@ -6,7 +6,7 @@ from pinecone.core.openapi.db_data.models import (
     ImportErrorMode as ImportErrorModeGeneratedClass,
 )
 
-from pinecone.data.features.bulk_import import ImportFeatureMixin, ImportErrorMode
+from pinecone.db_data.features.bulk_import import ImportFeatureMixin, ImportErrorMode
 
 
 def build_client_w_faked_response(mocker, body: str, status: int = 200):

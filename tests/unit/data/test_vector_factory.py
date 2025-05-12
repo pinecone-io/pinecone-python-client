@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from pinecone.data.vector_factory import VectorFactory
+from pinecone.db_data.vector_factory import VectorFactory
 from pinecone import Vector, SparseValues, ListConversionException
 from pinecone.core.openapi.db_data.models import (
     Vector as OpenApiVector,

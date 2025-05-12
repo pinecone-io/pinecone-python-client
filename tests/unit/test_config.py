@@ -1,7 +1,7 @@
 from pinecone import Pinecone
 from pinecone.exceptions.exceptions import PineconeConfigurationError
 from pinecone.config import PineconeConfig
-from pinecone.openapi_support.configuration import Configuration as OpenApiConfiguration
+from pinecone.config.openapi_configuration import Configuration as OpenApiConfiguration
 
 import pytest
 import os
@@ -103,7 +103,11 @@ class TestConfig:
         pc = Pinecone(
             api_key="test-api-key", host="test-controller-host.pinecone.io", pool_threads=10
         )
-        assert pc.index_api.api_client.pool_threads == 10
+        # DBControl object is created lazily, so we need to access this property
+        # to trigger the setup so we can inspect the config
+        assert pc.db is not None
+
+        assert pc.db._index_api.api_client.pool_threads == 10
         idx = pc.Index(host="my-index-host.pinecone.io", name="my-index-name")
         assert idx._vector_api.api_client.pool_threads == 10
 
@@ -111,8 +115,8 @@ class TestConfig:
         proxy_headers = make_headers(proxy_basic_auth="asdf")
         pc = Pinecone(api_key="key", ssl_ca_certs="path/to/cert", proxy_headers=proxy_headers)
 
-        assert pc.openapi_config.ssl_ca_cert == "path/to/cert"
-        assert pc.openapi_config.proxy_headers == proxy_headers
+        assert pc._openapi_config.ssl_ca_cert == "path/to/cert"
+        assert pc._openapi_config.proxy_headers == proxy_headers
 
         idx = pc.Index(host="host.pinecone.io")
         assert idx._vector_api.api_client.configuration.ssl_ca_cert == "path/to/cert"
@@ -122,16 +126,16 @@ class TestConfig:
         proxy_headers = make_headers(proxy_basic_auth="asdf")
         pc = Pinecone(api_key="key", ssl_ca_certs="path/to/cert", proxy_headers=proxy_headers)
 
-        assert pc.openapi_config.ssl_ca_cert == "path/to/cert"
-        assert pc.openapi_config.proxy_headers == proxy_headers
-        assert pc.openapi_config.host == "https://api.pinecone.io"
+        assert pc._openapi_config.ssl_ca_cert == "path/to/cert"
+        assert pc._openapi_config.proxy_headers == proxy_headers
+        assert pc._openapi_config.host == "https://api.pinecone.io"
 
         idx = pc.Index(host="host.pinecone.io")
         assert idx._vector_api.api_client.configuration.ssl_ca_cert == "path/to/cert"
         assert idx._vector_api.api_client.configuration.proxy_headers == proxy_headers
         assert idx._vector_api.api_client.configuration.host == "https://host.pinecone.io"
 
-        assert pc.openapi_config.host == "https://api.pinecone.io"
+        assert pc._openapi_config.host == "https://api.pinecone.io"
 
     def test_proxy_config(self):
         pc = Pinecone(
@@ -140,11 +144,15 @@ class TestConfig:
             ssl_ca_certs="path/to/cert-bundle.pem",
         )
 
-        assert pc.config.proxy_url == "http://localhost:8080"
-        assert pc.config.ssl_ca_certs == "path/to/cert-bundle.pem"
+        assert pc._config.proxy_url == "http://localhost:8080"
+        assert pc._config.ssl_ca_certs == "path/to/cert-bundle.pem"
 
-        assert pc.openapi_config.proxy == "http://localhost:8080"
-        assert pc.openapi_config.ssl_ca_cert == "path/to/cert-bundle.pem"
+        assert pc._openapi_config.proxy == "http://localhost:8080"
+        assert pc._openapi_config.ssl_ca_cert == "path/to/cert-bundle.pem"
 
-        assert pc.index_api.api_client.configuration.proxy == "http://localhost:8080"
-        assert pc.index_api.api_client.configuration.ssl_ca_cert == "path/to/cert-bundle.pem"
+        # DBControl object is created lazily, so we need to access this property
+        # to trigger the setup so we can inspect the config
+        assert pc.db is not None
+
+        assert pc.db._index_api.api_client.configuration.proxy == "http://localhost:8080"
+        assert pc.db._index_api.api_client.configuration.ssl_ca_cert == "path/to/cert-bundle.pem"

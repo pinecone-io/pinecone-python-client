@@ -94,6 +94,10 @@ urllib3_mock = "0.3.3"
 responses = ">=0.8.1"
 ruff = "^0.9.3"
 beautifulsoup4 = "^4.13.3"
+pinecone-plugin-assistant = "^1.6.0"
+vprof = "^0.38"
+tuna = "^0.5.11"
+python-dotenv = "^1.1.0"
 
 
 [tool.poetry.extras]
@@ -152,7 +156,7 @@ docstring-code-line-length = "dynamic"
 [tool.ruff.lint.per-file-ignores]
 # F403 Allow star imports
 # F401 allow imported but unused
-"__init__.py" = ["F401", "F403"]
+"__init__.py" = ["F401", "F403", "F405"]
 
 # E402 Allow module level import not at top of file so
 #      tqdm warnings can be disabled ahead of loading any code

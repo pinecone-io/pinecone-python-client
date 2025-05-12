@@ -4,7 +4,7 @@ import ssl
 import os
 from typing import Optional
 from urllib.parse import urlencode, quote
-from .configuration import Configuration
+from ..config.openapi_configuration import Configuration
 from .rest_utils import raise_exceptions_or_return, RESTResponse, RestClientInterface
 
 import urllib3

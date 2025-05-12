@@ -5,7 +5,7 @@ from pinecone.core.openapi.db_control.models import (
     ServerlessSpec,
     DeletionProtection,
 )
-from pinecone.models import IndexModel
+from pinecone.db_control.models import IndexModel
 from pinecone import CloudProvider, AwsRegion
 
 

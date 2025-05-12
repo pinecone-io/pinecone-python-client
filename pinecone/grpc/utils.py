@@ -13,7 +13,7 @@ from pinecone.core.openapi.db_data.models import (
     IndexDescription as DescribeIndexStatsResponse,
     NamespaceSummary,
 )
-from pinecone.data.dataclasses import FetchResponse
+from pinecone.db_data.dataclasses import FetchResponse
 
 from google.protobuf.struct_pb2 import Struct
 

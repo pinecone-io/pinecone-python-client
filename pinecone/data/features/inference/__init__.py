@@ -1,6 +1,10 @@
-from .repl_overrides import install_repl_overrides
-from .inference import Inference
-from .inference_asyncio import AsyncioInference
-from .inference_request_builder import RerankModel, EmbedModel
+import warnings
 
-install_repl_overrides()
+from pinecone.inference import *
+
+warnings.warn(
+    "The module at `pinecone.data.features.inference` has moved to `pinecone.inference`. "
+    "Please update your imports. "
+    "This warning will become an error in a future version of the Pinecone Python SDK.",
+    DeprecationWarning,
+)

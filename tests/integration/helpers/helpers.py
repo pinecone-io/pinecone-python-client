@@ -7,7 +7,7 @@ import logging
 from typing import Any
 from datetime import datetime
 import json
-from pinecone.data import _Index
+from pinecone.db_data import _Index
 from typing import List
 
 logger = logging.getLogger(__name__)
@@ -123,3 +123,22 @@ def fake_api_key():
 
 def jsonprint(obj):
     print(json.dumps(obj.to_dict(), indent=2))
+
+
+def index_tags(request, run_id):
+    test_name = request.node.name
+    if test_name is None:
+        test_name = ""
+    else:
+        test_name = test_name.replace(":", "_").replace("[", "_").replace("]", "_")
+
+    tags = {
+        "test-suite": "pinecone-python-client",
+        "test-run": run_id,
+        "test": test_name,
+        "created-at": datetime.now().strftime("%Y-%m-%d"),
+    }
+
+    if os.getenv("USER"):
+        tags["user"] = os.getenv("USER")
+    return tags
