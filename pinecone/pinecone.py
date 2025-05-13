@@ -220,14 +220,14 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
     def create_index_from_backup(
         self,
         *,
-        index_name: str,
+        name: str,
         backup_id: str,
         deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
         tags: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = None,
     ) -> "IndexModel":
         return self.db.index.create_from_backup(
-            index_name=index_name,
+            name=name,
             backup_id=backup_id,
             deletion_protection=deletion_protection,
             tags=tags,
