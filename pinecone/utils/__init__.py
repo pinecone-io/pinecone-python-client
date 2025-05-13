@@ -17,6 +17,7 @@ from .repr_overrides import install_json_repr_override
 from .error_handling import validate_and_convert_errors
 from .plugin_aware import PluginAware
 from .filter_dict import filter_dict
+from .require_kwargs import require_kwargs
 
 __all__ = [
     "PluginAware",
@@ -36,4 +37,5 @@ __all__ = [
     "validate_and_convert_errors",
     "convert_enum_to_string",
     "filter_dict",
+    "require_kwargs",
 ]

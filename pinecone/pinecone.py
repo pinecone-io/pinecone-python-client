@@ -7,7 +7,7 @@ from pinecone.config import PineconeConfig, ConfigBuilder
 
 from .legacy_pinecone_interface import LegacyPineconeDBControlInterface
 
-from pinecone.utils import normalize_host, PluginAware, docslinks
+from pinecone.utils import normalize_host, PluginAware, docslinks, require_kwargs
 from .langchain_import_warnings import _build_langchain_attribute_error_message
 
 logger = logging.getLogger(__name__)
@@ -41,6 +41,10 @@ if TYPE_CHECKING:
         IndexList,
         CollectionList,
         IndexEmbed,
+        BackupModel,
+        BackupList,
+        RestoreJobModel,
+        RestoreJobList,
     )
 
 
@@ -212,6 +216,24 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
             timeout=timeout,
         )
 
+    @require_kwargs
+    def create_index_from_backup(
+        self,
+        *,
+        index_name: str,
+        backup_id: str,
+        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
+        tags: Optional[Dict[str, str]] = None,
+        timeout: Optional[int] = None,
+    ) -> "IndexModel":
+        return self.db.index.create_from_backup(
+            index_name=index_name,
+            backup_id=backup_id,
+            deletion_protection=deletion_protection,
+            tags=tags,
+            timeout=timeout,
+        )
+
     def delete_index(self, name: str, timeout: Optional[int] = None):
         return self.db.index.delete(name=name, timeout=timeout)
 
@@ -251,6 +273,44 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
 
     def describe_collection(self, name: str):
         return self.db.collection.describe(name=name)
+
+    @require_kwargs
+    def create_backup(
+        self, *, index_name: str, backup_name: str, description: str = ""
+    ) -> "BackupModel":
+        return self.db.backup.create(
+            index_name=index_name, backup_name=backup_name, description=description
+        )
+
+    @require_kwargs
+    def list_backups(
+        self,
+        *,
+        index_name: Optional[str] = None,
+        limit: Optional[int] = 10,
+        pagination_token: Optional[str] = None,
+    ) -> "BackupList":
+        return self.db.backup.list(
+            index_name=index_name, limit=limit, pagination_token=pagination_token
+        )
+
+    @require_kwargs
+    def describe_backup(self, *, backup_id: str) -> "BackupModel":
+        return self.db.backup.describe(backup_id=backup_id)
+
+    @require_kwargs
+    def delete_backup(self, *, backup_id: str) -> None:
+        return self.db.backup.delete(backup_id=backup_id)
+
+    @require_kwargs
+    def list_restore_jobs(
+        self, *, limit: Optional[int] = 10, pagination_token: Optional[str] = None
+    ) -> "RestoreJobList":
+        return self.db.restore_job.list(limit=limit, pagination_token=pagination_token)
+
+    @require_kwargs
+    def describe_restore_job(self, *, restore_job_id: str) -> "RestoreJobModel":
+        return self.db.restore_job.describe(restore_job_id=restore_job_id)
 
     @staticmethod
     def from_texts(*args, **kwargs):

@@ -117,7 +117,7 @@ class EmbedRequest(ModelNormal):
         """EmbedRequest - a model defined in OpenAPI
 
         Args:
-            model (str): The [model](https://docs.pinecone.io/guides/inference/understanding-inference#embedding-models) to use for embedding generation.
+            model (str): The [model](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models) to use for embedding generation.
             inputs ([EmbedRequestInputs]): List of inputs to generate embeddings for.
 
         Keyword Args:
@@ -151,7 +151,7 @@ class EmbedRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/inference/understanding-inference#embedding-models) for available model parameters. [optional]  # noqa: E501
+            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models) for available model parameters. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -207,7 +207,7 @@ class EmbedRequest(ModelNormal):
         """EmbedRequest - a model defined in OpenAPI
 
         Args:
-            model (str): The [model](https://docs.pinecone.io/guides/inference/understanding-inference#embedding-models) to use for embedding generation.
+            model (str): The [model](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models) to use for embedding generation.
             inputs ([EmbedRequestInputs]): List of inputs to generate embeddings for.
 
         Keyword Args:
@@ -241,7 +241,7 @@ class EmbedRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/inference/understanding-inference#embedding-models) for available model parameters. [optional]  # noqa: E501
+            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models) for available model parameters. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

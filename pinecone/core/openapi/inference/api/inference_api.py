@@ -46,7 +46,7 @@ class InferenceApi:
         def __embed(self, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Generate vectors  # noqa: E501
 
-            Generate vector embeddings for input data. This endpoint uses [Pinecone Inference](https://docs.pinecone.io/guides/inference/understanding-inference).  For guidance and examples, see [Embed data](https://docs.pinecone.io/guides/inference/generate-embeddings).  # noqa: E501
+            Generate vector embeddings for input data. This endpoint uses [Pinecone Inference](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -253,7 +253,7 @@ class InferenceApi:
         def __rerank(self, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Rerank documents  # noqa: E501
 
-            Rerank documents according to their relevance to a query.  For guidance and examples, see [Rerank documents](https://docs.pinecone.io/guides/inference/rerank).  # noqa: E501
+            Rerank documents according to their relevance to a query.  For guidance and examples, see [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -332,7 +332,7 @@ class AsyncioInferenceApi:
         async def __embed(self, **kwargs):
             """Generate vectors  # noqa: E501
 
-            Generate vector embeddings for input data. This endpoint uses [Pinecone Inference](https://docs.pinecone.io/guides/inference/understanding-inference).  For guidance and examples, see [Embed data](https://docs.pinecone.io/guides/inference/generate-embeddings).  # noqa: E501
+            Generate vector embeddings for input data. This endpoint uses [Pinecone Inference](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding).  # noqa: E501
 
 
 
@@ -518,7 +518,7 @@ class AsyncioInferenceApi:
         async def __rerank(self, **kwargs):
             """Rerank documents  # noqa: E501
 
-            Rerank documents according to their relevance to a query.  For guidance and examples, see [Rerank documents](https://docs.pinecone.io/guides/inference/rerank).  # noqa: E501
+            Rerank documents according to their relevance to a query.  For guidance and examples, see [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
 
 
 

@@ -14,10 +14,15 @@ logger = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from .resources.sync.index import IndexResource
     from .resources.sync.collection import CollectionResource
+    from .resources.sync.restore_job import RestoreJobResource
+    from .resources.sync.backup import BackupResource
+    from pinecone.config import Config, OpenApiConfiguration
 
 
 class DBControl:
-    def __init__(self, config, openapi_config, pool_threads):
+    def __init__(
+        self, config: "Config", openapi_config: "OpenApiConfiguration", pool_threads: int
+    ) -> None:
         self._config = config
         """ @private """
 
@@ -43,6 +48,12 @@ class DBControl:
         self._collection_resource: Optional["CollectionResource"] = None
         """ @private """
 
+        self._restore_job_resource: Optional["RestoreJobResource"] = None
+        """ @private """
+
+        self._backup_resource: Optional["BackupResource"] = None
+        """ @private """
+
     @property
     def index(self) -> "IndexResource":
         if self._index_resource is None:
@@ -58,3 +69,19 @@ class DBControl:
 
             self._collection_resource = CollectionResource(self._index_api)
         return self._collection_resource
+
+    @property
+    def restore_job(self) -> "RestoreJobResource":
+        if self._restore_job_resource is None:
+            from .resources.sync.restore_job import RestoreJobResource
+
+            self._restore_job_resource = RestoreJobResource(self._index_api)
+        return self._restore_job_resource
+
+    @property
+    def backup(self) -> "BackupResource":
+        if self._backup_resource is None:
+            from .resources.sync.backup import BackupResource
+
+            self._backup_resource = BackupResource(self._index_api)
+        return self._backup_resource

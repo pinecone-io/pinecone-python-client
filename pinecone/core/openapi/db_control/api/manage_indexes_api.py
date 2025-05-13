@@ -36,6 +36,9 @@ from pinecone.core.openapi.db_control.model.create_index_for_model_request impor
 from pinecone.core.openapi.db_control.model.create_index_from_backup_request import (
     CreateIndexFromBackupRequest,
 )
+from pinecone.core.openapi.db_control.model.create_index_from_backup_response import (
+    CreateIndexFromBackupResponse,
+)
 from pinecone.core.openapi.db_control.model.create_index_request import CreateIndexRequest
 from pinecone.core.openapi.db_control.model.error_response import ErrorResponse
 from pinecone.core.openapi.db_control.model.index_list import IndexList
@@ -281,7 +284,7 @@ class ManageIndexesApi:
         def __create_index(self, create_index_request, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Create an index  # noqa: E501
 
-            Create a Pinecone index. This is where you specify the measure of similarity, the dimension of vectors to be stored in the index, which cloud provider you would like to deploy with, and more.    For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/indexes/create-an-index#create-a-serverless-index).   # noqa: E501
+            Create a Pinecone index. This is where you specify the measure of similarity, the dimension of vectors to be stored in the index, which cloud provider you would like to deploy with, and more.    For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index).   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -352,7 +355,7 @@ class ManageIndexesApi:
         ):
             """Create an index with integrated embedding  # noqa: E501
 
-            Create an index with integrated embedding.  With this type of index, you provide source text, and Pinecone uses a [hosted embedding model](https://docs.pinecone.io/guides/inference/understanding-inference#embedding-models) to convert the text automatically during [upsert](https://docs.pinecone.io/reference/api/2025-01/data-plane/upsert_records) and [search](https://docs.pinecone.io/reference/api/2025-01/data-plane/search_records).  For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/indexes/create-an-index#integrated-embedding).  # noqa: E501
+            Create an index with integrated embedding.  With this type of index, you provide source text, and Pinecone uses a [hosted embedding model](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models) to convert the text automatically during [upsert](https://docs.pinecone.io/reference/api/2025-01/data-plane/upsert_records) and [search](https://docs.pinecone.io/reference/api/2025-01/data-plane/search_records).  For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index#integrated-embedding).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -453,7 +456,7 @@ class ManageIndexesApi:
                 async_req (bool): execute request asynchronously
 
             Returns:
-                None
+                CreateIndexFromBackupResponse
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -464,7 +467,7 @@ class ManageIndexesApi:
 
         self.create_index_from_backup = _Endpoint(
             settings={
-                "response_type": None,
+                "response_type": (CreateIndexFromBackupResponse,),
                 "auth": ["ApiKeyAuth"],
                 "endpoint_path": "/backups/{backup_id}/create-index",
                 "operation_id": "create_index_from_backup",
@@ -1519,7 +1522,7 @@ class AsyncioManageIndexesApi:
         async def __create_index(self, create_index_request, **kwargs):
             """Create an index  # noqa: E501
 
-            Create a Pinecone index. This is where you specify the measure of similarity, the dimension of vectors to be stored in the index, which cloud provider you would like to deploy with, and more.    For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/indexes/create-an-index#create-a-serverless-index).   # noqa: E501
+            Create a Pinecone index. This is where you specify the measure of similarity, the dimension of vectors to be stored in the index, which cloud provider you would like to deploy with, and more.    For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index).   # noqa: E501
 
 
             Args:
@@ -1581,7 +1584,7 @@ class AsyncioManageIndexesApi:
         async def __create_index_for_model(self, create_index_for_model_request, **kwargs):
             """Create an index with integrated embedding  # noqa: E501
 
-            Create an index with integrated embedding.  With this type of index, you provide source text, and Pinecone uses a [hosted embedding model](https://docs.pinecone.io/guides/inference/understanding-inference#embedding-models) to convert the text automatically during [upsert](https://docs.pinecone.io/reference/api/2025-01/data-plane/upsert_records) and [search](https://docs.pinecone.io/reference/api/2025-01/data-plane/search_records).  For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/indexes/create-an-index#integrated-embedding).  # noqa: E501
+            Create an index with integrated embedding.  With this type of index, you provide source text, and Pinecone uses a [hosted embedding model](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models) to convert the text automatically during [upsert](https://docs.pinecone.io/reference/api/2025-01/data-plane/upsert_records) and [search](https://docs.pinecone.io/reference/api/2025-01/data-plane/search_records).  For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index#integrated-embedding).  # noqa: E501
 
 
             Args:
@@ -1670,7 +1673,7 @@ class AsyncioManageIndexesApi:
                     Default is True.
 
             Returns:
-                None
+                CreateIndexFromBackupResponse
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["backup_id"] = backup_id
@@ -1679,7 +1682,7 @@ class AsyncioManageIndexesApi:
 
         self.create_index_from_backup = _AsyncioEndpoint(
             settings={
-                "response_type": None,
+                "response_type": (CreateIndexFromBackupResponse,),
                 "auth": ["ApiKeyAuth"],
                 "endpoint_path": "/backups/{backup_id}/create-index",
                 "operation_id": "create_index_from_backup",

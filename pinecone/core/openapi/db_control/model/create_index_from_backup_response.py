@@ -1,5 +1,5 @@
 """
-Pinecone Data Plane API
+Pinecone Control Plane API
 
 Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
@@ -30,10 +30,10 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="SearchRecordsRequestRerank")
+T = TypeVar("T", bound="CreateIndexFromBackupResponse")
 
 
-class SearchRecordsRequestRerank(ModelNormal):
+class CreateIndexFromBackupResponse(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -84,11 +84,8 @@ class SearchRecordsRequestRerank(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            "model": (str,),  # noqa: E501
-            "rank_fields": ([str],),  # noqa: E501
-            "top_n": (int,),  # noqa: E501
-            "parameters": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
-            "query": (str,),  # noqa: E501
+            "restore_job_id": (str,),  # noqa: E501
+            "index_id": (str,),  # noqa: E501
         }
 
     @cached_class_property
@@ -96,11 +93,8 @@ class SearchRecordsRequestRerank(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "model": "model",  # noqa: E501
-        "rank_fields": "rank_fields",  # noqa: E501
-        "top_n": "top_n",  # noqa: E501
-        "parameters": "parameters",  # noqa: E501
-        "query": "query",  # noqa: E501
+        "restore_job_id": "restore_job_id",  # noqa: E501
+        "index_id": "index_id",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -109,12 +103,12 @@ class SearchRecordsRequestRerank(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], model, rank_fields, *args, **kwargs) -> T:  # noqa: E501
-        """SearchRecordsRequestRerank - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], restore_job_id, index_id, *args, **kwargs) -> T:  # noqa: E501
+        """CreateIndexFromBackupResponse - a model defined in OpenAPI
 
         Args:
-            model (str): The name of the [reranking model](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) to use.
-            rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/search/rerank-results#reranking-models).
+            restore_job_id (str): The ID of the restore job that was created.
+            index_id (str): The ID of the index that was created from the backup.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -147,9 +141,6 @@ class SearchRecordsRequestRerank(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            top_n (int): The number of top results to return after reranking. Defaults to top_k. [optional]  # noqa: E501
-            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) for available model parameters. [optional]  # noqa: E501
-            query (str): The query to rerank documents against. If a specific rerank query is specified,  it overwrites the query input that was provided at the top level. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -175,8 +166,8 @@ class SearchRecordsRequestRerank(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.model = model
-        self.rank_fields = rank_fields
+        self.restore_job_id = restore_job_id
+        self.index_id = index_id
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -201,12 +192,12 @@ class SearchRecordsRequestRerank(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, model, rank_fields, *args, **kwargs) -> None:  # noqa: E501
-        """SearchRecordsRequestRerank - a model defined in OpenAPI
+    def __init__(self, restore_job_id, index_id, *args, **kwargs) -> None:  # noqa: E501
+        """CreateIndexFromBackupResponse - a model defined in OpenAPI
 
         Args:
-            model (str): The name of the [reranking model](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) to use.
-            rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/search/rerank-results#reranking-models).
+            restore_job_id (str): The ID of the restore job that was created.
+            index_id (str): The ID of the index that was created from the backup.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -239,9 +230,6 @@ class SearchRecordsRequestRerank(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            top_n (int): The number of top results to return after reranking. Defaults to top_k. [optional]  # noqa: E501
-            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) for available model parameters. [optional]  # noqa: E501
-            query (str): The query to rerank documents against. If a specific rerank query is specified,  it overwrites the query input that was provided at the top level. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -265,8 +253,8 @@ class SearchRecordsRequestRerank(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.model = model
-        self.rank_fields = rank_fields
+        self.restore_job_id = restore_job_id
+        self.index_id = index_id
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

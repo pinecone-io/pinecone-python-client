@@ -29,7 +29,9 @@ from pinecone.core.openapi.db_control.model.serverless_spec import (
 )
 from pinecone.core.openapi.db_control.model.pod_spec import PodSpec as PodSpecModel
 from pinecone.core.openapi.db_control.model.pod_spec_metadata_config import PodSpecMetadataConfig
-
+from pinecone.core.openapi.db_control.model.create_index_from_backup_request import (
+    CreateIndexFromBackupRequest,
+)
 from pinecone.db_control.models import ServerlessSpec, PodSpec, IndexModel, IndexEmbed
 
 from pinecone.db_control.enums import (
@@ -210,6 +212,21 @@ class PineconeDBControlRequestFactory:
         )
 
         return CreateIndexForModelRequest(**args)
+
+    @staticmethod
+    def create_index_from_backup_request(
+        name: str,
+        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        tags: Optional[Dict[str, str]] = None,
+    ) -> CreateIndexFromBackupRequest:
+        if deletion_protection is not None:
+            dp = PineconeDBControlRequestFactory.__parse_deletion_protection(deletion_protection)
+        else:
+            dp = None
+
+        tags_obj = PineconeDBControlRequestFactory.__parse_tags(tags)
+
+        return CreateIndexFromBackupRequest(name=name, deletion_protection=dp, tags=tags_obj)
 
     @staticmethod
     def configure_index_request(

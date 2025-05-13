@@ -14,10 +14,13 @@ logger = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from .resources.asyncio.index import IndexResourceAsyncio
     from .resources.asyncio.collection import CollectionResourceAsyncio
+    from .resources.asyncio.restore_job import RestoreJobResourceAsyncio
+    from .resources.asyncio.backup import BackupResourceAsyncio
+    from pinecone.config import Config, OpenApiConfiguration
 
 
 class DBControlAsyncio:
-    def __init__(self, config, openapi_config):
+    def __init__(self, config: "Config", openapi_config: "OpenApiConfiguration") -> None:
         self._config = config
         """ @private """
 
@@ -39,6 +42,12 @@ class DBControlAsyncio:
         self._collection_resource: Optional["CollectionResourceAsyncio"] = None
         """ @private """
 
+        self._restore_job_resource: Optional["RestoreJobResourceAsyncio"] = None
+        """ @private """
+
+        self._backup_resource: Optional["BackupResourceAsyncio"] = None
+        """ @private """
+
     @property
     def index(self) -> "IndexResourceAsyncio":
         if self._index_resource is None:
@@ -56,3 +65,19 @@ class DBControlAsyncio:
 
             self._collection_resource = CollectionResourceAsyncio(self._index_api)
         return self._collection_resource
+
+    @property
+    def restore_job(self) -> "RestoreJobResourceAsyncio":
+        if self._restore_job_resource is None:
+            from .resources.asyncio.restore_job import RestoreJobResourceAsyncio
+
+            self._restore_job_resource = RestoreJobResourceAsyncio(self._index_api)
+        return self._restore_job_resource
+
+    @property
+    def backup(self) -> "BackupResourceAsyncio":
+        if self._backup_resource is None:
+            from .resources.asyncio.backup import BackupResourceAsyncio
+
+            self._backup_resource = BackupResourceAsyncio(self._index_api)
+        return self._backup_resource

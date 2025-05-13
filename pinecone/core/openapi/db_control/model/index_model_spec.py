@@ -28,11 +28,11 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
-    from pinecone.core.openapi.db_control.model.dedicated_spec import DedicatedSpec
+    from pinecone.core.openapi.db_control.model.byoc_spec import ByocSpec
     from pinecone.core.openapi.db_control.model.pod_spec import PodSpec
     from pinecone.core.openapi.db_control.model.serverless_spec import ServerlessSpec
 
-    globals()["DedicatedSpec"] = DedicatedSpec
+    globals()["ByocSpec"] = ByocSpec
     globals()["PodSpec"] = PodSpec
     globals()["ServerlessSpec"] = ServerlessSpec
 
@@ -96,7 +96,7 @@ class IndexModelSpec(ModelNormal):
         """
         lazy_import()
         return {
-            "dedicated": (DedicatedSpec,),  # noqa: E501
+            "byoc": (ByocSpec,),  # noqa: E501
             "pod": (PodSpec,),  # noqa: E501
             "serverless": (ServerlessSpec,),  # noqa: E501
         }
@@ -106,7 +106,7 @@ class IndexModelSpec(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "dedicated": "dedicated",  # noqa: E501
+        "byoc": "byoc",  # noqa: E501
         "pod": "pod",  # noqa: E501
         "serverless": "serverless",  # noqa: E501
     }
@@ -151,7 +151,7 @@ class IndexModelSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dedicated (DedicatedSpec): [optional]  # noqa: E501
+            byoc (ByocSpec): [optional]  # noqa: E501
             pod (PodSpec): [optional]  # noqa: E501
             serverless (ServerlessSpec): [optional]  # noqa: E501
         """
@@ -237,7 +237,7 @@ class IndexModelSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dedicated (DedicatedSpec): [optional]  # noqa: E501
+            byoc (ByocSpec): [optional]  # noqa: E501
             pod (PodSpec): [optional]  # noqa: E501
             serverless (ServerlessSpec): [optional]  # noqa: E501
         """

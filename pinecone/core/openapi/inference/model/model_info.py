@@ -77,9 +77,9 @@ class ModelInfo(ModelNormal):
     }
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-        ("dimension",): {"inclusive_maximum": 20000, "inclusive_minimum": 1},
-        ("sequence_length",): {"inclusive_minimum": 1},
-        ("batch_size",): {"inclusive_minimum": 1},
+        ("default_dimension",): {"inclusive_maximum": 20000, "inclusive_minimum": 1},
+        ("max_sequence_length",): {"inclusive_minimum": 1},
+        ("max_batch_size",): {"inclusive_minimum": 1},
     }
 
     @cached_class_property
@@ -105,15 +105,17 @@ class ModelInfo(ModelNormal):
         """
         lazy_import()
         return {
-            "name": (str,),  # noqa: E501
+            "model": (str,),  # noqa: E501
             "short_description": (str,),  # noqa: E501
             "type": (str,),  # noqa: E501
             "supported_parameters": ([ModelInfoSupportedParameter],),  # noqa: E501
             "vector_type": (str,),  # noqa: E501
-            "dimension": (int,),  # noqa: E501
+            "default_dimension": (int,),  # noqa: E501
             "modality": (str,),  # noqa: E501
-            "sequence_length": (int,),  # noqa: E501
-            "batch_size": (int,),  # noqa: E501
+            "max_sequence_length": (int,),  # noqa: E501
+            "max_batch_size": (int,),  # noqa: E501
+            "provider_name": (str,),  # noqa: E501
+            "supported_dimensions": ([int],),  # noqa: E501
             "supported_metrics": (ModelInfoSupportedMetrics,),  # noqa: E501
         }
 
@@ -122,15 +124,17 @@ class ModelInfo(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "name": "name",  # noqa: E501
+        "model": "model",  # noqa: E501
         "short_description": "short_description",  # noqa: E501
         "type": "type",  # noqa: E501
         "supported_parameters": "supported_parameters",  # noqa: E501
         "vector_type": "vector_type",  # noqa: E501
-        "dimension": "dimension",  # noqa: E501
+        "default_dimension": "default_dimension",  # noqa: E501
         "modality": "modality",  # noqa: E501
-        "sequence_length": "sequence_length",  # noqa: E501
-        "batch_size": "batch_size",  # noqa: E501
+        "max_sequence_length": "max_sequence_length",  # noqa: E501
+        "max_batch_size": "max_batch_size",  # noqa: E501
+        "provider_name": "provider_name",  # noqa: E501
+        "supported_dimensions": "supported_dimensions",  # noqa: E501
         "supported_metrics": "supported_metrics",  # noqa: E501
     }
 
@@ -141,12 +145,12 @@ class ModelInfo(ModelNormal):
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(
-        cls: Type[T], name, short_description, type, supported_parameters, *args, **kwargs
+        cls: Type[T], model, short_description, type, supported_parameters, *args, **kwargs
     ) -> T:  # noqa: E501
         """ModelInfo - a model defined in OpenAPI
 
         Args:
-            name (str): The name of the model.
+            model (str): The name of the model.
             short_description (str): A summary of the model.
             type (str): The type of model (e.g. 'embed' or 'rerank').
             supported_parameters ([ModelInfoSupportedParameter]):
@@ -183,10 +187,12 @@ class ModelInfo(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             vector_type (str): Whether the embedding model produces 'dense' or 'sparse' embeddings. [optional]  # noqa: E501
-            dimension (int): The embedding model dimension (applies to dense embedding models only). [optional]  # noqa: E501
+            default_dimension (int): The default embedding model dimension (applies to dense embedding models only). [optional]  # noqa: E501
             modality (str): The modality of the model (e.g. 'text'). [optional]  # noqa: E501
-            sequence_length (int): The maximum tokens per sequence supported by the model. [optional]  # noqa: E501
-            batch_size (int): The maximum batch size (number of sequences) supported by the model. [optional]  # noqa: E501
+            max_sequence_length (int): The maximum tokens per sequence supported by the model. [optional]  # noqa: E501
+            max_batch_size (int): The maximum batch size (number of sequences) supported by the model. [optional]  # noqa: E501
+            provider_name (str): The name of the provider of the model. [optional]  # noqa: E501
+            supported_dimensions ([int]): The list of supported dimensions for the model (applies to dense embedding models only). [optional]  # noqa: E501
             supported_metrics (ModelInfoSupportedMetrics): [optional]  # noqa: E501
         """
 
@@ -213,7 +219,7 @@ class ModelInfo(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.name = name
+        self.model = model
         self.short_description = short_description
         self.type = type
         self.supported_parameters = supported_parameters
@@ -242,12 +248,12 @@ class ModelInfo(ModelNormal):
 
     @convert_js_args_to_python_args
     def __init__(
-        self, name, short_description, type, supported_parameters, *args, **kwargs
+        self, model, short_description, type, supported_parameters, *args, **kwargs
     ) -> None:  # noqa: E501
         """ModelInfo - a model defined in OpenAPI
 
         Args:
-            name (str): The name of the model.
+            model (str): The name of the model.
             short_description (str): A summary of the model.
             type (str): The type of model (e.g. 'embed' or 'rerank').
             supported_parameters ([ModelInfoSupportedParameter]):
@@ -284,10 +290,12 @@ class ModelInfo(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             vector_type (str): Whether the embedding model produces 'dense' or 'sparse' embeddings. [optional]  # noqa: E501
-            dimension (int): The embedding model dimension (applies to dense embedding models only). [optional]  # noqa: E501
+            default_dimension (int): The default embedding model dimension (applies to dense embedding models only). [optional]  # noqa: E501
             modality (str): The modality of the model (e.g. 'text'). [optional]  # noqa: E501
-            sequence_length (int): The maximum tokens per sequence supported by the model. [optional]  # noqa: E501
-            batch_size (int): The maximum batch size (number of sequences) supported by the model. [optional]  # noqa: E501
+            max_sequence_length (int): The maximum tokens per sequence supported by the model. [optional]  # noqa: E501
+            max_batch_size (int): The maximum batch size (number of sequences) supported by the model. [optional]  # noqa: E501
+            provider_name (str): The name of the provider of the model. [optional]  # noqa: E501
+            supported_dimensions ([int]): The list of supported dimensions for the model (applies to dense embedding models only). [optional]  # noqa: E501
             supported_metrics (ModelInfoSupportedMetrics): [optional]  # noqa: E501
         """
 
@@ -312,7 +320,7 @@ class ModelInfo(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.name = name
+        self.model = model
         self.short_description = short_description
         self.type = type
         self.supported_parameters = supported_parameters

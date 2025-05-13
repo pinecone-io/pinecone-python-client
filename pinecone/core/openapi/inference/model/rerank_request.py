@@ -125,7 +125,7 @@ class RerankRequest(ModelNormal):
         """RerankRequest - a model defined in OpenAPI
 
         Args:
-            model (str): The [model](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models) to use for reranking.
+            model (str): The [model](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) to use for reranking.
             query (str): The query to rerank documents against.
             documents ([Document]): The documents to rerank.
 
@@ -162,8 +162,8 @@ class RerankRequest(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             top_n (int): The number of results to return sorted by relevance. Defaults to the number of inputs. [optional]  # noqa: E501
             return_documents (bool): Whether to return the documents in the response. [optional] if omitted the server will use the default value of True.  # noqa: E501
-            rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models).  [optional] if omitted the server will use the default value of ["text"].  # noqa: E501
-            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models) for available model parameters. [optional]  # noqa: E501
+            rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/search/rerank-results#reranking-models).  [optional] if omitted the server will use the default value of ["text"].  # noqa: E501
+            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) for available model parameters. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -220,7 +220,7 @@ class RerankRequest(ModelNormal):
         """RerankRequest - a model defined in OpenAPI
 
         Args:
-            model (str): The [model](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models) to use for reranking.
+            model (str): The [model](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) to use for reranking.
             query (str): The query to rerank documents against.
             documents ([Document]): The documents to rerank.
 
@@ -257,8 +257,8 @@ class RerankRequest(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             top_n (int): The number of results to return sorted by relevance. Defaults to the number of inputs. [optional]  # noqa: E501
             return_documents (bool): Whether to return the documents in the response. [optional] if omitted the server will use the default value of True.  # noqa: E501
-            rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models).  [optional] if omitted the server will use the default value of ["text"].  # noqa: E501
-            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models) for available model parameters. [optional]  # noqa: E501
+            rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/search/rerank-results#reranking-models).  [optional] if omitted the server will use the default value of ["text"].  # noqa: E501
+            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) for available model parameters. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)

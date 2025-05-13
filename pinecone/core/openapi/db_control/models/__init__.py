@@ -11,6 +11,7 @@
 
 from pinecone.core.openapi.db_control.model.backup_list import BackupList
 from pinecone.core.openapi.db_control.model.backup_model import BackupModel
+from pinecone.core.openapi.db_control.model.byoc_spec import ByocSpec
 from pinecone.core.openapi.db_control.model.collection_list import CollectionList
 from pinecone.core.openapi.db_control.model.collection_model import CollectionModel
 from pinecone.core.openapi.db_control.model.configure_index_request import ConfigureIndexRequest
@@ -34,8 +35,10 @@ from pinecone.core.openapi.db_control.model.create_index_for_model_request_embed
 from pinecone.core.openapi.db_control.model.create_index_from_backup_request import (
     CreateIndexFromBackupRequest,
 )
+from pinecone.core.openapi.db_control.model.create_index_from_backup_response import (
+    CreateIndexFromBackupResponse,
+)
 from pinecone.core.openapi.db_control.model.create_index_request import CreateIndexRequest
-from pinecone.core.openapi.db_control.model.dedicated_spec import DedicatedSpec
 from pinecone.core.openapi.db_control.model.deletion_protection import DeletionProtection
 from pinecone.core.openapi.db_control.model.error_response import ErrorResponse
 from pinecone.core.openapi.db_control.model.error_response_error import ErrorResponseError

@@ -5,7 +5,7 @@ from typing import Optional, Dict, Union
 from pinecone.db_control.index_host_store import IndexHostStore
 
 from pinecone.db_control.models import ServerlessSpec, PodSpec, IndexModel, IndexList, IndexEmbed
-from pinecone.utils import docslinks
+from pinecone.utils import docslinks, require_kwargs
 
 from pinecone.db_control.enums import (
     Metric,
@@ -84,6 +84,41 @@ class IndexResource:
 
         if timeout == -1:
             return IndexModel(resp)
+        return self.__poll_describe_index_until_ready(name, timeout)
+
+    @require_kwargs
+    def create_from_backup(
+        self,
+        *,
+        name: str,
+        backup_id: str,
+        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        tags: Optional[Dict[str, str]] = None,
+        timeout: Optional[int] = None,
+    ) -> IndexModel:
+        """
+        Create an index from a backup.
+
+        Args:
+            name (str): The name of the index to create.
+            backup_id (str): The ID of the backup to create the index from.
+            deletion_protection (DeletionProtection): The deletion protection to use for the index.
+            tags (Dict[str, str]): The tags to use for the index.
+            timeout (int): The number of seconds to wait for the index to be ready. If -1, the function will return without polling for the index status to be ready. If None, the function will poll indefinitely for the index to be ready.
+
+        Returns:
+            IndexModel: The created index.
+        """
+        req = PineconeDBControlRequestFactory.create_index_from_backup_request(
+            name=name, deletion_protection=deletion_protection, tags=tags
+        )
+        resp = self._index_api.create_index_from_backup(
+            backup_id=backup_id, create_index_from_backup_request=req
+        )
+        logger.info(f"Creating index from backup. Response: {resp}")
+
+        if timeout == -1:
+            return self.describe(name=name)
         return self.__poll_describe_index_until_ready(name, timeout)
 
     def __poll_describe_index_until_ready(self, name: str, timeout: Optional[int] = None):

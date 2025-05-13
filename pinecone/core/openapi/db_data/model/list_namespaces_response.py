@@ -27,13 +27,21 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
+def lazy_import():
+    from pinecone.core.openapi.db_data.model.namespace_description import NamespaceDescription
+    from pinecone.core.openapi.db_data.model.pagination import Pagination
+
+    globals()["NamespaceDescription"] = NamespaceDescription
+    globals()["Pagination"] = Pagination
+
+
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="SearchRecordsRequestRerank")
+T = TypeVar("T", bound="ListNamespacesResponse")
 
 
-class SearchRecordsRequestRerank(ModelNormal):
+class ListNamespacesResponse(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -69,6 +77,7 @@ class SearchRecordsRequestRerank(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
+        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -83,12 +92,10 @@ class SearchRecordsRequestRerank(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
+        lazy_import()
         return {
-            "model": (str,),  # noqa: E501
-            "rank_fields": ([str],),  # noqa: E501
-            "top_n": (int,),  # noqa: E501
-            "parameters": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
-            "query": (str,),  # noqa: E501
+            "namespaces": ([NamespaceDescription],),  # noqa: E501
+            "pagination": (Pagination,),  # noqa: E501
         }
 
     @cached_class_property
@@ -96,11 +103,8 @@ class SearchRecordsRequestRerank(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "model": "model",  # noqa: E501
-        "rank_fields": "rank_fields",  # noqa: E501
-        "top_n": "top_n",  # noqa: E501
-        "parameters": "parameters",  # noqa: E501
-        "query": "query",  # noqa: E501
+        "namespaces": "namespaces",  # noqa: E501
+        "pagination": "pagination",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -109,12 +113,8 @@ class SearchRecordsRequestRerank(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], model, rank_fields, *args, **kwargs) -> T:  # noqa: E501
-        """SearchRecordsRequestRerank - a model defined in OpenAPI
-
-        Args:
-            model (str): The name of the [reranking model](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) to use.
-            rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/search/rerank-results#reranking-models).
+    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
+        """ListNamespacesResponse - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -147,9 +147,8 @@ class SearchRecordsRequestRerank(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            top_n (int): The number of top results to return after reranking. Defaults to top_k. [optional]  # noqa: E501
-            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) for available model parameters. [optional]  # noqa: E501
-            query (str): The query to rerank documents against. If a specific rerank query is specified,  it overwrites the query input that was provided at the top level. [optional]  # noqa: E501
+            namespaces ([NamespaceDescription]): The list of namespaces belonging to this index. [optional]  # noqa: E501
+            pagination (Pagination): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -175,8 +174,6 @@ class SearchRecordsRequestRerank(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.model = model
-        self.rank_fields = rank_fields
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -201,12 +198,8 @@ class SearchRecordsRequestRerank(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, model, rank_fields, *args, **kwargs) -> None:  # noqa: E501
-        """SearchRecordsRequestRerank - a model defined in OpenAPI
-
-        Args:
-            model (str): The name of the [reranking model](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) to use.
-            rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/search/rerank-results#reranking-models).
+    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
+        """ListNamespacesResponse - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -239,9 +232,8 @@ class SearchRecordsRequestRerank(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            top_n (int): The number of top results to return after reranking. Defaults to top_k. [optional]  # noqa: E501
-            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) for available model parameters. [optional]  # noqa: E501
-            query (str): The query to rerank documents against. If a specific rerank query is specified,  it overwrites the query input that was provided at the top level. [optional]  # noqa: E501
+            namespaces ([NamespaceDescription]): The list of namespaces belonging to this index. [optional]  # noqa: E501
+            pagination (Pagination): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -265,8 +257,6 @@ class SearchRecordsRequestRerank(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.model = model
-        self.rank_fields = rank_fields
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

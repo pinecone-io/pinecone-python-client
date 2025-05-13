@@ -80,6 +80,22 @@ class IndexResourceAsyncio:
             return IndexModel(resp)
         return await self.__poll_describe_index_until_ready(name, timeout)
 
+    async def create_from_backup(
+        self,
+        name: str,
+        backup_id: str,
+        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        tags: Optional[Dict[str, str]] = None,
+        timeout: Optional[int] = None,
+    ) -> IndexModel:
+        req = PineconeDBControlRequestFactory.create_index_from_backup_request(
+            name=name, deletion_protection=deletion_protection, tags=tags
+        )
+        await self.index_api.create_index_from_backup(
+            backup_id=backup_id, create_index_from_backup_request=req
+        )
+        return await self.__poll_describe_index_until_ready(name, timeout)
+
     async def __poll_describe_index_until_ready(self, name: str, timeout: Optional[int] = None):
         description = None
 

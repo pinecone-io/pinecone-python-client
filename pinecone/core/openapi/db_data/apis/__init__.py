@@ -14,4 +14,5 @@
 
 # Import APIs into API package:
 from pinecone.core.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
+from pinecone.core.openapi.db_data.api.namespace_operations_api import NamespaceOperationsApi
 from pinecone.core.openapi.db_data.api.vector_operations_api import VectorOperationsApi
