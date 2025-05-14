@@ -11,6 +11,7 @@ jobs:
       PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
       PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
     strategy:
+      fail-fast: false
       matrix:
         python_version: [3.9, 3.12]
         test_suite:
