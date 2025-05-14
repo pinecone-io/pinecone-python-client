@@ -31,6 +31,9 @@ classifiers=[
         "Topic :: Software Development :: Libraries :: Python Modules"
 ]
 
+[tool.poetry.scripts]
+repl = "scripts.repl:main"
+
 [tool.poetry.dependencies]
 python = "^3.9"
 typing-extensions = ">=3.7.4"
