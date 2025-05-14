@@ -38,7 +38,8 @@ class BackupResourceAsyncio:
             result = await self._index_api.list_index_backups(**args)
             return BackupList(result)
         else:
-            result = await self._index_api.list_project_backups()
+            args = parse_non_empty_args([("limit", limit), ("pagination_token", pagination_token)])
+            result = await self._index_api.list_project_backups(**args)
             return BackupList(result)
 
     @require_kwargs

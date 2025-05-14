@@ -421,7 +421,7 @@ class ManageIndexesApi:
             callable=__create_index_for_model,
         )
 
-        def __create_index_from_backup(
+        def __create_index_from_backup_operation(
             self, backup_id, create_index_from_backup_request, **kwargs: ExtraOpenApiKwargsTypedDict
         ):
             """Create an index from a backup  # noqa: E501
@@ -430,7 +430,7 @@ class ManageIndexesApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.create_index_from_backup(backup_id, create_index_from_backup_request, async_req=True)
+            >>> thread = api.create_index_from_backup_operation(backup_id, create_index_from_backup_request, async_req=True)
             >>> result = thread.get()
 
             Args:
@@ -465,12 +465,12 @@ class ManageIndexesApi:
             kwargs["create_index_from_backup_request"] = create_index_from_backup_request
             return self.call_with_http_info(**kwargs)
 
-        self.create_index_from_backup = _Endpoint(
+        self.create_index_from_backup_operation = _Endpoint(
             settings={
                 "response_type": (CreateIndexFromBackupResponse,),
                 "auth": ["ApiKeyAuth"],
                 "endpoint_path": "/backups/{backup_id}/create-index",
-                "operation_id": "create_index_from_backup",
+                "operation_id": "create_index_from_backup_operation",
                 "http_method": "POST",
                 "servers": None,
             },
@@ -494,7 +494,7 @@ class ManageIndexesApi:
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__create_index_from_backup,
+            callable=__create_index_from_backup_operation,
         )
 
         def __delete_backup(self, backup_id, **kwargs: ExtraOpenApiKwargsTypedDict):
@@ -1195,6 +1195,8 @@ class ManageIndexesApi:
 
 
             Keyword Args:
+                limit (int): The number of results to return per page. [optional] if omitted the server will use the default value of 10.
+                pagination_token (str): The token to use to retrieve the next page of results. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -1229,13 +1231,19 @@ class ManageIndexesApi:
                 "http_method": "GET",
                 "servers": None,
             },
-            params_map={"all": [], "required": [], "nullable": [], "enum": [], "validation": []},
+            params_map={
+                "all": ["limit", "pagination_token"],
+                "required": [],
+                "nullable": [],
+                "enum": [],
+                "validation": ["limit"],
+            },
             root_map={
-                "validations": {},
+                "validations": {("limit",): {"inclusive_maximum": 100, "inclusive_minimum": 1}},
                 "allowed_values": {},
-                "openapi_types": {},
-                "attribute_map": {},
-                "location_map": {},
+                "openapi_types": {"limit": (int,), "pagination_token": (str,)},
+                "attribute_map": {"limit": "limit", "pagination_token": "paginationToken"},
+                "location_map": {"limit": "query", "pagination_token": "query"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -1643,7 +1651,7 @@ class AsyncioManageIndexesApi:
             callable=__create_index_for_model,
         )
 
-        async def __create_index_from_backup(
+        async def __create_index_from_backup_operation(
             self, backup_id, create_index_from_backup_request, **kwargs
         ):
             """Create an index from a backup  # noqa: E501
@@ -1680,12 +1688,12 @@ class AsyncioManageIndexesApi:
             kwargs["create_index_from_backup_request"] = create_index_from_backup_request
             return await self.call_with_http_info(**kwargs)
 
-        self.create_index_from_backup = _AsyncioEndpoint(
+        self.create_index_from_backup_operation = _AsyncioEndpoint(
             settings={
                 "response_type": (CreateIndexFromBackupResponse,),
                 "auth": ["ApiKeyAuth"],
                 "endpoint_path": "/backups/{backup_id}/create-index",
-                "operation_id": "create_index_from_backup",
+                "operation_id": "create_index_from_backup_operation",
                 "http_method": "POST",
                 "servers": None,
             },
@@ -1709,7 +1717,7 @@ class AsyncioManageIndexesApi:
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__create_index_from_backup,
+            callable=__create_index_from_backup_operation,
         )
 
         async def __delete_backup(self, backup_id, **kwargs):
@@ -2336,6 +2344,8 @@ class AsyncioManageIndexesApi:
 
 
             Keyword Args:
+                limit (int): The number of results to return per page. [optional] if omitted the server will use the default value of 10.
+                pagination_token (str): The token to use to retrieve the next page of results. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -2367,13 +2377,19 @@ class AsyncioManageIndexesApi:
                 "http_method": "GET",
                 "servers": None,
             },
-            params_map={"all": [], "required": [], "nullable": [], "enum": [], "validation": []},
+            params_map={
+                "all": ["limit", "pagination_token"],
+                "required": [],
+                "nullable": [],
+                "enum": [],
+                "validation": ["limit"],
+            },
             root_map={
-                "validations": {},
+                "validations": {("limit",): {"inclusive_maximum": 100, "inclusive_minimum": 1}},
                 "allowed_values": {},
-                "openapi_types": {},
-                "attribute_map": {},
-                "location_map": {},
+                "openapi_types": {"limit": (int,), "pagination_token": (str,)},
+                "attribute_map": {"limit": "limit", "pagination_token": "paginationToken"},
+                "location_map": {"limit": "query", "pagination_token": "query"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},

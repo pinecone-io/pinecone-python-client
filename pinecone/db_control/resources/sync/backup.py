@@ -37,7 +37,8 @@ class BackupResource:
             )
             return BackupList(self._index_api.list_index_backups(**args))
         else:
-            return BackupList(self._index_api.list_project_backups())
+            args = parse_non_empty_args([("limit", limit), ("pagination_token", pagination_token)])
+            return BackupList(self._index_api.list_project_backups(**args))
 
     @require_kwargs
     def create(self, *, index_name: str, backup_name: str, description: str = "") -> BackupModel:

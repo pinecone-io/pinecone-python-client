@@ -177,14 +177,14 @@ class NamespaceOperationsApi:
             callable=__describe_namespace,
         )
 
-        def __list_namespaces(self, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __list_namespaces_operation(self, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Get list of all namespaces  # noqa: E501
 
             Get a list of all namespaces within an index.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_namespaces(async_req=True)
+            >>> thread = api.list_namespaces_operation(async_req=True)
             >>> result = thread.get()
 
 
@@ -216,12 +216,12 @@ class NamespaceOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             return self.call_with_http_info(**kwargs)
 
-        self.list_namespaces = _Endpoint(
+        self.list_namespaces_operation = _Endpoint(
             settings={
                 "response_type": (ListNamespacesResponse,),
                 "auth": ["ApiKeyAuth"],
                 "endpoint_path": "/namespaces",
-                "operation_id": "list_namespaces",
+                "operation_id": "list_namespaces_operation",
                 "http_method": "GET",
                 "servers": None,
             },
@@ -242,7 +242,7 @@ class NamespaceOperationsApi:
             },
             headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__list_namespaces,
+            callable=__list_namespaces_operation,
         )
 
 
@@ -381,7 +381,7 @@ class AsyncioNamespaceOperationsApi:
             callable=__describe_namespace,
         )
 
-        async def __list_namespaces(self, **kwargs):
+        async def __list_namespaces_operation(self, **kwargs):
             """Get list of all namespaces  # noqa: E501
 
             Get a list of all namespaces within an index.  # noqa: E501
@@ -413,12 +413,12 @@ class AsyncioNamespaceOperationsApi:
             self._process_openapi_kwargs(kwargs)
             return await self.call_with_http_info(**kwargs)
 
-        self.list_namespaces = _AsyncioEndpoint(
+        self.list_namespaces_operation = _AsyncioEndpoint(
             settings={
                 "response_type": (ListNamespacesResponse,),
                 "auth": ["ApiKeyAuth"],
                 "endpoint_path": "/namespaces",
-                "operation_id": "list_namespaces",
+                "operation_id": "list_namespaces_operation",
                 "http_method": "GET",
                 "servers": None,
             },
@@ -439,5 +439,5 @@ class AsyncioNamespaceOperationsApi:
             },
             headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__list_namespaces,
+            callable=__list_namespaces_operation,
         )

@@ -112,7 +112,7 @@ class IndexResource:
         req = PineconeDBControlRequestFactory.create_index_from_backup_request(
             name=name, deletion_protection=deletion_protection, tags=tags
         )
-        resp = self._index_api.create_index_from_backup(
+        resp = self._index_api.create_index_from_backup_operation(
             backup_id=backup_id, create_index_from_backup_request=req
         )
         logger.info(f"Creating index from backup. Response: {resp}")
