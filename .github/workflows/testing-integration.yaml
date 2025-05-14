@@ -13,6 +13,14 @@ jobs:
     strategy:
       matrix:
         python_version: [3.9, 3.12]
+        test_suite:
+          - tests/integration/control/index
+          - tests/integration/control/collections
+          - tests/integration/control/backup
+          - tests/integration/control/restore_job
+          - tests/integration/control_asyncio/index
+          - tests/integration/control_asyncio/backup
+          - tests/integration/control_asyncio/restore_job
     steps:
       - uses: actions/checkout@v4
       - name: 'Set up Python ${{ matrix.python_version }}'
@@ -23,13 +31,8 @@ jobs:
         uses: ./.github/actions/setup-poetry
         with:
           include_asyncio: true
-      - name: 'Run index tests'
-        run: poetry run pytest tests/integration/control/index --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
-      - name: 'Run collection tests'
-        run: poetry run pytest tests/integration/control/collections --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
-      - name: 'Run backup & restore tests'
-        run: poetry run pytest tests/integration/control/backup --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
-
+      - name: 'Run tests'
+        run: poetry run pytest ${{ matrix.test_suite }} --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
 
   inference:
     name: Inference tests
