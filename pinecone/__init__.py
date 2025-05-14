@@ -18,6 +18,8 @@ from .utils.lazy_imports import setup_lazy_imports as _setup_lazy_imports
 _inference_lazy_imports = {
     "RerankModel": ("pinecone.inference", "RerankModel"),
     "EmbedModel": ("pinecone.inference", "EmbedModel"),
+    "ModelInfo": ("pinecone.inference.models", "ModelInfo"),
+    "ModelInfoList": ("pinecone.inference.models", "ModelInfoList"),
 }
 
 _db_data_lazy_imports = {

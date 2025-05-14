@@ -7,6 +7,7 @@ from pinecone.core.openapi.inference.apis import InferenceApi
 from .models import EmbeddingsList, RerankResult
 from pinecone.core.openapi.inference import API_VERSION
 from pinecone.utils import setup_openapi_client, PluginAware
+from pinecone.utils import require_kwargs, parse_non_empty_args
 
 from .inference_request_builder import (
     InferenceRequestBuilder,
@@ -214,3 +215,19 @@ class Inference(PluginAware):
         )
         resp = self.__inference_api.rerank(rerank_request=rerank_request)
         return RerankResult(resp)
+
+    @require_kwargs
+    def list_models(self, *, type: Optional[str] = None, vector_type: Optional[str] = None):
+        """
+        List all available models.
+
+        :param type: The type of model to list. Either "embed" or "rerank".
+        :type type: str, optional
+
+        :param vector_type: The type of vector to list. Either "dense" or "sparse".
+        :type vector_type: str, optional
+
+        :return: A list of models.
+        """
+        args = parse_non_empty_args([("type", type), ("vector_type", vector_type)])
+        return self.__inference_api.list_models(**args)
