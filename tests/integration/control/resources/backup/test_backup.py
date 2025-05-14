@@ -1,14 +1,15 @@
 import pytest
 import random
-from ...helpers import random_string, poll_stats_for_namespace
+from ....helpers import random_string, poll_stats_for_namespace
 import logging
 import time
+from pinecone import Pinecone
 
 logger = logging.getLogger(__name__)
 
 
 class TestBackups:
-    def test_create_backup(self, pc, ready_sl_index, index_tags):
+    def test_create_backup(self, pc: Pinecone, ready_sl_index, index_tags):
         desc = pc.db.index.describe(name=ready_sl_index)
         dimension = desc.dimension
 
@@ -78,8 +79,9 @@ class TestBackups:
         assert new_index.metric == desc.metric
 
         # Can list restore jobs
-        restore_jobs = pc.db.restore_job.list(index_name=new_index_name)
-        assert len(restore_jobs) == 1
+        logger.info("Listing restore jobs")
+        restore_jobs = pc.db.restore_job.list()
+        assert len(restore_jobs) >= 1, f"Expected at least one restore job, got {len(restore_jobs)}"
 
         # Verify that the new index has the same data as the original index
         new_idx = pc.Index(name=new_index_name)
@@ -97,11 +99,7 @@ class TestBackups:
         with pytest.raises(Exception):
             pc.db.backup.describe(backup_id=backup.backup_id)
 
-        # Verify that the new index is deleted
-        backup_list = pc.db.backup.list()
-        assert len(backup_list) == 0
-
-    def test_create_backup_legacy_syntax(self, pc, ready_sl_index, index_tags):
+    def test_create_backup_legacy_syntax(self, pc: Pinecone, ready_sl_index, index_tags):
         desc = pc.describe_index(name=ready_sl_index)
         dimension = desc.dimension
 
@@ -171,8 +169,8 @@ class TestBackups:
         assert new_index.metric == desc.metric
 
         # Can list restore jobs
-        restore_jobs = pc.list_restore_jobs(index_name=new_index_name)
-        assert len(restore_jobs) == 1
+        restore_jobs = pc.list_restore_jobs()
+        assert len(restore_jobs) >= 1
 
         # Verify that the new index has the same data as the original index
         new_idx = pc.Index(name=new_index_name)

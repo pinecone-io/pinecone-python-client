@@ -1,6 +1,6 @@
 import time
 from pinecone import PodSpec
-from ...helpers import generate_index_name, generate_collection_name
+from ....helpers import generate_index_name, generate_collection_name
 import logging
 from .helpers import attempt_cleanup_collection, attempt_cleanup_index, random_vector
 

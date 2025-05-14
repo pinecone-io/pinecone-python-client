@@ -59,10 +59,10 @@ class TestCreateServerlessIndexHappyPath:
         assert resp.metric == "cosine"
 
     @pytest.mark.parametrize("metric", ["cosine", "euclidean", "dotproduct"])
-    def test_create_default_index_with_metric(self, pc, create_sl_index_params, metric):
-        create_sl_index_params["metric"] = metric
-        pc.db.index.create(**create_sl_index_params)
-        desc = pc.db.index.describe(create_sl_index_params["name"])
+    def test_create_default_index_with_metric(self, pc, create_index_params, metric):
+        create_index_params["metric"] = metric
+        pc.db.index.create(**create_index_params)
+        desc = pc.db.index.describe(create_index_params["name"])
         if isinstance(metric, str):
             assert desc.metric == metric
         else:
@@ -105,19 +105,19 @@ class TestCreateServerlessIndexHappyPath:
             assert desc.tags.to_dict() == tags
 
     @pytest.mark.parametrize("metric", ["cosine", "euclidean", "dotproduct"])
-    def test_create_dense_index_with_metric(self, pc, create_sl_index_params, metric):
-        create_sl_index_params["metric"] = metric
-        create_sl_index_params["vector_type"] = VectorType.DENSE
-        pc.db.index.create(**create_sl_index_params)
-        desc = pc.db.index.describe(create_sl_index_params["name"])
+    def test_create_dense_index_with_metric(self, pc, create_index_params, metric):
+        create_index_params["metric"] = metric
+        create_index_params["vector_type"] = VectorType.DENSE
+        pc.db.index.create(**create_index_params)
+        desc = pc.db.index.describe(create_index_params["name"])
         assert desc.metric == metric
         assert desc.vector_type == "dense"
 
-    def test_create_with_optional_tags(self, pc, create_sl_index_params):
+    def test_create_with_optional_tags(self, pc, create_index_params):
         tags = {"foo": "FOO", "bar": "BAR"}
-        create_sl_index_params["tags"] = tags
-        pc.db.index.create(**create_sl_index_params)
-        desc = pc.db.index.describe(create_sl_index_params["name"])
+        create_index_params["tags"] = tags
+        pc.db.index.create(**create_index_params)
+        desc = pc.db.index.describe(create_index_params["name"])
         assert desc.tags.to_dict() == tags
 
 
@@ -211,76 +211,74 @@ class TestCreatePodIndexApiErrorCases:
 
 
 class TestCreateServerlessIndexApiErrorCases:
-    def test_create_index_with_invalid_name(self, pc, create_sl_index_params):
-        create_sl_index_params["name"] = "Invalid-name"
+    def test_create_index_with_invalid_name(self, pc, create_index_params):
+        create_index_params["name"] = "Invalid-name"
         with pytest.raises(PineconeApiException):
-            pc.db.index.create(**create_sl_index_params)
+            pc.db.index.create(**create_index_params)
 
-    def test_create_index_invalid_metric(self, pc, create_sl_index_params):
-        create_sl_index_params["metric"] = "invalid"
+    def test_create_index_invalid_metric(self, pc, create_index_params):
+        create_index_params["metric"] = "invalid"
         with pytest.raises(PineconeApiValueError):
-            pc.db.index.create(**create_sl_index_params)
+            pc.db.index.create(**create_index_params)
 
-    def test_create_index_with_invalid_neg_dimension(self, pc, create_sl_index_params):
-        create_sl_index_params["dimension"] = -1
+    def test_create_index_with_invalid_neg_dimension(self, pc, create_index_params):
+        create_index_params["dimension"] = -1
         with pytest.raises(PineconeApiValueError):
-            pc.db.index.create(**create_sl_index_params)
+            pc.db.index.create(**create_index_params)
 
-    def test_create_index_that_already_exists(self, pc, create_sl_index_params):
-        pc.db.index.create(**create_sl_index_params)
+    def test_create_index_that_already_exists(self, pc, create_index_params):
+        pc.db.index.create(**create_index_params)
         with pytest.raises(PineconeApiException):
-            pc.db.index.create(**create_sl_index_params)
+            pc.db.index.create(**create_index_params)
 
 
 class TestCreateServerlessIndexWithTimeout:
-    def test_create_index_default_timeout(self, pc, create_sl_index_params):
-        create_sl_index_params["timeout"] = None
-        pc.db.index.create(**create_sl_index_params)
+    def test_create_index_default_timeout(self, pc, create_index_params):
+        create_index_params["timeout"] = None
+        pc.db.index.create(**create_index_params)
         # Waits infinitely for index to be ready
-        desc = pc.db.index.describe(create_sl_index_params["name"])
+        desc = pc.db.index.describe(create_index_params["name"])
         assert desc.status.ready == True
 
-    def test_create_index_when_timeout_set(self, pc, create_sl_index_params):
-        create_sl_index_params["timeout"] = (
+    def test_create_index_when_timeout_set(self, pc, create_index_params):
+        create_index_params["timeout"] = (
             1000  # effectively infinite, but different code path from None
         )
-        pc.db.index.create(**create_sl_index_params)
-        desc = pc.db.index.describe(name=create_sl_index_params["name"])
+        pc.db.index.create(**create_index_params)
+        desc = pc.db.index.describe(name=create_index_params["name"])
         assert desc.status.ready == True
 
-    def test_create_index_with_negative_timeout(self, pc, create_sl_index_params):
-        create_sl_index_params["timeout"] = -1
-        pc.db.index.create(**create_sl_index_params)
-        desc = pc.db.index.describe(create_sl_index_params["name"])
+    def test_create_index_with_negative_timeout(self, pc, create_index_params):
+        create_index_params["timeout"] = -1
+        pc.db.index.create(**create_index_params)
+        desc = pc.db.index.describe(create_index_params["name"])
         # Returns immediately without waiting for index to be ready
         assert desc.status.ready in [False, True]
 
 
 class TestCreateIndexTypeErrorCases:
-    def test_create_index_with_invalid_str_dimension(self, pc, create_sl_index_params):
-        create_sl_index_params["dimension"] = "10"
+    def test_create_index_with_invalid_str_dimension(self, pc, create_index_params):
+        create_index_params["dimension"] = "10"
         with pytest.raises(PineconeApiTypeError):
-            pc.db.index.create(**create_sl_index_params)
+            pc.db.index.create(**create_index_params)
 
-    def test_create_index_with_missing_dimension(self, pc, create_sl_index_params):
-        del create_sl_index_params["dimension"]
+    def test_create_index_with_missing_dimension(self, pc, create_index_params):
+        del create_index_params["dimension"]
         with pytest.raises(PineconeApiException):
-            pc.db.index.create(**create_sl_index_params)
+            pc.db.index.create(**create_index_params)
 
-    def test_create_index_w_incompatible_options(self, pc, create_sl_index_params):
-        create_sl_index_params["pod_type"] = "p1.x2"
-        create_sl_index_params["environment"] = "us-east1-gcp"
-        create_sl_index_params["replicas"] = 2
+    def test_create_index_w_incompatible_options(self, pc, create_index_params):
+        create_index_params["pod_type"] = "p1.x2"
+        create_index_params["environment"] = "us-east1-gcp"
+        create_index_params["replicas"] = 2
         with pytest.raises(TypeError):
-            pc.db.index.create(**create_sl_index_params)
+            pc.db.index.create(**create_index_params)
 
     @pytest.mark.parametrize("required_option", ["name", "spec", "dimension"])
-    def test_create_with_missing_required_options(
-        self, pc, create_sl_index_params, required_option
-    ):
-        del create_sl_index_params[required_option]
+    def test_create_with_missing_required_options(self, pc, create_index_params, required_option):
+        del create_index_params[required_option]
         with pytest.raises(Exception) as e:
-            pc.db.index.create(**create_sl_index_params)
+            pc.db.index.create(**create_index_params)
         assert required_option.lower() in str(e.value).lower()
 
 

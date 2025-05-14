@@ -23,7 +23,7 @@ class BackupResource:
         List backups for an index or for the project.
 
         Args:
-            index_name (str): The name of the index to list backups for.
+            index_name (str): The name of the index to list backups for. If not provided, list all backups for the project.
             limit (int): The maximum number of backups to return.
             pagination_token (str): The pagination token to use for the next page of backups.
         """
