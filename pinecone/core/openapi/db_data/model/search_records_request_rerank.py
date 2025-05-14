@@ -113,8 +113,8 @@ class SearchRecordsRequestRerank(ModelNormal):
         """SearchRecordsRequestRerank - a model defined in OpenAPI
 
         Args:
-            model (str): The name of the [reranking model](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models) to use.
-            rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models).
+            model (str): The name of the [reranking model](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) to use.
+            rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/search/rerank-results#reranking-models).
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -148,7 +148,7 @@ class SearchRecordsRequestRerank(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             top_n (int): The number of top results to return after reranking. Defaults to top_k. [optional]  # noqa: E501
-            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models) for available model parameters. [optional]  # noqa: E501
+            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) for available model parameters. [optional]  # noqa: E501
             query (str): The query to rerank documents against. If a specific rerank query is specified,  it overwrites the query input that was provided at the top level. [optional]  # noqa: E501
         """
 
@@ -205,8 +205,8 @@ class SearchRecordsRequestRerank(ModelNormal):
         """SearchRecordsRequestRerank - a model defined in OpenAPI
 
         Args:
-            model (str): The name of the [reranking model](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models) to use.
-            rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models).
+            model (str): The name of the [reranking model](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) to use.
+            rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/search/rerank-results#reranking-models).
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -240,7 +240,7 @@ class SearchRecordsRequestRerank(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             top_n (int): The number of top results to return after reranking. Defaults to top_k. [optional]  # noqa: E501
-            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models) for available model parameters. [optional]  # noqa: E501
+            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) for available model parameters. [optional]  # noqa: E501
             query (str): The query to rerank documents against. If a specific rerank query is specified,  it overwrites the query input that was provided at the top level. [optional]  # noqa: E501
         """
 

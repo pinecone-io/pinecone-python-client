@@ -76,6 +76,10 @@ _db_control_lazy_imports = {
     "PodSpec": ("pinecone.db_control.models", "PodSpec"),
     "PodSpecDefinition": ("pinecone.db_control.models", "PodSpecDefinition"),
     "PodType": ("pinecone.db_control.enums", "PodType"),
+    "RestoreJobModel": ("pinecone.db_control.models", "RestoreJobModel"),
+    "RestoreJobList": ("pinecone.db_control.models", "RestoreJobList"),
+    "BackupModel": ("pinecone.db_control.models", "BackupModel"),
+    "BackupList": ("pinecone.db_control.models", "BackupList"),
 }
 
 _config_lazy_imports = {

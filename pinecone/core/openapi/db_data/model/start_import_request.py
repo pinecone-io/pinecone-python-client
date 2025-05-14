@@ -120,7 +120,7 @@ class StartImportRequest(ModelNormal):
         """StartImportRequest - a model defined in OpenAPI
 
         Args:
-            uri (str): The [URI prefix](https://docs.pinecone.io/guides/data/understanding-imports#directory-structure) under which the data to import is available. All data within this prefix will be listed then imported into the target index. Currently only `s3://` URIs are supported.
+            uri (str): The [URI prefix](https://docs.pinecone.io/guides/index-data/import-data#prepare-your-data) under which the data to import is available. All data within this prefix will be listed then imported into the target index. Currently only `s3://` URIs are supported.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -209,7 +209,7 @@ class StartImportRequest(ModelNormal):
         """StartImportRequest - a model defined in OpenAPI
 
         Args:
-            uri (str): The [URI prefix](https://docs.pinecone.io/guides/data/understanding-imports#directory-structure) under which the data to import is available. All data within this prefix will be listed then imported into the target index. Currently only `s3://` URIs are supported.
+            uri (str): The [URI prefix](https://docs.pinecone.io/guides/index-data/import-data#prepare-your-data) under which the data to import is available. All data within this prefix will be listed then imported into the target index. Currently only `s3://` URIs are supported.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types

@@ -4,7 +4,7 @@ from typing import Optional, Dict, Union, TYPE_CHECKING
 
 from pinecone.config import PineconeConfig, ConfigBuilder
 
-from pinecone.utils import normalize_host
+from pinecone.utils import normalize_host, require_kwargs
 from pinecone.utils import docslinks
 
 from .pinecone_interface_asyncio import PineconeAsyncioDBControlInterface
@@ -30,8 +30,12 @@ if TYPE_CHECKING:
         IndexList,
         CollectionList,
         IndexEmbed,
+        BackupModel,
+        BackupList,
+        RestoreJobModel,
+        RestoreJobList,
     )
-    from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
+    from pinecone.core.openapi.db_control.api.manage_indexes_api import AsyncioManageIndexesApi
     from pinecone.db_control.index_host_store import IndexHostStore
 
 logger = logging.getLogger(__name__)
@@ -179,7 +183,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         return self.db.index._index_host_store
 
     @property
-    def index_api(self) -> "ManageIndexesApi":
+    def index_api(self) -> "AsyncioManageIndexesApi":
         """@private"""
         warnings.warn(
             "The `index_api` property is deprecated. This warning will become an error in a future version of the Pinecone Python SDK.",
@@ -231,6 +235,24 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
             timeout=timeout,
         )
 
+    @require_kwargs
+    async def create_index_from_backup(
+        self,
+        *,
+        name: str,
+        backup_id: str,
+        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
+        tags: Optional[Dict[str, str]] = None,
+        timeout: Optional[int] = None,
+    ) -> "IndexModel":
+        return await self.db.index.create_from_backup(
+            name=name,
+            backup_id=backup_id,
+            deletion_protection=deletion_protection,
+            tags=tags,
+            timeout=timeout,
+        )
+
     async def delete_index(self, name: str, timeout: Optional[int] = None):
         return await self.db.index.delete(name=name, timeout=timeout)
 
@@ -270,6 +292,44 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
 
     async def describe_collection(self, name: str):
         return await self.db.collection.describe(name=name)
+
+    @require_kwargs
+    async def create_backup(
+        self, *, index_name: str, backup_name: str, description: str = ""
+    ) -> "BackupModel":
+        return await self.db.backup.create(
+            index_name=index_name, backup_name=backup_name, description=description
+        )
+
+    @require_kwargs
+    async def list_backups(
+        self,
+        *,
+        index_name: Optional[str] = None,
+        limit: Optional[int] = 10,
+        pagination_token: Optional[str] = None,
+    ) -> "BackupList":
+        return await self.db.backup.list(
+            index_name=index_name, limit=limit, pagination_token=pagination_token
+        )
+
+    @require_kwargs
+    async def describe_backup(self, *, backup_id: str) -> "BackupModel":
+        return await self.db.backup.describe(backup_id=backup_id)
+
+    @require_kwargs
+    async def delete_backup(self, *, backup_id: str) -> None:
+        return await self.db.backup.delete(backup_id=backup_id)
+
+    @require_kwargs
+    async def list_restore_jobs(
+        self, *, limit: Optional[int] = 10, pagination_token: Optional[str] = None
+    ) -> "RestoreJobList":
+        return await self.db.restore_job.list(limit=limit, pagination_token=pagination_token)
+
+    @require_kwargs
+    async def describe_restore_job(self, *, job_id: str) -> "RestoreJobModel":
+        return await self.db.restore_job.describe(job_id=job_id)
 
     def IndexAsyncio(self, host: str, **kwargs) -> "_IndexAsyncio":
         from pinecone.db_data import _IndexAsyncio

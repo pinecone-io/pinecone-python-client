@@ -61,9 +61,7 @@ class CreateBackupRequest(ModelNormal):
 
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-        ("name",): {"max_length": 45, "min_length": 1}
-    }
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -139,7 +137,7 @@ class CreateBackupRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.  [optional]  # noqa: E501
+            name (str): The name of the backup. [optional]  # noqa: E501
             description (str): A description of the backup. [optional]  # noqa: E501
         """
 
@@ -224,7 +222,7 @@ class CreateBackupRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.  [optional]  # noqa: E501
+            name (str): The name of the backup. [optional]  # noqa: E501
             description (str): A description of the backup. [optional]  # noqa: E501
         """
 

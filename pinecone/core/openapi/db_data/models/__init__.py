@@ -20,7 +20,9 @@ from pinecone.core.openapi.db_data.model.import_model import ImportModel
 from pinecone.core.openapi.db_data.model.index_description import IndexDescription
 from pinecone.core.openapi.db_data.model.list_imports_response import ListImportsResponse
 from pinecone.core.openapi.db_data.model.list_item import ListItem
+from pinecone.core.openapi.db_data.model.list_namespaces_response import ListNamespacesResponse
 from pinecone.core.openapi.db_data.model.list_response import ListResponse
+from pinecone.core.openapi.db_data.model.namespace_description import NamespaceDescription
 from pinecone.core.openapi.db_data.model.namespace_summary import NamespaceSummary
 from pinecone.core.openapi.db_data.model.pagination import Pagination
 from pinecone.core.openapi.db_data.model.protobuf_any import ProtobufAny

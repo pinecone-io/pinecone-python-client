@@ -1,5 +1,5 @@
 """
-Pinecone Control Plane API
+Pinecone Data Plane API
 
 Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
@@ -30,10 +30,10 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="DedicatedSpec")
+T = TypeVar("T", bound="NamespaceDescription")
 
 
-class DedicatedSpec(ModelNormal):
+class NamespaceDescription(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -84,7 +84,8 @@ class DedicatedSpec(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            "environment": (str,)  # noqa: E501
+            "name": (str,),  # noqa: E501
+            "record_count": (int,),  # noqa: E501
         }
 
     @cached_class_property
@@ -92,7 +93,8 @@ class DedicatedSpec(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "environment": "environment"  # noqa: E501
+        "name": "name",  # noqa: E501
+        "record_count": "record_count",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -101,11 +103,8 @@ class DedicatedSpec(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], environment, *args, **kwargs) -> T:  # noqa: E501
-        """DedicatedSpec - a model defined in OpenAPI
-
-        Args:
-            environment (str): The environment where the index is hosted.
+    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
+        """NamespaceDescription - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -138,6 +137,8 @@ class DedicatedSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            name (str): The name of the namespace. [optional]  # noqa: E501
+            record_count (int): The total amount of records within the namespace. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -163,7 +164,6 @@ class DedicatedSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.environment = environment
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -188,11 +188,8 @@ class DedicatedSpec(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, environment, *args, **kwargs) -> None:  # noqa: E501
-        """DedicatedSpec - a model defined in OpenAPI
-
-        Args:
-            environment (str): The environment where the index is hosted.
+    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
+        """NamespaceDescription - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -225,6 +222,8 @@ class DedicatedSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            name (str): The name of the namespace. [optional]  # noqa: E501
+            record_count (int): The total amount of records within the namespace. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -248,7 +247,6 @@ class DedicatedSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.environment = environment
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

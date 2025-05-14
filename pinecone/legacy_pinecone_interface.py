@@ -10,6 +10,10 @@ if TYPE_CHECKING:
         CollectionList,
         IndexModel,
         IndexEmbed,
+        BackupModel,
+        BackupList,
+        RestoreJobModel,
+        RestoreJobList,
     )
     from pinecone.db_control.enums import (
         Metric,
@@ -294,6 +298,36 @@ class LegacyPineconeDBControlInterface(ABC):
             }
         )
         ```
+        """
+        pass
+
+    @abstractmethod
+    def create_index_from_backup(
+        self,
+        *,
+        name: str,
+        backup_id: str,
+        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
+        tags: Optional[Dict[str, str]] = None,
+        timeout: Optional[int] = None,
+    ) -> "IndexModel":
+        """
+        Create an index from a backup.
+
+        Call `list_backups` to get a list of backups for your project.
+
+        :param name: The name of the index to create.
+        :type name: str
+        :param backup_id: The ID of the backup to restore.
+        :type backup_id: str
+        :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. This setting can be changed with `configure_index`.
+        :type deletion_protection: Optional[Literal["enabled", "disabled"]]
+        :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
+        :type tags: Optional[Dict[str, str]]
+        :param timeout: Specify the number of seconds to wait until index is ready to receive data. If None, wait indefinitely; if >=0, time out after this many seconds;
+            if -1, return immediately and do not wait.
+        :return: A description of the index that was created.
+        :rtype: IndexModel
         """
         pass
 
@@ -698,6 +732,77 @@ class LegacyPineconeDBControlInterface(ABC):
         print(description.status)
         print(description.size)
         ```
+        """
+        pass
+
+    @abstractmethod
+    def create_backup(
+        self, *, index_name: str, backup_name: str, description: str = ""
+    ) -> "BackupModel":
+        """Create a backup of an index.
+
+        Args:
+            index_name (str): The name of the index to backup.
+            backup_name (str): The name to give the backup.
+            description (str): Optional description of the backup.
+        """
+        pass
+
+    @abstractmethod
+    def list_backups(
+        self,
+        *,
+        index_name: Optional[str] = None,
+        limit: Optional[int] = 10,
+        pagination_token: Optional[str] = None,
+    ) -> "BackupList":
+        """List backups.
+
+        If index_name is provided, the backups will be filtered by index. If no index_name is provided, all backups in the projectwill be returned.
+
+        Args:
+            index_name (str): The name of the index to list backups for.
+            limit (int): The maximum number of backups to return.
+            pagination_token (str): The pagination token to use for pagination.
+        """
+        pass
+
+    @abstractmethod
+    def describe_backup(self, *, backup_id: str) -> "BackupModel":
+        """Describe a backup.
+
+        Args:
+            backup_id (str): The ID of the backup to describe.
+        """
+        pass
+
+    @abstractmethod
+    def delete_backup(self, *, backup_id: str) -> None:
+        """Delete a backup.
+
+        Args:
+            backup_id (str): The ID of the backup to delete.
+        """
+        pass
+
+    @abstractmethod
+    def list_restore_jobs(
+        self, *, limit: Optional[int] = 10, pagination_token: Optional[str] = None
+    ) -> "RestoreJobList":
+        """List restore jobs.
+
+        Args:
+            limit (int): The maximum number of restore jobs to return.
+            pagination_token (str): The pagination token to use for pagination.
+        """
+        pass
+
+    @abstractmethod
+    def describe_restore_job(self, *, job_id: str) -> "RestoreJobModel":
+        """Describe a restore job.
+
+        Args:
+            job_id (str): The ID of the restore job to describe.
         """
         pass
 

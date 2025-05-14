@@ -27,8 +27,8 @@ logger = logging.getLogger(__name__)
 
 class IndexResourceAsyncio:
     def __init__(self, index_api, config):
-        self.index_api = index_api
-        self.config = config
+        self._index_api = index_api
+        self._config = config
 
     async def create(
         self,
@@ -50,7 +50,7 @@ class IndexResourceAsyncio:
             vector_type=vector_type,
             tags=tags,
         )
-        resp = await self.index_api.create_index(create_index_request=req)
+        resp = await self._index_api.create_index(create_index_request=req)
 
         if timeout == -1:
             return IndexModel(resp)
@@ -74,10 +74,26 @@ class IndexResourceAsyncio:
             tags=tags,
             deletion_protection=deletion_protection,
         )
-        resp = await self.index_api.create_index_for_model(req)
+        resp = await self._index_api.create_index_for_model(req)
 
         if timeout == -1:
             return IndexModel(resp)
+        return await self.__poll_describe_index_until_ready(name, timeout)
+
+    async def create_from_backup(
+        self,
+        name: str,
+        backup_id: str,
+        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        tags: Optional[Dict[str, str]] = None,
+        timeout: Optional[int] = None,
+    ) -> IndexModel:
+        req = PineconeDBControlRequestFactory.create_index_from_backup_request(
+            name=name, deletion_protection=deletion_protection, tags=tags
+        )
+        await self._index_api.create_index_from_backup_operation(
+            backup_id=backup_id, create_index_from_backup_request=req
+        )
         return await self.__poll_describe_index_until_ready(name, timeout)
 
     async def __poll_describe_index_until_ready(self, name: str, timeout: Optional[int] = None):
@@ -119,7 +135,7 @@ class IndexResourceAsyncio:
         return description
 
     async def delete(self, name: str, timeout: Optional[int] = None):
-        await self.index_api.delete_index(name)
+        await self._index_api.delete_index(name)
 
         if timeout == -1:
             return
@@ -141,11 +157,11 @@ class IndexResourceAsyncio:
             )
 
     async def list(self) -> IndexList:
-        response = await self.index_api.list_indexes()
+        response = await self._index_api.list_indexes()
         return IndexList(response)
 
     async def describe(self, name: str) -> IndexModel:
-        description = await self.index_api.describe_index(name)
+        description = await self._index_api.describe_index(name)
         return IndexModel(description)
 
     async def has(self, name: str) -> bool:
@@ -172,4 +188,4 @@ class IndexResourceAsyncio:
             deletion_protection=deletion_protection,
             tags=tags,
         )
-        await self.index_api.configure_index(name, configure_index_request=req)
+        await self._index_api.configure_index(name, configure_index_request=req)

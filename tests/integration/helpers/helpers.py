@@ -91,6 +91,9 @@ def poll_stats_for_namespace(
             raise TimeoutError(f"Timed out waiting for namespace {namespace} to have vectors")
         else:
             total_time += delta_t
+            logger.debug(
+                f"Found {stats}. Waiting for {expected_count} vectors in namespace {namespace}."
+            )
             time.sleep(delta_t)
 
 

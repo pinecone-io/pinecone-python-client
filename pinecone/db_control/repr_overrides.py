@@ -1,5 +1,4 @@
-from pinecone.utils import install_json_repr_override
-from pinecone.db_control.models.index_model import IndexModel
+from pinecone.utils.repr_overrides import install_json_repr_override
 from pinecone.core.openapi.db_control.model.collection_model import CollectionModel
 
 
@@ -12,5 +11,5 @@ def install_repr_overrides():
     from pprint.pformat seems better for data plane objects such as lists of
     query results.
     """
-    for model in [IndexModel, CollectionModel]:
+    for model in [CollectionModel]:
         install_json_repr_override(model)
