@@ -179,10 +179,10 @@ class IndexResource:
             return
 
         if timeout is None:
-            while self.has(name):
+            while self.has(name=name):
                 time.sleep(5)
         else:
-            while self.has(name) and timeout >= 0:
+            while self.has(name=name) and timeout >= 0:
                 time.sleep(5)
                 timeout -= 5
         if timeout and timeout < 0:
