@@ -71,6 +71,7 @@ _db_control_lazy_imports = {
     "IndexList": ("pinecone.db_control.models", "IndexList"),
     "IndexModel": ("pinecone.db_control.models", "IndexModel"),
     "IndexEmbed": ("pinecone.db_control.models", "IndexEmbed"),
+    "ByocSpec": ("pinecone.db_control.models", "ByocSpec"),
     "ServerlessSpec": ("pinecone.db_control.models", "ServerlessSpec"),
     "ServerlessSpecDefinition": ("pinecone.db_control.models", "ServerlessSpecDefinition"),
     "PodSpec": ("pinecone.db_control.models", "PodSpec"),

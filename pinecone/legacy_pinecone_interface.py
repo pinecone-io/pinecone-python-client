@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from pinecone.db_control.models import (
         ServerlessSpec,
         PodSpec,
+        ByocSpec,
         IndexList,
         CollectionList,
         IndexModel,
@@ -194,7 +195,7 @@ class LegacyPineconeDBControlInterface(ABC):
     def create_index(
         self,
         name: str,
-        spec: Union[Dict, "ServerlessSpec", "PodSpec"],
+        spec: Union[Dict, "ServerlessSpec", "PodSpec", "ByocSpec"],
         dimension: Optional[int],
         metric: Optional[Union["Metric", str]] = "Metric.COSINE",
         timeout: Optional[int] = None,
@@ -214,7 +215,7 @@ class LegacyPineconeDBControlInterface(ABC):
         :type metric: str, optional
         :param spec: A dictionary containing configurations describing how the index should be deployed. For serverless indexes,
             specify region and cloud. For pod indexes, specify replicas, shards, pods, pod_type, metadata_config, and source_collection.
-            Alternatively, use the `ServerlessSpec` or `PodSpec` objects to specify these configurations.
+            Alternatively, use the `ServerlessSpec`, `PodSpec`, or `ByocSpec` objects to specify these configurations.
         :type spec: Dict
         :param dimension: If you are creating an index with `vector_type="dense"` (which is the default), you need to specify `dimension` to indicate the size of your vectors.
             This should match the dimension of the embeddings you will be inserting. For example, if you are using
