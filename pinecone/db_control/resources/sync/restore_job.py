@@ -1,8 +1,7 @@
 from typing import Optional
 
 from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
-from pinecone.core.openapi.db_control.model.restore_job_model import RestoreJobModel
-from pinecone.core.openapi.db_control.model.restore_job_list import RestoreJobList
+from pinecone.db_control.models import RestoreJobModel, RestoreJobList
 from pinecone.utils import parse_non_empty_args, require_kwargs
 
 
@@ -12,30 +11,31 @@ class RestoreJobResource:
         """ @private """
 
     @require_kwargs
-    def get(self, *, restore_job_id: str) -> RestoreJobModel:
+    def get(self, *, job_id: str) -> RestoreJobModel:
         """
         Get a restore job by ID.
 
         Args:
-            restore_job_id (str): The ID of the restore job to get.
+            job_id (str): The ID of the restore job to get.
 
         Returns:
             RestoreJobModel: The restore job.
         """
-        return self._index_api.describe_restore_job(restore_job_id=restore_job_id)
+        job = self._index_api.describe_restore_job(job_id=job_id)
+        return RestoreJobModel(job)
 
     @require_kwargs
-    def describe(self, *, restore_job_id: str) -> RestoreJobModel:
+    def describe(self, *, job_id: str) -> RestoreJobModel:
         """
         Get a restore job by ID. Alias for get.
 
         Args:
-            restore_job_id (str): The ID of the restore job to get.
+            job_id (str): The ID of the restore job to get.
 
         Returns:
             RestoreJobModel: The restore job.
         """
-        return self.get(restore_job_id=restore_job_id)
+        return self.get(job_id=job_id)
 
     @require_kwargs
     def list(
@@ -52,4 +52,5 @@ class RestoreJobResource:
             List[RestoreJobModel]: The list of restore jobs.
         """
         args = parse_non_empty_args([("limit", limit), ("pagination_token", pagination_token)])
-        return self._index_api.list_restore_jobs(**args)
+        jobs = self._index_api.list_restore_jobs(**args)
+        return RestoreJobList(jobs)

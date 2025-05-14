@@ -1,4 +1,6 @@
 from pinecone.core.openapi.db_control.model.index_model import IndexModel as OpenAPIIndexModel
+import json
+from pinecone.utils.repr_overrides import custom_serializer
 
 
 class IndexModel:
@@ -14,6 +16,9 @@ class IndexModel:
 
     def __getitem__(self, key):
         return self.__getattr__(key)
+
+    def __repr__(self):
+        return json.dumps(self.to_dict(), indent=4, default=custom_serializer)
 
     def to_dict(self):
         return self.index.to_dict()

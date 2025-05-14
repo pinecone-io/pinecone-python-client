@@ -13,7 +13,20 @@ class BackupList:
         return [i.name for i in self._backups]
 
     def __getitem__(self, key):
-        return self.indexes[key]
+        if isinstance(key, int):
+            return self._backups[key]
+        elif key == "data":
+            return self._backups
+        else:
+            # pagination and any other keys added in the future
+            return self._backup_list[key]
+
+    def __getattr__(self, attr):
+        if attr == "data":
+            return self._backups
+        else:
+            # pagination and any other keys added in the future
+            return getattr(self._backup_list, attr)
 
     def __len__(self):
         return len(self._backups)
@@ -25,7 +38,12 @@ class BackupList:
         return str(self._backups)
 
     def __repr__(self):
-        return json.dumps([i.to_dict() for i in self._backups], indent=4)
+        raw_dict = self._backup_list.to_dict()
+        raw_dict["data"] = [i.to_dict() for i in self._backups]
 
-    def __getattr__(self, attr):
-        return getattr(self._backup_list, attr)
+        # Remove keys with value None
+        for key, value in list(raw_dict.items()):
+            if value is None:
+                del raw_dict[key]
+
+        return json.dumps(raw_dict, indent=4)

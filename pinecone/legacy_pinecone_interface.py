@@ -798,11 +798,11 @@ class LegacyPineconeDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def describe_restore_job(self, *, restore_job_id: str) -> "RestoreJobModel":
+    def describe_restore_job(self, *, job_id: str) -> "RestoreJobModel":
         """Describe a restore job.
 
         Args:
-            restore_job_id (str): The ID of the restore job to describe.
+            job_id (str): The ID of the restore job to describe.
         """
         pass
 

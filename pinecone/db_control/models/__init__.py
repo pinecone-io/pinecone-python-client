@@ -8,8 +8,8 @@ from .index_model import IndexModel
 from ...inference.models.index_embed import IndexEmbed
 from .backup_model import BackupModel
 from .backup_list import BackupList
-from pinecone.core.openapi.db_control.model.restore_job_model import RestoreJobModel
-from pinecone.core.openapi.db_control.model.restore_job_list import RestoreJobList
+from .restore_job_model import RestoreJobModel
+from .restore_job_list import RestoreJobList
 
 
 __all__ = [

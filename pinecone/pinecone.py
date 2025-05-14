@@ -309,8 +309,8 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         return self.db.restore_job.list(limit=limit, pagination_token=pagination_token)
 
     @require_kwargs
-    def describe_restore_job(self, *, restore_job_id: str) -> "RestoreJobModel":
-        return self.db.restore_job.describe(restore_job_id=restore_job_id)
+    def describe_restore_job(self, *, job_id: str) -> "RestoreJobModel":
+        return self.db.restore_job.describe(job_id=job_id)
 
     @staticmethod
     def from_texts(*args, **kwargs):

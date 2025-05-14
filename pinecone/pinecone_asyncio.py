@@ -328,8 +328,8 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         return await self.db.restore_job.list(limit=limit, pagination_token=pagination_token)
 
     @require_kwargs
-    async def describe_restore_job(self, *, restore_job_id: str) -> "RestoreJobModel":
-        return await self.db.restore_job.describe(restore_job_id=restore_job_id)
+    async def describe_restore_job(self, *, job_id: str) -> "RestoreJobModel":
+        return await self.db.restore_job.describe(job_id=job_id)
 
     def IndexAsyncio(self, host: str, **kwargs) -> "_IndexAsyncio":
         from pinecone.db_data import _IndexAsyncio

@@ -27,6 +27,8 @@ jobs:
         run: poetry run pytest tests/integration/control/index --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
       - name: 'Run collection tests'
         run: poetry run pytest tests/integration/control/collections --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
+      - name: 'Run backup & restore tests'
+        run: poetry run pytest tests/integration/control/backup --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
 
 
   inference:
