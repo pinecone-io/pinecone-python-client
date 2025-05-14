@@ -155,10 +155,10 @@ class IndexResourceAsyncio:
             return
 
         if timeout is None:
-            while await self.has(name):
+            while await self.has(name=name):
                 await asyncio.sleep(5)
         else:
-            while await self.has(name) and timeout >= 0:
+            while await self.has(name=name) and timeout >= 0:
                 await asyncio.sleep(5)
                 timeout -= 5
         if timeout and timeout < 0:
