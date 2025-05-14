@@ -4,6 +4,7 @@ import time
 import random
 import string
 import logging
+import uuid
 import asyncio
 from typing import Any
 from datetime import datetime
@@ -279,7 +280,11 @@ async def asyncio_wait_until(
 
 
 def default_create_index_params(request, run_id):
-    index_name = generate_index_name(request.node.name)
+    github_actor = os.getenv("GITHUB_ACTOR", None)
+    user = os.getenv("USER", None)
+    index_owner = github_actor or user or "unknown"
+
+    index_name = f"{index_owner}-{str(uuid.uuid4())}"
     tags = index_tags(request, run_id)
     cloud = get_environment_var("SERVERLESS_CLOUD", "aws")
     region = get_environment_var("SERVERLESS_REGION", "us-west-2")
