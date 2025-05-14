@@ -51,6 +51,6 @@ jobs:
           include_asyncio: true
           include_dev: true
       - name: 'db_control asyncio'
-        run: poetry run pytest tests/integration/control_asyncio --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
+        run: poetry run pytest tests/integration/control_asyncio/*.py --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
         env:
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'

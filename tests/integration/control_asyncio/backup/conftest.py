@@ -213,8 +213,11 @@ async def cleanup(client, index_name):
         pass
 
     for backup in client.db.backup.list():
-        logger.debug(f"Deleting backup: {backup.name}")
-        try:
-            client.db.backup.delete(backup_id=backup.backup_id)
-        except Exception as e:
-            logger.warning(f"Failed to delete backup: {backup.name}: {str(e)}")
+        if backup.tags is not None and backup.tags.get("test-run") == RUN_ID:
+            logger.debug(f"Deleting backup: {backup.name}")
+            try:
+                client.db.backup.delete(backup_id=backup.backup_id)
+            except Exception as e:
+                logger.warning(f"Failed to delete backup: {backup.name}: {str(e)}")
+        else:
+            logger.info(f"Backup {backup.name} is not a test backup from run {RUN_ID}. Skipping.")

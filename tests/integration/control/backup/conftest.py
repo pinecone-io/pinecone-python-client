@@ -99,14 +99,8 @@ def cleanup(pc, index_name):
         logger.debug("Attempting to delete index with name: " + index_name)
         pc.db.index.delete(name=index_name, timeout=-1)
     except Exception:
+        logger.warning(f"Failed to delete index {index_name}")
         pass
-
-    for backup in pc.db.backup.list():
-        logger.debug(f"Deleting backup: {backup.name}")
-        try:
-            pc.db.backup.delete(backup_id=backup.backup_id)
-        except Exception as e:
-            logger.warning(f"Failed to delete backup: {backup.name}: {str(e)}")
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -150,17 +144,17 @@ def pytest_sessionfinish(session, exitstatus):
             except Exception as e:
                 logger.warning(f"Failed to delete index {idx.name}: {str(e)}")
 
-        backups = pc.db.backup.list()
-        if len(backups) > 0:
-            logger.info(f"Deleting {len(backups)} backups")
-            for backup in backups:
+        for backup in pc.db.backup.list():
+            if backup.tags is not None and backup.tags.get("test-run") == RUN_ID:
                 logger.debug(f"Deleting backup: {backup.name}")
                 try:
                     pc.db.backup.delete(backup_id=backup.backup_id)
                 except Exception as e:
                     logger.warning(f"Failed to delete backup: {backup.name}: {str(e)}")
-        else:
-            logger.info("No backups to delete")
+            else:
+                logger.info(
+                    f"Backup {backup.name} is not a test backup from run {RUN_ID}. Skipping."
+                )
 
     except Exception as e:
         logger.error(f"Error during final cleanup: {str(e)}")
