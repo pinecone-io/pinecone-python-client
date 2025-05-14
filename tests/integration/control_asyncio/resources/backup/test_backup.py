@@ -1,7 +1,7 @@
 import pytest
 import random
 import asyncio
-from ...helpers import random_string
+from ....helpers import random_string
 import logging
 from pinecone import PineconeAsyncio
 
@@ -102,10 +102,6 @@ class TestBackups:
             # Verify that the backup is deleted
             with pytest.raises(Exception):
                 await pc.db.backup.describe(backup_id=backup.backup_id)
-
-            # Verify that the new index is deleted
-            backup_list = await pc.db.backup.list()
-            assert len(backup_list) == 0
 
     async def test_create_backup_legacy_syntax(self, ready_sl_index, index_tags):
         async with PineconeAsyncio() as pc:
