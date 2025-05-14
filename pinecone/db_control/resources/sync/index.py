@@ -93,9 +93,9 @@ class IndexResource(PluginAware):
         self,
         *,
         name: str,
-        cloud: Union[CloudProvider, str],
-        region: Union[AwsRegion, GcpRegion, AzureRegion, str],
-        embed: Union["IndexEmbed", CreateIndexForModelEmbedTypedDict],
+        cloud: Union["CloudProvider", str],
+        region: Union["AwsRegion", "GcpRegion", "AzureRegion", str],
+        embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
         tags: Optional[Dict[str, str]] = None,
         deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
         timeout: Optional[int] = None,
@@ -238,8 +238,8 @@ class IndexResource(PluginAware):
         *,
         name: str,
         replicas: Optional[int] = None,
-        pod_type: Optional[Union[PodType, str]] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = None,
+        pod_type: Optional[Union["PodType", str]] = None,
+        deletion_protection: Optional[Union["DeletionProtection", str]] = None,
         tags: Optional[Dict[str, str]] = None,
     ) -> None:
         api_instance = self._index_api
