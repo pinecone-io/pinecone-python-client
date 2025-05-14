@@ -53,7 +53,7 @@ class TestBackups:
 
             # Wait for the backup to be ready before proceeding
             backup_ready = False
-            max_wait = 60
+            max_wait = 5 * 60
             while not backup_ready:
                 backup_desc = await pc.db.backup.describe(backup_id=backup.backup_id)
                 logger.info(f"Backup description: {backup_desc}")
@@ -150,7 +150,7 @@ class TestBackups:
 
             # Wait for the backup to be ready before proceeding
             backup_ready = False
-            max_wait = 60
+            max_wait = 5 * 60
             while not backup_ready:
                 backup_desc = await pc.describe_backup(backup_id=backup.backup_id)
                 logger.info(f"Backup description: {backup_desc}")

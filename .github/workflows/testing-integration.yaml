@@ -33,7 +33,7 @@ jobs:
         with:
           include_asyncio: true
       - name: 'Run tests'
-        run: poetry run pytest ${{ matrix.test_suite }} --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
+        run: poetry run pytest ${{ matrix.test_suite }} --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
 
   inference:
     name: Inference tests
