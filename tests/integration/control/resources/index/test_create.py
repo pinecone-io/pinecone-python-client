@@ -17,11 +17,12 @@ from pinecone import (
 
 
 class TestCreateServerlessIndexHappyPath:
-    def test_create_index(self, pc: Pinecone, index_name):
+    def test_create_index(self, pc: Pinecone, index_name, index_tags):
         resp = pc.db.index.create(
             name=index_name,
             dimension=10,
             spec=ServerlessSpec(cloud=CloudProvider.AWS, region=AwsRegion.US_EAST_1),
+            tags=index_tags,
         )
         assert resp.name == index_name
         assert resp.dimension == 10
@@ -36,23 +37,25 @@ class TestCreateServerlessIndexHappyPath:
         assert desc.deletion_protection == "disabled"  # default value
         assert desc.vector_type == "dense"  # default value
 
-    def test_create_skip_wait(self, pc, index_name):
+    def test_create_skip_wait(self, pc, index_name, index_tags):
         resp = pc.db.index.create(
             name=index_name,
             dimension=10,
             spec=ServerlessSpec(cloud=CloudProvider.AWS, region=AwsRegion.US_EAST_1),
             timeout=-1,
+            tags=index_tags,
         )
         assert resp.name == index_name
         assert resp.dimension == 10
         assert resp.metric == "cosine"
 
-    def test_create_infinite_wait(self, pc, index_name):
+    def test_create_infinite_wait(self, pc, index_name, index_tags):
         resp = pc.db.index.create(
             name=index_name,
             dimension=10,
             spec=ServerlessSpec(cloud=CloudProvider.AWS, region=AwsRegion.US_EAST_1),
             timeout=None,
+            tags=index_tags,
         )
         assert resp.name == index_name
         assert resp.dimension == 10
@@ -70,15 +73,15 @@ class TestCreateServerlessIndexHappyPath:
         assert desc.vector_type == "dense"
 
     @pytest.mark.parametrize(
-        "metric_enum,vector_type_enum,dim,tags",
+        "metric_enum,vector_type_enum,dim",
         [
-            (Metric.COSINE, VectorType.DENSE, 10, None),
-            (Metric.EUCLIDEAN, VectorType.DENSE, 10, {"env": "prod"}),
-            (Metric.DOTPRODUCT, VectorType.SPARSE, None, {"env": "dev"}),
+            (Metric.COSINE, VectorType.DENSE, 10),
+            (Metric.EUCLIDEAN, VectorType.DENSE, 10),
+            (Metric.DOTPRODUCT, VectorType.SPARSE, None),
         ],
     )
     def test_create_with_enum_values(
-        self, pc, index_name, metric_enum, vector_type_enum, dim, tags
+        self, pc, index_name, metric_enum, vector_type_enum, dim, index_tags
     ):
         args = {
             "name": index_name,
@@ -86,7 +89,7 @@ class TestCreateServerlessIndexHappyPath:
             "vector_type": vector_type_enum,
             "deletion_protection": DeletionProtection.DISABLED,
             "spec": ServerlessSpec(cloud=CloudProvider.AWS, region=AwsRegion.US_EAST_1),
-            "tags": tags,
+            "tags": index_tags,
         }
         if dim is not None:
             args["dimension"] = dim
@@ -101,8 +104,7 @@ class TestCreateServerlessIndexHappyPath:
         assert desc.name == index_name
         assert desc.spec.serverless.cloud == "aws"
         assert desc.spec.serverless.region == "us-east-1"
-        if tags:
-            assert desc.tags.to_dict() == tags
+        assert desc.tags.to_dict() == index_tags
 
     @pytest.mark.parametrize("metric", ["cosine", "euclidean", "dotproduct"])
     def test_create_dense_index_with_metric(self, pc, create_index_params, metric):
@@ -112,13 +114,6 @@ class TestCreateServerlessIndexHappyPath:
         desc = pc.db.index.describe(create_index_params["name"])
         assert desc.metric == metric
         assert desc.vector_type == "dense"
-
-    def test_create_with_optional_tags(self, pc, create_index_params):
-        tags = {"foo": "FOO", "bar": "BAR"}
-        create_index_params["tags"] = tags
-        pc.db.index.create(**create_index_params)
-        desc = pc.db.index.describe(create_index_params["name"])
-        assert desc.tags.to_dict() == tags
 
 
 class TestCreatePodIndexHappyPath:
@@ -152,7 +147,7 @@ class TestCreatePodIndexHappyPath:
             metric="cosine",
             spec=PodSpec(
                 environment=pod_environment,
-                pod_type="p1.x2",
+                pod_type="p1.x1",
                 replicas=2,
                 metadata_config={"indexed": ["foo", "bar"]},
             ),
@@ -164,9 +159,10 @@ class TestCreatePodIndexHappyPath:
         assert desc.dimension == 10
         assert desc.metric == "cosine"
         assert desc.spec.pod.environment == pod_environment
-        assert desc.spec.pod.pod_type == "p1.x2"
+        assert desc.spec.pod.pod_type == "p1.x1"
         assert desc.spec.pod.replicas == 2
         assert desc.spec.pod.metadata_config.indexed == ["foo", "bar"]
+        assert desc.tags.to_dict() == index_tags
 
     def test_create_index_with_deletion_protection(
         self, pc: Pinecone, index_name, pod_environment, index_tags
