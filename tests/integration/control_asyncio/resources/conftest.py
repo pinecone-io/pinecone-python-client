@@ -2,7 +2,8 @@ import pytest
 import uuid
 import logging
 import dotenv
-from pinecone import Pinecone
+import os
+from pinecone import Pinecone, PodIndexEnvironment
 from ...helpers import delete_indexes_from_run, delete_backups_from_run, default_create_index_params
 
 dotenv.load_dotenv()
@@ -17,6 +18,11 @@ RUN_ID = str(uuid.uuid4())
 @pytest.fixture()
 def pc():
     return Pinecone()
+
+
+@pytest.fixture
+def pod_environment():
+    return os.getenv("POD_ENVIRONMENT", PodIndexEnvironment.US_EAST1_AWS.value)
 
 
 @pytest.fixture()
