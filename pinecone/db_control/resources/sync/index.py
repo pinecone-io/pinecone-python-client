@@ -43,8 +43,10 @@ class IndexResource:
         self._index_host_store = IndexHostStore()
         """ @private """
 
+    @require_kwargs
     def create(
         self,
+        *,
         name: str,
         spec: Union[Dict, ServerlessSpec, PodSpec, ByocSpec],
         dimension: Optional[int] = None,
@@ -69,8 +71,10 @@ class IndexResource:
             return IndexModel(resp)
         return self.__poll_describe_index_until_ready(name, timeout)
 
+    @require_kwargs
     def create_for_model(
         self,
+        *,
         name: str,
         cloud: Union[CloudProvider, str],
         region: Union[AwsRegion, GcpRegion, AzureRegion, str],
@@ -166,7 +170,8 @@ class IndexResource:
 
         return description
 
-    def delete(self, name: str, timeout: Optional[int] = None):
+    @require_kwargs
+    def delete(self, *, name: str, timeout: Optional[int] = None):
         self._index_api.delete_index(name)
         self._index_host_store.delete_host(self._config, name)
 
@@ -189,11 +194,13 @@ class IndexResource:
                 )
             )
 
+    @require_kwargs
     def list(self) -> IndexList:
         response = self._index_api.list_indexes()
         return IndexList(response)
 
-    def describe(self, name: str) -> IndexModel:
+    @require_kwargs
+    def describe(self, *, name: str) -> IndexModel:
         api_instance = self._index_api
         description = api_instance.describe_index(name)
         host = description.host
@@ -201,14 +208,17 @@ class IndexResource:
 
         return IndexModel(description)
 
-    def has(self, name: str) -> bool:
+    @require_kwargs
+    def has(self, *, name: str) -> bool:
         if name in self.list().names():
             return True
         else:
             return False
 
+    @require_kwargs
     def configure(
         self,
+        *,
         name: str,
         replicas: Optional[int] = None,
         pod_type: Optional[Union[PodType, str]] = None,
