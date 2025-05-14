@@ -1,6 +1,6 @@
 import pytest
 import random
-from ...helpers import random_string, poll_stats_for_namespace
+from ....helpers import random_string, poll_stats_for_namespace
 import logging
 import time
 from pinecone import Pinecone

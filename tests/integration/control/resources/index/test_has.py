@@ -1,4 +1,4 @@
-from tests.integration.helpers import random_string
+from ....helpers import random_string
 
 
 class TestHasIndex:
