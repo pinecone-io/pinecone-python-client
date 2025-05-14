@@ -1,8 +1,9 @@
+import os
 import pytest
 import uuid
 import logging
 import dotenv
-from pinecone import Pinecone
+from pinecone import Pinecone, PodIndexEnvironment
 from ...helpers import delete_indexes_from_run, delete_backups_from_run, default_create_index_params
 
 dotenv.load_dotenv()
@@ -32,6 +33,11 @@ def index_name(create_index_params):
 @pytest.fixture()
 def index_tags(create_index_params):
     return create_index_params["tags"]
+
+
+@pytest.fixture
+def pod_environment():
+    return os.getenv("POD_ENVIRONMENT", PodIndexEnvironment.US_EAST1_AWS.value)
 
 
 @pytest.fixture()
