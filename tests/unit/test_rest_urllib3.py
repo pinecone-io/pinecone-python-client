@@ -5,6 +5,7 @@ from urllib3.exceptions import MaxRetryError
 from pinecone.openapi_support.rest_urllib3 import Urllib3RestClient
 from pinecone.config.openapi_configuration import Configuration
 
+
 class TestUrllib3RestClient:
     @pytest.fixture
     def config(self):
@@ -23,18 +24,18 @@ class TestUrllib3RestClient:
         mock_response.reason = "Internal Server Error"
 
         # Mock pool manager to fail twice then succeed
-        with patch.object(client.pool_manager, 'request') as mock_request:
+        with patch.object(client.pool_manager, "request") as mock_request:
             mock_request.side_effect = [
                 urllib3.exceptions.HTTPError(response=mock_response),
                 urllib3.exceptions.HTTPError(response=mock_response),
-                mock_response  # Success on third try
+                mock_response,  # Success on third try
             ]
 
             # Make request
             response = client.request(
                 method="GET",
                 url="https://api.pinecone.io/test",
-                headers={"Authorization": "test-key"}
+                headers={"Authorization": "test-key"},
             )
 
             # Verify request was made 3 times (initial + 2 retries)
@@ -52,7 +53,7 @@ class TestUrllib3RestClient:
         mock_response.reason = "Internal Server Error"
 
         # Mock pool manager to always fail
-        with patch.object(client.pool_manager, 'request') as mock_request:
+        with patch.object(client.pool_manager, "request") as mock_request:
             mock_request.side_effect = urllib3.exceptions.HTTPError(response=mock_response)
 
             # Make request and expect MaxRetryError
@@ -60,7 +61,7 @@ class TestUrllib3RestClient:
                 client.request(
                     method="GET",
                     url="https://api.pinecone.io/test",
-                    headers={"Authorization": "test-key"}
+                    headers={"Authorization": "test-key"},
                 )
 
             # Verify request was made 4 times (initial + 3 retries)
@@ -69,11 +70,9 @@ class TestUrllib3RestClient:
     def test_custom_retry_config(self):
         # Create custom retry configuration
         custom_retry = urllib3.Retry(
-            total=2,
-            backoff_factor=0.5,
-            status_forcelist=(500, 502, 503, 504)
+            total=2, backoff_factor=0.5, status_forcelist=(500, 502, 503, 504)
         )
-        
+
         config = Configuration(api_key="test-key", retries=custom_retry)
         client = Urllib3RestClient(config)
 
@@ -85,21 +84,21 @@ class TestUrllib3RestClient:
         mock_response.reason = "Internal Server Error"
 
         # Mock pool manager to fail once then succeed
-        with patch.object(client.pool_manager, 'request') as mock_request:
+        with patch.object(client.pool_manager, "request") as mock_request:
             mock_request.side_effect = [
                 urllib3.exceptions.HTTPError(response=mock_response),
-                mock_response  # Success on second try
+                mock_response,  # Success on second try
             ]
 
             # Make request
             response = client.request(
                 method="GET",
                 url="https://api.pinecone.io/test",
-                headers={"Authorization": "test-key"}
+                headers={"Authorization": "test-key"},
             )
 
             # Verify request was made 2 times (initial + 1 retry)
             assert mock_request.call_count == 2
 
             # Verify the response is successful
-            assert response.status == 200 
+            assert response.status == 200
