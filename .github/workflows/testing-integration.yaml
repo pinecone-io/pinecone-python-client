@@ -15,13 +15,13 @@ jobs:
       matrix:
         python_version: [3.9, 3.12]
         test_suite:
-          - tests/integration/control/index
-          - tests/integration/control/collections
-          - tests/integration/control/backup
-          - tests/integration/control/restore_job
-          - tests/integration/control_asyncio/index
-          - tests/integration/control_asyncio/backup
-          - tests/integration/control_asyncio/restore_job
+          - tests/integration/control/resources/index
+          - tests/integration/control/resources/collections
+          - tests/integration/control/resources/backup
+          - tests/integration/control/resources/restore_job
+          - tests/integration/control_asyncio/resources/index
+          - tests/integration/control_asyncio/resources/backup
+          - tests/integration/control_asyncio/resources/restore_job
     steps:
       - uses: actions/checkout@v4
       - name: 'Set up Python ${{ matrix.python_version }}'
