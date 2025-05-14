@@ -8,7 +8,7 @@ from ..config.openapi_configuration import Configuration
 from .rest_utils import raise_exceptions_or_return, RESTResponse, RestClientInterface
 
 import urllib3
-
+from .retries import JitterRetry
 from .exceptions import PineconeApiException, PineconeApiValueError
 
 
@@ -52,6 +52,13 @@ class Urllib3RestClient(RestClientInterface):
 
         if configuration.retries is not None:
             addition_pool_args["retries"] = configuration.retries
+        else:
+            addition_pool_args["retries"] = JitterRetry(
+                total=3,
+                backoff_factor=0.25,
+                status_forcelist=(500, 502, 503, 504),
+                allowed_methods=None,
+            )
 
         if configuration.socket_options is not None:
             addition_pool_args["socket_options"] = configuration.socket_options
