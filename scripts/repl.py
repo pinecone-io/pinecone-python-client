@@ -1,7 +1,6 @@
 import dotenv
 import code
 import readline
-import os
 from pinecone import Pinecone
 import logging
 import os
