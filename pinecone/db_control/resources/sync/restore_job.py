@@ -1,14 +1,34 @@
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
-from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
 from pinecone.db_control.models import RestoreJobModel, RestoreJobList
-from pinecone.utils import parse_non_empty_args, require_kwargs
+from pinecone.utils import parse_non_empty_args, require_kwargs, PluginAware
+
+if TYPE_CHECKING:
+    from pinecone.config import Config, OpenApiConfiguration
+    from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
 
 
-class RestoreJobResource:
-    def __init__(self, index_api: ManageIndexesApi):
+class RestoreJobResource(PluginAware):
+    def __init__(
+        self,
+        index_api: "ManageIndexesApi",
+        config: "Config",
+        openapi_config: "OpenApiConfiguration",
+        pool_threads: int,
+    ):
         self._index_api = index_api
         """ @private """
+
+        self.config = config
+        """ @private """
+
+        self._openapi_config = openapi_config
+        """ @private """
+
+        self._pool_threads = pool_threads
+        """ @private """
+
+        super().__init__()  # Initialize PluginAware
 
     @require_kwargs
     def get(self, *, job_id: str) -> RestoreJobModel:

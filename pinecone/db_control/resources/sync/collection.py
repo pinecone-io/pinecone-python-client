@@ -1,17 +1,40 @@
+from typing import TYPE_CHECKING
 import logging
 
 from pinecone.db_control.models import CollectionList
 from pinecone.db_control.request_factory import PineconeDBControlRequestFactory
-from pinecone.utils import require_kwargs
+from pinecone.utils import PluginAware, require_kwargs
 
 logger = logging.getLogger(__name__)
 """ @private """
 
+if TYPE_CHECKING:
+    from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
+    from pinecone.config import Config, OpenApiConfiguration
 
-class CollectionResource:
-    def __init__(self, index_api):
+
+class CollectionResource(PluginAware):
+    def __init__(
+        self,
+        index_api: "ManageIndexesApi",
+        config: "Config",
+        openapi_config: "OpenApiConfiguration",
+        pool_threads: int,
+    ):
         self.index_api = index_api
         """ @private """
+
+
+        self.config = config
+        """ @private """
+
+        self._openapi_config = openapi_config
+        """ @private """
+
+        self._pool_threads = pool_threads
+        """ @private """
+
+        super().__init__()  # Initialize PluginAware
 
     @require_kwargs
     def create(self, *, name: str, source: str) -> None:

@@ -1,29 +1,12 @@
 import time
 import logging
-from typing import Optional, Dict, Union
+from typing import Optional, Dict, Union, TYPE_CHECKING
 
 from pinecone.db_control.index_host_store import IndexHostStore
 
-from pinecone.db_control.models import (
-    ServerlessSpec,
-    PodSpec,
-    ByocSpec,
-    IndexModel,
-    IndexList,
-    IndexEmbed,
-)
-from pinecone.utils import docslinks, require_kwargs
+from pinecone.db_control.models import IndexModel, IndexList, IndexEmbed
+from pinecone.utils import docslinks, require_kwargs, PluginAware
 
-from pinecone.db_control.enums import (
-    Metric,
-    VectorType,
-    DeletionProtection,
-    PodType,
-    CloudProvider,
-    AwsRegion,
-    GcpRegion,
-    AzureRegion,
-)
 from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict
 from pinecone.db_control.request_factory import PineconeDBControlRequestFactory
 from pinecone.core.openapi.db_control import API_VERSION
@@ -31,29 +14,58 @@ from pinecone.core.openapi.db_control import API_VERSION
 logger = logging.getLogger(__name__)
 """ @private """
 
+if TYPE_CHECKING:
+    from pinecone.config import Config, OpenApiConfiguration
+    from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
+    from pinecone.db_control.enums import (
+        Metric,
+        VectorType,
+        DeletionProtection,
+        PodType,
+        CloudProvider,
+        AwsRegion,
+        GcpRegion,
+        AzureRegion,
+    )
+    from pinecone.db_control.models import ServerlessSpec, PodSpec, ByocSpec, IndexEmbed
 
-class IndexResource:
-    def __init__(self, index_api, config):
+
+class IndexResource(PluginAware):
+    def __init__(
+        self,
+        index_api: "ManageIndexesApi",
+        config: "Config",
+        openapi_config: "OpenApiConfiguration",
+        pool_threads: int,
+    ):
         self._index_api = index_api
         """ @private """
 
-        self._config = config
+        self.config = config
+        """ @private """
+
+        self._openapi_config = openapi_config
+        """ @private """
+
+        self._pool_threads = pool_threads
         """ @private """
 
         self._index_host_store = IndexHostStore()
         """ @private """
+
+        super().__init__()  # Initialize PluginAware
 
     @require_kwargs
     def create(
         self,
         *,
         name: str,
-        spec: Union[Dict, ServerlessSpec, PodSpec, ByocSpec],
+        spec: Union[Dict, "ServerlessSpec", "PodSpec", "ByocSpec"],
         dimension: Optional[int] = None,
-        metric: Optional[Union[Metric, str]] = Metric.COSINE,
+        metric: Optional[Union["Metric", str]] = "cosine",
         timeout: Optional[int] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
-        vector_type: Optional[Union[VectorType, str]] = VectorType.DENSE,
+        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
+        vector_type: Optional[Union["VectorType", str]] = "dense",
         tags: Optional[Dict[str, str]] = None,
     ) -> IndexModel:
         req = PineconeDBControlRequestFactory.create_index_request(
@@ -76,11 +88,11 @@ class IndexResource:
         self,
         *,
         name: str,
-        cloud: Union[CloudProvider, str],
-        region: Union[AwsRegion, GcpRegion, AzureRegion, str],
-        embed: Union[IndexEmbed, CreateIndexForModelEmbedTypedDict],
+        cloud: Union["CloudProvider", str],
+        region: Union["AwsRegion", "GcpRegion", "AzureRegion", str],
+        embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
         tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
         timeout: Optional[int] = None,
     ) -> IndexModel:
         req = PineconeDBControlRequestFactory.create_index_for_model_request(
@@ -103,7 +115,7 @@ class IndexResource:
         *,
         name: str,
         backup_id: str,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
         tags: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = None,
     ) -> IndexModel:
@@ -171,9 +183,9 @@ class IndexResource:
         return description
 
     @require_kwargs
-    def delete(self, *, name: str, timeout: Optional[int] = None):
+    def delete(self, *, name: str, timeout: Optional[int] = None) -> None:
         self._index_api.delete_index(name)
-        self._index_host_store.delete_host(self._config, name)
+        self._index_host_store.delete_host(self.config, name)
 
         if timeout == -1:
             return
@@ -204,7 +216,7 @@ class IndexResource:
         api_instance = self._index_api
         description = api_instance.describe_index(name)
         host = description.host
-        self._index_host_store.set_host(self._config, name, host)
+        self._index_host_store.set_host(self.config, name, host)
 
         return IndexModel(description)
 
@@ -221,10 +233,10 @@ class IndexResource:
         *,
         name: str,
         replicas: Optional[int] = None,
-        pod_type: Optional[Union[PodType, str]] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = None,
+        pod_type: Optional[Union["PodType", str]] = None,
+        deletion_protection: Optional[Union["DeletionProtection", str]] = None,
         tags: Optional[Dict[str, str]] = None,
-    ):
+    ) -> None:
         api_instance = self._index_api
         description = self.describe(name=name)
 
@@ -240,5 +252,5 @@ class IndexResource:
     def _get_host(self, name: str) -> str:
         """@private"""
         return self._index_host_store.get_host(
-            api=self._index_api, config=self._config, index_name=name
+            api=self._index_api, config=self.config, index_name=name
         )
