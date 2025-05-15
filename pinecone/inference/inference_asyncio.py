@@ -1,7 +1,8 @@
 from typing import Optional, Dict, List, Union, Any
 
 from pinecone.core.openapi.inference.api.inference_api import AsyncioInferenceApi
-from .models import EmbeddingsList, RerankResult
+from .models import EmbeddingsList, RerankResult, ModelInfoList
+from pinecone.utils import require_kwargs, parse_non_empty_args
 
 from .inference_request_builder import (
     InferenceRequestBuilder,
@@ -162,3 +163,22 @@ class AsyncioInference:
         )
         resp = await self.__inference_api.rerank(rerank_request=rerank_request)
         return RerankResult(resp)
+
+    @require_kwargs
+    async def list_models(
+        self, *, type: Optional[str] = None, vector_type: Optional[str] = None
+    ) -> ModelInfoList:
+        """
+        List all available models.
+
+        :param type: The type of model to list. Either "embed" or "rerank".
+        :type type: str, optional
+
+        :param vector_type: The type of vector to list. Either "dense" or "sparse".
+        :type vector_type: str, optional
+
+        :return: A list of models.
+        """
+        args = parse_non_empty_args([("type", type), ("vector_type", vector_type)])
+        resp = await self.__inference_api.list_models(**args)
+        return ModelInfoList(resp)

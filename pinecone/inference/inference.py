@@ -4,7 +4,7 @@ from typing import Optional, Dict, List, Union, Any, TYPE_CHECKING
 
 from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.inference.apis import InferenceApi
-from .models import EmbeddingsList, RerankResult
+from .models import EmbeddingsList, RerankResult, ModelInfoList
 from pinecone.core.openapi.inference import API_VERSION
 from pinecone.utils import setup_openapi_client, PluginAware
 from pinecone.utils import require_kwargs, parse_non_empty_args
@@ -217,7 +217,9 @@ class Inference(PluginAware):
         return RerankResult(resp)
 
     @require_kwargs
-    def list_models(self, *, type: Optional[str] = None, vector_type: Optional[str] = None):
+    def list_models(
+        self, *, type: Optional[str] = None, vector_type: Optional[str] = None
+    ) -> ModelInfoList:
         """
         List all available models.
 
@@ -230,4 +232,4 @@ class Inference(PluginAware):
         :return: A list of models.
         """
         args = parse_non_empty_args([("type", type), ("vector_type", vector_type)])
-        return self.__inference_api.list_models(**args)
+        return ModelInfoList(self.__inference_api.list_models(**args))

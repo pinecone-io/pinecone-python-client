@@ -1,5 +1,6 @@
 import code
 import logging
+from pinecone.utils.repr_overrides import setup_readline_history
 
 
 def setup_logging():
@@ -24,6 +25,9 @@ def main():
     # Set up logging
     logger = setup_logging()
     logger.info("Initializing environment...")
+
+    # Set up readline history
+    setup_readline_history()
 
     # You can add any setup code here, such as:
     # - Setting environment variables

@@ -32,4 +32,3 @@ from pinecone.core.openapi.inference.model.rerank_request import RerankRequest
 from pinecone.core.openapi.inference.model.rerank_result import RerankResult
 from pinecone.core.openapi.inference.model.rerank_result_usage import RerankResultUsage
 from pinecone.core.openapi.inference.model.sparse_embedding import SparseEmbedding
-from pinecone.core.openapi.inference.model.vector_type import VectorType
