@@ -65,7 +65,7 @@ class TestCreateServerlessIndexHappyPath:
     def test_create_default_index_with_metric(self, pc, create_index_params, metric):
         create_index_params["metric"] = metric
         pc.db.index.create(**create_index_params)
-        desc = pc.db.index.describe(create_index_params["name"])
+        desc = pc.db.index.describe(name=create_index_params["name"])
         if isinstance(metric, str):
             assert desc.metric == metric
         else:
@@ -96,7 +96,7 @@ class TestCreateServerlessIndexHappyPath:
 
         pc.db.index.create(**args)
 
-        desc = pc.db.index.describe(index_name)
+        desc = pc.db.index.describe(name=index_name)
         assert desc.metric == metric_enum.value
         assert desc.vector_type == vector_type_enum.value
         assert desc.dimension == dim
@@ -111,7 +111,7 @@ class TestCreateServerlessIndexHappyPath:
         create_index_params["metric"] = metric
         create_index_params["vector_type"] = VectorType.DENSE
         pc.db.index.create(**create_index_params)
-        desc = pc.db.index.describe(create_index_params["name"])
+        desc = pc.db.index.describe(name=create_index_params["name"])
         assert desc.metric == metric
         assert desc.vector_type == "dense"
 
@@ -233,7 +233,7 @@ class TestCreateServerlessIndexWithTimeout:
         create_index_params["timeout"] = None
         pc.db.index.create(**create_index_params)
         # Waits infinitely for index to be ready
-        desc = pc.db.index.describe(create_index_params["name"])
+        desc = pc.db.index.describe(name=create_index_params["name"])
         assert desc.status.ready == True
 
     def test_create_index_when_timeout_set(self, pc, create_index_params):
@@ -247,7 +247,7 @@ class TestCreateServerlessIndexWithTimeout:
     def test_create_index_with_negative_timeout(self, pc, create_index_params):
         create_index_params["timeout"] = -1
         pc.db.index.create(**create_index_params)
-        desc = pc.db.index.describe(create_index_params["name"])
+        desc = pc.db.index.describe(name=create_index_params["name"])
         # Returns immediately without waiting for index to be ready
         assert desc.status.ready in [False, True]
 
