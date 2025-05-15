@@ -4,11 +4,11 @@ from ...models import ModelInfoList, ModelInfo
 
 
 if TYPE_CHECKING:
-    from pinecone.core.openapi.inference.api.inference_api import InferenceApi
+    from pinecone.core.openapi.inference.api.inference_api import AsyncioInferenceApi
 
 
 class ModelAsyncio:
-    def __init__(self, inference_api: "InferenceApi") -> None:
+    def __init__(self, inference_api: "AsyncioInferenceApi") -> None:
         self.__inference_api = inference_api
         """ @private """
 
