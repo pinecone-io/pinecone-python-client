@@ -13,11 +13,11 @@ from pinecone import (
 @pytest.mark.asyncio
 class TestAsyncioCreateIndex:
     @pytest.mark.parametrize("spec_fixture", ("spec1", "spec2", "spec3"))
-    async def test_create_index(self, index_name, request, spec_fixture):
+    async def test_create_index(self, index_name, request, spec_fixture, index_tags):
         pc = PineconeAsyncio()
         spec = request.getfixturevalue(spec_fixture)
 
-        resp = await pc.db.index.create(name=index_name, dimension=10, spec=spec)
+        resp = await pc.db.index.create(name=index_name, dimension=10, spec=spec, tags=index_tags)
 
         assert resp.name == index_name
         assert resp.dimension == 10
@@ -33,17 +33,21 @@ class TestAsyncioCreateIndex:
         assert desc.vector_type == "dense"  # default value
         await pc.close()
 
-    async def test_create_skip_wait(self, index_name, spec1):
+    async def test_create_skip_wait(self, index_name, spec1, index_tags):
         pc = PineconeAsyncio()
-        resp = await pc.db.index.create(name=index_name, dimension=10, spec=spec1, timeout=-1)
+        resp = await pc.db.index.create(
+            name=index_name, dimension=10, spec=spec1, timeout=-1, tags=index_tags
+        )
         assert resp.name == index_name
         assert resp.dimension == 10
         assert resp.metric == "cosine"
         await pc.close()
 
-    async def test_create_infinite_wait(self, index_name, spec1):
+    async def test_create_infinite_wait(self, index_name, spec1, index_tags):
         async with PineconeAsyncio() as pc:
-            resp = await pc.db.index.create(name=index_name, dimension=10, spec=spec1, timeout=None)
+            resp = await pc.db.index.create(
+                name=index_name, dimension=10, spec=spec1, timeout=None, tags=index_tags
+            )
             assert resp.name == index_name
             assert resp.dimension == 10
             assert resp.metric == "cosine"
@@ -104,7 +108,7 @@ class TestAsyncioCreateIndex:
     async def test_create_dense_index_with_metric(self, index_name, spec1, metric, index_tags):
         pc = PineconeAsyncio()
 
-        await pc.create_index(
+        await pc.db.index.create(
             name=index_name,
             dimension=10,
             spec=spec1,
@@ -121,7 +125,7 @@ class TestAsyncioCreateIndex:
     async def test_create_with_optional_tags(self, index_name, spec1, index_tags):
         pc = PineconeAsyncio()
 
-        await pc.create_index(name=index_name, dimension=10, spec=spec1, tags=index_tags)
+        await pc.db.index.create(name=index_name, dimension=10, spec=spec1, tags=index_tags)
 
         desc = await pc.db.index.describe(name=index_name)
         assert desc.tags.to_dict() == index_tags
@@ -131,7 +135,7 @@ class TestAsyncioCreateIndex:
     async def test_create_sparse_index(self, index_name, spec1, index_tags):
         pc = PineconeAsyncio()
 
-        await pc.create_index(
+        await pc.db.index.create(
             name=index_name,
             spec=spec1,
             metric=Metric.DOTPRODUCT,
@@ -149,7 +153,7 @@ class TestAsyncioCreateIndex:
     async def test_create_with_deletion_protection(self, index_name, spec1, index_tags):
         pc = PineconeAsyncio()
 
-        await pc.create_index(
+        await pc.db.index.create(
             name=index_name,
             spec=spec1,
             metric=Metric.DOTPRODUCT,
