@@ -4,8 +4,7 @@ from typing import Optional, Dict, Union, TYPE_CHECKING
 
 from pinecone.config import PineconeConfig, ConfigBuilder
 
-from pinecone.utils import normalize_host, require_kwargs
-from pinecone.utils import docslinks
+from pinecone.utils import normalize_host, require_kwargs, docslinks
 
 from .pinecone_interface_asyncio import PineconeAsyncioDBControlInterface
 from .pinecone import check_realistic_host

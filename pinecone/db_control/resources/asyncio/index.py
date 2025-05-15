@@ -26,7 +26,7 @@ from pinecone.db_control.enums import (
 from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict
 from pinecone.db_control.request_factory import PineconeDBControlRequestFactory
 from pinecone.core.openapi.db_control import API_VERSION
-
+from pinecone.utils import require_kwargs
 
 logger = logging.getLogger(__name__)
 """ @private """
@@ -37,8 +37,10 @@ class IndexResourceAsyncio:
         self._index_api = index_api
         self._config = config
 
+    @require_kwargs
     async def create(
         self,
+        *,
         name: str,
         spec: Union[Dict, ServerlessSpec, PodSpec, ByocSpec],
         dimension: Optional[int] = None,
@@ -63,8 +65,10 @@ class IndexResourceAsyncio:
             return IndexModel(resp)
         return await self.__poll_describe_index_until_ready(name, timeout)
 
+    @require_kwargs
     async def create_for_model(
         self,
+        *,
         name: str,
         cloud: Union[CloudProvider, str],
         region: Union[AwsRegion, GcpRegion, AzureRegion, str],
@@ -87,8 +91,10 @@ class IndexResourceAsyncio:
             return IndexModel(resp)
         return await self.__poll_describe_index_until_ready(name, timeout)
 
+    @require_kwargs
     async def create_from_backup(
         self,
+        *,
         name: str,
         backup_id: str,
         deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
@@ -141,17 +147,18 @@ class IndexResourceAsyncio:
 
         return description
 
-    async def delete(self, name: str, timeout: Optional[int] = None):
+    @require_kwargs
+    async def delete(self, *, name: str, timeout: Optional[int] = None):
         await self._index_api.delete_index(name)
 
         if timeout == -1:
             return
 
         if timeout is None:
-            while await self.has(name):
+            while await self.has(name=name):
                 await asyncio.sleep(5)
         else:
-            while await self.has(name) and timeout >= 0:
+            while await self.has(name=name) and timeout >= 0:
                 await asyncio.sleep(5)
                 timeout -= 5
         if timeout and timeout < 0:
@@ -163,23 +170,28 @@ class IndexResourceAsyncio:
                 )
             )
 
+    @require_kwargs
     async def list(self) -> IndexList:
         response = await self._index_api.list_indexes()
         return IndexList(response)
 
-    async def describe(self, name: str) -> IndexModel:
+    @require_kwargs
+    async def describe(self, *, name: str) -> IndexModel:
         description = await self._index_api.describe_index(name)
         return IndexModel(description)
 
-    async def has(self, name: str) -> bool:
+    @require_kwargs
+    async def has(self, *, name: str) -> bool:
         available_indexes = await self.list()
         if name in available_indexes.names():
             return True
         else:
             return False
 
+    @require_kwargs
     async def configure(
         self,
+        *,
         name: str,
         replicas: Optional[int] = None,
         pod_type: Optional[Union[PodType, str]] = None,

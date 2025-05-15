@@ -3,7 +3,7 @@ from pinecone import IndexModel
 
 class TestDescribeIndex:
     def test_describe_index_when_ready(self, pc, ready_sl_index, create_index_params):
-        description = pc.db.index.describe(ready_sl_index)
+        description = pc.db.index.describe(name=ready_sl_index)
 
         assert isinstance(description, IndexModel)
         assert description.name == ready_sl_index
@@ -26,7 +26,7 @@ class TestDescribeIndex:
         assert description.status.ready == True
 
     def test_describe_index_when_not_ready(self, pc, notready_sl_index, create_index_params):
-        description = pc.db.index.describe(notready_sl_index)
+        description = pc.db.index.describe(name=notready_sl_index)
 
         assert isinstance(description, IndexModel)
         assert description.name == notready_sl_index

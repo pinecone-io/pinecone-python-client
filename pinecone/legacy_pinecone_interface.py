@@ -335,6 +335,7 @@ class LegacyPineconeDBControlInterface(ABC):
     @abstractmethod
     def create_index_for_model(
         self,
+        *,
         name: str,
         cloud: Union["CloudProvider", str],
         region: Union["AwsRegion", "GcpRegion", "AzureRegion", str],
