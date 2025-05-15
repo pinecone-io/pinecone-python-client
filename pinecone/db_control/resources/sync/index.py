@@ -4,17 +4,12 @@ from typing import Optional, Dict, Union, TYPE_CHECKING
 
 from pinecone.db_control.index_host_store import IndexHostStore
 
-from pinecone.db_control.models import (
-    IndexModel,
-    IndexList,
-    IndexEmbed,
-)
+from pinecone.db_control.models import IndexModel, IndexList, IndexEmbed
 from pinecone.utils import docslinks, require_kwargs, PluginAware
 
 from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict
 from pinecone.db_control.request_factory import PineconeDBControlRequestFactory
 from pinecone.core.openapi.db_control import API_VERSION
-from pinecone.db_control.models import IndexModel, IndexList
 
 logger = logging.getLogger(__name__)
 """ @private """
@@ -57,7 +52,7 @@ class IndexResource(PluginAware):
 
         self._index_host_store = IndexHostStore()
         """ @private """
-    
+
         super().__init__()  # Initialize PluginAware
 
     @require_kwargs
