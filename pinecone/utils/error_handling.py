@@ -1,7 +1,11 @@
 import inspect
 from functools import wraps
 
-from urllib3.exceptions import MaxRetryError, ProtocolError
+
+class ProtocolError(Exception):
+    """Raised when there is a protocol error in the connection."""
+
+    pass
 
 
 def validate_and_convert_errors(func):
@@ -9,15 +13,21 @@ def validate_and_convert_errors(func):
     def inner_func(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except MaxRetryError as e:
-            if isinstance(e.reason, ProtocolError):
+        except Exception as e:
+            # Lazy import of urllib3 exceptions
+            from urllib3.exceptions import MaxRetryError, ProtocolError as Urllib3ProtocolError
+
+            if isinstance(e, MaxRetryError):
+                if isinstance(e.reason, Urllib3ProtocolError):
+                    raise ProtocolError(f"Failed to connect to {e.url}") from e
+                else:
+                    raise e from e
+            elif isinstance(e, Urllib3ProtocolError):
                 raise ProtocolError(
-                    f"Failed to connect to {e.url}; did you specify the correct index name?"
+                    "Connection failed. Please verify that the index host is correct and accessible."
                 ) from e
             else:
-                raise
-        except ProtocolError as e:
-            raise ProtocolError("Failed to connect; did you specify the correct index name?") from e
+                raise e from e
 
     # Override signature
     sig = inspect.signature(func)

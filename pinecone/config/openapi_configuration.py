@@ -2,7 +2,6 @@ import copy
 import logging
 import multiprocessing
 
-from http import client as http_client
 from pinecone.exceptions import PineconeApiValueError
 from typing import TypedDict
 
@@ -154,6 +153,7 @@ class Configuration:
         self.logger_file = None
         """Debug file location
         """
+        # Initialize debug directly without using the property setter
         self.debug = False
         """Debug switch
         """
@@ -288,7 +288,7 @@ class Configuration:
         :param value: The debug status, True or False.
         :type: bool
         """
-        return self.__debug
+        return self._debug
 
     @debug.setter
     def debug(self, value):
@@ -297,20 +297,37 @@ class Configuration:
         :param value: The debug status, True or False.
         :type: bool
         """
-        self.__debug = value
-        if self.__debug:
-            # if debug status is True, turn on debug logging
+        if hasattr(self, "_debug"):
+            previous_debug = self._debug
+        else:
+            previous_debug = None
+        self._debug = value
+
+        def enable_http_logging():
+            from http import client as http_client
+
+            http_client.HTTPConnection.debuglevel = 1
+
+        def disable_http_logging():
+            from http import client as http_client
+
+            http_client.HTTPConnection.debuglevel = 0
+
+        def set_default_log_level(c):
+            for _, logger in c.logger.items():
+                logger.setLevel(logging.WARNING)
+
+        if self._debug:
             for _, logger in self.logger.items():
                 logger.setLevel(logging.DEBUG)
-            # turn on http_client debug
-            http_client.HTTPConnection.debuglevel = 1
+            enable_http_logging()
+        elif previous_debug is True and self._debug is False:
+            set_default_log_level(self)
+            disable_http_logging()
         else:
-            # if debug status is False, turn off debug logging,
-            # setting log level to default `logging.WARNING`
-            for _, logger in self.logger.items():
-                logger.setLevel(logging.WARNING)
-            # turn off http_client debug
-            http_client.HTTPConnection.debuglevel = 0
+            # On the initial call, we don't need to do anything to http
+            # logging, since it's not enabled by default.
+            set_default_log_level(self)
 
     @property
     def logger_format(self):
