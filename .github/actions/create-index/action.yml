@@ -25,6 +25,11 @@ inputs:
   PINECONE_API_KEY:
     description: 'The Pinecone API key'
     required: true
+  PINECONE_ADDITIONAL_HEADERS:
+    description: 'Additional headers to send with the request'
+    required: false
+    default: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
+
 
 outputs:
   index_name:
@@ -48,6 +53,7 @@ runs:
       run: poetry run python3 scripts/create.py
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
+        PINECONE_ADDITIONAL_HEADERS: ${{ inputs.PINECONE_ADDITIONAL_HEADERS }}
         NAME_PREFIX: ${{ inputs.name_prefix }}
         REGION: ${{ inputs.region }}
         CLOUD: ${{ inputs.cloud }}

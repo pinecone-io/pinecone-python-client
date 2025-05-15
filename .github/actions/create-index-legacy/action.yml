@@ -23,6 +23,10 @@ inputs:
   PINECONE_API_KEY:
     description: 'The Pinecone API key'
     required: true
+  PINECONE_ADDITIONAL_HEADERS:
+    description: 'Additional headers to send with the request'
+    required: false
+    default: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
 
 runs:
   using: 'composite'
@@ -36,7 +40,7 @@ runs:
       shell: bash
       run: |
         pip install pinecone-client==${{ inputs.pinecone_client_version }}
-    
+
     - name: Create index
       id: create-index
       shell: bash
@@ -44,6 +48,7 @@ runs:
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         PINECONE_ENVIRONMENT: ${{ inputs.PINECONE_ENVIRONMENT }}
+        PINECONE_ADDITIONAL_HEADERS: ${{ inputs.PINECONE_ADDITIONAL_HEADERS }}
         INDEX_NAME: ${{ inputs.index_name }}
         DIMENSION: ${{ inputs.dimension }}
         METRIC: ${{ inputs.metric }

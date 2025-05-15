@@ -18,6 +18,10 @@ inputs:
   PINECONE_API_KEY:
     description: 'The Pinecone API key'
     required: true
+  PINECONE_ADDITIONAL_HEADERS:
+    description: 'Additional headers to send with the request'
+    required: false
+    default: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
   python_version:
     description: 'The version of Python to use'
     required: false
@@ -55,6 +59,7 @@ runs:
       run: poetry run pytest tests/integration/data --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
+        PINECONE_ADDITIONAL_HEADERS: ${{ inputs.PINECONE_ADDITIONAL_HEADERS }}
         USE_GRPC: ${{ inputs.use_grpc }}
         METRIC: ${{ inputs.metric }}
         SPEC: ${{ inputs.spec }}
