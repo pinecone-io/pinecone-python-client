@@ -3,6 +3,7 @@ import code
 from pinecone import Pinecone
 import logging
 import os
+import time
 
 
 def main():
@@ -34,6 +35,10 @@ def main():
     - cleanup_all(pc)
     """
 
+    # In situations where there are a lot of resources, we want to
+    # slow down the rate of requests
+    sleep_interval = 30
+
     def delete_all_indexes(pc):
         for index in pc.db.index.list():
             logger.info(f"Deleting index {index.name}")
@@ -42,6 +47,7 @@ def main():
                     logger.info(f"Disabling deletion protection for index {index.name}")
                     pc.db.index.configure(name=index.name, deletion_protection="disabled")
                 pc.db.index.delete(name=index.name)
+                time.sleep(sleep_interval)
             except Exception as e:
                 logger.error(f"Error deleting index {index.name}: {e}")
 
@@ -50,6 +56,7 @@ def main():
             logger.info(f"Deleting collection {collection.name}")
             try:
                 pc.db.collection.delete(name=collection.name)
+                time.sleep(sleep_interval)
             except Exception as e:
                 logger.error(f"Error deleting collection {collection.name}: {e}")
 
@@ -58,6 +65,7 @@ def main():
             logger.info(f"Deleting backup {backup.name}")
             try:
                 pc.db.backup.delete(backup_id=backup.backup_id)
+                time.sleep(sleep_interval)
             except Exception as e:
                 logger.error(f"Error deleting backup {backup.name}: {e}")
 
