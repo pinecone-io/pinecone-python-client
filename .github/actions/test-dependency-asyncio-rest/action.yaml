@@ -5,6 +5,10 @@ inputs:
   PINECONE_API_KEY:
     description: 'The Pinecone API key'
     required: true
+  PINECONE_ADDITIONAL_HEADERS:
+    description: 'Additional headers to send with the request'
+    required: false
+    default: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
   index_name:
     description: 'The name of the index'
     required: true
@@ -43,4 +47,5 @@ runs:
         command: poetry run pytest tests/dependency/asyncio-rest -s -v
       env:
         PINECONE_API_KEY: '${{ inputs.PINECONE_API_KEY }}'
+        PINECONE_ADDITIONAL_HEADERS: '${{ inputs.PINECONE_ADDITIONAL_HEADERS }}'
         INDEX_NAME: '${{ inputs.index_name }}'

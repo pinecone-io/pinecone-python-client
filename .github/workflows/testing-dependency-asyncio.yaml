@@ -27,4 +27,5 @@ jobs:
           python_version: '${{ matrix.python_version }}'
           index_name: '${{ inputs.index_name }}'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
           aiohttp_version: '${{ matrix.aiohttp_version }}'

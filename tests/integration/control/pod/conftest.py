@@ -7,10 +7,7 @@ from ...helpers import generate_index_name, generate_collection_name, get_enviro
 
 @pytest.fixture()
 def client():
-    api_key = get_environment_var("PINECONE_API_KEY")
-    return Pinecone(
-        api_key=api_key, additional_headers={"sdk-test-suite": "pinecone-python-client"}
-    )
+    return Pinecone()
 
 
 @pytest.fixture()
@@ -66,10 +63,7 @@ def notready_index(client, index_name, create_index_params):
 
 @pytest.fixture(scope="session")
 def reusable_collection():
-    pc = Pinecone(
-        api_key=get_environment_var("PINECONE_API_KEY"),
-        additional_headers={"sdk-test-suite": "pinecone-python-client"},
-    )
+    pc = Pinecone()
     index_name = generate_index_name("temp-index")
     dimension = int(get_environment_var("DIMENSION"))
     print(f"Creating index {index_name} to prepare a collection...")
