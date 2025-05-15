@@ -110,7 +110,11 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         if self._inference is None:
             from pinecone.inference import Inference
 
-            self._inference = Inference(config=self._config, openapi_config=self._openapi_config)
+            self._inference = Inference(
+                config=self._config,
+                openapi_config=self._openapi_config,
+                pool_threads=self._pool_threads,
+            )
         return self._inference
 
     @property

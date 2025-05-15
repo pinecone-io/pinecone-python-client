@@ -3,31 +3,8 @@ from pinecone import Pinecone
 
 logger = logging.getLogger(__name__)
 
-#  {
-#             "model": "pinecone-rerank-v0",
-#             "short_description": "A state of the art reranking model that out-performs competitors on widely accepted benchmarks. It can handle chunks up to 512 tokens (1-2 paragraphs)",
-#             "type": "rerank",
-#             "supported_parameters": [
-#                 {
-#                     "parameter": "truncate",
-#                     "type": "one_of",
-#                     "value_type": "string",
-#                     "required": false,
-#                     "default": "END",
-#                     "allowed_values": [
-#                         "END",
-#                         "NONE"
-#                     ]
-#                 }
-#             ],
-#             "modality": "text",
-#             "max_sequence_length": 512,
-#             "max_batch_size": 100,
-#             "provider_name": "Pinecone"
-#         }
 
-
-class TestModels:
+class TestListModels:
     def test_list_models(self):
         pc = Pinecone()
         models = pc.inference.list_models()
@@ -41,6 +18,14 @@ class TestModels:
         assert models[0].max_sequence_length is not None
         assert models[0].max_batch_size is not None
         assert models[0].provider_name is not None
+
+    def test_list_models_new_syntax(self):
+        pc = Pinecone()
+        models = pc.inference.model.list(type="embed", vector_type="dense")
+        assert len(models) > 0
+        logger.info(f"Models[0]: {models[0]}")
+        assert models[0].model is not None
+        assert models[0].short_description is not None
 
     def test_list_models_with_type(self):
         pc = Pinecone()
@@ -81,3 +66,33 @@ class TestModels:
         models.to_dict()  # This should not throw
         models[0].to_dict()  # This should not throw
         assert True
+
+
+class TestGetModel:
+    def test_get_model(self):
+        pc = Pinecone()
+        models = pc.inference.list_models()
+        first_model = models[0]
+
+        model = pc.inference.get_model(model_name=first_model.model)
+        assert model.model == first_model.model
+        assert model.short_description == first_model.short_description
+        assert model.type == first_model.type
+        assert model.supported_parameters == first_model.supported_parameters
+        assert model.modality == first_model.modality
+        assert model.max_sequence_length == first_model.max_sequence_length
+        assert model.max_batch_size == first_model.max_batch_size
+        assert model.provider_name == first_model.provider_name
+
+    def test_get_model_new_syntax(self):
+        pc = Pinecone()
+        models = pc.inference.model.list()
+        first_model = models[0]
+
+        model = pc.inference.model.get(model_name=first_model.model)
+        assert model.model == first_model.model
+        assert model.short_description == first_model.short_description
+        assert model.type == first_model.type
+        assert model.supported_parameters == first_model.supported_parameters
+        assert model.modality == first_model.modality
+        assert model.max_sequence_length == first_model.max_sequence_length

@@ -1,7 +1,7 @@
-from typing import Optional, Dict, List, Union, Any
+from typing import Optional, Dict, List, Union, Any, TYPE_CHECKING
 
 from pinecone.core.openapi.inference.api.inference_api import AsyncioInferenceApi
-from .models import EmbeddingsList, RerankResult, ModelInfoList
+from .models import EmbeddingsList, RerankResult, ModelInfoList, ModelInfo
 from pinecone.utils import require_kwargs, parse_non_empty_args
 
 from .inference_request_builder import (
@@ -9,6 +9,9 @@ from .inference_request_builder import (
     EmbedModel as EmbedModelEnum,
     RerankModel as RerankModelEnum,
 )
+
+if TYPE_CHECKING:
+    from .resources.asyncio.model import ModelAsyncio as ModelAsyncioResource
 
 
 class AsyncioInference:
@@ -39,6 +42,9 @@ class AsyncioInference:
 
     def __init__(self, api_client, **kwargs) -> None:
         self.api_client = api_client
+        """ @private """
+
+        self._model: Optional["ModelAsyncioResource"] = None
         """ @private """
 
         self.__inference_api = AsyncioInferenceApi(api_client)
@@ -84,6 +90,39 @@ class AsyncioInference:
         )
         resp = await self.__inference_api.embed(embed_request=request_body)
         return EmbeddingsList(resp)
+
+    @property
+    def model(self) -> "ModelAsyncioResource":
+        """
+        Model is a resource that describes models available in the Pinecone Inference API.
+
+        Curently you can get or list models.
+
+        ```python
+        async with PineconeAsyncio() as pc:
+            # List all models
+            models = await pc.inference.model.list()
+
+            # List models, with model type filtering
+            models = await pc.inference.model.list(type="embed")
+            models = await pc.inference.model.list(type="rerank")
+
+            # List models, with vector type filtering
+            models = await pc.inference.model.list(vector_type="dense")
+            models = await pc.inference.model.list(vector_type="sparse")
+
+            # List models, with both type and vector type filtering
+            models = await pc.inference.model.list(type="rerank", vector_type="dense")
+
+            # Get details on a specific model
+            model = await pc.inference.model.get("text-embedding-3-small")
+        ```
+        """
+        if self._model is None:
+            from .resources.asyncio.model import ModelAsyncio as ModelAsyncioResource
+
+            self._model = ModelAsyncioResource(inference_api=self.__inference_api)
+        return self._model
 
     async def rerank(
         self,
@@ -182,3 +221,21 @@ class AsyncioInference:
         args = parse_non_empty_args([("type", type), ("vector_type", vector_type)])
         resp = await self.__inference_api.list_models(**args)
         return ModelInfoList(resp)
+
+    @require_kwargs
+    async def get_model(self, model_name: str) -> ModelInfo:
+        """
+        Get details on a specific model.
+
+        ```python
+        async with PineconeAsyncio() as pc:
+            model = await pc.inference.get_model(model_name="text-embedding-3-small")
+        ```
+
+        :param model_name: The name of the model to get details on.
+        :type model_name: str, required
+
+        :return: A ModelInfo object.
+        """
+        resp = await self.__inference_api.get_model(model_name=model_name)
+        return ModelInfo(resp)
