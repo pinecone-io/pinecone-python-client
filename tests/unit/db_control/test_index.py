@@ -1,6 +1,6 @@
 import json
 
-from pinecone import Config
+from pinecone.config import Config, OpenApiConfiguration
 
 from pinecone.db_control.resources.sync.index import IndexResource
 from pinecone.openapi_support.api_client import ApiClient
@@ -20,7 +20,13 @@ def build_client_w_faked_response(mocker, body: str, status: int = 200):
         api_client.rest_client.pool_manager, "request", return_value=response
     )
     index_api = ManageIndexesApi(api_client=api_client)
-    return IndexResource(index_api=index_api, config=Config(api_key="test-api-key")), mock_request
+    resource = IndexResource(
+        index_api=index_api,
+        config=Config(api_key="test-api-key"),
+        openapi_config=OpenApiConfiguration(),
+        pool_threads=1,
+    )
+    return resource, mock_request
 
 
 class TestIndexResource:
