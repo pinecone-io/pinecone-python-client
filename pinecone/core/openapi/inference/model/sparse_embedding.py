@@ -27,12 +27,6 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
-def lazy_import():
-    from pinecone.core.openapi.inference.model.vector_type import VectorType
-
-    globals()["VectorType"] = VectorType
-
-
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
@@ -75,7 +69,6 @@ class SparseEmbedding(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -90,11 +83,10 @@ class SparseEmbedding(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
             "sparse_values": ([float],),  # noqa: E501
             "sparse_indices": ([int],),  # noqa: E501
-            "vector_type": (VectorType,),  # noqa: E501
+            "vector_type": (str,),  # noqa: E501
             "sparse_tokens": ([str],),  # noqa: E501
         }
 
@@ -123,7 +115,7 @@ class SparseEmbedding(ModelNormal):
         Args:
             sparse_values ([float]): The sparse embedding values.
             sparse_indices ([int]): The sparse embedding indices.
-            vector_type (VectorType):
+            vector_type (str): Indicates whether this is a 'dense' or 'sparse' embedding.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -215,7 +207,7 @@ class SparseEmbedding(ModelNormal):
         Args:
             sparse_values ([float]): The sparse embedding values.
             sparse_indices ([int]): The sparse embedding indices.
-            vector_type (VectorType):
+            vector_type (str): Indicates whether this is a 'dense' or 'sparse' embedding.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types

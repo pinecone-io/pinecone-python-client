@@ -71,10 +71,7 @@ class ModelInfo(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("type",): {"EMBED": "embed", "RERANK": "rerank"},
-        ("vector_type",): {"DENSE": "dense", "SPARSE": "sparse"},
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
         ("default_dimension",): {"inclusive_maximum": 20000, "inclusive_minimum": 1},

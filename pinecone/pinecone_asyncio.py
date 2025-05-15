@@ -157,9 +157,9 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     def inference(self):
         """Dynamically create and cache the AsyncioInference instance."""
         if self._inference is None:
-            from pinecone.db_data import _AsyncioInference
+            from pinecone.inference import AsyncioInference
 
-            self._inference = _AsyncioInference(api_client=self.db._index_api.api_client)
+            self._inference = AsyncioInference(api_client=self.db._index_api.api_client)
         return self._inference
 
     @property

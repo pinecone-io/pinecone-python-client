@@ -20,6 +20,8 @@ _inference_lazy_imports = {
     "EmbedModel": ("pinecone.inference", "EmbedModel"),
     "ModelInfo": ("pinecone.inference.models", "ModelInfo"),
     "ModelInfoList": ("pinecone.inference.models", "ModelInfoList"),
+    "EmbeddingsList": ("pinecone.inference.models", "EmbeddingsList"),
+    "RerankResult": ("pinecone.inference.models", "RerankResult"),
 }
 
 _db_data_lazy_imports = {
