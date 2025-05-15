@@ -144,35 +144,15 @@ class OpenApiModel(object):
                 self._check_type,
                 configuration=self._configuration,
             )
-        if (name,) in self.allowed_values:
+        if (name,) in self.allowed_values and self._enforce_allowed_values:
             # Disabling allowed_value validation on response makes the SDK
             # less fragile if unexpected values are returned. For example, if
             # an unexpected index status is returned, we don't want to break
             # when listing indexes due to validation on the status field against
             # the allowed values in the enum.
-
-            # Disabling strict validation by default to make the SDK more
-            # flexible. We may want to enable strict mode in testing to discover
-            # unexpected values in testing.
-            if os.environ.get("PINECONE_STRICT_VALIDATION_MODE", "false").lower() == "true":
-                check_allowed_values(self.allowed_values, (name,), value)
-            else:
-                pass
+            check_allowed_values(self.allowed_values, (name,), value)
         if (name,) in self.validations:
-            # Disabling validation on response makes the SDK less fragile if
-            # validations change slightly over time. For example, if the maximum
-            # index dimension increased from 20k to 30k, we don't want to break
-            # when listing these indexes due to validation on the dimension
-            # field.
-
-            # Disabling strict validation by default to make the SDK more
-            # flexible. We may want to enable strict mode in testing to discover
-            # unexpected values in testing.
-
-            if os.environ.get("PINECONE_STRICT_VALIDATION_MODE", "false").lower() == "true":
-                check_validations(self.validations, (name,), value, self._configuration)
-            else:
-                pass
+            check_validations(self.validations, (name,), value, self._configuration)
         self.__dict__["_data_store"][name] = value
 
     def __repr__(self):
