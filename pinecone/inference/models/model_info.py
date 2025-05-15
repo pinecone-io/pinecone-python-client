@@ -22,11 +22,6 @@ class ModelInfo:
         else:
             self.supported_metrics = []
 
-        # if self._model_info.supported_parameters is not None:
-        #     self.supported_parameters = [ sp for sp in self._model_info.supported_parameters ]
-        # else:
-        #     self.supported_parameters = []
-
     def __str__(self):
         return str(self._model_info)
 
@@ -45,5 +40,4 @@ class ModelInfo:
     def to_dict(self):
         raw = self._model_info.to_dict()
         raw["supported_metrics"] = self.supported_metrics
-        # raw['supported_parameters'] = self.supported_parameters
         return raw
