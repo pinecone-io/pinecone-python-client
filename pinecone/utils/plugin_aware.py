@@ -36,8 +36,6 @@ class PluginAware:
         Raises:
             AttributeError: If required attributes are not set in the subclass.
         """
-        logger.debug("PluginAware __init__ called for %s", self.__class__.__name__)
-
         self._plugins_loaded = False
         """ @private """
 
