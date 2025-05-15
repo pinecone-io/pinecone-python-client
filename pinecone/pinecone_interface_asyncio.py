@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from pinecone.db_control.models import (
         ServerlessSpec,
         PodSpec,
+        ByocSpec,
         IndexList,
         CollectionList,
         IndexModel,
@@ -294,14 +295,12 @@ class PineconeAsyncioDBControlInterface(ABC):
     async def create_index(
         self,
         name: str,
-        spec: Union[Dict, "ServerlessSpec", "PodSpec"],
+        spec: Union[Dict, "ServerlessSpec", "PodSpec", "ByocSpec"],
         dimension: Optional[int],
-        metric: Optional[Union["Metric", str]] = "Metric.COSINE",
+        metric: Optional[Union["Metric", str]] = "cosine",
         timeout: Optional[int] = None,
-        deletion_protection: Optional[
-            Union["DeletionProtection", str]
-        ] = "DeletionProtection.DISABLED",
-        vector_type: Optional[Union["VectorType", str]] = "VectorType.DENSE",
+        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
+        vector_type: Optional[Union["VectorType", str]] = "dense",
         tags: Optional[Dict[str, str]] = None,
     ):
         """Creates a Pinecone index.
@@ -417,9 +416,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         region: Union["AwsRegion", "GcpRegion", "AzureRegion", str],
         embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
         tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[
-            Union["DeletionProtection", str]
-        ] = "DeletionProtection.DISABLED",
+        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
         timeout: Optional[int] = None,
     ) -> "IndexModel":
         """

@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from pinecone.db_control.models import (
         ServerlessSpec,
         PodSpec,
+        ByocSpec,
         IndexModel,
         IndexList,
         CollectionList,
@@ -195,7 +196,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     async def create_index(
         self,
         name: str,
-        spec: Union[Dict, "ServerlessSpec", "PodSpec"],
+        spec: Union[Dict, "ServerlessSpec", "PodSpec", "ByocSpec"],
         dimension: Optional[int] = None,
         metric: Optional[Union["Metric", str]] = "cosine",
         timeout: Optional[int] = None,

@@ -3,7 +3,14 @@ import asyncio
 from typing import Optional, Dict, Union
 
 
-from pinecone.db_control.models import ServerlessSpec, PodSpec, IndexModel, IndexList, IndexEmbed
+from pinecone.db_control.models import (
+    ServerlessSpec,
+    PodSpec,
+    ByocSpec,
+    IndexModel,
+    IndexList,
+    IndexEmbed,
+)
 from pinecone.utils import docslinks
 
 from pinecone.db_control.enums import (
@@ -33,7 +40,7 @@ class IndexResourceAsyncio:
     async def create(
         self,
         name: str,
-        spec: Union[Dict, ServerlessSpec, PodSpec],
+        spec: Union[Dict, ServerlessSpec, PodSpec, ByocSpec],
         dimension: Optional[int] = None,
         metric: Optional[Union[Metric, str]] = Metric.COSINE,
         timeout: Optional[int] = None,

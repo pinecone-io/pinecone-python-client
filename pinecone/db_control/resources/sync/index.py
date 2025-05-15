@@ -4,7 +4,14 @@ from typing import Optional, Dict, Union
 
 from pinecone.db_control.index_host_store import IndexHostStore
 
-from pinecone.db_control.models import ServerlessSpec, PodSpec, IndexModel, IndexList, IndexEmbed
+from pinecone.db_control.models import (
+    ServerlessSpec,
+    PodSpec,
+    ByocSpec,
+    IndexModel,
+    IndexList,
+    IndexEmbed,
+)
 from pinecone.utils import docslinks, require_kwargs
 
 from pinecone.db_control.enums import (
@@ -39,7 +46,7 @@ class IndexResource:
     def create(
         self,
         name: str,
-        spec: Union[Dict, ServerlessSpec, PodSpec],
+        spec: Union[Dict, ServerlessSpec, PodSpec, ByocSpec],
         dimension: Optional[int] = None,
         metric: Optional[Union[Metric, str]] = Metric.COSINE,
         timeout: Optional[int] = None,

@@ -27,12 +27,13 @@ from pinecone.core.openapi.db_control.model.index_tags import IndexTags
 from pinecone.core.openapi.db_control.model.serverless_spec import (
     ServerlessSpec as ServerlessSpecModel,
 )
+from pinecone.core.openapi.db_control.model.byoc_spec import ByocSpec as ByocSpecModel
 from pinecone.core.openapi.db_control.model.pod_spec import PodSpec as PodSpecModel
 from pinecone.core.openapi.db_control.model.pod_spec_metadata_config import PodSpecMetadataConfig
 from pinecone.core.openapi.db_control.model.create_index_from_backup_request import (
     CreateIndexFromBackupRequest,
 )
-from pinecone.db_control.models import ServerlessSpec, PodSpec, IndexModel, IndexEmbed
+from pinecone.db_control.models import ServerlessSpec, PodSpec, ByocSpec, IndexModel, IndexEmbed
 
 from pinecone.db_control.enums import (
     Metric,
@@ -76,7 +77,7 @@ class PineconeDBControlRequestFactory:
             raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
 
     @staticmethod
-    def __parse_index_spec(spec: Union[Dict, ServerlessSpec, PodSpec]) -> IndexSpec:
+    def __parse_index_spec(spec: Union[Dict, ServerlessSpec, PodSpec, ByocSpec]) -> IndexSpec:
         if isinstance(spec, dict):
             if "serverless" in spec:
                 spec["serverless"]["cloud"] = convert_enum_to_string(spec["serverless"]["cloud"])
@@ -100,8 +101,10 @@ class PineconeDBControlRequestFactory:
                         indexed=args_dict["metadata_config"].get("indexed", None)
                     )
                 index_spec = IndexSpec(pod=PodSpecModel(**args_dict))
+            elif "byoc" in spec:
+                index_spec = IndexSpec(byoc=ByocSpecModel(**spec["byoc"]))
             else:
-                raise ValueError("spec must contain either 'serverless' or 'pod' key")
+                raise ValueError("spec must contain either 'serverless', 'pod', or 'byoc' key")
         elif isinstance(spec, ServerlessSpec):
             index_spec = IndexSpec(
                 serverless=ServerlessSpecModel(cloud=spec.cloud, region=spec.region)
@@ -123,15 +126,18 @@ class PineconeDBControlRequestFactory:
             index_spec = IndexSpec(
                 pod=PodSpecModel(environment=spec.environment, pod_type=spec.pod_type, **args_dict)
             )
+        elif isinstance(spec, ByocSpec):
+            args_dict = parse_non_empty_args([("environment", spec.environment)])
+            index_spec = IndexSpec(byoc=ByocSpecModel(**args_dict))
         else:
-            raise TypeError("spec must be of type dict, ServerlessSpec, or PodSpec")
+            raise TypeError("spec must be of type dict, ServerlessSpec, PodSpec, or ByocSpec")
 
         return index_spec
 
     @staticmethod
     def create_index_request(
         name: str,
-        spec: Union[Dict, ServerlessSpec, PodSpec],
+        spec: Union[Dict, ServerlessSpec, PodSpec, ByocSpec],
         dimension: Optional[int] = None,
         metric: Optional[Union[Metric, str]] = Metric.COSINE,
         deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
