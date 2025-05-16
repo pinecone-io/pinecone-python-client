@@ -1,10 +1,36 @@
 name: Pull Request
 
 on:
-  pull_request: {}
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - '*.rst'
+      - '*.txt'
+      - '*.html'
+      - '*.css'
+      - '*.js'
+      - '*.png'
+      - '*.jpg'
+      - '*.jpeg'
+      - '*.gif'
+      - '*.svg'
   push:
     branches:
       - main
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - '*.rst'
+      - '*.txt'
+      - '*.html'
+      - '*.css'
+      - '*.js'
+      - '*.png'
+      - '*.jpg'
+      - '*.jpeg'
+      - '*.gif'
+      - '*.svg'
   workflow_dispatch: {}
 
 jobs:
