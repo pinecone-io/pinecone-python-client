@@ -1,5 +1,6 @@
 import dotenv
 import code
+import readline
 from pinecone import Pinecone
 import logging
 import os
@@ -18,6 +19,15 @@ def main():
         level=logging.DEBUG, format="%(levelname)-8s | %(name)s:%(lineno)d | %(message)s"
     )
     logger = logging.getLogger(__name__)
+
+    # Set up readline history
+    histfile = os.path.join(os.path.expanduser("~"), ".python_repl_history")
+    try:
+        readline.read_history_file(histfile)
+        # Set history file size
+        readline.set_history_length(1000)
+    except FileNotFoundError:
+        pass
 
     # Start the interactive REPL
     banner = """
@@ -91,8 +101,12 @@ def main():
         # Add any other variables you want to have available in the REPL
     }
 
-    # Start the interactive console
-    code.interact(banner=banner, local=namespace)
+    try:
+        # Start the interactive console
+        code.interact(banner=banner, local=namespace)
+    finally:
+        # Save history when exiting
+        readline.write_history_file(histfile)
 
 
 if __name__ == "__main__":

@@ -163,6 +163,7 @@ class QueryVector(ModelNormal):
             filter ({str: (bool, dict, float, int, list, str, none_type)}): An override for the metadata filter to apply. This replaces the request-level filter. [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -180,6 +181,7 @@ class QueryVector(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item
@@ -201,6 +203,7 @@ class QueryVector(ModelNormal):
 
     required_properties = set(
         [
+            "_enforce_allowed_values",
             "_data_store",
             "_check_type",
             "_spec_property_naming",
@@ -254,6 +257,7 @@ class QueryVector(ModelNormal):
             filter ({str: (bool, dict, float, int, list, str, none_type)}): An override for the metadata filter to apply. This replaces the request-level filter. [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -269,6 +273,7 @@ class QueryVector(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item

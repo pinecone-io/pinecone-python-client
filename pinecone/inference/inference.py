@@ -7,6 +7,7 @@ from pinecone.core.openapi.inference.apis import InferenceApi
 from .models import EmbeddingsList, RerankResult
 from pinecone.core.openapi.inference import API_VERSION
 from pinecone.utils import setup_openapi_client, PluginAware
+from pinecone.utils import require_kwargs
 
 from .inference_request_builder import (
     InferenceRequestBuilder,
@@ -16,6 +17,8 @@ from .inference_request_builder import (
 
 if TYPE_CHECKING:
     from pinecone.config import Config, OpenApiConfiguration
+    from .resources.sync.model import Model as ModelResource
+    from .models import ModelInfo, ModelInfoList
 
 logger = logging.getLogger(__name__)
 """ @private """
@@ -47,14 +50,20 @@ class Inference(PluginAware):
     EmbedModel = EmbedModelEnum
     RerankModel = RerankModelEnum
 
-    def __init__(self, config: "Config", openapi_config: "OpenApiConfiguration", **kwargs) -> None:
+    def __init__(
+        self,
+        config: "Config",
+        openapi_config: "OpenApiConfiguration",
+        pool_threads: int = 1,
+        **kwargs,
+    ) -> None:
         self._config = config
         """ @private """
 
         self._openapi_config = openapi_config
         """ @private """
 
-        self._pool_threads = kwargs.get("pool_threads", 1)
+        self._pool_threads = pool_threads
         """ @private """
 
         self.__inference_api = setup_openapi_client(
@@ -65,6 +74,9 @@ class Inference(PluginAware):
             pool_threads=self._pool_threads,
             api_version=API_VERSION,
         )
+
+        self._model: Optional["ModelResource"] = None  # Lazy initialization
+        """ @private """
 
         super().__init__()  # Initialize PluginAware
 
@@ -94,6 +106,45 @@ class Inference(PluginAware):
             stacklevel=2,
         )
         return self._pool_threads
+
+    @property
+    def model(self) -> "ModelResource":
+        """
+        Model is a resource that describes models available in the Pinecone Inference API.
+
+        Curently you can get or list models.
+
+        ```python
+        pc = Pinecone()
+
+        # List all models
+        models = pc.inference.model.list()
+
+        # List models, with model type filtering
+        models = pc.inference.model.list(type="embed")
+        models = pc.inference.model.list(type="rerank")
+
+        # List models, with vector type filtering
+        models = pc.inference.model.list(vector_type="dense")
+        models = pc.inference.model.list(vector_type="sparse")
+
+        # List models, with both type and vector type filtering
+        models = pc.inference.model.list(type="rerank", vector_type="dense")
+
+        # Get details on a specific model
+        model = pc.inference.model.get("text-embedding-3-small")
+        ```
+        """
+        if self._model is None:
+            from .resources.sync.model import Model as ModelResource
+
+            self._model = ModelResource(
+                inference_api=self.__inference_api,
+                config=self._config,
+                openapi_config=self._openapi_config,
+                pool_threads=self._pool_threads,
+            )
+        return self._model
 
     def embed(
         self,
@@ -214,3 +265,57 @@ class Inference(PluginAware):
         )
         resp = self.__inference_api.rerank(rerank_request=rerank_request)
         return RerankResult(resp)
+
+    @require_kwargs
+    def list_models(
+        self, *, type: Optional[str] = None, vector_type: Optional[str] = None
+    ) -> "ModelInfoList":
+        """
+         List all available models.
+
+
+         ```python
+         pc = Pinecone()
+
+         # List all models
+         models = pc.inference.list_models()
+
+         # List models, with model type filtering
+         models = pc.inference.list_models(type="embed")
+         models = pc.inference.list_models(type="rerank")
+
+         # List models, with vector type filtering
+         models = pc.inference.list_models(vector_type="dense")
+         models = pc.inference.list_models(vector_type="sparse")
+
+         # List models, with both type and vector type filtering
+         models = pc.inference.list_models(type="rerank", vector_type="dense")
+        ```
+
+         :param type: The type of model to list. Either "embed" or "rerank".
+         :type type: str, optional
+
+         :param vector_type: The type of vector to list. Either "dense" or "sparse".
+         :type vector_type: str, optional
+
+         :return: A list of models.
+        """
+        return self.model.list(type=type, vector_type=vector_type)
+
+    @require_kwargs
+    def get_model(self, model_name: str) -> "ModelInfo":
+        """
+        Get details on a specific model.
+
+        ```python
+        pc = Pinecone()
+
+        model = pc.inference.get_model(model_name="text-embedding-3-small")
+        ```
+
+        :param model_name: The name of the model to get details on.
+        :type model_name: str, required
+
+        :return: A ModelInfo object.
+        """
+        return self.model.get(model_name=model_name)

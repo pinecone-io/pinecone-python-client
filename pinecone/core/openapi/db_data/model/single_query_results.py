@@ -149,6 +149,7 @@ class SingleQueryResults(ModelNormal):
             namespace (str): The namespace for the vectors. [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -166,6 +167,7 @@ class SingleQueryResults(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item
@@ -186,6 +188,7 @@ class SingleQueryResults(ModelNormal):
 
     required_properties = set(
         [
+            "_enforce_allowed_values",
             "_data_store",
             "_check_type",
             "_spec_property_naming",
@@ -234,6 +237,7 @@ class SingleQueryResults(ModelNormal):
             namespace (str): The namespace for the vectors. [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -249,6 +253,7 @@ class SingleQueryResults(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item

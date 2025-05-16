@@ -71,10 +71,7 @@ class ModelInfo(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("type",): {"EMBED": "embed", "RERANK": "rerank"},
-        ("vector_type",): {"DENSE": "dense", "SPARSE": "sparse"},
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
         ("default_dimension",): {"inclusive_maximum": 20000, "inclusive_minimum": 1},
@@ -196,6 +193,7 @@ class ModelInfo(ModelNormal):
             supported_metrics (ModelInfoSupportedMetrics): [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -213,6 +211,7 @@ class ModelInfo(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item
@@ -237,6 +236,7 @@ class ModelInfo(ModelNormal):
 
     required_properties = set(
         [
+            "_enforce_allowed_values",
             "_data_store",
             "_check_type",
             "_spec_property_naming",
@@ -299,6 +299,7 @@ class ModelInfo(ModelNormal):
             supported_metrics (ModelInfoSupportedMetrics): [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -314,6 +315,7 @@ class ModelInfo(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item

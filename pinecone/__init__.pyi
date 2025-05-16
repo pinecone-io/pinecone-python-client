@@ -1,8 +1,14 @@
 from pinecone.config import Config
 from pinecone.config import ConfigBuilder
 from pinecone.config import PineconeConfig
-from pinecone.inference import RerankModel
-from pinecone.inference import EmbedModel
+from pinecone.inference import (
+    RerankModel,
+    EmbedModel,
+    ModelInfo,
+    ModelInfoList,
+    EmbeddingsList,
+    RerankResult,
+)
 from pinecone.db_data.dataclasses import (
     Vector,
     SparseValues,
@@ -69,6 +75,10 @@ __all__ = [
     # Inference classes
     "RerankModel",
     "EmbedModel",
+    "ModelInfo",
+    "ModelInfoList",
+    "EmbeddingsList",
+    "RerankResult",
     # Data classes
     "Vector",
     "SparseValues",

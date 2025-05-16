@@ -108,9 +108,13 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         Inference is a namespace where an instance of the `pinecone.data.features.inference.inference.Inference` class is lazily created and cached.
         """
         if self._inference is None:
-            from pinecone.db_data import _Inference
+            from pinecone.inference import Inference
 
-            self._inference = _Inference(config=self._config, openapi_config=self._openapi_config)
+            self._inference = Inference(
+                config=self._config,
+                openapi_config=self._openapi_config,
+                pool_threads=self._pool_threads,
+            )
         return self._inference
 
     @property
