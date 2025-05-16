@@ -33,6 +33,10 @@ on:
       - '*.svg'
   workflow_dispatch: {}
 
+concurrency:
+  group: 'ci-${{ github.workflow }}-${{ github.ref }}'
+  cancel-in-progress: true
+
 jobs:
   linting:
     uses: './.github/workflows/lint.yaml'
