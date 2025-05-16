@@ -18,9 +18,17 @@ from pinecone.core.openapi.inference.model.embeddings_list import EmbeddingsList
 from pinecone.core.openapi.inference.model.embeddings_list_usage import EmbeddingsListUsage
 from pinecone.core.openapi.inference.model.error_response import ErrorResponse
 from pinecone.core.openapi.inference.model.error_response_error import ErrorResponseError
+from pinecone.core.openapi.inference.model.model_info import ModelInfo
+from pinecone.core.openapi.inference.model.model_info_list import ModelInfoList
+from pinecone.core.openapi.inference.model.model_info_metric import ModelInfoMetric
+from pinecone.core.openapi.inference.model.model_info_supported_metrics import (
+    ModelInfoSupportedMetrics,
+)
+from pinecone.core.openapi.inference.model.model_info_supported_parameter import (
+    ModelInfoSupportedParameter,
+)
 from pinecone.core.openapi.inference.model.ranked_document import RankedDocument
 from pinecone.core.openapi.inference.model.rerank_request import RerankRequest
 from pinecone.core.openapi.inference.model.rerank_result import RerankResult
 from pinecone.core.openapi.inference.model.rerank_result_usage import RerankResultUsage
 from pinecone.core.openapi.inference.model.sparse_embedding import SparseEmbedding
-from pinecone.core.openapi.inference.model.vector_type import VectorType

@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-01
+The version of the OpenAPI document: 2025-04
 Contact: support@pinecone.io
 """
 
@@ -144,9 +144,11 @@ class DeleteRequest(ModelNormal):
             ids ([str]): Vectors to delete. [optional]  # noqa: E501
             delete_all (bool): This indicates that all vectors in the index namespace should be deleted. [optional] if omitted the server will use the default value of False.  # noqa: E501
             namespace (str): The namespace to delete vectors from, if applicable. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True. See [Understanding metadata](https://docs.pinecone.io/guides/data/understanding-metadata). Serverless indexes do not support delete by metadata. Instead, you can use the `list` operation to fetch the vector IDs based on their common ID prefix and then delete the records by ID. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). Serverless indexes do not support delete by metadata. Instead, you can use the `list` operation to fetch the vector IDs based on their common ID prefix and then delete the records by ID. [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
+        _enforce_validations = kwargs.pop("_enforce_validations", False)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -164,6 +166,8 @@ class DeleteRequest(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item
@@ -184,6 +188,8 @@ class DeleteRequest(ModelNormal):
 
     required_properties = set(
         [
+            "_enforce_allowed_values",
+            "_enforce_validations",
             "_data_store",
             "_check_type",
             "_spec_property_naming",
@@ -231,9 +237,11 @@ class DeleteRequest(ModelNormal):
             ids ([str]): Vectors to delete. [optional]  # noqa: E501
             delete_all (bool): This indicates that all vectors in the index namespace should be deleted. [optional] if omitted the server will use the default value of False.  # noqa: E501
             namespace (str): The namespace to delete vectors from, if applicable. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True. See [Understanding metadata](https://docs.pinecone.io/guides/data/understanding-metadata). Serverless indexes do not support delete by metadata. Instead, you can use the `list` operation to fetch the vector IDs based on their common ID prefix and then delete the records by ID. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). Serverless indexes do not support delete by metadata. Instead, you can use the `list` operation to fetch the vector IDs based on their common ID prefix and then delete the records by ID. [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
+        _enforce_validations = kwargs.pop("_enforce_validations", True)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -249,6 +257,8 @@ class DeleteRequest(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item

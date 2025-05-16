@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-01
+The version of the OpenAPI document: 2025-04
 Contact: support@pinecone.io
 """
 
@@ -125,7 +125,7 @@ class RerankRequest(ModelNormal):
         """RerankRequest - a model defined in OpenAPI
 
         Args:
-            model (str): The [model](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models) to use for reranking.
+            model (str): The [model](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) to use for reranking.
             query (str): The query to rerank documents against.
             documents ([Document]): The documents to rerank.
 
@@ -162,10 +162,12 @@ class RerankRequest(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             top_n (int): The number of results to return sorted by relevance. Defaults to the number of inputs. [optional]  # noqa: E501
             return_documents (bool): Whether to return the documents in the response. [optional] if omitted the server will use the default value of True.  # noqa: E501
-            rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models).  [optional] if omitted the server will use the default value of ["text"].  # noqa: E501
-            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models) for available model parameters. [optional]  # noqa: E501
+            rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/search/rerank-results#reranking-models).  [optional] if omitted the server will use the default value of ["text"].  # noqa: E501
+            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) for available model parameters. [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
+        _enforce_validations = kwargs.pop("_enforce_validations", False)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -183,6 +185,8 @@ class RerankRequest(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item
@@ -206,6 +210,8 @@ class RerankRequest(ModelNormal):
 
     required_properties = set(
         [
+            "_enforce_allowed_values",
+            "_enforce_validations",
             "_data_store",
             "_check_type",
             "_spec_property_naming",
@@ -220,7 +226,7 @@ class RerankRequest(ModelNormal):
         """RerankRequest - a model defined in OpenAPI
 
         Args:
-            model (str): The [model](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models) to use for reranking.
+            model (str): The [model](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) to use for reranking.
             query (str): The query to rerank documents against.
             documents ([Document]): The documents to rerank.
 
@@ -257,10 +263,12 @@ class RerankRequest(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             top_n (int): The number of results to return sorted by relevance. Defaults to the number of inputs. [optional]  # noqa: E501
             return_documents (bool): Whether to return the documents in the response. [optional] if omitted the server will use the default value of True.  # noqa: E501
-            rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models).  [optional] if omitted the server will use the default value of ["text"].  # noqa: E501
-            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/inference/understanding-inference#reranking-models) for available model parameters. [optional]  # noqa: E501
+            rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/search/rerank-results#reranking-models).  [optional] if omitted the server will use the default value of ["text"].  # noqa: E501
+            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) for available model parameters. [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
+        _enforce_validations = kwargs.pop("_enforce_validations", True)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -276,6 +284,8 @@ class RerankRequest(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item

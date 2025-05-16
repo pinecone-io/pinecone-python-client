@@ -48,6 +48,7 @@ class TestCreateIndexForModelErrors:
         assert "Invalid value for `cloud`" in str(e.value)
         await pc.close()
 
+    @pytest.mark.skip(reason="This seems to not raise an error in preprod-aws-0")
     async def test_invalid_region(self, index_name):
         pc = PineconeAsyncio()
 

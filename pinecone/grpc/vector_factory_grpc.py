@@ -8,13 +8,13 @@ from google.protobuf.struct_pb2 import Struct
 from .utils import dict_to_proto_struct
 from ..utils import fix_tuple_length, convert_to_list
 from ..utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
-from ..data import (
+from ..db_data import (
     VectorDictionaryMissingKeysError,
     VectorDictionaryExcessKeysError,
     VectorTupleLengthError,
     MetadataDictionaryExpectedError,
 )
-from ..data.types import VectorTuple, VectorTypedDict
+from ..db_data.types import VectorTuple, VectorTypedDict
 from .sparse_values_factory import SparseValuesFactory
 
 from pinecone.core.grpc.protos.db_data_2025_01_pb2 import (

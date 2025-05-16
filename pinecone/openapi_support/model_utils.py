@@ -1,5 +1,4 @@
 from datetime import date, datetime  # noqa: F401
-from dateutil.parser import parse
 
 import inspect
 import io
@@ -145,9 +144,17 @@ class OpenApiModel(object):
                 self._check_type,
                 configuration=self._configuration,
             )
-        if (name,) in self.allowed_values:
+        if (name,) in self.allowed_values and self._enforce_allowed_values:
+            # Disabling allowed_value validation on response makes the SDK
+            # less fragile if unexpected values are returned. For example, if
+            # an unexpected index status is returned, we don't want to break
+            # when listing indexes due to validation on the status field against
+            # the allowed values in the enum.
             check_allowed_values(self.allowed_values, (name,), value)
-        if (name,) in self.validations:
+        if (name,) in self.validations and self._enforce_validations:
+            # Disabling validation on response makes the SDK
+            # less fragile if unexpected values are returned. In general,
+            # we want the SDK to display whatever is returned by the API.
             check_validations(self.validations, (name,), value, self._configuration)
         self.__dict__["_data_store"][name] = value
 
@@ -1149,6 +1156,8 @@ def deserialize_primitive(data, klass, path_to_item):
     additional_message = ""
     try:
         if klass in {datetime, date}:
+            from dateutil.parser import parse
+
             additional_message = (
                 "If you need your parameter to have a fallback "
                 "string value, please set its type as `type: {}` in your "

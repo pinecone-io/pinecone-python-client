@@ -2,7 +2,7 @@ from .model_utils import file_type
 from .exceptions import PineconeApiTypeError, PineconeApiValueError
 from typing import Optional, Dict, Tuple, TypedDict, List, Literal, Any
 from .types import PropertyValidationTypedDict
-from .configuration import Configuration
+from ..config.openapi_configuration import Configuration
 from .model_utils import validate_and_convert_types, check_allowed_values, check_validations
 
 

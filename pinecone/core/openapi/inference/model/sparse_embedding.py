@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-01
+The version of the OpenAPI document: 2025-04
 Contact: support@pinecone.io
 """
 
@@ -25,12 +25,6 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     validate_get_composed_info,
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
-
-
-def lazy_import():
-    from pinecone.core.openapi.inference.model.vector_type import VectorType
-
-    globals()["VectorType"] = VectorType
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -75,7 +69,6 @@ class SparseEmbedding(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -90,11 +83,10 @@ class SparseEmbedding(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
             "sparse_values": ([float],),  # noqa: E501
             "sparse_indices": ([int],),  # noqa: E501
-            "vector_type": (VectorType,),  # noqa: E501
+            "vector_type": (str,),  # noqa: E501
             "sparse_tokens": ([str],),  # noqa: E501
         }
 
@@ -123,7 +115,7 @@ class SparseEmbedding(ModelNormal):
         Args:
             sparse_values ([float]): The sparse embedding values.
             sparse_indices ([int]): The sparse embedding indices.
-            vector_type (VectorType):
+            vector_type (str): Indicates whether this is a 'dense' or 'sparse' embedding.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -159,6 +151,8 @@ class SparseEmbedding(ModelNormal):
             sparse_tokens ([str]): The normalized tokens used to create the sparse embedding. [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
+        _enforce_validations = kwargs.pop("_enforce_validations", False)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -176,6 +170,8 @@ class SparseEmbedding(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item
@@ -199,6 +195,8 @@ class SparseEmbedding(ModelNormal):
 
     required_properties = set(
         [
+            "_enforce_allowed_values",
+            "_enforce_validations",
             "_data_store",
             "_check_type",
             "_spec_property_naming",
@@ -215,7 +213,7 @@ class SparseEmbedding(ModelNormal):
         Args:
             sparse_values ([float]): The sparse embedding values.
             sparse_indices ([int]): The sparse embedding indices.
-            vector_type (VectorType):
+            vector_type (str): Indicates whether this is a 'dense' or 'sparse' embedding.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -251,6 +249,8 @@ class SparseEmbedding(ModelNormal):
             sparse_tokens ([str]): The normalized tokens used to create the sparse embedding. [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
+        _enforce_validations = kwargs.pop("_enforce_validations", True)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -266,6 +266,8 @@ class SparseEmbedding(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item

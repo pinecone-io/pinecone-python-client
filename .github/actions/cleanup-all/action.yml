@@ -9,6 +9,10 @@ inputs:
     description: 'Delete all indexes and collections'
     required: false
     default: 'false'
+  PINECONE_ADDITIONAL_HEADERS:
+    description: 'Additional headers to send with the request'
+    required: false
+    default: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
 
 runs:
   using: 'composite'
@@ -25,3 +29,4 @@ runs:
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         DELETE_ALL: ${{ inputs.DELETE_ALL }}
+        PINECONE_ADDITIONAL_HEADERS: ${{ inputs.PINECONE_ADDITIONAL_HEADERS }}

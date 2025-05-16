@@ -1,34 +1,10 @@
-from .index import (
-    Index as _Index,
-    FetchResponse,
-    QueryResponse,
-    DescribeIndexStatsResponse,
-    UpsertResponse,
-    SparseValues,
-    Vector,
-)
-from .dataclasses import *
-from .import_error import (
-    Index,
-    IndexClientInstantiationError,
-    Inference,
-    InferenceInstantiationError,
-)
-from .index_asyncio import *
-from .errors import (
-    VectorDictionaryMissingKeysError,
-    VectorDictionaryExcessKeysError,
-    VectorTupleLengthError,
-    SparseValuesTypeError,
-    SparseValuesMissingKeysError,
-    SparseValuesDictionaryExpectedError,
-    MetadataDictionaryExpectedError,
-)
+import warnings
 
-from .features.bulk_import import ImportErrorMode
-from .features.inference import (
-    Inference as _Inference,
-    AsyncioInference as _AsyncioInference,
-    RerankModel,
-    EmbedModel,
+from pinecone.db_data import *
+
+warnings.warn(
+    "The module at `pinecone.data` has moved to `pinecone.db_data`. "
+    "Please update your imports. "
+    "This warning will become an error in a future version of the Pinecone Python SDK.",
+    DeprecationWarning,
 )

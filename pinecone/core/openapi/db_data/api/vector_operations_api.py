@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-01
+The version of the OpenAPI document: 2025-04
 Contact: support@pinecone.io
 """
 
@@ -55,7 +55,7 @@ class VectorOperationsApi:
         def __delete_vectors(self, delete_request, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Delete vectors  # noqa: E501
 
-            Delete vectors, by id, from a single namespace.  For guidance and examples, see [Delete data](https://docs.pinecone.io/guides/data/delete-data).  # noqa: E501
+            Delete vectors by id from a single namespace.  For guidance and examples, see [Delete data](https://docs.pinecone.io/guides/manage-data/delete-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -195,7 +195,7 @@ class VectorOperationsApi:
         def __fetch_vectors(self, ids, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Fetch vectors  # noqa: E501
 
-            Look up and return vectors, by ID, from a single namespace. The returned vectors include the vector data and/or metadata.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/data/fetch-data).  # noqa: E501
+            Look up and return vectors by ID from a single namespace. The returned vectors include the vector data and/or metadata.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -265,7 +265,7 @@ class VectorOperationsApi:
         def __list_vectors(self, **kwargs: ExtraOpenApiKwargsTypedDict):
             """List vector IDs  # noqa: E501
 
-            List the IDs of vectors in a single namespace of a serverless index. An optional prefix can be passed to limit the results to IDs with a common prefix.  This returns up to 100 IDs at a time by default in sorted order (bitwise \"C\" collation). If the `limit` parameter is set, `list` returns up to that number of IDs instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of IDs. When the response does not include a `pagination_token`, there are no more IDs to return.  For guidance and examples, see [List record IDs](https://docs.pinecone.io/guides/data/list-record-ids).  **Note:** `list` is supported only for serverless indexes.  # noqa: E501
+            List the IDs of vectors in a single namespace of a serverless index. An optional prefix can be passed to limit the results to IDs with a common prefix.  Returns up to 100 IDs at a time by default in sorted order (bitwise \"C\" collation). If the `limit` parameter is set, `list` returns up to that number of IDs instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of IDs. When the response does not include a `pagination_token`, there are no more IDs to return.  For guidance and examples, see [List record IDs](https://docs.pinecone.io/guides/manage-data/list-record-ids).  **Note:** `list` is supported only for serverless indexes.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -348,9 +348,9 @@ class VectorOperationsApi:
         )
 
         def __query_vectors(self, query_request, **kwargs: ExtraOpenApiKwargsTypedDict):
-            """Query vectors  # noqa: E501
+            """Search with a vector  # noqa: E501
 
-            Search a namespace, using a query vector. It retrieves the ids of the most similar items in a namespace, along with their similarity scores.  For guidance and examples, see [Query data](https://docs.pinecone.io/guides/data/query-data).  # noqa: E501
+            Search a namespace using a query vector. It retrieves the ids of the most similar items in a namespace, along with their similarity scores.  For guidance and examples, see [Search](https://docs.pinecone.io/guides/search/semantic-search).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -419,9 +419,9 @@ class VectorOperationsApi:
         def __search_records_namespace(
             self, namespace, search_records_request, **kwargs: ExtraOpenApiKwargsTypedDict
         ):
-            """Search a namespace  # noqa: E501
+            """Search with text  # noqa: E501
 
-            This operation converts a query to a vector embedding and then searches a namespace using the embedding. It returns the most similar records in the namespace, along with their similarity scores.  # noqa: E501
+            Search a namespace with a query text, query vector, or record ID and return the most similar records, along with their similarity scores. Optionally, rerank the initial results based on their relevance to the query.   Searching with text is supported only for [indexes with integrated embedding](https://docs.pinecone.io/guides/indexes/create-an-index#integrated-embedding). Searching with a query vector or record ID is supported for all indexes.   For guidance and examples, see [Search](https://docs.pinecone.io/guides/search/semantic-search).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -495,7 +495,7 @@ class VectorOperationsApi:
         def __update_vector(self, update_request, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Update a vector  # noqa: E501
 
-            Update a vector in a namespace. If a value is included, it will overwrite the previous value. If a `set_metadata` is included, the values of the fields specified in it will be added or overwrite the previous value.  For guidance and examples, see [Update data](https://docs.pinecone.io/guides/data/update-data).  # noqa: E501
+            Update a vector in a namespace. If a value is included, it will overwrite the previous value. If a `set_metadata` is included, the values of the fields specified in it will be added or overwrite the previous value.  For guidance and examples, see [Update data](https://docs.pinecone.io/guides/manage-data/update-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -564,9 +564,9 @@ class VectorOperationsApi:
         def __upsert_records_namespace(
             self, namespace, upsert_record, **kwargs: ExtraOpenApiKwargsTypedDict
         ):
-            """Upsert records into a namespace  # noqa: E501
+            """Upsert text  # noqa: E501
 
-            This operation converts input data to vector embeddings and then upserts the embeddings into a namespace.  # noqa: E501
+            Upsert text into a namespace. Pinecone converts the text to vectors automatically using the hosted embedding model associated with the index.  Upserting text is supported only for [indexes with integrated embedding](https://docs.pinecone.io/reference/api/2025-01/control-plane/create_for_model).  For guidance and examples, see [Upsert data](https://docs.pinecone.io/guides/index-data/upsert-data#upsert-text).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -637,7 +637,7 @@ class VectorOperationsApi:
         def __upsert_vectors(self, upsert_request, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Upsert vectors  # noqa: E501
 
-            Write vectors into a namespace. If a new value is upserted for an existing vector ID, it will overwrite the previous value.  For guidance and examples, see [Upsert data](https://docs.pinecone.io/guides/data/upsert-data).  # noqa: E501
+            Upsert vectors into a namespace. If a new value is upserted for an existing vector ID, it will overwrite the previous value.  For guidance and examples, see [Upsert data](https://docs.pinecone.io/guides/index-data/upsert-data#upsert-vectors).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -718,7 +718,7 @@ class AsyncioVectorOperationsApi:
         async def __delete_vectors(self, delete_request, **kwargs):
             """Delete vectors  # noqa: E501
 
-            Delete vectors, by id, from a single namespace.  For guidance and examples, see [Delete data](https://docs.pinecone.io/guides/data/delete-data).  # noqa: E501
+            Delete vectors by id from a single namespace.  For guidance and examples, see [Delete data](https://docs.pinecone.io/guides/manage-data/delete-data).  # noqa: E501
 
 
             Args:
@@ -842,7 +842,7 @@ class AsyncioVectorOperationsApi:
         async def __fetch_vectors(self, ids, **kwargs):
             """Fetch vectors  # noqa: E501
 
-            Look up and return vectors, by ID, from a single namespace. The returned vectors include the vector data and/or metadata.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/data/fetch-data).  # noqa: E501
+            Look up and return vectors by ID from a single namespace. The returned vectors include the vector data and/or metadata.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
 
 
             Args:
@@ -905,7 +905,7 @@ class AsyncioVectorOperationsApi:
         async def __list_vectors(self, **kwargs):
             """List vector IDs  # noqa: E501
 
-            List the IDs of vectors in a single namespace of a serverless index. An optional prefix can be passed to limit the results to IDs with a common prefix.  This returns up to 100 IDs at a time by default in sorted order (bitwise \"C\" collation). If the `limit` parameter is set, `list` returns up to that number of IDs instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of IDs. When the response does not include a `pagination_token`, there are no more IDs to return.  For guidance and examples, see [List record IDs](https://docs.pinecone.io/guides/data/list-record-ids).  **Note:** `list` is supported only for serverless indexes.  # noqa: E501
+            List the IDs of vectors in a single namespace of a serverless index. An optional prefix can be passed to limit the results to IDs with a common prefix.  Returns up to 100 IDs at a time by default in sorted order (bitwise \"C\" collation). If the `limit` parameter is set, `list` returns up to that number of IDs instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of IDs. When the response does not include a `pagination_token`, there are no more IDs to return.  For guidance and examples, see [List record IDs](https://docs.pinecone.io/guides/manage-data/list-record-ids).  **Note:** `list` is supported only for serverless indexes.  # noqa: E501
 
 
 
@@ -981,9 +981,9 @@ class AsyncioVectorOperationsApi:
         )
 
         async def __query_vectors(self, query_request, **kwargs):
-            """Query vectors  # noqa: E501
+            """Search with a vector  # noqa: E501
 
-            Search a namespace, using a query vector. It retrieves the ids of the most similar items in a namespace, along with their similarity scores.  For guidance and examples, see [Query data](https://docs.pinecone.io/guides/data/query-data).  # noqa: E501
+            Search a namespace using a query vector. It retrieves the ids of the most similar items in a namespace, along with their similarity scores.  For guidance and examples, see [Search](https://docs.pinecone.io/guides/search/semantic-search).  # noqa: E501
 
 
             Args:
@@ -1043,9 +1043,9 @@ class AsyncioVectorOperationsApi:
         )
 
         async def __search_records_namespace(self, namespace, search_records_request, **kwargs):
-            """Search a namespace  # noqa: E501
+            """Search with text  # noqa: E501
 
-            This operation converts a query to a vector embedding and then searches a namespace using the embedding. It returns the most similar records in the namespace, along with their similarity scores.  # noqa: E501
+            Search a namespace with a query text, query vector, or record ID and return the most similar records, along with their similarity scores. Optionally, rerank the initial results based on their relevance to the query.   Searching with text is supported only for [indexes with integrated embedding](https://docs.pinecone.io/guides/indexes/create-an-index#integrated-embedding). Searching with a query vector or record ID is supported for all indexes.   For guidance and examples, see [Search](https://docs.pinecone.io/guides/search/semantic-search).  # noqa: E501
 
 
             Args:
@@ -1112,7 +1112,7 @@ class AsyncioVectorOperationsApi:
         async def __update_vector(self, update_request, **kwargs):
             """Update a vector  # noqa: E501
 
-            Update a vector in a namespace. If a value is included, it will overwrite the previous value. If a `set_metadata` is included, the values of the fields specified in it will be added or overwrite the previous value.  For guidance and examples, see [Update data](https://docs.pinecone.io/guides/data/update-data).  # noqa: E501
+            Update a vector in a namespace. If a value is included, it will overwrite the previous value. If a `set_metadata` is included, the values of the fields specified in it will be added or overwrite the previous value.  For guidance and examples, see [Update data](https://docs.pinecone.io/guides/manage-data/update-data).  # noqa: E501
 
 
             Args:
@@ -1172,9 +1172,9 @@ class AsyncioVectorOperationsApi:
         )
 
         async def __upsert_records_namespace(self, namespace, upsert_record, **kwargs):
-            """Upsert records into a namespace  # noqa: E501
+            """Upsert text  # noqa: E501
 
-            This operation converts input data to vector embeddings and then upserts the embeddings into a namespace.  # noqa: E501
+            Upsert text into a namespace. Pinecone converts the text to vectors automatically using the hosted embedding model associated with the index.  Upserting text is supported only for [indexes with integrated embedding](https://docs.pinecone.io/reference/api/2025-01/control-plane/create_for_model).  For guidance and examples, see [Upsert data](https://docs.pinecone.io/guides/index-data/upsert-data#upsert-text).  # noqa: E501
 
 
             Args:
@@ -1238,7 +1238,7 @@ class AsyncioVectorOperationsApi:
         async def __upsert_vectors(self, upsert_request, **kwargs):
             """Upsert vectors  # noqa: E501
 
-            Write vectors into a namespace. If a new value is upserted for an existing vector ID, it will overwrite the previous value.  For guidance and examples, see [Upsert data](https://docs.pinecone.io/guides/data/upsert-data).  # noqa: E501
+            Upsert vectors into a namespace. If a new value is upserted for an existing vector ID, it will overwrite the previous value.  For guidance and examples, see [Upsert data](https://docs.pinecone.io/guides/index-data/upsert-data#upsert-vectors).  # noqa: E501
 
 
             Args:

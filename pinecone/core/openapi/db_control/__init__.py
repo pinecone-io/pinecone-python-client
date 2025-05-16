@@ -7,7 +7,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-01
+The version of the OpenAPI document: 2025-04
 Contact: support@pinecone.io
 """
 
@@ -17,7 +17,7 @@ __version__ = "1.0.0"
 from pinecone.openapi_support.api_client import ApiClient
 
 # import Configuration
-from pinecone.openapi_support.configuration import Configuration
+from pinecone.config.openapi_configuration import Configuration
 
 # import exceptions
 from pinecone.openapi_support.exceptions import PineconeException
@@ -27,4 +27,4 @@ from pinecone.openapi_support.exceptions import PineconeApiValueError
 from pinecone.openapi_support.exceptions import PineconeApiKeyError
 from pinecone.openapi_support.exceptions import PineconeApiException
 
-API_VERSION = "2025-01"
+API_VERSION = "2025-04"

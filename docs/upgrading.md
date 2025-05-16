@@ -3,6 +3,199 @@
 > Please remove `pinecone-client` from your project dependencies and add `pinecone` instead to get
 > the latest updates.
 
+# Upgrading from `6.x` to `7.x`
+
+There are no intentional breaking changes when moving from v6 to v7 of the SDK. The major version bump reflects the move from calling the `2025-01` to the `2025-04` version of the underlying API.
+
+Some internals of the client have been reorganized or moved, but we've made an effort to alias everything and show warning messages when appropriate. If you experience any unexpected breaking changes that cause you friction while upgrading, let us know and we'll try to smooth it out.
+
+## Useful additions in `7.x`
+
+New Features:
+- [Pinecone Assistant](https://www.pinecone.io/product/assistant/): The assistant plugin is now bundled by default. You can simply start using it without installing anything additional.
+- [Inference API](https://docs.pinecone.io/guides/get-started/overview#inference): List/view models from the model gallery via API
+- [Backups](https://docs.pinecone.io/guides/manage-data/backups-overview):
+  - Create backup from serverless index
+  - Create serverless index from backup
+  - List/view backups
+  - List/view backup restore jobs
+- [Bring Your Own Cloud (BYOC)](https://docs.pinecone.io/guides/production/bring-your-own-cloud):
+  - Create, list, describe, and delete BYOC indexes
+
+Other improvements:
+- ~70% faster client instantiation time thanks to extensive refactoring to implement lazy loading. This means your app won't waste time loading code for features you're not using.
+- Retries with exponential backoff are now enabled by default for REST calls (implemented for both urllib3 and aiohttp).
+- We're following [PEP 561](https://typing.python.org/en/latest/spec/distributing.html#packaging-typed-libraries) and adding a `py.typed` marker file to indicate inline type information is present in the package. We're still working toward reaching full coverage with our type hints, but including this file allows some tools to find the inline definitions we have already implemented.
+
+
+### Backups for Serverless Indexes
+
+You can create backups from your serverless indexes and use these backups to create new indexes. Some fields such as `record_count` are initially empty but will be populated by the time a backup is ready for use.
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone()
+
+index_name = 'example-index'
+if not pc.has_index(name=index_name):
+    raise Exception('An index must exist before backing it up')
+
+backup = pc.create_backup(
+    index_name=index_name,
+    backup_name='example-backup',
+    description='testing out backups'
+)
+# {
+#     "backup_id": "4698a618-7e56-4a44-93bc-fc8f1371aa36",
+#     "source_index_name": "example-index",
+#     "source_index_id": "ec6fd44c-ab45-4873-97f3-f6b44b67e9bc",
+#     "status": "Initializing",
+#     "cloud": "aws",
+#     "region": "us-east-1",
+#     "tags": {},
+#     "name": "example-backup",
+#     "description": "testing out backups",
+#     "dimension": null,
+#     "record_count": null,
+#     "namespace_count": null,
+#     "size_bytes": null,
+#     "created_at": "2025-05-16T18:44:28.480671533Z"
+# }
+```
+
+Check the status of a backup
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone()
+
+pc.describe_backup(backup_id='4698a618-7e56-4a44-93bc-fc8f1371aa36')
+# {
+#     "backup_id": "4698a618-7e56-4a44-93bc-fc8f1371aa36",
+#     "source_index_name": "example-index",
+#     "source_index_id": "ec6fd44c-ab45-4873-97f3-f6b44b67e9bc",
+#     "status": "Ready",
+#     "cloud": "aws",
+#     "region": "us-east-1",
+#     "tags": {},
+#     "name": "example-backup",
+#     "description": "testing out backups",
+#     "dimension": 768,
+#     "record_count": 1000,
+#     "namespace_count": 1,
+#     "size_bytes": 289656,
+#     "created_at": "2025-05-16T18:44:28.480691Z"
+# }
+```
+
+You can use `list_backups` to see all of your backups and their current status. If you have a large number of backups, results will be paginated. You can control the pagination with optional parameters for `limit` and `pagination_token`.
+
+```python
+
+from pinecone import Pinecone
+
+pc = Pinecone()
+
+# All backups
+pc.list_backups()
+
+# Only backups associated with a particular index
+pc.list_backups(index_name='my-index')
+```
+
+To create an index from a backup, use `create_index_from_backup`.
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone()
+
+pc.create_index_from_backup(
+    name='index-from-backup',
+    backup_id='4698a618-7e56-4a44-93bc-fc8f1371aa36',
+    deletion_protection = "disabled",
+    tags={'env': 'testing'},
+)
+```
+
+Under the hood, a restore job is created to handle taking data from your backup and loading it into the newly created serverless index. You can check status of pending restore jobs with `pc.list_restore_jobs()` or `pc.describe_restore_job()`
+
+### Explore and discover models available in our Inference API
+
+You can now fetch a dynamic list of models supported by the Inference API.
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone()
+
+# List all models
+models = pc.inference.list_models()
+
+# List models, with model type filtering
+models = pc.inference.list_models(type="embed")
+models = pc.inference.list_models(type="rerank")
+
+# List models, with vector type filtering
+models = pc.inference.list_models(vector_type="dense")
+models = pc.inference.list_models(vector_type="sparse")
+
+# List models, with both type and vector type filtering
+models = pc.inference.list_models(type="rerank", vector_type="dense")
+```
+
+Or, if you know the name of a model, you can get just those details
+
+```
+pc.inference.get_model(model_name='pinecone-rerank-v0')
+# {
+#     "model": "pinecone-rerank-v0",
+#     "short_description": "A state of the art reranking model that out-performs competitors on widely accepted benchmarks. It can handle chunks up to 512 tokens (1-2 paragraphs)",
+#     "type": "rerank",
+#     "supported_parameters": [
+#         {
+#             "parameter": "truncate",
+#             "type": "one_of",
+#             "value_type": "string",
+#             "required": false,
+#             "default": "END",
+#             "allowed_values": [
+#                 "END",
+#                 "NONE"
+#             ]
+#         }
+#     ],
+#     "modality": "text",
+#     "max_sequence_length": 512,
+#     "max_batch_size": 100,
+#     "provider_name": "Pinecone",
+#     "supported_metrics": []
+# }
+```
+
+### Client support for BYOC (Bring Your Own Cloud)
+
+For customers using our [BYOC offering](https://docs.pinecone.io/guides/production/bring-your-own-cloud), you can now create indexes and list/describe indexes you have created in your cloud.
+
+```python
+from pinecone import Pinecone, ByocSpec
+
+pc = Pinecone()
+
+pc.create_index(
+    name='example-byoc-index',
+    dimension=768,
+    metric='cosine',
+    spec=ByocSpec(environment='my-private-env'),
+    tags={
+        'env': 'testing'
+    },
+    deletion_protection='enabled'
+)
+```
+
 # Upgrading from `5.x` to `6.x`
 
 ## Breaking changes in 6.x

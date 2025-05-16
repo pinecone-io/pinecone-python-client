@@ -1,6 +1,5 @@
 from ..helpers import poll_fetch_for_ids_in_namespace, embedding_values
 from pinecone import Vector
-
 import itertools
 
 
@@ -133,3 +132,6 @@ def setup_weird_ids_data(idx, target_namespace, wait):
     for i in range(0, len(weird_ids), batch_size):
         chunk = weird_ids[i : i + batch_size]
         idx.upsert(vectors=[(x, embedding_values(2)) for x in chunk], namespace=target_namespace)
+
+    if wait:
+        poll_fetch_for_ids_in_namespace(idx, ids=weird_ids, namespace=target_namespace)

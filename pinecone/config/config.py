@@ -1,9 +1,11 @@
-from typing import NamedTuple, Optional, Dict
+from typing import NamedTuple, Optional, Dict, TYPE_CHECKING
 import os
 
-from pinecone.exceptions.exceptions import PineconeConfigurationError
-from pinecone.config.openapi import OpenApiConfigFactory
-from pinecone.openapi_support.configuration import Configuration as OpenApiConfiguration
+from pinecone.exceptions import PineconeConfigurationError
+from pinecone.config.openapi_config_factory import OpenApiConfigFactory
+
+if TYPE_CHECKING:
+    from pinecone.config.openapi_configuration import Configuration as OpenApiConfiguration
 
 
 # Duplicated this util to help resolve circular imports
@@ -81,8 +83,8 @@ class ConfigBuilder:
 
     @staticmethod
     def build_openapi_config(
-        config: Config, openapi_config: Optional[OpenApiConfiguration] = None, **kwargs
-    ) -> OpenApiConfiguration:
+        config: Config, openapi_config: Optional["OpenApiConfiguration"] = None, **kwargs
+    ) -> "OpenApiConfiguration":
         if openapi_config:
             openapi_config = OpenApiConfigFactory.copy(
                 openapi_config=openapi_config, api_key=config.api_key, host=config.host

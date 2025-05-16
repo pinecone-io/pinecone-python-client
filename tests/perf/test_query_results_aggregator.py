@@ -1,5 +1,5 @@
 import random
-from pinecone.data.query_results_aggregator import QueryResultsAggregator
+from pinecone.db_data.query_results_aggregator import QueryResultsAggregator
 
 
 def fake_results(i):

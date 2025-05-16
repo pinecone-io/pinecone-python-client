@@ -43,7 +43,7 @@ class TestGRPCIndexInitialization:
 
         # Set this state in the host store to skip network call
         # to find host for name
-        pc.index_host_store.set_host(pc.config, "my-index", "myhost")
+        pc.db.index._index_host_store.set_host(pc._config, "my-index", "myhost")
 
         config = GRPCClientConfig(timeout=10, secure=False)
         index = pc.Index(name="my-index", grpc_config=config)
@@ -88,5 +88,6 @@ class TestGRPCIndexInitialization:
     def test_config_passes_source_tag_when_set(self):
         pc = PineconeGRPC(api_key="YOUR_API_KEY", source_tag="my_source_tag")
         assert (
-            re.search(r"source_tag=my_source_tag", pc.index_api.api_client.user_agent) is not None
+            re.search(r"source_tag=my_source_tag", pc.db._index_api.api_client.user_agent)
+            is not None
         )

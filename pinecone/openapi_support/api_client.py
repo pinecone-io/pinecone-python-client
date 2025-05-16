@@ -1,14 +1,14 @@
 import atexit
-from multiprocessing.pool import ThreadPool
-from concurrent.futures import ThreadPoolExecutor
 import io
 
-from typing import Optional, List, Tuple, Dict, Any, Union
-from .deserializer import Deserializer
+from typing import Optional, List, Tuple, Dict, Any, Union, TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from multiprocessing.pool import ThreadPool
+    from concurrent.futures import ThreadPoolExecutor
 
 from .rest_urllib3 import Urllib3RestClient
-from .configuration import Configuration
+from ..config.openapi_configuration import Configuration
 from .exceptions import PineconeApiValueError, PineconeApiException
 from .api_client_utils import (
     parameters_to_tuples,
@@ -30,8 +30,8 @@ class ApiClient(object):
         to the API. More threads means more concurrent API requests.
     """
 
-    _pool: Optional[ThreadPool] = None
-    _threadpool_executor: Optional[ThreadPoolExecutor] = None
+    _pool: Optional["ThreadPool"] = None
+    _threadpool_executor: Optional["ThreadPoolExecutor"] = None
 
     def __init__(
         self, configuration: Optional[Configuration] = None, pool_threads: Optional[int] = 1
@@ -64,18 +64,22 @@ class ApiClient(object):
                 atexit.unregister(self.close)
 
     @property
-    def pool(self):
+    def pool(self) -> "ThreadPool":
         """Create thread pool on first request
         avoids instantiating unused threadpool for blocking clients.
         """
         if self._pool is None:
+            from multiprocessing.pool import ThreadPool
+
             atexit.register(self.close)
             self._pool = ThreadPool(self.pool_threads)
         return self._pool
 
     @property
-    def threadpool_executor(self):
+    def threadpool_executor(self) -> "ThreadPoolExecutor":
         if self._threadpool_executor is None:
+            from concurrent.futures import ThreadPoolExecutor
+
             self._threadpool_executor = ThreadPoolExecutor(max_workers=self.pool_threads)
         return self._threadpool_executor
 
@@ -186,6 +190,8 @@ class ApiClient(object):
 
         # deserialize response data
         if response_type:
+            from .deserializer import Deserializer
+
             Deserializer.decode_response(response_type=response_type, response=response_data)
             return_data = Deserializer.deserialize(
                 response=response_data,

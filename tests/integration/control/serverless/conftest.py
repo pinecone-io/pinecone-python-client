@@ -11,10 +11,7 @@ logger = logging.getLogger(__name__)
 
 @pytest.fixture()
 def client():
-    api_key = get_environment_var("PINECONE_API_KEY")
-    return Pinecone(
-        api_key=api_key, additional_headers={"sdk-test-suite": "pinecone-python-client"}
-    )
+    return Pinecone()
 
 
 @pytest.fixture()

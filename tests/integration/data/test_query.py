@@ -2,6 +2,7 @@ import pytest
 from pinecone import QueryResponse, Vector
 from ..helpers import embedding_values, poll_fetch_for_ids_in_namespace, random_string
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,7 @@ def seed(idx, namespace):
 def seed_for_query(idx, query_namespace):
     seed(idx, query_namespace)
     seed(idx, "")
+    time.sleep(30)
     yield
 
 

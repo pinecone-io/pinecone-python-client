@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-01
+The version of the OpenAPI document: 2025-04
 Contact: support@pinecone.io
 """
 
@@ -89,6 +89,7 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
             "model": (str,),  # noqa: E501
             "field_map": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
             "metric": (str,),  # noqa: E501
+            "dimension": (int,),  # noqa: E501
             "read_parameters": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
             "write_parameters": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
         }
@@ -101,6 +102,7 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
         "model": "model",  # noqa: E501
         "field_map": "field_map",  # noqa: E501
         "metric": "metric",  # noqa: E501
+        "dimension": "dimension",  # noqa: E501
         "read_parameters": "read_parameters",  # noqa: E501
         "write_parameters": "write_parameters",  # noqa: E501
     }
@@ -150,10 +152,13 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set. [optional]  # noqa: E501
+            dimension (int): The dimension of embedding vectors produced for the index. [optional]  # noqa: E501
             read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model. [optional]  # noqa: E501
             write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model. [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
+        _enforce_validations = kwargs.pop("_enforce_validations", False)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -171,6 +176,8 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item
@@ -193,6 +200,8 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
 
     required_properties = set(
         [
+            "_enforce_allowed_values",
+            "_enforce_validations",
             "_data_store",
             "_check_type",
             "_spec_property_naming",
@@ -242,10 +251,13 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set. [optional]  # noqa: E501
+            dimension (int): The dimension of embedding vectors produced for the index. [optional]  # noqa: E501
             read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model. [optional]  # noqa: E501
             write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model. [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
+        _enforce_validations = kwargs.pop("_enforce_validations", True)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -261,6 +273,8 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item

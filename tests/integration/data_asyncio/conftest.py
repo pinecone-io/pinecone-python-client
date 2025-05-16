@@ -2,7 +2,7 @@ import pytest
 import json
 import asyncio
 from ..helpers import get_environment_var, generate_index_name
-from pinecone.data import _IndexAsyncio
+from pinecone.db_data import _IndexAsyncio
 import logging
 from typing import Callable, Optional, Awaitable, Union
 

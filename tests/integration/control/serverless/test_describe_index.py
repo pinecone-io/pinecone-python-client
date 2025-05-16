@@ -26,7 +26,7 @@ class TestDescribeIndex:
         assert description.status.ready == True
 
     def test_describe_index_when_not_ready(self, client, notready_sl_index, create_sl_index_params):
-        description = client.describe_index(notready_sl_index)
+        description = client.describe_index(name=notready_sl_index)
 
         assert isinstance(description, IndexModel)
         assert description.name == notready_sl_index

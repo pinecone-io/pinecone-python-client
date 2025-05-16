@@ -8,4 +8,8 @@ from .helpers import (
     poll_fetch_for_ids_in_namespace,
     embedding_values,
     jsonprint,
+    index_tags,
+    delete_backups_from_run,
+    delete_indexes_from_run,
+    default_create_index_params,
 )

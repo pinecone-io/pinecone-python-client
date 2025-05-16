@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-01
+The version of the OpenAPI document: 2025-04
 Contact: support@pinecone.io
 """
 
@@ -95,6 +95,8 @@ class DeletionProtection(ModelSimple):
 
     required_properties = set(
         [
+            "_enforce_allowed_values",
+            "_enforce_validations",
             "_data_store",
             "_check_type",
             "_spec_property_naming",
@@ -111,10 +113,10 @@ class DeletionProtection(ModelSimple):
         Note that value can be passed either in args or in kwargs, but not in both.
 
         Args:
-            args[0] (str): Whether [deletion protection](http://docs.pinecone.io/guides/indexes/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. . if omitted defaults to "disabled", must be one of ["disabled", "enabled", ]  # noqa: E501
+            args[0] (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. . if omitted defaults to "disabled", must be one of ["disabled", "enabled", ]  # noqa: E501
 
         Keyword Args:
-            value (str): Whether [deletion protection](http://docs.pinecone.io/guides/indexes/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. . if omitted defaults to "disabled", must be one of ["disabled", "enabled", ]  # noqa: E501
+            value (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. . if omitted defaults to "disabled", must be one of ["disabled", "enabled", ]  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -167,12 +169,16 @@ class DeletionProtection(ModelSimple):
         if value is None:
             value = "disabled"
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
+        _enforce_validations = kwargs.pop("_enforce_validations", True)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _configuration = kwargs.pop("_configuration", None)
         _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item
@@ -195,10 +201,10 @@ class DeletionProtection(ModelSimple):
         Note that value can be passed either in args or in kwargs, but not in both.
 
         Args:
-            args[0] (str): Whether [deletion protection](http://docs.pinecone.io/guides/indexes/manage-indexes#configure-deletion-protection) is enabled/disabled for the index.  if omitted defaults to "disabled", must be one of ["disabled", "enabled", ]  # noqa: E501
+            args[0] (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index.  if omitted defaults to "disabled", must be one of ["disabled", "enabled", ]  # noqa: E501
 
         Keyword Args:
-            value (str): Whether [deletion protection](http://docs.pinecone.io/guides/indexes/manage-indexes#configure-deletion-protection) is enabled/disabled for the index.  if omitted defaults to "disabled", must be one of ["disabled", "enabled", ]  # noqa: E501
+            value (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index.  if omitted defaults to "disabled", must be one of ["disabled", "enabled", ]  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -253,12 +259,16 @@ class DeletionProtection(ModelSimple):
         if value is None:
             value = "disabled"
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
+        _enforce_validations = kwargs.pop("_enforce_validations", False)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _configuration = kwargs.pop("_configuration", None)
         _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item

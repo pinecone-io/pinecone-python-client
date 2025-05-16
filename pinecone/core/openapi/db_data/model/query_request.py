@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-01
+The version of the OpenAPI document: 2025-04
 Contact: support@pinecone.io
 """
 
@@ -170,15 +170,17 @@ class QueryRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             namespace (str): The namespace to query. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/data/understanding-metadata). [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
             include_values (bool): Indicates whether vector values are included in the response. [optional] if omitted the server will use the default value of False.  # noqa: E501
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids. [optional] if omitted the server will use the default value of False.  # noqa: E501
-            queries ([QueryVector]): DEPRECATED. The query vectors. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`. [optional]  # noqa: E501
+            queries ([QueryVector]): DEPRECATED. Use `vector` or `id` instead. [optional]  # noqa: E501
             vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query` request can contain only one of the parameters `id` or `vector`. [optional]  # noqa: E501
             sparse_vector (SparseValues): [optional]  # noqa: E501
-            id (str): The unique ID of the vector to be used as a query vector. Each `query` request can contain only one of the parameters `queries`, `vector`, or  `id`. [optional]  # noqa: E501
+            id (str): The unique ID of the vector to be used as a query vector. Each request  can contain either the `vector` or `id` parameter. [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
+        _enforce_validations = kwargs.pop("_enforce_validations", False)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -196,6 +198,8 @@ class QueryRequest(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item
@@ -217,6 +221,8 @@ class QueryRequest(ModelNormal):
 
     required_properties = set(
         [
+            "_enforce_allowed_values",
+            "_enforce_validations",
             "_data_store",
             "_check_type",
             "_spec_property_naming",
@@ -265,15 +271,17 @@ class QueryRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             namespace (str): The namespace to query. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/data/understanding-metadata). [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
             include_values (bool): Indicates whether vector values are included in the response. [optional] if omitted the server will use the default value of False.  # noqa: E501
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids. [optional] if omitted the server will use the default value of False.  # noqa: E501
-            queries ([QueryVector]): DEPRECATED. The query vectors. Each `query()` request can contain only one of the parameters `queries`, `vector`, or  `id`. [optional]  # noqa: E501
+            queries ([QueryVector]): DEPRECATED. Use `vector` or `id` instead. [optional]  # noqa: E501
             vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query` request can contain only one of the parameters `id` or `vector`. [optional]  # noqa: E501
             sparse_vector (SparseValues): [optional]  # noqa: E501
-            id (str): The unique ID of the vector to be used as a query vector. Each `query` request can contain only one of the parameters `queries`, `vector`, or  `id`. [optional]  # noqa: E501
+            id (str): The unique ID of the vector to be used as a query vector. Each request  can contain either the `vector` or `id` parameter. [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
+        _enforce_validations = kwargs.pop("_enforce_validations", True)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -289,6 +297,8 @@ class QueryRequest(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item

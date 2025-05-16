@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-01
+The version of the OpenAPI document: 2025-04
 Contact: support@pinecone.io
 """
 
@@ -30,11 +30,9 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 def lazy_import():
     from pinecone.core.openapi.inference.model.dense_embedding import DenseEmbedding
     from pinecone.core.openapi.inference.model.sparse_embedding import SparseEmbedding
-    from pinecone.core.openapi.inference.model.vector_type import VectorType
 
     globals()["DenseEmbedding"] = DenseEmbedding
     globals()["SparseEmbedding"] = SparseEmbedding
-    globals()["VectorType"] = VectorType
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -96,7 +94,7 @@ class Embedding(ModelComposed):
         """
         lazy_import()
         return {
-            "vector_type": (VectorType,),  # noqa: E501
+            "vector_type": (str,),  # noqa: E501
             "sparse_tokens": ([str],),  # noqa: E501
             "values": ([float],),  # noqa: E501
             "sparse_values": ([float],),  # noqa: E501
@@ -132,7 +130,7 @@ class Embedding(ModelComposed):
         """Embedding - a model defined in OpenAPI
 
         Keyword Args:
-            vector_type (VectorType):
+            vector_type (str): Indicates whether this is a 'dense' or 'sparse' embedding.
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -220,6 +218,8 @@ class Embedding(ModelComposed):
 
     required_properties = set(
         [
+            "_enforce_allowed_values",
+            "_enforce_validations",
             "_data_store",
             "_check_type",
             "_spec_property_naming",
@@ -237,7 +237,7 @@ class Embedding(ModelComposed):
         """Embedding - a model defined in OpenAPI
 
         Keyword Args:
-            vector_type (VectorType):
+            vector_type (str): Indicates whether this is a 'dense' or 'sparse' embedding.
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -274,6 +274,8 @@ class Embedding(ModelComposed):
             sparse_indices ([int]): The sparse embedding indices. [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
+        _enforce_validations = kwargs.pop("_enforce_validations", True)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -289,6 +291,8 @@ class Embedding(ModelComposed):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item

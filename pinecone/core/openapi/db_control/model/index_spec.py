@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-01
+The version of the OpenAPI document: 2025-04
 Contact: support@pinecone.io
 """
 
@@ -28,9 +28,11 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
+    from pinecone.core.openapi.db_control.model.byoc_spec import ByocSpec
     from pinecone.core.openapi.db_control.model.pod_spec import PodSpec
     from pinecone.core.openapi.db_control.model.serverless_spec import ServerlessSpec
 
+    globals()["ByocSpec"] = ByocSpec
     globals()["PodSpec"] = PodSpec
     globals()["ServerlessSpec"] = ServerlessSpec
 
@@ -89,6 +91,7 @@ class IndexSpec(ModelNormal):
         return {
             "serverless": (ServerlessSpec,),  # noqa: E501
             "pod": (PodSpec,),  # noqa: E501
+            "byoc": (ByocSpec,),  # noqa: E501
         }
 
     @cached_class_property
@@ -98,6 +101,7 @@ class IndexSpec(ModelNormal):
     attribute_map: Dict[str, str] = {
         "serverless": "serverless",  # noqa: E501
         "pod": "pod",  # noqa: E501
+        "byoc": "byoc",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -142,8 +146,11 @@ class IndexSpec(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             serverless (ServerlessSpec): [optional]  # noqa: E501
             pod (PodSpec): [optional]  # noqa: E501
+            byoc (ByocSpec): [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
+        _enforce_validations = kwargs.pop("_enforce_validations", False)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -161,6 +168,8 @@ class IndexSpec(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item
@@ -181,6 +190,8 @@ class IndexSpec(ModelNormal):
 
     required_properties = set(
         [
+            "_enforce_allowed_values",
+            "_enforce_validations",
             "_data_store",
             "_check_type",
             "_spec_property_naming",
@@ -227,8 +238,11 @@ class IndexSpec(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             serverless (ServerlessSpec): [optional]  # noqa: E501
             pod (PodSpec): [optional]  # noqa: E501
+            byoc (ByocSpec): [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
+        _enforce_validations = kwargs.pop("_enforce_validations", True)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -244,6 +258,8 @@ class IndexSpec(ModelNormal):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item

@@ -122,18 +122,16 @@ class TestAsyncioCreateIndex:
         await pc.close()
 
     async def test_create_sparse_index(self, index_name, spec1):
-        pc = PineconeAsyncio()
+        async with PineconeAsyncio() as pc:
+            await pc.create_index(
+                name=index_name, spec=spec1, metric=Metric.DOTPRODUCT, vector_type=VectorType.SPARSE
+            )
 
-        await pc.create_index(
-            name=index_name, spec=spec1, metric=Metric.DOTPRODUCT, vector_type=VectorType.SPARSE
-        )
-
-        desc = await pc.describe_index(index_name)
-        assert desc.vector_type == "sparse"
-        assert desc.dimension is None
-        assert desc.vector_type == "sparse"
-        assert desc.metric == "dotproduct"
-        await pc.close()
+            desc = await pc.describe_index(index_name)
+            assert desc.vector_type == "sparse"
+            assert desc.dimension is None
+            assert desc.vector_type == "sparse"
+            assert desc.metric == "dotproduct"
 
     async def test_create_with_deletion_protection(self, index_name, spec1):
         pc = PineconeAsyncio()
