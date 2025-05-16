@@ -192,11 +192,8 @@ response = index.search_records(
 ## Pinecone Assistant
 ### Installing the Pinecone Assistant Python plugin
 
-To interact with Pinecone Assistant using the Python SDK, install the `pinecone-plugin-assistant` package:
+The `pinecone-plugin-assistant` package is now bundled by default when installing `pinecone`. It does not need to be installed separately in order to use Pinecone Assistant.
 
-```shell
-pip install --upgrade pinecone pinecone-plugin-assistant
-```
 For more information on Pinecone Assistant, see the [Pinecone Assistant documentation](https://docs.pinecone.io/guides/assistant/overview).
 
 
