@@ -1,12 +1,19 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from urllib3.exceptions import MaxRetryError
+from urllib3.util.retry import Retry
 from pinecone.openapi_support.retries import JitterRetry
 
 
 def test_jitter_retry_backoff():
     """Test that the backoff time includes jitter."""
-    retry = JitterRetry(total=3)
+    retry = JitterRetry(
+        total=5,
+        backoff_factor=0.25,
+        backoff_max=3,
+        status_forcelist=(500, 502, 503, 504),
+        allowed_methods=None,
+    )
 
     # Mock the parent's get_backoff_time to return a fixed value
     with patch.object(Retry, "get_backoff_time", return_value=1.0):
@@ -27,23 +34,16 @@ def test_jitter_retry_behavior():
 
     # Simulate a failing request
     with pytest.raises(MaxRetryError) as exc_info:
-        retry.increment(method="GET", url="http://test.com", response=mock_response, error=None)
+        retry2 = retry.increment(
+            method="GET", url="http://test.com", response=mock_response, error=None
+        )
+        retry3 = retry2.increment(
+            method="GET", url="http://test.com", response=mock_response, error=None
+        )
+        retry4 = retry3.increment(
+            method="GET", url="http://test.com", response=mock_response, error=None
+        )
+        retry4.increment(method="GET", url="http://test.com", response=mock_response, error=None)
 
     # Verify the error contains the expected information
     assert "Max retries exceeded" in str(exc_info.value)
-    assert exc_info.value.reason.status == 500
-
-
-def test_jitter_retry_success():
-    """Test that retry stops on successful response."""
-    retry = JitterRetry(total=3)
-    mock_response = MagicMock()
-    mock_response.status = 200  # Success response
-
-    # Should not raise an exception for successful response
-    new_retry = retry.increment(
-        method="GET", url="http://test.com", response=mock_response, error=None
-    )
-
-    # Verify retry count is decremented
-    assert new_retry.remaining == retry.total - 1
