@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from urllib3.exceptions import MaxRetryError
 from urllib3.util.retry import Retry
-from pinecone.openapi_support.retries import JitterRetry
+from pinecone.openapi_support.retry_urllib3 import JitterRetry
 
 
 def test_jitter_retry_backoff():

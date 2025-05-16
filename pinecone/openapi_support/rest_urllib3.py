@@ -8,7 +8,7 @@ from ..config.openapi_configuration import Configuration
 from .rest_utils import raise_exceptions_or_return, RESTResponse, RestClientInterface
 
 import urllib3
-from .retries import JitterRetry
+from .retry_urllib3 import JitterRetry
 from .exceptions import PineconeApiException, PineconeApiValueError
 
 

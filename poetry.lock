@@ -110,6 +110,20 @@ yarl = ">=1.17.0,<2.0"
 speedups = ["Brotli", "aiodns (>=3.2.0)", "brotlicffi"]
 
 [[package]]
+name = "aiohttp-retry"
+version = "2.9.1"
+description = "Simple retry client for aiohttp"
+optional = true
+python-versions = ">=3.7"
+files = [
+    {file = "aiohttp_retry-2.9.1-py3-none-any.whl", hash = "sha256:66d2759d1921838256a05a3f80ad7e724936f083e35be5abb5e16eed6be6dc54"},
+    {file = "aiohttp_retry-2.9.1.tar.gz", hash = "sha256:8eb75e904ed4ee5c2ec242fefe85bf04240f685391c4879d8f541d6028ff01f1"},
+]
+
+[package.dependencies]
+aiohttp = "*"
+
+[[package]]
 name = "aiosignal"
 version = "1.3.1"
 description = "aiosignal: a list of registered asynchronous callbacks"
@@ -1970,10 +1984,10 @@ multidict = ">=4.0"
 propcache = ">=0.2.0"
 
 [extras]
-asyncio = ["aiohttp"]
+asyncio = ["aiohttp", "aiohttp-retry"]
 grpc = ["googleapis-common-protos", "grpcio", "grpcio", "grpcio", "lz4", "protobuf", "protoc-gen-openapiv2"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "0145fb2ae02a1cdd6fe06b191a6761dcee4f4c67fe057b48d6b501d7b0b504da"
+content-hash = "cc8b764abfc3d9ba774410ef118817c736c3c74a2bfa7f9f32a462628d804739"
