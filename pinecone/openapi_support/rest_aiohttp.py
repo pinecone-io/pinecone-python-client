@@ -30,15 +30,18 @@ class AiohttpRestClient(RestClientInterface):
         else:
             self._session = aiohttp.ClientSession(connector=conn)
 
-        jitter_retry = JitterRetry(
-            attempts=5,
-            start_timeout=0.1,
-            max_timeout=3.0,
-            statuses={500, 502, 503, 504},
-            methods=None,  # retry on all methods
-            exceptions={aiohttp.ClientError, aiohttp.ServerDisconnectedError},
-        )
-        self._retry_client = RetryClient(client_session=self._session, retry_options=jitter_retry)
+        if configuration.retries is not None:
+            retry_options = configuration.retries
+        else:
+            retry_options = JitterRetry(
+                attempts=5,
+                start_timeout=0.1,
+                max_timeout=3.0,
+                statuses={500, 502, 503, 504},
+                methods=None,  # retry on all methods
+                exceptions={aiohttp.ClientError, aiohttp.ServerDisconnectedError},
+            )
+        self._retry_client = RetryClient(client_session=self._session, retry_options=retry_options)
 
     async def close(self):
         await self._retry_client.close()
