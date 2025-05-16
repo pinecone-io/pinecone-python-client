@@ -96,6 +96,7 @@ class ModelInfoMetric(ModelSimple):
     required_properties = set(
         [
             "_enforce_allowed_values",
+            "_enforce_validations",
             "_data_store",
             "_check_type",
             "_spec_property_naming",
@@ -173,6 +174,7 @@ class ModelInfoMetric(ModelSimple):
             )
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
+        _enforce_validations = kwargs.pop("_enforce_validations", True)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _configuration = kwargs.pop("_configuration", None)
@@ -180,6 +182,7 @@ class ModelInfoMetric(ModelSimple):
 
         self._data_store = {}
         self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item
@@ -265,6 +268,7 @@ class ModelInfoMetric(ModelSimple):
             )
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
+        _enforce_validations = kwargs.pop("_enforce_validations", False)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _configuration = kwargs.pop("_configuration", None)
@@ -272,6 +276,7 @@ class ModelInfoMetric(ModelSimple):
 
         self._data_store = {}
         self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item

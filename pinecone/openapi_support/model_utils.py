@@ -151,7 +151,10 @@ class OpenApiModel(object):
             # when listing indexes due to validation on the status field against
             # the allowed values in the enum.
             check_allowed_values(self.allowed_values, (name,), value)
-        if (name,) in self.validations:
+        if (name,) in self.validations and self._enforce_validations:
+            # Disabling validation on response makes the SDK
+            # less fragile if unexpected values are returned. In general,
+            # we want the SDK to display whatever is returned by the API.
             check_validations(self.validations, (name,), value, self._configuration)
         self.__dict__["_data_store"][name] = value
 
