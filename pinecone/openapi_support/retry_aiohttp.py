@@ -11,13 +11,12 @@ class JitterRetry(RetryOptionsBase):
 
     def __init__(
         self,
-        attempts: Optional[int] = 3,  # How many times we should retry
-        start_timeout: Optional[float] = 0.1,  # Base timeout time, then it exponentially grow
-        max_timeout: Optional[float] = 5.0,  # Max possible timeout between tries
+        attempts: int = 3,  # How many times we should retry
+        start_timeout: float = 0.1,  # Base timeout time, then it exponentially grow
+        max_timeout: float = 5.0,  # Max possible timeout between tries
         statuses: Optional[set[int]] = None,  # On which statuses we should retry
         exceptions: Optional[set[type[Exception]]] = None,  # On which exceptions we should retry
         methods: Optional[set[str]] = None,  # On which HTTP methods we should retry
-        random_interval_size: Optional[float] = 2.0,  # size of interval for random component
         retry_all_server_errors: bool = True,
         evaluate_response_callback: Optional[EvaluateResponseCallbackType] = None,
     ) -> None:
@@ -32,7 +31,6 @@ class JitterRetry(RetryOptionsBase):
 
         self._start_timeout: float = start_timeout
         self._max_timeout: float = max_timeout
-        self._random_interval_size = random_interval_size
 
     def get_timeout(
         self,
