@@ -88,6 +88,7 @@ def main():
         "delete_all_collections": delete_all_collections,
         "delete_all_backups": delete_all_backups,
         "cleanup_all": cleanup_all,
+        "pcl": Pinecone(host="http://localhost:8000"),
         # Add any other variables you want to have available in the REPL
     }
 

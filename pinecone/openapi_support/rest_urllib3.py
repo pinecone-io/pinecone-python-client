@@ -54,8 +54,9 @@ class Urllib3RestClient(RestClientInterface):
             addition_pool_args["retries"] = configuration.retries
         else:
             addition_pool_args["retries"] = JitterRetry(
-                total=3,
+                total=5,
                 backoff_factor=0.25,
+                backoff_max=3,
                 status_forcelist=(500, 502, 503, 504),
                 allowed_methods=None,
             )

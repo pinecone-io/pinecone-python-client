@@ -1,5 +1,8 @@
 import random
 from urllib3.util.retry import Retry
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class JitterRetry(Retry):
@@ -12,5 +15,7 @@ class JitterRetry(Retry):
 
     def get_backoff_time(self) -> float:
         backoff_value = super().get_backoff_time()
-        backoff_value += random.random() * 0.25
+        jitter = random.random() * 0.25
+        backoff_value += jitter
+        logger.debug(f"Calculating retry backoff: {backoff_value} (jitter: {jitter})")
         return backoff_value
