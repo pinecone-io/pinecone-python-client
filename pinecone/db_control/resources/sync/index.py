@@ -145,42 +145,30 @@ class IndexResource(PluginAware):
         return self.__poll_describe_index_until_ready(name, timeout)
 
     def __poll_describe_index_until_ready(self, name: str, timeout: Optional[int] = None):
-        description = None
-
-        def is_ready() -> bool:
-            nonlocal description
-            description = self.describe(name=name)
-            return description.status.ready
-
         total_wait_time = 0
-        if timeout is None:
-            # Wait indefinitely
-            while not is_ready():
-                logger.debug(
-                    f"Waiting for index {name} to be ready. Total wait time {total_wait_time} seconds."
+        while True:
+            description = self.describe(name=name)
+            if description.status.state == "InitializationFailed":
+                raise Exception(
+                    f"Index {name} failed to initialize. The index status is {description.status.state}."
                 )
-                total_wait_time += 5
-                time.sleep(5)
+            if description.status.ready:
+                return description
 
-        else:
-            # Wait for a maximum of timeout seconds
-            while not is_ready():
-                if timeout < 0:
-                    logger.error(f"Index {name} is not ready. Timeout reached.")
-                    link = docslinks["API_DESCRIBE_INDEX"](API_VERSION)
-                    timeout_msg = (
-                        f"Please call describe_index() to confirm index status. See docs at {link}"
-                    )
-                    raise TimeoutError(timeout_msg)
-
-                logger.debug(
-                    f"Waiting for index {name} to be ready. Total wait time: {total_wait_time}"
+            if timeout is not None and total_wait_time >= timeout:
+                logger.error(
+                    f"Index {name} is not ready after {total_wait_time} seconds. Timeout reached."
                 )
-                total_wait_time += 5
-                time.sleep(5)
-                timeout -= 5
+                link = docslinks["API_DESCRIBE_INDEX"](API_VERSION)
+                timeout_msg = f"Index {name} is not ready after {total_wait_time} seconds. Please call describe_index() to confirm index status. See docs at {link}"
+                raise TimeoutError(timeout_msg)
 
-        return description
+            logger.debug(
+                f"Waiting for index {name} to be ready. Total wait time {total_wait_time} seconds."
+            )
+
+            total_wait_time += 5
+            time.sleep(5)
 
     @require_kwargs
     def delete(self, *, name: str, timeout: Optional[int] = None) -> None:
