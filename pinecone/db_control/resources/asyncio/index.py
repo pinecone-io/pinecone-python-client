@@ -110,42 +110,28 @@ class IndexResourceAsyncio:
         return await self.__poll_describe_index_until_ready(name, timeout)
 
     async def __poll_describe_index_until_ready(self, name: str, timeout: Optional[int] = None):
-        description = None
-
-        async def is_ready() -> bool:
-            nonlocal description
-            description = await self.describe(name=name)
-            return description.status.ready
-
         total_wait_time = 0
-        if timeout is None:
-            # Wait indefinitely
-            while not await is_ready():
-                logger.debug(
-                    f"Waiting for index {name} to be ready. Total wait time {total_wait_time} seconds."
+        while True:
+            description = await self.describe(name=name)
+            if description.status.state == "InitializationFailed":
+                raise Exception(f"Index {name} failed to initialize.")
+            if description.status.ready:
+                return description
+
+            if timeout is not None and total_wait_time >= timeout:
+                logger.error(
+                    f"Index {name} is not ready after {total_wait_time} seconds. Timeout reached."
                 )
-                total_wait_time += 5
-                await asyncio.sleep(5)
+                link = docslinks["API_DESCRIBE_INDEX"](API_VERSION)
+                timeout_msg = f"Index {name} is not ready after {total_wait_time} seconds. Please call describe_index() to confirm index status. See docs at {link}"
+                raise TimeoutError(timeout_msg)
 
-        else:
-            # Wait for a maximum of timeout seconds
-            while not await is_ready():
-                if timeout < 0:
-                    logger.error(f"Index {name} is not ready. Timeout reached.")
-                    link = docslinks["API_DESCRIBE_INDEX"](API_VERSION)
-                    timeout_msg = (
-                        f"Please call describe_index() to confirm index status. See docs at {link}"
-                    )
-                    raise TimeoutError(timeout_msg)
+            logger.debug(
+                f"Waiting for index {name} to be ready. Total wait time {total_wait_time} seconds."
+            )
 
-                logger.debug(
-                    f"Waiting for index {name} to be ready. Total wait time: {total_wait_time}"
-                )
-                total_wait_time += 5
-                await asyncio.sleep(5)
-                timeout -= 5
-
-        return description
+            total_wait_time += 5
+            await asyncio.sleep(5)
 
     @require_kwargs
     async def delete(self, *, name: str, timeout: Optional[int] = None):
