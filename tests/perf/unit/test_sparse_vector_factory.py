@@ -1,5 +1,5 @@
 from pinecone.db_data.sparse_values_factory import SparseValuesFactory
-from .helpers import load_fixture
+from ..helpers import load_fixture
 
 
 def build_sparse_values_objects(vectors):

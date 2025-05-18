@@ -1,5 +1,5 @@
 from pinecone.db_data.vector_factory import VectorFactory
-from .helpers import load_fixture
+from ..helpers import load_fixture
 
 
 def build_vector_objects(vector_data):

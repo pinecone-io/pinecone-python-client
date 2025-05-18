@@ -1,6 +1,6 @@
 import pytest
 from pinecone.db_data.request_factory import IndexRequestFactory
-from .helpers import load_fixture
+from ..helpers import load_fixture
 
 
 def build_upsert_request(vector_data, _check_type):
