@@ -30,18 +30,17 @@ class PineconeGrpcFuture(ConcurrentFuture):
         if self.done():
             return
 
-        if grpc_future.cancelled():
+        if grpc_future.running() and not self.running():
+            if not self.set_running_or_notify_cancel():
+                grpc_future.cancel()
+        elif grpc_future.cancelled():
             self.cancel()
-        elif grpc_future.exception(timeout=self._default_timeout):
-            self.set_exception(grpc_future.exception())
         elif grpc_future.done():
             try:
                 result = grpc_future.result(timeout=self._default_timeout)
                 self.set_result(result)
             except Exception as e:
                 self.set_exception(e)
-        elif grpc_future.running():
-            self.set_running_or_notify_cancel()
 
     def set_result(self, result):
         if self._result_transformer:

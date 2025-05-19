@@ -15,6 +15,8 @@ def mock_grpc_future(
     grpc_future.exception.return_value = exception
     grpc_future.running.return_value = running
     grpc_future.result.return_value = result
+    if exception:
+        grpc_future.result.side_effect = exception
     return grpc_future
 
 
@@ -309,6 +311,7 @@ class TestPineconeGrpcFuture:
     def test_exception_when_done_maps_grpc_exception(self, mocker):
         grpc_future = mock_grpc_future(mocker, done=True)
         grpc_future.exception.return_value = FakeGrpcError(mocker)
+        grpc_future.result.side_effect = grpc_future.exception.return_value
 
         future = PineconeGrpcFuture(grpc_future)
 
@@ -467,6 +470,7 @@ class TestPineconeGrpcFuture:
 
         grpc_future2 = mock_grpc_future(mocker, done=True)
         grpc_future2.exception.return_value = Exception("Simulated gRPC error")
+        grpc_future2.result.side_effect = grpc_future2.exception.return_value
         future2 = PineconeGrpcFuture(grpc_future2)
 
         from concurrent.futures import wait, FIRST_EXCEPTION
