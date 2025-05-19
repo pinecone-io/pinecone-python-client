@@ -30,8 +30,9 @@ class PineconeGrpcFuture(ConcurrentFuture):
         if self.done():
             return
 
-        if grpc_future.running():
-            self.set_running_or_notify_cancel()
+        if grpc_future.running() and not self.running():
+            if not self.set_running_or_notify_cancel():
+                grpc_future.cancel()
         elif grpc_future.cancelled():
             self.cancel()
         elif grpc_future.done():
