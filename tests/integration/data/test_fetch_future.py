@@ -15,22 +15,20 @@ def fetch_namespace_future():
     return random_string(10)
 
 
-@pytest.mark.usefixtures("fetch_namespace_future")
-@pytest.fixture(scope="class")
-def seed_for_fetch(idx, fetch_namespace_future):
+def seed(idx, namespace):
     # Upsert without metadata
-    logger.info("Seeding vectors without metadata")
+    logger.info("Seeding vectors without metadata to namespace '%s'", namespace)
     idx.upsert(
         vectors=[
             ("1", embedding_values(2)),
             ("2", embedding_values(2)),
             ("3", embedding_values(2)),
         ],
-        namespace=fetch_namespace_future,
+        namespace=namespace,
     )
 
     # Upsert with metadata
-    logger.info("Seeding vectors with metadata")
+    logger.info("Seeding vectors with metadata to namespace '%s'", namespace)
     idx.upsert(
         vectors=[
             Vector(
@@ -41,7 +39,7 @@ def seed_for_fetch(idx, fetch_namespace_future):
                 id="6", values=embedding_values(2), metadata={"genre": "romance", "runtime": 240}
             ),
         ],
-        namespace=fetch_namespace_future,
+        namespace=namespace,
     )
 
     # Upsert with dict
@@ -51,12 +49,19 @@ def seed_for_fetch(idx, fetch_namespace_future):
             {"id": "8", "values": embedding_values(2)},
             {"id": "9", "values": embedding_values(2)},
         ],
-        namespace=fetch_namespace_future,
+        namespace=namespace,
     )
 
     poll_fetch_for_ids_in_namespace(
-        idx, ids=["1", "2", "3", "4", "5", "6", "7", "8", "9"], namespace=fetch_namespace_future
+        idx, ids=["1", "2", "3", "4", "5", "6", "7", "8", "9"], namespace=namespace
     )
+
+
+@pytest.mark.usefixtures("fetch_namespace_future")
+@pytest.fixture(scope="class")
+def seed_for_fetch(idx, fetch_namespace_future):
+    seed(idx, fetch_namespace_future)
+    seed(idx, "")
     yield
 
 

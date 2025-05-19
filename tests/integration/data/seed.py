@@ -1,10 +1,16 @@
 from ..helpers import poll_fetch_for_ids_in_namespace, embedding_values
 from pinecone import Vector
 import itertools
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def setup_data(idx, target_namespace, wait):
     # Upsert without metadata
+    logger.info(
+        "Upserting 3 vectors as tuples to namespace '%s' without metadata", target_namespace
+    )
     idx.upsert(
         vectors=[
             ("1", embedding_values(2)),
@@ -15,6 +21,9 @@ def setup_data(idx, target_namespace, wait):
     )
 
     # Upsert with metadata
+    logger.info(
+        "Upserting 3 vectors as Vector objects to namespace '%s' with metadata", target_namespace
+    )
     idx.upsert(
         vectors=[
             Vector(
@@ -29,6 +38,7 @@ def setup_data(idx, target_namespace, wait):
     )
 
     # Upsert with dict
+    logger.info("Upserting 3 vectors as dicts to namespace '%s'", target_namespace)
     idx.upsert(
         vectors=[
             {"id": "7", "values": embedding_values(2)},
