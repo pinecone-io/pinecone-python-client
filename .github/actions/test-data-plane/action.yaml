@@ -56,7 +56,7 @@ runs:
     - name: Run data plane tests
       id: data-plane-tests
       shell: bash
-      run: poetry run pytest tests/integration/data --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
+      run: poetry run pytest tests/integration/data --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         PINECONE_ADDITIONAL_HEADERS: ${{ inputs.PINECONE_ADDITIONAL_HEADERS }}
