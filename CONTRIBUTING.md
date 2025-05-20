@@ -1,22 +1,5 @@
 # Contributing
 
-## Installing development versions
-
-If you want to explore a potential code change, investigate
-a bug, or just want to try unreleased features, you can also install
-specific git shas.
-
-Some example commands:
-
-```shell
-pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git
-pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git@example-branch-name
-pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git@44fc7ed
-
-poetry add git+https://github.com/pinecone-io/pinecone-python-client.git@44fc7ed
-```
-
-
 ## Developing locally with Poetry
 
 [Poetry](https://python-poetry.org/) is a tool that combines [virtualenv](https://virtualenv.pypa.io/en/latest/) usage with dependency management, to provide a consistent experience for project maintainers and contributors who need to develop the pinecone-python-client
@@ -80,26 +63,59 @@ Run `poetry run pre-commit install` to enable checks to run when you commit so y
 
 ## Common tasks
 
-### Running tests
+### Testing: Unit tests
 
-- Unit tests: `poetry run pytest tests/unit`
-- Unit tests: `poetry run pytest tests/unit_grpc`
-- Integration tests: `make test-integration`
-- Run the tests in a single file: `poetry run pytest tests/unit/data/test_bulk_import.py`
+Unit tests do not automatically read environment variables in the `.env` file because some of the tests relate to parsing values from environment variables (`PINECONE_API_KEY`, `PINECONE_ADDITIONAL_HEADERS`, etc) and we don't want values in our `.env` file to impact how these tests execute.
+
+- Unit tests (REST): `poetry run pytest tests/unit`
+- Unit tests (GRPC): `poetry run pytest tests/unit_grpc`
+
+
+### Testing: Integration tests
+
+Integration tests make real calls to Pinecone. They are slow but give the highest level of confidence the client is actually working end to end.
+
+For these tests, you need to make sure you've set values inside of an `.env` file (see `.env.example` for more information). These will be read using `dotenv` when tests are run.
+
+I never run all of these locally in one shot because it would take too long and is generally unnecessary; in CI, the tests are broken up across many different jobs so they can run in parallel. If I see one or a few tests broken in CI, I will run just those tests locally while iterating on the fix.
+
+- Run the tests for a specific part of the SDK (example: index): `poetry run pytest tests/integration/control/resources/index`
+- Run the tests in a single file: `poetry run pytest tests/integration/control/resources/index/test_create.py`
+- Run a single test `poetry run pytest tests/integration/control/resources/index/test_list.py::TestListIndexes::test_list_indexes_includes_ready_indexes`
+
+### Testing: Module import performance
+
+We don't have automated tests for this, but if you want to check on how efficiently the package can be imported and initialized, you can run code like this:
+
+```sh
+poetry run python3 -X importtime -c 'from pinecone import Pinecone; pc = Pinecone(api_key="foo")' 2> import_time.log
+```
+
+And then inspect the results with a visualization tool called tuna.
+
+```sh
+poetry run tuna import_time.log
+```
+
 
 ### Running the ruff linter / formatter
 
 These should automatically trigger if you have enabled pre-commit hooks with `poetry run pre-commit install`. But in case you want to trigger these yourself, you can run them like this:
 
-```
+```sh
 poetry run ruff check --fix # lint rules
 poetry run ruff format      # formatting
 ```
 
 If you want to adjust the behavior of ruff, configurations are in `pyproject.toml`.
 
+### Running the type checker
 
-### Consuming API version upgrades
+```sh
+poetry run mypy pinecone
+```
+
+### Consuming API version upgrades and updating generated portions of the client
 
 These instructions can only be followed by Pinecone employees with access to our private APIs repository.
 
@@ -114,77 +130,26 @@ git submodule
 
 To regenerate the generated portions of the client with the latest version of the API specifications, you need to have Docker Desktop running on your local machine.
 
+Then you run the build script by passing a version, like this:
+
 ```sh
-./codegen/
+./codegen/build-oas.sh 2025-07
 ```
 
+Commit the generated files which should be mainly placed under `pinecone/core`. Running the type check with `poetry run mypy pinecone` will usually surface breaking changes as a result of things being renamed or modified.
 
-## Loading your virtualenv in another shell
+## Installing development versions
 
-It's a common need when developing against this client to load it as part of some other application or Jupyter Notebook code, modify
-it directly, see your changes reflected immediately and also have your changes tracked in git so you can contribute them back.
+If you want to explore a potential code change, investigate
+a bug, or just want to try unreleased features, you can also install
+specific git shas.
 
-It's important to understand that, by default, if you open a new shell or terminal window, or, for example, a new pane in a tmux session,
-your new shell will not yet reference the new virtualenv you created in the previous step.
+Some example commands:
 
-### Step 1. Get the path to your virtualenv
+```shell
+pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git
+pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git@example-branch-name
+pip3 install git+https://git@github.com/pinecone-io/pinecone-python-client.git@44fc7ed
 
-We're going to first get the path to the virtualenv we just created, by running:
-
-```bash
-poetry env info --path
+poetry add git+https://github.com/pinecone-io/pinecone-python-client.git@44fc7ed
 ```
-
-You'll get a path similar to this one:  `/home/youruser/.cache/pypoetry/virtualenvs/pinecone-fWu70vbC-py3.9/`
-
-### Step 2. Load your existing virtualenv in your new shell
-
-Within this path is a shell script that lives at `<your-virtualenv-path>/bin/activate`. Importantly, you cannot simply run this script, but you
-must instead source it like so:
-
-```bash
-source /home/youruser/.cache/pypoetry/virtualenvs/pinecone-fWu70vbC-py3.9/bin/activate
-```
-In the above example, ensure you're using your own virtualenv path as returned by `poetry env info --path`.
-
-### Step 3. Test out your virtualenv
-
-Now, we can test that our virtualenv is working properly by adding a new test module and function to the `pinecone` client within our virtualenv
-and running it from the second shell.
-
-#### Create a new test file in pinecone-python-client
-In the root of your working directory of the `pinecone-python-client` where you first ran `poetry shell`, add a new file named `hello_virtualenv.py` under the `pinecone` folder.
-
-In that file write the following:
-
-```python
-def hello():
-    print("Hello, from your virtualenv!")
-```
-Save the file.
-
-#### Create a new test file in your second shell
-This step demonstrates how you can immediately test your latest Pinecone client code from any local Python application or Jupyter Notebook:
-
-In your second shell, where you ran `source` to load your virtualenv, create a python file named `test.py` and write the following:
-
-```python
-from pinecone import hello_virtualenv
-
-hello_virtualenv.hello()
-```
-
-Save the file. Run it with your Python binary. Depending on your system, this may either be `python` or `python3`:
-
-```bash
-python3 test.py
-```
-
-You should see the following output:
-
-```bash
-❯ python3 test.py
-Hello, from your virtualenv!
-```
-
-If you experience any issues please [file a new issue](https://github.com/pinecone-io/pinecone-python-client/issues/new).
