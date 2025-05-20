@@ -113,6 +113,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 asyncio_mode = "strict"
+addopts = "-s -vv --log-cli-level=DEBUG"
 
 [tool.ruff]
 exclude = [

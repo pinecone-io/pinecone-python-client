@@ -7,7 +7,7 @@ import json
 
 from .index_asyncio_interface import IndexAsyncioInterface
 from .query_results_aggregator import QueryResultsAggregator
-from typing import Union, List, Optional, Dict, Any, Literal
+from typing import Union, List, Optional, Dict, Any, Literal, AsyncIterator, TYPE_CHECKING
 
 from pinecone.config import ConfigBuilder
 
@@ -47,7 +47,15 @@ from .index import IndexRequestFactory
 
 from .vector_factory import VectorFactory
 from .query_results_aggregator import QueryNamespacesResults
-from .features.bulk_import import ImportFeatureMixinAsyncio
+
+if TYPE_CHECKING:
+    from .resources.asyncio.bulk_import_asyncio import BulkImportResourceAsyncio
+
+    from pinecone.core.openapi.db_data.models import (
+        StartImportResponse,
+        ListImportsResponse,
+        ImportModel,
+    )
 
 
 logger = logging.getLogger(__name__)
@@ -75,7 +83,7 @@ def parse_query_response(response: QueryResponse):
     return response
 
 
-class _IndexAsyncio(IndexAsyncioInterface, ImportFeatureMixinAsyncio):
+class _IndexAsyncio(IndexAsyncioInterface):
     """
     The `IndexAsyncio` class provides an asynchronous interface to interact with Pinecone indexes.
 
@@ -129,6 +137,9 @@ class _IndexAsyncio(IndexAsyncioInterface, ImportFeatureMixinAsyncio):
     Failing to do this may result in error messages appearing from the underlyling aiohttp library.
     """
 
+    _bulk_import_resource: Optional["BulkImportResourceAsyncio"]
+    """ @private """
+
     def __init__(
         self,
         api_key: str,
@@ -159,9 +170,8 @@ class _IndexAsyncio(IndexAsyncioInterface, ImportFeatureMixinAsyncio):
         self._api_client = self._vector_api.api_client
         """ @private """
 
-        # Pass the same api_client to the ImportFeatureMixinAsyncio
-        # This is important for async context management to work correctly
-        super().__init__(api_client=self._api_client)
+        self._bulk_import_resource = None
+        """ @private """
 
     async def __aenter__(self):
         return self
@@ -221,6 +231,15 @@ class _IndexAsyncio(IndexAsyncioInterface, ImportFeatureMixinAsyncio):
 
         """
         await self._api_client.close()
+
+    @property
+    def bulk_import(self) -> "BulkImportResourceAsyncio":
+        """@private"""
+        if self._bulk_import_resource is None:
+            from .resources.asyncio.bulk_import_asyncio import BulkImportResourceAsyncio
+
+            self._bulk_import_resource = BulkImportResourceAsyncio(api_client=self._api_client)
+        return self._bulk_import_resource
 
     @validate_and_convert_errors
     async def upsert(
@@ -521,3 +540,112 @@ class _IndexAsyncio(IndexAsyncioInterface, ImportFeatureMixinAsyncio):
 
     def _openapi_kwargs(self, kwargs: Dict[str, Any]) -> Dict[str, Any]:
         return filter_dict(kwargs, OPENAPI_ENDPOINT_PARAMS)
+
+    async def start_import(
+        self,
+        uri: str,
+        integration_id: Optional[str] = None,
+        error_mode: Optional[Literal["CONTINUE", "ABORT"]] = "CONTINUE",
+    ) -> "StartImportResponse":
+        """
+        Args:
+            uri (str): The URI of the data to import. The URI must start with the scheme of a supported storage provider.
+            integration_id (Optional[str], optional): If your bucket requires authentication to access, you need to pass the id of your storage integration using this property. Defaults to None.
+            error_mode: Defaults to "CONTINUE". If set to "CONTINUE", the import operation will continue even if some
+                records fail to import. Pass "ABORT" to stop the import operation if any records fail to import.
+
+        Returns:
+            `StartImportResponse`: Contains the id of the import operation.
+
+        Import data from a storage provider into an index. The uri must start with the scheme of a supported
+        storage provider. For buckets that are not publicly readable, you will also need to separately configure
+        a storage integration and pass the integration id.
+
+        Examples:
+            >>> from pinecone import Pinecone
+            >>> index = Pinecone().IndexAsyncio(host="example-index.svc.aped-4627-b74a.pinecone.io")
+            >>> await index.start_import(uri="s3://bucket-name/path/to/data.parquet")
+            { id: "1" }
+
+        """
+        return await self.bulk_import.start(
+            uri=uri, integration_id=integration_id, error_mode=error_mode
+        )
+
+    async def list_imports(self, **kwargs) -> AsyncIterator["ImportModel"]:
+        """
+        Args:
+            limit (Optional[int]): The maximum number of operations to fetch in each network call. If unspecified, the server will use a default value. [optional]
+            pagination_token (Optional[str]): When there are multiple pages of results, a pagination token is returned in the response. The token can be used
+                to fetch the next page of results. [optional]
+
+        Returns an async generator that yields each import operation. It automatically handles pagination tokens on your behalf so you can
+        easily iterate over all results. The `list_imports` method accepts all of the same arguments as `list_imports_paginated`
+
+        ```python
+        async for op in index.list_imports():
+            print(op)
+        ```
+        """
+        async for op in self.bulk_import.list(**kwargs):
+            yield op
+
+    async def list_imports_paginated(
+        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+    ) -> "ListImportsResponse":
+        """
+        Args:
+            limit (Optional[int]): The maximum number of ids to return. If unspecified, the server will use a default value. [optional]
+            pagination_token (Optional[str]): A token needed to fetch the next page of results. This token is returned
+                in the response if additional results are available. [optional]
+
+        Returns:
+            `ListImportsResponse` object which contains the list of operations as ImportModel objects, pagination information,
+                and usage showing the number of read_units consumed.
+
+        The `list_imports_paginated` operation returns information about import operations.
+        It returns operations in a paginated form, with a pagination token to fetch the next page of results.
+
+        Consider using the `list_imports` method to avoid having to handle pagination tokens manually.
+
+        Examples:
+            >>> results = await index.list_imports_paginated(limit=5)
+            >>> results.pagination.next
+            eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
+            >>> results.data[0]
+            {
+                "id": "6",
+                "uri": "s3://dev-bulk-import-datasets-pub/10-records-dim-10/",
+                "status": "Completed",
+                "percent_complete": 100.0,
+                "records_imported": 10,
+                "created_at": "2024-09-06T14:52:02.567776+00:00",
+                "finished_at": "2024-09-06T14:52:28.130717+00:00"
+            }
+            >>> next_results = await index.list_imports_paginated(limit=5, pagination_token=results.pagination.next)
+
+        """
+        return await self.bulk_import.list_paginated(
+            limit=limit, pagination_token=pagination_token, **kwargs
+        )
+
+    async def describe_import(self, id: str) -> "ImportModel":
+        """
+        Args:
+            id (str): The id of the import operation. This value is returned when
+            starting an import, and can be looked up using list_imports.
+
+        Returns:
+            ImportModel: An object containing operation id, status, and other details.
+
+        `describe_import` is used to get detailed information about a specific import operation.
+        """
+        return await self.bulk_import.describe(id=id)
+
+    async def cancel_import(self, id: str):
+        """Cancel an import operation.
+
+        Args:
+            id (str): The id of the import operation to cancel.
+        """
+        return await self.bulk_import.cancel(id=id)

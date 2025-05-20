@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
-      PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
+      PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
     strategy:
       fail-fast: false
       matrix:
@@ -51,10 +51,10 @@ jobs:
         with:
           include_asyncio: true
       - name: 'Run integration tests'
-        run: poetry run pytest tests/integration/inference --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
+        run: poetry run pytest tests/integration/inference --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
         env:
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
-          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
+          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
 
   plugins:
     name: Plugin installation
@@ -76,7 +76,7 @@ jobs:
         run: poetry run pytest tests/integration/plugins --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
         env:
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
-          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
+          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
 
 
 
@@ -107,7 +107,7 @@ jobs:
           metric: 'cosine'
           spec: '{ "serverless": { "region": "us-west-2", "cloud": "aws" }}'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
-          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
+          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
           freshness_timeout_seconds: 600
           skip_weird_id_tests: 'true'
 
@@ -169,9 +169,9 @@ jobs:
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
       - name: 'Run integration tests (REST)'
-        run: poetry run pytest tests/integration/control/serverless --retries 5 --retry-delay 35 -s -vv --log-cli-level=DEBUG
+        run: poetry run pytest tests/integration/control/serverless --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
         env:
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
-          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
+          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
           SERVERLESS_CLOUD: '${{ matrix.testConfig.serverless.cloud }}'
           SERVERLESS_REGION: '${{ matrix.testConfig.serverless.region }}'

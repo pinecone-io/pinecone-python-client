@@ -19,7 +19,7 @@ jobs:
           name_prefix: depstest-${{ github.run_number }}
           dimension: 2
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
-          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
+          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
 
   dependency-test-rest:
     uses: './.github/workflows/testing-dependency-rest.yaml'
@@ -56,4 +56,4 @@ jobs:
         with:
           index_name: '${{ needs.deps-test-setup.outputs.index_name }}'
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
-          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
+          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'

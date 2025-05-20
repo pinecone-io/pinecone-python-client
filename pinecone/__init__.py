@@ -41,7 +41,7 @@ _db_data_lazy_imports = {
     "QueryResponse": ("pinecone.db_data.models", "QueryResponse"),
     "UpsertResponse": ("pinecone.db_data.models", "UpsertResponse"),
     "UpdateRequest": ("pinecone.db_data.models", "UpdateRequest"),
-    "ImportErrorMode": ("pinecone.core.openapi.db_data.models", "ImportErrorMode"),
+    "ImportErrorMode": ("pinecone.db_data.resources.sync.bulk_import", "ImportErrorMode"),
     "VectorDictionaryMissingKeysError": (
         "pinecone.db_data.errors",
         "VectorDictionaryMissingKeysError",

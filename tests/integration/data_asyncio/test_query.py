@@ -4,50 +4,57 @@ from pinecone import PineconeApiException
 from .conftest import build_asyncioindex_client, poll_for_freshness
 from ..helpers import random_string, embedding_values
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("target_namespace", [random_string(20)])
 async def test_query(index_host, dimension, target_namespace):
     asyncio_idx = build_asyncioindex_client(index_host)
+    logger.info(f"Testing query on index {index_host}")
+    logger.info(f"Target namespace: {target_namespace}")
+    logger.info(f"Dimension: {dimension}")
 
     def emb():
         return embedding_values(dimension)
 
     # Upsert with tuples
-    await asyncio_idx.upsert(
-        vectors=[("1", emb()), ("2", emb()), ("3", emb())], namespace=target_namespace
-    )
+    tuple_vectors = [("1", emb()), ("2", emb()), ("3", emb())]
+    logger.info(f"Upserting {len(tuple_vectors)} vectors")
+    await asyncio_idx.upsert(vectors=tuple_vectors, namespace=target_namespace)
 
     # Upsert with objects
-    await asyncio_idx.upsert(
-        vectors=[
-            Vector(id="4", values=emb(), metadata={"genre": "action"}),
-            Vector(id="5", values=emb(), metadata={"genre": "action"}),
-            Vector(id="6", values=emb(), metadata={"genre": "horror"}),
-        ],
-        namespace=target_namespace,
-    )
+    object_vectors = [
+        Vector(id="4", values=emb(), metadata={"genre": "action"}),
+        Vector(id="5", values=emb(), metadata={"genre": "action"}),
+        Vector(id="6", values=emb(), metadata={"genre": "horror"}),
+    ]
+    logger.info(f"Upserting {len(object_vectors)} vectors")
+    await asyncio_idx.upsert(vectors=object_vectors, namespace=target_namespace)
 
     # Upsert with dict
-    await asyncio_idx.upsert(
-        vectors=[
-            {"id": "7", "values": emb()},
-            {"id": "8", "values": emb()},
-            {"id": "9", "values": emb()},
-        ],
-        namespace=target_namespace,
-    )
+    dict_vectors = [
+        {"id": "7", "values": emb()},
+        {"id": "8", "values": emb()},
+        {"id": "9", "values": emb()},
+    ]
+    logger.info(f"Upserting {len(dict_vectors)} vectors")
+    await asyncio_idx.upsert(vectors=dict_vectors, namespace=target_namespace)
 
     await poll_for_freshness(asyncio_idx, target_namespace, 9)
 
     # Check the vector count reflects some data has been upserted
     stats = await asyncio_idx.describe_index_stats()
+    logger.info(f"Index stats: {stats}")
     assert stats.total_vector_count >= 9
     # default namespace could have other stuff from other tests
     if target_namespace != "":
         assert stats.namespaces[target_namespace].vector_count == 9
 
     results1 = await asyncio_idx.query(top_k=4, namespace=target_namespace, vector=emb())
+    logger.info(f"Results 1: {results1}")
     assert results1 is not None
     assert len(results1.matches) == 4
     assert results1.namespace == target_namespace
@@ -67,6 +74,7 @@ async def test_query(index_host, dimension, target_namespace):
     results2 = await asyncio_idx.query(
         top_k=4, namespace=target_namespace, vector=emb(), include_values=True
     )
+    logger.info(f"Results 2: {results2}")
     assert results2 is not None
     assert len(results2.matches) == 4
     assert results2.namespace == target_namespace
@@ -81,6 +89,7 @@ async def test_query(index_host, dimension, target_namespace):
         include_metadata=True,
         include_values=True,
     )
+    logger.info(f"Results 3: {results3}")
     assert results3 is not None
     assert len(results3.matches) == 2
     assert results3.namespace == target_namespace
@@ -97,6 +106,7 @@ async def test_query(index_host, dimension, target_namespace):
         include_metadata=True,
         include_values=True,
     )
+    logger.info(f"Results 4: {results4}")
     assert results4 is not None
     assert len(results4.matches) == 1
     assert results4.namespace == target_namespace
@@ -113,6 +123,7 @@ async def test_query(index_host, dimension, target_namespace):
         include_metadata=True,
         include_values=True,
     )
+    logger.info(f"Results 5: {results5}")
     assert results5 is not None
     assert len(results5.matches) == 0
     assert results5.namespace == target_namespace
@@ -122,27 +133,32 @@ async def test_query(index_host, dimension, target_namespace):
 
     # Query by id
     results6 = await asyncio_idx.query(top_k=4, id="1", namespace=target_namespace)
+    logger.info(f"Results 6: {results6}")
     assert results6 is not None
     assert len(results6.matches) == 4
 
     # Query by id, when id doesn't exist gives empty result set
     results7 = await asyncio_idx.query(top_k=10, id="unknown", namespace=target_namespace)
+    logger.info(f"Results 7: {results7}")
     assert results7 is not None
     assert len(results7.matches) == 0
 
     # When missing required top_k kwarg
     with pytest.raises(TypeError) as e:
         await asyncio_idx.query(id="1", namespace=target_namespace)
+    logger.info(f"Error Msg 1: {e.value}")
     assert "top_k" in str(e.value)
 
     # When incorrectly passing top_k as a positional argument
     with pytest.raises(TypeError) as e:
         await asyncio_idx.query(4, id="1", namespace=target_namespace)
+    logger.info(f"Error Msg 2: {e.value}")
     assert "top_k" in str(e.value)
 
     # When trying to pass both id and vector as query params
     with pytest.raises(ValueError) as e:
         await asyncio_idx.query(top_k=10, id="1", vector=emb(), namespace=target_namespace)
+    logger.info(f"Error Msg 3: {e.value}")
     assert "Cannot specify both `id` and `vector`" in str(e.value)
 
     # When trying to pass sparse vector as query params to dense index
@@ -152,5 +168,6 @@ async def test_query(index_host, dimension, target_namespace):
             sparse_vector={"indices": [i for i in range(dimension)], "values": emb()},
             namespace=target_namespace,
         )
+    logger.info(f"Error Msg 4: {e.value}")
     assert "Cannot query index with dense 'vector_type' with only sparse vector" in str(e.value)
     await asyncio_idx.close()

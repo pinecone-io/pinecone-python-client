@@ -57,6 +57,21 @@ def generate_index_name(test_name: str) -> str:
     return index_name.lower()
 
 
+def get_tags():
+    github_actor = os.getenv("GITHUB_ACTOR", None)
+    user = os.getenv("USER", None)
+    index_owner = github_actor or user or "unknown"
+
+    github_job = os.getenv("GITHUB_JOB", "")
+    tags = {
+        "owner": index_owner,
+        "test-suite": "pinecone-python-client",
+        "created-at": datetime.now().strftime("%Y-%m-%d"),
+        "test-job": github_job,
+    }
+    return tags
+
+
 def main():
     pc = Pinecone(api_key=read_env_var("PINECONE_API_KEY"))
     index_name = generate_index_name(read_env_var("NAME_PREFIX") + random_string(20))
@@ -65,6 +80,7 @@ def main():
         metric=read_env_var("METRIC"),
         dimension=int(read_env_var("DIMENSION")),
         spec={"serverless": {"cloud": read_env_var("CLOUD"), "region": read_env_var("REGION")}},
+        tags=get_tags(),
     )
     write_gh_output("index_name", index_name)
 
