@@ -1,7 +1,5 @@
 import warnings
 
-from pinecone.db_data import *
-
 warnings.warn(
     "The module at `pinecone.data` has moved to `pinecone.db_data`. "
     "Please update your imports. "

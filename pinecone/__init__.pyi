@@ -29,7 +29,7 @@ from pinecone.db_data.models import (
     UpsertResponse,
     UpdateRequest,
 )
-from pinecone.core.openapi.db_data.models import ImportErrorMode
+from pinecone.db_data.resources.sync.bulk_import import ImportErrorMode
 from pinecone.db_data.errors import (
     VectorDictionaryMissingKeysError,
     VectorDictionaryExcessKeysError,

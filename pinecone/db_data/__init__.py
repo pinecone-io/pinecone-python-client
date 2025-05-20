@@ -25,7 +25,7 @@ from .errors import (
     MetadataDictionaryExpectedError,
 )
 
-from .features.bulk_import import ImportErrorMode
+from .resources.sync.bulk_import import ImportErrorMode
 
 
 import warnings

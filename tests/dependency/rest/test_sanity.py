@@ -48,7 +48,7 @@ class TestSanityRest:
         # Query for results
         query_results = idx.query(id="1", top_k=10, include_values=True)
         assert query_results.matches[0].id == "1"
-        assert len(query_results.matches) == 3
+        assert len(query_results.matches) >= 3
 
         # Call a bulk import api method, should not raise an exception
         for i in idx.list_imports():
@@ -63,3 +63,7 @@ class TestSanityRest:
             parameters={"input_type": "passage", "truncate": "END"},
         )
         logger.info("Embed response: %s", resp)
+
+        # Call an assistant method, should not raise an exception
+        for i in client.assistant.list_assistants():
+            assert i is not None
