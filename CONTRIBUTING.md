@@ -48,7 +48,7 @@ To use the [Poetry `shell` command](https://python-poetry.org/docs/cli#shell), i
 
 ### Step 2. Install dependencies
 
-Run `poetry install` from the root of the project.
+Run `poetry install -E grpc -E asyncio` from the root of the project. These extra groups for `grpc` and `asyncio` are optional but required to do development on those optional parts of the SDK.
 
 ### Step 3. Activate the Poetry virtual environment and verify success
 
@@ -82,9 +82,10 @@ Run `poetry run pre-commit install` to enable checks to run when you commit so y
 
 ### Running tests
 
-- Unit tests: `make test-unit`
-- Integration tests: `PINECONE_API_KEY="YOUR API KEY" make test-integration`
-- Run the tests in a single file: `poetry run pytest tests/unit/data/test_bulk_import.py -s -vv`
+- Unit tests: `poetry run pytest tests/unit`
+- Unit tests: `poetry run pytest tests/unit_grpc`
+- Integration tests: `make test-integration`
+- Run the tests in a single file: `poetry run pytest tests/unit/data/test_bulk_import.py`
 
 ### Running the ruff linter / formatter
 
