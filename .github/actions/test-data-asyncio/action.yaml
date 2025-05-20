@@ -18,7 +18,7 @@ inputs:
   PINECONE_ADDITIONAL_HEADERS:
     description: 'Additional headers to send with the request'
     required: false
-    default: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
+    default: '{"sdk-test-suite": "pinecone-python-client"}'
   python_version:
     description: 'The version of Python to use'
     required: false

@@ -29,7 +29,7 @@ jobs:
         run: poetry run pytest tests/integration/data_asyncio --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
         env:
             PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
-            PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
+            PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
 
   db-control-asyncio:
     name: db_control asyncio
@@ -55,4 +55,4 @@ jobs:
         run: poetry run pytest tests/integration/control_asyncio/*.py --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
         env:
           PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
-          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
+          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
