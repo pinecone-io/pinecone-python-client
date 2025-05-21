@@ -12,13 +12,13 @@ tests
 └── upgrade
 ```
 
-- `dependency`: These tests are a set of very minimal end-to-end integration tests that ensure basic functionality works to upsert and query vectors from an index. These are rarely run locally; we use them in CI to confirm the client can be used when installed wtih a large matrix of different python versions and versions of key dependencies. See [`.github/workflows/testing-dependency.yaml`](.github/workflows/testing-dependency.yaml) for more details on how these are run.
+- `dependency`: These tests are a set of very minimal end-to-end integration tests that ensure basic functionality works to upsert and query vectors from an index. These are rarely run locally; we use them in CI to confirm the client can be used when installed wtih a large matrix of different python versions and versions of key dependencies. See [`.github/workflows/testing-dependency.yaml`](https://github.com/pinecone-io/pinecone-python-client/blob/main/.github/workflows/testing-dependency.yamll) for more details on how these are run.
 
 - `integration`: These are a large suite of end-to-end integration tests exercising most of the core functions of the product. They are slow and expensive to run, but they give the greatest confidence the SDK actually works end-to-end. See notes below on how to setup the required configuration and run individual tests if you are iterating on a bug or feature and want to get more rapid feedback than running the entire suite in CI will give you.
 
 - `perf`: These tests are still being developed. But eventually, they will play an important roll in making sure we don't regress on client performance when building new features.
 
-- `unit` and `unit_grpc`. These are what you would probably expect. Unit-testing makes up a relatively small portion of our testing because there's not that much business logic that makes sense to test in isolation. But it is ocassionally useful when doing some sort of data conversions with many edge cases (e.g. `VectorFactory`) or merging results (e.g. `QueryResultsAggregator`) to write some unit tests. If you have a situation where unit testing is appropriate, they are really great to work with because they are fast and don't have any external dependencies. In CI, these are run with the [`.github/workflows/testing-unit.yaml`](.github/workflows/testing-unit.yaml) workflow.
+- `unit` and `unit_grpc`. These are what you would probably expect. Unit-testing makes up a relatively small portion of our testing because there's not that much business logic that makes sense to test in isolation. But it is ocassionally useful when doing some sort of data conversions with many edge cases (e.g. `VectorFactory`) or merging results (e.g. `QueryResultsAggregator`) to write some unit tests. If you have a situation where unit testing is appropriate, they are really great to work with because they are fast and don't have any external dependencies. In CI, these are run with the [`.github/workflows/testing-unit.yaml`](https://github.com/pinecone-io/pinecone-python-client/blob/main/.github/workflows/testing-unit.yaml) workflow.
 
 - `upgrade`: These are also still being developed and if you are reading this guide you probably don't need to worry about them. The goal of these is to ensure we're not introducing breaking changes without realizing it.
 
@@ -118,7 +118,7 @@ Asyncio tests of the data plane are unfortunately separate because there are qui
 
 ### With an interactive REPL
 
-You can access a python REPL that is preloaded with the virtualenv maintained by Poetry (including all dependencies declared in `pyproject.toml`), any changes you've made to the code in `pinecone/`, the environment variables set in your `.env` file, and a few useful variables and functions defined in [`scripts/repl.py`](scripts/repl.py) :
+You can access a python REPL that is preloaded with the virtualenv maintained by Poetry (including all dependencies declared in `pyproject.toml`), any changes you've made to the code in `pinecone/`, the environment variables set in your `.env` file, and a few useful variables and functions defined in [`scripts/repl.py`](https://github.com/pinecone-io/pinecone-python-client/blob/main/scripts/repl.py) :
 
 ```sh
 $ poetry run repl
