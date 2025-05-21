@@ -15,6 +15,7 @@ on:
       - '*.jpeg'
       - '*.gif'
       - '*.svg'
+      - '*.example'
   push:
     branches:
       - main
@@ -31,6 +32,7 @@ on:
       - '*.jpeg'
       - '*.gif'
       - '*.svg'
+      - '*.example'
   workflow_dispatch: {}
 
 concurrency:
