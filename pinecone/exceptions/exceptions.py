@@ -49,10 +49,10 @@ class PineconeApiValueError(PineconeException, ValueError):
 
 
 class PineconeApiAttributeError(PineconeException, AttributeError):
+    """Raised when an attribute reference or assignment fails."""
+
     def __init__(self, msg, path_to_item=None) -> None:
         """
-        Raised when an attribute reference or assignment fails.
-
         Args:
             msg (str): the exception message
 
@@ -85,6 +85,8 @@ class PineconeApiKeyError(PineconeException, KeyError):
 
 
 class PineconeApiException(PineconeException):
+    """Raised when an API exception occurs."""
+
     def __init__(self, status=None, reason=None, http_resp=None) -> None:
         if http_resp:
             self.status = http_resp.status
@@ -110,21 +112,29 @@ class PineconeApiException(PineconeException):
 
 
 class NotFoundException(PineconeApiException):
+    """Raised when a resource is not found."""
+
     def __init__(self, status=None, reason=None, http_resp=None) -> None:
         super(NotFoundException, self).__init__(status, reason, http_resp)
 
 
 class UnauthorizedException(PineconeApiException):
+    """Raised when access to a resource is not authorized."""
+
     def __init__(self, status=None, reason=None, http_resp=None) -> None:
         super(UnauthorizedException, self).__init__(status, reason, http_resp)
 
 
 class ForbiddenException(PineconeApiException):
+    """Raised when access to a resource is forbidden."""
+
     def __init__(self, status=None, reason=None, http_resp=None) -> None:
         super(ForbiddenException, self).__init__(status, reason, http_resp)
 
 
 class ServiceException(PineconeApiException):
+    """Raised when a service error occurs."""
+
     def __init__(self, status=None, reason=None, http_resp=None) -> None:
         super(ServiceException, self).__init__(status, reason, http_resp)
 
@@ -151,3 +161,20 @@ class PineconeConfigurationError(PineconeException):
 class ListConversionException(PineconeException, TypeError):
     def __init__(self, message):
         super().__init__(message)
+
+
+__all__ = [
+    "PineconeException",
+    "PineconeApiTypeError",
+    "PineconeApiValueError",
+    "PineconeApiAttributeError",
+    "PineconeApiKeyError",
+    "PineconeApiException",
+    "NotFoundException",
+    "UnauthorizedException",
+    "ForbiddenException",
+    "ServiceException",
+    "PineconeProtocolError",
+    "PineconeConfigurationError",
+    "ListConversionException",
+]

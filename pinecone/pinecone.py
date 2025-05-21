@@ -15,12 +15,7 @@ logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pinecone.config import Config, OpenApiConfiguration
-    from pinecone.db_data import (
-        _Index as Index,
-        _Inference as Inference,
-        _IndexAsyncio as IndexAsyncio,
-    )
-    from pinecone.db_control import DBControl
+    from pinecone.db_data import _Index as Index, _IndexAsyncio as IndexAsyncio
     from pinecone.db_control.index_host_store import IndexHostStore
     from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
     from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict
@@ -94,18 +89,18 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
             self._pool_threads = pool_threads
             """ @private """
 
-        self._inference: Optional["Inference"] = None  # Lazy initialization
+        self._inference = None  # Lazy initialization
         """ @private """
 
-        self._db_control: Optional["DBControl"] = None  # Lazy initialization
+        self._db_control = None  # Lazy initialization
         """ @private """
 
         super().__init__()  # Initialize PluginAware
 
     @property
-    def inference(self) -> "Inference":
+    def inference(self):
         """
-        Inference is a namespace where an instance of the `pinecone.data.features.inference.inference.Inference` class is lazily created and cached.
+        Inference is a namespace where an instance of the `pinecone.inference.Inference` class is lazily created and cached.
         """
         if self._inference is None:
             from pinecone.inference import Inference
@@ -118,9 +113,9 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         return self._inference
 
     @property
-    def db(self) -> "DBControl":
+    def db(self):
         """
-        DBControl is a namespace where an instance of the `pinecone.control.db_control.DBControl` class is lazily created and cached.
+        DBControl is a namespace where an instance of the `pinecone.db_control.DBControl` class is lazily created and cached.
         """
         if self._db_control is None:
             from pinecone.db_control import DBControl
