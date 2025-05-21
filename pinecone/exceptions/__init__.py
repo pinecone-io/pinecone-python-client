@@ -15,17 +15,17 @@ from .exceptions import (
 )
 
 __all__ = [
-    "PineconeConfigurationError",
-    "PineconeProtocolError",
     "PineconeException",
-    "PineconeApiAttributeError",
     "PineconeApiTypeError",
     "PineconeApiValueError",
+    "PineconeApiAttributeError",
     "PineconeApiKeyError",
     "PineconeApiException",
     "NotFoundException",
     "UnauthorizedException",
     "ForbiddenException",
     "ServiceException",
+    "PineconeProtocolError",
+    "PineconeConfigurationError",
     "ListConversionException",
 ]
