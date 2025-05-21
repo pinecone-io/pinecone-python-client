@@ -88,11 +88,12 @@ poetry run repl
     Your initialization steps have been completed.
 
     Two Pinecone objects are available:
-    - pc: Interact with the one-offs project
-    - pcci: Interact with the pinecone-python-client project (CI testing)
+    - pc: Built using the PINECONE_API_KEY env var, if set
+    - pcci: Built using the PINECONE_API_KEY_CI_TESTING env var, if set
 
     You can use the following functions to clean up the environment:
     - delete_all_indexes(pc)
+    - delete_all_pod_indexes(pc)
     - delete_all_collections(pc)
     - delete_all_backups(pc)
     - cleanup_all(pc)
