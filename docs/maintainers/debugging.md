@@ -7,6 +7,8 @@ You can turn on detailed debug logging if needed, but it's a little bit challeng
 > [!WARNING]
 > Be careful with this output as it will leak headers with secrets, including the `Api-Key` header. I manually redacted that value from this example below.
 
+If I defined a script like this in a file `scripts/repro.py`:
+
 ```python
 import dotenv
 import logging
@@ -24,7 +26,7 @@ pc._openapi_config.debug = True
 pc.describe_index('jen')
 ```
 
-gives output like
+Running it with `poetry run python3 scripts/repro.py` would give output like
 
 ```
 DEBUG    | pinecone.openapi_support.rest_urllib3:125 | Calling urllib3 request()
