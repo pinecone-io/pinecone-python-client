@@ -12,9 +12,9 @@ tests
 └── upgrade
 ```
 
-- `dependency`: These tests are a set of very minimal end-to-end integration tests that ensure basic functionality works to upsert and query vectors from an index. These are rarely run locally; we use them in CI to confirm the client can be used when installed wtih a large matrix of different python versions and versions of key dependencies. See [`.github/workflows/testing-dependency.yaml`](https://github.com/pinecone-io/pinecone-python-client/blob/main/.github/workflows/testing-dependency.yamll) for more details on how these are run.
+- `dependency`: These tests are a set of very minimal end-to-end integration tests that ensure basic functionality works to upsert and query vectors from an index. These are rarely run locally; we use them in CI to confirm the client can be used when installed with a large matrix of different python versions and versions of key dependencies. See [`.github/workflows/testing-dependency.yaml`](https://github.com/pinecone-io/pinecone-python-client/blob/main/.github/workflows/testing-dependency.yaml) for more details on how these are run.
 
-- `integration`: These are a large suite of end-to-end integration tests exercising most of the core functions of the product. They are slow and expensive to run, but they give the greatest confidence the SDK actually works end-to-end. See notes below on how to setup the required configuration and run individual tests if you are iterating on a bug or feature and want to get more rapid feedback than running the entire suite in CI will give you.
+- `integration`: These are a large suite of end-to-end integration tests exercising most of the core functions of the product. They are slow and expensive to run, but they give the greatest confidence the SDK actually works end-to-end. See notes below on how to setup the required configuration and run individual tests if you are iterating on a bug or feature and want to get more rapid feedback than running the entire suite in CI will give you. In CI, these are run using [`.github/workflows/testing-dependency.yaml`](https://github.com/pinecone-io/pinecone-python-client/blob/main/.github/workflows/testing-integration.yaml).
 
 - `perf`: These tests are still being developed. But eventually, they will play an important roll in making sure we don't regress on client performance when building new features.
 

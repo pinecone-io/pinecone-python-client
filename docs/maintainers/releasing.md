@@ -2,7 +2,9 @@
 
 The Pinecone SDK is published to PyPI as `pinecone`.
 
-The release process is mostly automated in a pair of git workflows.
+The release process is mostly automated in a pair of git workflows that are triggered using the "Run workflow" button in the Github UI.
+
+![Release workflow](./release-workflow.png)
 
 ## Dev Builds / Release Candidates
 
