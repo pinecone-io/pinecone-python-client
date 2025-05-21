@@ -6,7 +6,21 @@ from .deprecated_plugins import check_for_deprecated_plugins as _check_for_depre
 from .deprecation_warnings import *
 from .pinecone import Pinecone
 from .pinecone_asyncio import PineconeAsyncio
-from .exceptions import *
+from .exceptions import (
+    PineconeException,
+    PineconeApiTypeError,
+    PineconeApiValueError,
+    PineconeApiAttributeError,
+    PineconeApiKeyError,
+    PineconeApiException,
+    NotFoundException,
+    UnauthorizedException,
+    ForbiddenException,
+    ServiceException,
+    PineconeProtocolError,
+    PineconeConfigurationError,
+    ListConversionException,
+)
 
 from .utils import __version__
 

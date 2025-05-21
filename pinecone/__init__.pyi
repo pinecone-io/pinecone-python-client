@@ -1,7 +1,24 @@
 from pinecone.config import Config
 from pinecone.config import ConfigBuilder
 from pinecone.config import PineconeConfig
+from .exceptions import (
+    PineconeException,
+    PineconeApiTypeError,
+    PineconeApiValueError,
+    PineconeApiAttributeError,
+    PineconeApiKeyError,
+    PineconeApiException,
+    NotFoundException,
+    UnauthorizedException,
+    ForbiddenException,
+    ServiceException,
+    PineconeProtocolError,
+    PineconeConfigurationError,
+    ListConversionException,
+)
 from pinecone.inference import (
+    Inference,
+    AsyncioInference,
     RerankModel,
     EmbedModel,
     ModelInfo,
@@ -72,7 +89,23 @@ __all__ = [
     "Config",
     "ConfigBuilder",
     "PineconeConfig",
+    # Exceptions
+    "PineconeException",
+    "PineconeApiTypeError",
+    "PineconeApiValueError",
+    "PineconeApiAttributeError",
+    "PineconeApiKeyError",
+    "PineconeApiException",
+    "NotFoundException",
+    "UnauthorizedException",
+    "ForbiddenException",
+    "ServiceException",
+    "PineconeProtocolError",
+    "PineconeConfigurationError",
+    "ListConversionException",
     # Inference classes
+    "Inference",
+    "AsyncioInference",
     "RerankModel",
     "EmbedModel",
     "ModelInfo",
