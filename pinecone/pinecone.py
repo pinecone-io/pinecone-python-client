@@ -115,7 +115,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
     @property
     def db(self):
         """
-        DBControl is a namespace where an instance of the `pinecone.control.db_control.DBControl` class is lazily created and cached.
+        DBControl is a namespace where an instance of the `pinecone.db_control.DBControl` class is lazily created and cached.
         """
         if self._db_control is None:
             from pinecone.db_control import DBControl
