@@ -27,6 +27,31 @@ from .errors import (
 
 from .resources.sync.bulk_import import ImportErrorMode
 
+__all__ = [
+    "_Index",
+    "_IndexAsyncio",
+    "DescribeIndexStatsResponse",
+    "FetchResponse",
+    "ImportErrorMode",
+    "Index",
+    "IndexClientInstantiationError",
+    "Inference",
+    "InferenceInstantiationError",
+    "MetadataDictionaryExpectedError",
+    "QueryResponse",
+    "SearchQuery",
+    "SearchQueryVector",
+    "SearchRerank",
+    "SparseValues",
+    "SparseValuesDictionaryExpectedError",
+    "SparseValuesMissingKeysError",
+    "SparseValuesTypeError",
+    "UpsertResponse",
+    "Vector",
+    "VectorDictionaryExcessKeysError",
+    "VectorDictionaryMissingKeysError",
+    "VectorTupleLengthError",
+]
 
 import warnings
 
@@ -41,10 +66,10 @@ def _get_deprecated_import(name, from_module, to_module):
     )
     # Import from the new location
     from pinecone.inference import (
-        Inference as _Inference,
-        AsyncioInference as _AsyncioInference,
-        RerankModel,
-        EmbedModel,
+        Inference as _Inference, # noqa: F401
+        AsyncioInference as _AsyncioInference, # noqa: F401
+        RerankModel, # noqa: F401
+        EmbedModel, # noqa: F401
     )
 
     return locals()[name]
