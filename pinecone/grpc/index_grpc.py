@@ -408,7 +408,7 @@ class GRPCIndex(GRPCIndexBase):
 
         if async_req:
             future = self.runner.run(self.stub.Query.future, request, timeout=timeout)
-            return PineconeGrpcFuture(future)
+            return PineconeGrpcFuture(future, result_transformer=lambda x: parse_query_response(json_format.MessageToDict(x)))
         else:
             response = self.runner.run(self.stub.Query, request, timeout=timeout)
             json_response = json_format.MessageToDict(response)
