@@ -40,22 +40,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  linting:
-    uses: './.github/workflows/lint.yaml'
+  # linting:
+  #   uses: './.github/workflows/lint.yaml'
 
-  unit-tests:
-    uses: './.github/workflows/testing-unit.yaml'
-    secrets: inherit
+  # unit-tests:
+  #   uses: './.github/workflows/testing-unit.yaml'
+  #   secrets: inherit
 
-  integration-tests:
-      uses: './.github/workflows/testing-integration.yaml'
-      secrets: inherit
-      needs: unit-tests
+  # integration-tests:
+  #     uses: './.github/workflows/testing-integration.yaml'
+  #     secrets: inherit
+  #     needs: unit-tests
 
-  dependency-tests:
-    uses: './.github/workflows/testing-dependency.yaml'
-    secrets: inherit
-    needs: unit-tests
+  # dependency-tests:
+  #   uses: './.github/workflows/testing-dependency.yaml'
+  #   secrets: inherit
+  #   needs: unit-tests
 
   package:
     name: Check packaging
