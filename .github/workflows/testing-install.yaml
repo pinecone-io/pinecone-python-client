@@ -55,7 +55,7 @@ jobs:
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python }}  
+          python-version: ${{ matrix.python }}
 
       - name: Install build tools
         run: |
@@ -63,7 +63,7 @@ jobs:
 
       - name: Build sdist & wheel
         run: python -m build --sdist --wheel
-        
+
       - name: Install from built artifacts
         shell: pwsh
         run: |
@@ -80,8 +80,6 @@ jobs:
           }
 
       - name: Verify import & version
+        shell: pwsh
         run: |
-          python - <<EOF
-          import pinecone
-          print("Imported OK, version:", pinecone.__version__)
-          EOF
+          python -c "import pinecone; print('Imported OK, version:', pinecone.__version__)"
