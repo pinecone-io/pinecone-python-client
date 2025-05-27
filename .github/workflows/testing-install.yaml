@@ -34,8 +34,23 @@ jobs:
 
       - name: Install from built artifacts
         run: |
-          # Use the wheel if it's pure-python; fallback to sdist otherwise
-          pip install dist/*.whl || pip install dist/*.tar.gz
+          python - <<EOF
+          import glob
+          import os
+          import subprocess
+
+          # Find wheel and sdist files
+          wheels = glob.glob('dist/*.whl')
+          sdists = glob.glob('dist/*.tar.gz')
+
+          # Try wheel first, then sdist
+          if wheels:
+              subprocess.check_call(['pip', 'install', wheels[0]])
+          elif sdists:
+              subprocess.check_call(['pip', 'install', sdists[0]])
+          else:
+              raise Exception("No wheel or sdist found in dist/")
+          EOF
 
       - name: Verify import & version
         run: |
