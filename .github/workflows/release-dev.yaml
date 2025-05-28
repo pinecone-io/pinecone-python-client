@@ -1,4 +1,4 @@
-name: 'PyPI Release: Production (pinecone)'
+name: 'PyPI Release: Pre-Release (pinecone)'
 
 on:
   workflow_dispatch:
@@ -17,36 +17,23 @@ on:
           - 'patch' # bug fixes
           - 'minor' # new features, backwards compatible
           - 'major' # breaking changes
+      prereleaseSuffix:
+        description: 'Suffix to add onto the new version number in order to mark it as a prerelease'
+        required: true
+        type: string
+        default: 'rc1'
 
+permissions:
+  contents: write
 jobs:
-  unit-tests:
-    uses: './.github/workflows/testing-unit.yaml'
-    secrets: inherit
-  integration-tests:
-      uses: './.github/workflows/testing-integration.yaml'
-      secrets: inherit
-  dependency-tests:
-    uses: './.github/workflows/testing-dependency.yaml'
-    secrets: inherit
-
   pypi:
     uses: './.github/workflows/publish-to-pypi.yaml'
-    needs: 
-      - unit-tests
-      - integration-tests
-      - dependency-tests
     with:
-      isPrerelease: false
+      isPrerelease: true
       ref: ${{ inputs.ref }}
       releaseLevel: ${{ inputs.releaseLevel }}
+      prereleaseSuffix: ${{ inputs.prereleaseSuffix }}
       TWINE_REPOSITORY: 'pypi'
-      prereleaseSuffix: ''
     secrets:
       PYPI_USERNAME: __token__
       PYPI_PASSWORD: ${{ secrets.PROD_PYPI_PUBLISH_TOKEN }}
-
-  docs-publish:
-    uses: './.github/workflows/build-and-publish-docs.yaml'
-    secrets: inherit
-    needs: 
-      - pypi
