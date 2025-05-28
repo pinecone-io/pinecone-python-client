@@ -3,7 +3,6 @@ name: Installation Tests
 on:
   workflow_call:
   workflow_dispatch:
-  pull_request:
 
 permissions:
   contents: read
@@ -13,9 +12,12 @@ jobs:
   install:
     runs-on: ${{ matrix.os }}
     strategy:
+      max-parallel: 3
+      fail-fast: true
       matrix:
         os: [ubuntu-latest, macos-latest]
         python: ['3.9', '3.10', '3.11', '3.12', '3.13']
+
 
     steps:
       - name: Checkout code
@@ -62,9 +64,11 @@ jobs:
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
           PINECONE_ADDITIONAL_HEADERS: ${{ vars.PINECONE_ADDITIONAL_HEADERS }}
 
-  test-windows:
+  install-windows:
     runs-on: ${{ matrix.os }}
     strategy:
+      max-parallel: 3
+      fail-fast: true
       matrix:
         os: [windows-latest]
         python: ['3.9', '3.10', '3.11', '3.12', '3.13']
