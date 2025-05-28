@@ -31,6 +31,10 @@ jobs:
   dependency-tests:
     uses: './.github/workflows/testing-dependency.yaml'
     secrets: inherit
+    needs: unit-tests
+  install-tests:
+    uses: './.github/workflows/testing-install.yaml'
+    secrets: inherit
 
   pypi:
     uses: './.github/workflows/publish-to-pypi.yaml'
@@ -38,6 +42,7 @@ jobs:
       - unit-tests
       - integration-tests
       - dependency-tests
+      - install-tests
     with:
       isPrerelease: false
       ref: ${{ inputs.ref }}
