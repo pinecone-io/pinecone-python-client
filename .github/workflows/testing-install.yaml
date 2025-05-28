@@ -11,9 +11,10 @@ permissions:
 
 jobs:
   test-install-linux:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [ubuntu-latest, macos-latest]
         python: ['3.9', '3.10', '3.11', '3.12', '3.13']
 
     steps:
@@ -42,7 +43,24 @@ jobs:
           python - <<EOF
           import pinecone
           print("Imported OK, version:", pinecone.__version__)
+          from pinecone import Pinecone
           EOF
+
+      - name: Check a few basic functions
+        run: |
+          python - <<EOF
+          from pinecone import Pinecone
+
+          pc = Pinecone()
+          print("Indexes:", pc.list_indexes())
+          print("Collections:", pc.list_collections())
+          print("Backups:", pc.list_backups())
+          print("Assistants:", pc.assistant.list_assistants())
+          print("Inference Models:", pc.inference.list_models())
+          EOF
+        env:
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          PINECONE_ADDITIONAL_HEADERS: ${{ vars.PINECONE_ADDITIONAL_HEADERS }}
 
   test-install-windows:
     runs-on: windows-latest
@@ -84,3 +102,19 @@ jobs:
         shell: pwsh
         run: |
           python -c "import pinecone; print('Imported OK, version:', pinecone.__version__)"
+
+      - name: Check a few basic functions
+        shell: pwsh
+        run: |
+          python -c "
+          from pinecone import Pinecone
+          pc = Pinecone()
+          print('Indexes:', pc.list_indexes())
+          print('Collections:', pc.list_collections())
+          print('Backups:', pc.list_backups())
+          print('Assistants:', pc.assistant.list_assistants())
+          print('Inference Models:', pc.inference.list_models())
+          "
+        env:
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          PINECONE_ADDITIONAL_HEADERS: ${{ vars.PINECONE_ADDITIONAL_HEADERS }}
