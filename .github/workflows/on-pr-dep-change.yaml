@@ -1,0 +1,17 @@
+name: Testing (PR - Dependency Change)
+
+on:
+  pull_request:
+    paths:
+      - 'pyproject.toml'
+      - 'poetry.lock'
+  workflow_dispatch: {}
+
+concurrency:
+  group: 'ci-${{ github.workflow }}-${{ github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  dependency-tests:
+    uses: './.github/workflows/testing-dependency.yaml'
+    secrets: inherit

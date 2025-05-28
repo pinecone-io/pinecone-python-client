@@ -1,21 +1,6 @@
-name: Pull Request
+name: Testing (main)
 
 on:
-  pull_request:
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
-      - '*.rst'
-      - '*.txt'
-      - '*.html'
-      - '*.css'
-      - '*.js'
-      - '*.png'
-      - '*.jpg'
-      - '*.jpeg'
-      - '*.gif'
-      - '*.svg'
-      - '*.example'
   push:
     branches:
       - main
@@ -41,7 +26,7 @@ concurrency:
 
 jobs:
   linting:
-    uses: './.github/workflows/lint.yaml'
+    uses: './.github/workflows/testing-lint.yaml'
 
   unit-tests:
     uses: './.github/workflows/testing-unit.yaml'
@@ -57,7 +42,7 @@ jobs:
     secrets: inherit
     needs: unit-tests
 
-  testing-install:
+  install-tests:
     uses: './.github/workflows/testing-install.yaml'
     secrets: inherit
 
