@@ -18,6 +18,9 @@ on:
           - 'minor' # new features, backwards compatible
           - 'major' # breaking changes
 
+permissions:
+  contents: write
+
 jobs:
   unit-tests:
     uses: './.github/workflows/testing-unit.yaml'

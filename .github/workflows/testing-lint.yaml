@@ -2,6 +2,8 @@ name: "Lint"
 on:
   workflow_call: {}
 
+permissions: {}
+
 jobs:
   lint:
     runs-on: ubuntu-latest

@@ -23,6 +23,8 @@ on:
         type: string
         default: 'rc1'
 
+permissions:
+  contents: write
 jobs:
   pypi:
     uses: './.github/workflows/publish-to-pypi.yaml'
