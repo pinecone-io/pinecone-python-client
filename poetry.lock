@@ -1990,4 +1990,4 @@ grpc = ["googleapis-common-protos", "grpcio", "grpcio", "grpcio", "lz4", "protob
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "cc8b764abfc3d9ba774410ef118817c736c3c74a2bfa7f9f32a462628d804739"
+content-hash = "6ec34aecf5d783b447124d4fbb752bff5321c1ba70a90e55734000f8f725d85d"

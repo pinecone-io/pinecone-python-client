@@ -57,6 +57,10 @@ jobs:
     secrets: inherit
     needs: unit-tests
 
+  testing-install:
+    uses: './.github/workflows/testing-install.yaml'
+    secrets: inherit
+
   package:
     name: Check packaging
     runs-on: ubuntu-latest
