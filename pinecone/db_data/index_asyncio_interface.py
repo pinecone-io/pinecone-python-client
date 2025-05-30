@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Union, List, Optional, Dict, Any
+from typing import Union, List, Optional, Dict, Any, AsyncIterator
 
 from pinecone.core.openapi.db_data.models import (
     FetchResponse,
@@ -10,6 +10,7 @@ from pinecone.core.openapi.db_data.models import (
     ListResponse,
     SparseValues,
     SearchRecordsResponse,
+    NamespaceDescription,
 )
 from .query_results_aggregator import QueryNamespacesResults
 from .types import (
@@ -804,4 +805,57 @@ class IndexAsyncioInterface(ABC):
         fields: Optional[List[str]] = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         """Alias of the search() method."""
+        pass
+
+    @abstractmethod
+    async def describe_namespace(
+        self,
+        namespace: str,
+        **kwargs
+    ) -> NamespaceDescription:
+        """Describe a namespace within an index, showing the vector count within the namespace.
+
+        Args:
+            namespace (str): The namespace to describe
+            **kwargs: Additional arguments to pass to the API call
+
+        Returns:
+            NamespaceDescription: Information about the namespace including vector count
+        """
+        pass
+
+    @abstractmethod
+    async def delete_namespace(
+        self,
+        namespace: str,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """Delete a namespace from an index.
+
+        Args:
+            namespace (str): The namespace to delete
+            **kwargs: Additional arguments to pass to the API call
+
+        Returns:
+            Dict[str, Any]: Response from the delete operation
+        """
+        pass
+
+    @abstractmethod
+    async def list_namespaces(
+        self,
+        limit: Optional[int] = None,
+        pagination_token: Optional[str] = None,
+        **kwargs
+    ) -> AsyncIterator[NamespaceDescription]:
+        """Get a list of all namespaces within an index.
+
+        Args:
+            limit (Optional[int]): Max number of namespaces to return per page
+            pagination_token (Optional[str]): Token to continue a previous listing operation
+            **kwargs: Additional arguments to pass to the API call
+
+        Returns:
+            AsyncIterator[NamespaceDescription]: Async generator yielding namespace descriptions
+        """
         pass
