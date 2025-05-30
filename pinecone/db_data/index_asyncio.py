@@ -22,6 +22,8 @@ from pinecone.core.openapi.db_data.models import (
     DeleteRequest,
     ListResponse,
     SearchRecordsResponse,
+    ListNamespacesResponse,
+    NamespaceDescription,
 )
 
 from ..utils import (
@@ -50,6 +52,7 @@ from .query_results_aggregator import QueryNamespacesResults
 
 if TYPE_CHECKING:
     from .resources.asyncio.bulk_import_asyncio import BulkImportResourceAsyncio
+    from .resources.asyncio.namespace_asyncio import NamespaceResourceAsyncio
 
     from pinecone.core.openapi.db_data.models import (
         StartImportResponse,
@@ -140,6 +143,9 @@ class _IndexAsyncio(IndexAsyncioInterface):
     _bulk_import_resource: Optional["BulkImportResourceAsyncio"]
     """ @private """
 
+    _namespace_resource: Optional["NamespaceResourceAsyncio"]
+    """ @private """
+
     def __init__(
         self,
         api_key: str,
@@ -171,6 +177,9 @@ class _IndexAsyncio(IndexAsyncioInterface):
         """ @private """
 
         self._bulk_import_resource = None
+        """ @private """
+
+        self._namespace_resource = None
         """ @private """
 
     async def __aenter__(self):
@@ -240,6 +249,15 @@ class _IndexAsyncio(IndexAsyncioInterface):
 
             self._bulk_import_resource = BulkImportResourceAsyncio(api_client=self._api_client)
         return self._bulk_import_resource
+
+    @property
+    def namespace(self) -> "NamespaceResourceAsyncio":
+        """@private"""
+        if self._namespace_resource is None:
+            from .resources.asyncio.namespace_asyncio import NamespaceResourceAsyncio
+
+            self._namespace_resource = NamespaceResourceAsyncio(api_client=self._api_client)
+        return self._namespace_resource
 
     @validate_and_convert_errors
     async def upsert(
@@ -649,3 +667,29 @@ class _IndexAsyncio(IndexAsyncioInterface):
             id (str): The id of the import operation to cancel.
         """
         return await self.bulk_import.cancel(id=id)
+
+    @validate_and_convert_errors
+    async def describe_namespace(
+        self,
+        namespace: str,
+        **kwargs
+    ) -> "NamespaceDescription":
+        return await self.namespace.describe(namespace=namespace)
+
+    @validate_and_convert_errors
+    async def delete_namespace(
+        self,
+        namespace: str,
+        **kwargs
+    ) -> Dict[str, Any]:
+        return await self.namespace.delete(namespace=namespace)
+
+    @validate_and_convert_errors
+    async def list_namespaces(
+        self,
+        limit: Optional[int] = None,
+        pagination_token: Optional[str] = None,
+        **kwargs
+    ) -> AsyncIterator["NamespaceDescription"]:
+        async for namespace in self.namespace.list(limit=limit, pagination_token=pagination_token, **kwargs):
+            yield namespace
