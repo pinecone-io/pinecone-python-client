@@ -6,6 +6,9 @@ on:
         index_name:
           required: true
           type: string
+        encrypted_project_api_key:
+          required: true
+          type: string
 
 jobs:
   dependency-matrix-grpc:
@@ -48,11 +51,16 @@ jobs:
           - 1.66.0
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/decrypt-secret
+        id: decrypt-secret
+        with:
+          encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
+          encrypted_value: ${{ inputs.encrypted_project_api_key }}
       - uses: ./.github/actions/test-dependency-grpc
         with:
           python_version: '${{ matrix.python_version }}'
           index_name: '${{ inputs.index_name }}'
-          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+          PINECONE_API_KEY: '${{ steps.decrypt-secret.outputs.decrypted_secret }}'
           PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
           grpcio_version: '${{ matrix.grpcio_version }}'
           lz4_version: '${{ matrix.lz4_version }}'
@@ -82,11 +90,16 @@ jobs:
           - 1.66.0
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/decrypt-secret
+        id: decrypt-secret
+        with:
+          encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
+          encrypted_value: ${{ inputs.encrypted_project_api_key }}
       - uses: ./.github/actions/test-dependency-grpc
         with:
           python_version: '${{ matrix.python_version }}'
           index_name: '${{ inputs.index_name }}'
-          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+          PINECONE_API_KEY: '${{ steps.decrypt-secret.outputs.decrypted_secret }}'
           PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
           grpcio_version: '${{ matrix.grpcio_version }}'
           lz4_version: '${{ matrix.lz4_version }}'
@@ -115,11 +128,16 @@ jobs:
           - 1.66.0
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/decrypt-secret
+        id: decrypt-secret
+        with:
+          encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
+          encrypted_value: ${{ inputs.encrypted_project_api_key }}
       - uses: ./.github/actions/test-dependency-grpc
         with:
           python_version: '${{ matrix.python_version }}'
           index_name: '${{ inputs.index_name }}'
-          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+          PINECONE_API_KEY: '${{ steps.decrypt-secret.outputs.decrypted_secret }}'
           PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
           grpcio_version: '${{ matrix.grpcio_version }}'
           lz4_version: '${{ matrix.lz4_version }}'

@@ -1,6 +1,7 @@
 name: Testing (main)
 
 on:
+  pull_request:
   push:
     branches:
       - main
@@ -35,19 +36,68 @@ jobs:
     uses: './.github/workflows/testing-unit.yaml'
     secrets: inherit
 
+  create-project:
+    runs-on: ubuntu-latest
+    needs:
+      - unit-tests
+    outputs:
+      encrypted_project_api_key: ${{ steps.create-project-step.outputs.encrypted_project_api_key }}
+      project_id: ${{ steps.create-project-step.outputs.project_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/create-project
+        id: create-project-step
+        with:
+          PINECONE_SERVICE_ACCOUNT_CLIENT_ID: '${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}'
+          PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET: '${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}'
+          FERNET_ENCRYPTION_KEY: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
+          api_version: '2025-04'
+          name_prefix: 'python'
+          max_pods: 10
+
   integration-tests:
       uses: './.github/workflows/testing-integration.yaml'
       secrets: inherit
-      needs: unit-tests
+      needs:
+        - unit-tests
+        - create-project
+      with:
+        encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
 
   dependency-tests:
     uses: './.github/workflows/testing-dependency.yaml'
     secrets: inherit
-    needs: unit-tests
+    needs:
+      - unit-tests
+      - create-project
+    with:
+      encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
 
   install-tests:
     uses: './.github/workflows/testing-install.yaml'
     secrets: inherit
+    needs:
+      - unit-tests
+      - create-project
+
+  cleanup-project:
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    timeout-minutes: 30
+    needs:
+      - create-project
+      - integration-tests
+      - dependency-tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/delete-project
+        with:
+          FERNET_ENCRYPTION_KEY: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
+          PINECONE_SERVICE_ACCOUNT_CLIENT_ID: '${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}'
+          PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET: '${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}'
+          api_version: '2025-04'
+          project_id: ${{ needs.create-project.outputs.project_id }}
+          encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
 
   package:
     name: Check packaging

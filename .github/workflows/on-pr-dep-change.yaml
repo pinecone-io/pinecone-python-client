@@ -14,6 +14,45 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  create-project:
+    runs-on: ubuntu-latest
+    outputs:
+        encrypted_project_api_key: ${{ steps.create-project-step.outputs.encrypted_project_api_key }}
+        project_id: ${{ steps.create-project-step.outputs.project_id }}
+    steps:
+        - uses: actions/checkout@v4
+        - uses: ./.github/actions/create-project
+          id: create-project-step
+          with:
+            PINECONE_SERVICE_ACCOUNT_CLIENT_ID: '${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}'
+            PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET: '${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}'
+            FERNET_ENCRYPTION_KEY: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
+            api_version: '2025-04'
+            name_prefix: 'python'
+            max_pods: 10
+
   dependency-tests:
     uses: './.github/workflows/testing-dependency.yaml'
     secrets: inherit
+    needs:
+      - create-project
+    with:
+      encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
+
+  cleanup-project:
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    timeout-minutes: 30
+    needs:
+        - create-project
+        - dependency-tests
+    steps:
+        - uses: actions/checkout@v4
+        - uses: ./.github/actions/delete-project
+          with:
+            FERNET_ENCRYPTION_KEY: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
+            PINECONE_SERVICE_ACCOUNT_CLIENT_ID: '${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}'
+            PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET: '${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}'
+            api_version: '2025-04'
+            project_id: ${{ needs.create-project.outputs.project_id }}
+            encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
