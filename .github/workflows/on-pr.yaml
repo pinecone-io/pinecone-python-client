@@ -25,17 +25,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # linting:
-  #   uses: './.github/workflows/testing-lint.yaml'
+  linting:
+    uses: './.github/workflows/testing-lint.yaml'
 
-  # unit-tests:
-  #   uses: './.github/workflows/testing-unit.yaml'
-  #   secrets: inherit
+  unit-tests:
+    uses: './.github/workflows/testing-unit.yaml'
+    secrets: inherit
 
   create-project:
     runs-on: ubuntu-latest
-    # needs:
-    #   - unit-tests
+    needs:
+      - unit-tests
     outputs:
       encrypted_project_api_key: ${{ steps.create-project-step.outputs.encrypted_project_api_key }}
       project_id: ${{ steps.create-project-step.outputs.project_id }}
@@ -55,7 +55,7 @@ jobs:
       uses: './.github/workflows/testing-integration.yaml'
       secrets: inherit
       needs:
-        # - unit-tests
+        - unit-tests
         - create-project
       with:
         encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
