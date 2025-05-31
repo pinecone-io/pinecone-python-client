@@ -21,10 +21,10 @@ jobs:
           - control/resources/index
           - control/resources/collections
           - control/resources/backup
-          - control/resources/restore_job
           - inference/sync
           - plugins
           - data
+          - control/resources/restore_job # Backup tests must run before these
     steps:
       - uses: actions/checkout@v4
       - name: 'Set up Python ${{ matrix.python_version }}'
@@ -55,10 +55,10 @@ jobs:
         test_suite:
           - control_asyncio/resources/index
           - control_asyncio/resources/backup
-          - control_asyncio/resources/restore_job
           - control_asyncio/*.py
           - inference/asyncio
           - data_asyncio
+          - control_asyncio/resources/restore_job # Backup tests must run before these
     steps:
       - uses: actions/checkout@v4
       - name: 'Set up Python ${{ matrix.python_version }}'
@@ -77,7 +77,7 @@ jobs:
           test_suite: '${{ matrix.test_suite }}'
 
   grpc-sync:
-    name: grpc sync ${{ matrix.test_suite }}
+    name: grpc sync ${{ matrix.python_version }} ${{ matrix.test_suite }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
