@@ -57,6 +57,8 @@ jobs:
   deps-cleanup:
     name: Deps cleanup
     runs-on: ubuntu-latest
+    if: ${{ always() }}
+    timeout-minutes: 20
     needs:
       - deps-test-setup
       - dependency-test-rest

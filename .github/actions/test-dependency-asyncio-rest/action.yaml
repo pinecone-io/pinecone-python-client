@@ -35,8 +35,8 @@ runs:
         include_types: false
         include_asyncio: true
 
-    - name: 'Install aiohttp ${{ matrix.aiohttp-version }}'
-      run: 'poetry add aiohttp==${{ matrix.aiohttp-version }}'
+    - name: 'Install aiohttp ${{ inputs.aiohttp_version }}'
+      run: 'poetry add aiohttp==${{ inputs.aiohttp_version }}'
       shell: bash
 
     - uses: nick-fields/retry@v3
