@@ -1,6 +1,10 @@
 name: "DB Integration: Asyncio"
 'on':
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      encrypted_project_api_key:
+        required: true
+        type: string
 
 jobs:
   db-data-asyncio:
@@ -14,6 +18,11 @@ jobs:
           - 3.13
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/decrypt-secret
+        id: decrypt-api-key
+        with:
+          encrypted_secret: ${{ inputs.encrypted_project_api_key }}
+          encryption_key: ${{ secrets.FERNET_ENCRYPTION_KEY }}
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -28,7 +37,7 @@ jobs:
         shell: bash
         run: poetry run pytest tests/integration/data_asyncio --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
         env:
-            PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+            PINECONE_API_KEY: ${{ steps.decrypt-api-key.outputs.decrypted_secret }}
             PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
 
   db-control-asyncio:
@@ -42,6 +51,11 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/decrypt-secret
+        id: decrypt-api-key
+        with:
+          encrypted_secret: ${{ inputs.encrypted_project_api_key }}
+          encryption_key: ${{ secrets.FERNET_ENCRYPTION_KEY }}
       - name: 'Set up Python ${{ matrix.python_version }}'
         uses: actions/setup-python@v5
         with:
@@ -54,5 +68,5 @@ jobs:
       - name: 'db_control asyncio'
         run: poetry run pytest tests/integration/control_asyncio/*.py --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
         env:
-          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+          PINECONE_API_KEY: '${{ steps.decrypt-api-key.outputs.decrypted_secret }}'
           PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'

@@ -19,7 +19,8 @@ class TestRestoreJobDescribe:
         assert restore_job.backup_id is not None
         assert isinstance(restore_job.status, str)
         assert isinstance(restore_job.backup_id, str)
-        assert isinstance(restore_job.completed_at, datetime)
+        if restore_job.status == "Completed":
+            assert isinstance(restore_job.completed_at, datetime)
         assert isinstance(restore_job.created_at, datetime)
         assert isinstance(restore_job.percent_complete, float)
         assert isinstance(restore_job.target_index_id, str)

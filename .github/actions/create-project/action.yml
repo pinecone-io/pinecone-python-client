@@ -1,0 +1,66 @@
+name: 'Create Project'
+description: 'Creates a project to be used in other tests'
+
+inputs:
+  api_version:
+    description: 'The API version to use'
+    required: true
+    default: '2025-04'
+  name_prefix:
+    description: 'The prefix of the project name'
+    required: true
+  max_pods:
+    description: 'The maximum number of pods to create'
+    required: false
+    default: 1
+  PINECONE_SERVICE_ACCOUNT_CLIENT_ID:
+    description: 'The client ID for the Pinecone service account'
+    required: true
+  PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET:
+    description: 'The client secret for the Pinecone service account'
+    required: true
+  FERNET_ENCRYPTION_KEY:
+    description: 'The encryption key for use with the Fernet encryption algorithm'
+    required: true
+
+outputs:
+  project_id:
+    description: 'The ID of the project'
+    value: ${{ steps.create-project.outputs.project_id }}
+  project_name:
+    description: 'The name of the project'
+    value: ${{ steps.create-project.outputs.project_name }}
+  encrypted_project_api_key:
+    description: 'The API key for the project'
+    value: ${{ steps.encrypt-project-api-key.outputs.encrypted_secret }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.9
+
+    - name: Install deps
+      shell: bash
+      run: |
+        pip install urllib3
+
+    - name: Create project
+      id: create-project
+      shell: bash
+      run: python3 ./.github/actions/create-project/script.py
+      env:
+        API_VERSION: ${{ inputs.api_version }}
+        PINECONE_SERVICE_ACCOUNT_CLIENT_ID: ${{ inputs.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
+        PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET: ${{ inputs.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}
+        NAME_PREFIX: ${{ inputs.name_prefix }}
+        MAX_PODS: ${{ inputs.max_pods }}
+
+    - name: Encrypt project API key
+      id: encrypt-project-api-key
+      uses: ./.github/actions/encrypt-secret
+      with:
+        secret: ${{ steps.create-project.outputs.project_api_key }}
+        encryption_key: ${{ inputs.FERNET_ENCRYPTION_KEY }}
