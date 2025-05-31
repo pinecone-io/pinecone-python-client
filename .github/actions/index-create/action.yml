@@ -45,7 +45,7 @@ runs:
     - name: Create index
       id: create-index
       shell: bash
-      run: poetry run python3 ./github/actions/index-create/create.py
+      run: poetry run python3 ./.github/actions/index-create/create.py
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         PINECONE_ADDITIONAL_HEADERS: ${{ inputs.PINECONE_ADDITIONAL_HEADERS }}
