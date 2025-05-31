@@ -107,12 +107,10 @@ jobs:
         python-version: [3.9, 3.13]
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
+        with:
+          python_version: ${{ matrix.python-version }}
       - name: Package
         run: poetry build
 
