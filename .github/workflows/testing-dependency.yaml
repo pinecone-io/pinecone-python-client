@@ -19,7 +19,7 @@ jobs:
         id: decrypt-secret
         with:
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
-          encrypted_value: ${{ inputs.encrypted_project_api_key }}
+          encrypted_secret: ${{ inputs.encrypted_project_api_key }}
       - name: Create index
         id: setup-index
         uses: ./.github/actions/create-index

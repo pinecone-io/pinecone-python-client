@@ -29,7 +29,7 @@ jobs:
         id: decrypt-secret
         with:
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
-          encrypted_value: ${{ inputs.encrypted_project_api_key }}
+          encrypted_secret: ${{ inputs.encrypted_project_api_key }}
       - uses: ./.github/actions/test-dependency-asyncio-rest
         with:
           python_version: '${{ matrix.python_version }}'
