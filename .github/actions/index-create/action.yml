@@ -39,18 +39,13 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.9
-
     - name: Setup Poetry
       uses: ./.github/actions/setup-poetry
 
     - name: Create index
       id: create-index
       shell: bash
-      run: poetry run python3 scripts/create.py
+      run: poetry run python3 ./.github/actions/index-create/create.py
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         PINECONE_ADDITIONAL_HEADERS: ${{ inputs.PINECONE_ADDITIONAL_HEADERS }}

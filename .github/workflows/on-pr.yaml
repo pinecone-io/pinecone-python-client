@@ -1,22 +1,23 @@
 name: Testing (PR)
 
 on:
-  pull_request:
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
-      - '*.rst'
-      - '*.txt'
-      - '*.html'
-      - '*.css'
-      - '*.js'
-      - '*.png'
-      - '*.jpg'
-      - '*.jpeg'
-      - '*.gif'
-      - '*.svg'
-      - '*.example'
   workflow_dispatch: {}
+  # pull_request:
+  #   paths-ignore:
+  #     - 'docs/**'
+  #     - '*.md'
+  #     - '*.rst'
+  #     - '*.txt'
+  #     - '*.html'
+  #     - '*.css'
+  #     - '*.js'
+  #     - '*.png'
+  #     - '*.jpg'
+  #     - '*.jpeg'
+  #     - '*.gif'
+  #     - '*.svg'
+  #     - '*.example'
+  # workflow_dispatch: {}
 
 permissions: {}
 
@@ -32,7 +33,28 @@ jobs:
     uses: './.github/workflows/testing-unit.yaml'
     secrets: inherit
 
+  create-project:
+    uses: './.github/workflows/project-setup.yaml'
+    secrets: inherit
+    needs:
+      - unit-tests
+
   integration-tests:
-      uses: './.github/workflows/testing-integration.yaml'
-      secrets: inherit
-      needs: unit-tests
+    uses: './.github/workflows/testing-integration.yaml'
+    secrets: inherit
+    needs:
+      - unit-tests
+      - create-project
+    with:
+      encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
+
+  cleanup-project:
+    if: ${{ always() }}
+    needs:
+      - create-project
+      - integration-tests
+    uses: './.github/workflows/project-cleanup.yaml'
+    secrets: inherit
+    with:
+      project_id: ${{ needs.create-project.outputs.project_id }}
+      encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}

@@ -17,17 +17,13 @@ jobs:
           - false
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
         with:
           include_grpc: '${{ matrix.use_grpc }}'
           include_types: true
           include_asyncio: true
-
+          python_version: '${{ matrix.python-version }}'
       - name: mypy check
         run: poetry run mypy pinecone
 
@@ -45,18 +41,13 @@ jobs:
           - false
     steps:
       - uses: actions/checkout@v4
-      - name: 'Set up Python ${{ matrix.python-version }}'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '${{ matrix.python-version }}'
-
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
         with:
           include_grpc: '${{ matrix.use_grpc }}'
           include_types: false
           include_asyncio: true
-
+          python_version: '${{ matrix.python-version }}'
       - name: Run unit tests (REST)
         run: poetry run pytest --cov=pinecone --timeout=120 tests/unit --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
       - name: Run unit tests (GRPC)

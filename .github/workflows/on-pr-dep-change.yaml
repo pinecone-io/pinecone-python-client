@@ -14,6 +14,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  create-project:
+    uses: './.github/workflows/project-setup.yaml'
+    secrets: inherit
+
   dependency-tests:
     uses: './.github/workflows/testing-dependency.yaml'
     secrets: inherit
+    needs:
+      - create-project
+    with:
+      encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
+
+  cleanup-project:
+    if: ${{ always() }}
+    needs:
+      - dependency-tests
+    uses: './.github/workflows/project-cleanup.yaml'
+    secrets: inherit
+    with:
+      project_id: ${{ needs.create-project.outputs.project_id }}
+      encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}

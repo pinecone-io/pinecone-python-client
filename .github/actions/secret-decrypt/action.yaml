@@ -1,0 +1,31 @@
+name: 'Decrypt secret'
+description: 'Decrypts a secret using the Fernet encryption algorithm'
+
+inputs:
+  encrypted_secret:
+    description: 'The encrypted secret to decrypt'
+    required: true
+  encryption_key:
+    description: 'The encryption key for use with the Fernet encryption algorithm'
+    required: true
+
+outputs:
+  decrypted_secret:
+    description: 'The decrypted secret'
+    value: ${{ steps.decrypt-secret.outputs.decrypted_secret }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install deps
+      shell: bash
+      run: |
+        pip install cryptography
+
+    - name: Decrypt secret
+      id: decrypt-secret
+      shell: bash
+      run: python3 ./.github/actions/secret-decrypt/script.py
+      env:
+        ENCRYPTED_SECRET: ${{ inputs.encrypted_secret }}
+        FERNET_ENCRYPTION_KEY: ${{ inputs.encryption_key }}

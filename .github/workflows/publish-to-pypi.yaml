@@ -71,13 +71,10 @@ jobs:
             exit 1
           fi
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.12
-
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
+        with:
+          python_version: 3.12
 
       - name: Set up Git
         run: |

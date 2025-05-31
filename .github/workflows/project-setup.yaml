@@ -1,0 +1,34 @@
+name: Project Setup
+
+on:
+  workflow_call:
+    outputs:
+      encrypted_project_api_key:
+        description: 'The encrypted project api key'
+        value: ${{ jobs.create-project-job.outputs.encrypted_project_api_key }}
+      project_id:
+        description: 'The project id'
+        value: ${{ jobs.create-project-job.outputs.project_id }}
+
+permissions: {}
+
+jobs:
+  create-project-job:
+    runs-on: ubuntu-latest
+    outputs:
+      encrypted_project_api_key: ${{ steps.create-project-step.outputs.encrypted_project_api_key }}
+      project_id: ${{ steps.create-project-step.outputs.project_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-poetry
+        with:
+          python_version: 3.9
+      - uses: ./.github/actions/project-create
+        id: create-project-step
+        with:
+          PINECONE_SERVICE_ACCOUNT_CLIENT_ID: '${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}'
+          PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET: '${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}'
+          FERNET_ENCRYPTION_KEY: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
+          api_version: '2025-04'
+          name_prefix: 'python'
+          max_pods: 10

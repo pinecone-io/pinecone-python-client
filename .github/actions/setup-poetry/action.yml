@@ -17,10 +17,19 @@ inputs:
     description: 'Install asyncio dependencies'
     required: true
     default: 'false'
+  python_version:
+    description: 'Python version to use'
+    required: true
+    default: '3.9'
 
 runs:
   using: 'composite'
   steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python_version }}
+
     - name: Install Poetry
       uses: snok/install-poetry@v1
 
@@ -36,4 +45,5 @@ runs:
         ASYNCIO_FLAG=$( [ "$INCLUDE_ASYNCIO" = "true" ] && echo "--extras asyncio" || echo "" )
         DEV_FLAG=$( [ "$INCLUDE_DEV" = "false" ] && echo "--without dev" || echo "" )
         TYPING_FLAG=$( [ "$INCLUDE_TYPES" = "true" ] && echo "--with types" || echo "" )
+        echo "Installing dependencies with flags: $DEV_FLAG $TYPING_FLAG $GRPC_FLAG $ASYNCIO_FLAG"
         poetry install $DEV_FLAG $TYPING_FLAG $GRPC_FLAG $ASYNCIO_FLAG
