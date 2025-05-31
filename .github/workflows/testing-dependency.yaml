@@ -69,10 +69,10 @@ jobs:
       - uses: ./.github/actions/decrypt-secret
         id: decrypt-secret
         with:
-          FERNET_ENCRYPTION_KEY: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
-          encrypted_project_api_key: ${{ inputs.encrypted_project_api_key }}
+          encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
+          encrypted_secret: ${{ inputs.encrypted_project_api_key }}
       - uses: ./.github/actions/delete-index
         with:
           index_name: '${{ needs.deps-test-setup.outputs.index_name }}'
-          PINECONE_API_KEY: '${{ steps.decrypt-secret.outputs.PINECONE_API_KEY }}'
+          PINECONE_API_KEY: '${{ steps.decrypt-secret.outputs.decrypted_secret }}'
           PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'

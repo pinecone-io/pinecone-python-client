@@ -1,0 +1,41 @@
+name: 'Run Integration Test'
+description: 'Run an integration test'
+
+inputs:
+  encrypted_project_api_key:
+    description: 'The encrypted Pinecone API key'
+    required: true
+  encryption_key:
+    description: 'The encryption key'
+    required: true
+  test_suite:
+    description: 'The test suite to run'
+    required: true
+  PINECONE_ADDITIONAL_HEADERS:
+    description: 'Additional headers to send with the request'
+    required: false
+    default: '{"sdk-test-suite": "pinecone-python-client"}'
+  use_grpc:
+    description: 'Whether to use gRPC or REST'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Decrypt Pinecone API key
+      id: decrypt-api-key
+      uses: ./.github/actions/decrypt-secret
+      with:
+        encrypted_secret: ${{ inputs.encrypted_project_api_key }}
+        encryption_key: ${{ inputs.encryption_key }}
+
+    - name: Run tests
+      id: run-tests
+      shell: bash
+      run: poetry run pytest tests/integration/${{ inputs.test_suite }} --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
+      env:
+        PINECONE_API_KEY: ${{ steps.decrypt-api-key.outputs.decrypted_secret }}
+        PINECONE_ADDITIONAL_HEADERS: ${{ inputs.PINECONE_ADDITIONAL_HEADERS }}
+        USE_GRPC: ${{ inputs.use_grpc }}
+        SKIP_WEIRD: 'true'
