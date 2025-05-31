@@ -50,7 +50,7 @@ runs:
     - name: Create project
       id: create-project
       shell: bash
-      run: python3 ./.github/actions/create-project/script.py
+      run: python3 ./.github/actions/project-create/script.py
       env:
         API_VERSION: ${{ inputs.api_version }}
         PINECONE_SERVICE_ACCOUNT_CLIENT_ID: ${{ inputs.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
@@ -60,7 +60,7 @@ runs:
 
     - name: Encrypt project API key
       id: encrypt-project-api-key
-      uses: ./.github/actions/encrypt-secret
+      uses: ./.github/actions/secret-encrypt
       with:
         secret: ${{ steps.create-project.outputs.project_api_key }}
         encryption_key: ${{ inputs.FERNET_ENCRYPTION_KEY }}

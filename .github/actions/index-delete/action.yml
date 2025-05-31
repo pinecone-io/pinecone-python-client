@@ -22,7 +22,7 @@ runs:
 
     - name: Delete index
       shell: bash
-      run: poetry run python3 scripts/delete.py
+      run: poetry run python3 ./github/actions/index-delete/delete.py
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         PINECONE_ADDITIONAL_HEADERS: ${{ inputs.PINECONE_ADDITIONAL_HEADERS }}

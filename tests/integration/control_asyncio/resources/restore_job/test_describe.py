@@ -24,7 +24,8 @@ class TestRestoreJobDescribe:
             if restore_job.status == "Completed":
                 assert isinstance(restore_job.completed_at, datetime)
             assert isinstance(restore_job.created_at, datetime)
-            assert isinstance(restore_job.percent_complete, float)
+            if restore_job.status != "Pending":
+                assert isinstance(restore_job.percent_complete, float)
             assert isinstance(restore_job.target_index_id, str)
             assert isinstance(restore_job.target_index_name, str)
 

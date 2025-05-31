@@ -21,7 +21,7 @@ jobs:
       - uses: ./.github/actions/setup-poetry
         with:
           python_version: 3.9
-      - uses: ./.github/actions/delete-project
+      - uses: ./.github/actions/project-delete
         with:
           FERNET_ENCRYPTION_KEY: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
           PINECONE_SERVICE_ACCOUNT_CLIENT_ID: '${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}'

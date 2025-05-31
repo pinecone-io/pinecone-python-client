@@ -25,7 +25,7 @@ runs:
     - name: Encrypt secret
       id: encrypt-secret
       shell: bash
-      run: python3 ./.github/actions/encrypt-secret/script.py
+      run: python3 ./.github/actions/secret-encrypt/script.py
       env:
         SECRET: ${{ inputs.secret }}
         ENCRYPTION_KEY: ${{ inputs.encryption_key }}

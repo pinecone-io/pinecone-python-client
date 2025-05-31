@@ -25,7 +25,7 @@ runs:
     - name: Decrypt secret
       id: decrypt-secret
       shell: bash
-      run: python3 ./.github/actions/decrypt-secret/script.py
+      run: python3 ./.github/actions/secret-decrypt/script.py
       env:
         ENCRYPTED_SECRET: ${{ inputs.encrypted_secret }}
         FERNET_ENCRYPTION_KEY: ${{ inputs.encryption_key }}

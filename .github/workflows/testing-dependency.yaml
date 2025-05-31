@@ -15,14 +15,14 @@ jobs:
       index_name: ${{ steps.setup-index.outputs.index_name }}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/decrypt-secret
+      - uses: ./.github/actions/secret-decrypt
         id: decrypt-secret
         with:
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
           encrypted_secret: ${{ inputs.encrypted_project_api_key }}
       - name: Create index
         id: setup-index
-        uses: ./.github/actions/create-index
+        uses: ./.github/actions/index-create
         timeout-minutes: 5
         with:
           name_prefix: depstest-${{ github.run_number }}
@@ -66,12 +66,12 @@ jobs:
       - dependency-test-grpc
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/decrypt-secret
+      - uses: ./.github/actions/secret-decrypt
         id: decrypt-secret
         with:
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
           encrypted_secret: ${{ inputs.encrypted_project_api_key }}
-      - uses: ./.github/actions/delete-index
+      - uses: ./.github/actions/index-delete
         with:
           index_name: '${{ needs.deps-test-setup.outputs.index_name }}'
           PINECONE_API_KEY: '${{ steps.decrypt-secret.outputs.decrypted_secret }}'

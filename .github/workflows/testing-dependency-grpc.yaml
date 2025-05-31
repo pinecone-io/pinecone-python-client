@@ -51,7 +51,7 @@ jobs:
           - 1.66.0
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/decrypt-secret
+      - uses: ./.github/actions/secret-decrypt
         id: decrypt-secret
         with:
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
@@ -90,7 +90,7 @@ jobs:
           - 1.66.0
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/decrypt-secret
+      - uses: ./.github/actions/secret-decrypt
         id: decrypt-secret
         with:
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
@@ -128,7 +128,7 @@ jobs:
           - 1.66.0
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/decrypt-secret
+      - uses: ./.github/actions/secret-decrypt
         id: decrypt-secret
         with:
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'

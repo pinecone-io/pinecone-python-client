@@ -23,7 +23,7 @@ jobs:
       - uses: ./.github/actions/setup-poetry
         with:
           python_version: 3.9
-      - uses: ./.github/actions/create-project
+      - uses: ./.github/actions/project-create
         id: create-project-step
         with:
           PINECONE_SERVICE_ACCOUNT_CLIENT_ID: '${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}'

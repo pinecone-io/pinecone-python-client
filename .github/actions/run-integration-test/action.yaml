@@ -25,7 +25,7 @@ runs:
   steps:
     - name: Decrypt Pinecone API key
       id: decrypt-api-key
-      uses: ./.github/actions/decrypt-secret
+      uses: ./.github/actions/secret-decrypt
       with:
         encrypted_secret: ${{ inputs.encrypted_project_api_key }}
         encryption_key: ${{ inputs.encryption_key }}
