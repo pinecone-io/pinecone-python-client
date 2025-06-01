@@ -6,6 +6,8 @@ name: "Unit Tests"
         required: true
         type: string
 
+permissions: {}
+
 jobs:
   type-checking:
     name: Type checking
