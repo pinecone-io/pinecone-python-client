@@ -1,7 +1,11 @@
 name: Dependency Testing
 
 on:
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      encrypted_project_api_key:
+        required: true
+        type: string
 
 jobs:
   deps-test-setup:
@@ -11,14 +15,19 @@ jobs:
       index_name: ${{ steps.setup-index.outputs.index_name }}
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/secret-decrypt
+        id: decrypt-secret
+        with:
+          encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
+          encrypted_secret: ${{ inputs.encrypted_project_api_key }}
       - name: Create index
         id: setup-index
-        uses: ./.github/actions/create-index
+        uses: ./.github/actions/index-create
         timeout-minutes: 5
         with:
           name_prefix: depstest-${{ github.run_number }}
           dimension: 2
-          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          PINECONE_API_KEY: ${{ steps.decrypt-secret.outputs.decrypted_secret }}
           PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
 
   dependency-test-rest:
@@ -27,6 +36,7 @@ jobs:
     needs: deps-test-setup
     with:
       index_name: ${{ needs.deps-test-setup.outputs.index_name }}
+      encrypted_project_api_key: ${{ inputs.encrypted_project_api_key }}
 
   dependency-test-asyncio:
     uses: './.github/workflows/testing-dependency-asyncio.yaml'
@@ -34,6 +44,7 @@ jobs:
     needs: deps-test-setup
     with:
       index_name: ${{ needs.deps-test-setup.outputs.index_name }}
+      encrypted_project_api_key: ${{ inputs.encrypted_project_api_key }}
 
   dependency-test-grpc:
     uses: './.github/workflows/testing-dependency-grpc.yaml'
@@ -41,10 +52,13 @@ jobs:
     needs: deps-test-setup
     with:
       index_name: ${{ needs.deps-test-setup.outputs.index_name }}
+      encrypted_project_api_key: ${{ inputs.encrypted_project_api_key }}
 
   deps-cleanup:
     name: Deps cleanup
     runs-on: ubuntu-latest
+    if: ${{ always() }}
+    timeout-minutes: 20
     needs:
       - deps-test-setup
       - dependency-test-rest
@@ -52,8 +66,13 @@ jobs:
       - dependency-test-grpc
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/delete-index
+      - uses: ./.github/actions/secret-decrypt
+        id: decrypt-secret
+        with:
+          encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
+          encrypted_secret: ${{ inputs.encrypted_project_api_key }}
+      - uses: ./.github/actions/index-delete
         with:
           index_name: '${{ needs.deps-test-setup.outputs.index_name }}'
-          PINECONE_API_KEY: '${{ secrets.PINECONE_API_KEY }}'
+          PINECONE_API_KEY: '${{ steps.decrypt-secret.outputs.decrypted_secret }}'
           PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'

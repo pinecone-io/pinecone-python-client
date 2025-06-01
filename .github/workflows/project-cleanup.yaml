@@ -1,0 +1,31 @@
+name: Project Cleanup
+
+on:
+  workflow_call:
+    inputs:
+      encrypted_project_api_key:
+        type: string
+        description: 'The encrypted project api key'
+      project_id:
+        type: string
+        description: 'The project id'
+
+permissions: {}
+
+jobs:
+  cleanup-project:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-poetry
+        with:
+          python_version: 3.9
+      - uses: ./.github/actions/project-delete
+        with:
+          FERNET_ENCRYPTION_KEY: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
+          PINECONE_SERVICE_ACCOUNT_CLIENT_ID: '${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}'
+          PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET: '${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}'
+          api_version: '2025-04'
+          project_id: ${{ inputs.project_id }}
+          encrypted_project_api_key: ${{ inputs.encrypted_project_api_key }}
