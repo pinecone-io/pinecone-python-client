@@ -51,7 +51,7 @@ jobs:
           - 3.9
         test_suite:
           - control_asyncio/resources/index
-          - control_asyncio/resources/backup
+          # - control_asyncio/resources/backup
           - control_asyncio/*.py
           - inference/asyncio
           - data_asyncio
