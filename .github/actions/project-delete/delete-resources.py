@@ -2,6 +2,7 @@ import logging
 from pinecone import Pinecone, NotFoundException
 import time
 from collections import deque
+import os
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(levelname)-8s | %(name)s:%(lineno)4d | %(message)s"
@@ -292,5 +293,9 @@ class ProjectEraser:
 if __name__ == "__main__":
     from pinecone import __version__
 
+    api_key = os.getenv("PINECONE_API_KEY")
+    if api_key is None:
+        raise Exception("PINECONE_API_KEY must be set")
+
     logger.info(f"Pinecone version: {__version__}")
-    ProjectEraser().cleanup_all()
+    ProjectEraser(api_key).cleanup_all()
