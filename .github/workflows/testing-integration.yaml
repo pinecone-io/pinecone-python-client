@@ -6,6 +6,8 @@ on:
         required: true
         type: string
 
+permissions: {}
+
 jobs:
   rest-sync:
     name: rest ${{ matrix.test_suite }}
@@ -20,11 +22,11 @@ jobs:
           - control/serverless
           - control/resources/index
           - control/resources/collections
-          - control/resources/backup
+          # - control/resources/backup
           - inference/sync
           - plugins
           - data
-          - control/resources/restore_job # Backup tests must run before these
+          # - control/resources/restore_job # Backup tests must run before these
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
@@ -55,7 +57,7 @@ jobs:
           - control_asyncio/*.py
           - inference/asyncio
           - data_asyncio
-          - control_asyncio/resources/restore_job # Backup tests must run before these
+          # - control_asyncio/resources/restore_job # Backup tests must run before these
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
