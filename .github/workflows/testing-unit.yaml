@@ -1,6 +1,10 @@
 name: "Unit Tests"
 'on':
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      python_versions_json:
+        required: true
+        type: string
 
 jobs:
   type-checking:
@@ -9,9 +13,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python-version:
-          - 3.9
-          - 3.13
+        python-version: ${{ fromJson(inputs.python_versions_json) }}
         use_grpc:
           - true
           - false
@@ -28,28 +30,39 @@ jobs:
         run: poetry run mypy pinecone
 
   unit-tests:
-    name: Unit tests
+    name: Unit (${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
-        python-version:
-          - 3.9
-          - 3.13
-        use_grpc:
-          - true
-          - false
+        python-version: ${{ fromJson(inputs.python_versions_json) }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
         with:
-          include_grpc: '${{ matrix.use_grpc }}'
+          include_grpc: false
           include_types: false
           include_asyncio: true
           python_version: '${{ matrix.python-version }}'
       - name: Run unit tests (REST)
         run: poetry run pytest --cov=pinecone --timeout=120 tests/unit --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
+
+  grpc-unit-tests:
+    name: Unit grpc (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ${{ fromJson(inputs.python_versions_json) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+        with:
+          include_grpc: true
+          include_types: false
+          include_asyncio: true
+          python_version: '${{ matrix.python-version }}'
       - name: Run unit tests (GRPC)
-        if: ${{ matrix.use_grpc == true }}
         run: poetry run pytest --cov=pinecone/grpc --timeout=120 tests/unit_grpc --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
