@@ -8,14 +8,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Pretend this project requires Python 3.11
-      shell: bash
-      run: |
-        # Poetry won't let me install sphinx as a dev dependency in this project
-        # because of the wide range of versions our library supports. So during this
-        # action, we'll pretend this project requires Python 3.11 or greater.
-        sed -i 's/python = "^3.9"/python = "^3.11"/' pyproject.toml
-
     - name: Setup Poetry
       uses: ./.github/actions/setup-poetry
       with:
@@ -23,6 +15,16 @@ runs:
         include_dev: 'true'
         include_asyncio: 'true'
         python_version: ${{ inputs.python-version }}
+
+    - name: Pretend this project requires Python 3.11
+      shell: bash
+      run: |
+        # Poetry won't let me install sphinx as a dev dependency in this project
+        # because of the wide range of versions our library supports. So during this
+        # action, we'll pretend this project requires Python 3.11 or greater.
+        sed -i 's/python = "^3.9"/python = "^3.11"/' pyproject.toml
+        poetry lock --no-update
+        poetry install -E grpc -E asyncio
 
     - name: Install sphinx
       shell: bash
