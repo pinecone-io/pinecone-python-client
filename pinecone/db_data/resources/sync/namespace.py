@@ -1,4 +1,4 @@
-from typing import Optional, Iterator, Union
+from typing import Optional, Iterator
 
 from pinecone.core.openapi.db_data.api.namespace_operations_api import NamespaceOperationsApi
 from pinecone.core.openapi.db_data.models import (
@@ -6,7 +6,7 @@ from pinecone.core.openapi.db_data.models import (
     NamespaceDescription,
 )
 
-from pinecone.utils import install_json_repr_override, PluginAware
+from pinecone.utils import install_json_repr_override
 
 from .namespace_request_factory import NamespaceRequestFactory
 
@@ -14,10 +14,9 @@ for m in [ListNamespacesResponse, NamespaceDescription]:
     install_json_repr_override(m)
 
 
-class NamespaceResource(PluginAware):
+class NamespaceResource():
     def __init__(self, api_client) -> None:
         self.__namespace_operations_api = NamespaceOperationsApi(api_client)
-        super().__init__(api_client)
 
     def describe(self, namespace: str) -> NamespaceDescription:
         """

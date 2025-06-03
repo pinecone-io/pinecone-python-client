@@ -1,4 +1,4 @@
-from typing import Optional, AsyncIterator, Union
+from typing import Optional, AsyncIterator
 
 from pinecone.core.openapi.db_data.api.namespace_operations_api import AsyncioNamespaceOperationsApi
 from pinecone.core.openapi.db_data.models import (

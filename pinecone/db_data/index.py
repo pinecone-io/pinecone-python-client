@@ -1,4 +1,3 @@
-from pinecone.core.openapi.db_data.model.list_namespaces_response import ListNamespacesResponse
 from pinecone.utils.tqdm import tqdm
 import warnings
 import logging
