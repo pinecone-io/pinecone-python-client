@@ -1,6 +1,4 @@
-import pytest
 import time
-from typing import List
 
 from pinecone import Pinecone
 from pinecone.core.openapi.db_data.models import NamespaceDescription
@@ -22,10 +20,24 @@ def verify_namespace_exists(index, namespace: str) -> bool:
     except Exception:
         return False
 
-#
-# def get_namespace_names(index) -> List[str]:
-#     """Helper function to get all namespace names"""
-#     return [ns.name for ns in index.list_namespaces()]
+
+def delete_all_namespaces(index):
+    """Helper function to delete all namespaces in an index"""
+    try:
+        # Get all namespaces
+        namespaces = list(index.list_namespaces())
+
+        # Delete each namespace
+        for namespace in namespaces:
+            try:
+                index.delete_namespace(namespace.name)
+            except Exception as e:
+                print(f"Error deleting namespace {namespace.name}: {e}")
+
+        # Wait for deletions to complete
+        time.sleep(5)
+    except Exception as e:
+        print(f"Error in delete_all_namespaces: {e}")
 
 
 class TestNamespaceOperations:
@@ -35,10 +47,14 @@ class TestNamespaceOperations:
         test_namespace = "test_describe_namespace_sync"
         setup_namespace_data(idx, test_namespace)
 
-        # Test describe
-        description = idx.describe_namespace(test_namespace)
-        assert isinstance(description, NamespaceDescription)
-        assert description.name == test_namespace
+        try:
+            # Test describe
+            description = idx.describe_namespace(test_namespace)
+            assert isinstance(description, NamespaceDescription)
+            assert description.name == test_namespace
+        finally:
+            # Delete all namespaces before next test is run
+            delete_all_namespaces(idx)
 
     def test_delete_namespace(self, idx):
         """Test deleting a namespace"""
@@ -53,77 +69,88 @@ class TestNamespaceOperations:
         idx.delete_namespace(test_namespace)
 
         # Wait for namespace to be deleted
-        time.sleep(5)
+        time.sleep(10)
 
         # Verify namespace is deleted
         assert not verify_namespace_exists(idx, test_namespace)
 
-    # def test_list_namespaces(self, index):
-    #     """Test listing namespaces"""
-    #     # Create multiple test namespaces
-    #     test_namespaces = ["test_list_1", "test_list_2", "test_list_3"]
-    #     for ns in test_namespaces:
-    #         setup_namespace_data(index, ns)
-    #
-    #     # Get all namespaces
-    #     namespaces = list(index.list_namespaces())
-    #
-    #     # Verify results
-    #     assert len(namespaces) >= len(test_namespaces)
-    #     namespace_names = [ns.name for ns in namespaces]
-    #     for test_ns in test_namespaces:
-    #         assert test_ns in namespace_names
-    #
-    #     # Verify each namespace has correct structure
-    #     for ns in namespaces:
-    #         assert isinstance(ns, NamespaceDescription)
-    #         assert hasattr(ns, 'name')
-    #         assert hasattr(ns, 'vector_count')
+    def test_list_namespaces(self, idx):
+        """Test listing namespaces"""
+        # Create multiple test namespaces
+        test_namespaces = ["test_list_1", "test_list_2", "test_list_3"]
+        for ns in test_namespaces:
+            setup_namespace_data(idx, ns)
 
-    # def test_namespace_operations_with_pagination(self, index):
-    #     """Test namespace operations with pagination"""
-    #     # Create many namespaces to test pagination
-    #     test_namespaces = [f"test_pagination_{i}" for i in range(15)]  # More than default page size
-    #     for ns in test_namespaces:
-    #         setup_namespace_data(index, ns)
-    #
-    #     # Test listing with limit
-    #     namespaces = list(index.list_namespaces(limit=5))
-    #     assert len(namespaces) >= 5  # Should get at least 5 namespaces
-    #
-    #     # Test listing all namespaces
-    #     all_namespaces = list(index.list_namespaces())
-    #     assert len(all_namespaces) >= len(test_namespaces)
-    #     namespace_names = [ns.name for ns in all_namespaces]
-    #     for test_ns in test_namespaces:
-    #         assert test_ns in namespace_names
-    #
-    # def test_namespace_operations_with_invalid_namespace(self, index):
-    #     """Test namespace operations with invalid namespace"""
-    #     invalid_namespace = "non_existent_namespace"
-    #
-    #     # Test describe with invalid namespace
-    #     with pytest.raises(Exception):
-    #         index.describe_namespace(invalid_namespace)
-    #
-    #     # Test delete with invalid namespace
-    #     with pytest.raises(Exception):
-    #         index.delete_namespace(invalid_namespace)
-    #
-    # def test_namespace_operations_with_empty_namespace(self, index):
-    #     """Test namespace operations with empty namespace"""
-    #     empty_namespace = "test_empty_namespace"
-    #
-    #     # Create empty namespace
-    #     index.upsert(vectors=[], namespace=empty_namespace)
-    #     time.sleep(5)
-    #
-    #     # Test describe
-    #     description = index.describe_namespace(empty_namespace)
-    #     assert description.name == empty_namespace
-    #     assert description.vector_count == 0
-    #
-    #     # Test list includes empty namespace
-    #     namespaces = list(index.list_namespaces())
-    #     namespace_names = [ns.name for ns in namespaces]
-    #     assert empty_namespace in namespace_names
+        try:
+            # Get all namespaces
+            namespaces = list(idx.list_namespaces())
+
+            # Verify results
+            assert len(namespaces) == len(test_namespaces)
+            namespace_names = [ns.name for ns in namespaces]
+            for test_ns in test_namespaces:
+                assert test_ns in namespace_names
+
+            # Verify each namespace has correct structure
+            for ns in namespaces:
+                assert isinstance(ns, NamespaceDescription)
+                assert hasattr(ns, 'name')
+                assert hasattr(ns, 'vector_count')
+        finally:
+            # Delete all namespaces before next test is run
+            delete_all_namespaces(idx)
+
+    def test_list_namespaces_with_limit(self, idx):
+        """Test listing namespaces with limit"""
+        # Create multiple test namespaces
+        test_namespaces = [f"test_limit_{i}" for i in range(5)]
+        for ns in test_namespaces:
+            setup_namespace_data(idx, ns)
+
+        try:
+            # Get namespaces with limit
+            namespaces = list(idx.list_namespaces(limit=2))
+
+            # Verify results
+            assert len(namespaces) >= 2  # Should get at least 2 namespaces
+            for ns in namespaces:
+                assert isinstance(ns, NamespaceDescription)
+                assert hasattr(ns, 'name')
+                assert hasattr(ns, 'vector_count')
+
+        finally:
+            # Delete all namespaces before next test is run
+            delete_all_namespaces(idx)
+
+
+    def test_list_namespaces_paginated(self, idx):
+        """Test listing namespaces with pagination"""
+        # Create multiple test namespaces
+        test_namespaces = [f"test_paginated_{i}" for i in range(5)]
+        for ns in test_namespaces:
+            setup_namespace_data(idx, ns)
+
+        try:
+            # Get first page
+            response = idx.list_namespaces_paginated(limit=2)
+            assert len(response.namespaces) == 2
+            assert response.pagination.next is not None
+
+            # Get second page
+            next_response = idx.list_namespaces_paginated(
+                limit=2,
+                pagination_token=response.pagination.next
+            )
+            assert len(next_response.namespaces) == 2
+            assert next_response.pagination.next is not None
+
+            # Get final page
+            final_response = idx.list_namespaces_paginated(
+                limit=2,
+                pagination_token=next_response.pagination.next
+            )
+            print(final_response)
+            assert len(final_response.namespaces) == 1
+            assert final_response.pagination is None
+        finally:
+            delete_all_namespaces(idx)

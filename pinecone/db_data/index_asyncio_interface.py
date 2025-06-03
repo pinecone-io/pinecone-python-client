@@ -11,6 +11,7 @@ from pinecone.core.openapi.db_data.models import (
     SparseValues,
     SearchRecordsResponse,
     NamespaceDescription,
+    ListNamespacesResponse,
 )
 from .query_results_aggregator import QueryNamespacesResults
 from .types import (
@@ -810,14 +811,12 @@ class IndexAsyncioInterface(ABC):
     @abstractmethod
     async def describe_namespace(
         self,
-        namespace: str,
-        **kwargs
+        namespace: str
     ) -> NamespaceDescription:
         """Describe a namespace within an index, showing the vector count within the namespace.
 
         Args:
             namespace (str): The namespace to describe
-            **kwargs: Additional arguments to pass to the API call
 
         Returns:
             NamespaceDescription: Information about the namespace including vector count
@@ -827,14 +826,12 @@ class IndexAsyncioInterface(ABC):
     @abstractmethod
     async def delete_namespace(
         self,
-        namespace: str,
-        **kwargs
+        namespace: str
     ) -> Dict[str, Any]:
         """Delete a namespace from an index.
 
         Args:
             namespace (str): The namespace to delete
-            **kwargs: Additional arguments to pass to the API call
 
         Returns:
             Dict[str, Any]: Response from the delete operation
@@ -843,19 +840,44 @@ class IndexAsyncioInterface(ABC):
 
     @abstractmethod
     async def list_namespaces(
-        self,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
-        **kwargs
-    ) -> AsyncIterator[NamespaceDescription]:
-        """Get a list of all namespaces within an index.
+        self, **kwargs
+    ) -> AsyncIterator[ListNamespacesResponse]:
+        """List all namespaces in an index. This method automatically handles pagination to return all results.
 
         Args:
-            limit (Optional[int]): Max number of namespaces to return per page
-            pagination_token (Optional[str]): Token to continue a previous listing operation
-            **kwargs: Additional arguments to pass to the API call
+            limit (Optional[int]): The maximum number of namespaces to return. If unspecified, the server will use a default value. [optional]
 
         Returns:
-            AsyncIterator[NamespaceDescription]: Async generator yielding namespace descriptions
+            `ListNamespacesResponse`: Object containing the list of namespaces.
+
+        Examples:
+            >>> async for namespace in index.list_namespaces(limit=5):
+            ...     print(f"Namespace: {namespace.name}, Vector count: {namespace.vector_count}")
+            Namespace: namespace1, Vector count: 1000
+            Namespace: namespace2, Vector count: 2000
+        """
+        pass
+
+    @abstractmethod
+    async def list_namespaces_paginated(
+        self, limit: Optional[int] = None, pagination_token: Optional[str] = None
+    ) -> ListNamespacesResponse:
+        """List all namespaces in an index with pagination support. The response includes pagination information if there are more results available.
+
+        Consider using the `list_namespaces` method to avoid having to handle pagination tokens manually.
+
+        Args:
+            limit (Optional[int]): The maximum number of namespaces to return. If unspecified, the server will use a default value. [optional]
+            pagination_token (Optional[str]): A token needed to fetch the next page of results. This token is returned
+                in the response if additional results are available. [optional]
+
+        Returns:
+            `ListNamespacesResponse`: Object containing the list of namespaces and pagination information.
+
+        Examples:
+            >>> results = await index.list_namespaces_paginated(limit=5)
+            >>> results.pagination.next
+            eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
+            >>> next_results = await index.list_namespaces_paginated(limit=5, pagination_token=results.pagination.next)
         """
         pass

@@ -1,3 +1,4 @@
+from pinecone.core.openapi.db_data.model.list_namespaces_response import ListNamespacesResponse
 from pinecone.utils.tqdm import tqdm
 import warnings
 import logging
@@ -8,7 +9,6 @@ from pinecone.config import ConfigBuilder
 
 from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.db_data.api.vector_operations_api import VectorOperationsApi
-from pinecone.core.openapi.db_data.api.namespace_operations_api import NamespaceOperationsApi
 from pinecone.core.openapi.db_data import API_VERSION
 from pinecone.core.openapi.db_data.models import (
     QueryResponse,
@@ -630,10 +630,11 @@ class Index(PluginAware, IndexInterface):
         return self.namespace.delete(namespace=namespace)
 
     @validate_and_convert_errors
-    def list_namespaces(self,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
-    ) -> Iterator["NamespaceDescription"]:
-        return self.namespace.list(limit=limit, pagination_token=pagination_token)
+    def list_namespaces(self, **kwargs) -> Iterator[ListNamespacesResponse]:
+        return self.namespace.list(**kwargs)
 
-    
+    @validate_and_convert_errors
+    def list_namespaces_paginated(
+        self, limit: Optional[int] = None, pagination_token: Optional[str] = None
+    ) -> ListNamespacesResponse:
+        return self.namespace.list_paginated(limit=limit, pagination_token=pagination_token)

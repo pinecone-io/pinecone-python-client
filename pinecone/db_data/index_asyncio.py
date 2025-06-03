@@ -669,27 +669,19 @@ class _IndexAsyncio(IndexAsyncioInterface):
         return await self.bulk_import.cancel(id=id)
 
     @validate_and_convert_errors
-    async def describe_namespace(
-        self,
-        namespace: str,
-        **kwargs
-    ) -> "NamespaceDescription":
+    async def describe_namespace(self, namespace: str) -> "NamespaceDescription":
         return await self.namespace.describe(namespace=namespace)
 
     @validate_and_convert_errors
-    async def delete_namespace(
-        self,
-        namespace: str,
-        **kwargs
-    ) -> Dict[str, Any]:
+    async def delete_namespace(self, namespace: str) -> Dict[str, Any]:
         return await self.namespace.delete(namespace=namespace)
 
     @validate_and_convert_errors
-    async def list_namespaces(
-        self,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
-        **kwargs
-    ) -> AsyncIterator["NamespaceDescription"]:
-        async for namespace in self.namespace.list(limit=limit, pagination_token=pagination_token, **kwargs):
-            yield namespace
+    async def list_namespaces(self, **kwargs) -> AsyncIterator[ListNamespacesResponse]:
+        return await self.namespace.list(**kwargs)
+
+    @validate_and_convert_errors
+    async def list_namespaces_paginated(
+        self, limit: Optional[int] = None, pagination_token: Optional[str] = None
+    ) -> ListNamespacesResponse:
+        return await self.namespace.list_paginated(limit=limit, pagination_token=pagination_token)
