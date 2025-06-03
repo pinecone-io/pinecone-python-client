@@ -1,10 +1,23 @@
 .. toctree::
    :maxdepth: 5
    :hidden:
+   :caption: Reference
 
    rest
    asyncio
    grpc
+
+.. toctree::
+   :maxdepth: 5
+   :hidden:
+   :caption: Usage Info
+
+   upgrading
+   FAQ <faq>
+   working-with-indexes
+   db_data/index-usage-byov.md
+   db_control/collections.md
+   inference/inference-api.md
 
 ===================
 Pinecone Python SDK

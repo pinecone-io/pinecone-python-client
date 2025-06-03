@@ -257,10 +257,11 @@ class LegacyPineconeDBControlInterface(ABC):
                 )
 
 
-        See also:
+        .. seealso::
 
-        * See `available cloud regions <https://docs.pinecone.io/troubleshooting/available-cloud-regions>`_
-        * See the `Model Gallery <https://docs.pinecone.io/models/overview>`_ to learn about available models
+            Official docs on `available cloud regions <https://docs.pinecone.io/troubleshooting/available-cloud-regions>`_
+
+            `Model Gallery <https://docs.pinecone.io/models/overview>`_ to learn about available models
 
         """
         pass

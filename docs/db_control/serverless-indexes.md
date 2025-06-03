@@ -126,6 +126,6 @@ pc.create_index(
 )
 ```
 
-# Configuring, listing, describing, and deleting
+## Configuring, listing, describing, and deleting
 
 See [shared index actions](shared-index-actions.md) to learn about how to manage the lifecycle of your index after it is created.

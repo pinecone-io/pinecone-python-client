@@ -1,4 +1,4 @@
-# Using your Pinecone index
+# Vectors
 
 ## Describe index statistics
 

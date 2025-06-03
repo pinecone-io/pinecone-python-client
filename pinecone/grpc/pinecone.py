@@ -17,10 +17,10 @@ class PineconeGRPC(Pinecone):
     .. code-block:: bash
 
         # Install the latest version
-        pip3 install pinecone[grpc]
+        pip3 install "pinecone[grpc]"
 
         # Install a specific version
-        pip3 install "pinecone[grpc]"
+        pip3 install "pinecone[grpc]"==7.0.2
 
     **Installing with poetry**
 
@@ -30,7 +30,7 @@ class PineconeGRPC(Pinecone):
         poetry add pinecone --extras grpc
 
         # Install a specific version
-        poetry add pinecone --extras grpc
+        poetry add pinecone==7.0.2 --extras grpc
 
 
     **Using the gRPC client**

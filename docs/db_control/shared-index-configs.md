@@ -1,4 +1,4 @@
-# Optional Index configurations
+# Index configuration
 
 This page covers some optional configurations that can be used with all index types.
 

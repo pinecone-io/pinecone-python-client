@@ -426,7 +426,7 @@ class IndexInterface(ABC):
             >>> index.delete(filter={'key': 'value'}, namespace='my_namespace')
 
 
-          Returns: An empty dictionary if the delete operation was successful.
+        Returns: An empty dictionary if the delete operation was successful.
         """
         pass
 

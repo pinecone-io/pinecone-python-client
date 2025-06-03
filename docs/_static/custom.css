@@ -1,0 +1,14 @@
+body,
+div.body h1,
+div.body h2,
+div.body h3,
+div.body h4,
+div.body h5,
+div.body h6,
+div.admonition p.admonition-title {
+    font-family: "Inter", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+}
+
+.blurb {
+    font-size: 16px;
+}
