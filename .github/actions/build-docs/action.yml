@@ -1,5 +1,5 @@
 name: 'Build client documentation'
-description: 'Generates client documentation using pdoc'
+description: 'Generates client documentation using sphinx'
 inputs:
   python-version:
     description: 'Python version to use'
@@ -8,13 +8,34 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Pretend this project requires Python 3.11
+      shell: bash
+      run: |
+        # Poetry won't let me install sphinx as a dev dependency in this project
+        # because of the wide range of versions our library supports. So during this
+        # action, we'll pretend this project requires Python 3.11 or greater.
+        sed -i 's/python = "^3.9"/python = "^3.11"/' pyproject.toml
+
     - name: Setup Poetry
       uses: ./.github/actions/setup-poetry
       with:
         include_grpc: 'true'
         include_dev: 'true'
+        include_asyncio: 'true'
         python_version: ${{ inputs.python-version }}
+
+    - name: Install sphinx
+      shell: bash
+      run: |
+        poetry add sphinx myst-parser --group dev
+
     - name: Build html documentation
       shell: bash
       run: |
-        poetry run sphinx-build -b html sphinx docsbuild
+        poetry run sphinx-build -b html docs docsbuild
+
+    - name: Discard changes to pyproject.toml and poetry.lock
+      shell: bash
+      run: |
+        git checkout pyproject.toml
+        git checkout poetry.lock
