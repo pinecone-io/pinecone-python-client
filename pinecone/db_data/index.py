@@ -167,7 +167,12 @@ class Index(PluginAware, IndexInterface):
         if self._namespace_resource is None:
             from .resources.sync.namespace import NamespaceResource
 
-            self._namespace_resource = NamespaceResource(api_client=self._api_client)
+            self._namespace_resource = NamespaceResource(
+                api_client=self._api_client,
+                config=self._config,
+                openapi_config=self._openapi_config,
+                pool_threads=self._pool_threads,
+            )
         return self._namespace_resource
 
     def _openapi_kwargs(self, kwargs: Dict[str, Any]) -> Dict[str, Any]:

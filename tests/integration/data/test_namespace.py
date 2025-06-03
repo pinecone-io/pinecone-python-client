@@ -148,7 +148,6 @@ class TestNamespaceOperations:
                 limit=2,
                 pagination_token=next_response.pagination.next
             )
-            print(final_response)
             assert len(final_response.namespaces) == 1
             assert final_response.pagination is None
         finally:
