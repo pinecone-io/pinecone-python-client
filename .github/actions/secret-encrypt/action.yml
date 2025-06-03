@@ -1,0 +1,31 @@
+name: 'Encrypt Secret'
+description: 'Encrypts a secret using the Fernet encryption algorithm'
+
+inputs:
+  secret:
+    description: 'The secret to encrypt'
+    required: true
+  encryption_key:
+    description: 'The encryption key for use with the Fernet encryption algorithm'
+    required: true
+
+outputs:
+  encrypted_secret:
+    description: 'The encrypted secret'
+    value: ${{ steps.encrypt-secret.outputs.encrypted_secret }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install deps
+      shell: bash
+      run: |
+        pip install cryptography
+
+    - name: Encrypt secret
+      id: encrypt-secret
+      shell: bash
+      run: python3 ./.github/actions/secret-encrypt/script.py
+      env:
+        SECRET: ${{ inputs.secret }}
+        ENCRYPTION_KEY: ${{ inputs.encryption_key }}

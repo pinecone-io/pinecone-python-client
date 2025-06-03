@@ -1,32 +1,31 @@
 name: 'Cleanup All'
-description: 'Delete all indexes and collections associated with API key'
+description: 'Delete all resources created by tests'
 
 inputs:
   PINECONE_API_KEY:
     description: 'The Pinecone API key'
     required: true
-  DELETE_ALL:
-    description: 'Delete all indexes and collections'
-    required: false
-    default: 'false'
   PINECONE_ADDITIONAL_HEADERS:
     description: 'Additional headers to send with the request'
     required: false
     default: '{"sdk-test-suite": "pinecone-python-client"}'
+  PINECONE_SERVICE_ACCOUNT_CLIENT_ID:
+    description: 'The Pinecone service account client ID'
+    required: true
+  PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET:
+    description: 'The Pinecone service account client secret'
+    required: true
 
 runs:
   using: 'composite'
   steps:
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.9
     - name: Setup Poetry
       uses: ./.github/actions/setup-poetry
     - name: Cleanup all
       shell: bash
-      run: poetry run python3 scripts/cleanup-all.py
+      run: poetry run python3 ./.github/actions/cleanup-all/cleanup-test-projects.py
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
-        DELETE_ALL: ${{ inputs.DELETE_ALL }}
         PINECONE_ADDITIONAL_HEADERS: ${{ inputs.PINECONE_ADDITIONAL_HEADERS }}
+        PINECONE_SERVICE_ACCOUNT_CLIENT_ID: ${{ inputs.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
+        PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET: ${{ inputs.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}
