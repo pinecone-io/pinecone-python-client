@@ -61,7 +61,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 """ @private """
 
-__all__ = ["_IndexAsyncio"]
+__all__ = ["_IndexAsyncio", "IndexAsyncio"]
 
 _OPENAPI_ENDPOINT_PARAMS = (
     "_return_http_data_only",
@@ -649,3 +649,6 @@ class _IndexAsyncio(IndexAsyncioInterface):
             id (str): The id of the import operation to cancel.
         """
         return await self.bulk_import.cancel(id=id)
+
+
+IndexAsyncio = _IndexAsyncio

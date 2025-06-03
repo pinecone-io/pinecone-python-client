@@ -44,24 +44,25 @@ logger = logging.getLogger(__name__)
 
 class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     """
-    `PineconeAsyncio` is an asyncio client for interacting with Pinecone's control plane API.
+    ``PineconeAsyncio`` is an asyncio client for interacting with Pinecone's control plane API.
 
     This class implements methods for managing and interacting with Pinecone resources
     such as collections and indexes.
 
-    To perform data operations such as inserting and querying vectors, use the `IndexAsyncio` class.
+    To perform data operations such as inserting and querying vectors, use the ``IndexAsyncio`` class.
 
-    ```python
-    import asyncio
-    from pinecone import Pinecone
+    .. code-block:: python
 
-    async def main():
-        pc = Pinecone()
-        async with pc.IndexAsyncio(host="my-index.pinecone.io") as idx:
-            await idx.upsert(vectors=[(1, [1, 2, 3]), (2, [4, 5, 6])])
+        import asyncio
+        from pinecone import Pinecone
 
-    asyncio.run(main())
-    ```
+        async def main():
+            pc = Pinecone()
+            async with pc.IndexAsyncio(host="my-index.pinecone.io") as idx:
+                    await idx.upsert(vectors=[(1, [1, 2, 3]), (2, [4, 5, 6])])
+
+        asyncio.run(main())
+
     """
 
     def __init__(
@@ -122,33 +123,33 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
 
         After close has been called, the client instance should not be used.
 
-        ```python
-        import asyncio
-        from pinecone import PineconeAsyncio
+        .. code-block:: python
 
-        async def main():
-            pc = PineconeAsyncio()
-            desc = await pc.describe_index(name="my-index")
-            await pc.close()
+            import asyncio
+            from pinecone import PineconeAsyncio
 
-        asyncio.run(main())
-        ```
+            async def main():
+                pc = PineconeAsyncio()
+                desc = await pc.describe_index(name="my-index")
+                await pc.close()
+
+                asyncio.run(main())
 
         If you are using the client as a context manager, the close method is called automatically
         when exiting.
 
-        ```python
-        import asyncio
-        from pinecone import PineconeAsyncio
+        .. code-block:: python
 
-        async def main():
-            async with PineconeAsyncio() as pc:
-                desc = await pc.describe_index(name="my-index")
+            import asyncio
+            from pinecone import PineconeAsyncio
 
-        # No need to call close in this case because the "async with" syntax
-        # automatically calls close when exiting the block.
-        asyncio.run(main())
-        ```
+            async def main():
+                async with PineconeAsyncio() as pc:
+                    desc = await pc.describe_index(name="my-index")
+
+            # No need to call close in this case because the "async with" syntax
+            # automatically calls close when exiting the block.
+            asyncio.run(main())
 
         """
         await self.db._index_api.api_client.close()

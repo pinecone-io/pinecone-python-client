@@ -24,6 +24,19 @@ class LazyModule:
         self._lazy_imports = lazy_imports
         self._loaded_attrs = {}
 
+    @property
+    def __doc__(self):
+        return self._original_module.__doc__
+
+    @property
+    def __dict__(self):
+        # Get the base dictionary from the original module
+        base_dict = self._original_module.__dict__.copy()
+        # Add lazy-loaded items
+        for name, value in self._loaded_attrs.items():
+            base_dict[name] = value
+        return base_dict
+
     def __dir__(self):
         # Get the base directory listing from the original module
         base_dir = dir(self._original_module)

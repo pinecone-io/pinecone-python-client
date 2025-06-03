@@ -524,16 +524,17 @@ class Index(PluginAware, IndexInterface):
             Returns a generator that yields each import operation. It automatically handles pagination tokens on your behalf so you can
             easily iterate over all results. The `list_imports` method accepts all of the same arguments as list_imports_paginated
 
-        ```python
-        for op in index.list_imports():
-            print(op)
-        ```
+        .. code-block:: python
+
+            for op in index.list_imports():
+                print(op)
+
 
         You can convert the generator into a list by wrapping the generator in a call to the built-in `list` function:
 
-        ```python
-        operations = list(index.list_imports())
-        ```
+        .. code-block:: python
+
+            operations = list(index.list_imports())
 
         You should be cautious with this approach because it will fetch all operations at once, which could be a large number
         of network calls and a lot of memory to hold the results.

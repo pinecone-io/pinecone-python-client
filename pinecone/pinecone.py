@@ -61,6 +61,152 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         pool_threads: Optional[int] = None,
         **kwargs,
     ):
+        """
+        The ``Pinecone`` class is the main entry point for interacting with Pinecone via this Python SDK.
+        Instances of the ``Pinecone`` class are used to manage and interact with Pinecone resources such as
+        indexes, backups, and collections. When using the SDK, calls are made on your behalf to the API
+        documented at `https://docs.pinecone.io <https://docs.pinecone.io/reference/api/introduction>`_.
+
+        The class also holds inference functionality (embed, rerank) under the ``inference`` namespace.
+
+
+        When you are ready to perform data operations on an index, you will need to instantiate an index client. Though the functionality of the index client is defined in a different
+        class, it is instantiated through the ``Index()`` method in order for configurations to be shared between the two objects.
+
+        :param api_key: The API key to use for authentication. If not passed via kwarg, the API key will be read from the environment variable ``PINECONE_API_KEY``.
+        :type api_key: str, optional
+        :param host: The control plane host. If unspecified, the host ``api.pinecone.io`` will be used.
+        :type host: str, optional
+        :param proxy_url: The URL of the proxy to use for the connection.
+        :type proxy_url: str, optional
+        :param proxy_headers: Additional headers to pass to the proxy. Use this if your proxy setup requires authentication.
+        :type proxy_headers: Dict[str, str], optional
+        :param ssl_ca_certs: The path to the SSL CA certificate bundle to use for the connection. This path should point to a file in PEM format. When not passed, the SDK will use the certificate bundle returned from ``certifi.where()``.
+        :type ssl_ca_certs: str, optional
+        :param ssl_verify: SSL verification is performed by default, but can be disabled using the boolean flag when testing with Pinecone Local or troubleshooting a proxy setup. You should never run with SSL verification disabled in production.
+        :type ssl_verify: bool, optional
+        :param additional_headers: Additional headers to pass to the API. This is mainly to support internal testing at Pinecone. End users should not need to use this unless following specific instructions to do so.
+        :type additional_headers: Dict[str, str], optional
+        :param pool_threads: The number of threads to use for the ThreadPool when using methods that support the ``async_req`` keyword argument. The default number of threads is 5 * the number of CPUs in your execution environment.
+        :type pool_threads: int, optional
+
+        **Configuration with environment variables**
+
+        If you instantiate the Pinecone client with no arguments, it will attempt to read the API key from the environment variable ``PINECONE_API_KEY``.
+
+        .. code-block:: python
+
+            from pinecone import Pinecone
+
+            pc = Pinecone()
+
+        **Configuration with keyword arguments**
+
+        If you prefer being more explicit in your code, you can also pass the API key as a keyword argument. This is also where you will pass additional configuration options such as proxy settings if you wish to use those.
+
+        .. code-block:: python
+
+            import os
+            from pinecone import Pinecone
+
+            pc = Pinecone(
+                api_key=os.environ.get("PINECONE_API_KEY"),
+                host="https://api-staging.pinecone.io"
+            )
+
+        **Environment variables**
+
+        The Pinecone client supports the following environment variables:
+
+        * ``PINECONE_API_KEY``: The API key to use for authentication. If not passed via kwarg, the API key will be read from the environment variable ``PINECONE_API_KEY``.
+        * ``PINECONE_DEBUG_CURL``: Enable some additional debug logging representing the HTTP requests as curl commands. The main use of is to run calls outside of the SDK to help evaluate whether a problem you are experiencing is due to the API's behavior or the behavior of the SDK itself.
+        * ``PINECONE_ADDITIONAL_HEADERS``: A json string of a dictionary of header values to attach to all requests. This is primarily used for internal testing at Pinecone.
+
+        .. warning::
+
+            Be very careful with the ``PINECONE_DEBUG_CURL`` environment variable, as it will print out your API key which forms part of a required authentication header.
+
+        **Proxy configuration**
+
+        If your network setup requires you to interact with Pinecone via a proxy, you will need
+        to pass additional configuration using optional keyword parameters. These optional parameters
+        are forwarded to ``urllib3``, which is the underlying library currently used by the Pinecone client to
+        make HTTP requests. You may find it helpful to refer to the
+        `urllib3 documentation on working with proxies <https://urllib3.readthedocs.io/en/stable/advanced-usage.html#http-and-https-proxies>`_
+        while troubleshooting these settings.
+
+        Here is a basic example:
+
+        .. code-block:: python
+
+            from pinecone import Pinecone
+
+            pc = Pinecone(
+                api_key='YOUR_API_KEY',
+                proxy_url='https://your-proxy.com'
+            )
+
+            pc.list_indexes()
+
+        If your proxy requires authentication, you can pass those values in a header dictionary using the ``proxy_headers`` parameter.
+
+        .. code-block:: python
+
+            from pinecone import Pinecone
+            import urllib3 import make_headers
+
+            pc = Pinecone(
+                api_key='YOUR_API_KEY',
+                proxy_url='https://your-proxy.com',
+                proxy_headers=make_headers(proxy_basic_auth='username:password')
+            )
+
+            pc.list_indexes()
+
+
+        **Using proxies with self-signed certificates**
+
+        By default the Pinecone Python client will perform SSL certificate verification
+        using the CA bundle maintained by Mozilla in the `certifi <https://pypi.org/project/certifi/>`_ package.
+        If your proxy server is using a self-signed certificate, you will need to pass the path to the certificate
+        in PEM format using the ``ssl_ca_certs`` parameter.
+
+        .. code-block:: python
+
+            from pinecone import Pinecone
+            import urllib3 import make_headers
+
+            pc = Pinecone(
+                api_key='YOUR_API_KEY',
+                proxy_url='https://your-proxy.com',
+                proxy_headers=make_headers(proxy_basic_auth='username:password'),
+                ssl_ca_certs='path/to/cert-bundle.pem'
+            )
+
+            pc.list_indexes()
+
+
+        **Disabling SSL verification**
+
+        If you would like to disable SSL verification, you can pass the ``ssl_verify``
+        parameter with a value of ``False``. We do not recommend going to production with SSL verification disabled.
+
+        .. code-block:: python
+
+            from pinecone import Pinecone
+            import urllib3 import make_headers
+
+            pc = Pinecone(
+                api_key='YOUR_API_KEY',
+                proxy_url='https://your-proxy.com',
+                proxy_headers=make_headers(proxy_basic_auth='username:password'),
+                ssl_ca_certs='path/to/cert-bundle.pem',
+                ssl_verify=False
+            )
+
+            pc.list_indexes()
+
+        """
         for deprecated_kwarg in {"config", "openapi_config", "index_api"}:
             if deprecated_kwarg in kwargs:
                 raise NotImplementedError(

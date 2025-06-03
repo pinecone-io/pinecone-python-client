@@ -79,6 +79,9 @@ class GRPCIndex(GRPCIndexBase):
         If a new value is upserted for an existing vector id, it will overwrite the previous value.
 
         Examples:
+
+        .. code-block:: python
+
             >>> index.upsert([('id1', [1.0, 2.0, 3.0], {'key': 'value'}),
                               ('id2', [1.0, 2.0, 3.0])
                               ],
@@ -184,7 +187,7 @@ class GRPCIndex(GRPCIndexBase):
             namespace: The namespace to upsert into.
             batch_size: The number of rows to upsert in a single batch.
             use_async_requests: Whether to upsert multiple requests at the same time using asynchronous request mechanism.
-                                Set to `False`
+                                Set to ``False``
             show_progress: Whether to show a progress bar.
         """
         try:
@@ -240,18 +243,6 @@ class GRPCIndex(GRPCIndexBase):
         """
         The Delete operation deletes vectors from the index, from a single namespace.
         No error raised if the vector id does not exist.
-        Note: for any delete call, if namespace is not specified, the default namespace is used.
-
-        Delete can occur in the following mutual exclusive ways:
-        1. Delete by ids from a single namespace
-        2. Delete all vectors from a single namespace by setting delete_all to True
-        3. Delete all vectors from a single namespace by specifying a metadata filter
-           (note that for this option delete all must be set to False)
-
-        Examples:
-            >>> index.delete(ids=['id1', 'id2'], namespace='my_namespace')
-            >>> index.delete(delete_all=True, namespace='my_namespace')
-            >>> index.delete(filter={'key': 'value'}, namespace='my_namespace', async_req=True)
 
         Args:
             ids (List[str]): Vector ids to delete [optional]
@@ -267,6 +258,25 @@ class GRPCIndex(GRPCIndexBase):
                               Defaults to False. [optional]
 
         Returns: DeleteResponse (contains no data) or a PineconeGrpcFuture object if async_req is True.
+
+        .. admonition:: Note
+
+            For any delete call, if namespace is not specified, the default namespace is used.
+
+        Delete can occur in the following mutual exclusive ways:
+
+        1. Delete by ids from a single namespace
+        2. Delete all vectors from a single namespace by setting delete_all to True
+        3. Delete all vectors from a single namespace by specifying a metadata filter
+           (note that for this option delete all must be set to False)
+
+        Examples:
+
+        .. code-block:: python
+
+            >>> index.delete(ids=['id1', 'id2'], namespace='my_namespace')
+            >>> index.delete(delete_all=True, namespace='my_namespace')
+            >>> index.delete(filter={'key': 'value'}, namespace='my_namespace', async_req=True)
         """
 
         if filter is not None:
@@ -303,6 +313,9 @@ class GRPCIndex(GRPCIndexBase):
         The returned vectors include the vector data and/or metadata.
 
         Examples:
+
+        .. code-block:: python
+
             >>> index.fetch(ids=['id1', 'id2'], namespace='my_namespace')
             >>> index.fetch(ids=['id1', 'id2'])
 
@@ -346,6 +359,9 @@ class GRPCIndex(GRPCIndexBase):
         It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
 
         Examples:
+
+        .. code-block:: python
+
             >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace')
             >>> index.query(id='id1', top_k=10, namespace='my_namespace')
             >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace', filter={'key': 'value'})
@@ -357,11 +373,11 @@ class GRPCIndex(GRPCIndexBase):
 
         Args:
             vector (List[float]): The query vector. This should be the same length as the dimension of the index
-                                  being queried. Each `query()` request can contain only one of the parameters
-                                  `id` or `vector`.. [optional]
+                                  being queried. Each ``query()`` request can contain only one of the parameters
+                                  ``id`` or ``vector``.. [optional]
             id (str): The unique ID of the vector to be used as a query vector.
-                      Each `query()` request can contain only one of the parameters
-                      `vector` or  `id`.. [optional]
+                      Each ``query()`` request can contain only one of the parameters
+                      ``vector`` or ``id``.. [optional]
             top_k (int): The number of results to return for each query. Must be an integer greater than 1.
             namespace (str): The namespace to fetch vectors from.
                              If not specified, the default namespace is used. [optional]
@@ -475,6 +491,9 @@ class GRPCIndex(GRPCIndexBase):
         the values of the fields specified in it will be added or overwrite the previous value.
 
         Examples:
+
+        .. code-block:: python
+
             >>> index.update(id='id1', values=[1, 2, 3], namespace='my_namespace')
             >>> index.update(id='id1', set_metadata={'key': 'value'}, namespace='my_namespace', async_req=True)
             >>> index.update(id='id1', values=[1, 2, 3], sparse_values={'indices': [1, 2], 'values': [0.2, 0.4]},
@@ -533,9 +552,12 @@ class GRPCIndex(GRPCIndexBase):
         It returns matching ids in a paginated form, with a pagination token to fetch the next page of results.
         This id list can then be passed to fetch or delete operations, depending on your use case.
 
-        Consider using the `list` method to avoid having to handle pagination tokens manually.
+        Consider using the ``list`` method to avoid having to handle pagination tokens manually.
 
         Examples:
+
+        .. code-block:: python
+
             >>> results = index.list_paginated(prefix='99', limit=5, namespace='my_namespace')
             >>> [v.id for v in results.vectors]
             ['99', '990', '991', '992', '993']
@@ -581,6 +603,9 @@ class GRPCIndex(GRPCIndexBase):
         behalf.
 
         Examples:
+
+        .. code-block:: python
+
             >>> for ids in index.list(prefix='99', limit=5, namespace='my_namespace'):
             >>>     print(ids)
             ['99', '990', '991', '992', '993']
@@ -618,6 +643,9 @@ class GRPCIndex(GRPCIndexBase):
         For example: The vector count per namespace and the number of dimensions.
 
         Examples:
+
+        .. code-block:: python
+
             >>> index.describe_index_stats()
             >>> index.describe_index_stats(filter={'key': 'value'})
 
