@@ -7,7 +7,7 @@ from pinecone_plugin_interface import load_and_install as install_plugins
 import logging
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 
 class PluginAware:
@@ -37,7 +37,7 @@ class PluginAware:
             AttributeError: If required attributes are not set in the subclass.
         """
         self._plugins_loaded = False
-        """ @private """
+        """ :meta private: """
 
         # Check for required attributes after super().__init__ has been called
         missing_attrs = []

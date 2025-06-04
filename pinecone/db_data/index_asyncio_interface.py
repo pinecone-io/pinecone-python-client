@@ -53,112 +53,117 @@ class IndexAsyncioInterface(ABC):
         The upsert operation writes vectors into a namespace.
         If a new value is upserted for an existing vector id, it will overwrite the previous value.
 
-        To upsert in parallel follow: https://docs.pinecone.io/docs/insert-data#sending-upserts-in-parallel
+        To upsert in parallel follow `this link <https://docs.pinecone.io/docs/insert-data#sending-upserts-in-parallel>`_.
 
-        ## Upserting dense vectors
+        **Upserting dense vectors**
 
-        **Note:** the dimension of each dense vector must match the dimension of the index.
+        .. admonition:: Note
+
+            The dimension of each dense vector must match the dimension of the index.
 
         A vector can be represented in a variety of ways.
 
-        ```python
-        import asyncio
-        from pinecone import Pinecone, Vector
+        .. code-block:: python
 
-        async def main():
-            pc = Pinecone()
-            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
-                # A Vector object
-                await idx.upsert(
-                    namespace = 'my-namespace',
-                    vectors = [
-                        Vector(id='id1', values=[0.1, 0.2, 0.3, 0.4], metadata={'metadata_key': 'metadata_value'}),
-                    ]
-                )
+            import asyncio
+            from pinecone import Pinecone, Vector
 
-                # A vector tuple
-                await idx.upsert(
-                    namespace = 'my-namespace',
-                    vectors = [
-                        ('id1', [0.1, 0.2, 0.3, 0.4]),
-                    ]
-                )
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+                    # A Vector object
+                    await idx.upsert(
+                        namespace = 'my-namespace',
+                        vectors = [
+                            Vector(id='id1', values=[0.1, 0.2, 0.3, 0.4], metadata={'metadata_key': 'metadata_value'}),
+                        ]
+                    )
 
-                # A vector tuple with metadata
-                await idx.upsert(
-                    namespace = 'my-namespace',
-                    vectors = [
-                        ('id1', [0.1, 0.2, 0.3, 0.4], {'metadata_key': 'metadata_value'}),
-                    ]
-                )
+                    # A vector tuple
+                    await idx.upsert(
+                        namespace = 'my-namespace',
+                        vectors = [
+                            ('id1', [0.1, 0.2, 0.3, 0.4]),
+                        ]
+                    )
 
-                # A vector dictionary
-                await idx.upsert(
-                    namespace = 'my-namespace',
-                    vectors = [
-                        {"id": 1, "values": [0.1, 0.2, 0.3, 0.4], "metadata": {"metadata_key": "metadata_value"}},
-                    ]
+                    # A vector tuple with metadata
+                    await idx.upsert(
+                        namespace = 'my-namespace',
+                        vectors = [
+                            ('id1', [0.1, 0.2, 0.3, 0.4], {'metadata_key': 'metadata_value'}),
+                        ]
+                    )
 
-        asyncio.run(main())
-        ```
+                    # A vector dictionary
+                    await idx.upsert(
+                        namespace = 'my-namespace',
+                        vectors = [
+                            {"id": 1, "values": [0.1, 0.2, 0.3, 0.4], "metadata": {"metadata_key": "metadata_value"}},
+                        ]
 
-        ## Upserting sparse vectors
+            asyncio.run(main())
 
-        ```python
-        import asyncio
-        from pinecone import Pinecone, Vector, SparseValues
 
-        async def main():
-            pc = Pinecone()
-            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
-                # A Vector object
-                await idx.upsert(
-                    namespace = 'my-namespace',
-                    vectors = [
-                        Vector(id='id1', sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4])),
-                    ]
-                )
+        **Upserting sparse vectors**
 
-                # A dictionary
-                await idx.upsert(
-                    namespace = 'my-namespace',
-                    vectors = [
-                        {"id": 1, "sparse_values": {"indices": [1, 2], "values": [0.2, 0.4]}},
-                    ]
-                )
+        .. code-block:: python
 
-        asyncio.run(main())
-        ```
+            import asyncio
+            from pinecone import Pinecone, Vector, SparseValues
 
-        ## Batch upsert
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+                    # A Vector object
+                    await idx.upsert(
+                        namespace = 'my-namespace',
+                        vectors = [
+                            Vector(id='id1', sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4])),
+                        ]
+                    )
+
+                    # A dictionary
+                    await idx.upsert(
+                        namespace = 'my-namespace',
+                        vectors = [
+                            {"id": 1, "sparse_values": {"indices": [1, 2], "values": [0.2, 0.4]}},
+                        ]
+                    )
+
+            asyncio.run(main())
+
+
+        **Batch upsert**
 
         If you have a large number of vectors, you can upsert them in batches.
 
-        ```python
-        import asyncio
-        from pinecone import Pinecone, Vector, SparseValues
+        .. code-block:: python
 
-        async def main():
-            pc = Pinecone()
-            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+            import asyncio
+            from pinecone import Pinecone, Vector, SparseValues
 
-            await idx.upsert(
-                namespace = 'my-namespace',
-                vectors = [
-                    {'id': 'id1', 'values': [0.1, 0.2, 0.3, 0.4]},
-                    {'id': 'id2', 'values': [0.2, 0.3, 0.4, 0.5]},
-                    {'id': 'id3', 'values': [0.3, 0.4, 0.5, 0.6]},
-                    {'id': 'id4', 'values': [0.4, 0.5, 0.6, 0.7]},
-                    {'id': 'id5', 'values': [0.5, 0.6, 0.7, 0.8]},
-                    # More vectors here
-                ],
-                batch_size = 50
-            )
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
 
-        asyncio.run(main())
-        ```
+                await idx.upsert(
+                    namespace = 'my-namespace',
+                    vectors = [
+                        {'id': 'id1', 'values': [0.1, 0.2, 0.3, 0.4]},
+                        {'id': 'id2', 'values': [0.2, 0.3, 0.4, 0.5]},
+                        {'id': 'id3', 'values': [0.3, 0.4, 0.5, 0.6]},
+                        {'id': 'id4', 'values': [0.4, 0.5, 0.6, 0.7]},
+                        {'id': 'id5', 'values': [0.5, 0.6, 0.7, 0.8]},
+                        # More vectors here
+                    ],
+                    batch_size = 50
+                )
 
-        ## Visual progress bar with tqdm
+            asyncio.run(main())
+
+
+        **Visual progress bar with tqdm**
 
         To see a progress bar when upserting in batches, you will need to separately install the `tqdm` package.
         If `tqdm` is present, the client will detect and use it to display progress when `show_progress=True`.
@@ -191,7 +196,7 @@ class IndexAsyncioInterface(ABC):
             filter (Dict[str, Union[str, float, int, bool, List, dict]]):
                     If specified, the metadata filter here will be used to select the vectors to delete.
                     This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True.
-                    See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
+                    See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
 
 
         The Delete operation deletes vectors from the index, from a single namespace.
@@ -203,42 +208,41 @@ class IndexAsyncioInterface(ABC):
         an error if you delete from the wrong namespace.
 
         Delete can occur in the following mutual exclusive ways:
+
         1. Delete by ids from a single namespace
         2. Delete all vectors from a single namespace by setting delete_all to True
         3. Delete all vectors from a single namespace by specifying a metadata filter
             (note that for this option delete all must be set to False)
 
-        API reference: https://docs.pinecone.io/reference/delete_post
+        .. code-block:: python
 
-        ```python
-        import asyncio
-        from pinecone import Pinecone, Vector, SparseValues
+            import asyncio
+            from pinecone import Pinecone, Vector, SparseValues
 
-        async def main():
-            pc = Pinecone()
-            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
-                # Delete specific ids
-                await idx.delete(
-                    ids=['id1', 'id2'],
-                    namespace='my_namespace'
-                )
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+                    # Delete specific ids
+                    await idx.delete(
+                        ids=['id1', 'id2'],
+                        namespace='my_namespace'
+                    )
 
-                # Delete everything in a namespace
-                await idx.delete(
-                    delete_all=True,
-                    namespace='my_namespace'
-                )
+                    # Delete everything in a namespace
+                    await idx.delete(
+                        delete_all=True,
+                        namespace='my_namespace'
+                    )
 
-                # Delete by metadata filter
-                await idx.delete(
-                    filter={'key': 'value'},
-                    namespace='my_namespace'
-                )
+                    # Delete by metadata filter
+                    await idx.delete(
+                        filter={'key': 'value'},
+                        namespace='my_namespace'
+                    )
 
-        asyncio.run(main())
-        ```
+            asyncio.run(main())
 
-          Returns: An empty dictionary if the delete operation was successful.
+        Returns: An empty dictionary if the delete operation was successful.
         """
         pass
 
@@ -250,28 +254,26 @@ class IndexAsyncioInterface(ABC):
         The fetch operation looks up and returns vectors, by ID, from a single namespace.
         The returned vectors include the vector data and/or metadata.
 
-        API reference: https://docs.pinecone.io/reference/fetch
+        .. code-block:: python
 
-        ```
-        import asyncio
-        from pinecone import Pinecone, Vector, SparseValues
+            import asyncio
+            from pinecone import Pinecone, Vector, SparseValues
 
-        async def main():
-            pc = Pinecone()
-            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
-                # Fetch specific ids in namespace
-                fetched = await idx.fetch(
-                    ids=['id1', 'id2'],
-                    namespace='my_namespace'
-                )
-                for vec_id in fetched.vectors:
-                    vector = fetched.vectors[vec_id]
-                    print(vector.id)
-                    print(vector.metadata)
-                    print(vector.values)
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+                    # Fetch specific ids in namespace
+                    fetched = await idx.fetch(
+                        ids=['id1', 'id2'],
+                        namespace='my_namespace'
+                    )
+                    for vec_id in fetched.vectors:
+                        vector = fetched.vectors[vec_id]
+                        print(vector.id)
+                        print(vector.metadata)
+                        print(vector.values)
 
-        asyncio.run(main())
-        ```
+            asyncio.run(main())
 
         Args:
             ids (List[str]): The vector IDs to fetch.
@@ -300,73 +302,75 @@ class IndexAsyncioInterface(ABC):
         The Query operation searches a namespace, using a query vector.
         It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
 
-        API reference: https://docs.pinecone.io/reference/query
+        **Querying with dense vectors**
 
-        ## Querying with dense vectors
+        .. code-block:: python
 
-        ```python
-        import asyncio
-        from pinecone import Pinecone, Vector, SparseValues
+            import asyncio
+            from pinecone import Pinecone, Vector, SparseValues
 
-        async def main():
-            pc = Pinecone()
-            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
-                query_embedding = [0.1, 0.2, 0.3, ...] # An embedding that matches the index dimension
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+                    query_embedding = [0.1, 0.2, 0.3, ...] # An embedding that matches the index dimension
 
-                # Query by vector values
-                results = await idx.query(
-                    vector=query_embedding,
-                    top_k=10,
-                    filter={'genre': {"$eq": "drama"}}, # Optionally filter by metadata
-                    namespace='my_namespace',
-                    include_values=False,
-                    include_metadata=True
-                )
+                    # Query by vector values
+                    results = await idx.query(
+                        vector=query_embedding,
+                        top_k=10,
+                        filter={'genre': {"$eq": "drama"}}, # Optionally filter by metadata
+                        namespace='my_namespace',
+                        include_values=False,
+                        include_metadata=True
+                    )
 
-                # Query using vector id (the values from this stored vector will be used to query)
-                results = await idx.query(
-                    id='1',
-                    top_k=10,
-                    filter={"year": {"$gt": 2000}},
-                    namespace='my_namespace',
-                )
+                    # Query using vector id (the values from this stored vector will be used to query)
+                    results = await idx.query(
+                        id='1',
+                        top_k=10,
+                        filter={"year": {"$gt": 2000}},
+                        namespace='my_namespace',
+                    )
 
-        asyncio.run(main())
-        ```
+            asyncio.run(main())
 
-        ## Query with sparse vectors
 
-        ```python
-        import asyncio
-        from pinecone import Pinecone, Vector, SparseValues
+        **Query with sparse vectors**
 
-        async def main():
-            pc = Pinecone()
-            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
-                query_embedding = [0.1, 0.2, 0.3, ...] # An embedding that matches the index dimension
+        .. code-block:: python
 
-                # Query by vector values
-                results = await idx.query(
-                    vector=query_embedding,
-                    top_k=10,
-                    filter={'genre': {"$eq": "drama"}}, # Optionally filter by metadata
-                    namespace='my_namespace',
-                    include_values=False,
-                    include_metadata=True
-                )
+            import asyncio
+            from pinecone import Pinecone, Vector, SparseValues
 
-                # Query using vector id (the values from this stored vector will be used to query)
-                results = await idx.query(
-                    id='1',
-                    top_k=10,
-                    filter={"year": {"$gt": 2000}},
-                    namespace='my_namespace',
-                )
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+                    query_embedding = [0.1, 0.2, 0.3, ...] # An embedding that matches the index dimension
 
-        asyncio.run(main())
-        ```
+                    # Query by vector values
+                    results = await idx.query(
+                        vector=query_embedding,
+                        top_k=10,
+                        filter={'genre': {"$eq": "drama"}}, # Optionally filter by metadata
+                        namespace='my_namespace',
+                        include_values=False,
+                        include_metadata=True
+                    )
+
+                    # Query using vector id (the values from this stored vector will be used to query)
+                    results = await idx.query(
+                        id='1',
+                        top_k=10,
+                        filter={"year": {"$gt": 2000}},
+                        namespace='my_namespace',
+                    )
+
+            asyncio.run(main())
 
         Examples:
+
+        .. code-block:: python
+
             >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace')
             >>> index.query(id='id1', top_k=10, namespace='my_namespace')
             >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace', filter={'key': 'value'})
@@ -388,7 +392,7 @@ class IndexAsyncioInterface(ABC):
                              If not specified, the default namespace is used. [optional]
             filter (Dict[str, Union[str, float, int, bool, List, dict]):
                     The filter to apply. You can use vector metadata to limit your search.
-                    See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
+                    See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
             include_values (bool): Indicates whether vector values are included in the response.
                                    If omitted the server will use the default value of False [optional]
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.
@@ -430,33 +434,34 @@ class IndexAsyncioInterface(ABC):
 
         Examples:
 
-        ```python
-        import asyncio
-        from pinecone import Pinecone
+        .. code-block:: python
 
-        async def main():
-            pc = Pinecone(api_key="your-api-key")
-            idx = pc.IndexAsyncio(
-                host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io",
-            )
+            import asyncio
+            from pinecone import Pinecone
 
-            query_vec = [0.1, 0.2, 0.3] # An embedding that matches the index dimension
-            combined_results = await idx.query_namespaces(
-                vector=query_vec,
-                namespaces=['ns1', 'ns2', 'ns3', 'ns4'],
-                top_k=10,
-                filter={'genre': {"$eq": "drama"}},
-                include_values=True,
-                include_metadata=True
-            )
-            for vec in combined_results.matches:
-                print(vec.id, vec.score)
-            print(combined_results.usage)
+            async def main():
+                pc = Pinecone(api_key="your-api-key")
+                idx = pc.IndexAsyncio(
+                    host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io",
+                )
 
-            await idx.close()
+                query_vec = [0.1, 0.2, 0.3] # An embedding that matches the index dimension
+                combined_results = await idx.query_namespaces(
+                    vector=query_vec,
+                    namespaces=['ns1', 'ns2', 'ns3', 'ns4'],
+                    top_k=10,
+                    filter={'genre': {"$eq": "drama"}},
+                    include_values=True,
+                    include_metadata=True
+                )
+                for vec in combined_results.matches:
+                    print(vec.id, vec.score)
+                print(combined_results.usage)
 
-        asyncio.run(main())
-        ```
+                await idx.close()
+
+            asyncio.run(main())
+
         """
         pass
 
@@ -487,46 +492,46 @@ class IndexAsyncioInterface(ABC):
         If a set_metadata is included,
         the values of the fields specified in it will be added or overwrite the previous value.
 
-        API reference: https://docs.pinecone.io/reference/update
 
         Examples:
-        ```python
-        import asyncio
-        from pinecone import Pinecone, Vector, SparseValues
 
-        async def main():
-            pc = Pinecone()
-            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
-                # Update vector values
-                await idx.update(
-                    id='id1',
-                    values=[0.1, 0.2, 0.3, ...],
-                    namespace='my_namespace'
-                )
+        .. code-block:: python
 
-                # Update metadata
-                await idx.update(
-                    id='id1',
-                    set_metadata={'key': 'value'},
-                    namespace='my_namespace'
-                )
+            import asyncio
+            from pinecone import Pinecone, Vector, SparseValues
 
-                # Update sparse values
-                await idx.update(
-                    id='id1',
-                    sparse_values={'indices': [1, 2], 'values': [0.2, 0.4]},
-                    namespace='my_namespace'
-                )
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+                    # Update vector values
+                    await idx.update(
+                        id='id1',
+                        values=[0.1, 0.2, 0.3, ...],
+                        namespace='my_namespace'
+                    )
 
-                # Update sparse values with SparseValues object
-                await idx.update(
-                    id='id1',
-                    sparse_values=SparseValues(indices=[234781, 5432], values=[0.2, 0.4]),
-                    namespace='my_namespace'
-                )
+                    # Update metadata
+                    await idx.update(
+                        id='id1',
+                        set_metadata={'key': 'value'},
+                        namespace='my_namespace'
+                    )
 
-        asyncio.run(main())
-        ```
+                    # Update sparse values
+                    await idx.update(
+                        id='id1',
+                        sparse_values={'indices': [1, 2], 'values': [0.2, 0.4]},
+                        namespace='my_namespace'
+                    )
+
+                    # Update sparse values with SparseValues object
+                    await idx.update(
+                        id='id1',
+                        sparse_values=SparseValues(indices=[234781, 5432], values=[0.2, 0.4]),
+                        namespace='my_namespace'
+                    )
+
+            asyncio.run(main())
 
         """
         pass
@@ -539,26 +544,25 @@ class IndexAsyncioInterface(ABC):
         The DescribeIndexStats operation returns statistics about the index's contents.
         For example: The vector count per namespace and the number of dimensions.
 
-        API reference: https://docs.pinecone.io/reference/describe_index_stats_post
-
         Args:
             filter (Dict[str, Union[str, float, int, bool, List, dict]]):
             If this parameter is present, the operation only returns statistics for vectors that satisfy the filter.
-            See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
+            See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
 
         Returns: DescribeIndexStatsResponse object which contains stats about the index.
 
-        ```python
-        import asyncio
-        from pinecone import Pinecone, Vector, SparseValues
+        .. code-block:: python
 
-        async def main():
-            pc = Pinecone()
-            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
-                print(await idx.describe_index_stats())
+            import asyncio
+            from pinecone import Pinecone, Vector, SparseValues
 
-        asyncio.run(main())
-        ```
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+                    print(await idx.describe_index_stats())
+
+            asyncio.run(main())
+
         """
         pass
 
@@ -638,70 +642,71 @@ class IndexAsyncioInterface(ABC):
         When records are upserted, Pinecone converts mapped fields into embeddings and upserts them into
         the specified namespacce of the index.
 
-        ```python
-        import asyncio
-        from pinecone import (
-            Pinecone,
-            CloudProvider,
-            AwsRegion,
-            EmbedModel
-            IndexEmbed
-        )
+        .. code-block:: python
 
-        async def main():
-            pc = Pinecone()
-            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
-                # upsert records
-                await idx.upsert_records(
-                    namespace="my-namespace",
-                    records=[
-                        {
-                            "_id": "test1",
-                            "my_text_field": "Apple is a popular fruit known for its sweetness and crisp texture.",
-                        },
-                        {
-                            "_id": "test2",
-                            "my_text_field": "The tech company Apple is known for its innovative products like the iPhone.",
-                        },
-                        {
-                            "_id": "test3",
-                            "my_text_field": "Many people enjoy eating apples as a healthy snack.",
-                        },
-                        {
-                            "_id": "test4",
-                            "my_text_field": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
-                        },
-                        {
-                            "_id": "test5",
-                            "my_text_field": "An apple a day keeps the doctor away, as the saying goes.",
-                        },
-                        {
-                            "_id": "test6",
-                            "my_text_field": "Apple Computer Company was founded on April 1, 1976, by Steve Jobs, Steve Wozniak, and Ronald Wayne as a partnership.",
-                        },
-                    ],
-                )
+            import asyncio
+            from pinecone import (
+                Pinecone,
+                CloudProvider,
+                AwsRegion,
+                EmbedModel
+                IndexEmbed
+            )
 
-                from pinecone import SearchQuery, SearchRerank, RerankModel
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+                    # upsert records
+                    await idx.upsert_records(
+                        namespace="my-namespace",
+                        records=[
+                            {
+                                "_id": "test1",
+                                "my_text_field": "Apple is a popular fruit known for its sweetness and crisp texture.",
+                            },
+                            {
+                                "_id": "test2",
+                                "my_text_field": "The tech company Apple is known for its innovative products like the iPhone.",
+                            },
+                            {
+                                "_id": "test3",
+                                "my_text_field": "Many people enjoy eating apples as a healthy snack.",
+                            },
+                            {
+                                "_id": "test4",
+                                "my_text_field": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
+                            },
+                            {
+                                "_id": "test5",
+                                "my_text_field": "An apple a day keeps the doctor away, as the saying goes.",
+                            },
+                            {
+                                "_id": "test6",
+                                "my_text_field": "Apple Computer Company was founded on April 1, 1976, by Steve Jobs, Steve Wozniak, and Ronald Wayne as a partnership.",
+                            },
+                        ],
+                    )
 
-                # search for similar records
-                response = await idx.search_records(
-                    namespace="my-namespace",
-                    query=SearchQuery(
-                        inputs={
-                            "text": "Apple corporation",
-                        },
-                        top_k=3,
-                    ),
-                    rerank=SearchRerank(
-                        model=RerankModel.Bge_Reranker_V2_M3,
-                        rank_fields=["my_text_field"],
-                        top_n=3,
-                    ),
-                )
+                    from pinecone import SearchQuery, SearchRerank, RerankModel
 
-        asyncio.run(main())
-        ```
+                    # search for similar records
+                    response = await idx.search_records(
+                        namespace="my-namespace",
+                        query=SearchQuery(
+                            inputs={
+                                "text": "Apple corporation",
+                            },
+                            top_k=3,
+                        ),
+                        rerank=SearchRerank(
+                            model=RerankModel.Bge_Reranker_V2_M3,
+                            rank_fields=["my_text_field"],
+                            top_n=3,
+                        ),
+                    )
+
+            asyncio.run(main())
+
         """
         pass
 
@@ -727,70 +732,70 @@ class IndexAsyncioInterface(ABC):
         This operation converts a query to a vector embedding and then searches a namespace. You
         can optionally provide a reranking operation as part of the search.
 
-        ```python
-        import asyncio
-        from pinecone import (
-            Pinecone,
-            CloudProvider,
-            AwsRegion,
-            EmbedModel
-            IndexEmbed
-        )
+        .. code-block:: python
 
-        async def main():
-            pc = Pinecone()
-            async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
-                # upsert records
-                await idx.upsert_records(
-                    namespace="my-namespace",
-                    records=[
-                        {
-                            "_id": "test1",
-                            "my_text_field": "Apple is a popular fruit known for its sweetness and crisp texture.",
-                        },
-                        {
-                            "_id": "test2",
-                            "my_text_field": "The tech company Apple is known for its innovative products like the iPhone.",
-                        },
-                        {
-                            "_id": "test3",
-                            "my_text_field": "Many people enjoy eating apples as a healthy snack.",
-                        },
-                        {
-                            "_id": "test4",
-                            "my_text_field": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
-                        },
-                        {
-                            "_id": "test5",
-                            "my_text_field": "An apple a day keeps the doctor away, as the saying goes.",
-                        },
-                        {
-                            "_id": "test6",
-                            "my_text_field": "Apple Computer Company was founded on April 1, 1976, by Steve Jobs, Steve Wozniak, and Ronald Wayne as a partnership.",
-                        },
-                    ],
-                )
+            import asyncio
+            from pinecone import (
+                Pinecone,
+                CloudProvider,
+                AwsRegion,
+                EmbedModel
+                IndexEmbed
+            )
 
-                from pinecone import SearchQuery, SearchRerank, RerankModel
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+                    # upsert records
+                    await idx.upsert_records(
+                        namespace="my-namespace",
+                        records=[
+                            {
+                                "_id": "test1",
+                                "my_text_field": "Apple is a popular fruit known for its sweetness and crisp texture.",
+                            },
+                            {
+                                "_id": "test2",
+                                "my_text_field": "The tech company Apple is known for its innovative products like the iPhone.",
+                            },
+                            {
+                                "_id": "test3",
+                                "my_text_field": "Many people enjoy eating apples as a healthy snack.",
+                            },
+                            {
+                                "_id": "test4",
+                                "my_text_field": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
+                            },
+                            {
+                                "_id": "test5",
+                                "my_text_field": "An apple a day keeps the doctor away, as the saying goes.",
+                            },
+                            {
+                                "_id": "test6",
+                                "my_text_field": "Apple Computer Company was founded on April 1, 1976, by Steve Jobs, Steve Wozniak, and Ronald Wayne as a partnership.",
+                            },
+                        ],
+                    )
 
-                # search for similar records
-                response = await idx.search_records(
-                    namespace="my-namespace",
-                    query=SearchQuery(
-                        inputs={
-                            "text": "Apple corporation",
-                        },
-                        top_k=3,
-                    ),
-                    rerank=SearchRerank(
-                        model=RerankModel.Bge_Reranker_V2_M3,
-                        rank_fields=["my_text_field"],
-                        top_n=3,
-                    ),
-                )
+                    from pinecone import SearchQuery, SearchRerank, RerankModel
 
-        asyncio.run(main())
-        ```
+                    # search for similar records
+                    response = await idx.search_records(
+                        namespace="my-namespace",
+                        query=SearchQuery(
+                            inputs={
+                                "text": "Apple corporation",
+                            },
+                            top_k=3,
+                        ),
+                        rerank=SearchRerank(
+                            model=RerankModel.Bge_Reranker_V2_M3,
+                            rank_fields=["my_text_field"],
+                            top_n=3,
+                        ),
+                    )
+
+            asyncio.run(main())
 
         """
         pass

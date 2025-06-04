@@ -14,7 +14,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Generate pdoc documentation
+      - name: Generate sphinx documentation
         uses: ./.github/actions/build-docs
         with:
           python-version: 3.11
@@ -24,7 +24,7 @@ jobs:
         env:
           SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
         with:
-          source-directory: pdoc
+          source-directory: docsbuild
           destination-github-username: pinecone-io
           destination-repository-name: sdk-docs
           user-email: clients@pinecone.io

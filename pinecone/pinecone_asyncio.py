@@ -39,29 +39,30 @@ if TYPE_CHECKING:
     from pinecone.db_control.index_host_store import IndexHostStore
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 
 class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     """
-    `PineconeAsyncio` is an asyncio client for interacting with Pinecone's control plane API.
+    ``PineconeAsyncio`` is an asyncio client for interacting with Pinecone's control plane API.
 
     This class implements methods for managing and interacting with Pinecone resources
     such as collections and indexes.
 
-    To perform data operations such as inserting and querying vectors, use the `IndexAsyncio` class.
+    To perform data operations such as inserting and querying vectors, use the ``IndexAsyncio`` class.
 
-    ```python
-    import asyncio
-    from pinecone import Pinecone
+    .. code-block:: python
 
-    async def main():
-        pc = Pinecone()
-        async with pc.IndexAsyncio(host="my-index.pinecone.io") as idx:
-            await idx.upsert(vectors=[(1, [1, 2, 3]), (2, [4, 5, 6])])
+        import asyncio
+        from pinecone import Pinecone
 
-    asyncio.run(main())
-    ```
+        async def main():
+            pc = Pinecone()
+            async with pc.IndexAsyncio(host="my-index.pinecone.io") as idx:
+                    await idx.upsert(vectors=[(1, [1, 2, 3]), (2, [4, 5, 6])])
+
+        asyncio.run(main())
+
     """
 
     def __init__(
@@ -97,16 +98,16 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
             ssl_verify=ssl_verify,
             **kwargs,
         )
-        """ @private """
+        """ :meta private: """
 
         self._openapi_config = ConfigBuilder.build_openapi_config(self._config, **kwargs)
-        """ @private """
+        """ :meta private: """
 
         self._inference = None  # Lazy initialization
-        """ @private """
+        """ :meta private: """
 
         self._db_control = None  # Lazy initialization
-        """ @private """
+        """ :meta private: """
 
     async def __aenter__(self):
         return self
@@ -122,33 +123,33 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
 
         After close has been called, the client instance should not be used.
 
-        ```python
-        import asyncio
-        from pinecone import PineconeAsyncio
+        .. code-block:: python
 
-        async def main():
-            pc = PineconeAsyncio()
-            desc = await pc.describe_index(name="my-index")
-            await pc.close()
+            import asyncio
+            from pinecone import PineconeAsyncio
 
-        asyncio.run(main())
-        ```
+            async def main():
+                pc = PineconeAsyncio()
+                desc = await pc.describe_index(name="my-index")
+                await pc.close()
+
+                asyncio.run(main())
 
         If you are using the client as a context manager, the close method is called automatically
         when exiting.
 
-        ```python
-        import asyncio
-        from pinecone import PineconeAsyncio
+        .. code-block:: python
 
-        async def main():
-            async with PineconeAsyncio() as pc:
-                desc = await pc.describe_index(name="my-index")
+            import asyncio
+            from pinecone import PineconeAsyncio
 
-        # No need to call close in this case because the "async with" syntax
-        # automatically calls close when exiting the block.
-        asyncio.run(main())
-        ```
+            async def main():
+                async with PineconeAsyncio() as pc:
+                    desc = await pc.describe_index(name="my-index")
+
+            # No need to call close in this case because the "async with" syntax
+            # automatically calls close when exiting the block.
+            asyncio.run(main())
 
         """
         await self.db._index_api.api_client.close()
@@ -174,7 +175,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
 
     @property
     def index_host_store(self) -> "IndexHostStore":
-        """@private"""
+        """:meta private:"""
         warnings.warn(
             "The `index_host_store` property is deprecated. This warning will become an error in a future version of the Pinecone Python SDK.",
             DeprecationWarning,
@@ -184,7 +185,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
 
     @property
     def index_api(self) -> "AsyncioManageIndexesApi":
-        """@private"""
+        """:meta private:"""
         warnings.warn(
             "The `index_api` property is deprecated. This warning will become an error in a future version of the Pinecone Python SDK.",
             DeprecationWarning,

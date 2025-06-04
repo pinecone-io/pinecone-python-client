@@ -16,7 +16,7 @@ You must install extra dependencies in order to install the GRPC client.
 pip3 install pinecone[grpc]
 
 # Install a specific version
-pip3 install "pinecone[grpc]"==3.0.0
+pip3 install "pinecone[grpc]"==7.0.2
 ```
 
 #### Installing with poetry
@@ -26,7 +26,7 @@ pip3 install "pinecone[grpc]"==3.0.0
 poetry add pinecone --extras grpc
 
 # Install a specific version
-poetry add pinecone==3.0.0 --extras grpc
+poetry add pinecone==7.0.2 --extras grpc
 ```
 
 ### Using the gRPC client

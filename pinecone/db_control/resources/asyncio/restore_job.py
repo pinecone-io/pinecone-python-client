@@ -8,7 +8,7 @@ from pinecone.utils import parse_non_empty_args, require_kwargs
 class RestoreJobResourceAsyncio:
     def __init__(self, index_api: AsyncioManageIndexesApi):
         self._index_api = index_api
-        """ @private """
+        """ :meta private: """
 
     @require_kwargs
     async def get(self, *, job_id: str) -> RestoreJobModel:

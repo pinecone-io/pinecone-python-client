@@ -8,42 +8,44 @@ class PineconeGRPC(Pinecone):
     An alternative version of the Pinecone client that uses gRPC instead of HTTP for
     data operations.
 
-    ### Installing the gRPC client
+    **Installing the gRPC client**
 
     You must install extra dependencies in order to install the GRPC client.
 
-    #### Installing with pip
+    **Installing with pip**
 
-    ```bash
-    # Install the latest version
-    pip3 install pinecone[grpc]
+    .. code-block:: bash
 
-    # Install a specific version
-    pip3 install "pinecone[grpc]"==3.0.0
-    ```
+        # Install the latest version
+        pip3 install "pinecone[grpc]"
 
-    #### Installing with poetry
+        # Install a specific version
+        pip3 install "pinecone[grpc]"==7.0.2
 
-    ```bash
-    # Install the latest version
-    poetry add pinecone --extras grpc
+    **Installing with poetry**
 
-    # Install a specific version
-    poetry add pinecone==3.0.0 --extras grpc
-    ```
+    .. code-block:: bash
 
-    ### Using the gRPC client
+        # Install the latest version
+        poetry add pinecone --extras grpc
 
-    ```python
-    import os
-    from pinecone.grpc import PineconeGRPC
+        # Install a specific version
+        poetry add pinecone==7.0.2 --extras grpc
 
-    client = PineconeGRPC(api_key=os.environ.get("PINECONE_API_KEY"))
 
-    # From this point on, usage is identical to the HTTP client.
-    index = client.Index("my-index", host=os.environ("PINECONE_INDEX_HOST"))
-    index.query(...)
-    ```
+    **Using the gRPC client**
+
+    .. code-block:: python
+
+        import os
+        from pinecone.grpc import PineconeGRPC
+
+        pc = PineconeGRPC(api_key=os.environ.get("PINECONE_API_KEY"))
+
+        # From this point on, usage is identical to the HTTP client.
+        index = pc.Index("my-index", host=os.environ("PINECONE_INDEX_HOST"))
+        index.query(...)
+
 
     """
 
@@ -58,36 +60,34 @@ class PineconeGRPC(Pinecone):
         eliminate a round trip to the Pinecone control plane by specifying the
         host of the index.
 
-        ```python
-        import os
-        from pinecone.grpc import PineconeGRPC
+        .. code-block:: python
+            import os
+            from pinecone.grpc import PineconeGRPC
 
-        api_key = os.environ.get("PINECONE_API_KEY")
-        index_host = os.environ.get("PINECONE_INDEX_HOST")
+            api_key = os.environ.get("PINECONE_API_KEY")
+            index_host = os.environ.get("PINECONE_INDEX_HOST")
 
-        pc = PineconeGRPC(api_key=api_key)
-        index = pc.Index(host=index_host)
+            pc = PineconeGRPC(api_key=api_key)
+            index = pc.Index(host=index_host)
 
-        # Now you're ready to perform data operations
-        index.query(vector=[...], top_k=10)
-        ```
+            # Now you're ready to perform data operations
+            index.query(vector=[...], top_k=10)
 
         To find your host url, you can use the Pinecone control plane to describe
         the index. The host url is returned in the response. Or, alternatively, the
         host is displayed in the Pinecone web console.
 
-        ```python
-        import os
-        from pinecone import Pinecone
+        .. code-block:: python
+            import os
+            from pinecone import Pinecone
 
-        pc = Pinecone(
-            api_key=os.environ.get("PINECONE_API_KEY")
-        )
+            pc = Pinecone(
+                api_key=os.environ.get("PINECONE_API_KEY")
+            )
 
-        host = pc.describe_index('index-name').host
-        ```
+            host = pc.describe_index('index-name').host
 
-        ### Target an index by name (not recommended for production)
+        **Target an index by name (not recommended for production)**
 
         For more casual usage, such as when you are playing and exploring with Pinecone
         in a notebook setting, you can also target an index by name. If you use this
@@ -98,25 +98,26 @@ class PineconeGRPC(Pinecone):
         will only incur the overhead of only one call. But this approach is not
         recommended for production usage.
 
-        ```python
-        import os
-        from pinecone import ServerlessSpec
-        from pinecone.grpc import PineconeGRPC
+        .. code-block:: python
 
-        api_key = os.environ.get("PINECONE_API_KEY")
+            import os
+            from pinecone import ServerlessSpec
+            from pinecone.grpc import PineconeGRPC
 
-        pc = PineconeGRPC(api_key=api_key)
-        pc.create_index(
-            name='my-index',
-            dimension=1536,
-            metric='cosine',
-            spec=ServerlessSpec(cloud='aws', region='us-west-2')
-        )
-        index = pc.Index('my-index')
+            api_key = os.environ.get("PINECONE_API_KEY")
 
-        # Now you're ready to perform data operations
-        index.query(vector=[...], top_k=10)
-        ```
+            pc = PineconeGRPC(api_key=api_key)
+            pc.create_index(
+                name='my-index',
+                dimension=1536,
+                metric='cosine',
+                spec=ServerlessSpec(cloud='aws', region='us-west-2')
+            )
+            index = pc.Index('my-index')
+
+            # Now you're ready to perform data operations
+            index.query(vector=[...], top_k=10)
+
         """
         if name == "" and host == "":
             raise ValueError("Either name or host must be specified")

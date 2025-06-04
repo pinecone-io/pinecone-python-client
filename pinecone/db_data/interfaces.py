@@ -51,108 +51,180 @@ class IndexInterface(ABC):
             `UpsertResponse`, includes the number of vectors upserted.
 
 
-        The upsert operation writes vectors into a namespace.
+        The upsert operation writes vectors into a namespace of your index.
+
         If a new value is upserted for an existing vector id, it will overwrite the previous value.
 
-        To upsert in parallel follow: https://docs.pinecone.io/docs/insert-data#sending-upserts-in-parallel
+        To upsert in parallel follow `this link <https://docs.pinecone.io/docs/insert-data#sending-upserts-in-parallel>`_.
 
-        ## Upserting dense vectors
+        **Upserting dense vectors**
 
-        **Note:** the dimension of each dense vector must match the dimension of the index.
+        When working with dense vectors, the dimension of each vector must match the dimension configured for the
+        index.
 
         A vector can be represented in a variety of ways.
 
-        ```python
-        from pinecone import Pinecone, Vector
+        .. code-block:: python
+            :caption: Upserting a dense vector using the Vector object
+            :emphasize-lines: 9-13
 
-        pc = Pinecone()
-        idx = pc.Index("index-name")
+            from pinecone import Pinecone, Vector
 
-        # A Vector object
-        idx.upsert(
-            namespace = 'my-namespace',
-            vectors = [
-                Vector(id='id1', values=[0.1, 0.2, 0.3, 0.4], metadata={'metadata_key': 'metadata_value'}),
-            ]
-        )
+            pc = Pinecone()
+            idx = pc.Index(name="index-name")
 
-        # A vector tuple
-        idx.upsert(
-            namespace = 'my-namespace',
-            vectors = [
-                ('id1', [0.1, 0.2, 0.3, 0.4]),
-            ]
-        )
+            idx.upsert(
+                namespace = 'my-namespace',
+                vectors = [
+                    Vector(
+                        id='id1',
+                        values=[0.1, 0.2, 0.3, 0.4],
+                        metadata={'metadata_key': 'metadata_value'}
+                    ),
+                ]
+            )
 
-        # A vector tuple with metadata
-        idx.upsert(
-            namespace = 'my-namespace',
-            vectors = [
-                ('id1', [0.1, 0.2, 0.3, 0.4], {'metadata_key': 'metadata_value'}),
-            ]
-        )
+        .. code-block:: python
+            :caption: Upserting a dense vector as a two-element tuple (no metadata)
+            :emphasize-lines: 4
 
-        # A vector dictionary
-        idx.upsert(
-            namespace = 'my-namespace',
-            vectors = [
-                {"id": 1, "values": [0.1, 0.2, 0.3, 0.4], "metadata": {"metadata_key": "metadata_value"}},
-            ]
-        ```
+            idx.upsert(
+                namespace = 'my-namespace',
+                vectors = [
+                    ('id1', [0.1, 0.2, 0.3, 0.4]),
+                ]
+            )
 
-        ## Upserting sparse vectors
+        .. code-block:: python
+            :caption: Upserting a dense vector as a three-element tuple with metadata
+            :emphasize-lines: 4-8
 
-        ```python
-        from pinecone import Pinecone, Vector, SparseValues
+            idx.upsert(
+                namespace = 'my-namespace',
+                vectors = [
+                    (
+                        'id1',
+                        [0.1, 0.2, 0.3, 0.4],
+                        {'metadata_key': 'metadata_value'}
+                    ),
+                ]
+            )
 
-        pc = Pinecone()
-        idx = pc.Index("index-name")
+        .. code-block:: python
+            :caption: Upserting a dense vector using a vector dictionary
+            :emphasize-lines: 4-8
 
-        # A Vector object
-        idx.upsert(
-            namespace = 'my-namespace',
-            vectors = [
-                Vector(id='id1', sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4])),
-            ]
-        )
+            idx.upsert(
+                namespace = 'my-namespace',
+                vectors = [
+                    {
+                        "id": 1,
+                        "values": [0.1, 0.2, 0.3, 0.4],
+                        "metadata": {"metadata_key": "metadata_value"}
+                    },
+                ]
 
-        # A dictionary
-        idx.upsert(
-            namespace = 'my-namespace',
-            vectors = [
-                {"id": 1, "sparse_values": {"indices": [1, 2], "values": [0.2, 0.4]}},
-            ]
-        )
-        ```
+        **Upserting sparse vectors**
 
-        ## Batch upsert
+        .. code-block:: python
+            :caption: Upserting a sparse vector
+            :emphasize-lines: 32-38
+
+            from pinecone import (
+                Pinecone,
+                Metric,
+                Vector,
+                SparseValues,
+                VectorType,
+                ServerlessSpec,
+                CloudProvider,
+                AwsRegion
+            )
+
+            pc = Pinecone() # Reads PINECONE_API_KEY from environment variable
+
+            # Create a sparse index
+            index_description = pc.create_index(
+                name="example-sparse",
+                metric=Metric.Dotproduct,
+                vector_type=VectorType.Sparse,
+                spec=ServerlessSpec(
+                    cloud=CloudProvider.AWS,
+                    region=AwsRegion.US_WEST_2,
+                )
+            )
+
+            # Target the index created above
+            idx = pc.Index(host=index_description.host)
+
+            # Upsert a sparse vector
+            idx.upsert(
+                namespace='my-namespace',
+                vectors=[
+                    Vector(
+                        id='id1',
+                        sparse_values=SparseValues(
+                            indices=[1, 2],
+                            values=[0.2, 0.4]
+                        )
+                    ),
+                ]
+            )
+
+        .. code-block:: python
+            :caption: Upserting a sparse vector using a dictionary
+            :emphasize-lines: 4-10
+
+            idx.upsert(
+                namespace = 'my-namespace',
+                vectors = [
+                    {
+                        "id": 1,
+                        "sparse_values": {
+                            "indices": [1, 2],
+                            "values": [0.2, 0.4]
+                        }
+                    },
+                ]
+            )
+
+
+        **Batch upsert**
 
         If you have a large number of vectors, you can upsert them in batches.
 
-        ```python
-        from pinecone import Pinecone, Vector
+        .. code-block:: python
+            :caption: Upserting in batches
+            :emphasize-lines: 19
 
-        pc = Pinecone()
-        idx = pc.Index("index-name")
+            from pinecone import Pinecone, Vector
+            import random
 
-        idx.upsert(
-            namespace = 'my-namespace',
+            pc = Pinecone()
+            idx = pc.Index(host="example-index-dojoi3u.svc.preprod-aws-0.pinecone.io")
+
+            # Create some fake vector data for demonstration
+            num_vectors = 100000
             vectors = [
-                {'id': 'id1', 'values': [0.1, 0.2, 0.3, 0.4]},
-                {'id': 'id2', 'values': [0.2, 0.3, 0.4, 0.5]},
-                {'id': 'id3', 'values': [0.3, 0.4, 0.5, 0.6]},
-                {'id': 'id4', 'values': [0.4, 0.5, 0.6, 0.7]},
-                {'id': 'id5', 'values': [0.5, 0.6, 0.7, 0.8]},
-                # More vectors here
-            ],
-            batch_size = 50
-        )
-        ```
+                Vector(
+                    id=f'id{i}',
+                    values=[random.random() for _ in range(1536)])
+                for i in range(num_vectors)
+            ]
 
-        ## Visual progress bar with tqdm
+            idx.upsert(
+                namespace='my-namespace',
+                vectors=vectors,
+                batch_size=50
+            )
 
-        To see a progress bar when upserting in batches, you will need to separately install the `tqdm` package.
-        If `tqdm` is present, the client will detect and use it to display progress when `show_progress=True`.
+
+        **Visual progress bar with tqdm**
+
+        To see a progress bar when upserting in batches, you will need to separately install `tqdm <https://tqdm.github.io/>`_.
+        If ``tqdm`` is present, the client will detect and use it to display progress when ``show_progress=True``.
+
+
         """
         pass
 
@@ -177,6 +249,7 @@ class IndexInterface(ABC):
         :type namespace: str, required
         :param records: The records to upsert into the index.
         :type records: List[Dict], required
+        :return: UpsertResponse object which contains the number of records upserted.
 
         Upsert records to a namespace. A record is a dictionary that contains eitiher an `id` or `_id`
         field along with other fields that will be stored as metadata. The `id` or `_id` field is used
@@ -186,80 +259,82 @@ class IndexInterface(ABC):
         When records are upserted, Pinecone converts mapped fields into embeddings and upserts them into
         the specified namespacce of the index.
 
-        ```python
-        from pinecone import (
-            Pinecone,
-            CloudProvider,
-            AwsRegion,
-            EmbedModel
-            IndexEmbed
-        )
+        .. code-block:: python
+            :caption: Upserting records to be embedded with Pinecone's integrated inference models
 
-        pc = Pinecone(api_key="<<PINECONE_API_KEY>>")
-
-        # Create an index for your embedding model
-        index_model = pc.create_index_for_model(
-            name="my-model-index",
-            cloud=CloudProvider.AWS,
-            region=AwsRegion.US_WEST_2,
-            embed=IndexEmbed(
-                model=EmbedModel.Multilingual_E5_Large,
-                field_map={"text": "my_text_field"}
+            from pinecone import (
+                Pinecone,
+                CloudProvider,
+                AwsRegion,
+                EmbedModel
+                IndexEmbed
             )
-        )
 
-        # Instantiate the index client
-        idx = pc.Index(host=index_model.host)
+            pc = Pinecone(api_key="<<PINECONE_API_KEY>>")
 
-        # upsert records
-        idx.upsert_records(
-            namespace="my-namespace",
-            records=[
-                {
-                    "_id": "test1",
-                    "my_text_field": "Apple is a popular fruit known for its sweetness and crisp texture.",
-                },
-                {
-                    "_id": "test2",
-                    "my_text_field": "The tech company Apple is known for its innovative products like the iPhone.",
-                },
-                {
-                    "_id": "test3",
-                    "my_text_field": "Many people enjoy eating apples as a healthy snack.",
-                },
-                {
-                    "_id": "test4",
-                    "my_text_field": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
-                },
-                {
-                    "_id": "test5",
-                    "my_text_field": "An apple a day keeps the doctor away, as the saying goes.",
-                },
-                {
-                    "_id": "test6",
-                    "my_text_field": "Apple Computer Company was founded on April 1, 1976, by Steve Jobs, Steve Wozniak, and Ronald Wayne as a partnership.",
-                },
-            ],
-        )
+            # Create an index configured for the multilingual-e5-large model
+            index_model = pc.create_index_for_model(
+                name="my-model-index",
+                cloud=CloudProvider.AWS,
+                region=AwsRegion.US_WEST_2,
+                embed=IndexEmbed(
+                    model=EmbedModel.Multilingual_E5_Large,
+                    field_map={"text": "my_text_field"}
+                )
+            )
 
-        from pinecone import SearchQuery, SearchRerank, RerankModel
+            # Instantiate the index client
+            idx = pc.Index(host=index_model.host)
 
-        # search for similar records
-        response = idx.search_records(
-            namespace="my-namespace",
-            query=SearchQuery(
-                inputs={
-                    "text": "Apple corporation",
-                },
-                top_k=3,
-            ),
-            rerank=SearchRerank(
-                model=RerankModel.Bge_Reranker_V2_M3,
-                rank_fields=["my_text_field"],
-                top_n=3,
-            ),
-        )
-        ```
+            # upsert records
+            idx.upsert_records(
+                namespace="my-namespace",
+                records=[
+                    {
+                        "_id": "test1",
+                        "my_text_field": "Apple is a popular fruit known for its sweetness and crisp texture.",
+                    },
+                    {
+                        "_id": "test2",
+                        "my_text_field": "The tech company Apple is known for its innovative products like the iPhone.",
+                    },
+                    {
+                        "_id": "test3",
+                        "my_text_field": "Many people enjoy eating apples as a healthy snack.",
+                    },
+                    {
+                        "_id": "test4",
+                        "my_text_field": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
+                    },
+                    {
+                        "_id": "test5",
+                        "my_text_field": "An apple a day keeps the doctor away, as the saying goes.",
+                    },
+                    {
+                        "_id": "test6",
+                        "my_text_field": "Apple Computer Company was founded on April 1, 1976, by Steve Jobs, Steve Wozniak, and Ronald Wayne as a partnership.",
+                    },
+                ],
+            )
+
+            from pinecone import SearchQuery, SearchRerank, RerankModel
+
+            # Search for similar records
+            response = idx.search_records(
+                namespace="my-namespace",
+                query=SearchQuery(
+                    inputs={
+                        "text": "Apple corporation",
+                    },
+                    top_k=3,
+                ),
+                rerank=SearchRerank(
+                    model=RerankModel.Bge_Reranker_V2_M3,
+                    rank_fields=["my_text_field"],
+                    top_n=3,
+                ),
+            )
+
         """
         pass
 
@@ -285,80 +360,81 @@ class IndexInterface(ABC):
         This operation converts a query to a vector embedding and then searches a namespace. You
         can optionally provide a reranking operation as part of the search.
 
-        ```python
-        from pinecone import (
-            Pinecone,
-            CloudProvider,
-            AwsRegion,
-            EmbedModel
-            IndexEmbed
-        )
+        .. code-block:: python
 
-        pc = Pinecone(api_key="<<PINECONE_API_KEY>>")
-
-        # Create an index for your embedding model
-        index_model = pc.create_index_for_model(
-            name="my-model-index",
-            cloud=CloudProvider.AWS,
-            region=AwsRegion.US_WEST_2,
-            embed=IndexEmbed(
-                model=EmbedModel.Multilingual_E5_Large,
-                field_map={"text": "my_text_field"}
+            from pinecone import (
+                Pinecone,
+                CloudProvider,
+                AwsRegion,
+                EmbedModel
+                IndexEmbed
             )
-        )
 
-        # Instantiate the index client
-        idx = pc.Index(host=index_model.host)
+            pc = Pinecone(api_key="<<PINECONE_API_KEY>>")
 
-        # upsert records
-        idx.upsert_records(
-            namespace="my-namespace",
-            records=[
-                {
-                    "_id": "test1",
-                    "my_text_field": "Apple is a popular fruit known for its sweetness and crisp texture.",
-                },
-                {
-                    "_id": "test2",
-                    "my_text_field": "The tech company Apple is known for its innovative products like the iPhone.",
-                },
-                {
-                    "_id": "test3",
-                    "my_text_field": "Many people enjoy eating apples as a healthy snack.",
-                },
-                {
-                    "_id": "test4",
-                    "my_text_field": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
-                },
-                {
-                    "_id": "test5",
-                    "my_text_field": "An apple a day keeps the doctor away, as the saying goes.",
-                },
-                {
-                    "_id": "test6",
-                    "my_text_field": "Apple Computer Company was founded on April 1, 1976, by Steve Jobs, Steve Wozniak, and Ronald Wayne as a partnership.",
-                },
-            ],
-        )
+            # Create an index for your embedding model
+            index_model = pc.create_index_for_model(
+                name="my-model-index",
+                cloud=CloudProvider.AWS,
+                region=AwsRegion.US_WEST_2,
+                embed=IndexEmbed(
+                    model=EmbedModel.Multilingual_E5_Large,
+                    field_map={"text": "my_text_field"}
+                )
+            )
 
-        from pinecone import SearchQuery, SearchRerank, RerankModel
+            # Instantiate the index client
+            idx = pc.Index(host=index_model.host)
 
-        # search for similar records
-        response = idx.search_records(
-            namespace="my-namespace",
-            query=SearchQuery(
-                inputs={
-                    "text": "Apple corporation",
-                },
-                top_k=3,
-            ),
-            rerank=SearchRerank(
-                model=RerankModel.Bge_Reranker_V2_M3,
-                rank_fields=["my_text_field"],
-                top_n=3,
-            ),
-        )
-        ```
+            # upsert records
+            idx.upsert_records(
+                namespace="my-namespace",
+                records=[
+                    {
+                        "_id": "test1",
+                        "my_text_field": "Apple is a popular fruit known for its sweetness and crisp texture.",
+                    },
+                    {
+                        "_id": "test2",
+                        "my_text_field": "The tech company Apple is known for its innovative products like the iPhone.",
+                    },
+                    {
+                        "_id": "test3",
+                        "my_text_field": "Many people enjoy eating apples as a healthy snack.",
+                    },
+                    {
+                        "_id": "test4",
+                        "my_text_field": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
+                    },
+                    {
+                        "_id": "test5",
+                        "my_text_field": "An apple a day keeps the doctor away, as the saying goes.",
+                    },
+                    {
+                        "_id": "test6",
+                        "my_text_field": "Apple Computer Company was founded on April 1, 1976, by Steve Jobs, Steve Wozniak, and Ronald Wayne as a partnership.",
+                    },
+                ],
+            )
+
+            from pinecone import SearchQuery, SearchRerank, RerankModel
+
+            # search for similar records
+            response = idx.search_records(
+                namespace="my-namespace",
+                query=SearchQuery(
+                    inputs={
+                        "text": "Apple corporation",
+                    },
+                    top_k=3,
+                ),
+                rerank=SearchRerank(
+                    model=RerankModel.Bge_Reranker_V2_M3,
+                    rank_fields=["my_text_field"],
+                    top_n=3,
+                ),
+            )
+
         """
         pass
 
@@ -392,32 +468,34 @@ class IndexInterface(ABC):
             filter (Dict[str, Union[str, float, int, bool, List, dict]]):
                     If specified, the metadata filter here will be used to select the vectors to delete.
                     This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True.
-                    See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
+                    See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
 
 
         The Delete operation deletes vectors from the index, from a single namespace.
 
         No error is raised if the vector id does not exist.
 
-        Note: For any delete call, if namespace is not specified, the default namespace `""` is used.
+        Note: For any delete call, if namespace is not specified, the default namespace ``""`` is used.
         Since the delete operation does not error when ids are not present, this means you may not receive
         an error if you delete from the wrong namespace.
 
         Delete can occur in the following mutual exclusive ways:
+
         1. Delete by ids from a single namespace
         2. Delete all vectors from a single namespace by setting delete_all to True
         3. Delete all vectors from a single namespace by specifying a metadata filter
             (note that for this option delete all must be set to False)
 
-        API reference: https://docs.pinecone.io/reference/delete_post
-
         Examples:
+
+        .. code-block:: python
+
             >>> index.delete(ids=['id1', 'id2'], namespace='my_namespace')
             >>> index.delete(delete_all=True, namespace='my_namespace')
             >>> index.delete(filter={'key': 'value'}, namespace='my_namespace')
 
 
-          Returns: An empty dictionary if the delete operation was successful.
+        Returns: An empty dictionary if the delete operation was successful.
         """
         pass
 
@@ -427,9 +505,10 @@ class IndexInterface(ABC):
         The fetch operation looks up and returns vectors, by ID, from a single namespace.
         The returned vectors include the vector data and/or metadata.
 
-        API reference: https://docs.pinecone.io/reference/fetch
-
         Examples:
+
+        .. code-block:: python
+
             >>> index.fetch(ids=['id1', 'id2'], namespace='my_namespace')
             >>> index.fetch(ids=['id1', 'id2'])
 
@@ -460,9 +539,10 @@ class IndexInterface(ABC):
         The Query operation searches a namespace, using a query vector.
         It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
 
-        API reference: https://docs.pinecone.io/reference/query
-
         Examples:
+
+        .. code-block:: python
+
             >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace')
             >>> index.query(id='id1', top_k=10, namespace='my_namespace')
             >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace', filter={'key': 'value'})
@@ -484,7 +564,7 @@ class IndexInterface(ABC):
                              If not specified, the default namespace is used. [optional]
             filter (Dict[str, Union[str, float, int, bool, List, dict]):
                     The filter to apply. You can use vector metadata to limit your search.
-                    See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
+                    See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
             include_values (bool): Indicates whether vector values are included in the response.
                                    If omitted the server will use the default value of False [optional]
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.
@@ -510,49 +590,63 @@ class IndexInterface(ABC):
         sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> QueryNamespacesResults:
-        """The query_namespaces() method is used to make a query to multiple namespaces in parallel and combine the results into one result set.
+        """The ``query_namespaces()`` method is used to make a query to multiple namespaces in parallel and combine the results into one result set.
 
-        Since several asynchronous calls are made on your behalf when calling this method, you will need to tune the pool_threads and connection_pool_maxsize parameter of the Index constructor to suite your workload.
+        :param vector: The query vector, must be the same length as the dimension of the index being queried.
+        :type vector: List[float]
+        :param namespaces: The list of namespaces to query.
+        :type namespaces: List[str]
+        :param top_k: The number of results you would like to request from each namespace. Defaults to 10.
+        :type top_k: Optional[int]
+        :param metric: Must be one of 'cosine', 'euclidean', 'dotproduct'. This is needed in order to merge results across namespaces, since the interpretation of score depends on the index metric type.
+        :type metric: str
+        :param filter: Pass an optional filter to filter results based on metadata. Defaults to None.
+        :type filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]]
+        :param include_values: Boolean field indicating whether vector values should be included with results. Defaults to None.
+        :type include_values: Optional[bool]
+        :param include_metadata: Boolean field indicating whether vector metadata should be included with results. Defaults to None.
+        :type include_metadata: Optional[bool]
+        :param sparse_vector: If you are working with a dotproduct index, you can pass a sparse vector as part of your hybrid search. Defaults to None.
+        :type sparse_vector: Optional[ Union[SparseValues, Dict[str, Union[List[float], List[int]]]] ]
+        :return: A QueryNamespacesResults object containing the combined results from all namespaces, as well as the combined usage cost in read units.
+        :rtype: QueryNamespacesResults
+
+        .. admonition:: Note
+
+            Since several asynchronous calls are made on your behalf when calling this method, you will need to tune
+            the **pool_threads** and **connection_pool_maxsize** parameter of the Index constructor to suite your workload.
+            If these values are too small in relation to your workload, you will experience performance issues as
+            requests queue up while waiting for a request thread to become available.
 
         Examples:
 
-        ```python
-        from pinecone import Pinecone
+        .. code-block:: python
 
-        pc = Pinecone(api_key="your-api-key")
-        index = pc.Index(
-            host="index-name",
-            pool_threads=32,
-            connection_pool_maxsize=32
-        )
+            from pinecone import Pinecone
 
-        query_vec = [0.1, 0.2, 0.3] # An embedding that matches the index dimension
-        combined_results = index.query_namespaces(
-            vector=query_vec,
-            namespaces=['ns1', 'ns2', 'ns3', 'ns4'],
-            metric="cosine",
-            top_k=10,
-            filter={'genre': {"$eq": "drama"}},
-            include_values=True,
-            include_metadata=True
-        )
-        for vec in combined_results.matches:
-            print(vec.id, vec.score)
-        print(combined_results.usage)
-        ```
+            pc = Pinecone()
 
-        Args:
-            vector (List[float]): The query vector, must be the same length as the dimension of the index being queried.
-            namespaces (List[str]): The list of namespaces to query.
-            top_k (Optional[int], optional): The number of results you would like to request from each namespace. Defaults to 10.
-            metric (str): Must be one of 'cosine', 'euclidean', 'dotproduct'. This is needed in order to merge results across namespaces, since the interpretation of score depends on the index metric type.
-            filter (Optional[Dict[str, Union[str, float, int, bool, List, dict]]], optional): Pass an optional filter to filter results based on metadata. Defaults to None.
-            include_values (Optional[bool], optional): Boolean field indicating whether vector values should be included with results. Defaults to None.
-            include_metadata (Optional[bool], optional): Boolean field indicating whether vector metadata should be included with results. Defaults to None.
-            sparse_vector (Optional[ Union[SparseValues, Dict[str, Union[List[float], List[int]]]] ], optional): If you are working with a dotproduct index, you can pass a sparse vector as part of your hybrid search. Defaults to None.
+            index = pc.Index(
+                host="index-name",
+                pool_threads=32,
+                connection_pool_maxsize=32
+            )
 
-        Returns:
-            QueryNamespacesResults: A QueryNamespacesResults object containing the combined results from all namespaces, as well as the combined usage cost in read units.
+            query_vec = [0.1, 0.2, 0.3] # An embedding that matches the index dimension
+            combined_results = index.query_namespaces(
+                vector=query_vec,
+                namespaces=['ns1', 'ns2', 'ns3', 'ns4'],
+                metric="cosine",
+                top_k=10,
+                filter={'genre': {"$eq": "drama"}},
+                include_values=True,
+                include_metadata=True
+            )
+
+            for vec in combined_results.matches:
+                print(vec.id, vec.score)
+            print(combined_results.usage)
+
         """
         pass
 
@@ -572,9 +666,10 @@ class IndexInterface(ABC):
         If a set_metadata is included,
         the values of the fields specified in it will be added or overwrite the previous value.
 
-        API reference: https://docs.pinecone.io/reference/update
-
         Examples:
+
+        .. code-block:: python
+
             >>> index.update(id='id1', values=[1, 2, 3], namespace='my_namespace')
             >>> index.update(id='id1', set_metadata={'key': 'value'}, namespace='my_namespace')
             >>> index.update(id='id1', values=[1, 2, 3], sparse_values={'indices': [1, 2], 'values': [0.2, 0.4]},
@@ -605,18 +700,31 @@ class IndexInterface(ABC):
         The DescribeIndexStats operation returns statistics about the index's contents.
         For example: The vector count per namespace and the number of dimensions.
 
-        API reference: https://docs.pinecone.io/reference/describe_index_stats_post
-
-        Examples:
-            >>> index.describe_index_stats()
-            >>> index.describe_index_stats(filter={'key': 'value'})
-
         Args:
             filter (Dict[str, Union[str, float, int, bool, List, dict]]):
             If this parameter is present, the operation only returns statistics for vectors that satisfy the filter.
-            See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
+            See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
 
         Returns: DescribeIndexStatsResponse object which contains stats about the index.
+
+        .. code-block:: python
+
+            >>> pc = Pinecone()
+            >>> index = pc.Index(name="my-index")
+            >>> index.describe_index_stats()
+            {'dimension': 1536,
+            'index_fullness': 0.0,
+            'metric': 'cosine',
+            'namespaces': {'ns0': {'vector_count': 700},
+                            'ns1': {'vector_count': 700},
+                            'ns2': {'vector_count': 500},
+                            'ns3': {'vector_count': 100},
+                            'ns4': {'vector_count': 100},
+                            'ns5': {'vector_count': 50},
+                            'ns6': {'vector_count': 50}},
+            'total_vector_count': 2200,
+            'vector_type': 'dense'}
+
         """
         pass
 
@@ -637,6 +745,9 @@ class IndexInterface(ABC):
         Consider using the `list` method to avoid having to handle pagination tokens manually.
 
         Examples:
+
+        .. code-block:: python
+
             >>> results = index.list_paginated(prefix='99', limit=5, namespace='my_namespace')
             >>> [v.id for v in results.vectors]
             ['99', '990', '991', '992', '993']

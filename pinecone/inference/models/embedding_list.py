@@ -8,7 +8,10 @@ class EmbeddingsList:
 
     def __init__(self, embeddings_list: OpenAPIEmbeddingsList):
         self.embeddings_list = embeddings_list
+        """ :meta private: """
+
         self.current = 0
+        """ :meta private: """
 
     def __getitem__(self, index):
         return self.embeddings_list.get("data")[index]

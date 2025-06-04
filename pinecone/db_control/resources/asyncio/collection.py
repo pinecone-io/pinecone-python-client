@@ -6,7 +6,7 @@ from pinecone.db_control.request_factory import PineconeDBControlRequestFactory
 from pinecone.utils import require_kwargs
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 
 class CollectionResourceAsyncio:

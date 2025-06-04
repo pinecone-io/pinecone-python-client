@@ -6,7 +6,7 @@ from pinecone.db_control.request_factory import PineconeDBControlRequestFactory
 from pinecone.utils import PluginAware, require_kwargs
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 if TYPE_CHECKING:
     from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
@@ -22,17 +22,16 @@ class CollectionResource(PluginAware):
         pool_threads: int,
     ):
         self.index_api = index_api
-        """ @private """
-
+        """ :meta private: """
 
         self.config = config
-        """ @private """
+        """ :meta private: """
 
         self._openapi_config = openapi_config
-        """ @private """
+        """ :meta private: """
 
         self._pool_threads = pool_threads
-        """ @private """
+        """ :meta private: """
 
         super().__init__()  # Initialize PluginAware
 

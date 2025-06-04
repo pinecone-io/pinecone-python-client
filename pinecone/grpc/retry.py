@@ -8,7 +8,7 @@ import grpc
 
 
 _logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 
 class SleepPolicy(abc.ABC):
