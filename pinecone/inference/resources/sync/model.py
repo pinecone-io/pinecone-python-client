@@ -18,22 +18,22 @@ class Model(PluginAware):
         **kwargs,
     ) -> None:
         self._config = config
-        """ @private """
+        """ :meta private: """
 
         self._openapi_config = openapi_config
-        """ @private """
+        """ :meta private: """
 
         self._pool_threads = kwargs.get("pool_threads", 1)
-        """ @private """
+        """ :meta private: """
 
         self.__inference_api = inference_api
-        """ @private """
+        """ :meta private: """
 
         super().__init__()  # Initialize PluginAware
 
     @property
     def config(self) -> "Config":
-        """@private"""
+        """:meta private:"""
         # The config property is considered private, but the name cannot be changed to include underscore
         # without breaking compatibility with plugins in the wild.
         return self._config

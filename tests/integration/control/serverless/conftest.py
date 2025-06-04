@@ -6,7 +6,7 @@ from pinecone import Pinecone, NotFoundException, PineconeApiException
 from ...helpers import generate_index_name, get_environment_var
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 
 @pytest.fixture()

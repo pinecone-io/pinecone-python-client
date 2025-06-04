@@ -12,7 +12,7 @@ from pinecone.db_control.request_factory import PineconeDBControlRequestFactory
 from pinecone.core.openapi.db_control import API_VERSION
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 if TYPE_CHECKING:
     from pinecone.config import Config, OpenApiConfiguration
@@ -39,19 +39,19 @@ class IndexResource(PluginAware):
         pool_threads: int,
     ):
         self._index_api = index_api
-        """ @private """
+        """ :meta private: """
 
         self.config = config
-        """ @private """
+        """ :meta private: """
 
         self._openapi_config = openapi_config
-        """ @private """
+        """ :meta private: """
 
         self._pool_threads = pool_threads
-        """ @private """
+        """ :meta private: """
 
         self._index_host_store = IndexHostStore()
-        """ @private """
+        """ :meta private: """
 
         super().__init__()  # Initialize PluginAware
 
@@ -238,7 +238,7 @@ class IndexResource(PluginAware):
         api_instance.configure_index(name, configure_index_request=req)
 
     def _get_host(self, name: str) -> str:
-        """@private"""
+        """:meta private:"""
         return self._index_host_store.get_host(
             api=self._index_api, config=self.config, index_name=name
         )

@@ -12,3 +12,22 @@ div.admonition p.admonition-title {
 .blurb {
     font-size: 16px;
 }
+
+p.admonition-title:after {
+    content: "";
+}
+
+div.code-block-caption {
+    background-color: #EEE;
+    border-bottom: 1px solid #CCC;
+    font-size: 17px;
+    padding: 10px;
+}
+
+dt:target {
+    background-color: #E8E8E8;
+}
+
+.highlight {
+    background-color: #F8F8F8;
+}

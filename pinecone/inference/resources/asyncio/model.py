@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 class ModelAsyncio:
     def __init__(self, inference_api: "AsyncioInferenceApi") -> None:
         self.__inference_api = inference_api
-        """ @private """
+        """ :meta private: """
 
         super().__init__()  # Initialize PluginAware
 

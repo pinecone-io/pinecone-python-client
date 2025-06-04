@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from pinecone.db_control.index_host_store import IndexHostStore
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 
 class PineconeAsyncio(PineconeAsyncioDBControlInterface):
@@ -98,16 +98,16 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
             ssl_verify=ssl_verify,
             **kwargs,
         )
-        """ @private """
+        """ :meta private: """
 
         self._openapi_config = ConfigBuilder.build_openapi_config(self._config, **kwargs)
-        """ @private """
+        """ :meta private: """
 
         self._inference = None  # Lazy initialization
-        """ @private """
+        """ :meta private: """
 
         self._db_control = None  # Lazy initialization
-        """ @private """
+        """ :meta private: """
 
     async def __aenter__(self):
         return self
@@ -175,7 +175,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
 
     @property
     def index_host_store(self) -> "IndexHostStore":
-        """@private"""
+        """:meta private:"""
         warnings.warn(
             "The `index_host_store` property is deprecated. This warning will become an error in a future version of the Pinecone Python SDK.",
             DeprecationWarning,
@@ -185,7 +185,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
 
     @property
     def index_api(self) -> "AsyncioManageIndexesApi":
-        """@private"""
+        """:meta private:"""
         warnings.warn(
             "The `index_api` property is deprecated. This warning will become an error in a future version of the Pinecone Python SDK.",
             DeprecationWarning,

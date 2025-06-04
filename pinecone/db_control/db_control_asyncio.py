@@ -8,7 +8,7 @@ from pinecone.utils import setup_async_openapi_client
 from pinecone.core.openapi.db_control import API_VERSION
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 
 if TYPE_CHECKING:
@@ -22,10 +22,10 @@ if TYPE_CHECKING:
 class DBControlAsyncio:
     def __init__(self, config: "Config", openapi_config: "OpenApiConfiguration") -> None:
         self._config = config
-        """ @private """
+        """ :meta private: """
 
         self._openapi_config = openapi_config
-        """ @private """
+        """ :meta private: """
 
         self._index_api = setup_async_openapi_client(
             api_client_klass=AsyncioApiClient,
@@ -34,19 +34,19 @@ class DBControlAsyncio:
             openapi_config=self._openapi_config,
             api_version=API_VERSION,
         )
-        """ @private """
+        """ :meta private: """
 
         self._index_resource: Optional["IndexResourceAsyncio"] = None
-        """ @private """
+        """ :meta private: """
 
         self._collection_resource: Optional["CollectionResourceAsyncio"] = None
-        """ @private """
+        """ :meta private: """
 
         self._restore_job_resource: Optional["RestoreJobResourceAsyncio"] = None
-        """ @private """
+        """ :meta private: """
 
         self._backup_resource: Optional["BackupResourceAsyncio"] = None
-        """ @private """
+        """ :meta private: """
 
     @property
     def index(self) -> "IndexResourceAsyncio":

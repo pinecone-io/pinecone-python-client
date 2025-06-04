@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from .models import ModelInfo, ModelInfoList
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 
 class Inference(PluginAware):
@@ -59,13 +59,13 @@ class Inference(PluginAware):
         **kwargs,
     ) -> None:
         self._config = config
-        """ @private """
+        """ :meta private: """
 
         self._openapi_config = openapi_config
-        """ @private """
+        """ :meta private: """
 
         self._pool_threads = pool_threads
-        """ @private """
+        """ :meta private: """
 
         self.__inference_api = setup_openapi_client(
             api_client_klass=ApiClient,
@@ -77,20 +77,20 @@ class Inference(PluginAware):
         )
 
         self._model: Optional["ModelResource"] = None  # Lazy initialization
-        """ @private """
+        """ :meta private: """
 
         super().__init__()  # Initialize PluginAware
 
     @property
     def config(self) -> "Config":
-        """@private"""
+        """:meta private:"""
         # The config property is considered private, but the name cannot be changed to include underscore
         # without breaking compatibility with plugins in the wild.
         return self._config
 
     @property
     def openapi_config(self) -> "OpenApiConfiguration":
-        """@private"""
+        """:meta private:"""
         warnings.warn(
             "The `openapi_config` property has been renamed to `_openapi_config`. It is considered private and should not be used directly. This warning will become an error in a future version of the Pinecone Python SDK.",
             DeprecationWarning,
@@ -100,7 +100,7 @@ class Inference(PluginAware):
 
     @property
     def pool_threads(self) -> int:
-        """@private"""
+        """:meta private:"""
         warnings.warn(
             "The `pool_threads` property has been renamed to `_pool_threads`. It is considered private and should not be used directly. This warning will become an error in a future version of the Pinecone Python SDK.",
             DeprecationWarning,

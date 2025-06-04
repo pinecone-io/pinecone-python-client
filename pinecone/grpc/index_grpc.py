@@ -54,7 +54,7 @@ from ..db_data.types import (
 __all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues"]
 
 _logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 
 class GRPCIndex(GRPCIndexBase):
@@ -62,7 +62,7 @@ class GRPCIndex(GRPCIndexBase):
 
     @property
     def stub_class(self):
-        """@private"""
+        """:meta private:"""
         return VectorServiceStub
 
     def upsert(
@@ -253,7 +253,7 @@ class GRPCIndex(GRPCIndexBase):
             filter (FilterTypedDict):
                     If specified, the metadata filter here will be used to select the vectors to delete.
                     This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True.
-                     See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
+                     See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
             async_req (bool): If True, the delete operation will be performed asynchronously.
                               Defaults to False. [optional]
 
@@ -383,7 +383,7 @@ class GRPCIndex(GRPCIndexBase):
                              If not specified, the default namespace is used. [optional]
             filter (Dict[str, Union[str, float, int, bool, List, dict]]):
                     The filter to apply. You can use vector metadata to limit your search.
-                    See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
+                    See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
             include_values (bool): Indicates whether vector values are included in the response.
                                    If omitted the server will use the default value of False [optional]
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.
@@ -652,7 +652,7 @@ class GRPCIndex(GRPCIndexBase):
         Args:
             filter (Dict[str, Union[str, float, int, bool, List, dict]]):
             If this parameter is present, the operation only returns statistics for vectors that satisfy the filter.
-            See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
+            See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
 
         Returns: DescribeIndexStatsResponse object which contains stats about the index.
         """

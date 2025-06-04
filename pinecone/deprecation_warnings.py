@@ -9,7 +9,7 @@ Example:
 
 
 def init(*args, **kwargs):
-    """@private"""
+    """:meta private:"""
     example = """
     import os
     from pinecone import Pinecone, ServerlessSpec
@@ -41,7 +41,7 @@ Example:
 
 
 def list_indexes(*args, **kwargs):
-    """@private"""
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
 
@@ -56,7 +56,7 @@ def list_indexes(*args, **kwargs):
 
 
 def describe_index(*args, **kwargs):
-    """@private"""
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
 
@@ -67,7 +67,7 @@ def describe_index(*args, **kwargs):
 
 
 def create_index(*args, **kwargs):
-    """@private"""
+    """:meta private:"""
     example = """
     from pinecone import Pinecone, ServerlessSpec
 
@@ -86,7 +86,7 @@ def create_index(*args, **kwargs):
 
 
 def delete_index(*args, **kwargs):
-    """@private"""
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
 
@@ -97,7 +97,7 @@ def delete_index(*args, **kwargs):
 
 
 def scale_index(*args, **kwargs):
-    """@private"""
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
 
@@ -116,7 +116,7 @@ Example:
 
 
 def create_collection(*args, **kwargs):
-    """@private"""
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
 
@@ -127,7 +127,7 @@ def create_collection(*args, **kwargs):
 
 
 def list_collections(*args, **kwargs):
-    """@private"""
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
 
@@ -138,7 +138,7 @@ def list_collections(*args, **kwargs):
 
 
 def delete_collection(*args, **kwargs):
-    """@private"""
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
 
@@ -149,7 +149,7 @@ def delete_collection(*args, **kwargs):
 
 
 def describe_collection(*args, **kwargs):
-    """@private"""
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
 
@@ -160,7 +160,7 @@ def describe_collection(*args, **kwargs):
 
 
 def configure_index(*args, **kwargs):
-    """@private"""
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
 

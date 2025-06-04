@@ -87,10 +87,10 @@ class LegacyPineconeDBControlInterface(ABC):
         :type tags: Optional[Dict[str, str]]
         :return: A ``IndexModel`` instance containing a description of the index that was created.
 
-        Creating a serverless index
-        ---------------------------
+        Examples:
 
         .. code-block:: python
+            :caption: Creating a serverless index
 
             import os
             from pinecone import (
@@ -122,10 +122,8 @@ class LegacyPineconeDBControlInterface(ABC):
                 }
             )
 
-        Creating a pod index
-        ---------------------
-
         .. code-block:: python
+            :caption: Creating a pod index
 
             import os
             from pinecone import (

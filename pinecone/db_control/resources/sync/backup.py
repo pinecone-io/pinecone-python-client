@@ -18,16 +18,16 @@ class BackupResource(PluginAware):
         pool_threads: int,
     ):
         self._index_api = index_api
-        """ @private """
+        """ :meta private: """
 
         self.config = config
-        """ @private """
+        """ :meta private: """
 
         self._openapi_config = openapi_config
-        """ @private """
+        """ :meta private: """
 
         self._pool_threads = pool_threads
-        """ @private """
+        """ :meta private: """
 
         super().__init__()  # Initialize PluginAware
 

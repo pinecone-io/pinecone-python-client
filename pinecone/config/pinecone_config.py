@@ -5,7 +5,7 @@ import os
 from .config import ConfigBuilder, Config
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 DEFAULT_CONTROLLER_HOST = "https://api.pinecone.io"
 

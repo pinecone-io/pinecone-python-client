@@ -51,35 +51,43 @@ class IndexInterface(ABC):
             `UpsertResponse`, includes the number of vectors upserted.
 
 
-        The upsert operation writes vectors into a namespace.
+        The upsert operation writes vectors into a namespace of your index.
+
         If a new value is upserted for an existing vector id, it will overwrite the previous value.
 
-        To upsert in parallel follow: https://docs.pinecone.io/docs/insert-data#sending-upserts-in-parallel
+        To upsert in parallel follow `this link <https://docs.pinecone.io/docs/insert-data#sending-upserts-in-parallel>`_.
 
         **Upserting dense vectors**
 
-        .. admonition:: Note
-
-            The dimension of each dense vector must match the dimension of the index.
+        When working with dense vectors, the dimension of each vector must match the dimension configured for the
+        index.
 
         A vector can be represented in a variety of ways.
 
         .. code-block:: python
+            :caption: Upserting a dense vector using the Vector object
+            :emphasize-lines: 9-13
 
             from pinecone import Pinecone, Vector
 
             pc = Pinecone()
-            idx = pc.Index("index-name")
+            idx = pc.Index(name="index-name")
 
-            # A Vector object
             idx.upsert(
                 namespace = 'my-namespace',
                 vectors = [
-                    Vector(id='id1', values=[0.1, 0.2, 0.3, 0.4], metadata={'metadata_key': 'metadata_value'}),
+                    Vector(
+                        id='id1',
+                        values=[0.1, 0.2, 0.3, 0.4],
+                        metadata={'metadata_key': 'metadata_value'}
+                    ),
                 ]
             )
 
-            # A vector tuple
+        .. code-block:: python
+            :caption: Upserting a dense vector as a two-element tuple (no metadata)
+            :emphasize-lines: 4
+
             idx.upsert(
                 namespace = 'my-namespace',
                 vectors = [
@@ -87,44 +95,96 @@ class IndexInterface(ABC):
                 ]
             )
 
-            # A vector tuple with metadata
+        .. code-block:: python
+            :caption: Upserting a dense vector as a three-element tuple with metadata
+            :emphasize-lines: 4-8
+
             idx.upsert(
                 namespace = 'my-namespace',
                 vectors = [
-                    ('id1', [0.1, 0.2, 0.3, 0.4], {'metadata_key': 'metadata_value'}),
+                    (
+                        'id1',
+                        [0.1, 0.2, 0.3, 0.4],
+                        {'metadata_key': 'metadata_value'}
+                    ),
                 ]
             )
 
-            # A vector dictionary
+        .. code-block:: python
+            :caption: Upserting a dense vector using a vector dictionary
+            :emphasize-lines: 4-8
+
             idx.upsert(
                 namespace = 'my-namespace',
                 vectors = [
-                    {"id": 1, "values": [0.1, 0.2, 0.3, 0.4], "metadata": {"metadata_key": "metadata_value"}},
+                    {
+                        "id": 1,
+                        "values": [0.1, 0.2, 0.3, 0.4],
+                        "metadata": {"metadata_key": "metadata_value"}
+                    },
                 ]
-
 
         **Upserting sparse vectors**
 
         .. code-block:: python
+            :caption: Upserting a sparse vector
+            :emphasize-lines: 32-38
 
-            from pinecone import Pinecone, Vector, SparseValues
+            from pinecone import (
+                Pinecone,
+                Metric,
+                Vector,
+                SparseValues,
+                VectorType,
+                ServerlessSpec,
+                CloudProvider,
+                AwsRegion
+            )
 
-            pc = Pinecone()
-            idx = pc.Index("index-name")
+            pc = Pinecone() # Reads PINECONE_API_KEY from environment variable
 
-            # A Vector object
+            # Create a sparse index
+            index_description = pc.create_index(
+                name="example-sparse",
+                metric=Metric.Dotproduct,
+                vector_type=VectorType.Sparse,
+                spec=ServerlessSpec(
+                    cloud=CloudProvider.AWS,
+                    region=AwsRegion.US_WEST_2,
+                )
+            )
+
+            # Target the index created above
+            idx = pc.Index(host=index_description.host)
+
+            # Upsert a sparse vector
             idx.upsert(
-                namespace = 'my-namespace',
-                vectors = [
-                    Vector(id='id1', sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4])),
+                namespace='my-namespace',
+                vectors=[
+                    Vector(
+                        id='id1',
+                        sparse_values=SparseValues(
+                            indices=[1, 2],
+                            values=[0.2, 0.4]
+                        )
+                    ),
                 ]
             )
 
-            # A dictionary
+        .. code-block:: python
+            :caption: Upserting a sparse vector using a dictionary
+            :emphasize-lines: 4-10
+
             idx.upsert(
                 namespace = 'my-namespace',
                 vectors = [
-                    {"id": 1, "sparse_values": {"indices": [1, 2], "values": [0.2, 0.4]}},
+                    {
+                        "id": 1,
+                        "sparse_values": {
+                            "indices": [1, 2],
+                            "values": [0.2, 0.4]
+                        }
+                    },
                 ]
             )
 
@@ -134,30 +194,37 @@ class IndexInterface(ABC):
         If you have a large number of vectors, you can upsert them in batches.
 
         .. code-block:: python
+            :caption: Upserting in batches
+            :emphasize-lines: 19
 
             from pinecone import Pinecone, Vector
+            import random
 
             pc = Pinecone()
-            idx = pc.Index("index-name")
+            idx = pc.Index(host="example-index-dojoi3u.svc.preprod-aws-0.pinecone.io")
+
+            # Create some fake vector data for demonstration
+            num_vectors = 100000
+            vectors = [
+                Vector(
+                    id=f'id{i}',
+                    values=[random.random() for _ in range(1536)])
+                for i in range(num_vectors)
+            ]
 
             idx.upsert(
-                namespace = 'my-namespace',
-                vectors = [
-                    {'id': 'id1', 'values': [0.1, 0.2, 0.3, 0.4]},
-                    {'id': 'id2', 'values': [0.2, 0.3, 0.4, 0.5]},
-                    {'id': 'id3', 'values': [0.3, 0.4, 0.5, 0.6]},
-                    {'id': 'id4', 'values': [0.4, 0.5, 0.6, 0.7]},
-                    {'id': 'id5', 'values': [0.5, 0.6, 0.7, 0.8]},
-                    # More vectors here
-                ],
-                batch_size = 50
+                namespace='my-namespace',
+                vectors=vectors,
+                batch_size=50
             )
 
 
         **Visual progress bar with tqdm**
 
-        To see a progress bar when upserting in batches, you will need to separately install the `tqdm` package.
-        If `tqdm` is present, the client will detect and use it to display progress when `show_progress=True`.
+        To see a progress bar when upserting in batches, you will need to separately install `tqdm <https://tqdm.github.io/>`_.
+        If ``tqdm`` is present, the client will detect and use it to display progress when ``show_progress=True``.
+
+
         """
         pass
 
@@ -182,6 +249,7 @@ class IndexInterface(ABC):
         :type namespace: str, required
         :param records: The records to upsert into the index.
         :type records: List[Dict], required
+        :return: UpsertResponse object which contains the number of records upserted.
 
         Upsert records to a namespace. A record is a dictionary that contains eitiher an `id` or `_id`
         field along with other fields that will be stored as metadata. The `id` or `_id` field is used
@@ -192,6 +260,7 @@ class IndexInterface(ABC):
         the specified namespacce of the index.
 
         .. code-block:: python
+            :caption: Upserting records to be embedded with Pinecone's integrated inference models
 
             from pinecone import (
                 Pinecone,
@@ -203,7 +272,7 @@ class IndexInterface(ABC):
 
             pc = Pinecone(api_key="<<PINECONE_API_KEY>>")
 
-            # Create an index for your embedding model
+            # Create an index configured for the multilingual-e5-large model
             index_model = pc.create_index_for_model(
                 name="my-model-index",
                 cloud=CloudProvider.AWS,
@@ -250,7 +319,7 @@ class IndexInterface(ABC):
 
             from pinecone import SearchQuery, SearchRerank, RerankModel
 
-            # search for similar records
+            # Search for similar records
             response = idx.search_records(
                 namespace="my-namespace",
                 query=SearchQuery(
@@ -399,14 +468,14 @@ class IndexInterface(ABC):
             filter (Dict[str, Union[str, float, int, bool, List, dict]]):
                     If specified, the metadata filter here will be used to select the vectors to delete.
                     This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True.
-                    See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
+                    See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
 
 
         The Delete operation deletes vectors from the index, from a single namespace.
 
         No error is raised if the vector id does not exist.
 
-        Note: For any delete call, if namespace is not specified, the default namespace `""` is used.
+        Note: For any delete call, if namespace is not specified, the default namespace ``""`` is used.
         Since the delete operation does not error when ids are not present, this means you may not receive
         an error if you delete from the wrong namespace.
 
@@ -495,7 +564,7 @@ class IndexInterface(ABC):
                              If not specified, the default namespace is used. [optional]
             filter (Dict[str, Union[str, float, int, bool, List, dict]):
                     The filter to apply. You can use vector metadata to limit your search.
-                    See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
+                    See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
             include_values (bool): Indicates whether vector values are included in the response.
                                    If omitted the server will use the default value of False [optional]
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.
@@ -521,9 +590,33 @@ class IndexInterface(ABC):
         sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> QueryNamespacesResults:
-        """The query_namespaces() method is used to make a query to multiple namespaces in parallel and combine the results into one result set.
+        """The ``query_namespaces()`` method is used to make a query to multiple namespaces in parallel and combine the results into one result set.
 
-        Since several asynchronous calls are made on your behalf when calling this method, you will need to tune the pool_threads and connection_pool_maxsize parameter of the Index constructor to suite your workload.
+        :param vector: The query vector, must be the same length as the dimension of the index being queried.
+        :type vector: List[float]
+        :param namespaces: The list of namespaces to query.
+        :type namespaces: List[str]
+        :param top_k: The number of results you would like to request from each namespace. Defaults to 10.
+        :type top_k: Optional[int]
+        :param metric: Must be one of 'cosine', 'euclidean', 'dotproduct'. This is needed in order to merge results across namespaces, since the interpretation of score depends on the index metric type.
+        :type metric: str
+        :param filter: Pass an optional filter to filter results based on metadata. Defaults to None.
+        :type filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]]
+        :param include_values: Boolean field indicating whether vector values should be included with results. Defaults to None.
+        :type include_values: Optional[bool]
+        :param include_metadata: Boolean field indicating whether vector metadata should be included with results. Defaults to None.
+        :type include_metadata: Optional[bool]
+        :param sparse_vector: If you are working with a dotproduct index, you can pass a sparse vector as part of your hybrid search. Defaults to None.
+        :type sparse_vector: Optional[ Union[SparseValues, Dict[str, Union[List[float], List[int]]]] ]
+        :return: A QueryNamespacesResults object containing the combined results from all namespaces, as well as the combined usage cost in read units.
+        :rtype: QueryNamespacesResults
+
+        .. admonition:: Note
+
+            Since several asynchronous calls are made on your behalf when calling this method, you will need to tune
+            the **pool_threads** and **connection_pool_maxsize** parameter of the Index constructor to suite your workload.
+            If these values are too small in relation to your workload, you will experience performance issues as
+            requests queue up while waiting for a request thread to become available.
 
         Examples:
 
@@ -531,7 +624,8 @@ class IndexInterface(ABC):
 
             from pinecone import Pinecone
 
-            pc = Pinecone(api_key="your-api-key")
+            pc = Pinecone()
+
             index = pc.Index(
                 host="index-name",
                 pool_threads=32,
@@ -548,23 +642,11 @@ class IndexInterface(ABC):
                 include_values=True,
                 include_metadata=True
             )
+
             for vec in combined_results.matches:
                 print(vec.id, vec.score)
             print(combined_results.usage)
 
-
-        Args:
-            vector (List[float]): The query vector, must be the same length as the dimension of the index being queried.
-            namespaces (List[str]): The list of namespaces to query.
-            top_k (Optional[int], optional): The number of results you would like to request from each namespace. Defaults to 10.
-            metric (str): Must be one of 'cosine', 'euclidean', 'dotproduct'. This is needed in order to merge results across namespaces, since the interpretation of score depends on the index metric type.
-            filter (Optional[Dict[str, Union[str, float, int, bool, List, dict]]], optional): Pass an optional filter to filter results based on metadata. Defaults to None.
-            include_values (Optional[bool], optional): Boolean field indicating whether vector values should be included with results. Defaults to None.
-            include_metadata (Optional[bool], optional): Boolean field indicating whether vector metadata should be included with results. Defaults to None.
-            sparse_vector (Optional[ Union[SparseValues, Dict[str, Union[List[float], List[int]]]] ], optional): If you are working with a dotproduct index, you can pass a sparse vector as part of your hybrid search. Defaults to None.
-
-        Returns:
-            QueryNamespacesResults: A QueryNamespacesResults object containing the combined results from all namespaces, as well as the combined usage cost in read units.
         """
         pass
 
@@ -621,16 +703,27 @@ class IndexInterface(ABC):
         Args:
             filter (Dict[str, Union[str, float, int, bool, List, dict]]):
             If this parameter is present, the operation only returns statistics for vectors that satisfy the filter.
-            See https://www.pinecone.io/docs/metadata-filtering/.. [optional]
+            See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
 
         Returns: DescribeIndexStatsResponse object which contains stats about the index.
 
         .. code-block:: python
 
             >>> pc = Pinecone()
-            >>> index = pc.Index(index_name="my-index")
+            >>> index = pc.Index(name="my-index")
             >>> index.describe_index_stats()
-            >>> index.describe_index_stats(filter={'key': 'value'})
+            {'dimension': 1536,
+            'index_fullness': 0.0,
+            'metric': 'cosine',
+            'namespaces': {'ns0': {'vector_count': 700},
+                            'ns1': {'vector_count': 700},
+                            'ns2': {'vector_count': 500},
+                            'ns3': {'vector_count': 100},
+                            'ns4': {'vector_count': 100},
+                            'ns5': {'vector_count': 50},
+                            'ns6': {'vector_count': 50}},
+            'total_vector_count': 2200,
+            'vector_type': 'dense'}
 
         """
         pass

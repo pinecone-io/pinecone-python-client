@@ -11,7 +11,7 @@ from pinecone.utils import normalize_host, PluginAware, docslinks, require_kwarg
 from .langchain_import_warnings import _build_langchain_attribute_error_message
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 if TYPE_CHECKING:
     from pinecone.config import Config, OpenApiConfiguration
@@ -223,23 +223,23 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
             ssl_verify=ssl_verify,
             **kwargs,
         )
-        """ @private """
+        """ :meta private: """
 
         self._openapi_config = ConfigBuilder.build_openapi_config(self._config, **kwargs)
-        """ @private """
+        """ :meta private: """
 
         if pool_threads is None:
             self._pool_threads = 5 * cpu_count()
-            """ @private """
+            """ :meta private: """
         else:
             self._pool_threads = pool_threads
-            """ @private """
+            """ :meta private: """
 
         self._inference = None  # Lazy initialization
-        """ @private """
+        """ :meta private: """
 
         self._db_control = None  # Lazy initialization
-        """ @private """
+        """ :meta private: """
 
         super().__init__()  # Initialize PluginAware
 
@@ -275,7 +275,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
 
     @property
     def index_host_store(self) -> "IndexHostStore":
-        """@private"""
+        """:meta private:"""
         warnings.warn(
             "The `index_host_store` property is deprecated. This warning will become an error in a future version of the Pinecone Python SDK.",
             DeprecationWarning,
@@ -285,14 +285,14 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
 
     @property
     def config(self) -> "Config":
-        """@private"""
+        """:meta private:"""
         # The config property is considered private, but the name cannot be changed to include underscore
         # without breaking compatibility with plugins in the wild.
         return self._config
 
     @property
     def openapi_config(self) -> "OpenApiConfiguration":
-        """@private"""
+        """:meta private:"""
         warnings.warn(
             "The `openapi_config` property has been renamed to `_openapi_config`. It is considered private and should not be used directly. This warning will become an error in a future version of the Pinecone Python SDK.",
             DeprecationWarning,
@@ -302,7 +302,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
 
     @property
     def pool_threads(self) -> int:
-        """@private"""
+        """:meta private:"""
         warnings.warn(
             "The `pool_threads` property has been renamed to `_pool_threads`. It is considered private and should not be used directly. This warning will become an error in a future version of the Pinecone Python SDK.",
             DeprecationWarning,
@@ -312,7 +312,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
 
     @property
     def index_api(self) -> "ManageIndexesApi":
-        """@private"""
+        """:meta private:"""
         warnings.warn(
             "The `index_api` property is deprecated. This warning will become an error in a future version of the Pinecone Python SDK.",
             DeprecationWarning,
@@ -460,12 +460,12 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
 
     @staticmethod
     def from_texts(*args, **kwargs):
-        """@private"""
+        """:meta private:"""
         raise AttributeError(_build_langchain_attribute_error_message("from_texts"))
 
     @staticmethod
     def from_documents(*args, **kwargs):
-        """@private"""
+        """:meta private:"""
         raise AttributeError(_build_langchain_attribute_error_message("from_documents"))
 
     def Index(self, name: str = "", host: str = "", **kwargs) -> "Index":
@@ -518,7 +518,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
 
 
 def check_realistic_host(host: str) -> None:
-    """@private
+    """:meta private:
 
     Checks whether a user-provided host string seems plausible.
     Someone could erroneously pass an index name as the host by
