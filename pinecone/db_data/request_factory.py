@@ -33,7 +33,7 @@ from .types import (
 from .dataclasses import Vector, SparseValues, SearchQuery, SearchRerank, SearchQueryVector
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 
 def non_openapi_kwargs(kwargs: Dict[str, Any]) -> Dict[str, Any]:

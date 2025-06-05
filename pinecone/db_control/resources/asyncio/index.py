@@ -29,7 +29,7 @@ from pinecone.core.openapi.db_control import API_VERSION
 from pinecone.utils import require_kwargs
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 
 class IndexResourceAsyncio:

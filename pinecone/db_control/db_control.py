@@ -9,7 +9,7 @@ from pinecone.core.openapi.db_control import API_VERSION
 
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 if TYPE_CHECKING:
     from .resources.sync.index import IndexResource
@@ -24,13 +24,13 @@ class DBControl(PluginAware):
         self, config: "Config", openapi_config: "OpenApiConfiguration", pool_threads: int
     ) -> None:
         self.config = config
-        """ @private """
+        """ :meta private: """
 
         self._openapi_config = openapi_config
-        """ @private """
+        """ :meta private: """
 
         self._pool_threads = pool_threads
-        """ @private """
+        """ :meta private: """
 
         self._index_api = setup_openapi_client(
             api_client_klass=ApiClient,
@@ -40,19 +40,19 @@ class DBControl(PluginAware):
             pool_threads=self._pool_threads,
             api_version=API_VERSION,
         )
-        """ @private """
+        """ :meta private: """
 
         self._index_resource: Optional["IndexResource"] = None
-        """ @private """
+        """ :meta private: """
 
         self._collection_resource: Optional["CollectionResource"] = None
-        """ @private """
+        """ :meta private: """
 
         self._restore_job_resource: Optional["RestoreJobResource"] = None
-        """ @private """
+        """ :meta private: """
 
         self._backup_resource: Optional["BackupResource"] = None
-        """ @private """
+        """ :meta private: """
 
         super().__init__()  # Initialize PluginAware
 

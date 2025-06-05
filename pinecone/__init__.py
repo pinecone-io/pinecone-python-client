@@ -71,8 +71,6 @@ _db_data_lazy_imports = {
         "pinecone.db_data.errors",
         "SparseValuesDictionaryExpectedError",
     ),
-    "Index": ("pinecone.db_data.import_error", "Index"),
-    "Inference": ("pinecone.db_data.import_error", "Inference"),
 }
 
 _db_control_lazy_imports = {

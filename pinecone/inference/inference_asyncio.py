@@ -42,13 +42,13 @@ class AsyncioInference:
 
     def __init__(self, api_client, **kwargs) -> None:
         self.api_client = api_client
-        """ @private """
+        """ :meta private: """
 
         self._model: Optional["ModelAsyncioResource"] = None
-        """ @private """
+        """ :meta private: """
 
         self.__inference_api = AsyncioInferenceApi(api_client)
-        """ @private """
+        """ :meta private: """
 
     async def embed(
         self,

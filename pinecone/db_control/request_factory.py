@@ -49,12 +49,12 @@ from .types import CreateIndexForModelEmbedTypedDict
 
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 
 class PineconeDBControlRequestFactory:
     """
-    @private
+    :meta private:
 
     This class facilitates translating user inputs into request objects.
     """

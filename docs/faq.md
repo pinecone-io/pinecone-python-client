@@ -1,3 +1,5 @@
+# FAQ
+
 ## How does connection pooling work in the Pinecone SDK?
 
 Before any data can be sent or received from Pinecone, your application must first establish a TCP connection with our API gateway. Establishing a TCP connection is a costly operation from a performance standpoint and so we use connection pooling to cache and reuse these connections across many different requests.

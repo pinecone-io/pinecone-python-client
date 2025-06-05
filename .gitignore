@@ -144,6 +144,7 @@ venv.bak/
 pdoc/*
 !pdoc/pinecone-python-client-fork.png
 !pdoc/favicon-32x32.png
+docsbuild
 
 # mypy
 .mypy_cache/

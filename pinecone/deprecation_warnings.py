@@ -9,6 +9,7 @@ Example:
 
 
 def init(*args, **kwargs):
+    """:meta private:"""
     example = """
     import os
     from pinecone import Pinecone, ServerlessSpec
@@ -20,8 +21,8 @@ def init(*args, **kwargs):
     # Now do stuff
     if 'my_index' not in pc.list_indexes().names():
         pc.create_index(
-            name='my_index', 
-            dimension=1536, 
+            name='my_index',
+            dimension=1536,
             metric='euclidean',
             spec=ServerlessSpec(
                 cloud='aws',
@@ -40,9 +41,10 @@ Example:
 
 
 def list_indexes(*args, **kwargs):
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
-    
+
     pc = Pinecone(api_key='YOUR_API_KEY')
 
     index_name = "quickstart" # or your index name
@@ -54,9 +56,10 @@ def list_indexes(*args, **kwargs):
 
 
 def describe_index(*args, **kwargs):
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
-    
+
     pc = Pinecone(api_key='YOUR_API_KEY')
     pc.describe_index('my_index')
 """
@@ -64,6 +67,7 @@ def describe_index(*args, **kwargs):
 
 
 def create_index(*args, **kwargs):
+    """:meta private:"""
     example = """
     from pinecone import Pinecone, ServerlessSpec
 
@@ -82,6 +86,7 @@ def create_index(*args, **kwargs):
 
 
 def delete_index(*args, **kwargs):
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
 
@@ -92,6 +97,7 @@ def delete_index(*args, **kwargs):
 
 
 def scale_index(*args, **kwargs):
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
 
@@ -110,9 +116,10 @@ Example:
 
 
 def create_collection(*args, **kwargs):
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
-    
+
     pc = Pinecone(api_key='YOUR_API_KEY')
     pc.create_collection(name='my_collection', source='my_index')
 """
@@ -120,6 +127,7 @@ def create_collection(*args, **kwargs):
 
 
 def list_collections(*args, **kwargs):
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
 
@@ -130,9 +138,10 @@ def list_collections(*args, **kwargs):
 
 
 def delete_collection(*args, **kwargs):
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
-    
+
     pc = Pinecone(api_key='YOUR_API_KEY')
     pc.delete_collection('my_collection')
 """
@@ -140,9 +149,10 @@ def delete_collection(*args, **kwargs):
 
 
 def describe_collection(*args, **kwargs):
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
-    
+
     pc = Pinecone(api_key='YOUR_API_KEY')
     pc.describe_collection('my_collection')
 """
@@ -150,9 +160,10 @@ def describe_collection(*args, **kwargs):
 
 
 def configure_index(*args, **kwargs):
+    """:meta private:"""
     example = """
     from pinecone import Pinecone
-    
+
     pc = Pinecone(api_key='YOUR_API_KEY')
     pc.configure_index('my_index', replicas=2)
 """

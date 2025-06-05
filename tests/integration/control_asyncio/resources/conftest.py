@@ -9,7 +9,7 @@ from ...helpers import delete_indexes_from_run, delete_backups_from_run, default
 dotenv.load_dotenv()
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 # Generate a unique ID for the entire test run
 RUN_ID = str(uuid.uuid4())

@@ -25,7 +25,7 @@ class bcolors:
 
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 
 class Urllib3RestClient(RestClientInterface):

@@ -62,9 +62,9 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
-__all__ = ["_IndexAsyncio"]
+__all__ = ["_IndexAsyncio", "IndexAsyncio"]
 
 _OPENAPI_ENDPOINT_PARAMS = (
     "_return_http_data_only",
@@ -73,7 +73,7 @@ _OPENAPI_ENDPOINT_PARAMS = (
     "_check_input_type",
     "_check_return_type",
 )
-""" @private """
+""" :meta private: """
 
 
 def parse_query_response(response: QueryResponse):
@@ -141,10 +141,10 @@ class _IndexAsyncio(IndexAsyncioInterface):
     """
 
     _bulk_import_resource: Optional["BulkImportResourceAsyncio"]
-    """ @private """
+    """ :meta private: """
 
     _namespace_resource: Optional["NamespaceResourceAsyncio"]
-    """ @private """
+    """ :meta private: """
 
     def __init__(
         self,
@@ -157,9 +157,9 @@ class _IndexAsyncio(IndexAsyncioInterface):
         self.config = ConfigBuilder.build(
             api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
-        """ @private """
+        """ :meta private: """
         self._openapi_config = ConfigBuilder.build_openapi_config(self.config, openapi_config)
-        """ @private """
+        """ :meta private: """
 
         if kwargs.get("connection_pool_maxsize", None):
             self._openapi_config.connection_pool_maxsize = kwargs.get("connection_pool_maxsize")
@@ -171,16 +171,16 @@ class _IndexAsyncio(IndexAsyncioInterface):
             openapi_config=self._openapi_config,
             api_version=API_VERSION,
         )
-        """ @private """
+        """ :meta private: """
 
         self._api_client = self._vector_api.api_client
-        """ @private """
+        """ :meta private: """
 
         self._bulk_import_resource = None
-        """ @private """
+        """ :meta private: """
 
         self._namespace_resource = None
-        """ @private """
+        """ :meta private: """
 
     async def __aenter__(self):
         return self
@@ -243,7 +243,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
 
     @property
     def bulk_import(self) -> "BulkImportResourceAsyncio":
-        """@private"""
+        """:meta private:"""
         if self._bulk_import_resource is None:
             from .resources.asyncio.bulk_import_asyncio import BulkImportResourceAsyncio
 
@@ -686,3 +686,5 @@ class _IndexAsyncio(IndexAsyncioInterface):
         self, limit: Optional[int] = None, pagination_token: Optional[str] = None
     ) -> ListNamespacesResponse:
         return await self.namespace.list_paginated(limit=limit, pagination_token=pagination_token)
+
+IndexAsyncio = _IndexAsyncio

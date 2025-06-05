@@ -30,6 +30,7 @@ jobs:
     if: ${{ always() }}
     needs:
       - dependency-tests
+      - create-project
     uses: './.github/workflows/project-cleanup.yaml'
     secrets: inherit
     with:

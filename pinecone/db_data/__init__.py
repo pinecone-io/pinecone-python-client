@@ -1,5 +1,5 @@
 from .index import (
-    Index as _Index,
+    Index,
     FetchResponse,
     QueryResponse,
     DescribeIndexStatsResponse,
@@ -7,13 +7,8 @@ from .index import (
     SparseValues,
     Vector,
 )
+
 from .dataclasses import *
-from .import_error import (
-    Index,
-    IndexClientInstantiationError,
-    Inference,
-    InferenceInstantiationError,
-)
 from .index_asyncio import *
 from .errors import (
     VectorDictionaryMissingKeysError,
@@ -24,8 +19,13 @@ from .errors import (
     SparseValuesDictionaryExpectedError,
     MetadataDictionaryExpectedError,
 )
+import warnings
+
 
 from .resources.sync.bulk_import import ImportErrorMode
+
+_Index = Index  # alias for backwards compatibility
+
 
 __all__ = [
     "_Index",
@@ -34,9 +34,8 @@ __all__ = [
     "FetchResponse",
     "ImportErrorMode",
     "Index",
-    "IndexClientInstantiationError",
+    "IndexAsyncio",
     "Inference",
-    "InferenceInstantiationError",
     "MetadataDictionaryExpectedError",
     "QueryResponse",
     "SearchQuery",
@@ -53,8 +52,6 @@ __all__ = [
     "VectorTupleLengthError",
 ]
 
-import warnings
-
 
 def _get_deprecated_import(name, from_module, to_module):
     warnings.warn(
@@ -66,10 +63,10 @@ def _get_deprecated_import(name, from_module, to_module):
     )
     # Import from the new location
     from pinecone.inference import (
-        Inference as _Inference, # noqa: F401
-        AsyncioInference as _AsyncioInference, # noqa: F401
-        RerankModel, # noqa: F401
-        EmbedModel, # noqa: F401
+        Inference as _Inference,  # noqa: F401
+        AsyncioInference as _AsyncioInference,  # noqa: F401
+        RerankModel,  # noqa: F401
+        EmbedModel,  # noqa: F401
     )
 
     return locals()[name]

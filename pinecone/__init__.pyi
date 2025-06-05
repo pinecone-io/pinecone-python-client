@@ -1,7 +1,7 @@
 from pinecone.config import Config
 from pinecone.config import ConfigBuilder
 from pinecone.config import PineconeConfig
-from .exceptions import (
+from pinecone.exceptions import (
     PineconeException,
     PineconeApiTypeError,
     PineconeApiValueError,

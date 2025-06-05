@@ -60,11 +60,11 @@ if TYPE_CHECKING:
     from .resources.sync.bulk_import import ImportErrorMode
 
 logger = logging.getLogger(__name__)
-""" @private """
+""" :meta private: """
 
 
 def parse_query_response(response: QueryResponse):
-    """@private"""
+    """:meta private:"""
     response._data_store.pop("results", None)
     return response
 
@@ -76,7 +76,7 @@ class Index(PluginAware, IndexInterface):
     """
 
     _bulk_import_resource: Optional["BulkImportResource"]
-    """ @private """
+    """ :meta private: """
 
     _namespace_resource: Optional["NamespaceResource"]
     """ @private """
@@ -93,16 +93,16 @@ class Index(PluginAware, IndexInterface):
         self._config = ConfigBuilder.build(
             api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
-        """ @private """
+        """ :meta private: """
         self._openapi_config = ConfigBuilder.build_openapi_config(self._config, openapi_config)
-        """ @private """
+        """ :meta private: """
 
         if pool_threads is None:
             self._pool_threads = 5 * cpu_count()
-            """ @private """
+            """ :meta private: """
         else:
             self._pool_threads = pool_threads
-            """ @private """
+            """ :meta private: """
 
         if kwargs.get("connection_pool_maxsize", None):
             self._openapi_config.connection_pool_maxsize = kwargs.get("connection_pool_maxsize")
@@ -119,7 +119,7 @@ class Index(PluginAware, IndexInterface):
         self._api_client = self._vector_api.api_client
 
         self._bulk_import_resource = None
-        """ @private """
+        """ :meta private: """
 
         self._namespace_resource = None
         """ @private """
@@ -129,12 +129,12 @@ class Index(PluginAware, IndexInterface):
 
     @property
     def config(self) -> "Config":
-        """@private"""
+        """:meta private:"""
         return self._config
 
     @property
     def openapi_config(self) -> "OpenApiConfiguration":
-        """@private"""
+        """:meta private:"""
         warnings.warn(
             "The `openapi_config` property has been renamed to `_openapi_config`. It is considered private and should not be used directly. This warning will become an error in a future version of the Pinecone Python SDK.",
             DeprecationWarning,
@@ -144,7 +144,7 @@ class Index(PluginAware, IndexInterface):
 
     @property
     def pool_threads(self) -> int:
-        """@private"""
+        """:meta private:"""
         warnings.warn(
             "The `pool_threads` property has been renamed to `_pool_threads`. It is considered private and should not be used directly. This warning will become an error in a future version of the Pinecone Python SDK.",
             DeprecationWarning,
@@ -154,7 +154,7 @@ class Index(PluginAware, IndexInterface):
 
     @property
     def bulk_import(self) -> "BulkImportResource":
-        """@private"""
+        """:meta private:"""
         if self._bulk_import_resource is None:
             from .resources.sync.bulk_import import BulkImportResource
 
@@ -547,16 +547,17 @@ class Index(PluginAware, IndexInterface):
             Returns a generator that yields each import operation. It automatically handles pagination tokens on your behalf so you can
             easily iterate over all results. The `list_imports` method accepts all of the same arguments as list_imports_paginated
 
-        ```python
-        for op in index.list_imports():
-            print(op)
-        ```
+        .. code-block:: python
+
+            for op in index.list_imports():
+                print(op)
+
 
         You can convert the generator into a list by wrapping the generator in a call to the built-in `list` function:
 
-        ```python
-        operations = list(index.list_imports())
-        ```
+        .. code-block:: python
+
+            operations = list(index.list_imports())
 
         You should be cautious with this approach because it will fetch all operations at once, which could be a large number
         of network calls and a lot of memory to hold the results.
@@ -577,12 +578,15 @@ class Index(PluginAware, IndexInterface):
         Returns: ListImportsResponse object which contains the list of operations as ImportModel objects, pagination information,
             and usage showing the number of read_units consumed.
 
-        The list_imports_paginated operation returns information about import operations.
+        The list_imports_paginated() operation returns information about import operations.
         It returns operations in a paginated form, with a pagination token to fetch the next page of results.
 
         Consider using the `list_imports` method to avoid having to handle pagination tokens manually.
 
         Examples:
+
+        .. code-block:: python
+
             >>> results = index.list_imports_paginated(limit=5)
             >>> results.pagination.next
             eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
