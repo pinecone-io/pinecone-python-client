@@ -23,13 +23,13 @@ class NamespaceResource(PluginAware):
         pool_threads: int,
     ) -> None:
         self.config = config
-        """ @private """
+        """ :meta private: """
 
         self._openapi_config = openapi_config
-        """ @private """
+        """ :meta private: """
 
         self._pool_threads = pool_threads
-        """ @private """
+        """ :meta private: """
 
         self.__namespace_operations_api = NamespaceOperationsApi(api_client)
         super().__init__()
@@ -116,5 +116,5 @@ class NamespaceResource(PluginAware):
             eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
             >>> next_results = index.list_paginated(limit=5, pagination_token=results.pagination.next)
         """
-        args_dict = NamespaceRequestFactory.list_namespaces_args(limit=limit, pagination_token=pagination_token)
-        return self.__namespace_operations_api.list_namespaces_operation(**args_dict)
+        args = NamespaceRequestFactory.list_namespaces_args(limit=limit, pagination_token=pagination_token)
+        return self.__namespace_operations_api.list_namespaces_operation(**args)

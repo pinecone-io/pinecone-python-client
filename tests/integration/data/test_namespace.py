@@ -41,11 +41,10 @@ def delete_all_namespaces(index):
     except Exception as e:
         print(f"Error in delete_all_namespaces: {e}")
 
-
+@pytest.mark.skipif(
+    os.getenv("USE_GRPC") == "true", reason="Disable until grpc namespaces support is added"
+)
 class TestNamespaceOperations:
-    @pytest.mark.skipif(
-        os.getenv("USE_GRPC") == "true", reason="Disable until grpc namespaces support is added"
-    )
     def test_describe_namespace(self, idx):
         """Test describing a namespace"""
         # Setup test data

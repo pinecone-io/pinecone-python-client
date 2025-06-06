@@ -252,7 +252,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
 
     @property
     def namespace(self) -> "NamespaceResourceAsyncio":
-        """@private"""
+        """:meta private:"""
         if self._namespace_resource is None:
             from .resources.asyncio.namespace_asyncio import NamespaceResourceAsyncio
 

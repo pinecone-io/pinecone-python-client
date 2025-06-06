@@ -79,7 +79,7 @@ class Index(PluginAware, IndexInterface):
     """ :meta private: """
 
     _namespace_resource: Optional["NamespaceResource"]
-    """ @private """
+    """ :meta private: """
 
     def __init__(
         self,
@@ -122,7 +122,7 @@ class Index(PluginAware, IndexInterface):
         """ :meta private: """
 
         self._namespace_resource = None
-        """ @private """
+        """ :meta private: """
 
         # Pass the same api_client to the ImportFeatureMixin
         super().__init__(api_client=self._api_client)
@@ -163,7 +163,7 @@ class Index(PluginAware, IndexInterface):
 
     @property
     def namespace(self) -> "NamespaceResource":
-        """@private"""
+        """:meta private:"""
         if self._namespace_resource is None:
             from .resources.sync.namespace import NamespaceResource
 
