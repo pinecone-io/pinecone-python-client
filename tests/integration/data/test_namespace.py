@@ -1,4 +1,7 @@
+import os
 import time
+
+import pytest
 
 from pinecone.core.openapi.db_data.models import NamespaceDescription
 
@@ -40,6 +43,9 @@ def delete_all_namespaces(index):
 
 
 class TestNamespaceOperations:
+    @pytest.mark.skipif(
+        os.getenv("USE_GRPC") == "true", reason="Disable until grpc namespaces support is added"
+    )
     def test_describe_namespace(self, idx):
         """Test describing a namespace"""
         # Setup test data
