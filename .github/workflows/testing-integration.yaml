@@ -81,7 +81,7 @@ jobs:
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
         test_suite:
-          - data
+#          - data     # commenting until grpc namespaces endpoints are added
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
