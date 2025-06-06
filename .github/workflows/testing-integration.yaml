@@ -76,12 +76,13 @@ jobs:
   grpc-sync:
     name: grpc sync ${{ matrix.python_version }} ${{ matrix.test_suite }}
     runs-on: ubuntu-latest
+    if: false  # This will prevent the job from running
     strategy:
       fail-fast: false
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
         test_suite:
-#          - data     # commenting until grpc namespaces endpoints are added
+          - data
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
