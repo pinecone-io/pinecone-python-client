@@ -76,7 +76,7 @@ jobs:
   grpc-sync:
     name: grpc sync ${{ matrix.python_version }} ${{ matrix.test_suite }}
     runs-on: ubuntu-latest
-    if: false  # This will prevent the job from running
+    if: false  # TODO: Uncomment this when grpc namespaces is ready
     strategy:
       fail-fast: false
       matrix:
