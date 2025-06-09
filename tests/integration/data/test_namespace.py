@@ -17,7 +17,7 @@ def setup_namespace_data(index, namespace: str, num_vectors: int = 2):
 def verify_namespace_exists(index, namespace: str) -> bool:
     """Helper function to verify if a namespace exists"""
     try:
-        index.namespace.describe(namespace)
+        index.describe_namespace(namespace)
         return True
     except Exception:
         return False
@@ -27,12 +27,12 @@ def delete_all_namespaces(index):
     """Helper function to delete all namespaces in an index"""
     try:
         # Get all namespaces
-        namespaces = list(index.namespace.list())
+        namespaces = list(index.list_namespaces())
 
         # Delete each namespace
         for namespace in namespaces:
             try:
-                index.namespace.delete(namespace.name)
+                index.delete_namespace(namespace.name)
             except Exception as e:
                 print(f"Error deleting namespace {namespace.name}: {e}")
 
@@ -40,7 +40,6 @@ def delete_all_namespaces(index):
         time.sleep(5)
     except Exception as e:
         print(f"Error in delete_all_namespaces: {e}")
-
 
 @pytest.mark.skipif(
     os.getenv("USE_GRPC") == "true", reason="Disable until grpc namespaces support is added"
@@ -54,7 +53,7 @@ class TestNamespaceOperations:
 
         try:
             # Test describe
-            description = idx.namespace.describe(test_namespace)
+            description = idx.describe_namespace(test_namespace)
             assert isinstance(description, NamespaceDescription)
             assert description.name == test_namespace
         finally:
@@ -71,7 +70,7 @@ class TestNamespaceOperations:
         assert verify_namespace_exists(idx, test_namespace)
 
         # Delete namespace
-        idx.namespace.delete(test_namespace)
+        idx.delete_namespace(test_namespace)
 
         # Wait for namespace to be deleted
         time.sleep(10)
@@ -88,7 +87,7 @@ class TestNamespaceOperations:
 
         try:
             # Get all namespaces
-            namespaces = list(idx.namespace.list())
+            namespaces = list(idx.list_namespaces())
 
             # Verify results
             assert len(namespaces) == len(test_namespaces)
@@ -99,8 +98,8 @@ class TestNamespaceOperations:
             # Verify each namespace has correct structure
             for ns in namespaces:
                 assert isinstance(ns, NamespaceDescription)
-                assert hasattr(ns, "name")
-                assert hasattr(ns, "vector_count")
+                assert hasattr(ns, 'name')
+                assert hasattr(ns, 'vector_count')
         finally:
             # Delete all namespaces before next test is run
             delete_all_namespaces(idx)
@@ -114,18 +113,19 @@ class TestNamespaceOperations:
 
         try:
             # Get namespaces with limit
-            namespaces = list(idx.namespace.list(limit=2))
+            namespaces = list(idx.list_namespaces(limit=2))
 
             # Verify results
             assert len(namespaces) >= 2  # Should get at least 2 namespaces
             for ns in namespaces:
                 assert isinstance(ns, NamespaceDescription)
-                assert hasattr(ns, "name")
-                assert hasattr(ns, "vector_count")
+                assert hasattr(ns, 'name')
+                assert hasattr(ns, 'vector_count')
 
         finally:
             # Delete all namespaces before next test is run
             delete_all_namespaces(idx)
+
 
     def test_list_namespaces_paginated(self, idx):
         """Test listing namespaces with pagination"""
@@ -136,20 +136,22 @@ class TestNamespaceOperations:
 
         try:
             # Get first page
-            response = idx.namespace.list_paginated(limit=2)
+            response = idx.list_namespaces_paginated(limit=2)
             assert len(response.namespaces) == 2
             assert response.pagination.next is not None
 
             # Get second page
-            next_response = idx.namespace.list_paginated(
-                limit=2, pagination_token=response.pagination.next
+            next_response = idx.list_namespaces_paginated(
+                limit=2,
+                pagination_token=response.pagination.next
             )
             assert len(next_response.namespaces) == 2
             assert next_response.pagination.next is not None
 
             # Get final page
-            final_response = idx.namespace.list_paginated(
-                limit=2, pagination_token=next_response.pagination.next
+            final_response = idx.list_namespaces_paginated(
+                limit=2,
+                pagination_token=next_response.pagination.next
             )
             assert len(final_response.namespaces) == 1
             assert final_response.pagination is None

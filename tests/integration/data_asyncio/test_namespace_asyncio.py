@@ -16,7 +16,7 @@ async def setup_namespace_data(index, namespace: str, num_vectors: int = 2):
 async def verify_namespace_exists(index, namespace: str) -> bool:
     """Helper function to verify if a namespace exists"""
     try:
-        await index.namespace.describe(namespace)
+        await index.describe_namespace(namespace)
         return True
     except Exception:
         return False
@@ -26,12 +26,12 @@ async def delete_all_namespaces(index):
     """Helper function to delete all namespaces in an index"""
     try:
         # Get all namespaces
-        namespaces = await index.namespace.list_paginated()
+        namespaces = await index.list_namespaces_paginated()
 
         # Delete each namespace
         for namespace in namespaces.namespaces:
             try:
-                await index.namespace.delete(namespace.name)
+                await index.delete_namespace(namespace.name)
             except Exception as e:
                 print(f"Error deleting namespace {namespace.name}: {e}")
 
@@ -53,7 +53,7 @@ class TestNamespaceOperationsAsyncio:
 
         try:
             # Test describe
-            description = await asyncio_idx.namespace.describe(test_namespace)
+            description = await asyncio_idx.describe_namespace(test_namespace)
             assert isinstance(description, NamespaceDescription)
             assert description.name == test_namespace
         finally:
@@ -72,7 +72,7 @@ class TestNamespaceOperationsAsyncio:
         assert await verify_namespace_exists(asyncio_idx, test_namespace)
 
         # Delete namespace
-        await asyncio_idx.namespace.delete(test_namespace)
+        await asyncio_idx.delete_namespace(test_namespace)
 
         # Wait for namespace to be deleted
         await asyncio.sleep(10)
@@ -91,7 +91,7 @@ class TestNamespaceOperationsAsyncio:
 
         try:
             # Get all namespaces
-            namespaces = await asyncio_idx.namespace.list_paginated()
+            namespaces = await asyncio_idx.list_namespaces_paginated()
 
             # Verify results
             assert len(namespaces.namespaces) >= len(test_namespaces)
@@ -102,8 +102,8 @@ class TestNamespaceOperationsAsyncio:
             # Verify each namespace has correct structure
             for ns in namespaces.namespaces:
                 assert isinstance(ns, NamespaceDescription)
-                assert hasattr(ns, "name")
-                assert hasattr(ns, "vector_count")
+                assert hasattr(ns, 'name')
+                assert hasattr(ns, 'vector_count')
         finally:
             # Delete all namespaces before next test is run
             await delete_all_namespaces(asyncio_idx)
@@ -119,14 +119,14 @@ class TestNamespaceOperationsAsyncio:
 
         try:
             # Get namespaces with limit
-            namespaces = await asyncio_idx.namespace.list_paginated(limit=2)
+            namespaces = await asyncio_idx.list_namespaces_paginated(limit=2)
 
             # Verify results
             assert len(namespaces.namespaces) == 2  # Should get exactly 2 namespaces
             for ns in namespaces.namespaces:
                 assert isinstance(ns, NamespaceDescription)
-                assert hasattr(ns, "name")
-                assert hasattr(ns, "vector_count")
+                assert hasattr(ns, 'name')
+                assert hasattr(ns, 'vector_count')
         finally:
             # Delete all namespaces before next test is run
             await delete_all_namespaces(asyncio_idx)
@@ -142,20 +142,22 @@ class TestNamespaceOperationsAsyncio:
 
         try:
             # Get first page
-            response = await asyncio_idx.namespace.list_paginated(limit=2)
+            response = await asyncio_idx.list_namespaces_paginated(limit=2)
             assert len(response.namespaces) == 2
             assert response.pagination.next is not None
 
             # Get second page
-            next_response = await asyncio_idx.namespace.list_paginated(
-                limit=2, pagination_token=response.pagination.next
+            next_response = await asyncio_idx.list_namespaces_paginated(
+                limit=2,
+                pagination_token=response.pagination.next
             )
             assert len(next_response.namespaces) == 2
             assert next_response.pagination.next is not None
 
             # Get final page
-            final_response = await asyncio_idx.namespace.list_paginated(
-                limit=2, pagination_token=next_response.pagination.next
+            final_response = await asyncio_idx.list_namespaces_paginated(
+                limit=2,
+                pagination_token=next_response.pagination.next
             )
             assert len(final_response.namespaces) == 1
             assert final_response.pagination is None

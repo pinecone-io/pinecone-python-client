@@ -15,6 +15,8 @@ from pinecone.core.openapi.db_data.models import (
     UpsertResponse,
     ListResponse,
     SearchRecordsResponse,
+    ListNamespacesResponse,
+    NamespaceDescription,
 )
 from .dataclasses import Vector, SparseValues, FetchResponse, SearchQuery, SearchRerank
 from .interfaces import IndexInterface
@@ -626,3 +628,21 @@ class Index(PluginAware, IndexInterface):
             id (str): The id of the import operation to cancel.
         """
         return self.bulk_import.cancel(id=id)
+
+    @validate_and_convert_errors
+    def describe_namespace(self, namespace: str) -> "NamespaceDescription":
+        return self.namespace.describe(namespace=namespace)
+
+    @validate_and_convert_errors
+    def delete_namespace(self, namespace: str) -> Dict[str, Any]:
+        return self.namespace.delete(namespace=namespace)
+
+    @validate_and_convert_errors
+    def list_namespaces(self, **kwargs) -> Iterator[ListNamespacesResponse]:
+        return self.namespace.list(**kwargs)
+
+    @validate_and_convert_errors
+    def list_namespaces_paginated(
+        self, limit: Optional[int] = None, pagination_token: Optional[str] = None
+    ) -> ListNamespacesResponse:
+        return self.namespace.list_paginated(limit=limit, pagination_token=pagination_token)
