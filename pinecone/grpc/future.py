@@ -75,10 +75,19 @@ class PineconeGrpcFuture(ConcurrentFuture):
             return self._default_timeout
 
     def _wrap_rpc_exception(self, e):
-        if e._state and e._state.debug_error_string:
-            return PineconeException(e._state.debug_error_string)
-        else:
-            return PineconeException("Unknown GRPC error")
+        # The way the grpc package is using multiple inheritance makes
+        # it a little unclear whether it's safe to always assume that
+        # the e.code(), e.details(), and e.debug_error_string() methods
+        # exist. So, we try/catch to avoid errors.
+        try:
+            grpc_info = {"grpc_error_code": e.code().value[0], "grpc_message": e.details()}
+
+            return PineconeException(f"GRPC error: {grpc_info}")
+        except Exception:
+            try:
+                return PineconeException(f"Unknown GRPC error: {e.debug_error_string()}")
+            except Exception:
+                return PineconeException(f"Unknown GRPC error: {e}")
 
     def __del__(self):
         self._grpc_future.cancel()

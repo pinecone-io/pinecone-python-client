@@ -29,7 +29,10 @@ class GRPCIndexBase(ABC):
         _endpoint_override: Optional[str] = None,
     ):
         self.config = config
-        self.grpc_client_config = grpc_config or GRPCClientConfig()
+        # If grpc_config is passed, use it. Otherwise, build a new one with
+        # default values and passing in the ssl_verify value from the config.
+        self.grpc_client_config = grpc_config or GRPCClientConfig(secure=self.config.ssl_verify)
+
         self.pool_threads = pool_threads
 
         self._endpoint_override = _endpoint_override

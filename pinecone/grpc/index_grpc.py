@@ -12,6 +12,9 @@ from .utils import (
     parse_fetch_response,
     parse_query_response,
     parse_stats_response,
+    parse_upsert_response,
+    parse_update_response,
+    parse_delete_response,
 )
 from .vector_factory_grpc import VectorFactoryGRPC
 from .sparse_values_factory import SparseValuesFactory
@@ -145,7 +148,9 @@ class GRPCIndex(GRPCIndexBase):
             args_dict = self._parse_non_empty_args([("namespace", namespace)])
             request = UpsertRequest(vectors=vectors, **args_dict, **kwargs)
             future = self.runner.run(self.stub.Upsert.future, request, timeout=timeout)
-            return PineconeGrpcFuture(future)
+            return PineconeGrpcFuture(
+                future, timeout=timeout, result_transformer=parse_upsert_response
+            )
 
         if batch_size is None:
             return self._upsert_batch(vectors, namespace, timeout=timeout, **kwargs)
@@ -297,7 +302,9 @@ class GRPCIndex(GRPCIndexBase):
         request = DeleteRequest(**args_dict, **kwargs)
         if async_req:
             future = self.runner.run(self.stub.Delete.future, request, timeout=timeout)
-            return PineconeGrpcFuture(future)
+            return PineconeGrpcFuture(
+                future, timeout=timeout, result_transformer=parse_delete_response
+            )
         else:
             return self.runner.run(self.stub.Delete, request, timeout=timeout)
 
@@ -334,7 +341,9 @@ class GRPCIndex(GRPCIndexBase):
 
         if async_req:
             future = self.runner.run(self.stub.Fetch.future, request, timeout=timeout)
-            return PineconeGrpcFuture(future, result_transformer=parse_fetch_response)
+            return PineconeGrpcFuture(
+                future, result_transformer=parse_fetch_response, timeout=timeout
+            )
         else:
             response = self.runner.run(self.stub.Fetch, request, timeout=timeout)
             return parse_fetch_response(response)
@@ -424,7 +433,9 @@ class GRPCIndex(GRPCIndexBase):
 
         if async_req:
             future = self.runner.run(self.stub.Query.future, request, timeout=timeout)
-            return PineconeGrpcFuture(future)
+            return PineconeGrpcFuture(
+                future, result_transformer=parse_query_response, timeout=timeout
+            )
         else:
             response = self.runner.run(self.stub.Query, request, timeout=timeout)
             json_response = json_format.MessageToDict(response)
@@ -535,7 +546,9 @@ class GRPCIndex(GRPCIndexBase):
         request = UpdateRequest(id=id, **args_dict)
         if async_req:
             future = self.runner.run(self.stub.Update.future, request, timeout=timeout)
-            return PineconeGrpcFuture(future)
+            return PineconeGrpcFuture(
+                future, timeout=timeout, result_transformer=parse_update_response
+            )
         else:
             return self.runner.run(self.stub.Update, request, timeout=timeout)
 
