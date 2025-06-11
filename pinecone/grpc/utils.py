@@ -64,7 +64,7 @@ def parse_usage(usage: dict):
     return Usage(read_units=int(usage.get("readUnits", 0)))
 
 
-def parse_upsert_response(response: dict | Message, _check_type: bool = False):
+def parse_upsert_response(response: Message, _check_type: bool = False):
     json_response = json_format.MessageToDict(response)
     upserted_count = json_response.get("upsertedCount", 0)
     return UpsertResponse(upserted_count=int(upserted_count))
