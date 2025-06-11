@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 from google.protobuf import json_format
 from google.protobuf.message import Message
 
@@ -70,15 +70,15 @@ def parse_upsert_response(response: Message, _check_type: bool = False):
     return UpsertResponse(upserted_count=int(upserted_count))
 
 
-def parse_update_response(response: dict | Message, _check_type: bool = False):
+def parse_update_response(response: Union[dict, Message], _check_type: bool = False):
     return {}
 
 
-def parse_delete_response(response: dict | Message, _check_type: bool = False):
+def parse_delete_response(response: Union[dict, Message], _check_type: bool = False):
     return {}
 
 
-def parse_query_response(response: dict | Message, _check_type: bool = False):
+def parse_query_response(response: Union[dict, Message], _check_type: bool = False):
     if isinstance(response, Message):
         json_response = json_format.MessageToDict(response)
     else:
