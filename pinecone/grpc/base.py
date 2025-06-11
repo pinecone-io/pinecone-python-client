@@ -31,7 +31,12 @@ class GRPCIndexBase(ABC):
         self.config = config
         # If grpc_config is passed, use it. Otherwise, build a new one with
         # default values and passing in the ssl_verify value from the config.
-        self.grpc_client_config = grpc_config or GRPCClientConfig(secure=self.config.ssl_verify)
+        if self.config.ssl_verify is None:
+            default_grpc_config = GRPCClientConfig()
+        else:
+            default_grpc_config = GRPCClientConfig(secure=self.config.ssl_verify)
+
+        self.grpc_client_config = grpc_config or default_grpc_config
 
         self.pool_threads = pool_threads
 
