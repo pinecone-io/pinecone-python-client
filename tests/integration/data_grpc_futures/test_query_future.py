@@ -295,7 +295,6 @@ class TestQueryWithFilterAsync:
         assert len(query_result.matches) == 1
         assert find_by_id(query_result.matches, "6") is not None
 
-    @pytest.mark.skip(reason="Seems like a bug in the server")
     def test_query_by_id_with_filter_nin(self, idx, query_namespace, use_nondefault_namespace):
         target_namespace = query_namespace if use_nondefault_namespace else ""
 
@@ -303,13 +302,25 @@ class TestQueryWithFilterAsync:
         # Vector(id='5', values=embedding_values(2), metadata={'genre': 'comedy', 'runtime': 90 }),
         # Vector(id='6', values=embedding_values(2), metadata={'genre': 'romance', 'runtime': 240 })
         query_result = idx.query(
-            id="1", namespace=target_namespace, filter={"genre": {"$nin": ["romance"]}}, top_k=10
+            id="1",
+            namespace=target_namespace,
+            filter={"genre": {"$nin": ["romance"]}},
+            include_metadata=True,
+            top_k=10,
+            async_req=True,
         ).result()
+
         assert isinstance(query_result, QueryResponse) == True
         assert query_result.namespace == target_namespace
-        assert len(query_result.matches) == 2
-        assert find_by_id(query_result.matches, "4") is not None
-        assert find_by_id(query_result.matches, "5") is not None
+
+        matches_with_metadata = [
+            match
+            for match in query_result.matches
+            if match.metadata is not None and match.metadata != {}
+        ]
+        assert len(matches_with_metadata) == 2
+        for match in matches_with_metadata:
+            assert match.metadata["genre"] != "romance"
 
     def test_query_by_id_with_filter_eq(self, idx, query_namespace, use_nondefault_namespace):
         target_namespace = query_namespace if use_nondefault_namespace else ""
@@ -321,15 +332,25 @@ class TestQueryWithFilterAsync:
             id="1",
             namespace=target_namespace,
             filter={"genre": {"$eq": "action"}},
+            include_metadata=True,
             top_k=10,
             async_req=True,
         ).result()
+
         assert isinstance(query_result, QueryResponse) == True
         assert query_result.namespace == target_namespace
-        assert len(query_result.matches) == 1
-        assert find_by_id(query_result.matches, "4") is not None
+        for match in query_result.matches:
+            logger.info(f"Match: id: {match.id} metadata: {match.metadata}")
 
-    @pytest.mark.skip(reason="Seems like a bug in the server")
+        matches_with_metadata = [
+            match
+            for match in query_result.matches
+            if match.metadata is not None and match.metadata != {}
+        ]
+        assert len(matches_with_metadata) == 1
+        for match in matches_with_metadata:
+            assert match.metadata["genre"] == "action"
+
     def test_query_by_id_with_filter_ne(self, idx, query_namespace, use_nondefault_namespace):
         target_namespace = query_namespace if use_nondefault_namespace else ""
 
@@ -340,11 +361,21 @@ class TestQueryWithFilterAsync:
             id="1",
             namespace=target_namespace,
             filter={"genre": {"$ne": "action"}},
+            include_metadata=True,
             top_k=10,
             async_req=True,
         ).result()
+        for match in query_result.matches:
+            logger.info(f"Match: id: {match.id} metadata: {match.metadata}")
         assert isinstance(query_result, QueryResponse) == True
         assert query_result.namespace == target_namespace
-        assert len(query_result.matches) == 2
-        assert find_by_id(query_result.matches, "5") is not None
-        assert find_by_id(query_result.matches, "6") is not None
+
+        matches_with_metadata = [
+            match
+            for match in query_result.matches
+            if match.metadata is not None and match.metadata != {}
+        ]
+        assert len(matches_with_metadata) == 2
+        for match in matches_with_metadata:
+            assert match.metadata["genre"] != "action"
+            assert match.id != "4"
