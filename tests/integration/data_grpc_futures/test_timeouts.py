@@ -86,7 +86,7 @@ class TestGrpcAsyncTimeouts_QueryByID:
 
 @pytest.mark.usefixtures("grpc_server")
 class TestGrpcAsyncTimeouts_QueryByVector:
-    def test_query_by_vector_with_timeout(self, local_idx: GRPCIndex):
+    def test_query_by_vector_with_timeout_exceeded(self, local_idx: GRPCIndex):
         deadline = SERVER_SLEEP_SECONDS - 0.5
 
         query_results = local_idx.query(
@@ -245,6 +245,23 @@ class TestGrpcAsyncTimeouts_Update:
             update_results.result()
 
         assert "Deadline Exceeded" in str(e.value)
+
+    def test_update_with_default_timeout(self, local_idx: GRPCIndex):
+        update_results = local_idx.update(
+            id="1", namespace="testnamespace", values=embedding_values(2), async_req=True
+        )
+
+        # Default timeout is 5 seconds, which is longer than the test server sleep
+        assert update_results._default_timeout == 5
+
+        done, not_done = wait([update_results], timeout=10, return_when=ALL_COMPLETED)
+
+        assert len(done) == 1
+        assert len(not_done) == 0
+
+        result = update_results.result()
+        assert result is not None
+        assert result == {}
 
     def test_update_with_custom_timeout_not_exceeded(self, local_idx: GRPCIndex):
         deadline = SERVER_SLEEP_SECONDS + 1
