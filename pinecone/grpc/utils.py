@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 from google.protobuf import json_format
 from google.protobuf.message import Message
 
@@ -11,6 +11,7 @@ from pinecone.core.openapi.db_data.models import (
     SparseValues,
     QueryResponse,
     IndexDescription as DescribeIndexStatsResponse,
+    UpsertResponse,
     NamespaceSummary,
 )
 from pinecone.db_data.dataclasses import FetchResponse
@@ -63,9 +64,28 @@ def parse_usage(usage: dict):
     return Usage(read_units=int(usage.get("readUnits", 0)))
 
 
-def parse_query_response(response: dict, _check_type: bool = False):
+def parse_upsert_response(response: Message, _check_type: bool = False):
+    json_response = json_format.MessageToDict(response)
+    upserted_count = json_response.get("upsertedCount", 0)
+    return UpsertResponse(upserted_count=int(upserted_count))
+
+
+def parse_update_response(response: Union[dict, Message], _check_type: bool = False):
+    return {}
+
+
+def parse_delete_response(response: Union[dict, Message], _check_type: bool = False):
+    return {}
+
+
+def parse_query_response(response: Union[dict, Message], _check_type: bool = False):
+    if isinstance(response, Message):
+        json_response = json_format.MessageToDict(response)
+    else:
+        json_response = response
+
     matches = []
-    for item in response.get("matches", []):
+    for item in json_response.get("matches", []):
         sc = ScoredVector(
             id=item["id"],
             score=item.get("score", 0.0),
@@ -80,11 +100,11 @@ def parse_query_response(response: dict, _check_type: bool = False):
     # creating empty `Usage` objects and then passing them into QueryResponse
     # when they are not actually present in the response from the server.
     args = {
-        "namespace": response.get("namespace", ""),
+        "namespace": json_response.get("namespace", ""),
         "matches": matches,
         "_check_type": _check_type,
     }
-    usage = response.get("usage")
+    usage = json_response.get("usage")
     if usage:
         args["usage"] = parse_usage(usage)
     return QueryResponse(**args)

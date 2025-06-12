@@ -25,6 +25,9 @@ class FakeGrpcError(grpc.RpcError):
         self._state = mocker.Mock()
         self._state.debug_error_string = "Test gRPC error"
 
+    def debug_error_string(self):
+        return self._state.debug_error_string
+
 
 class TestPineconeGrpcFuture:
     def test_wraps_grpc_future_already_done(self, mocker):

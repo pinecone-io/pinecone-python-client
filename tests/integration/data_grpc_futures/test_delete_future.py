@@ -1,13 +1,9 @@
-import os
-import pytest
 from pinecone import Vector
 from ..helpers import poll_stats_for_namespace, random_string
 import logging
+import time
 
 logger = logging.getLogger(__name__)
-
-if os.environ.get("USE_GRPC") == "true":
-    from pinecone.grpc import GRPCDeleteResponse
 
 
 def seed_vectors(idx, namespace):
@@ -24,9 +20,6 @@ def seed_vectors(idx, namespace):
 
 
 class TestDeleteFuture:
-    @pytest.mark.skipif(
-        os.getenv("USE_GRPC") != "true", reason="PineconeGrpcFutures only returned from grpc client"
-    )
     def test_delete_future(self, idx):
         namespace = random_string(10)
 
@@ -39,11 +32,21 @@ class TestDeleteFuture:
 
         for future in as_completed([delete_one, delete_two], timeout=10):
             resp = future.result()
-            assert isinstance(resp, GRPCDeleteResponse)
+            assert resp == {}
 
-    @pytest.mark.skipif(
-        os.getenv("USE_GRPC") != "true", reason="PineconeGrpcFutures only returned from grpc client"
-    )
+        time.sleep(10)
+
+        # Verify that the vectors are deleted
+        from concurrent.futures import wait, ALL_COMPLETED
+
+        fetch_results = idx.fetch(ids=["id1", "id2"], namespace=namespace, async_req=True)
+        done, not_done = wait([fetch_results], timeout=10, return_when=ALL_COMPLETED)
+
+        assert len(done) == 1
+        assert len(not_done) == 0
+        results = fetch_results.result()
+        assert len(results.vectors) == 0
+
     def test_delete_future_by_namespace(self, idx):
         namespace = random_string(10)
 
@@ -55,8 +58,9 @@ class TestDeleteFuture:
 
         delete_ns1 = idx.delete(namespace=ns1, delete_all=True, async_req=True)
         delete_ns2 = idx.delete(namespace=ns2, delete_all=True, async_req=True)
+
         from concurrent.futures import as_completed
 
         for future in as_completed([delete_ns1, delete_ns2], timeout=10):
             resp = future.result()
-            assert isinstance(resp, GRPCDeleteResponse)
+            assert resp == {}

@@ -1,18 +1,15 @@
-import os
 import pytest
-from ..helpers import poll_fetch_for_ids_in_namespace, embedding_values, random_string
+from ..helpers import poll_fetch_for_ids_in_namespace, embedding_values, generate_name
 from pinecone import Vector
 import logging
+from pinecone.grpc import PineconeGrpcFuture
 
 logger = logging.getLogger(__name__)
-
-if os.environ.get("USE_GRPC") == "true":
-    from pinecone.grpc import PineconeGrpcFuture
 
 
 @pytest.fixture(scope="session")
 def fetch_namespace_future():
-    return random_string(10)
+    return generate_name("TestFetchFuture", "fetch-namespace")
 
 
 def seed(idx, namespace):
@@ -66,9 +63,6 @@ def seed_for_fetch(idx, fetch_namespace_future):
 
 
 @pytest.mark.usefixtures("seed_for_fetch")
-@pytest.mark.skipif(
-    os.getenv("USE_GRPC") != "true", reason="PineconeGrpcFutures only returned from grpc client"
-)
 class TestFetchFuture:
     def setup_method(self):
         self.expected_dimension = 2

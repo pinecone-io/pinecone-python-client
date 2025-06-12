@@ -133,5 +133,6 @@ class PineconeGRPC(Pinecone):
             source_tag=self._config.source_tag,
             proxy_url=self._config.proxy_url,
             ssl_ca_certs=self._config.ssl_ca_certs,
+            ssl_verify=self._config.ssl_verify,
         )
         return GRPCIndex(index_name=name, config=config, pool_threads=pt, **kwargs)
