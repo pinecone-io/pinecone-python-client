@@ -1,5 +1,6 @@
 from pinecone.config import OpenApiConfiguration
 from pinecone.openapi_support import ApiClient
+from pinecone.core.openapi.oauth import API_VERSION
 from pinecone.core.openapi.oauth.apis import OAuthApi
 from pinecone.core.openapi.oauth.models import TokenRequest
 from typing import Optional, Dict
@@ -87,7 +88,7 @@ class Admin:
         _oauth_api_config = OpenApiConfiguration(host="https://login.pinecone.io")
 
         _oauth_api_client = ApiClient(configuration=_oauth_api_config)
-        _oauth_api_client.set_default_header("X-Pinecone-Api-Version", "2025-04")
+        _oauth_api_client.set_default_header("X-Pinecone-Api-Version", API_VERSION)
         for key, value in additional_headers.items():
             _oauth_api_client.set_default_header(key, value)
         _oauth_api_client.user_agent = get_user_agent(Config())
@@ -108,7 +109,7 @@ class Admin:
         _child_api_config.api_key = {"BearerAuth": self._token}
 
         self._child_api_client = ApiClient(configuration=_child_api_config)
-        self._child_api_client.set_default_header("X-Pinecone-Api-Version", "2025-04")
+        self._child_api_client.set_default_header("X-Pinecone-Api-Version", API_VERSION)
         for key, value in additional_headers.items():
             self._child_api_client.set_default_header(key, value)
         self._child_api_client.user_agent = get_user_agent(Config())

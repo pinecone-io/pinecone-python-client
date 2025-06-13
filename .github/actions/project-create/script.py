@@ -40,7 +40,7 @@ def main():
     project_name = generate_project_name()
     max_pods = int(os.getenv("MAX_PODS", 1))
     project = admin_api.project.create(name=project_name, max_pods=max_pods)
-    project_api_key = admin_api.api_key.create(project_id=project.id).value
+    project_api_key = admin_api.api_key.create(project_id=project.id, name="ci-key").value
     mask(project_api_key)
 
     output_file = os.environ.get("GITHUB_OUTPUT", None)
