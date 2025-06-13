@@ -677,13 +677,15 @@ class _IndexAsyncio(IndexAsyncioInterface):
         return await self.namespace.delete(namespace=namespace)
 
     @validate_and_convert_errors
-    async def list_namespaces(self, **kwargs) -> AsyncIterator[ListNamespacesResponse]:
+    async def list_namespaces(
+            self, limit: Optional[int] = None, **kwargs
+    ) -> AsyncIterator[ListNamespacesResponse]:
         async for namespace in self.namespace.list(**kwargs):
             yield namespace
 
     @validate_and_convert_errors
     async def list_namespaces_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None
+        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
     ) -> ListNamespacesResponse:
         return await self.namespace.list_paginated(limit=limit, pagination_token=pagination_token)
 

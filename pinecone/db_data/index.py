@@ -638,11 +638,13 @@ class Index(PluginAware, IndexInterface):
         return self.namespace.delete(namespace=namespace)
 
     @validate_and_convert_errors
-    def list_namespaces(self, **kwargs) -> Iterator[ListNamespacesResponse]:
+    def list_namespaces(
+            self, limit: Optional[int] = None, **kwargs
+    ) -> Iterator[ListNamespacesResponse]:
         return self.namespace.list(**kwargs)
 
     @validate_and_convert_errors
     def list_namespaces_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None
+        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
     ) -> ListNamespacesResponse:
         return self.namespace.list_paginated(limit=limit, pagination_token=pagination_token)

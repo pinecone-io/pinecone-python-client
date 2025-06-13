@@ -1,10 +1,12 @@
 import os
 import time
+import logging
 
 import pytest
 
-from pinecone.core.openapi.db_data.models import NamespaceDescription
+from pinecone import NamespaceDescription
 
+logger = logging.getLogger(__name__)
 
 def setup_namespace_data(index, namespace: str, num_vectors: int = 2):
     """Helper function to set up test data in a namespace"""
@@ -34,12 +36,12 @@ def delete_all_namespaces(index):
             try:
                 index.delete_namespace(namespace.name)
             except Exception as e:
-                print(f"Error deleting namespace {namespace.name}: {e}")
+                logger.error(f"Error deleting namespace {namespace.name}: {e}")
 
         # Wait for deletions to complete
         time.sleep(5)
     except Exception as e:
-        print(f"Error in delete_all_namespaces: {e}")
+        logger.error(f"Error in delete_all_namespaces: {e}")
 
 @pytest.mark.skipif(
     os.getenv("USE_GRPC") == "true", reason="Disable until grpc namespaces support is added"

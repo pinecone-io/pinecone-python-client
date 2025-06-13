@@ -1,9 +1,11 @@
 import pytest
 import asyncio
+import logging
 
-from pinecone.core.openapi.db_data.models import NamespaceDescription
+from pinecone import NamespaceDescription
 from tests.integration.data_asyncio.conftest import build_asyncioindex_client
 
+logger = logging.getLogger(__name__)
 
 async def setup_namespace_data(index, namespace: str, num_vectors: int = 2):
     """Helper function to set up test data in a namespace"""
@@ -33,12 +35,12 @@ async def delete_all_namespaces(index):
             try:
                 await index.delete_namespace(namespace.name)
             except Exception as e:
-                print(f"Error deleting namespace {namespace.name}: {e}")
+                logger.error(f"Error deleting namespace {namespace.name}: {e}")
 
         # Wait for deletions to complete
         await asyncio.sleep(5)
     except Exception as e:
-        print(f"Error in delete_all_namespaces: {e}")
+        logger.error(f"Error in delete_all_namespaces: {e}")
 
 
 class TestNamespaceOperationsAsyncio:

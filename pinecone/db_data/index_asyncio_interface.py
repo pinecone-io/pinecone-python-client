@@ -853,13 +853,14 @@ class IndexAsyncioInterface(ABC):
             limit (Optional[int]): The maximum number of namespaces to return. If unspecified, the server will use a default value. [optional]
 
         Returns:
-            `ListNamespacesResponse`: Object containing the list of namespaces.
+            ``ListNamespacesResponse``: Object containing the list of namespaces.
 
         Examples:
-            >>> async for namespace in index.list_namespaces(limit=5):
-            ...     print(f"Namespace: {namespace.name}, Vector count: {namespace.vector_count}")
-            Namespace: namespace1, Vector count: 1000
-            Namespace: namespace2, Vector count: 2000
+            .. code-block:: python
+                >>> async for namespace in index.list_namespaces(limit=5):
+                ...     print(f"Namespace: {namespace.name}, Vector count: {namespace.vector_count}")
+                Namespace: namespace1, Vector count: 1000
+                Namespace: namespace2, Vector count: 2000
         """
         pass
 
@@ -869,7 +870,7 @@ class IndexAsyncioInterface(ABC):
     ) -> ListNamespacesResponse:
         """List all namespaces in an index with pagination support. The response includes pagination information if there are more results available.
 
-        Consider using the `list_namespaces` method to avoid having to handle pagination tokens manually.
+        Consider using the ``list_namespaces`` method to avoid having to handle pagination tokens manually.
 
         Args:
             limit (Optional[int]): The maximum number of namespaces to return. If unspecified, the server will use a default value. [optional]
@@ -877,12 +878,13 @@ class IndexAsyncioInterface(ABC):
                 in the response if additional results are available. [optional]
 
         Returns:
-            `ListNamespacesResponse`: Object containing the list of namespaces and pagination information.
+            ``ListNamespacesResponse``: Object containing the list of namespaces and pagination information.
 
         Examples:
-            >>> results = await index.list_namespaces_paginated(limit=5)
-            >>> results.pagination.next
-            eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
-            >>> next_results = await index.list_namespaces_paginated(limit=5, pagination_token=results.pagination.next)
+            .. code-block:: python
+                >>> results = await index.list_namespaces_paginated(limit=5)
+                >>> results.pagination.next
+                eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
+                >>> next_results = await index.list_namespaces_paginated(limit=5, pagination_token=results.pagination.next)
         """
         pass
