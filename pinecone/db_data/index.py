@@ -37,6 +37,7 @@ from ..utils import (
     validate_and_convert_errors,
     filter_dict,
     PluginAware,
+    require_kwargs,
 )
 from .query_results_aggregator import QueryResultsAggregator, QueryNamespacesResults
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
@@ -630,21 +631,25 @@ class Index(PluginAware, IndexInterface):
         return self.bulk_import.cancel(id=id)
 
     @validate_and_convert_errors
+    @require_kwargs
     def describe_namespace(self, namespace: str) -> "NamespaceDescription":
         return self.namespace.describe(namespace=namespace)
 
     @validate_and_convert_errors
+    @require_kwargs
     def delete_namespace(self, namespace: str) -> Dict[str, Any]:
         return self.namespace.delete(namespace=namespace)
 
     @validate_and_convert_errors
+    @require_kwargs
     def list_namespaces(
             self, limit: Optional[int] = None, **kwargs
     ) -> Iterator[ListNamespacesResponse]:
-        return self.namespace.list(**kwargs)
+        return self.namespace.list(limit=limit, **kwargs)
 
     @validate_and_convert_errors
+    @require_kwargs
     def list_namespaces_paginated(
         self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
     ) -> ListNamespacesResponse:
-        return self.namespace.list_paginated(limit=limit, pagination_token=pagination_token)
+        return self.namespace.list_paginated(limit=limit, pagination_token=pagination_token, **kwargs)

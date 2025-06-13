@@ -26,6 +26,7 @@ from .types import (
     SearchRerankTypedDict,
 )
 from .dataclasses import SearchQuery, SearchRerank
+from pinecone.utils import require_kwargs
 
 
 class IndexInterface(ABC):
@@ -794,6 +795,7 @@ class IndexInterface(ABC):
         pass
 
     @abstractmethod
+    @require_kwargs
     def describe_namespace(self, namespace: str) -> NamespaceDescription:
         """Describe a namespace within an index, showing the vector count within the namespace.
 
@@ -807,6 +809,7 @@ class IndexInterface(ABC):
         pass
 
     @abstractmethod
+    @require_kwargs
     def delete_namespace(self, namespace: str) -> Dict[str, Any]:
         """Delete a namespace from an index.
 
@@ -820,6 +823,7 @@ class IndexInterface(ABC):
         pass
 
     @abstractmethod
+    @require_kwargs
     def list_namespaces(
             self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
     ) -> Iterator[ListNamespacesResponse]:
@@ -842,6 +846,7 @@ class IndexInterface(ABC):
         pass
 
     @abstractmethod
+    @require_kwargs
     def list_namespaces_paginated(
         self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
     ) -> ListNamespacesResponse:

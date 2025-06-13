@@ -18,7 +18,7 @@ async def setup_namespace_data(index, namespace: str, num_vectors: int = 2):
 async def verify_namespace_exists(index, namespace: str) -> bool:
     """Helper function to verify if a namespace exists"""
     try:
-        await index.describe_namespace(namespace)
+        await index.describe_namespace(namespace=namespace)
         return True
     except Exception:
         return False
@@ -33,7 +33,7 @@ async def delete_all_namespaces(index):
         # Delete each namespace
         for namespace in namespaces.namespaces:
             try:
-                await index.delete_namespace(namespace.name)
+                await index.delete_namespace(namespace=namespace.name)
             except Exception as e:
                 logger.error(f"Error deleting namespace {namespace.name}: {e}")
 
@@ -55,7 +55,7 @@ class TestNamespaceOperationsAsyncio:
 
         try:
             # Test describe
-            description = await asyncio_idx.describe_namespace(test_namespace)
+            description = await asyncio_idx.describe_namespace(namespace=test_namespace)
             assert isinstance(description, NamespaceDescription)
             assert description.name == test_namespace
         finally:
@@ -74,7 +74,7 @@ class TestNamespaceOperationsAsyncio:
         assert await verify_namespace_exists(asyncio_idx, test_namespace)
 
         # Delete namespace
-        await asyncio_idx.delete_namespace(test_namespace)
+        await asyncio_idx.delete_namespace(namespace=test_namespace)
 
         # Wait for namespace to be deleted
         await asyncio.sleep(10)
@@ -93,16 +93,18 @@ class TestNamespaceOperationsAsyncio:
 
         try:
             # Get all namespaces
-            namespaces = await asyncio_idx.list_namespaces_paginated()
+            namespaces = []
+            async for ns in asyncio_idx.list_namespaces():
+                namespaces.append(ns)
 
             # Verify results
-            assert len(namespaces.namespaces) >= len(test_namespaces)
-            namespace_names = [ns.name for ns in namespaces.namespaces]
+            assert len(namespaces) >= len(test_namespaces)
+            namespace_names = [ns.name for ns in namespaces]
             for test_ns in test_namespaces:
                 assert test_ns in namespace_names
 
             # Verify each namespace has correct structure
-            for ns in namespaces.namespaces:
+            for ns in namespaces:
                 assert isinstance(ns, NamespaceDescription)
                 assert hasattr(ns, 'name')
                 assert hasattr(ns, 'vector_count')

@@ -6,7 +6,7 @@ from pinecone.core.openapi.db_data.models import (
     NamespaceDescription,
 )
 
-from pinecone.utils import install_json_repr_override, PluginAware
+from pinecone.utils import install_json_repr_override, PluginAware, require_kwargs
 
 from .namespace_request_factory import NamespaceRequestFactory
 
@@ -34,6 +34,7 @@ class NamespaceResource(PluginAware):
         self.__namespace_operations_api = NamespaceOperationsApi(api_client)
         super().__init__()
 
+    @require_kwargs
     def describe(self, namespace: str) -> NamespaceDescription:
         """
         Args:
@@ -47,6 +48,7 @@ class NamespaceResource(PluginAware):
         args = NamespaceRequestFactory.describe_namespace_args(namespace=namespace)
         return self.__namespace_operations_api.describe_namespace(**args)
 
+    @require_kwargs
     def delete(self, namespace: str):
         """
         Args:
@@ -57,6 +59,7 @@ class NamespaceResource(PluginAware):
         args = NamespaceRequestFactory.delete_namespace_args(namespace=namespace)
         return self.__namespace_operations_api.delete_namespace(**args)
 
+    @require_kwargs
     def list(self, limit: Optional[int] = None, **kwargs) -> Iterator[ListNamespacesResponse]:
         """
         Args:
@@ -82,7 +85,7 @@ class NamespaceResource(PluginAware):
         """
         done = False
         while not done:
-            results = self.list_paginated(limit, **kwargs)
+            results = self.list_paginated(limit=limit, **kwargs)
             if results.namespaces is not None and len(results.namespaces) > 0:
                 for namespace in results.namespaces:
                     yield namespace
@@ -92,8 +95,9 @@ class NamespaceResource(PluginAware):
             else:
                 done = True
 
+    @require_kwargs
     def list_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None
+        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
     ) -> ListNamespacesResponse:
         """
         Args:
@@ -115,5 +119,5 @@ class NamespaceResource(PluginAware):
                 eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
                 >>> next_results = index.list_paginated(limit=5, pagination_token=results.pagination.next)
         """
-        args = NamespaceRequestFactory.list_namespaces_args(limit=limit, pagination_token=pagination_token)
+        args = NamespaceRequestFactory.list_namespaces_args(limit=limit, pagination_token=pagination_token, **kwargs)
         return self.__namespace_operations_api.list_namespaces_operation(**args)

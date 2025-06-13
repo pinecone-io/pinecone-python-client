@@ -25,6 +25,7 @@ from .types import (
     SearchRerankTypedDict,
 )
 from .dataclasses import SearchQuery, SearchRerank
+from pinecone.utils import require_kwargs
 
 
 class IndexAsyncioInterface(ABC):
@@ -814,6 +815,7 @@ class IndexAsyncioInterface(ABC):
         pass
 
     @abstractmethod
+    @require_kwargs
     async def describe_namespace(
         self,
         namespace: str
@@ -829,6 +831,7 @@ class IndexAsyncioInterface(ABC):
         pass
 
     @abstractmethod
+    @require_kwargs
     async def delete_namespace(
         self,
         namespace: str
@@ -844,6 +847,7 @@ class IndexAsyncioInterface(ABC):
         pass
 
     @abstractmethod
+    @require_kwargs
     async def list_namespaces(
         self, **kwargs
     ) -> AsyncIterator[ListNamespacesResponse]:
@@ -865,6 +869,7 @@ class IndexAsyncioInterface(ABC):
         pass
 
     @abstractmethod
+    @require_kwargs
     async def list_namespaces_paginated(
         self, limit: Optional[int] = None, pagination_token: Optional[str] = None
     ) -> ListNamespacesResponse:

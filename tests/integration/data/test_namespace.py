@@ -19,7 +19,7 @@ def setup_namespace_data(index, namespace: str, num_vectors: int = 2):
 def verify_namespace_exists(index, namespace: str) -> bool:
     """Helper function to verify if a namespace exists"""
     try:
-        index.describe_namespace(namespace)
+        index.describe_namespace(namespace=namespace)
         return True
     except Exception:
         return False
@@ -34,7 +34,7 @@ def delete_all_namespaces(index):
         # Delete each namespace
         for namespace in namespaces:
             try:
-                index.delete_namespace(namespace.name)
+                index.delete_namespace(namespace=namespace.name)
             except Exception as e:
                 logger.error(f"Error deleting namespace {namespace.name}: {e}")
 
@@ -55,7 +55,7 @@ class TestNamespaceOperations:
 
         try:
             # Test describe
-            description = idx.describe_namespace(test_namespace)
+            description = idx.describe_namespace(namespace=test_namespace)
             assert isinstance(description, NamespaceDescription)
             assert description.name == test_namespace
         finally:
@@ -72,7 +72,7 @@ class TestNamespaceOperations:
         assert verify_namespace_exists(idx, test_namespace)
 
         # Delete namespace
-        idx.delete_namespace(test_namespace)
+        idx.delete_namespace(namespace=test_namespace)
 
         # Wait for namespace to be deleted
         time.sleep(10)

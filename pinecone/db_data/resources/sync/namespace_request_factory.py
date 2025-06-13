@@ -26,6 +26,7 @@ class NamespaceRequestFactory:
 
     @staticmethod
     def list_namespaces_args(
-        limit: Optional[int] = None, pagination_token: Optional[str] = None
+        limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
     ) -> dict[str, Any]:
-        return parse_non_empty_args([("limit", limit), ("pagination_token", pagination_token)]) 
+        base_args = parse_non_empty_args([("limit", limit), ("pagination_token", pagination_token)])
+        return {**base_args, **kwargs}

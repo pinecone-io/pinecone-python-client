@@ -31,6 +31,7 @@ from ..utils import (
     parse_non_empty_args,
     validate_and_convert_errors,
     filter_dict,
+    require_kwargs,
 )
 from .types import (
     SparseVectorTypedDict,
@@ -669,21 +670,25 @@ class _IndexAsyncio(IndexAsyncioInterface):
         return await self.bulk_import.cancel(id=id)
 
     @validate_and_convert_errors
+    @require_kwargs
     async def describe_namespace(self, namespace: str) -> "NamespaceDescription":
         return await self.namespace.describe(namespace=namespace)
 
     @validate_and_convert_errors
+    @require_kwargs
     async def delete_namespace(self, namespace: str) -> Dict[str, Any]:
         return await self.namespace.delete(namespace=namespace)
 
     @validate_and_convert_errors
+    @require_kwargs
     async def list_namespaces(
             self, limit: Optional[int] = None, **kwargs
     ) -> AsyncIterator[ListNamespacesResponse]:
-        async for namespace in self.namespace.list(**kwargs):
+        async for namespace in self.namespace.list(limit=limit, **kwargs):
             yield namespace
 
     @validate_and_convert_errors
+    @require_kwargs
     async def list_namespaces_paginated(
         self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
     ) -> ListNamespacesResponse:
