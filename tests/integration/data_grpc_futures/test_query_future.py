@@ -22,7 +22,7 @@ def query_namespace():
 
 def seed(idx, namespace):
     # Upsert without metadata
-    logger.info(f"Seeding vectors without metadata into namespace '{namespace}'")
+    logger.info(f"Seeding vectors without metadata into namespace {namespace}")
     upsert1 = idx.upsert(
         vectors=[
             ("1", embedding_values(2)),
