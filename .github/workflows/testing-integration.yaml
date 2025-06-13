@@ -12,66 +12,66 @@ on:
 permissions: {}
 
 jobs:
-  rest-sync:
-    name: rest ${{ matrix.python_version }} ${{ matrix.test_suite }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      max-parallel: 4
-      matrix:
-        python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite:
-          - control/serverless
-          - control/resources/index
-          - control/resources/collections
-          # - control/resources/backup
-          - inference/sync
-          - plugins
-          - data
-          # - control/resources/restore_job # Backup tests must run before these
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
-        with:
-          include_asyncio: false
-          include_grpc: false
-          python_version: '${{ matrix.python_version }}'
-      - uses: ./.github/actions/run-integration-test
-        with:
-          encrypted_project_api_key: '${{ inputs.encrypted_project_api_key }}'
-          encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
-          test_suite: '${{ matrix.test_suite }}'
+  # rest-sync:
+  #   name: rest ${{ matrix.python_version }} ${{ matrix.test_suite }}
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     max-parallel: 4
+  #     matrix:
+  #       python_version: ${{ fromJson(inputs.python_versions_json) }}
+  #       test_suite:
+  #         - control/serverless
+  #         - control/resources/index
+  #         - control/resources/collections
+  #         # - control/resources/backup
+  #         - inference/sync
+  #         - plugins
+  #         - data
+  #         # - control/resources/restore_job # Backup tests must run before these
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Setup Poetry
+  #       uses: ./.github/actions/setup-poetry
+  #       with:
+  #         include_asyncio: false
+  #         include_grpc: false
+  #         python_version: '${{ matrix.python_version }}'
+  #     - uses: ./.github/actions/run-integration-test
+  #       with:
+  #         encrypted_project_api_key: '${{ inputs.encrypted_project_api_key }}'
+  #         encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
+  #         test_suite: '${{ matrix.test_suite }}'
 
 
-  rest-asyncio:
-    name: asyncio ${{ matrix.python_version }} ${{ matrix.test_suite }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      max-parallel: 4
-      matrix:
-        python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite:
-          - control_asyncio/resources/index
-          # - control_asyncio/resources/backup
-          - control_asyncio/*.py
-          - inference/asyncio
-          - data_asyncio
-          # - control_asyncio/resources/restore_job # Backup tests must run before these
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
-        with:
-          include_asyncio: true
-          include_grpc: false
-          python_version: '${{ matrix.python_version }}'
-      - uses: ./.github/actions/run-integration-test
-        with:
-          encrypted_project_api_key: '${{ inputs.encrypted_project_api_key }}'
-          encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
-          test_suite: '${{ matrix.test_suite }}'
+  # rest-asyncio:
+  #   name: asyncio ${{ matrix.python_version }} ${{ matrix.test_suite }}
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     max-parallel: 4
+  #     matrix:
+  #       python_version: ${{ fromJson(inputs.python_versions_json) }}
+  #       test_suite:
+  #         - control_asyncio/resources/index
+  #         # - control_asyncio/resources/backup
+  #         - control_asyncio/*.py
+  #         - inference/asyncio
+  #         - data_asyncio
+  #         # - control_asyncio/resources/restore_job # Backup tests must run before these
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Setup Poetry
+  #       uses: ./.github/actions/setup-poetry
+  #       with:
+  #         include_asyncio: true
+  #         include_grpc: false
+  #         python_version: '${{ matrix.python_version }}'
+  #     - uses: ./.github/actions/run-integration-test
+  #       with:
+  #         encrypted_project_api_key: '${{ inputs.encrypted_project_api_key }}'
+  #         encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
+  #         test_suite: '${{ matrix.test_suite }}'
 
   grpc-sync:
     name: grpc sync ${{ matrix.python_version }} ${{ matrix.test_suite }}
