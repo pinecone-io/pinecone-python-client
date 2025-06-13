@@ -63,20 +63,24 @@ class Admin:
 
         if client_id is not None:
             self._client_id = client_id
-        elif os.getenv("PINECONE_CLIENT_ID") is not None:
-            self._client_id = os.getenv("PINECONE_CLIENT_ID")
         else:
-            raise ValueError(
-                "client_id is not set. Pass client_id to the Admin constructor or set the PINECONE_CLIENT_ID environment variable."
-            )
+            env_client_id = os.environ.get("PINECONE_CLIENT_ID", None)
+            if env_client_id is None:
+                raise ValueError(
+                    "client_id is not set. Pass client_id to the Admin constructor or set the PINECONE_CLIENT_ID environment variable."
+                )
+            self._client_id = env_client_id
+
         if client_secret is not None:
             self._client_secret = client_secret
-        elif os.getenv("PINECONE_CLIENT_SECRET") is not None:
-            self._client_secret = os.getenv("PINECONE_CLIENT_SECRET")
         else:
-            raise ValueError(
-                "client_secret is not set. Pass client_secret to the Admin constructor or set the PINECONE_CLIENT_SECRET environment variable."
-            )
+            env_client_secret = os.environ.get("PINECONE_CLIENT_SECRET", None)
+            if env_client_secret is None:
+                raise ValueError(
+                    "client_secret is not set. Pass client_secret to the Admin constructor or set the PINECONE_CLIENT_SECRET environment variable."
+                )
+            self._client_secret = env_client_secret
+
         if additional_headers is None:
             additional_headers = {}
 
