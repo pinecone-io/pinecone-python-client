@@ -42,17 +42,10 @@ runs:
         encrypted_secret: ${{ inputs.encrypted_project_api_key }}
         encryption_key: ${{ inputs.FERNET_ENCRYPTION_KEY }}
 
-    - name: Delete project resources
-      id: delete-project-resources
-      shell: bash
-      run: python3 ./.github/actions/project-delete/delete-resources.py
-      env:
-        PINECONE_API_KEY: ${{ steps.decrypt-project-api-key.outputs.decrypted_secret }}
-
     - name: Delete project
       id: delete-project
       shell: bash
-      run: python3 ./.github/actions/project-delete/delete-project.py
+      run: poetry run python3 ./.github/actions/project-delete/delete-project.py
       env:
         API_VERSION: ${{ inputs.api_version }}
         PINECONE_SERVICE_ACCOUNT_CLIENT_ID: ${{ inputs.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
