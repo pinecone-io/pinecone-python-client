@@ -6,7 +6,7 @@ version=$1 # e.g. 2025-01
 
 
 destination="pinecone/core/openapi"
-modules=("db_control" "db_data" "inference")
+modules=("db_control" "db_data" "inference" "oauth" "admin")
 py_module_name="core"
 template_dir="codegen/python-oas-templates/templates5.2.0"
 

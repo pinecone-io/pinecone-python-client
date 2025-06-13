@@ -42,13 +42,6 @@ runs:
         encrypted_secret: ${{ inputs.encrypted_project_api_key }}
         encryption_key: ${{ inputs.FERNET_ENCRYPTION_KEY }}
 
-    - name: Delete project resources
-      id: delete-project-resources
-      shell: bash
-      run: python3 ./.github/actions/project-delete/delete-resources.py
-      env:
-        PINECONE_API_KEY: ${{ steps.decrypt-project-api-key.outputs.decrypted_secret }}
-
     - name: Delete project
       id: delete-project
       shell: bash

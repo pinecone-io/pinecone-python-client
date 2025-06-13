@@ -2,15 +2,11 @@ import logging
 from pinecone import Pinecone, NotFoundException
 import time
 from collections import deque
-import os
 
-logging.basicConfig(
-    level=logging.DEBUG, format="%(levelname)-8s | %(name)s:%(lineno)4d | %(message)s"
-)
 logger = logging.getLogger(__name__)
 
 
-class RetryCounter:
+class _RetryCounter:
     def __init__(self, max_retries):
         self.max_retries = max_retries
         self.counts = {}
@@ -27,17 +23,22 @@ class RetryCounter:
         return self.get_count(key) >= self.max_retries
 
 
-class ProjectEraser:
-    def __init__(self, api_key):
+class _ProjectEraser:
+    """
+    This class is used to delete all resources within a project
+    """
+
+    def __init__(self, api_key, max_retries=5, sleep_interval=0.5):
         self.pc = Pinecone(api_key=api_key)
 
         # In situations where there are a lot of resources, we want to
         # slow down the rate of requests just to avoid any concerns about
         # rate limits
-        self.sleep_interval = 5
+        self.sleep_interval = sleep_interval
         self.undeleteable_resources = []
+        self.max_retries = max_retries
 
-    def pluralize(self, resource_name):
+    def _pluralize(self, resource_name):
         if resource_name.lower() == "index":
             return resource_name + "es"
         else:
@@ -46,19 +47,19 @@ class ProjectEraser:
     def _delete_all_of_resource(self, resource_name, list_func, delete_func, get_state_func):
         resources_to_delete = deque(list_func())
         if len(resources_to_delete) == 0:
-            logger.info(f"No {self.pluralize(resource_name)} to delete")
+            logger.info(f"No {self._pluralize(resource_name)} to delete")
             return
 
-        state_check_retries = RetryCounter(3)
-        failed_delete_retries = RetryCounter(3)
-        is_deletable_retries = RetryCounter(3)
-        is_terminating_retries = RetryCounter(10)
+        state_check_retries = _RetryCounter(self.max_retries)
+        failed_delete_retries = _RetryCounter(self.max_retries)
+        is_deletable_retries = _RetryCounter(self.max_retries)
+        is_terminating_retries = _RetryCounter(self.max_retries * 3)
 
         undeletable_resources = []
 
         while len(resources_to_delete) > 0:
             logger.info(
-                f"There are {len(resources_to_delete)} {self.pluralize(resource_name)} left to delete"
+                f"There are {len(resources_to_delete)} {self._pluralize(resource_name)} left to delete"
             )
             time.sleep(self.sleep_interval)
 
@@ -165,7 +166,7 @@ class ProjectEraser:
 
         if len(undeletable_resources) > 0:
             logger.error(
-                f"There were {len(undeletable_resources)} {self.pluralize(resource_name)} that were not deleted"
+                f"There were {len(undeletable_resources)} {self._pluralize(resource_name)} that were not deleted"
             )
             for item in undeletable_resources:
                 logger.error(
@@ -173,9 +174,9 @@ class ProjectEraser:
                 )
                 self.undeleteable_resources.append(item)
         else:
-            logger.info(f"All {self.pluralize(resource_name)} were deleted successfully")
+            logger.info(f"All {self._pluralize(resource_name)} were deleted successfully")
 
-    def delete_all_indexes(self):
+    def delete_all_indexes(self, force_delete=False):
         index_list = self.pc.db.index.list()
         if len(index_list) == 0:
             logger.info("No indexes to delete")
@@ -184,6 +185,14 @@ class ProjectEraser:
         index_with_deletion_protection = [
             index for index in index_list if index.deletion_protection == "enabled"
         ]
+        if not force_delete and len(index_with_deletion_protection) > 0:
+            logger.info(
+                "There are indexes with deletion protection enabled. You must disable deletion protection before the index can be deleted."
+            )
+            raise Exception(
+                f"Indexes with deletion protection enabled cannot be deleted: {[i.name for i in index_with_deletion_protection]}"
+            )
+
         for index in index_with_deletion_protection:
             logger.info(f"Disabling deletion protection for Index {index.name}")
             time.sleep(self.sleep_interval)
@@ -244,58 +253,11 @@ class ProjectEraser:
             get_state_func=get_state_func,
         )
 
-    def _cleanup_all(self):
-        self.undeleteable_resources = []
-        self.delete_all_backups()
-        self.delete_all_collections()
-        self.delete_all_indexes()
-
-    def cleanup_all(self):
-        self._cleanup_all()
-
+    def retry_needed(self):
         if len(self.undeleteable_resources) > 0:
             logger.info(
-                f"There were {len(self.undeleteable_resources)} undeleteable resources, retrying in 60 seconds"
+                f"Retry needed for {len(self.undeleteable_resources)} undeleteable resources"
             )
-            time.sleep(60)
-            self._cleanup_all()
-
-        if len(self.undeleteable_resources) > 0:
-            logger.info(
-                f"There were {len(self.undeleteable_resources)} undeleteable resources, retrying in 120 seconds"
-            )
-            time.sleep(120)
-            self._cleanup_all()
-
-        if len(self.undeleteable_resources) > 0:
-            logger.info(
-                f"There were {len(self.undeleteable_resources)} undeleteable resources, retrying in 240 seconds"
-            )
-            time.sleep(240)
-            self._cleanup_all()
-
-        if len(self.undeleteable_resources) > 0:
-            logger.info(
-                f"There were {len(self.undeleteable_resources)} undeleteable resources, retrying in 240 seconds"
-            )
-            time.sleep(240)
-            self._cleanup_all()
-
-        if len(self.undeleteable_resources) > 0:
-            logger.error(
-                f"There were {len(self.undeleteable_resources)} undeleteable resources, giving up"
-            )
-            raise Exception(
-                f"There were {len(self.undeleteable_resources)} undeleteable resources, giving up"
-            )
-
-
-if __name__ == "__main__":
-    from pinecone import __version__
-
-    api_key = os.getenv("PINECONE_API_KEY")
-    if api_key is None:
-        raise Exception("PINECONE_API_KEY must be set")
-
-    logger.info(f"Pinecone version: {__version__}")
-    ProjectEraser(api_key).cleanup_all()
+            return True
+        else:
+            return False

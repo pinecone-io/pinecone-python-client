@@ -96,3 +96,25 @@ jobs:
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
           test_suite: '${{ matrix.test_suite }}'
           use_grpc: 'true'
+
+  admin:
+    name: admin ${{ matrix.python_version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python_version: ${{ fromJson(inputs.python_versions_json) }}
+        test_suite:
+          - admin
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+        with:
+          include_grpc: false
+          include_asyncio: false
+          python_version: '${{ matrix.python_version }}'
+      - run: poetry run pytest tests/integration/${{ matrix.test_suite }} --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
+        env:
+          PINECONE_CLIENT_ID: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
+          PINECONE_CLIENT_SECRET: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}

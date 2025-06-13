@@ -16,12 +16,13 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.coverage",
     "sphinx.ext.autodoc.typehints",
+    "sphinx.ext.doctest",
+    "sphinx.ext.intersphinx",
     "myst_parser",
 ]
 
 # -- HTML Configuration -------------------------------------------------
 
-html_theme = "alabaster"
 html_theme_options = {
     "logo": "pinecone-logo.svg",
     "description": "Pinecone Python SDK",
@@ -40,3 +41,7 @@ html_theme_options = {
         "Pinecone Console": "https://app.pinecone.io",
     },
 }
+
+# Add support for code block highlighting
+highlight_language = "python"
+pygments_style = "sphinx"

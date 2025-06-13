@@ -6,6 +6,7 @@
    rest
    asyncio
    grpc
+   admin
 
 .. toctree::
    :maxdepth: 5

@@ -1,7 +1,7 @@
 """
-Pinecone Data Plane API
+Pinecone Admin API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Provides an API for managing a Pinecone organization and its resources.   # noqa: E501
 
 This file is @generated using OpenAPI.
 
@@ -28,20 +28,18 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
-    from pinecone.core.openapi.db_data.model.query_vector import QueryVector
-    from pinecone.core.openapi.db_data.model.sparse_values import SparseValues
+    from pinecone.core.openapi.admin.model.project import Project
 
-    globals()["QueryVector"] = QueryVector
-    globals()["SparseValues"] = SparseValues
+    globals()["Project"] = Project
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="QueryRequest")
+T = TypeVar("T", bound="InlineResponse200")
 
 
-class QueryRequest(ModelNormal):
+class InlineResponse200(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -69,12 +67,7 @@ class QueryRequest(ModelNormal):
 
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-        ("top_k",): {"inclusive_maximum": 10000, "inclusive_minimum": 1},
-        ("queries",): {},
-        ("vector",): {},
-        ("id",): {"max_length": 512},
-    }
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -99,15 +92,7 @@ class QueryRequest(ModelNormal):
         """
         lazy_import()
         return {
-            "top_k": (int,),  # noqa: E501
-            "namespace": (str,),  # noqa: E501
-            "filter": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
-            "include_values": (bool,),  # noqa: E501
-            "include_metadata": (bool,),  # noqa: E501
-            "queries": ([QueryVector],),  # noqa: E501
-            "vector": ([float],),  # noqa: E501
-            "sparse_vector": (SparseValues,),  # noqa: E501
-            "id": (str,),  # noqa: E501
+            "data": ([Project],)  # noqa: E501
         }
 
     @cached_class_property
@@ -115,15 +100,7 @@ class QueryRequest(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "top_k": "topK",  # noqa: E501
-        "namespace": "namespace",  # noqa: E501
-        "filter": "filter",  # noqa: E501
-        "include_values": "includeValues",  # noqa: E501
-        "include_metadata": "includeMetadata",  # noqa: E501
-        "queries": "queries",  # noqa: E501
-        "vector": "vector",  # noqa: E501
-        "sparse_vector": "sparseVector",  # noqa: E501
-        "id": "id",  # noqa: E501
+        "data": "data"  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -132,11 +109,8 @@ class QueryRequest(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], top_k, *args, **kwargs) -> T:  # noqa: E501
-        """QueryRequest - a model defined in OpenAPI
-
-        Args:
-            top_k (int): The number of results to return for each query.
+    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
+        """InlineResponse200 - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -169,14 +143,7 @@ class QueryRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            namespace (str): The namespace to query. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
-            include_values (bool): Indicates whether vector values are included in the response. [optional] if omitted the server will use the default value of False.  # noqa: E501
-            include_metadata (bool): Indicates whether metadata is included in the response as well as the ids. [optional] if omitted the server will use the default value of False.  # noqa: E501
-            queries ([QueryVector]): DEPRECATED. Use `vector` or `id` instead. [optional]  # noqa: E501
-            vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query` request can contain only one of the parameters `id` or `vector`. [optional]  # noqa: E501
-            sparse_vector (SparseValues): [optional]  # noqa: E501
-            id (str): The unique ID of the vector to be used as a query vector. Each request  can contain either the `vector` or `id` parameter. [optional]  # noqa: E501
+            data ([Project]): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -206,7 +173,6 @@ class QueryRequest(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.top_k = top_k
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -233,11 +199,8 @@ class QueryRequest(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, top_k, *args, **kwargs) -> None:  # noqa: E501
-        """QueryRequest - a model defined in OpenAPI
-
-        Args:
-            top_k (int): The number of results to return for each query.
+    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
+        """InlineResponse200 - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -270,14 +233,7 @@ class QueryRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            namespace (str): The namespace to query. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
-            include_values (bool): Indicates whether vector values are included in the response. [optional] if omitted the server will use the default value of False.  # noqa: E501
-            include_metadata (bool): Indicates whether metadata is included in the response as well as the ids. [optional] if omitted the server will use the default value of False.  # noqa: E501
-            queries ([QueryVector]): DEPRECATED. Use `vector` or `id` instead. [optional]  # noqa: E501
-            vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query` request can contain only one of the parameters `id` or `vector`. [optional]  # noqa: E501
-            sparse_vector (SparseValues): [optional]  # noqa: E501
-            id (str): The unique ID of the vector to be used as a query vector. Each request  can contain either the `vector` or `id` parameter. [optional]  # noqa: E501
+            data ([Project]): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -305,7 +261,6 @@ class QueryRequest(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.top_k = top_k
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

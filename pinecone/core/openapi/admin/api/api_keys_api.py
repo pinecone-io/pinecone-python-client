@@ -1,7 +1,7 @@
 """
-Pinecone Inference API
+Pinecone Admin API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Provides an API for managing a Pinecone organization and its resources.   # noqa: E501
 
 This file is @generated using OpenAPI.
 
@@ -23,16 +23,14 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     none_type,
     validate_and_convert_types,
 )
-from pinecone.core.openapi.inference.model.embed_request import EmbedRequest
-from pinecone.core.openapi.inference.model.embeddings_list import EmbeddingsList
-from pinecone.core.openapi.inference.model.error_response import ErrorResponse
-from pinecone.core.openapi.inference.model.model_info import ModelInfo
-from pinecone.core.openapi.inference.model.model_info_list import ModelInfoList
-from pinecone.core.openapi.inference.model.rerank_request import RerankRequest
-from pinecone.core.openapi.inference.model.rerank_result import RerankResult
+from pinecone.core.openapi.admin.model.api_key import APIKey
+from pinecone.core.openapi.admin.model.api_key_with_secret import APIKeyWithSecret
+from pinecone.core.openapi.admin.model.create_api_key_request import CreateAPIKeyRequest
+from pinecone.core.openapi.admin.model.inline_response2001 import InlineResponse2001
+from pinecone.core.openapi.admin.model.inline_response401 import InlineResponse401
 
 
-class InferenceApi:
+class APIKeysApi:
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -43,85 +41,21 @@ class InferenceApi:
             api_client = ApiClient()
         self.api_client = api_client
 
-        def __embed(self, **kwargs: ExtraOpenApiKwargsTypedDict):
-            """Generate vectors  # noqa: E501
+        def __create_api_key(
+            self, project_id, create_api_key_request, **kwargs: ExtraOpenApiKwargsTypedDict
+        ):
+            """Create an API key  # noqa: E501
 
-            Generate vector embeddings for input data. This endpoint uses Pinecone's [hosted embedding models](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models).  # noqa: E501
+            Create a new API key for a project. Developers can use the API key to authenticate requests to Pinecone's Data Plane and Control Plane APIs.   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.embed(async_req=True)
-            >>> result = thread.get()
-
-
-            Keyword Args:
-                embed_request (EmbedRequest): Generate embeddings for inputs. [optional]
-                _return_http_data_only (bool): response data without head status
-                    code and headers. Default is True.
-                _preload_content (bool): if False, the urllib3.HTTPResponse object
-                    will be returned without reading/decoding response data.
-                    Default is True.
-                _request_timeout (int/float/tuple): timeout setting for this request. If
-                    one number provided, it will be total request timeout. It can also
-                    be a pair (tuple) of (connection, read) timeouts.
-                    Default is None.
-                _check_input_type (bool): specifies if type checking
-                    should be done one the data sent to the server.
-                    Default is True.
-                _check_return_type (bool): specifies if type checking
-                    should be done one the data received from the server.
-                    Default is True.
-                async_req (bool): execute request asynchronously
-
-            Returns:
-                EmbeddingsList
-                    If the method is called asynchronously, returns the request
-                    thread.
-            """
-            kwargs = self._process_openapi_kwargs(kwargs)
-            return self.call_with_http_info(**kwargs)
-
-        self.embed = _Endpoint(
-            settings={
-                "response_type": (EmbeddingsList,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/embed",
-                "operation_id": "embed",
-                "http_method": "POST",
-                "servers": None,
-            },
-            params_map={
-                "all": ["embed_request"],
-                "required": [],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
-            },
-            root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"embed_request": (EmbedRequest,)},
-                "attribute_map": {},
-                "location_map": {"embed_request": "body"},
-                "collection_format_map": {},
-            },
-            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
-            api_client=api_client,
-            callable=__embed,
-        )
-
-        def __get_model(self, model_name, **kwargs: ExtraOpenApiKwargsTypedDict):
-            """Describe a model  # noqa: E501
-
-            Get a description of a model hosted by Pinecone.   You can use hosted models as an integrated part of Pinecone operations or for standalone embedding and reranking. For more details, see [Vector embedding](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding) and [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
-            This method makes a synchronous HTTP request by default. To make an
-            asynchronous HTTP request, please pass async_req=True
-
-            >>> thread = api.get_model(model_name, async_req=True)
+            >>> thread = api.create_api_key(project_id, create_api_key_request, async_req=True)
             >>> result = thread.get()
 
             Args:
-                model_name (str): The name of the model to look up.
+                project_id (str): Project ID
+                create_api_key_request (CreateAPIKeyRequest): The details of the new API key.
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -142,161 +76,27 @@ class InferenceApi:
                 async_req (bool): execute request asynchronously
 
             Returns:
-                ModelInfo
+                APIKeyWithSecret
                     If the method is called asynchronously, returns the request
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs["model_name"] = model_name
+            kwargs["project_id"] = project_id
+            kwargs["create_api_key_request"] = create_api_key_request
             return self.call_with_http_info(**kwargs)
 
-        self.get_model = _Endpoint(
+        self.create_api_key = _Endpoint(
             settings={
-                "response_type": (ModelInfo,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/models/{model_name}",
-                "operation_id": "get_model",
-                "http_method": "GET",
-                "servers": None,
-            },
-            params_map={
-                "all": ["model_name"],
-                "required": ["model_name"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
-            },
-            root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"model_name": (str,)},
-                "attribute_map": {"model_name": "model_name"},
-                "location_map": {"model_name": "path"},
-                "collection_format_map": {},
-            },
-            headers_map={"accept": ["application/json"], "content_type": []},
-            api_client=api_client,
-            callable=__get_model,
-        )
-
-        def __list_models(self, **kwargs: ExtraOpenApiKwargsTypedDict):
-            """List available models  # noqa: E501
-
-            List the embedding and reranking models hosted by Pinecone.   You can use hosted models as an integrated part of Pinecone operations or for standalone embedding and reranking. For more details, see [Vector embedding](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding) and [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
-            This method makes a synchronous HTTP request by default. To make an
-            asynchronous HTTP request, please pass async_req=True
-
-            >>> thread = api.list_models(async_req=True)
-            >>> result = thread.get()
-
-
-            Keyword Args:
-                type (str): Filter models by type ('embed' or 'rerank'). [optional]
-                vector_type (str): Filter embedding models by vector type ('dense' or 'sparse'). Only relevant when `type=embed`. [optional]
-                _return_http_data_only (bool): response data without head status
-                    code and headers. Default is True.
-                _preload_content (bool): if False, the urllib3.HTTPResponse object
-                    will be returned without reading/decoding response data.
-                    Default is True.
-                _request_timeout (int/float/tuple): timeout setting for this request. If
-                    one number provided, it will be total request timeout. It can also
-                    be a pair (tuple) of (connection, read) timeouts.
-                    Default is None.
-                _check_input_type (bool): specifies if type checking
-                    should be done one the data sent to the server.
-                    Default is True.
-                _check_return_type (bool): specifies if type checking
-                    should be done one the data received from the server.
-                    Default is True.
-                async_req (bool): execute request asynchronously
-
-            Returns:
-                ModelInfoList
-                    If the method is called asynchronously, returns the request
-                    thread.
-            """
-            kwargs = self._process_openapi_kwargs(kwargs)
-            return self.call_with_http_info(**kwargs)
-
-        self.list_models = _Endpoint(
-            settings={
-                "response_type": (ModelInfoList,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/models",
-                "operation_id": "list_models",
-                "http_method": "GET",
-                "servers": None,
-            },
-            params_map={
-                "all": ["type", "vector_type"],
-                "required": [],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
-            },
-            root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"type": (str,), "vector_type": (str,)},
-                "attribute_map": {"type": "type", "vector_type": "vector_type"},
-                "location_map": {"type": "query", "vector_type": "query"},
-                "collection_format_map": {},
-            },
-            headers_map={"accept": ["application/json"], "content_type": []},
-            api_client=api_client,
-            callable=__list_models,
-        )
-
-        def __rerank(self, **kwargs: ExtraOpenApiKwargsTypedDict):
-            """Rerank documents  # noqa: E501
-
-            Rerank results according to their relevance to a query.  For guidance and examples, see [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
-            This method makes a synchronous HTTP request by default. To make an
-            asynchronous HTTP request, please pass async_req=True
-
-            >>> thread = api.rerank(async_req=True)
-            >>> result = thread.get()
-
-
-            Keyword Args:
-                rerank_request (RerankRequest): Rerank documents for the given query [optional]
-                _return_http_data_only (bool): response data without head status
-                    code and headers. Default is True.
-                _preload_content (bool): if False, the urllib3.HTTPResponse object
-                    will be returned without reading/decoding response data.
-                    Default is True.
-                _request_timeout (int/float/tuple): timeout setting for this request. If
-                    one number provided, it will be total request timeout. It can also
-                    be a pair (tuple) of (connection, read) timeouts.
-                    Default is None.
-                _check_input_type (bool): specifies if type checking
-                    should be done one the data sent to the server.
-                    Default is True.
-                _check_return_type (bool): specifies if type checking
-                    should be done one the data received from the server.
-                    Default is True.
-                async_req (bool): execute request asynchronously
-
-            Returns:
-                RerankResult
-                    If the method is called asynchronously, returns the request
-                    thread.
-            """
-            kwargs = self._process_openapi_kwargs(kwargs)
-            return self.call_with_http_info(**kwargs)
-
-        self.rerank = _Endpoint(
-            settings={
-                "response_type": (RerankResult,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/rerank",
-                "operation_id": "rerank",
+                "response_type": (APIKeyWithSecret,),
+                "auth": ["BearerAuth"],
+                "endpoint_path": "/admin/projects/{project_id}/api-keys",
+                "operation_id": "create_api_key",
                 "http_method": "POST",
                 "servers": None,
             },
             params_map={
-                "all": ["rerank_request"],
-                "required": [],
+                "all": ["project_id", "create_api_key_request"],
+                "required": ["project_id", "create_api_key_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -304,18 +104,228 @@ class InferenceApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"rerank_request": (RerankRequest,)},
-                "attribute_map": {},
-                "location_map": {"rerank_request": "body"},
+                "openapi_types": {
+                    "project_id": (str,),
+                    "create_api_key_request": (CreateAPIKeyRequest,),
+                },
+                "attribute_map": {"project_id": "project_id"},
+                "location_map": {"project_id": "path", "create_api_key_request": "body"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__rerank,
+            callable=__create_api_key,
+        )
+
+        def __delete_api_key(self, api_key_id, **kwargs: ExtraOpenApiKwargsTypedDict):
+            """Delete an API key  # noqa: E501
+
+            Delete an API key from a project.  # noqa: E501
+            This method makes a synchronous HTTP request by default. To make an
+            asynchronous HTTP request, please pass async_req=True
+
+            >>> thread = api.delete_api_key(api_key_id, async_req=True)
+            >>> result = thread.get()
+
+            Args:
+                api_key_id (str): API key ID
+
+            Keyword Args:
+                _return_http_data_only (bool): response data without head status
+                    code and headers. Default is True.
+                _preload_content (bool): if False, the urllib3.HTTPResponse object
+                    will be returned without reading/decoding response data.
+                    Default is True.
+                _request_timeout (int/float/tuple): timeout setting for this request. If
+                    one number provided, it will be total request timeout. It can also
+                    be a pair (tuple) of (connection, read) timeouts.
+                    Default is None.
+                _check_input_type (bool): specifies if type checking
+                    should be done one the data sent to the server.
+                    Default is True.
+                _check_return_type (bool): specifies if type checking
+                    should be done one the data received from the server.
+                    Default is True.
+                async_req (bool): execute request asynchronously
+
+            Returns:
+                None
+                    If the method is called asynchronously, returns the request
+                    thread.
+            """
+            kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["api_key_id"] = api_key_id
+            return self.call_with_http_info(**kwargs)
+
+        self.delete_api_key = _Endpoint(
+            settings={
+                "response_type": None,
+                "auth": ["BearerAuth"],
+                "endpoint_path": "/admin/api-keys/{api_key_id}",
+                "operation_id": "delete_api_key",
+                "http_method": "DELETE",
+                "servers": None,
+            },
+            params_map={
+                "all": ["api_key_id"],
+                "required": ["api_key_id"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
+            root_map={
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"api_key_id": (str,)},
+                "attribute_map": {"api_key_id": "api_key_id"},
+                "location_map": {"api_key_id": "path"},
+                "collection_format_map": {},
+            },
+            headers_map={"accept": ["application/json"], "content_type": []},
+            api_client=api_client,
+            callable=__delete_api_key,
+        )
+
+        def __fetch_api_key(self, api_key_id, **kwargs: ExtraOpenApiKwargsTypedDict):
+            """Get API key details  # noqa: E501
+
+            Get the details of an API key, excluding the API key secret.  # noqa: E501
+            This method makes a synchronous HTTP request by default. To make an
+            asynchronous HTTP request, please pass async_req=True
+
+            >>> thread = api.fetch_api_key(api_key_id, async_req=True)
+            >>> result = thread.get()
+
+            Args:
+                api_key_id (str): API key ID
+
+            Keyword Args:
+                _return_http_data_only (bool): response data without head status
+                    code and headers. Default is True.
+                _preload_content (bool): if False, the urllib3.HTTPResponse object
+                    will be returned without reading/decoding response data.
+                    Default is True.
+                _request_timeout (int/float/tuple): timeout setting for this request. If
+                    one number provided, it will be total request timeout. It can also
+                    be a pair (tuple) of (connection, read) timeouts.
+                    Default is None.
+                _check_input_type (bool): specifies if type checking
+                    should be done one the data sent to the server.
+                    Default is True.
+                _check_return_type (bool): specifies if type checking
+                    should be done one the data received from the server.
+                    Default is True.
+                async_req (bool): execute request asynchronously
+
+            Returns:
+                APIKey
+                    If the method is called asynchronously, returns the request
+                    thread.
+            """
+            kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["api_key_id"] = api_key_id
+            return self.call_with_http_info(**kwargs)
+
+        self.fetch_api_key = _Endpoint(
+            settings={
+                "response_type": (APIKey,),
+                "auth": ["BearerAuth"],
+                "endpoint_path": "/admin/api-keys/{api_key_id}",
+                "operation_id": "fetch_api_key",
+                "http_method": "GET",
+                "servers": None,
+            },
+            params_map={
+                "all": ["api_key_id"],
+                "required": ["api_key_id"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
+            root_map={
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"api_key_id": (str,)},
+                "attribute_map": {"api_key_id": "api_key_id"},
+                "location_map": {"api_key_id": "path"},
+                "collection_format_map": {},
+            },
+            headers_map={"accept": ["application/json"], "content_type": []},
+            api_client=api_client,
+            callable=__fetch_api_key,
+        )
+
+        def __list_api_keys(self, project_id, **kwargs: ExtraOpenApiKwargsTypedDict):
+            """List API keys  # noqa: E501
+
+            List all API keys in a project.  # noqa: E501
+            This method makes a synchronous HTTP request by default. To make an
+            asynchronous HTTP request, please pass async_req=True
+
+            >>> thread = api.list_api_keys(project_id, async_req=True)
+            >>> result = thread.get()
+
+            Args:
+                project_id (str): Project ID
+
+            Keyword Args:
+                _return_http_data_only (bool): response data without head status
+                    code and headers. Default is True.
+                _preload_content (bool): if False, the urllib3.HTTPResponse object
+                    will be returned without reading/decoding response data.
+                    Default is True.
+                _request_timeout (int/float/tuple): timeout setting for this request. If
+                    one number provided, it will be total request timeout. It can also
+                    be a pair (tuple) of (connection, read) timeouts.
+                    Default is None.
+                _check_input_type (bool): specifies if type checking
+                    should be done one the data sent to the server.
+                    Default is True.
+                _check_return_type (bool): specifies if type checking
+                    should be done one the data received from the server.
+                    Default is True.
+                async_req (bool): execute request asynchronously
+
+            Returns:
+                InlineResponse2001
+                    If the method is called asynchronously, returns the request
+                    thread.
+            """
+            kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["project_id"] = project_id
+            return self.call_with_http_info(**kwargs)
+
+        self.list_api_keys = _Endpoint(
+            settings={
+                "response_type": (InlineResponse2001,),
+                "auth": ["BearerAuth"],
+                "endpoint_path": "/admin/projects/{project_id}/api-keys",
+                "operation_id": "list_api_keys",
+                "http_method": "GET",
+                "servers": None,
+            },
+            params_map={
+                "all": ["project_id"],
+                "required": ["project_id"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
+            root_map={
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"project_id": (str,)},
+                "attribute_map": {"project_id": "project_id"},
+                "location_map": {"project_id": "path"},
+                "collection_format_map": {},
+            },
+            headers_map={"accept": ["application/json"], "content_type": []},
+            api_client=api_client,
+            callable=__list_api_keys,
         )
 
 
-class AsyncioInferenceApi:
+class AsyncioAPIKeysApi:
     """NOTE: This class is @generated using OpenAPI
 
     Do not edit the class manually.
@@ -326,74 +336,15 @@ class AsyncioInferenceApi:
             api_client = AsyncioApiClient()
         self.api_client = api_client
 
-        async def __embed(self, **kwargs):
-            """Generate vectors  # noqa: E501
+        async def __create_api_key(self, project_id, create_api_key_request, **kwargs):
+            """Create an API key  # noqa: E501
 
-            Generate vector embeddings for input data. This endpoint uses Pinecone's [hosted embedding models](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models).  # noqa: E501
-
-
-
-            Keyword Args:
-                embed_request (EmbedRequest): Generate embeddings for inputs. [optional]
-                _return_http_data_only (bool): response data without head status
-                    code and headers. Default is True.
-                _preload_content (bool): if False, the urllib3.HTTPResponse object
-                    will be returned without reading/decoding response data.
-                    Default is True.
-                _request_timeout (int/float/tuple): timeout setting for this request. If
-                    one number provided, it will be total request timeout. It can also
-                    be a pair (tuple) of (connection, read) timeouts.
-                    Default is None.
-                _check_input_type (bool): specifies if type checking
-                    should be done one the data sent to the server.
-                    Default is True.
-                _check_return_type (bool): specifies if type checking
-                    should be done one the data received from the server.
-                    Default is True.
-
-            Returns:
-                EmbeddingsList
-            """
-            self._process_openapi_kwargs(kwargs)
-            return await self.call_with_http_info(**kwargs)
-
-        self.embed = _AsyncioEndpoint(
-            settings={
-                "response_type": (EmbeddingsList,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/embed",
-                "operation_id": "embed",
-                "http_method": "POST",
-                "servers": None,
-            },
-            params_map={
-                "all": ["embed_request"],
-                "required": [],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
-            },
-            root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"embed_request": (EmbedRequest,)},
-                "attribute_map": {},
-                "location_map": {"embed_request": "body"},
-                "collection_format_map": {},
-            },
-            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
-            api_client=api_client,
-            callable=__embed,
-        )
-
-        async def __get_model(self, model_name, **kwargs):
-            """Describe a model  # noqa: E501
-
-            Get a description of a model hosted by Pinecone.   You can use hosted models as an integrated part of Pinecone operations or for standalone embedding and reranking. For more details, see [Vector embedding](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding) and [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
+            Create a new API key for a project. Developers can use the API key to authenticate requests to Pinecone's Data Plane and Control Plane APIs.   # noqa: E501
 
 
             Args:
-                model_name (str): The name of the model to look up.
+                project_id (str): Project ID
+                create_api_key_request (CreateAPIKeyRequest): The details of the new API key.
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -413,145 +364,25 @@ class AsyncioInferenceApi:
                     Default is True.
 
             Returns:
-                ModelInfo
+                APIKeyWithSecret
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs["model_name"] = model_name
+            kwargs["project_id"] = project_id
+            kwargs["create_api_key_request"] = create_api_key_request
             return await self.call_with_http_info(**kwargs)
 
-        self.get_model = _AsyncioEndpoint(
+        self.create_api_key = _AsyncioEndpoint(
             settings={
-                "response_type": (ModelInfo,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/models/{model_name}",
-                "operation_id": "get_model",
-                "http_method": "GET",
-                "servers": None,
-            },
-            params_map={
-                "all": ["model_name"],
-                "required": ["model_name"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
-            },
-            root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"model_name": (str,)},
-                "attribute_map": {"model_name": "model_name"},
-                "location_map": {"model_name": "path"},
-                "collection_format_map": {},
-            },
-            headers_map={"accept": ["application/json"], "content_type": []},
-            api_client=api_client,
-            callable=__get_model,
-        )
-
-        async def __list_models(self, **kwargs):
-            """List available models  # noqa: E501
-
-            List the embedding and reranking models hosted by Pinecone.   You can use hosted models as an integrated part of Pinecone operations or for standalone embedding and reranking. For more details, see [Vector embedding](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding) and [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
-
-
-
-            Keyword Args:
-                type (str): Filter models by type ('embed' or 'rerank'). [optional]
-                vector_type (str): Filter embedding models by vector type ('dense' or 'sparse'). Only relevant when `type=embed`. [optional]
-                _return_http_data_only (bool): response data without head status
-                    code and headers. Default is True.
-                _preload_content (bool): if False, the urllib3.HTTPResponse object
-                    will be returned without reading/decoding response data.
-                    Default is True.
-                _request_timeout (int/float/tuple): timeout setting for this request. If
-                    one number provided, it will be total request timeout. It can also
-                    be a pair (tuple) of (connection, read) timeouts.
-                    Default is None.
-                _check_input_type (bool): specifies if type checking
-                    should be done one the data sent to the server.
-                    Default is True.
-                _check_return_type (bool): specifies if type checking
-                    should be done one the data received from the server.
-                    Default is True.
-
-            Returns:
-                ModelInfoList
-            """
-            self._process_openapi_kwargs(kwargs)
-            return await self.call_with_http_info(**kwargs)
-
-        self.list_models = _AsyncioEndpoint(
-            settings={
-                "response_type": (ModelInfoList,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/models",
-                "operation_id": "list_models",
-                "http_method": "GET",
-                "servers": None,
-            },
-            params_map={
-                "all": ["type", "vector_type"],
-                "required": [],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
-            },
-            root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"type": (str,), "vector_type": (str,)},
-                "attribute_map": {"type": "type", "vector_type": "vector_type"},
-                "location_map": {"type": "query", "vector_type": "query"},
-                "collection_format_map": {},
-            },
-            headers_map={"accept": ["application/json"], "content_type": []},
-            api_client=api_client,
-            callable=__list_models,
-        )
-
-        async def __rerank(self, **kwargs):
-            """Rerank documents  # noqa: E501
-
-            Rerank results according to their relevance to a query.  For guidance and examples, see [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
-
-
-
-            Keyword Args:
-                rerank_request (RerankRequest): Rerank documents for the given query [optional]
-                _return_http_data_only (bool): response data without head status
-                    code and headers. Default is True.
-                _preload_content (bool): if False, the urllib3.HTTPResponse object
-                    will be returned without reading/decoding response data.
-                    Default is True.
-                _request_timeout (int/float/tuple): timeout setting for this request. If
-                    one number provided, it will be total request timeout. It can also
-                    be a pair (tuple) of (connection, read) timeouts.
-                    Default is None.
-                _check_input_type (bool): specifies if type checking
-                    should be done one the data sent to the server.
-                    Default is True.
-                _check_return_type (bool): specifies if type checking
-                    should be done one the data received from the server.
-                    Default is True.
-
-            Returns:
-                RerankResult
-            """
-            self._process_openapi_kwargs(kwargs)
-            return await self.call_with_http_info(**kwargs)
-
-        self.rerank = _AsyncioEndpoint(
-            settings={
-                "response_type": (RerankResult,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/rerank",
-                "operation_id": "rerank",
+                "response_type": (APIKeyWithSecret,),
+                "auth": ["BearerAuth"],
+                "endpoint_path": "/admin/projects/{project_id}/api-keys",
+                "operation_id": "create_api_key",
                 "http_method": "POST",
                 "servers": None,
             },
             params_map={
-                "all": ["rerank_request"],
-                "required": [],
+                "all": ["project_id", "create_api_key_request"],
+                "required": ["project_id", "create_api_key_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -559,12 +390,201 @@ class AsyncioInferenceApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"rerank_request": (RerankRequest,)},
-                "attribute_map": {},
-                "location_map": {"rerank_request": "body"},
+                "openapi_types": {
+                    "project_id": (str,),
+                    "create_api_key_request": (CreateAPIKeyRequest,),
+                },
+                "attribute_map": {"project_id": "project_id"},
+                "location_map": {"project_id": "path", "create_api_key_request": "body"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__rerank,
+            callable=__create_api_key,
+        )
+
+        async def __delete_api_key(self, api_key_id, **kwargs):
+            """Delete an API key  # noqa: E501
+
+            Delete an API key from a project.  # noqa: E501
+
+
+            Args:
+                api_key_id (str): API key ID
+
+            Keyword Args:
+                _return_http_data_only (bool): response data without head status
+                    code and headers. Default is True.
+                _preload_content (bool): if False, the urllib3.HTTPResponse object
+                    will be returned without reading/decoding response data.
+                    Default is True.
+                _request_timeout (int/float/tuple): timeout setting for this request. If
+                    one number provided, it will be total request timeout. It can also
+                    be a pair (tuple) of (connection, read) timeouts.
+                    Default is None.
+                _check_input_type (bool): specifies if type checking
+                    should be done one the data sent to the server.
+                    Default is True.
+                _check_return_type (bool): specifies if type checking
+                    should be done one the data received from the server.
+                    Default is True.
+
+            Returns:
+                None
+            """
+            self._process_openapi_kwargs(kwargs)
+            kwargs["api_key_id"] = api_key_id
+            return await self.call_with_http_info(**kwargs)
+
+        self.delete_api_key = _AsyncioEndpoint(
+            settings={
+                "response_type": None,
+                "auth": ["BearerAuth"],
+                "endpoint_path": "/admin/api-keys/{api_key_id}",
+                "operation_id": "delete_api_key",
+                "http_method": "DELETE",
+                "servers": None,
+            },
+            params_map={
+                "all": ["api_key_id"],
+                "required": ["api_key_id"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
+            root_map={
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"api_key_id": (str,)},
+                "attribute_map": {"api_key_id": "api_key_id"},
+                "location_map": {"api_key_id": "path"},
+                "collection_format_map": {},
+            },
+            headers_map={"accept": ["application/json"], "content_type": []},
+            api_client=api_client,
+            callable=__delete_api_key,
+        )
+
+        async def __fetch_api_key(self, api_key_id, **kwargs):
+            """Get API key details  # noqa: E501
+
+            Get the details of an API key, excluding the API key secret.  # noqa: E501
+
+
+            Args:
+                api_key_id (str): API key ID
+
+            Keyword Args:
+                _return_http_data_only (bool): response data without head status
+                    code and headers. Default is True.
+                _preload_content (bool): if False, the urllib3.HTTPResponse object
+                    will be returned without reading/decoding response data.
+                    Default is True.
+                _request_timeout (int/float/tuple): timeout setting for this request. If
+                    one number provided, it will be total request timeout. It can also
+                    be a pair (tuple) of (connection, read) timeouts.
+                    Default is None.
+                _check_input_type (bool): specifies if type checking
+                    should be done one the data sent to the server.
+                    Default is True.
+                _check_return_type (bool): specifies if type checking
+                    should be done one the data received from the server.
+                    Default is True.
+
+            Returns:
+                APIKey
+            """
+            self._process_openapi_kwargs(kwargs)
+            kwargs["api_key_id"] = api_key_id
+            return await self.call_with_http_info(**kwargs)
+
+        self.fetch_api_key = _AsyncioEndpoint(
+            settings={
+                "response_type": (APIKey,),
+                "auth": ["BearerAuth"],
+                "endpoint_path": "/admin/api-keys/{api_key_id}",
+                "operation_id": "fetch_api_key",
+                "http_method": "GET",
+                "servers": None,
+            },
+            params_map={
+                "all": ["api_key_id"],
+                "required": ["api_key_id"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
+            root_map={
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"api_key_id": (str,)},
+                "attribute_map": {"api_key_id": "api_key_id"},
+                "location_map": {"api_key_id": "path"},
+                "collection_format_map": {},
+            },
+            headers_map={"accept": ["application/json"], "content_type": []},
+            api_client=api_client,
+            callable=__fetch_api_key,
+        )
+
+        async def __list_api_keys(self, project_id, **kwargs):
+            """List API keys  # noqa: E501
+
+            List all API keys in a project.  # noqa: E501
+
+
+            Args:
+                project_id (str): Project ID
+
+            Keyword Args:
+                _return_http_data_only (bool): response data without head status
+                    code and headers. Default is True.
+                _preload_content (bool): if False, the urllib3.HTTPResponse object
+                    will be returned without reading/decoding response data.
+                    Default is True.
+                _request_timeout (int/float/tuple): timeout setting for this request. If
+                    one number provided, it will be total request timeout. It can also
+                    be a pair (tuple) of (connection, read) timeouts.
+                    Default is None.
+                _check_input_type (bool): specifies if type checking
+                    should be done one the data sent to the server.
+                    Default is True.
+                _check_return_type (bool): specifies if type checking
+                    should be done one the data received from the server.
+                    Default is True.
+
+            Returns:
+                InlineResponse2001
+            """
+            self._process_openapi_kwargs(kwargs)
+            kwargs["project_id"] = project_id
+            return await self.call_with_http_info(**kwargs)
+
+        self.list_api_keys = _AsyncioEndpoint(
+            settings={
+                "response_type": (InlineResponse2001,),
+                "auth": ["BearerAuth"],
+                "endpoint_path": "/admin/projects/{project_id}/api-keys",
+                "operation_id": "list_api_keys",
+                "http_method": "GET",
+                "servers": None,
+            },
+            params_map={
+                "all": ["project_id"],
+                "required": ["project_id"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
+            root_map={
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"project_id": (str,)},
+                "attribute_map": {"project_id": "project_id"},
+                "location_map": {"project_id": "path"},
+                "collection_format_map": {},
+            },
+            headers_map={"accept": ["application/json"], "content_type": []},
+            api_client=api_client,
+            callable=__list_api_keys,
         )
