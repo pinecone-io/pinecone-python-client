@@ -48,7 +48,7 @@ jobs:
       - create-project
     with:
       encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
-      python_versions_json: '["3.9"]'
+      python_versions_json: '["3.13", "3.9"]'
 
   cleanup-project:
     if: ${{ always() }}
