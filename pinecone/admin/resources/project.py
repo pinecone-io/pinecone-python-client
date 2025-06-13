@@ -466,14 +466,14 @@ class ProjectResource:
         from .api_key import ApiKeyResource
 
         api_key_resource = ApiKeyResource(self._api_client)
-        logger.info(f"Creating API key 'cleanup-key' for project {project.id}")
+        logger.debug(f"Creating API key 'cleanup-key' for project {project.id}")
         key_create_response = api_key_resource.create(
             project_id=project.id, name="cleanup-key", roles=["ProjectEditor"]
         )
         api_key = key_create_response.value
 
         try:
-            from ..project_eraser import _ProjectEraser
+            from ..eraser.project_eraser import _ProjectEraser
 
             done = False
             retries = 0
@@ -491,12 +491,13 @@ class ProjectResource:
                 done = not project_eraser.retry_needed()
                 retries += 1
                 if not done:
-                    logger.info(
+                    logger.debug(
                         f"Retrying deletion of resources for project {project.id}. There were {len(project_eraser.undeleteable_resources)} undeleteable resources"
                     )
                     time.sleep(30)
         finally:
-            logger.info(f"Deleting API key 'cleanup-key' for project {project.id}")
+            logger.debug(f"Deleting API key 'cleanup-key' for project {project.id}")
             api_key_resource.delete(api_key_id=key_create_response.key.id)
 
+        logger.info(f"Deleting project {project_id}")
         return self._projects_api.delete_project(project_id=project_id)
