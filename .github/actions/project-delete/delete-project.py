@@ -2,7 +2,7 @@ import os
 import logging
 import time
 from pinecone import Admin
-from pinecone.admin.project_eraser import _ProjectEraser
+from pinecone.admin.eraser.project_eraser import _ProjectEraser
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(levelname)-8s | %(name)s:%(lineno)d | %(message)s"

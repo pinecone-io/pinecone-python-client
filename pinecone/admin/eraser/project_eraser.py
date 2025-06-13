@@ -23,6 +23,8 @@ class DeletionFailure(NamedTuple):
 class _ProjectEraser:
     """
     This class is used to delete all resources within a project
+
+    It should not be used directly, but rather through :func:`pinecone.admin.resources.ProjectResource.delete`
     """
 
     def __init__(self, api_key, max_retries=5, sleep_interval=0.5):
@@ -73,68 +75,70 @@ class _ProjectEraser:
         return (state, should_continue)
 
     def _check_if_terminating(self, state, dr, resource, delete_queue):
-        should_continue = False
         terminating_states = ["Terminating", "Terminated"]
         label = f"{dr.name()} {resource.name}"
-        if state in terminating_states:
-            self.is_terminating_retries.increment(resource.name)
-            if self.is_terminating_retries.is_maxed_out(resource.name):
-                logger.error(f"{label} has been in the terminating state for too long, skipping")
-                self.undeletable_resources.append(
-                    DeletionFailure(
-                        resource_type=dr.name(),
-                        resource_name=resource.name,
-                        reason=f"{label} has been in the terminating state for too long",
-                    )
-                )
-                should_continue = True
-            else:
-                logger.debug(
-                    f"{label} is in the process of being deleted, adding to the back of the delete queue to recheck later"
-                )
-                delete_queue.append(resource)
-                should_continue = True
 
-        return should_continue
+        if state not in terminating_states:
+            return False
+
+        self.is_terminating_retries.increment(resource.name)
+        if self.is_terminating_retries.is_maxed_out(resource.name):
+            logger.error(f"{label} has been in the terminating state for too long, skipping")
+            self.undeletable_resources.append(
+                DeletionFailure(
+                    resource_type=dr.name(),
+                    resource_name=resource.name,
+                    reason=f"{label} has been in the terminating state for too long",
+                )
+            )
+        else:
+            logger.debug(
+                f"{label} is in the process of being deleted, adding to the back of the delete queue to recheck later"
+            )
+        delete_queue.append(resource)
+
+        return True
 
     def _check_if_deletable(self, state, dr, resource, delete_queue):
-        should_continue = False
         label = f"{dr.name()} {resource.name}"
         deleteable_states = ["Ready", "InitializationFailed"]
-        if state not in deleteable_states:
-            self.is_deletable_retries.increment(resource.name)
-            if self.is_deletable_retries.is_maxed_out(resource.name):
-                attempts = self.is_deletable_retries.get_count(resource.name)
-                logger.error(
-                    f"{label} did not enter a deleteable state after {attempts} attempts, skipping"
-                )
-                self.undeletable_resources.append(
-                    DeletionFailure(
-                        resource_type=dr.name(),
-                        resource_name=resource.name,
-                        reason=f"Not in a deleteable state after {attempts} attempts",
-                    )
-                )
-                should_continue = True
-            else:
-                logger.debug(
-                    f"{label} state {state} is not deleteable, adding to the back of the delete queue"
-                )
-                delete_queue.append(resource)
-                should_continue = True
 
-        return should_continue
+        if state in deleteable_states:
+            return False
+
+        self.is_deletable_retries.increment(resource.name)
+        if self.is_deletable_retries.is_maxed_out(resource.name):
+            attempts = self.is_deletable_retries.get_count(resource.name)
+            logger.error(
+                f"{label} did not enter a deleteable state after {attempts} attempts, skipping"
+            )
+            self.undeletable_resources.append(
+                DeletionFailure(
+                    resource_type=dr.name(),
+                    resource_name=resource.name,
+                    reason=f"Not in a deleteable state after {attempts} attempts",
+                )
+            )
+        else:
+            logger.debug(
+                f"{label} state {state} is not deleteable, adding to the back of the delete queue"
+            )
+            delete_queue.append(resource)
+
+        return True
 
     def _attempt_delete(self, dr, resource, delete_queue):
-        should_continue = False
         label = f"{dr.name()} {resource.name}"
         try:
             logger.debug(f"Attempting deleting of {label}")
             dr.delete(name=resource.name)
             logger.debug(f"Successfully deleted {label}")
+        except NotFoundException:
+            logger.debug(f"{label} has already been deleted, continuing")
         except Exception as e:
             logger.error(f"Error deleting {label}: {e}")
             self.failed_delete_retries.increment(resource.name)
+
             if self.failed_delete_retries.is_maxed_out(resource.name):
                 attempts = self.failed_delete_retries.get_count(resource.name)
                 logger.error(f"Failed to delete {label} after {attempts} attempts, skipping")
@@ -145,13 +149,9 @@ class _ProjectEraser:
                         reason=f"Failed to delete after {attempts} attempts",
                     )
                 )
-                should_continue = True
             else:
                 logger.debug(f"{label} has been returned to the back of the delete queue")
                 delete_queue.append(resource)
-                should_continue = True
-
-        return should_continue
 
     def _log_final_state(self, dr):
         if len(self.undeletable_resources) > 0:
@@ -196,9 +196,7 @@ class _ProjectEraser:
                 continue
 
             # If the resource is deletable, delete it
-            should_continue = self._attempt_delete(dr, resource, delete_queue)
-            if should_continue:
-                continue
+            self._attempt_delete(dr, resource, delete_queue)
 
         self._log_final_state(dr)
 

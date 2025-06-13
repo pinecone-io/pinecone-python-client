@@ -1,6 +1,6 @@
 import logging
 from pinecone import Admin
-from pinecone.admin.project_eraser import _ProjectEraser
+from pinecone.admin.eraser.project_eraser import _ProjectEraser
 import time
 import os
 
