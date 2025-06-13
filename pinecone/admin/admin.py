@@ -1,11 +1,10 @@
-from pinecone.config import OpenApiConfiguration
+from pinecone.config import OpenApiConfiguration, Config
 from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.oauth import API_VERSION
 from pinecone.core.openapi.oauth.apis import OAuthApi
 from pinecone.core.openapi.oauth.models import TokenRequest
 from typing import Optional, Dict
 from pinecone.utils import get_user_agent
-from pinecone.config import Config
 import os
 from copy import deepcopy
 
