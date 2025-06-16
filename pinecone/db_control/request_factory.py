@@ -25,6 +25,9 @@ from pinecone.core.openapi.db_control.model.configure_index_request_spec import 
 from pinecone.core.openapi.db_control.model.configure_index_request_spec_pod import (
     ConfigureIndexRequestSpecPod,
 )
+from pinecone.core.openapi.db_control.model.configure_index_request_embed import (
+    ConfigureIndexRequestEmbed,
+)
 from pinecone.core.openapi.db_control.model.deletion_protection import (
     DeletionProtection as DeletionProtectionModel,
 )
@@ -320,9 +323,9 @@ class PineconeDBControlRequestFactory:
         if replicas:
             pod_config_args.update(replicas=replicas)
 
-        embed_config_args = None
+        embed_config = None
         if embed is not None:
-            embed_config_args = dict(embed)
+            embed_config = ConfigureIndexRequestEmbed(**dict(embed))
 
         spec = None
         if pod_config_args:
@@ -335,7 +338,7 @@ class PineconeDBControlRequestFactory:
                 ("deletion_protection", dp),
                 ("tags", IndexTags(**tags)),
                 ("spec", spec),
-                ("embed", embed_config_args),
+                ("embed", embed_config),
             ]
         )
 
