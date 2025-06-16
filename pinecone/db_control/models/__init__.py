@@ -11,7 +11,6 @@ from .backup_model import BackupModel
 from .backup_list import BackupList
 from .restore_job_model import RestoreJobModel
 from .restore_job_list import RestoreJobList
-from .configure_index_embed import ConfigureIndexEmbed
 
 
 __all__ = [
@@ -29,5 +28,4 @@ __all__ = [
     "BackupList",
     "RestoreJobModel",
     "RestoreJobList",
-    "ConfigureIndexEmbed",
 ]

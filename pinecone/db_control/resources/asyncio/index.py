@@ -1,6 +1,6 @@
 import logging
 import asyncio
-from typing import Optional, Dict, Union, Any, TypedDict
+from typing import Optional, Dict, Union, Any
 
 
 from pinecone.db_control.models import (
@@ -10,7 +10,6 @@ from pinecone.db_control.models import (
     IndexModel,
     IndexList,
     IndexEmbed,
-    ConfigureIndexEmbed,
 )
 from pinecone.utils import docslinks
 
@@ -28,6 +27,7 @@ from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict
 from pinecone.db_control.request_factory import PineconeDBControlRequestFactory
 from pinecone.core.openapi.db_control import API_VERSION
 from pinecone.utils import require_kwargs
+from pinecone.db_control.types.configure_index_embed import ConfigureIndexEmbed
 
 logger = logging.getLogger(__name__)
 """ :meta private: """
@@ -192,7 +192,7 @@ class IndexResourceAsyncio:
         pod_type: Optional[Union[PodType, str]] = None,
         deletion_protection: Optional[Union[DeletionProtection, str]] = None,
         tags: Optional[Dict[str, str]] = None,
-        embed: Optional[Dict[str, Any]] = None,
+        embed: Optional[Union[ConfigureIndexEmbed, Dict]] = None,
     ):
         description = await self.describe(name=name)
 
