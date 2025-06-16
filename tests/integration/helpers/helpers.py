@@ -75,7 +75,7 @@ def poll_stats_for_namespace(
     idx: _Index,
     namespace: str,
     expected_count: int,
-    max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 60)),
+    max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 180)),
 ) -> None:
     delta_t = 5
     total_time = 0
@@ -280,11 +280,7 @@ async def asyncio_wait_until(
 
 
 def default_create_index_params(request, run_id):
-    github_actor = os.getenv("GITHUB_ACTOR", None)
-    user = os.getenv("USER", None)
-    index_owner = github_actor or user or "unknown"
-
-    index_name = f"{index_owner}-{str(uuid.uuid4())}"
+    index_name = f"{str(uuid.uuid4())}"
     tags = index_tags(request, run_id)
     cloud = get_environment_var("SERVERLESS_CLOUD", "aws")
     region = get_environment_var("SERVERLESS_REGION", "us-west-2")
