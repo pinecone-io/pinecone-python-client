@@ -75,7 +75,7 @@ def poll_stats_for_namespace(
     idx: _Index,
     namespace: str,
     expected_count: int,
-    max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 60)),
+    max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 180)),
 ) -> None:
     delta_t = 5
     total_time = 0
