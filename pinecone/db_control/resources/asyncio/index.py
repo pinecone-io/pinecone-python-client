@@ -1,6 +1,6 @@
 import logging
 import asyncio
-from typing import Optional, Dict, Union
+from typing import Optional, Dict, Union, Any, TypedDict
 
 
 from pinecone.db_control.models import (
@@ -10,6 +10,7 @@ from pinecone.db_control.models import (
     IndexModel,
     IndexList,
     IndexEmbed,
+    ConfigureIndexEmbed,
 )
 from pinecone.utils import docslinks
 
@@ -46,7 +47,9 @@ class IndexResourceAsyncio:
         dimension: Optional[int] = None,
         metric: Optional[Union[Metric, str]] = Metric.COSINE,
         timeout: Optional[int] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        deletion_protection: Optional[
+            Union[DeletionProtection, str]
+        ] = DeletionProtection.DISABLED,
         vector_type: Optional[Union[VectorType, str]] = VectorType.DENSE,
         tags: Optional[Dict[str, str]] = None,
     ) -> IndexModel:
@@ -74,7 +77,9 @@ class IndexResourceAsyncio:
         region: Union[AwsRegion, GcpRegion, AzureRegion, str],
         embed: Union[IndexEmbed, CreateIndexForModelEmbedTypedDict],
         tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        deletion_protection: Optional[
+            Union[DeletionProtection, str]
+        ] = DeletionProtection.DISABLED,
         timeout: Optional[int] = None,
     ) -> IndexModel:
         req = PineconeDBControlRequestFactory.create_index_for_model_request(
@@ -97,7 +102,9 @@ class IndexResourceAsyncio:
         *,
         name: str,
         backup_id: str,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        deletion_protection: Optional[
+            Union[DeletionProtection, str]
+        ] = DeletionProtection.DISABLED,
         tags: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = None,
     ) -> IndexModel:
@@ -109,7 +116,9 @@ class IndexResourceAsyncio:
         )
         return await self.__poll_describe_index_until_ready(name, timeout)
 
-    async def __poll_describe_index_until_ready(self, name: str, timeout: Optional[int] = None):
+    async def __poll_describe_index_until_ready(
+        self, name: str, timeout: Optional[int] = None
+    ):
         total_wait_time = 0
         while True:
             description = await self.describe(name=name)
@@ -183,6 +192,7 @@ class IndexResourceAsyncio:
         pod_type: Optional[Union[PodType, str]] = None,
         deletion_protection: Optional[Union[DeletionProtection, str]] = None,
         tags: Optional[Dict[str, str]] = None,
+        embed: Optional[Dict[str, Any]] = None,
     ):
         description = await self.describe(name=name)
 
@@ -192,5 +202,6 @@ class IndexResourceAsyncio:
             pod_type=pod_type,
             deletion_protection=deletion_protection,
             tags=tags,
+            embed=embed,
         )
         await self._index_api.configure_index(name, configure_index_request=req)

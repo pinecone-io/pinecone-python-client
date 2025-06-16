@@ -4,15 +4,21 @@ from enum import Enum
 
 from pinecone.utils import parse_non_empty_args, convert_enum_to_string
 
-from pinecone.core.openapi.db_control.model.create_collection_request import CreateCollectionRequest
+from pinecone.core.openapi.db_control.model.create_collection_request import (
+    CreateCollectionRequest,
+)
 from pinecone.core.openapi.db_control.model.create_index_for_model_request import (
     CreateIndexForModelRequest,
 )
 from pinecone.core.openapi.db_control.model.create_index_for_model_request_embed import (
     CreateIndexForModelRequestEmbed,
 )
-from pinecone.core.openapi.db_control.model.create_index_request import CreateIndexRequest
-from pinecone.core.openapi.db_control.model.configure_index_request import ConfigureIndexRequest
+from pinecone.core.openapi.db_control.model.create_index_request import (
+    CreateIndexRequest,
+)
+from pinecone.core.openapi.db_control.model.configure_index_request import (
+    ConfigureIndexRequest,
+)
 from pinecone.core.openapi.db_control.model.configure_index_request_spec import (
     ConfigureIndexRequestSpec,
 )
@@ -29,11 +35,20 @@ from pinecone.core.openapi.db_control.model.serverless_spec import (
 )
 from pinecone.core.openapi.db_control.model.byoc_spec import ByocSpec as ByocSpecModel
 from pinecone.core.openapi.db_control.model.pod_spec import PodSpec as PodSpecModel
-from pinecone.core.openapi.db_control.model.pod_spec_metadata_config import PodSpecMetadataConfig
+from pinecone.core.openapi.db_control.model.pod_spec_metadata_config import (
+    PodSpecMetadataConfig,
+)
 from pinecone.core.openapi.db_control.model.create_index_from_backup_request import (
     CreateIndexFromBackupRequest,
 )
-from pinecone.db_control.models import ServerlessSpec, PodSpec, ByocSpec, IndexModel, IndexEmbed
+from pinecone.db_control.models import (
+    ServerlessSpec,
+    PodSpec,
+    ByocSpec,
+    ConfigureIndexEmbed,
+    IndexModel,
+    IndexEmbed,
+)
 
 from pinecone.db_control.enums import (
     Metric,
@@ -74,18 +89,30 @@ class PineconeDBControlRequestFactory:
         if deletion_protection in ["enabled", "disabled"]:
             return DeletionProtectionModel(deletion_protection)
         else:
-            raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
+            raise ValueError(
+                "deletion_protection must be either 'enabled' or 'disabled'"
+            )
 
     @staticmethod
-    def __parse_index_spec(spec: Union[Dict, ServerlessSpec, PodSpec, ByocSpec]) -> IndexSpec:
+    def __parse_index_spec(
+        spec: Union[Dict, ServerlessSpec, PodSpec, ByocSpec],
+    ) -> IndexSpec:
         if isinstance(spec, dict):
             if "serverless" in spec:
-                spec["serverless"]["cloud"] = convert_enum_to_string(spec["serverless"]["cloud"])
-                spec["serverless"]["region"] = convert_enum_to_string(spec["serverless"]["region"])
+                spec["serverless"]["cloud"] = convert_enum_to_string(
+                    spec["serverless"]["cloud"]
+                )
+                spec["serverless"]["region"] = convert_enum_to_string(
+                    spec["serverless"]["region"]
+                )
 
-                index_spec = IndexSpec(serverless=ServerlessSpecModel(**spec["serverless"]))
+                index_spec = IndexSpec(
+                    serverless=ServerlessSpecModel(**spec["serverless"])
+                )
             elif "pod" in spec:
-                spec["pod"]["environment"] = convert_enum_to_string(spec["pod"]["environment"])
+                spec["pod"]["environment"] = convert_enum_to_string(
+                    spec["pod"]["environment"]
+                )
                 args_dict = parse_non_empty_args(
                     [
                         ("environment", spec["pod"].get("environment")),
@@ -104,7 +131,9 @@ class PineconeDBControlRequestFactory:
             elif "byoc" in spec:
                 index_spec = IndexSpec(byoc=ByocSpecModel(**spec["byoc"]))
             else:
-                raise ValueError("spec must contain either 'serverless', 'pod', or 'byoc' key")
+                raise ValueError(
+                    "spec must contain either 'serverless', 'pod', or 'byoc' key"
+                )
         elif isinstance(spec, ServerlessSpec):
             index_spec = IndexSpec(
                 serverless=ServerlessSpecModel(cloud=spec.cloud, region=spec.region)
@@ -124,13 +153,17 @@ class PineconeDBControlRequestFactory:
                 )
 
             index_spec = IndexSpec(
-                pod=PodSpecModel(environment=spec.environment, pod_type=spec.pod_type, **args_dict)
+                pod=PodSpecModel(
+                    environment=spec.environment, pod_type=spec.pod_type, **args_dict
+                )
             )
         elif isinstance(spec, ByocSpec):
             args_dict = parse_non_empty_args([("environment", spec.environment)])
             index_spec = IndexSpec(byoc=ByocSpecModel(**args_dict))
         else:
-            raise TypeError("spec must be of type dict, ServerlessSpec, PodSpec, or ByocSpec")
+            raise TypeError(
+                "spec must be of type dict, ServerlessSpec, PodSpec, or ByocSpec"
+            )
 
         return index_spec
 
@@ -140,7 +173,9 @@ class PineconeDBControlRequestFactory:
         spec: Union[Dict, ServerlessSpec, PodSpec, ByocSpec],
         dimension: Optional[int] = None,
         metric: Optional[Union[Metric, str]] = Metric.COSINE,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        deletion_protection: Optional[
+            Union[DeletionProtection, str]
+        ] = DeletionProtection.DISABLED,
         vector_type: Optional[Union[VectorType, str]] = VectorType.DENSE,
         tags: Optional[Dict[str, str]] = None,
     ) -> CreateIndexRequest:
@@ -149,7 +184,9 @@ class PineconeDBControlRequestFactory:
         if vector_type is not None:
             vector_type = convert_enum_to_string(vector_type)
         if deletion_protection is not None:
-            dp = PineconeDBControlRequestFactory.__parse_deletion_protection(deletion_protection)
+            dp = PineconeDBControlRequestFactory.__parse_deletion_protection(
+                deletion_protection
+            )
         else:
             dp = None
 
@@ -180,12 +217,16 @@ class PineconeDBControlRequestFactory:
         region: Union[AwsRegion, GcpRegion, AzureRegion, str],
         embed: Union[IndexEmbed, CreateIndexForModelEmbedTypedDict],
         tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        deletion_protection: Optional[
+            Union[DeletionProtection, str]
+        ] = DeletionProtection.DISABLED,
     ) -> CreateIndexForModelRequest:
         cloud = convert_enum_to_string(cloud)
         region = convert_enum_to_string(region)
         if deletion_protection is not None:
-            dp = PineconeDBControlRequestFactory.__parse_deletion_protection(deletion_protection)
+            dp = PineconeDBControlRequestFactory.__parse_deletion_protection(
+                deletion_protection
+            )
         else:
             dp = None
         tags_obj = PineconeDBControlRequestFactory.__parse_tags(tags)
@@ -222,17 +263,23 @@ class PineconeDBControlRequestFactory:
     @staticmethod
     def create_index_from_backup_request(
         name: str,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        deletion_protection: Optional[
+            Union[DeletionProtection, str]
+        ] = DeletionProtection.DISABLED,
         tags: Optional[Dict[str, str]] = None,
     ) -> CreateIndexFromBackupRequest:
         if deletion_protection is not None:
-            dp = PineconeDBControlRequestFactory.__parse_deletion_protection(deletion_protection)
+            dp = PineconeDBControlRequestFactory.__parse_deletion_protection(
+                deletion_protection
+            )
         else:
             dp = None
 
         tags_obj = PineconeDBControlRequestFactory.__parse_tags(tags)
 
-        return CreateIndexFromBackupRequest(name=name, deletion_protection=dp, tags=tags_obj)
+        return CreateIndexFromBackupRequest(
+            name=name, deletion_protection=dp, tags=tags_obj
+        )
 
     @staticmethod
     def configure_index_request(
@@ -241,6 +288,7 @@ class PineconeDBControlRequestFactory:
         pod_type: Optional[Union[PodType, str]] = None,
         deletion_protection: Optional[Union[DeletionProtection, str]] = None,
         tags: Optional[Dict[str, str]] = None,
+        embed: Optional[Union[Dict[str, Any], ConfigureIndexEmbed]] = None,
     ):
         if deletion_protection is None:
             dp = DeletionProtectionModel(description.deletion_protection)
@@ -249,7 +297,9 @@ class PineconeDBControlRequestFactory:
         elif deletion_protection in ["enabled", "disabled"]:
             dp = DeletionProtectionModel(deletion_protection)
         else:
-            raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
+            raise ValueError(
+                "deletion_protection must be either 'enabled' or 'disabled'"
+            )
 
         fetched_tags = description.tags
         if fetched_tags is None:
@@ -271,9 +321,20 @@ class PineconeDBControlRequestFactory:
         if replicas:
             pod_config_args.update(replicas=replicas)
 
+        embed_config_args: Dict[str, Any] = {}
+        if embed is not None:
+            if isinstance(embed, ConfigureIndexEmbed):
+                embed_config_args = embed.as_dict()
+            else:
+                embed_config_args = embed
+
         if pod_config_args != {}:
-            spec = ConfigureIndexRequestSpec(pod=ConfigureIndexRequestSpecPod(**pod_config_args))
-            req = ConfigureIndexRequest(deletion_protection=dp, spec=spec, tags=IndexTags(**tags))
+            spec = ConfigureIndexRequestSpec(
+                pod=ConfigureIndexRequestSpecPod(**pod_config_args)
+            )
+            req = ConfigureIndexRequest(
+                deletion_protection=dp, spec=spec, tags=IndexTags(**tags)
+            )
         else:
             req = ConfigureIndexRequest(deletion_protection=dp, tags=IndexTags(**tags))
 

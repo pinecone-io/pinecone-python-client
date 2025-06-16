@@ -1,10 +1,15 @@
 import time
 import logging
-from typing import Optional, Dict, Union, TYPE_CHECKING
+from typing import Optional, Dict, Union, TYPE_CHECKING, Any, TypedDict
 
 from pinecone.db_control.index_host_store import IndexHostStore
 
-from pinecone.db_control.models import IndexModel, IndexList, IndexEmbed
+from pinecone.db_control.models import (
+    IndexModel,
+    IndexList,
+    IndexEmbed,
+    ConfigureIndexEmbed,
+)
 from pinecone.utils import docslinks, require_kwargs, PluginAware
 
 from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict
@@ -144,7 +149,9 @@ class IndexResource(PluginAware):
             return self.describe(name=name)
         return self.__poll_describe_index_until_ready(name, timeout)
 
-    def __poll_describe_index_until_ready(self, name: str, timeout: Optional[int] = None):
+    def __poll_describe_index_until_ready(
+        self, name: str, timeout: Optional[int] = None
+    ):
         total_wait_time = 0
         while True:
             description = self.describe(name=name)
@@ -224,6 +231,7 @@ class IndexResource(PluginAware):
         pod_type: Optional[Union["PodType", str]] = None,
         deletion_protection: Optional[Union["DeletionProtection", str]] = None,
         tags: Optional[Dict[str, str]] = None,
+        embed: Optional[Union[Dict[str, Any], "ConfigureIndexEmbed"]] = None,
     ) -> None:
         api_instance = self._index_api
         description = self.describe(name=name)
@@ -234,6 +242,7 @@ class IndexResource(PluginAware):
             pod_type=pod_type,
             deletion_protection=deletion_protection,
             tags=tags,
+            embed=embed,
         )
         api_instance.configure_index(name, configure_index_request=req)
 
