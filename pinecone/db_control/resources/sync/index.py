@@ -1,6 +1,6 @@
 import time
 import logging
-from typing import Optional, Dict, Union, TYPE_CHECKING, Any
+from typing import Optional, Dict, Union, TYPE_CHECKING
 
 from pinecone.db_control.index_host_store import IndexHostStore
 
