@@ -1,4 +1,4 @@
-from typing import Optional, TypedDict, Any
+from typing import Optional, TypedDict, Any, cast
 
 from pinecone.utils import parse_non_empty_args
 
@@ -16,13 +16,15 @@ class NamespaceRequestFactory:
     def describe_namespace_args(namespace: str, **kwargs) -> DescribeNamespaceArgs:
         if not isinstance(namespace, str):
             raise ValueError('namespace must be string')
-        return {"namespace": namespace, **kwargs}
+        base_args = {"namespace": namespace}
+        return cast(DescribeNamespaceArgs, {**base_args, **kwargs})
 
     @staticmethod
     def delete_namespace_args(namespace: str, **kwargs) -> DeleteNamespaceArgs:
         if not isinstance(namespace, str):
             raise ValueError('namespace must be string')
-        return {"namespace": namespace, **kwargs}
+        base_args = {"namespace": namespace}
+        return cast(DeleteNamespaceArgs, {**base_args, **kwargs})
 
     @staticmethod
     def list_namespaces_args(
