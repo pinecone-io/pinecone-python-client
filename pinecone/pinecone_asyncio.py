@@ -10,7 +10,10 @@ from .pinecone_interface_asyncio import PineconeAsyncioDBControlInterface
 from .pinecone import check_realistic_host
 
 if TYPE_CHECKING:
-    from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict
+    from pinecone.db_control.types import (
+        ConfigureIndexEmbed,
+        CreateIndexForModelEmbedTypedDict,
+    )
     from pinecone.db_data import _IndexAsyncio
     from pinecone.db_control.enums import (
         Metric,
@@ -35,7 +38,9 @@ if TYPE_CHECKING:
         RestoreJobModel,
         RestoreJobList,
     )
-    from pinecone.core.openapi.db_control.api.manage_indexes_api import AsyncioManageIndexesApi
+    from pinecone.core.openapi.db_control.api.manage_indexes_api import (
+        AsyncioManageIndexesApi,
+    )
     from pinecone.db_control.index_host_store import IndexHostStore
 
 logger = logging.getLogger(__name__)
@@ -100,7 +105,9 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         )
         """ :meta private: """
 
-        self._openapi_config = ConfigBuilder.build_openapi_config(self._config, **kwargs)
+        self._openapi_config = ConfigBuilder.build_openapi_config(
+            self._config, **kwargs
+        )
         """ :meta private: """
 
         self._inference = None  # Lazy initialization
@@ -273,6 +280,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         pod_type: Optional[Union["PodType", str]] = None,
         deletion_protection: Optional[Union["DeletionProtection", str]] = None,
         tags: Optional[Dict[str, str]] = None,
+        embed: Optional[Union["ConfigureIndexEmbed", Dict]] = None,
     ):
         return await self.db.index.configure(
             name=name,
@@ -280,6 +288,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
             pod_type=pod_type,
             deletion_protection=deletion_protection,
             tags=tags,
+            embed=embed,
         )
 
     async def create_collection(self, name: str, source: str):
@@ -326,7 +335,9 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     async def list_restore_jobs(
         self, *, limit: Optional[int] = 10, pagination_token: Optional[str] = None
     ) -> "RestoreJobList":
-        return await self.db.restore_job.list(limit=limit, pagination_token=pagination_token)
+        return await self.db.restore_job.list(
+            limit=limit, pagination_token=pagination_token
+        )
 
     @require_kwargs
     async def describe_restore_job(self, *, job_id: str) -> "RestoreJobModel":
