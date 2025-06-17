@@ -15,6 +15,8 @@ from pinecone.core.openapi.db_data.models import (
     UpsertResponse,
     ListResponse,
     SearchRecordsResponse,
+    ListNamespacesResponse,
+    NamespaceDescription,
 )
 from .dataclasses import Vector, SparseValues, FetchResponse, SearchQuery, SearchRerank
 from .interfaces import IndexInterface
@@ -35,6 +37,7 @@ from ..utils import (
     validate_and_convert_errors,
     filter_dict,
     PluginAware,
+    require_kwargs,
 )
 from .query_results_aggregator import QueryResultsAggregator, QueryNamespacesResults
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
@@ -47,6 +50,7 @@ from concurrent.futures import as_completed
 if TYPE_CHECKING:
     from pinecone.config import Config, OpenApiConfiguration
     from .resources.sync.bulk_import import BulkImportResource
+    from .resources.sync.namespace import NamespaceResource
 
     from pinecone.core.openapi.db_data.models import (
         StartImportResponse,
@@ -73,6 +77,9 @@ class Index(PluginAware, IndexInterface):
     """
 
     _bulk_import_resource: Optional["BulkImportResource"]
+    """ :meta private: """
+
+    _namespace_resource: Optional["NamespaceResource"]
     """ :meta private: """
 
     def __init__(
@@ -115,6 +122,9 @@ class Index(PluginAware, IndexInterface):
         self._bulk_import_resource = None
         """ :meta private: """
 
+        self._namespace_resource = None
+        """ :meta private: """
+
         # Pass the same api_client to the ImportFeatureMixin
         super().__init__(api_client=self._api_client)
 
@@ -151,6 +161,20 @@ class Index(PluginAware, IndexInterface):
 
             self._bulk_import_resource = BulkImportResource(api_client=self._api_client)
         return self._bulk_import_resource
+
+    @property
+    def namespace(self) -> "NamespaceResource":
+        """:meta private:"""
+        if self._namespace_resource is None:
+            from .resources.sync.namespace import NamespaceResource
+
+            self._namespace_resource = NamespaceResource(
+                api_client=self._api_client,
+                config=self._config,
+                openapi_config=self._openapi_config,
+                pool_threads=self._pool_threads,
+            )
+        return self._namespace_resource
 
     def _openapi_kwargs(self, kwargs: Dict[str, Any]) -> Dict[str, Any]:
         return filter_dict(kwargs, OPENAPI_ENDPOINT_PARAMS)
@@ -605,3 +629,27 @@ class Index(PluginAware, IndexInterface):
             id (str): The id of the import operation to cancel.
         """
         return self.bulk_import.cancel(id=id)
+
+    @validate_and_convert_errors
+    @require_kwargs
+    def describe_namespace(self, namespace: str, **kwargs) -> "NamespaceDescription":
+        return self.namespace.describe(namespace=namespace, **kwargs)
+
+    @validate_and_convert_errors
+    @require_kwargs
+    def delete_namespace(self, namespace: str, **kwargs) -> Dict[str, Any]:
+        return self.namespace.delete(namespace=namespace, **kwargs)
+
+    @validate_and_convert_errors
+    @require_kwargs
+    def list_namespaces(
+            self, limit: Optional[int] = None, **kwargs
+    ) -> Iterator[ListNamespacesResponse]:
+        return self.namespace.list(limit=limit, **kwargs)
+
+    @validate_and_convert_errors
+    @require_kwargs
+    def list_namespaces_paginated(
+        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+    ) -> ListNamespacesResponse:
+        return self.namespace.list_paginated(limit=limit, pagination_token=pagination_token, **kwargs)

@@ -46,6 +46,7 @@ from pinecone.db_data.models import (
     UpsertResponse,
     UpdateRequest,
 )
+from pinecone.core.openapi.db_data.models import NamespaceDescription
 from pinecone.db_data.resources.sync.bulk_import import ImportErrorMode
 from pinecone.db_data.errors import (
     VectorDictionaryMissingKeysError,
@@ -134,6 +135,7 @@ __all__ = [
     "QueryResponse",
     "UpsertResponse",
     "UpdateRequest",
+    "NamespaceDescription",
     "ImportErrorMode",
     # Error classes
     "VectorDictionaryMissingKeysError",
