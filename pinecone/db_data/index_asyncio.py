@@ -671,13 +671,13 @@ class _IndexAsyncio(IndexAsyncioInterface):
 
     @validate_and_convert_errors
     @require_kwargs
-    async def describe_namespace(self, namespace: str) -> "NamespaceDescription":
-        return await self.namespace.describe(namespace=namespace)
+    async def describe_namespace(self, namespace: str, **kwargs) -> "NamespaceDescription":
+        return await self.namespace.describe(namespace=namespace, **kwargs)
 
     @validate_and_convert_errors
     @require_kwargs
-    async def delete_namespace(self, namespace: str) -> Dict[str, Any]:
-        return await self.namespace.delete(namespace=namespace)
+    async def delete_namespace(self, namespace: str, **kwargs) -> Dict[str, Any]:
+        return await self.namespace.delete(namespace=namespace, **kwargs)
 
     @validate_and_convert_errors
     @require_kwargs
@@ -692,6 +692,6 @@ class _IndexAsyncio(IndexAsyncioInterface):
     async def list_namespaces_paginated(
         self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
     ) -> ListNamespacesResponse:
-        return await self.namespace.list_paginated(limit=limit, pagination_token=pagination_token)
+        return await self.namespace.list_paginated(limit=limit, pagination_token=pagination_token, **kwargs)
 
 IndexAsyncio = _IndexAsyncio

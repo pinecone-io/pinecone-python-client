@@ -13,16 +13,16 @@ class DeleteNamespaceArgs(TypedDict, total=False):
 
 class NamespaceRequestFactory:
     @staticmethod
-    def describe_namespace_args(namespace: str) -> DescribeNamespaceArgs:
+    def describe_namespace_args(namespace: str, **kwargs) -> DescribeNamespaceArgs:
         if not isinstance(namespace, str):
             raise ValueError('namespace must be string')
-        return {"namespace": namespace}
+        return {"namespace": namespace, **kwargs}
 
     @staticmethod
-    def delete_namespace_args(namespace: str) -> DeleteNamespaceArgs:
+    def delete_namespace_args(namespace: str, **kwargs) -> DeleteNamespaceArgs:
         if not isinstance(namespace, str):
             raise ValueError('namespace must be string')
-        return {"namespace": namespace}
+        return {"namespace": namespace, **kwargs}
 
     @staticmethod
     def list_namespaces_args(

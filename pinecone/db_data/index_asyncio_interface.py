@@ -816,10 +816,7 @@ class IndexAsyncioInterface(ABC):
 
     @abstractmethod
     @require_kwargs
-    async def describe_namespace(
-        self,
-        namespace: str
-    ) -> NamespaceDescription:
+    async def describe_namespace(self, namespace: str, **kwargs) -> NamespaceDescription:
         """Describe a namespace within an index, showing the vector count within the namespace.
 
         Args:
@@ -832,10 +829,7 @@ class IndexAsyncioInterface(ABC):
 
     @abstractmethod
     @require_kwargs
-    async def delete_namespace(
-        self,
-        namespace: str
-    ) -> Dict[str, Any]:
+    async def delete_namespace(self, namespace: str, **kwargs) -> Dict[str, Any]:
         """Delete a namespace from an index.
 
         Args:
@@ -849,7 +843,7 @@ class IndexAsyncioInterface(ABC):
     @abstractmethod
     @require_kwargs
     async def list_namespaces(
-        self, **kwargs
+        self, limit: Optional[int] = None, **kwargs
     ) -> AsyncIterator[ListNamespacesResponse]:
         """List all namespaces in an index. This method automatically handles pagination to return all results.
 
@@ -871,7 +865,7 @@ class IndexAsyncioInterface(ABC):
     @abstractmethod
     @require_kwargs
     async def list_namespaces_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None
+        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
     ) -> ListNamespacesResponse:
         """List all namespaces in an index with pagination support. The response includes pagination information if there are more results available.
 

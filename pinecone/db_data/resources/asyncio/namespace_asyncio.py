@@ -19,7 +19,7 @@ class NamespaceResourceAsyncio:
         self.__namespace_operations_api = AsyncioNamespaceOperationsApi(api_client)
 
     @require_kwargs
-    async def describe(self, namespace: str) -> NamespaceDescription:
+    async def describe(self, namespace: str, **kwargs) -> NamespaceDescription:
         """
         Args:
             namespace (str): The namespace to describe
@@ -29,18 +29,18 @@ class NamespaceResourceAsyncio:
 
         Describe a namespace within an index, showing the vector count within the namespace.
         """
-        args = NamespaceRequestFactory.describe_namespace_args(namespace=namespace)
+        args = NamespaceRequestFactory.describe_namespace_args(namespace=namespace, **kwargs)
         return await self.__namespace_operations_api.describe_namespace(**args)
 
     @require_kwargs
-    async def delete(self, namespace: str):
+    async def delete(self, namespace: str, **kwargs):
         """
         Args:
             namespace (str): The namespace to delete
 
         Delete a namespace from an index.
         """
-        args = NamespaceRequestFactory.delete_namespace_args(namespace=namespace)
+        args = NamespaceRequestFactory.delete_namespace_args(namespace=namespace, **kwargs)
         return await self.__namespace_operations_api.delete_namespace(**args)
 
     @require_kwargs

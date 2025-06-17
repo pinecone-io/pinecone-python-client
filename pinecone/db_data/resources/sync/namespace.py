@@ -35,7 +35,7 @@ class NamespaceResource(PluginAware):
         super().__init__()
 
     @require_kwargs
-    def describe(self, namespace: str) -> NamespaceDescription:
+    def describe(self, namespace: str, **kwargs) -> NamespaceDescription:
         """
         Args:
             namespace (str): The namespace to describe
@@ -45,18 +45,18 @@ class NamespaceResource(PluginAware):
 
         Describe a namespace within an index, showing the vector count within the namespace.
         """
-        args = NamespaceRequestFactory.describe_namespace_args(namespace=namespace)
+        args = NamespaceRequestFactory.describe_namespace_args(namespace=namespace, **kwargs)
         return self.__namespace_operations_api.describe_namespace(**args)
 
     @require_kwargs
-    def delete(self, namespace: str):
+    def delete(self, namespace: str, **kwargs):
         """
         Args:
             namespace (str): The namespace to delete
 
         Delete a namespace from an index.
         """
-        args = NamespaceRequestFactory.delete_namespace_args(namespace=namespace)
+        args = NamespaceRequestFactory.delete_namespace_args(namespace=namespace, **kwargs)
         return self.__namespace_operations_api.delete_namespace(**args)
 
     @require_kwargs

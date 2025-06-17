@@ -796,12 +796,11 @@ class IndexInterface(ABC):
 
     @abstractmethod
     @require_kwargs
-    def describe_namespace(self, namespace: str) -> NamespaceDescription:
+    def describe_namespace(self, namespace: str, **kwargs) -> NamespaceDescription:
         """Describe a namespace within an index, showing the vector count within the namespace.
 
         Args:
             namespace (str): The namespace to describe
-            **kwargs: Additional arguments to pass to the API call
 
         Returns:
             NamespaceDescription: Information about the namespace including vector count
@@ -810,12 +809,11 @@ class IndexInterface(ABC):
 
     @abstractmethod
     @require_kwargs
-    def delete_namespace(self, namespace: str) -> Dict[str, Any]:
+    def delete_namespace(self, namespace: str, **kwargs) -> Dict[str, Any]:
         """Delete a namespace from an index.
 
         Args:
             namespace (str): The namespace to delete
-            **kwargs: Additional arguments to pass to the API call
 
         Returns:
             Dict[str, Any]: Response from the delete operation
@@ -825,7 +823,7 @@ class IndexInterface(ABC):
     @abstractmethod
     @require_kwargs
     def list_namespaces(
-            self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+            self, limit: Optional[int] = None, **kwargs
     ) -> Iterator[ListNamespacesResponse]:
         """List all namespaces in an index. This method automatically handles pagination to return all results.
 

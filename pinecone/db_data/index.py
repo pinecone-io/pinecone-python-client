@@ -632,13 +632,13 @@ class Index(PluginAware, IndexInterface):
 
     @validate_and_convert_errors
     @require_kwargs
-    def describe_namespace(self, namespace: str) -> "NamespaceDescription":
-        return self.namespace.describe(namespace=namespace)
+    def describe_namespace(self, namespace: str, **kwargs) -> "NamespaceDescription":
+        return self.namespace.describe(namespace=namespace, **kwargs)
 
     @validate_and_convert_errors
     @require_kwargs
-    def delete_namespace(self, namespace: str) -> Dict[str, Any]:
-        return self.namespace.delete(namespace=namespace)
+    def delete_namespace(self, namespace: str, **kwargs) -> Dict[str, Any]:
+        return self.namespace.delete(namespace=namespace, **kwargs)
 
     @validate_and_convert_errors
     @require_kwargs
