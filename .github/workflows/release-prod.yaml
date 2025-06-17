@@ -25,13 +25,34 @@ jobs:
   unit-tests:
     uses: './.github/workflows/testing-unit.yaml'
     secrets: inherit
+    with:
+      python_versions_json: '["3.9"]'
+
+  create-project:
+    uses: './.github/workflows/project-setup.yaml'
+    secrets: inherit
+    needs:
+      - unit-tests
+
   integration-tests:
-      uses: './.github/workflows/testing-integration.yaml'
-      secrets: inherit
+    uses: './.github/workflows/testing-integration.yaml'
+    secrets: inherit
+    needs:
+      - unit-tests
+      - create-project
+    with:
+      encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
+      python_versions_json: '["3.9", "3.13"]'
+
   dependency-tests:
     uses: './.github/workflows/testing-dependency.yaml'
     secrets: inherit
-    needs: unit-tests
+    needs:
+      - unit-tests
+      - create-project
+    with:
+      encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
+
   install-tests:
     uses: './.github/workflows/testing-install.yaml'
     secrets: inherit
@@ -58,3 +79,16 @@ jobs:
     secrets: inherit
     needs:
       - pypi
+
+  cleanup-project:
+    if: ${{ always() }}
+    needs:
+      - create-project
+      - integration-tests
+      - pypi
+      - docs-publish
+    uses: './.github/workflows/project-cleanup.yaml'
+    secrets: inherit
+    with:
+      project_id: ${{ needs.create-project.outputs.project_id }}
+      encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
