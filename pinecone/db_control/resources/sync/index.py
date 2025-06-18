@@ -4,11 +4,7 @@ from typing import Optional, Dict, Union, TYPE_CHECKING
 
 from pinecone.db_control.index_host_store import IndexHostStore
 
-from pinecone.db_control.models import (
-    IndexModel,
-    IndexList,
-    IndexEmbed,
-)
+from pinecone.db_control.models import IndexModel, IndexList, IndexEmbed
 from pinecone.utils import docslinks, require_kwargs, PluginAware
 
 from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict
@@ -149,9 +145,7 @@ class IndexResource(PluginAware):
             return self.describe(name=name)
         return self.__poll_describe_index_until_ready(name, timeout)
 
-    def __poll_describe_index_until_ready(
-        self, name: str, timeout: Optional[int] = None
-    ):
+    def __poll_describe_index_until_ready(self, name: str, timeout: Optional[int] = None):
         total_wait_time = 0
         while True:
             description = self.describe(name=name)

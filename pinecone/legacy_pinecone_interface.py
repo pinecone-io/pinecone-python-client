@@ -26,10 +26,7 @@ if TYPE_CHECKING:
         GcpRegion,
         AzureRegion,
     )
-    from pinecone.db_control.types import (
-        CreateIndexForModelEmbedTypedDict,
-        ConfigureIndexEmbed,
-    )
+    from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict, ConfigureIndexEmbed
 
 
 class LegacyPineconeDBControlInterface(ABC):

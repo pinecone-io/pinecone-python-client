@@ -18,10 +18,7 @@ if TYPE_CHECKING:
     from pinecone.db_data import _Index as Index, _IndexAsyncio as IndexAsyncio
     from pinecone.db_control.index_host_store import IndexHostStore
     from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
-    from pinecone.db_control.types import (
-        CreateIndexForModelEmbedTypedDict,
-        ConfigureIndexEmbed,
-    )
+    from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict, ConfigureIndexEmbed
     from pinecone.db_control.enums import (
         Metric,
         VectorType,
@@ -228,9 +225,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         )
         """ :meta private: """
 
-        self._openapi_config = ConfigBuilder.build_openapi_config(
-            self._config, **kwargs
-        )
+        self._openapi_config = ConfigBuilder.build_openapi_config(self._config, **kwargs)
         """ :meta private: """
 
         if pool_threads is None:

@@ -2,9 +2,7 @@
 .. include:: ../pdoc/README.md
 """
 
-from .deprecated_plugins import (
-    check_for_deprecated_plugins as _check_for_deprecated_plugins,
-)
+from .deprecated_plugins import check_for_deprecated_plugins as _check_for_deprecated_plugins
 from .deprecation_warnings import *
 from .pinecone import Pinecone
 from .pinecone_asyncio import PineconeAsyncio
@@ -48,10 +46,7 @@ _db_data_lazy_imports = {
     "SearchRerank": ("pinecone.db_data.dataclasses", "SearchRerank"),
     "FetchResponse": ("pinecone.db_data.dataclasses", "FetchResponse"),
     "DeleteRequest": ("pinecone.db_data.models", "DeleteRequest"),
-    "DescribeIndexStatsRequest": (
-        "pinecone.db_data.models",
-        "DescribeIndexStatsRequest",
-    ),
+    "DescribeIndexStatsRequest": ("pinecone.db_data.models", "DescribeIndexStatsRequest"),
     "DescribeIndexStatsResponse": ("pinecone.db_data.models", "IndexDescription"),
     "RpcStatus": ("pinecone.db_data.models", "RpcStatus"),
     "ScoredVector": ("pinecone.db_data.models", "ScoredVector"),
@@ -60,14 +55,8 @@ _db_data_lazy_imports = {
     "QueryResponse": ("pinecone.db_data.models", "QueryResponse"),
     "UpsertResponse": ("pinecone.db_data.models", "UpsertResponse"),
     "UpdateRequest": ("pinecone.db_data.models", "UpdateRequest"),
-    "NamespaceDescription": (
-        "pinecone.core.openapi.db_data.models",
-        "NamespaceDescription",
-    ),
-    "ImportErrorMode": (
-        "pinecone.db_data.resources.sync.bulk_import",
-        "ImportErrorMode",
-    ),
+    "NamespaceDescription": ("pinecone.core.openapi.db_data.models", "NamespaceDescription"),
+    "ImportErrorMode": ("pinecone.db_data.resources.sync.bulk_import", "ImportErrorMode"),
     "VectorDictionaryMissingKeysError": (
         "pinecone.db_data.errors",
         "VectorDictionaryMissingKeysError",
@@ -78,10 +67,7 @@ _db_data_lazy_imports = {
     ),
     "VectorTupleLengthError": ("pinecone.db_data.errors", "VectorTupleLengthError"),
     "SparseValuesTypeError": ("pinecone.db_data.errors", "SparseValuesTypeError"),
-    "SparseValuesMissingKeysError": (
-        "pinecone.db_data.errors",
-        "SparseValuesMissingKeysError",
-    ),
+    "SparseValuesMissingKeysError": ("pinecone.db_data.errors", "SparseValuesMissingKeysError"),
     "SparseValuesDictionaryExpectedError": (
         "pinecone.db_data.errors",
         "SparseValuesDictionaryExpectedError",
@@ -104,10 +90,7 @@ _db_control_lazy_imports = {
     "IndexEmbed": ("pinecone.db_control.models", "IndexEmbed"),
     "ByocSpec": ("pinecone.db_control.models", "ByocSpec"),
     "ServerlessSpec": ("pinecone.db_control.models", "ServerlessSpec"),
-    "ServerlessSpecDefinition": (
-        "pinecone.db_control.models",
-        "ServerlessSpecDefinition",
-    ),
+    "ServerlessSpecDefinition": ("pinecone.db_control.models", "ServerlessSpecDefinition"),
     "PodSpec": ("pinecone.db_control.models", "PodSpec"),
     "PodSpecDefinition": ("pinecone.db_control.models", "PodSpecDefinition"),
     "PodType": ("pinecone.db_control.enums", "PodType"),

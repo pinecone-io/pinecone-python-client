@@ -166,3 +166,7 @@ docstring-code-line-length = "dynamic"
 
 # E712 Allow == comparison to True/False
 "tests/**" = ["E712"]
+
+[tool.black]
+line-length = 100
+target-version = ["py39"]
