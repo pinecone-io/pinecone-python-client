@@ -42,10 +42,10 @@ class TestConfigureIndexTags:
         assert found_tags.get("foo", None) is None, "foo should be removed"
         assert found_tags.get("bar", None) is None, "bar should be removed"
 
-    def test_configure_index_embed(self, pc, create_sl_index_params):
-        name = create_sl_index_params["name"]
-        create_sl_index_params["dimension"] = 1024
-        pc.db.index.create(**create_sl_index_params)
+    def test_configure_index_embed(self, pc, create_index_params):
+        name = create_index_params["name"]
+        create_index_params["dimension"] = 1024
+        pc.db.index.create(**create_index_params)
         desc = pc.db.index.describe_index(name)
         assert desc.embed is None
 
