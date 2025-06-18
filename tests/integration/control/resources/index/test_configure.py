@@ -46,16 +46,16 @@ class TestConfigureIndexTags:
         name = create_index_params["name"]
         create_index_params["dimension"] = 1024
         pc.db.index.create(**create_index_params)
-        desc = pc.db.index.describe_index(name)
+        desc = pc.db.index.describe(name=name)
         assert desc.embed is None
 
         embed_config = {
             "model": "multilingual-e5-large",
             "field_map": {"text": "chunk_text"},
         }
-        pc.db.index.configure(name, embed=embed_config)
+        pc.db.index.configure(name=name, embed=embed_config)
 
-        desc = pc.db.index.describe_index(name)
+        desc = pc.db.index.describe(name=name)
         assert desc.embed.model == "multilingual-e5-large"
         assert desc.embed.field_map == {"text": "chunk_text"}
         assert desc.embed.read_parameters == {"input_type": "query", "truncate": "END"}
@@ -67,4 +67,4 @@ class TestConfigureIndexTags:
         assert desc.embed.dimension == 1024
         assert desc.embed.metric == "cosine"
 
-        pc.db.index.delete_index(name)
+        pc.db.index.delete(name=name)
