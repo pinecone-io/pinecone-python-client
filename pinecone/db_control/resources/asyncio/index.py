@@ -1,6 +1,6 @@
 import logging
 import asyncio
-from typing import Optional, Dict, Union, Any
+from typing import Optional, Dict, Union
 
 
 from pinecone.db_control.models import (
