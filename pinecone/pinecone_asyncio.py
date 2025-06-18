@@ -10,7 +10,7 @@ from .pinecone_interface_asyncio import PineconeAsyncioDBControlInterface
 from .pinecone import check_realistic_host
 
 if TYPE_CHECKING:
-    from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict
+    from pinecone.db_control.types import ConfigureIndexEmbed, CreateIndexForModelEmbedTypedDict
     from pinecone.db_data import _IndexAsyncio
     from pinecone.db_control.enums import (
         Metric,
@@ -273,6 +273,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         pod_type: Optional[Union["PodType", str]] = None,
         deletion_protection: Optional[Union["DeletionProtection", str]] = None,
         tags: Optional[Dict[str, str]] = None,
+        embed: Optional[Union["ConfigureIndexEmbed", Dict]] = None,
     ):
         return await self.db.index.configure(
             name=name,
@@ -280,6 +281,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
             pod_type=pod_type,
             deletion_protection=deletion_protection,
             tags=tags,
+            embed=embed,
         )
 
     async def create_collection(self, name: str, source: str):

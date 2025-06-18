@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from pinecone.db_data import _Index as Index, _IndexAsyncio as IndexAsyncio
     from pinecone.db_control.index_host_store import IndexHostStore
     from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
-    from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict
+    from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict, ConfigureIndexEmbed
     from pinecone.db_control.enums import (
         Metric,
         VectorType,
@@ -399,6 +399,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         pod_type: Optional[Union["PodType", str]] = None,
         deletion_protection: Optional[Union["DeletionProtection", str]] = None,
         tags: Optional[Dict[str, str]] = None,
+        embed: Optional[Union["ConfigureIndexEmbed", Dict]] = None,
     ):
         return self.db.index.configure(
             name=name,
@@ -406,6 +407,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
             pod_type=pod_type,
             deletion_protection=deletion_protection,
             tags=tags,
+            embed=embed,
         )
 
     def create_collection(self, name: str, source: str) -> None:

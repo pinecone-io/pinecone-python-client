@@ -1,5 +1,6 @@
 from .enums import *
 from .models import *
+from .types import *
 from .db_control import DBControl
 from .db_control_asyncio import DBControlAsyncio
 from .repr_overrides import install_repr_overrides
@@ -30,6 +31,9 @@ __all__ = [
     "BackupList",
     "RestoreJobModel",
     "RestoreJobList",
+    # from .types
+    "ConfigureIndexEmbed",
+    "CreateIndexForModelEmbedTypedDict",
     # direct imports
     "DBControl",
     "DBControlAsyncio",

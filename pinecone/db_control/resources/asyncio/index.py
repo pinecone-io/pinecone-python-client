@@ -27,6 +27,7 @@ from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict
 from pinecone.db_control.request_factory import PineconeDBControlRequestFactory
 from pinecone.core.openapi.db_control import API_VERSION
 from pinecone.utils import require_kwargs
+from pinecone.db_control.types.configure_index_embed import ConfigureIndexEmbed
 
 logger = logging.getLogger(__name__)
 """ :meta private: """
@@ -183,6 +184,7 @@ class IndexResourceAsyncio:
         pod_type: Optional[Union[PodType, str]] = None,
         deletion_protection: Optional[Union[DeletionProtection, str]] = None,
         tags: Optional[Dict[str, str]] = None,
+        embed: Optional[Union[ConfigureIndexEmbed, Dict]] = None,
     ):
         description = await self.describe(name=name)
 
@@ -192,5 +194,6 @@ class IndexResourceAsyncio:
             pod_type=pod_type,
             deletion_protection=deletion_protection,
             tags=tags,
+            embed=embed,
         )
         await self._index_api.configure_index(name, configure_index_request=req)

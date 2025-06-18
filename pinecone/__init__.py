@@ -98,6 +98,11 @@ _db_control_lazy_imports = {
     "RestoreJobList": ("pinecone.db_control.models", "RestoreJobList"),
     "BackupModel": ("pinecone.db_control.models", "BackupModel"),
     "BackupList": ("pinecone.db_control.models", "BackupList"),
+    "ConfigureIndexEmbed": ("pinecone.db_control.types", "ConfigureIndexEmbed"),
+    "CreateIndexForModelEmbedTypedDict": (
+        "pinecone.db_control.types",
+        "CreateIndexForModelEmbedTypedDict",
+    ),
 }
 
 _config_lazy_imports = {

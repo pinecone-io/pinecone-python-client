@@ -19,6 +19,9 @@ from pinecone.core.openapi.db_control.model.configure_index_request_spec import 
 from pinecone.core.openapi.db_control.model.configure_index_request_spec_pod import (
     ConfigureIndexRequestSpecPod,
 )
+from pinecone.core.openapi.db_control.model.configure_index_request_embed import (
+    ConfigureIndexRequestEmbed,
+)
 from pinecone.core.openapi.db_control.model.deletion_protection import (
     DeletionProtection as DeletionProtectionModel,
 )
@@ -45,7 +48,7 @@ from pinecone.db_control.enums import (
     GcpRegion,
     AzureRegion,
 )
-from .types import CreateIndexForModelEmbedTypedDict
+from .types import CreateIndexForModelEmbedTypedDict, ConfigureIndexEmbed
 
 
 logger = logging.getLogger(__name__)
@@ -241,6 +244,7 @@ class PineconeDBControlRequestFactory:
         pod_type: Optional[Union[PodType, str]] = None,
         deletion_protection: Optional[Union[DeletionProtection, str]] = None,
         tags: Optional[Dict[str, str]] = None,
+        embed: Optional[Union[ConfigureIndexEmbed, Dict]] = None,
     ):
         if deletion_protection is None:
             dp = DeletionProtectionModel(description.deletion_protection)
@@ -271,13 +275,24 @@ class PineconeDBControlRequestFactory:
         if replicas:
             pod_config_args.update(replicas=replicas)
 
-        if pod_config_args != {}:
-            spec = ConfigureIndexRequestSpec(pod=ConfigureIndexRequestSpecPod(**pod_config_args))
-            req = ConfigureIndexRequest(deletion_protection=dp, spec=spec, tags=IndexTags(**tags))
-        else:
-            req = ConfigureIndexRequest(deletion_protection=dp, tags=IndexTags(**tags))
+        embed_config = None
+        if embed is not None:
+            embed_config = ConfigureIndexRequestEmbed(**dict(embed))
 
-        return req
+        spec = None
+        if pod_config_args:
+            spec = ConfigureIndexRequestSpec(pod=ConfigureIndexRequestSpecPod(**pod_config_args))
+
+        args_dict = parse_non_empty_args(
+            [
+                ("deletion_protection", dp),
+                ("tags", IndexTags(**tags)),
+                ("spec", spec),
+                ("embed", embed_config),
+            ]
+        )
+
+        return ConfigureIndexRequest(**args_dict)
 
     @staticmethod
     def create_collection_request(name: str, source: str) -> CreateCollectionRequest:

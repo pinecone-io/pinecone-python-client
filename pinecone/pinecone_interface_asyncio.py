@@ -30,7 +30,7 @@ if TYPE_CHECKING:
         GcpRegion,
         AzureRegion,
     )
-    from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict
+    from pinecone.db_control.types import ConfigureIndexEmbed, CreateIndexForModelEmbedTypedDict
 
 
 class PineconeAsyncioDBControlInterface(ABC):
@@ -711,6 +711,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         pod_type: Optional[Union["PodType", str]] = None,
         deletion_protection: Optional[Union["DeletionProtection", str]] = None,
         tags: Optional[Dict[str, str]] = None,
+        embed: Optional[Union["ConfigureIndexEmbed", Dict]] = None,
     ):
         """
         :param: name: the name of the Index
@@ -719,6 +720,10 @@ class PineconeAsyncioDBControlInterface(ABC):
             available pod types, please see `Understanding Indexes <https://docs.pinecone.io/docs/indexes>`_
         :param: deletion_protection: If set to 'enabled', the index cannot be deleted. If 'disabled', the index can be deleted.
         :param: tags: A dictionary of tags to apply to the index. Tags are key-value pairs that can be used to organize and manage indexes. To remove a tag, set the value to "". Tags passed to configure_index will be merged with existing tags and any with the value empty string will be removed.
+        :param embed: configures the integrated inference embedding settings for the index. You can convert an existing index to an integrated index by specifying the embedding model and field_map.
+            The index vector type and dimension must match the model vector type and dimension, and the index similarity metric must be supported by the model.
+            You can later change the embedding configuration to update the field_map, read_parameters, or write_parameters. Once set, the model cannot be changed.
+        :type embed: Optional[Union[ConfigureIndexEmbed, Dict]], optional
 
         This method is used to modify an index's configuration. It can be used to:
 
