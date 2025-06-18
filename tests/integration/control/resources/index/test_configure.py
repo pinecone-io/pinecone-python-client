@@ -41,3 +41,28 @@ class TestConfigureIndexTags:
         assert found_tags is not None
         assert found_tags.get("foo", None) is None, "foo should be removed"
         assert found_tags.get("bar", None) is None, "bar should be removed"
+
+    def test_configure_index_embed(self, pc, create_sl_index_params):
+        name = create_sl_index_params["name"]
+        create_sl_index_params["dimension"] = 1024
+        pc.db.index.create(**create_sl_index_params)
+        desc = pc.db.index.describe_index(name)
+        assert desc.embed == None
+
+        embed_config = {
+            "model": "multilingual-e5-large",
+            "field_map": {"text": "chunk_text"},
+        }
+        pc.db.index.configure(name, embed=embed_config)
+
+        desc = pc.db.index.describe_index(name)
+        assert desc.embed.model == "multilingual-e5-large"
+        assert desc.embed.field_map == {"text": "chunk_text"}
+        assert desc.embed.read_parameters == {}
+        assert desc.embed.write_parameters == {}
+        assert desc.embed.vector_type == "dense"
+        assert desc.embed.dimension == 1024
+        assert desc.embed.metric == "cosine"
+        assert desc.embed.model_type == "dense"
+
+        pc.db.index.delete_index(name)
