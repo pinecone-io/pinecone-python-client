@@ -382,6 +382,13 @@ class Configuration:
                 "key": "Api-Key",
                 "value": self.get_api_key_with_prefix("ApiKeyAuth"),
             }
+        elif "BearerAuth" in self.api_key:
+            auth["BearerAuth"] = {
+                "type": "api_key",
+                "in": "header",
+                "key": "Authorization",
+                "value": self.get_api_key_with_prefix("BearerAuth"),
+            }
         return auth
 
     def get_host_settings(self):

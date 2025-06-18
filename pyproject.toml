@@ -101,6 +101,15 @@ beautifulsoup4 = "^4.13.3"
 vprof = "^0.38"
 tuna = "^0.5.11"
 python-dotenv = "^1.1.0"
+sphinx = [
+  { version = "^7.4.7", python = ">=3.9,<3.11" },
+  { version = "^8.2.3", python = ">=3.11" }
+]
+myst-parser = [
+  { version = "^3.0.1", python = ">=3.9,<3.10" },
+  { version = "^4.0.1", python = ">=3.10" }
+]
+
 
 [tool.poetry.extras]
 grpc = ["grpcio", "googleapis-common-protos", "lz4", "protobuf", "protoc-gen-openapiv2"]
