@@ -6,6 +6,7 @@ from .deprecated_plugins import check_for_deprecated_plugins as _check_for_depre
 from .deprecation_warnings import *
 from .pinecone import Pinecone
 from .pinecone_asyncio import PineconeAsyncio
+from .admin import Admin
 from .exceptions import (
     PineconeException,
     PineconeApiTypeError,
@@ -146,6 +147,7 @@ __all__ = [
     # Primary client classes
     "Pinecone",
     "PineconeAsyncio",
+    "Admin",
     # All lazy-loaded types
     *list(_LAZY_IMPORTS.keys()),
     # Exception classes

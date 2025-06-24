@@ -115,7 +115,7 @@ class UpsertRequest(ModelNormal):
         """UpsertRequest - a model defined in OpenAPI
 
         Args:
-            vectors ([Vector]): An array containing the vectors to upsert. Recommended batch limit is 100 vectors.
+            vectors ([Vector]): An array containing the vectors to upsert. Recommended batch limit is up to 1000 vectors.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -209,7 +209,7 @@ class UpsertRequest(ModelNormal):
         """UpsertRequest - a model defined in OpenAPI
 
         Args:
-            vectors ([Vector]): An array containing the vectors to upsert. Recommended batch limit is 100 vectors.
+            vectors ([Vector]): An array containing the vectors to upsert. Recommended batch limit is up to 1000 vectors.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types

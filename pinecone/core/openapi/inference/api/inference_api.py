@@ -46,7 +46,7 @@ class InferenceApi:
         def __embed(self, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Generate vectors  # noqa: E501
 
-            Generate vector embeddings for input data. This endpoint uses [Pinecone Inference](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding).  # noqa: E501
+            Generate vector embeddings for input data. This endpoint uses Pinecone's [hosted embedding models](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -111,9 +111,9 @@ class InferenceApi:
         )
 
         def __get_model(self, model_name, **kwargs: ExtraOpenApiKwargsTypedDict):
-            """Get available model details.  # noqa: E501
+            """Describe a model  # noqa: E501
 
-            Get model details.  # noqa: E501
+            Get a description of a model hosted by Pinecone.   You can use hosted models as an integrated part of Pinecone operations or for standalone embedding and reranking. For more details, see [Vector embedding](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding) and [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -180,9 +180,9 @@ class InferenceApi:
         )
 
         def __list_models(self, **kwargs: ExtraOpenApiKwargsTypedDict):
-            """Get available models.  # noqa: E501
+            """List available models  # noqa: E501
 
-            Get available models.  # noqa: E501
+            List the embedding and reranking models hosted by Pinecone.   You can use hosted models as an integrated part of Pinecone operations or for standalone embedding and reranking. For more details, see [Vector embedding](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding) and [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -250,7 +250,7 @@ class InferenceApi:
         def __rerank(self, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Rerank documents  # noqa: E501
 
-            Rerank documents according to their relevance to a query.  For guidance and examples, see [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
+            Rerank results according to their relevance to a query.  For guidance and examples, see [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -329,7 +329,7 @@ class AsyncioInferenceApi:
         async def __embed(self, **kwargs):
             """Generate vectors  # noqa: E501
 
-            Generate vector embeddings for input data. This endpoint uses [Pinecone Inference](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding).  # noqa: E501
+            Generate vector embeddings for input data. This endpoint uses Pinecone's [hosted embedding models](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models).  # noqa: E501
 
 
 
@@ -387,9 +387,9 @@ class AsyncioInferenceApi:
         )
 
         async def __get_model(self, model_name, **kwargs):
-            """Get available model details.  # noqa: E501
+            """Describe a model  # noqa: E501
 
-            Get model details.  # noqa: E501
+            Get a description of a model hosted by Pinecone.   You can use hosted models as an integrated part of Pinecone operations or for standalone embedding and reranking. For more details, see [Vector embedding](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding) and [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
 
 
             Args:
@@ -449,9 +449,9 @@ class AsyncioInferenceApi:
         )
 
         async def __list_models(self, **kwargs):
-            """Get available models.  # noqa: E501
+            """List available models  # noqa: E501
 
-            Get available models.  # noqa: E501
+            List the embedding and reranking models hosted by Pinecone.   You can use hosted models as an integrated part of Pinecone operations or for standalone embedding and reranking. For more details, see [Vector embedding](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding) and [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
 
 
 
@@ -512,7 +512,7 @@ class AsyncioInferenceApi:
         async def __rerank(self, **kwargs):
             """Rerank documents  # noqa: E501
 
-            Rerank documents according to their relevance to a query.  For guidance and examples, see [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
+            Rerank results according to their relevance to a query.  For guidance and examples, see [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
 
 
 

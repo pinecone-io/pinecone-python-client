@@ -111,7 +111,7 @@ class NamespaceOperationsApi:
         def __describe_namespace(self, namespace, **kwargs: ExtraOpenApiKwargsTypedDict):
             """Describe a namespace  # noqa: E501
 
-            Describe a namespace within an index, showing the vector count within the namespace.  # noqa: E501
+            Describe a [namespace](https://docs.pinecone.io/guides/index-data/indexing-overview#namespaces) in a serverless index, including the total number of vectors in the namespace.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -178,9 +178,9 @@ class NamespaceOperationsApi:
         )
 
         def __list_namespaces_operation(self, **kwargs: ExtraOpenApiKwargsTypedDict):
-            """Get list of all namespaces  # noqa: E501
+            """List namespaces  # noqa: E501
 
-            Get a list of all namespaces within an index.  # noqa: E501
+            Get a list of all [namespaces](https://docs.pinecone.io/guides/index-data/indexing-overview#namespaces) in a serverless index.  Up to 100 namespaces are returned at a time by default, in sorted order (bitwise “C” collation). If the `limit` parameter is set, up to that number of namespaces are returned instead. Whenever there are additional namespaces to return, the response also includes a `pagination_token` that you can use to get the next batch of namespaces. When the response does not include a `pagination_token`, there are no more namespaces to return.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -322,7 +322,7 @@ class AsyncioNamespaceOperationsApi:
         async def __describe_namespace(self, namespace, **kwargs):
             """Describe a namespace  # noqa: E501
 
-            Describe a namespace within an index, showing the vector count within the namespace.  # noqa: E501
+            Describe a [namespace](https://docs.pinecone.io/guides/index-data/indexing-overview#namespaces) in a serverless index, including the total number of vectors in the namespace.  # noqa: E501
 
 
             Args:
@@ -382,9 +382,9 @@ class AsyncioNamespaceOperationsApi:
         )
 
         async def __list_namespaces_operation(self, **kwargs):
-            """Get list of all namespaces  # noqa: E501
+            """List namespaces  # noqa: E501
 
-            Get a list of all namespaces within an index.  # noqa: E501
+            Get a list of all [namespaces](https://docs.pinecone.io/guides/index-data/indexing-overview#namespaces) in a serverless index.  Up to 100 namespaces are returned at a time by default, in sorted order (bitwise “C” collation). If the `limit` parameter is set, up to that number of namespaces are returned instead. Whenever there are additional namespaces to return, the response also includes a `pagination_token` that you can use to get the next batch of namespaces. When the response does not include a `pagination_token`, there are no more namespaces to return.  # noqa: E501
 
 
 
