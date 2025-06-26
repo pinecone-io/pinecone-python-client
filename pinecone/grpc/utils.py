@@ -13,6 +13,9 @@ from pinecone.core.openapi.db_data.models import (
     IndexDescription as DescribeIndexStatsResponse,
     UpsertResponse,
     NamespaceSummary,
+    NamespaceDescription,
+    ListNamespacesResponse,
+    Pagination,
 )
 from pinecone.db_data.dataclasses import FetchResponse
 
@@ -124,5 +127,39 @@ def parse_stats_response(response: dict):
         dimension=dimension,
         index_fullness=fullness,
         total_vector_count=total_vector_count,
+        _check_type=False,
+    )
+
+
+def parse_namespace_description(response: Message) -> NamespaceDescription:
+    json_response = json_format.MessageToDict(response)
+    return NamespaceDescription(
+        name=json_response.get("name", ""),
+        record_count=json_response.get("recordCount", 0),
+        _check_type=False,
+    )
+
+
+def parse_list_namespaces_response(response: Message) -> ListNamespacesResponse:
+    json_response = json_format.MessageToDict(response)
+    
+    namespaces = []
+    for ns in json_response.get("namespaces", []):
+        namespaces.append(NamespaceDescription(
+            name=ns.get("name", ""),
+            record_count=ns.get("recordCount", 0),
+            _check_type=False,
+        ))
+    
+    pagination = None
+    if "pagination" in json_response and json_response["pagination"]:
+        pagination = Pagination(
+            next=json_response["pagination"].get("next", ""),
+            _check_type=False,
+        )
+    
+    return ListNamespacesResponse(
+        namespaces=namespaces,
+        pagination=pagination,
         _check_type=False,
     )

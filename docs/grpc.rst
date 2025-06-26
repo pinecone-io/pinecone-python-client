@@ -80,3 +80,14 @@ Vectors
 .. automethod:: pinecone.grpc::GRPCIndex.list
 
 .. automethod:: pinecone.grpc::GRPCIndex.list_paginated
+
+Namespaces
+----------
+
+.. automethod:: pinecone.grpc::GRPCIndex.list_namespaces
+
+.. automethod:: pinecone.grpc::GRPCIndex.list_namespaces_paginated
+
+.. automethod:: pinecone.grpc::GRPCIndex.describe_namespace
+
+.. automethod:: pinecone.grpc::GRPCIndex.delete_namespace

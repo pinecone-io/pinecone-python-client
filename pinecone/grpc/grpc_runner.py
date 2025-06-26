@@ -10,6 +10,7 @@ from pinecone.utils.constants import REQUEST_ID, CLIENT_VERSION
 from pinecone.exceptions.exceptions import PineconeException
 from grpc import CallCredentials, Compression
 from google.protobuf.message import Message
+from pinecone.openapi_support.api_version import API_VERSION
 
 
 class GrpcRunner:
@@ -21,6 +22,7 @@ class GrpcRunner:
             "api-key": config.api_key,
             "service-name": index_name,
             "client-version": CLIENT_VERSION,
+            "x-pinecone-api-version": API_VERSION,
         }
         if self.grpc_client_config.additional_metadata:
             self.fixed_metadata.update(self.grpc_client_config.additional_metadata)

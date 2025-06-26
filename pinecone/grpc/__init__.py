@@ -51,11 +51,13 @@ from .future import PineconeGrpcFuture
 
 from pinecone.db_data.dataclasses import Vector, SparseValues
 
-from pinecone.core.grpc.protos.db_data_2025_01_pb2 import (
+from pinecone.core.grpc.protos.db_data_2025_04_pb2 import (
     Vector as GRPCVector,
     SparseValues as GRPCSparseValues,
     DeleteResponse as GRPCDeleteResponse,
 )
+
+from pinecone.core.openapi.db_data.models import ListNamespacesResponse
 
 __all__ = [
     "GRPCIndex",
@@ -67,4 +69,5 @@ __all__ = [
     "Vector",
     "SparseValues",
     "PineconeGrpcFuture",
+    "ListNamespacesResponse",
 ]

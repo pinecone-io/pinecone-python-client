@@ -1,8 +1,5 @@
-import os
 import time
 import logging
-
-import pytest
 
 from pinecone import NamespaceDescription
 
@@ -43,9 +40,6 @@ def delete_all_namespaces(index):
     except Exception as e:
         logger.error(f"Error in delete_all_namespaces: {e}")
 
-@pytest.mark.skipif(
-    os.getenv("USE_GRPC") == "true", reason="Disable until grpc namespaces support is added"
-)
 class TestNamespaceOperations:
     def test_describe_namespace(self, idx):
         """Test describing a namespace"""
