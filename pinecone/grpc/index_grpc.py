@@ -772,8 +772,8 @@ class GRPCIndex(GRPCIndexBase):
                 ("pagination_token", pagination_token),
             ]
         )
-        request = ListNamespacesRequest(**args_dict, **kwargs)
         timeout = kwargs.pop("timeout", None)
+        request = ListNamespacesRequest(**args_dict, **kwargs)
         response = self.runner.run(self.stub.ListNamespaces, request, timeout=timeout)
         return parse_list_namespaces_response(response)
 

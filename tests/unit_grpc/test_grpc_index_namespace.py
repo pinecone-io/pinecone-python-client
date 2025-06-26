@@ -16,7 +16,7 @@ class TestGrpcIndexNamespace:
 
     def test_describe_namespace(self, mocker):
         mocker.patch.object(self.index.runner, "run", autospec=True)
-        self.index.describe_namespace("test_namespace")
+        self.index.describe_namespace(namespace="test_namespace")
         self.index.runner.run.assert_called_once_with(
             self.index.stub.DescribeNamespace, 
             DescribeNamespaceRequest(namespace="test_namespace"), 
@@ -25,7 +25,7 @@ class TestGrpcIndexNamespace:
 
     def test_describe_namespace_with_timeout(self, mocker):
         mocker.patch.object(self.index.runner, "run", autospec=True)
-        self.index.describe_namespace("test_namespace", timeout=30)
+        self.index.describe_namespace(namespace="test_namespace", timeout=30)
         self.index.runner.run.assert_called_once_with(
             self.index.stub.DescribeNamespace, 
             DescribeNamespaceRequest(namespace="test_namespace"), 
@@ -34,7 +34,7 @@ class TestGrpcIndexNamespace:
 
     def test_delete_namespace(self, mocker):
         mocker.patch.object(self.index.runner, "run", autospec=True)
-        self.index.delete_namespace("test_namespace")
+        self.index.delete_namespace(namespace="test_namespace")
         self.index.runner.run.assert_called_once_with(
             self.index.stub.DeleteNamespace, 
             DeleteNamespaceRequest(namespace="test_namespace"), 
@@ -43,7 +43,7 @@ class TestGrpcIndexNamespace:
 
     def test_delete_namespace_with_timeout(self, mocker):
         mocker.patch.object(self.index.runner, "run", autospec=True)
-        self.index.delete_namespace("test_namespace", timeout=30)
+        self.index.delete_namespace(namespace="test_namespace", timeout=30)
         self.index.runner.run.assert_called_once_with(
             self.index.stub.DeleteNamespace, 
             DeleteNamespaceRequest(namespace="test_namespace"), 
