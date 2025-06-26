@@ -48,7 +48,7 @@ from pinecone.core.grpc.protos.db_data_2025_04_pb2 import (
     DeleteNamespaceRequest,
     ListNamespacesRequest,
 )
-from pinecone import Vector
+from pinecone import Vector, SparseValues
 from pinecone.db_data.query_results_aggregator import QueryNamespacesResults, QueryResultsAggregator
 from pinecone.core.grpc.protos.db_data_2025_04_pb2_grpc import VectorServiceStub
 from .base import GRPCIndexBase
@@ -366,7 +366,7 @@ class GRPCIndex(GRPCIndexBase):
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
         sparse_vector: Optional[
-            Union[GRPCSparseValues, SparseVectorTypedDict]
+            Union[SparseValues, GRPCSparseValues, SparseVectorTypedDict]
         ] = None,
         async_req: Optional[bool] = False,
         **kwargs,
