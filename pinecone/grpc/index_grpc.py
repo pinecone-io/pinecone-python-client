@@ -4,6 +4,7 @@ from typing import Optional, Dict, Union, List, Tuple, Any, Iterable, cast, Lite
 from google.protobuf import json_format
 
 from pinecone.utils.tqdm import tqdm
+from pinecone.utils import require_kwargs
 from concurrent.futures import as_completed, Future
 
 
@@ -15,6 +16,8 @@ from .utils import (
     parse_upsert_response,
     parse_update_response,
     parse_delete_response,
+    parse_namespace_description,
+    parse_list_namespaces_response,
 )
 from .vector_factory_grpc import VectorFactoryGRPC
 from .sparse_values_factory import SparseValuesFactory
@@ -23,9 +26,11 @@ from pinecone.core.openapi.db_data.models import (
     FetchResponse,
     QueryResponse,
     IndexDescription as DescribeIndexStatsResponse,
+    NamespaceDescription,
+    ListNamespacesResponse,
 )
 from pinecone.db_control.models.list_response import ListResponse as SimpleListResponse, Pagination
-from pinecone.core.grpc.protos.db_data_2025_01_pb2 import (
+from pinecone.core.grpc.protos.db_data_2025_04_pb2 import (
     Vector as GRPCVector,
     QueryVector as GRPCQueryVector,
     UpsertRequest,
@@ -39,10 +44,13 @@ from pinecone.core.grpc.protos.db_data_2025_01_pb2 import (
     DeleteResponse,
     UpdateResponse,
     SparseValues as GRPCSparseValues,
+    DescribeNamespaceRequest,
+    DeleteNamespaceRequest,
+    ListNamespacesRequest,
 )
 from pinecone import Vector, SparseValues
 from pinecone.db_data.query_results_aggregator import QueryNamespacesResults, QueryResultsAggregator
-from pinecone.core.grpc.protos.db_data_2025_01_pb2_grpc import VectorServiceStub
+from pinecone.core.grpc.protos.db_data_2025_04_pb2_grpc import VectorServiceStub
 from .base import GRPCIndexBase
 from .future import PineconeGrpcFuture
 from ..db_data.types import (
@@ -54,7 +62,7 @@ from ..db_data.types import (
 )
 
 
-__all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues"]
+__all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues", "NamespaceDescription", "ListNamespacesResponse"]
 
 _logger = logging.getLogger(__name__)
 """ :meta private: """
@@ -680,6 +688,142 @@ class GRPCIndex(GRPCIndexBase):
         response = self.runner.run(self.stub.DescribeIndexStats, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_stats_response(json_response)
+
+    @require_kwargs
+    def describe_namespace(
+        self, namespace: str, **kwargs
+    ) -> NamespaceDescription:
+        """
+        The describe_namespace operation returns information about a specific namespace,
+        including the total number of vectors in the namespace.
+
+        Examples:
+
+        .. code-block:: python
+
+            >>> index.describe_namespace(namespace='my_namespace')
+
+        Args:
+            namespace (str): The namespace to describe.
+
+        Returns: NamespaceDescription object which contains information about the namespace.
+        """
+        timeout = kwargs.pop("timeout", None)
+        request = DescribeNamespaceRequest(namespace=namespace)
+        response = self.runner.run(self.stub.DescribeNamespace, request, timeout=timeout)
+        return parse_namespace_description(response)
+
+    @require_kwargs
+    def delete_namespace(
+        self, namespace: str, **kwargs
+    ) -> Dict[str, Any]:
+        """
+        The delete_namespace operation deletes a namespace from an index.
+        This operation is irreversible and will permanently delete all data in the namespace.
+
+        Examples:
+
+        .. code-block:: python
+
+            >>> index.delete_namespace(namespace='my_namespace')
+
+        Args:
+            namespace (str): The namespace to delete.
+
+        Returns: Empty dictionary indicating successful deletion.
+        """
+        timeout = kwargs.pop("timeout", None)
+        request = DeleteNamespaceRequest(namespace=namespace)
+        response = self.runner.run(self.stub.DeleteNamespace, request, timeout=timeout)
+        return parse_delete_response(response)
+
+    @require_kwargs
+    def list_namespaces_paginated(
+        self,
+        limit: Optional[int] = None,
+        pagination_token: Optional[str] = None,
+        **kwargs,
+    ) -> ListNamespacesResponse:
+        """
+        The list_namespaces_paginated operation returns a list of all namespaces in a serverless index.
+        It returns namespaces in a paginated form, with a pagination token to fetch the next page of results.
+
+        Examples:
+
+        .. code-block:: python
+
+            >>> results = index.list_namespaces_paginated(limit=10)
+            >>> [ns.name for ns in results.namespaces]
+            ['namespace1', 'namespace2', 'namespace3']
+            >>> results.pagination.next
+            eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
+            >>> next_results = index.list_namespaces_paginated(limit=10, pagination_token=results.pagination.next)
+
+        Args:
+            limit (Optional[int]): The maximum number of namespaces to return. If unspecified, the server will use a default value. [optional]
+            pagination_token (Optional[str]): A token needed to fetch the next page of results. This token is returned
+                in the response if additional results are available. [optional]
+
+        Returns: ListNamespacesResponse object which contains the list of namespaces and pagination information.
+        """
+        args_dict = self._parse_non_empty_args(
+            [
+                ("limit", limit),
+                ("pagination_token", pagination_token),
+            ]
+        )
+        timeout = kwargs.pop("timeout", None)
+        request = ListNamespacesRequest(**args_dict, **kwargs)
+        response = self.runner.run(self.stub.ListNamespaces, request, timeout=timeout)
+        return parse_list_namespaces_response(response)
+
+    @require_kwargs
+    def list_namespaces(self, limit: Optional[int] = None, **kwargs):
+        """
+        The list_namespaces operation accepts all of the same arguments as list_namespaces_paginated, and returns a generator that yields
+        each namespace. It automatically handles pagination tokens on your behalf.
+
+        Args:
+            limit (Optional[int]): The maximum number of namespaces to fetch in each network call. If unspecified, the server will use a default value. [optional]
+
+        Returns:
+            Returns a generator that yields each namespace. It automatically handles pagination tokens on your behalf so you can
+            easily iterate over all results. The ``list_namespaces`` method accepts all of the same arguments as list_namespaces_paginated
+
+        Examples:
+
+        .. code-block:: python
+
+            >>> for namespace in index.list_namespaces():
+            >>>     print(namespace.name)
+            namespace1
+            namespace2
+            namespace3
+
+        You can convert the generator into a list by wrapping the generator in a call to the built-in ``list`` function:
+
+        .. code-block:: python
+
+            namespaces = list(index.list_namespaces())
+
+        You should be cautious with this approach because it will fetch all namespaces at once, which could be a large number
+        of network calls and a lot of memory to hold the results.
+        """
+        done = False
+        while not done:
+            try:
+                results = self.list_namespaces_paginated(limit=limit, **kwargs)
+            except Exception as e:
+                raise e
+
+            if results.namespaces and len(results.namespaces) > 0:
+                for namespace in results.namespaces:
+                    yield namespace
+
+            if results.pagination and results.pagination.next:
+                kwargs.update({"pagination_token": results.pagination.next})
+            else:
+                done = True
 
     @staticmethod
     def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:

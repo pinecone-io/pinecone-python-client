@@ -6,7 +6,7 @@ import pytest
 
 from pinecone import Config
 from pinecone.grpc import GRPCIndex
-from pinecone.core.grpc.protos.db_data_2025_01_pb2 import (
+from pinecone.core.grpc.protos.db_data_2025_04_pb2 import (
     Vector,
     UpsertRequest,
     UpsertResponse,

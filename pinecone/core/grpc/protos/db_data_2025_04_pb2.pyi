@@ -235,6 +235,42 @@ class NamespaceSummary(_message.Message):
     vector_count: int
     def __init__(self, vector_count: _Optional[int] = ...) -> None: ...
 
+class ListNamespacesRequest(_message.Message):
+    __slots__ = ("pagination_token", "limit")
+    PAGINATION_TOKEN_FIELD_NUMBER: _ClassVar[int]
+    LIMIT_FIELD_NUMBER: _ClassVar[int]
+    pagination_token: str
+    limit: int
+    def __init__(self, pagination_token: _Optional[str] = ..., limit: _Optional[int] = ...) -> None: ...
+
+class ListNamespacesResponse(_message.Message):
+    __slots__ = ("namespaces", "pagination")
+    NAMESPACES_FIELD_NUMBER: _ClassVar[int]
+    PAGINATION_FIELD_NUMBER: _ClassVar[int]
+    namespaces: _containers.RepeatedCompositeFieldContainer[NamespaceDescription]
+    pagination: Pagination
+    def __init__(self, namespaces: _Optional[_Iterable[_Union[NamespaceDescription, _Mapping]]] = ..., pagination: _Optional[_Union[Pagination, _Mapping]] = ...) -> None: ...
+
+class DescribeNamespaceRequest(_message.Message):
+    __slots__ = ("namespace",)
+    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
+    namespace: str
+    def __init__(self, namespace: _Optional[str] = ...) -> None: ...
+
+class NamespaceDescription(_message.Message):
+    __slots__ = ("name", "record_count")
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    RECORD_COUNT_FIELD_NUMBER: _ClassVar[int]
+    name: str
+    record_count: int
+    def __init__(self, name: _Optional[str] = ..., record_count: _Optional[int] = ...) -> None: ...
+
+class DeleteNamespaceRequest(_message.Message):
+    __slots__ = ("namespace",)
+    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
+    namespace: str
+    def __init__(self, namespace: _Optional[str] = ...) -> None: ...
+
 class DescribeIndexStatsResponse(_message.Message):
     __slots__ = ("namespaces", "dimension", "index_fullness", "total_vector_count", "metric", "vector_type")
     class NamespacesEntry(_message.Message):
