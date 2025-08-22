@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from pinecone.config import Config, OpenApiConfiguration
     from pinecone.db_data import _Index as Index, _IndexAsyncio as IndexAsyncio
+    from pinecone.repository.data import _Repository as Repository
     from pinecone.db_control.index_host_store import IndexHostStore
     from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
     from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict, ConfigureIndexEmbed
@@ -513,6 +514,35 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         return _IndexAsyncio(
             host=index_host,
             api_key=api_key,
+            openapi_config=openapi_config,
+            source_tag=self.config.source_tag,
+            **kwargs,
+        )
+
+    def Repository(self, name: str = "", host: str = "", **kwargs) -> "Repository":
+        from pinecone.repository.data import _Repository
+
+        if name == "" and host == "":
+            raise ValueError("Either name or host must be specified")
+
+        pt = kwargs.pop("pool_threads", None) or self._pool_threads
+        api_key = self._config.api_key
+        openapi_config = self._openapi_config
+
+        if host != "":
+            check_realistic_host(host)
+
+            # Use host url if it is provided
+            repository_host = normalize_host(host)
+        else:
+            # TODO, get host url from describe_kb using the index name
+            # index_host = self.db.index._get_host(name)
+            raise ValueError("host lookup not yet supported, specify host parameter")
+
+        return _Repository(
+            host=repository_host,
+            api_key=api_key,
+            pool_threads=pt,
             openapi_config=openapi_config,
             source_tag=self.config.source_tag,
             **kwargs,
