@@ -1,7 +1,7 @@
 """
-Pinecone Knowledge Base Data Plane API
+Pinecone Control Plane API for Repositories
 
-Pinecone Knowledge Base builds on the vector database to make it easy to store, search and retrieve your data.  # noqa: E501
+Pinecone Repositories make it easy to search and retrieve billions of documents using lexical and semantic search.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
@@ -28,18 +28,20 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
-    from pinecone.core.openapi.ckb_knowledge_data.model.lsn_status import LSNStatus
+    from pinecone.core.openapi.repository_control.model.document_schema_field_map import (
+        DocumentSchemaFieldMap,
+    )
 
-    globals()["LSNStatus"] = LSNStatus
+    globals()["DocumentSchemaFieldMap"] = DocumentSchemaFieldMap
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="UpsertDocumentResponse")
+T = TypeVar("T", bound="DocumentSchema")
 
 
-class UpsertDocumentResponse(ModelNormal):
+class DocumentSchema(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -92,9 +94,7 @@ class UpsertDocumentResponse(ModelNormal):
         """
         lazy_import()
         return {
-            "id": (str,),  # noqa: E501
-            "namespace": (str,),  # noqa: E501
-            "lsn_status": (LSNStatus,),  # noqa: E501
+            "fields": (DocumentSchemaFieldMap,)  # noqa: E501
         }
 
     @cached_class_property
@@ -102,9 +102,7 @@ class UpsertDocumentResponse(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "id": "_id",  # noqa: E501
-        "namespace": "namespace",  # noqa: E501
-        "lsn_status": "_lsn_status",  # noqa: E501
+        "fields": "fields"  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -113,13 +111,11 @@ class UpsertDocumentResponse(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], id, namespace, lsn_status, *args, **kwargs) -> T:  # noqa: E501
-        """UpsertDocumentResponse - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], fields, *args, **kwargs) -> T:  # noqa: E501
+        """DocumentSchema - a model defined in OpenAPI
 
         Args:
-            id (str): Identifier of the document to be created or updated.
-            namespace (str): Namespace of the document to be created or updated.
-            lsn_status (LSNStatus):
+            fields (DocumentSchemaFieldMap):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -181,9 +177,7 @@ class UpsertDocumentResponse(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.id = id
-        self.namespace = namespace
-        self.lsn_status = lsn_status
+        self.fields = fields
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -210,13 +204,11 @@ class UpsertDocumentResponse(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, id, namespace, lsn_status, *args, **kwargs) -> None:  # noqa: E501
-        """UpsertDocumentResponse - a model defined in OpenAPI
+    def __init__(self, fields, *args, **kwargs) -> None:  # noqa: E501
+        """DocumentSchema - a model defined in OpenAPI
 
         Args:
-            id (str): Identifier of the document to be created or updated.
-            namespace (str): Namespace of the document to be created or updated.
-            lsn_status (LSNStatus):
+            fields (DocumentSchemaFieldMap):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -276,9 +268,7 @@ class UpsertDocumentResponse(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.id = id
-        self.namespace = namespace
-        self.lsn_status = lsn_status
+        self.fields = fields
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

@@ -1,9 +1,9 @@
 # flake8: noqa
 
 """
-Pinecone Knowledge Base Data Plane API
+Pinecone Control Plane API for Repositories
 
-Pinecone Knowledge Base builds on the vector database to make it easy to store, search and retrieve your data.  # noqa: E501
+Pinecone Repositories make it easy to search and retrieve billions of documents using lexical and semantic search.  # noqa: E501
 
 This file is @generated using OpenAPI.
 

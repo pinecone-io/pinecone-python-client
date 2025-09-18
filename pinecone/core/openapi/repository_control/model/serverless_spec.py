@@ -1,7 +1,7 @@
 """
-Pinecone Knowledge Base Data Plane API
+Pinecone Control Plane API for Repositories
 
-Pinecone Knowledge Base builds on the vector database to make it easy to store, search and retrieve your data.  # noqa: E501
+Pinecone Repositories make it easy to search and retrieve billions of documents using lexical and semantic search.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
@@ -27,21 +27,13 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
-def lazy_import():
-    from pinecone.core.openapi.ckb_knowledge_data.model.lsn_status import LSNStatus
-    from pinecone.core.openapi.ckb_knowledge_data.model.usage import Usage
-
-    globals()["LSNStatus"] = LSNStatus
-    globals()["Usage"] = Usage
-
-
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="DeleteDocumentResponse")
+T = TypeVar("T", bound="ServerlessSpec")
 
 
-class DeleteDocumentResponse(ModelNormal):
+class ServerlessSpec(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -77,7 +69,6 @@ class DeleteDocumentResponse(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -92,12 +83,9 @@ class DeleteDocumentResponse(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
-            "id": (str,),  # noqa: E501
-            "namespace": (str,),  # noqa: E501
-            "usage": (Usage,),  # noqa: E501
-            "lsn_status": (LSNStatus,),  # noqa: E501
+            "cloud": (str,),  # noqa: E501
+            "region": (str,),  # noqa: E501
         }
 
     @cached_class_property
@@ -105,10 +93,8 @@ class DeleteDocumentResponse(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "id": "_id",  # noqa: E501
-        "namespace": "namespace",  # noqa: E501
-        "usage": "usage",  # noqa: E501
-        "lsn_status": "_lsn_status",  # noqa: E501
+        "cloud": "cloud",  # noqa: E501
+        "region": "region",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -117,14 +103,12 @@ class DeleteDocumentResponse(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], id, namespace, usage, lsn_status, *args, **kwargs) -> T:  # noqa: E501
-        """DeleteDocumentResponse - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], cloud, region, *args, **kwargs) -> T:  # noqa: E501
+        """ServerlessSpec - a model defined in OpenAPI
 
         Args:
-            id (str): Identifier of the document to be deleted.
-            namespace (str): Namespace of the document to be deleted.
-            usage (Usage):
-            lsn_status (LSNStatus):
+            cloud (str): The public cloud where you would like your repository hosted.
+            region (str): The region where you would like your repository to be created.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -186,10 +170,8 @@ class DeleteDocumentResponse(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.id = id
-        self.namespace = namespace
-        self.usage = usage
-        self.lsn_status = lsn_status
+        self.cloud = cloud
+        self.region = region
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -216,14 +198,12 @@ class DeleteDocumentResponse(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, id, namespace, usage, lsn_status, *args, **kwargs) -> None:  # noqa: E501
-        """DeleteDocumentResponse - a model defined in OpenAPI
+    def __init__(self, cloud, region, *args, **kwargs) -> None:  # noqa: E501
+        """ServerlessSpec - a model defined in OpenAPI
 
         Args:
-            id (str): Identifier of the document to be deleted.
-            namespace (str): Namespace of the document to be deleted.
-            usage (Usage):
-            lsn_status (LSNStatus):
+            cloud (str): The public cloud where you would like your repository hosted.
+            region (str): The region where you would like your repository to be created.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -283,10 +263,8 @@ class DeleteDocumentResponse(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.id = id
-        self.namespace = namespace
-        self.usage = usage
-        self.lsn_status = lsn_status
+        self.cloud = cloud
+        self.region = region
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

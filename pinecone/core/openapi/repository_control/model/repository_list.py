@@ -1,7 +1,7 @@
 """
-Pinecone Knowledge Base Data Plane API
+Pinecone Control Plane API for Repositories
 
-Pinecone Knowledge Base builds on the vector database to make it easy to store, search and retrieve your data.  # noqa: E501
+Pinecone Repositories make it easy to search and retrieve billions of documents using lexical and semantic search.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
@@ -28,18 +28,18 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
-    from pinecone.core.openapi.ckb_knowledge_data.model.document import Document
+    from pinecone.core.openapi.repository_control.model.repository_model import RepositoryModel
 
-    globals()["Document"] = Document
+    globals()["RepositoryModel"] = RepositoryModel
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="DocumentList")
+T = TypeVar("T", bound="RepositoryList")
 
 
-class DocumentList(ModelSimple):
+class RepositoryList(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -49,6 +49,10 @@ class DocumentList(ModelSimple):
           and the for var_name this is (var_name,). The value is a dict
           with a capitalized key describing the allowed value and an allowed
           value. These dicts store the allowed enum values.
+      attribute_map (dict): The key is attribute name
+          and the value is json key in definition.
+      discriminator_value_class_map (dict): A dict to go from the discriminator
+          variable value to the discriminator class name.
       validations (dict): The key is the tuple path to the attribute
           and the for var_name this is (var_name,). The value is a dict
           that stores validations for max_length, min_length, max_items,
@@ -87,17 +91,99 @@ class DocumentList(ModelSimple):
                 and the value is attribute type.
         """
         lazy_import()
-        return {"value": ([Document],)}
+        return {
+            "repositories": ([RepositoryModel],)  # noqa: E501
+        }
 
     @cached_class_property
     def discriminator(cls):
         return None
 
-    attribute_map: Dict[str, str] = {}
+    attribute_map: Dict[str, str] = {
+        "repositories": "repositories"  # noqa: E501
+    }
 
-    read_only_vars: Set[str] = set()
+    read_only_vars: Set[str] = set([])
 
-    _composed_schemas = None
+    _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+
+    @classmethod
+    @convert_js_args_to_python_args
+    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
+        """RepositoryList - a model defined in OpenAPI
+
+        Keyword Args:
+            _check_type (bool): if True, values for parameters in openapi_types
+                                will be type checked and a TypeError will be
+                                raised if the wrong type is input.
+                                Defaults to True
+            _path_to_item (tuple/list): This is a list of keys or values to
+                                drill down to the model in received_data
+                                when deserializing a response
+            _spec_property_naming (bool): True if the variable names in the input data
+                                are serialized names, as specified in the OpenAPI document.
+                                False if the variable names in the input data
+                                are pythonic names, e.g. snake case (default)
+            _configuration (Configuration): the instance to use when
+                                deserializing a file_type parameter.
+                                If passed, type conversion is attempted
+                                If omitted no type conversion is done.
+            _visited_composed_classes (tuple): This stores a tuple of
+                                classes that we have traveled through so that
+                                if we see that class again we will not use its
+                                discriminator again.
+                                When traveling through a discriminator, the
+                                composed schema that is
+                                is traveled through is added to this set.
+                                For example if Animal has a discriminator
+                                petType and we pass in "Dog", and the class Dog
+                                allOf includes Animal, we move through Animal
+                                once using the discriminator, and pick Dog.
+                                Then in Dog, we will make an instance of the
+                                Animal class but this time we won't travel
+                                through its discriminator because we passed in
+                                _visited_composed_classes = (Animal,)
+            repositories ([RepositoryModel]): [optional]  # noqa: E501
+        """
+
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
+        _enforce_validations = kwargs.pop("_enforce_validations", False)
+        _check_type = kwargs.pop("_check_type", True)
+        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
+        _path_to_item = kwargs.pop("_path_to_item", ())
+        _configuration = kwargs.pop("_configuration", None)
+        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
+
+        self = super(OpenApiModel, cls).__new__(cls)
+
+        if args:
+            raise PineconeApiTypeError(
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
+                % (args, self.__class__.__name__),
+                path_to_item=_path_to_item,
+                valid_classes=(self.__class__,),
+            )
+
+        self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
+        self._check_type = _check_type
+        self._spec_property_naming = _spec_property_naming
+        self._path_to_item = _path_to_item
+        self._configuration = _configuration
+        self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
+
+        for var_name, var_value in kwargs.items():
+            if (
+                var_name not in self.attribute_map
+                and self._configuration is not None
+                and self._configuration.discard_unknown_keys
+                and self.additional_properties_type is None
+            ):
+                # discard variable.
+                continue
+            setattr(self, var_name, var_value)
+        return self
 
     required_properties = set(
         [
@@ -113,16 +199,10 @@ class DocumentList(ModelSimple):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs) -> None:
-        """DocumentList - a model defined in OpenAPI
-
-        Note that value can be passed either in args or in kwargs, but not in both.
-
-        Args:
-            args[0] ([Document]): The list of documents that exist in the knowledge base/namespace..  # noqa: E501
+    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
+        """RepositoryList - a model defined in OpenAPI
 
         Keyword Args:
-            value ([Document]): The list of documents that exist in the knowledge base/namespace..  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -153,132 +233,24 @@ class DocumentList(ModelSimple):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            repositories ([RepositoryModel]): [optional]  # noqa: E501
         """
-        # required up here when default value is not given
-        _path_to_item = kwargs.pop("_path_to_item", ())
-
-        value = None
-        if "value" in kwargs:
-            value = kwargs.pop("value")
-
-        if value is None and args:
-            if len(args) == 1:
-                value = args[0]
-            elif len(args) > 1:
-                raise PineconeApiTypeError(
-                    "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
-                    % (args, self.__class__.__name__),
-                    path_to_item=_path_to_item,
-                    valid_classes=(self.__class__,),
-                )
-
-        if value is None:
-            raise PineconeApiTypeError(
-                "value is required, but not passed in args or kwargs and doesn't have default",
-                path_to_item=_path_to_item,
-                valid_classes=(self.__class__,),
-            )
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
         _enforce_validations = kwargs.pop("_enforce_validations", True)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
-        _configuration = kwargs.pop("_configuration", None)
-        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
-
-        self._data_store = {}
-        self._enforce_allowed_values = _enforce_allowed_values
-        self._enforce_validations = _enforce_validations
-        self._check_type = _check_type
-        self._spec_property_naming = _spec_property_naming
-        self._path_to_item = _path_to_item
-        self._configuration = _configuration
-        self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
-        self.value = value
-        if kwargs:
-            raise PineconeApiTypeError(
-                "Invalid named arguments=%s passed to %s. Remove those invalid named arguments."
-                % (kwargs, self.__class__.__name__),
-                path_to_item=_path_to_item,
-                valid_classes=(self.__class__,),
-            )
-
-    @classmethod
-    @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:
-        """DocumentList - a model defined in OpenAPI
-
-        Note that value can be passed either in args or in kwargs, but not in both.
-
-        Args:
-            args[0] ([Document]): The list of documents that exist in the knowledge base/namespace.  # noqa: E501
-
-        Keyword Args:
-            value ([Document]): The list of documents that exist in the knowledge base/namespace.  # noqa: E501
-            _check_type (bool): if True, values for parameters in openapi_types
-                                will be type checked and a TypeError will be
-                                raised if the wrong type is input.
-                                Defaults to True
-            _path_to_item (tuple/list): This is a list of keys or values to
-                                drill down to the model in received_data
-                                when deserializing a response
-            _spec_property_naming (bool): True if the variable names in the input data
-                                are serialized names, as specified in the OpenAPI document.
-                                False if the variable names in the input data
-                                are pythonic names, e.g. snake case (default)
-            _configuration (Configuration): the instance to use when
-                                deserializing a file_type parameter.
-                                If passed, type conversion is attempted
-                                If omitted no type conversion is done.
-            _visited_composed_classes (tuple): This stores a tuple of
-                                classes that we have traveled through so that
-                                if we see that class again we will not use its
-                                discriminator again.
-                                When traveling through a discriminator, the
-                                composed schema that is
-                                is traveled through is added to this set.
-                                For example if Animal has a discriminator
-                                petType and we pass in "Dog", and the class Dog
-                                allOf includes Animal, we move through Animal
-                                once using the discriminator, and pick Dog.
-                                Then in Dog, we will make an instance of the
-                                Animal class but this time we won't travel
-                                through its discriminator because we passed in
-                                _visited_composed_classes = (Animal,)
-        """
-        # required up here when default value is not given
         _path_to_item = kwargs.pop("_path_to_item", ())
+        _configuration = kwargs.pop("_configuration", None)
+        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
 
-        self = super(OpenApiModel, cls).__new__(cls)
-
-        value = None
-        if "value" in kwargs:
-            value = kwargs.pop("value")
-
-        if value is None and args:
-            if len(args) == 1:
-                value = args[0]
-            elif len(args) > 1:
-                raise PineconeApiTypeError(
-                    "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
-                    % (args, self.__class__.__name__),
-                    path_to_item=_path_to_item,
-                    valid_classes=(self.__class__,),
-                )
-
-        if value is None:
+        if args:
             raise PineconeApiTypeError(
-                "value is required, but not passed in args or kwargs and doesn't have default",
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
+                % (args, self.__class__.__name__),
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
             )
-
-        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
-        _enforce_validations = kwargs.pop("_enforce_validations", False)
-        _check_type = kwargs.pop("_check_type", True)
-        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
-        _configuration = kwargs.pop("_configuration", None)
-        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
 
         self._data_store = {}
         self._enforce_allowed_values = _enforce_allowed_values
@@ -288,13 +260,19 @@ class DocumentList(ModelSimple):
         self._path_to_item = _path_to_item
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
-        self.value = value
-        if kwargs:
-            raise PineconeApiTypeError(
-                "Invalid named arguments=%s passed to %s. Remove those invalid named arguments."
-                % (kwargs, self.__class__.__name__),
-                path_to_item=_path_to_item,
-                valid_classes=(self.__class__,),
-            )
 
-        return self
+        for var_name, var_value in kwargs.items():
+            if (
+                var_name not in self.attribute_map
+                and self._configuration is not None
+                and self._configuration.discard_unknown_keys
+                and self.additional_properties_type is None
+            ):
+                # discard variable.
+                continue
+            setattr(self, var_name, var_value)
+            if var_name in self.read_only_vars:
+                raise PineconeApiAttributeError(
+                    f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
+                    f"class with read only attributes."
+                )

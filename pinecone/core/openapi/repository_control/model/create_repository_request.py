@@ -1,7 +1,7 @@
 """
-Pinecone Knowledge Base Data Plane API
+Pinecone Control Plane API for Repositories
 
-Pinecone Knowledge Base builds on the vector database to make it easy to store, search and retrieve your data.  # noqa: E501
+Pinecone Repositories make it easy to search and retrieve billions of documents using lexical and semantic search.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
@@ -27,13 +27,21 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
+def lazy_import():
+    from pinecone.core.openapi.repository_control.model.document_schema import DocumentSchema
+    from pinecone.core.openapi.repository_control.model.repository_spec import RepositorySpec
+
+    globals()["DocumentSchema"] = DocumentSchema
+    globals()["RepositorySpec"] = RepositorySpec
+
+
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="DocumentForUpsert")
+T = TypeVar("T", bound="CreateRepositoryRequest")
 
 
-class DocumentForUpsert(ModelNormal):
+class CreateRepositoryRequest(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -61,7 +69,9 @@ class DocumentForUpsert(ModelNormal):
 
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
+        ("name",): {"max_length": 45, "min_length": 1}
+    }
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -69,6 +79,7 @@ class DocumentForUpsert(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
+        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -83,8 +94,11 @@ class DocumentForUpsert(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
+        lazy_import()
         return {
-            "id": (str,)  # noqa: E501
+            "name": (str,),  # noqa: E501
+            "spec": (RepositorySpec,),  # noqa: E501
+            "schema": (DocumentSchema,),  # noqa: E501
         }
 
     @cached_class_property
@@ -92,7 +106,9 @@ class DocumentForUpsert(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "id": "_id"  # noqa: E501
+        "name": "name",  # noqa: E501
+        "spec": "spec",  # noqa: E501
+        "schema": "schema",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -101,8 +117,13 @@ class DocumentForUpsert(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """DocumentForUpsert - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], name, spec, schema, *args, **kwargs) -> T:  # noqa: E501
+        """CreateRepositoryRequest - a model defined in OpenAPI
+
+        Args:
+            name (str): The name of the repository. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.
+            spec (RepositorySpec):
+            schema (DocumentSchema):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -135,7 +156,6 @@ class DocumentForUpsert(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            id (str): Optional unique identifier for the document. If not provided, a new ID will be generated. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -165,6 +185,9 @@ class DocumentForUpsert(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.name = name
+        self.spec = spec
+        self.schema = schema
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -191,8 +214,13 @@ class DocumentForUpsert(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """DocumentForUpsert - a model defined in OpenAPI
+    def __init__(self, name, spec, schema, *args, **kwargs) -> None:  # noqa: E501
+        """CreateRepositoryRequest - a model defined in OpenAPI
+
+        Args:
+            name (str): The name of the repository. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.
+            spec (RepositorySpec):
+            schema (DocumentSchema):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -225,7 +253,6 @@ class DocumentForUpsert(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            id (str): Optional unique identifier for the document. If not provided, a new ID will be generated. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -253,6 +280,9 @@ class DocumentForUpsert(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.name = name
+        self.spec = spec
+        self.schema = schema
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

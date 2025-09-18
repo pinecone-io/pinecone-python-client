@@ -5,7 +5,7 @@
 # raise a `RecursionError`.
 # In order to avoid this, import only the API that you directly need like:
 #
-#   from .api.document_operations_api import DocumentOperationsApi
+#   from .api.manage_repositories_api import ManageRepositoriesApi
 #
 # or import this package, but before doing it, use:
 #
@@ -13,6 +13,6 @@
 #   sys.setrecursionlimit(n)
 
 # Import APIs into API package:
-from pinecone.core.openapi.ckb_knowledge_data.api.document_operations_api import (
-    DocumentOperationsApi,
+from pinecone.core.openapi.repository_control.api.manage_repositories_api import (
+    ManageRepositoriesApi,
 )

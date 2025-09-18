@@ -1,7 +1,7 @@
 """
-Pinecone Knowledge Base Data Plane API
+Pinecone Control Plane API for Repositories
 
-Pinecone Knowledge Base builds on the vector database to make it easy to store, search and retrieve your data.  # noqa: E501
+Pinecone Repositories make it easy to search and retrieve billions of documents using lexical and semantic search.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
@@ -27,27 +27,13 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
-def lazy_import():
-    from pinecone.core.openapi.ckb_knowledge_data.model.document_list import DocumentList
-    from pinecone.core.openapi.ckb_knowledge_data.model.lsn_status import LSNStatus
-    from pinecone.core.openapi.ckb_knowledge_data.model.pagination_response import (
-        PaginationResponse,
-    )
-    from pinecone.core.openapi.ckb_knowledge_data.model.usage import Usage
-
-    globals()["DocumentList"] = DocumentList
-    globals()["LSNStatus"] = LSNStatus
-    globals()["PaginationResponse"] = PaginationResponse
-    globals()["Usage"] = Usage
-
-
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="ListDocumentResponse")
+T = TypeVar("T", bound="RepositoryModelStatus")
 
 
-class ListDocumentResponse(ModelNormal):
+class RepositoryModelStatus(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -83,7 +69,6 @@ class ListDocumentResponse(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -98,13 +83,9 @@ class ListDocumentResponse(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
-            "namespace": (str,),  # noqa: E501
-            "documents": (DocumentList,),  # noqa: E501
-            "usage": (Usage,),  # noqa: E501
-            "lsn_status": (LSNStatus,),  # noqa: E501
-            "pagination": (PaginationResponse,),  # noqa: E501
+            "ready": (bool,),  # noqa: E501
+            "state": (str,),  # noqa: E501
         }
 
     @cached_class_property
@@ -112,11 +93,8 @@ class ListDocumentResponse(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "namespace": "namespace",  # noqa: E501
-        "documents": "documents",  # noqa: E501
-        "usage": "usage",  # noqa: E501
-        "lsn_status": "_lsn_status",  # noqa: E501
-        "pagination": "pagination",  # noqa: E501
+        "ready": "ready",  # noqa: E501
+        "state": "state",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -125,16 +103,12 @@ class ListDocumentResponse(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(
-        cls: Type[T], namespace, documents, usage, lsn_status, *args, **kwargs
-    ) -> T:  # noqa: E501
-        """ListDocumentResponse - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], ready, state, *args, **kwargs) -> T:  # noqa: E501
+        """RepositoryModelStatus - a model defined in OpenAPI
 
         Args:
-            namespace (str): Namespace of the documents to fetch.
-            documents (DocumentList):
-            usage (Usage):
-            lsn_status (LSNStatus):
+            ready (bool):
+            state (str): The state of the repository. Possible values: `Initializing`, `InitializationFailed`, `Terminating`, `Ready`, or `Disabled`.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -167,7 +141,6 @@ class ListDocumentResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            pagination (PaginationResponse): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -197,10 +170,8 @@ class ListDocumentResponse(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.namespace = namespace
-        self.documents = documents
-        self.usage = usage
-        self.lsn_status = lsn_status
+        self.ready = ready
+        self.state = state
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -227,14 +198,12 @@ class ListDocumentResponse(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, namespace, documents, usage, lsn_status, *args, **kwargs) -> None:  # noqa: E501
-        """ListDocumentResponse - a model defined in OpenAPI
+    def __init__(self, ready, state, *args, **kwargs) -> None:  # noqa: E501
+        """RepositoryModelStatus - a model defined in OpenAPI
 
         Args:
-            namespace (str): Namespace of the documents to fetch.
-            documents (DocumentList):
-            usage (Usage):
-            lsn_status (LSNStatus):
+            ready (bool):
+            state (str): The state of the repository. Possible values: `Initializing`, `InitializationFailed`, `Terminating`, `Ready`, or `Disabled`.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -267,7 +236,6 @@ class ListDocumentResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            pagination (PaginationResponse): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -295,10 +263,8 @@ class ListDocumentResponse(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.namespace = namespace
-        self.documents = documents
-        self.usage = usage
-        self.lsn_status = lsn_status
+        self.ready = ready
+        self.state = state
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

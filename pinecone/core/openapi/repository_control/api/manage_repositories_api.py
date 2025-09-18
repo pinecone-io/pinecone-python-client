@@ -1,7 +1,7 @@
 """
-Pinecone Knowledge Base Data Plane API
+Pinecone Control Plane API for Repositories
 
-Pinecone Knowledge Base builds on the vector database to make it easy to store, search and retrieve your data.  # noqa: E501
+Pinecone Repositories make it easy to search and retrieve billions of documents using lexical and semantic search.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
@@ -23,20 +23,15 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     none_type,
     validate_and_convert_types,
 )
-from pinecone.core.openapi.ckb_knowledge_data.model.delete_document_response import (
-    DeleteDocumentResponse,
+from pinecone.core.openapi.repository_control.model.create_repository_request import (
+    CreateRepositoryRequest,
 )
-from pinecone.core.openapi.ckb_knowledge_data.model.document_for_upsert import DocumentForUpsert
-from pinecone.core.openapi.ckb_knowledge_data.model.get_document_response import GetDocumentResponse
-from pinecone.core.openapi.ckb_knowledge_data.model.list_document_response import (
-    ListDocumentResponse,
-)
-from pinecone.core.openapi.ckb_knowledge_data.model.upsert_document_response import (
-    UpsertDocumentResponse,
-)
+from pinecone.core.openapi.repository_control.model.error_response import ErrorResponse
+from pinecone.core.openapi.repository_control.model.repository_list import RepositoryList
+from pinecone.core.openapi.repository_control.model.repository_model import RepositoryModel
 
 
-class DocumentOperationsApi:
+class ManageRepositoriesApi:
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -47,232 +42,20 @@ class DocumentOperationsApi:
             api_client = ApiClient()
         self.api_client = api_client
 
-        def __delete_document(self, namespace, document_id, **kwargs: ExtraOpenApiKwargsTypedDict):
-            """Delete a document from the given namespace  # noqa: E501
-
-            Deletes a document from the specified namespace.  # noqa: E501
-            This method makes a synchronous HTTP request by default. To make an
-            asynchronous HTTP request, please pass async_req=True
-
-            >>> thread = api.delete_document(namespace, document_id, async_req=True)
-            >>> result = thread.get()
-
-            Args:
-                namespace (str): Namespace to fetch document from.
-                document_id (str): Document ID to fetch.
-
-            Keyword Args:
-                _return_http_data_only (bool): response data without head status
-                    code and headers. Default is True.
-                _preload_content (bool): if False, the urllib3.HTTPResponse object
-                    will be returned without reading/decoding response data.
-                    Default is True.
-                _request_timeout (int/float/tuple): timeout setting for this request. If
-                    one number provided, it will be total request timeout. It can also
-                    be a pair (tuple) of (connection, read) timeouts.
-                    Default is None.
-                _check_input_type (bool): specifies if type checking
-                    should be done one the data sent to the server.
-                    Default is True.
-                _check_return_type (bool): specifies if type checking
-                    should be done one the data received from the server.
-                    Default is True.
-                async_req (bool): execute request asynchronously
-
-            Returns:
-                DeleteDocumentResponse
-                    If the method is called asynchronously, returns the request
-                    thread.
-            """
-            kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs["namespace"] = namespace
-            kwargs["document_id"] = document_id
-            return self.call_with_http_info(**kwargs)
-
-        self.delete_document = _Endpoint(
-            settings={
-                "response_type": (DeleteDocumentResponse,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/namespaces/{namespace}/documents/{document_id}",
-                "operation_id": "delete_document",
-                "http_method": "DELETE",
-                "servers": None,
-            },
-            params_map={
-                "all": ["namespace", "document_id"],
-                "required": ["namespace", "document_id"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
-            },
-            root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"namespace": (str,), "document_id": (str,)},
-                "attribute_map": {"namespace": "namespace", "document_id": "document_id"},
-                "location_map": {"namespace": "path", "document_id": "path"},
-                "collection_format_map": {},
-            },
-            headers_map={"accept": ["application/json"], "content_type": []},
-            api_client=api_client,
-            callable=__delete_document,
-        )
-
-        def __get_document(self, namespace, document_id, **kwargs: ExtraOpenApiKwargsTypedDict):
-            """Get a document from the given namespace  # noqa: E501
-
-            Retrieves a document from the specified namespace.  # noqa: E501
-            This method makes a synchronous HTTP request by default. To make an
-            asynchronous HTTP request, please pass async_req=True
-
-            >>> thread = api.get_document(namespace, document_id, async_req=True)
-            >>> result = thread.get()
-
-            Args:
-                namespace (str): Namespace to fetch document from.
-                document_id (str): Document ID to fetch.
-
-            Keyword Args:
-                _return_http_data_only (bool): response data without head status
-                    code and headers. Default is True.
-                _preload_content (bool): if False, the urllib3.HTTPResponse object
-                    will be returned without reading/decoding response data.
-                    Default is True.
-                _request_timeout (int/float/tuple): timeout setting for this request. If
-                    one number provided, it will be total request timeout. It can also
-                    be a pair (tuple) of (connection, read) timeouts.
-                    Default is None.
-                _check_input_type (bool): specifies if type checking
-                    should be done one the data sent to the server.
-                    Default is True.
-                _check_return_type (bool): specifies if type checking
-                    should be done one the data received from the server.
-                    Default is True.
-                async_req (bool): execute request asynchronously
-
-            Returns:
-                GetDocumentResponse
-                    If the method is called asynchronously, returns the request
-                    thread.
-            """
-            kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs["namespace"] = namespace
-            kwargs["document_id"] = document_id
-            return self.call_with_http_info(**kwargs)
-
-        self.get_document = _Endpoint(
-            settings={
-                "response_type": (GetDocumentResponse,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/namespaces/{namespace}/documents/{document_id}",
-                "operation_id": "get_document",
-                "http_method": "GET",
-                "servers": None,
-            },
-            params_map={
-                "all": ["namespace", "document_id"],
-                "required": ["namespace", "document_id"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
-            },
-            root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"namespace": (str,), "document_id": (str,)},
-                "attribute_map": {"namespace": "namespace", "document_id": "document_id"},
-                "location_map": {"namespace": "path", "document_id": "path"},
-                "collection_format_map": {},
-            },
-            headers_map={"accept": ["application/json"], "content_type": []},
-            api_client=api_client,
-            callable=__get_document,
-        )
-
-        def __list_documents(self, namespace, **kwargs: ExtraOpenApiKwargsTypedDict):
-            """List documents from the given namespace  # noqa: E501
-
-            Lists documents from the specified namespace. (Paginated)  # noqa: E501
-            This method makes a synchronous HTTP request by default. To make an
-            asynchronous HTTP request, please pass async_req=True
-
-            >>> thread = api.list_documents(namespace, async_req=True)
-            >>> result = thread.get()
-
-            Args:
-                namespace (str): Namespace to fetch documents from.
-
-            Keyword Args:
-                _return_http_data_only (bool): response data without head status
-                    code and headers. Default is True.
-                _preload_content (bool): if False, the urllib3.HTTPResponse object
-                    will be returned without reading/decoding response data.
-                    Default is True.
-                _request_timeout (int/float/tuple): timeout setting for this request. If
-                    one number provided, it will be total request timeout. It can also
-                    be a pair (tuple) of (connection, read) timeouts.
-                    Default is None.
-                _check_input_type (bool): specifies if type checking
-                    should be done one the data sent to the server.
-                    Default is True.
-                _check_return_type (bool): specifies if type checking
-                    should be done one the data received from the server.
-                    Default is True.
-                async_req (bool): execute request asynchronously
-
-            Returns:
-                ListDocumentResponse
-                    If the method is called asynchronously, returns the request
-                    thread.
-            """
-            kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs["namespace"] = namespace
-            return self.call_with_http_info(**kwargs)
-
-        self.list_documents = _Endpoint(
-            settings={
-                "response_type": (ListDocumentResponse,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/namespaces/{namespace}/documents",
-                "operation_id": "list_documents",
-                "http_method": "GET",
-                "servers": None,
-            },
-            params_map={
-                "all": ["namespace"],
-                "required": ["namespace"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
-            },
-            root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"namespace": (str,)},
-                "attribute_map": {"namespace": "namespace"},
-                "location_map": {"namespace": "path"},
-                "collection_format_map": {},
-            },
-            headers_map={"accept": ["application/json"], "content_type": []},
-            api_client=api_client,
-            callable=__list_documents,
-        )
-
-        def __upsert_document(
-            self, namespace, document_for_upsert, **kwargs: ExtraOpenApiKwargsTypedDict
+        def __create_repository(
+            self, create_repository_request, **kwargs: ExtraOpenApiKwargsTypedDict
         ):
-            """Create or update a document in the given namespace  # noqa: E501
+            """Create a repository  # noqa: E501
 
-            Upserts a document into the specified namespace.    The request body may contain any valid JSON document that conforms to the schema.    Optionally, an `_id` field can be provided to use as the document's identifier;   if omitted, the system will assign one.  # noqa: E501
+            Create a Pinecone Repository in the cloud provider and region of your choice.   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.upsert_document(namespace, document_for_upsert, async_req=True)
+            >>> thread = api.create_repository(create_repository_request, async_req=True)
             >>> result = thread.get()
 
             Args:
-                namespace (str): Namespace where the document will be stored.
-                document_for_upsert (DocumentForUpsert):
+                create_repository_request (CreateRepositoryRequest): The desired configuration for the repository.
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -293,27 +76,26 @@ class DocumentOperationsApi:
                 async_req (bool): execute request asynchronously
 
             Returns:
-                UpsertDocumentResponse
+                RepositoryModel
                     If the method is called asynchronously, returns the request
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs["namespace"] = namespace
-            kwargs["document_for_upsert"] = document_for_upsert
+            kwargs["create_repository_request"] = create_repository_request
             return self.call_with_http_info(**kwargs)
 
-        self.upsert_document = _Endpoint(
+        self.create_repository = _Endpoint(
             settings={
-                "response_type": (UpsertDocumentResponse,),
+                "response_type": (RepositoryModel,),
                 "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/namespaces/{namespace}/documents/upsert",
-                "operation_id": "upsert_document",
+                "endpoint_path": "/repositories",
+                "operation_id": "create_repository",
                 "http_method": "POST",
                 "servers": None,
             },
             params_map={
-                "all": ["namespace", "document_for_upsert"],
-                "required": ["namespace", "document_for_upsert"],
+                "all": ["create_repository_request"],
+                "required": ["create_repository_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -321,18 +103,216 @@ class DocumentOperationsApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"namespace": (str,), "document_for_upsert": (DocumentForUpsert,)},
-                "attribute_map": {"namespace": "namespace"},
-                "location_map": {"namespace": "path", "document_for_upsert": "body"},
+                "openapi_types": {"create_repository_request": (CreateRepositoryRequest,)},
+                "attribute_map": {},
+                "location_map": {"create_repository_request": "body"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__upsert_document,
+            callable=__create_repository,
+        )
+
+        def __delete_repository(self, repository_name, **kwargs: ExtraOpenApiKwargsTypedDict):
+            """Delete a repository  # noqa: E501
+
+            Delete an existing repository.  # noqa: E501
+            This method makes a synchronous HTTP request by default. To make an
+            asynchronous HTTP request, please pass async_req=True
+
+            >>> thread = api.delete_repository(repository_name, async_req=True)
+            >>> result = thread.get()
+
+            Args:
+                repository_name (str): The name of the repository to delete.
+
+            Keyword Args:
+                _return_http_data_only (bool): response data without head status
+                    code and headers. Default is True.
+                _preload_content (bool): if False, the urllib3.HTTPResponse object
+                    will be returned without reading/decoding response data.
+                    Default is True.
+                _request_timeout (int/float/tuple): timeout setting for this request. If
+                    one number provided, it will be total request timeout. It can also
+                    be a pair (tuple) of (connection, read) timeouts.
+                    Default is None.
+                _check_input_type (bool): specifies if type checking
+                    should be done one the data sent to the server.
+                    Default is True.
+                _check_return_type (bool): specifies if type checking
+                    should be done one the data received from the server.
+                    Default is True.
+                async_req (bool): execute request asynchronously
+
+            Returns:
+                None
+                    If the method is called asynchronously, returns the request
+                    thread.
+            """
+            kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["repository_name"] = repository_name
+            return self.call_with_http_info(**kwargs)
+
+        self.delete_repository = _Endpoint(
+            settings={
+                "response_type": None,
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/repositories/{repository_name}",
+                "operation_id": "delete_repository",
+                "http_method": "DELETE",
+                "servers": None,
+            },
+            params_map={
+                "all": ["repository_name"],
+                "required": ["repository_name"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
+            root_map={
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"repository_name": (str,)},
+                "attribute_map": {"repository_name": "repository_name"},
+                "location_map": {"repository_name": "path"},
+                "collection_format_map": {},
+            },
+            headers_map={"accept": ["application/json"], "content_type": []},
+            api_client=api_client,
+            callable=__delete_repository,
+        )
+
+        def __describe_repository(self, repository_name, **kwargs: ExtraOpenApiKwargsTypedDict):
+            """Describe a repository  # noqa: E501
+
+            Get a description of a repository.  # noqa: E501
+            This method makes a synchronous HTTP request by default. To make an
+            asynchronous HTTP request, please pass async_req=True
+
+            >>> thread = api.describe_repository(repository_name, async_req=True)
+            >>> result = thread.get()
+
+            Args:
+                repository_name (str): The name of the repository to be described.
+
+            Keyword Args:
+                _return_http_data_only (bool): response data without head status
+                    code and headers. Default is True.
+                _preload_content (bool): if False, the urllib3.HTTPResponse object
+                    will be returned without reading/decoding response data.
+                    Default is True.
+                _request_timeout (int/float/tuple): timeout setting for this request. If
+                    one number provided, it will be total request timeout. It can also
+                    be a pair (tuple) of (connection, read) timeouts.
+                    Default is None.
+                _check_input_type (bool): specifies if type checking
+                    should be done one the data sent to the server.
+                    Default is True.
+                _check_return_type (bool): specifies if type checking
+                    should be done one the data received from the server.
+                    Default is True.
+                async_req (bool): execute request asynchronously
+
+            Returns:
+                RepositoryModel
+                    If the method is called asynchronously, returns the request
+                    thread.
+            """
+            kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["repository_name"] = repository_name
+            return self.call_with_http_info(**kwargs)
+
+        self.describe_repository = _Endpoint(
+            settings={
+                "response_type": (RepositoryModel,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/repositories/{repository_name}",
+                "operation_id": "describe_repository",
+                "http_method": "GET",
+                "servers": None,
+            },
+            params_map={
+                "all": ["repository_name"],
+                "required": ["repository_name"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
+            root_map={
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"repository_name": (str,)},
+                "attribute_map": {"repository_name": "repository_name"},
+                "location_map": {"repository_name": "path"},
+                "collection_format_map": {},
+            },
+            headers_map={"accept": ["application/json"], "content_type": []},
+            api_client=api_client,
+            callable=__describe_repository,
+        )
+
+        def __list_repositories(self, **kwargs: ExtraOpenApiKwargsTypedDict):
+            """List repositories  # noqa: E501
+
+            List all repositories in a project.  # noqa: E501
+            This method makes a synchronous HTTP request by default. To make an
+            asynchronous HTTP request, please pass async_req=True
+
+            >>> thread = api.list_repositories(async_req=True)
+            >>> result = thread.get()
+
+
+            Keyword Args:
+                _return_http_data_only (bool): response data without head status
+                    code and headers. Default is True.
+                _preload_content (bool): if False, the urllib3.HTTPResponse object
+                    will be returned without reading/decoding response data.
+                    Default is True.
+                _request_timeout (int/float/tuple): timeout setting for this request. If
+                    one number provided, it will be total request timeout. It can also
+                    be a pair (tuple) of (connection, read) timeouts.
+                    Default is None.
+                _check_input_type (bool): specifies if type checking
+                    should be done one the data sent to the server.
+                    Default is True.
+                _check_return_type (bool): specifies if type checking
+                    should be done one the data received from the server.
+                    Default is True.
+                async_req (bool): execute request asynchronously
+
+            Returns:
+                RepositoryList
+                    If the method is called asynchronously, returns the request
+                    thread.
+            """
+            kwargs = self._process_openapi_kwargs(kwargs)
+            return self.call_with_http_info(**kwargs)
+
+        self.list_repositories = _Endpoint(
+            settings={
+                "response_type": (RepositoryList,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/repositories",
+                "operation_id": "list_repositories",
+                "http_method": "GET",
+                "servers": None,
+            },
+            params_map={"all": [], "required": [], "nullable": [], "enum": [], "validation": []},
+            root_map={
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {},
+                "attribute_map": {},
+                "location_map": {},
+                "collection_format_map": {},
+            },
+            headers_map={"accept": ["application/json"], "content_type": []},
+            api_client=api_client,
+            callable=__list_repositories,
         )
 
 
-class AsyncioDocumentOperationsApi:
+class AsyncioManageRepositoriesApi:
     """NOTE: This class is @generated using OpenAPI
 
     Do not edit the class manually.
@@ -343,15 +323,14 @@ class AsyncioDocumentOperationsApi:
             api_client = AsyncioApiClient()
         self.api_client = api_client
 
-        async def __delete_document(self, namespace, document_id, **kwargs):
-            """Delete a document from the given namespace  # noqa: E501
+        async def __create_repository(self, create_repository_request, **kwargs):
+            """Create a repository  # noqa: E501
 
-            Deletes a document from the specified namespace.  # noqa: E501
+            Create a Pinecone Repository in the cloud provider and region of your choice.   # noqa: E501
 
 
             Args:
-                namespace (str): Namespace to fetch document from.
-                document_id (str): Document ID to fetch.
+                create_repository_request (CreateRepositoryRequest): The desired configuration for the repository.
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -371,215 +350,24 @@ class AsyncioDocumentOperationsApi:
                     Default is True.
 
             Returns:
-                DeleteDocumentResponse
+                RepositoryModel
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs["namespace"] = namespace
-            kwargs["document_id"] = document_id
+            kwargs["create_repository_request"] = create_repository_request
             return await self.call_with_http_info(**kwargs)
 
-        self.delete_document = _AsyncioEndpoint(
+        self.create_repository = _AsyncioEndpoint(
             settings={
-                "response_type": (DeleteDocumentResponse,),
+                "response_type": (RepositoryModel,),
                 "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/namespaces/{namespace}/documents/{document_id}",
-                "operation_id": "delete_document",
-                "http_method": "DELETE",
-                "servers": None,
-            },
-            params_map={
-                "all": ["namespace", "document_id"],
-                "required": ["namespace", "document_id"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
-            },
-            root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"namespace": (str,), "document_id": (str,)},
-                "attribute_map": {"namespace": "namespace", "document_id": "document_id"},
-                "location_map": {"namespace": "path", "document_id": "path"},
-                "collection_format_map": {},
-            },
-            headers_map={"accept": ["application/json"], "content_type": []},
-            api_client=api_client,
-            callable=__delete_document,
-        )
-
-        async def __get_document(self, namespace, document_id, **kwargs):
-            """Get a document from the given namespace  # noqa: E501
-
-            Retrieves a document from the specified namespace.  # noqa: E501
-
-
-            Args:
-                namespace (str): Namespace to fetch document from.
-                document_id (str): Document ID to fetch.
-
-            Keyword Args:
-                _return_http_data_only (bool): response data without head status
-                    code and headers. Default is True.
-                _preload_content (bool): if False, the urllib3.HTTPResponse object
-                    will be returned without reading/decoding response data.
-                    Default is True.
-                _request_timeout (int/float/tuple): timeout setting for this request. If
-                    one number provided, it will be total request timeout. It can also
-                    be a pair (tuple) of (connection, read) timeouts.
-                    Default is None.
-                _check_input_type (bool): specifies if type checking
-                    should be done one the data sent to the server.
-                    Default is True.
-                _check_return_type (bool): specifies if type checking
-                    should be done one the data received from the server.
-                    Default is True.
-
-            Returns:
-                GetDocumentResponse
-            """
-            self._process_openapi_kwargs(kwargs)
-            kwargs["namespace"] = namespace
-            kwargs["document_id"] = document_id
-            return await self.call_with_http_info(**kwargs)
-
-        self.get_document = _AsyncioEndpoint(
-            settings={
-                "response_type": (GetDocumentResponse,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/namespaces/{namespace}/documents/{document_id}",
-                "operation_id": "get_document",
-                "http_method": "GET",
-                "servers": None,
-            },
-            params_map={
-                "all": ["namespace", "document_id"],
-                "required": ["namespace", "document_id"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
-            },
-            root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"namespace": (str,), "document_id": (str,)},
-                "attribute_map": {"namespace": "namespace", "document_id": "document_id"},
-                "location_map": {"namespace": "path", "document_id": "path"},
-                "collection_format_map": {},
-            },
-            headers_map={"accept": ["application/json"], "content_type": []},
-            api_client=api_client,
-            callable=__get_document,
-        )
-
-        async def __list_documents(self, namespace, **kwargs):
-            """List documents from the given namespace  # noqa: E501
-
-            Lists documents from the specified namespace. (Paginated)  # noqa: E501
-
-
-            Args:
-                namespace (str): Namespace to fetch documents from.
-
-            Keyword Args:
-                _return_http_data_only (bool): response data without head status
-                    code and headers. Default is True.
-                _preload_content (bool): if False, the urllib3.HTTPResponse object
-                    will be returned without reading/decoding response data.
-                    Default is True.
-                _request_timeout (int/float/tuple): timeout setting for this request. If
-                    one number provided, it will be total request timeout. It can also
-                    be a pair (tuple) of (connection, read) timeouts.
-                    Default is None.
-                _check_input_type (bool): specifies if type checking
-                    should be done one the data sent to the server.
-                    Default is True.
-                _check_return_type (bool): specifies if type checking
-                    should be done one the data received from the server.
-                    Default is True.
-
-            Returns:
-                ListDocumentResponse
-            """
-            self._process_openapi_kwargs(kwargs)
-            kwargs["namespace"] = namespace
-            return await self.call_with_http_info(**kwargs)
-
-        self.list_documents = _AsyncioEndpoint(
-            settings={
-                "response_type": (ListDocumentResponse,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/namespaces/{namespace}/documents",
-                "operation_id": "list_documents",
-                "http_method": "GET",
-                "servers": None,
-            },
-            params_map={
-                "all": ["namespace"],
-                "required": ["namespace"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
-            },
-            root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"namespace": (str,)},
-                "attribute_map": {"namespace": "namespace"},
-                "location_map": {"namespace": "path"},
-                "collection_format_map": {},
-            },
-            headers_map={"accept": ["application/json"], "content_type": []},
-            api_client=api_client,
-            callable=__list_documents,
-        )
-
-        async def __upsert_document(self, namespace, document_for_upsert, **kwargs):
-            """Create or update a document in the given namespace  # noqa: E501
-
-            Upserts a document into the specified namespace.    The request body may contain any valid JSON document that conforms to the schema.    Optionally, an `_id` field can be provided to use as the document's identifier;   if omitted, the system will assign one.  # noqa: E501
-
-
-            Args:
-                namespace (str): Namespace where the document will be stored.
-                document_for_upsert (DocumentForUpsert):
-
-            Keyword Args:
-                _return_http_data_only (bool): response data without head status
-                    code and headers. Default is True.
-                _preload_content (bool): if False, the urllib3.HTTPResponse object
-                    will be returned without reading/decoding response data.
-                    Default is True.
-                _request_timeout (int/float/tuple): timeout setting for this request. If
-                    one number provided, it will be total request timeout. It can also
-                    be a pair (tuple) of (connection, read) timeouts.
-                    Default is None.
-                _check_input_type (bool): specifies if type checking
-                    should be done one the data sent to the server.
-                    Default is True.
-                _check_return_type (bool): specifies if type checking
-                    should be done one the data received from the server.
-                    Default is True.
-
-            Returns:
-                UpsertDocumentResponse
-            """
-            self._process_openapi_kwargs(kwargs)
-            kwargs["namespace"] = namespace
-            kwargs["document_for_upsert"] = document_for_upsert
-            return await self.call_with_http_info(**kwargs)
-
-        self.upsert_document = _AsyncioEndpoint(
-            settings={
-                "response_type": (UpsertDocumentResponse,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/namespaces/{namespace}/documents/upsert",
-                "operation_id": "upsert_document",
+                "endpoint_path": "/repositories",
+                "operation_id": "create_repository",
                 "http_method": "POST",
                 "servers": None,
             },
             params_map={
-                "all": ["namespace", "document_for_upsert"],
-                "required": ["namespace", "document_for_upsert"],
+                "all": ["create_repository_request"],
+                "required": ["create_repository_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -587,12 +375,189 @@ class AsyncioDocumentOperationsApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"namespace": (str,), "document_for_upsert": (DocumentForUpsert,)},
-                "attribute_map": {"namespace": "namespace"},
-                "location_map": {"namespace": "path", "document_for_upsert": "body"},
+                "openapi_types": {"create_repository_request": (CreateRepositoryRequest,)},
+                "attribute_map": {},
+                "location_map": {"create_repository_request": "body"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__upsert_document,
+            callable=__create_repository,
+        )
+
+        async def __delete_repository(self, repository_name, **kwargs):
+            """Delete a repository  # noqa: E501
+
+            Delete an existing repository.  # noqa: E501
+
+
+            Args:
+                repository_name (str): The name of the repository to delete.
+
+            Keyword Args:
+                _return_http_data_only (bool): response data without head status
+                    code and headers. Default is True.
+                _preload_content (bool): if False, the urllib3.HTTPResponse object
+                    will be returned without reading/decoding response data.
+                    Default is True.
+                _request_timeout (int/float/tuple): timeout setting for this request. If
+                    one number provided, it will be total request timeout. It can also
+                    be a pair (tuple) of (connection, read) timeouts.
+                    Default is None.
+                _check_input_type (bool): specifies if type checking
+                    should be done one the data sent to the server.
+                    Default is True.
+                _check_return_type (bool): specifies if type checking
+                    should be done one the data received from the server.
+                    Default is True.
+
+            Returns:
+                None
+            """
+            self._process_openapi_kwargs(kwargs)
+            kwargs["repository_name"] = repository_name
+            return await self.call_with_http_info(**kwargs)
+
+        self.delete_repository = _AsyncioEndpoint(
+            settings={
+                "response_type": None,
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/repositories/{repository_name}",
+                "operation_id": "delete_repository",
+                "http_method": "DELETE",
+                "servers": None,
+            },
+            params_map={
+                "all": ["repository_name"],
+                "required": ["repository_name"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
+            root_map={
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"repository_name": (str,)},
+                "attribute_map": {"repository_name": "repository_name"},
+                "location_map": {"repository_name": "path"},
+                "collection_format_map": {},
+            },
+            headers_map={"accept": ["application/json"], "content_type": []},
+            api_client=api_client,
+            callable=__delete_repository,
+        )
+
+        async def __describe_repository(self, repository_name, **kwargs):
+            """Describe a repository  # noqa: E501
+
+            Get a description of a repository.  # noqa: E501
+
+
+            Args:
+                repository_name (str): The name of the repository to be described.
+
+            Keyword Args:
+                _return_http_data_only (bool): response data without head status
+                    code and headers. Default is True.
+                _preload_content (bool): if False, the urllib3.HTTPResponse object
+                    will be returned without reading/decoding response data.
+                    Default is True.
+                _request_timeout (int/float/tuple): timeout setting for this request. If
+                    one number provided, it will be total request timeout. It can also
+                    be a pair (tuple) of (connection, read) timeouts.
+                    Default is None.
+                _check_input_type (bool): specifies if type checking
+                    should be done one the data sent to the server.
+                    Default is True.
+                _check_return_type (bool): specifies if type checking
+                    should be done one the data received from the server.
+                    Default is True.
+
+            Returns:
+                RepositoryModel
+            """
+            self._process_openapi_kwargs(kwargs)
+            kwargs["repository_name"] = repository_name
+            return await self.call_with_http_info(**kwargs)
+
+        self.describe_repository = _AsyncioEndpoint(
+            settings={
+                "response_type": (RepositoryModel,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/repositories/{repository_name}",
+                "operation_id": "describe_repository",
+                "http_method": "GET",
+                "servers": None,
+            },
+            params_map={
+                "all": ["repository_name"],
+                "required": ["repository_name"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
+            root_map={
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"repository_name": (str,)},
+                "attribute_map": {"repository_name": "repository_name"},
+                "location_map": {"repository_name": "path"},
+                "collection_format_map": {},
+            },
+            headers_map={"accept": ["application/json"], "content_type": []},
+            api_client=api_client,
+            callable=__describe_repository,
+        )
+
+        async def __list_repositories(self, **kwargs):
+            """List repositories  # noqa: E501
+
+            List all repositories in a project.  # noqa: E501
+
+
+
+            Keyword Args:
+                _return_http_data_only (bool): response data without head status
+                    code and headers. Default is True.
+                _preload_content (bool): if False, the urllib3.HTTPResponse object
+                    will be returned without reading/decoding response data.
+                    Default is True.
+                _request_timeout (int/float/tuple): timeout setting for this request. If
+                    one number provided, it will be total request timeout. It can also
+                    be a pair (tuple) of (connection, read) timeouts.
+                    Default is None.
+                _check_input_type (bool): specifies if type checking
+                    should be done one the data sent to the server.
+                    Default is True.
+                _check_return_type (bool): specifies if type checking
+                    should be done one the data received from the server.
+                    Default is True.
+
+            Returns:
+                RepositoryList
+            """
+            self._process_openapi_kwargs(kwargs)
+            return await self.call_with_http_info(**kwargs)
+
+        self.list_repositories = _AsyncioEndpoint(
+            settings={
+                "response_type": (RepositoryList,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/repositories",
+                "operation_id": "list_repositories",
+                "http_method": "GET",
+                "servers": None,
+            },
+            params_map={"all": [], "required": [], "nullable": [], "enum": [], "validation": []},
+            root_map={
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {},
+                "attribute_map": {},
+                "location_map": {},
+                "collection_format_map": {},
+            },
+            headers_map={"accept": ["application/json"], "content_type": []},
+            api_client=api_client,
+            callable=__list_repositories,
         )

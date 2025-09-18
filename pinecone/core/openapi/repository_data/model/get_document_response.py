@@ -1,7 +1,7 @@
 """
-Pinecone Knowledge Base Data Plane API
+Pinecone Data Plane API for Repositories
 
-Pinecone Knowledge Base builds on the vector database to make it easy to store, search and retrieve your data.  # noqa: E501
+Pinecone Repositories build on the vector database to make it easy to store, search and retrieve your data.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
@@ -28,9 +28,9 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
-    from pinecone.core.openapi.ckb_knowledge_data.model.document import Document
-    from pinecone.core.openapi.ckb_knowledge_data.model.lsn_status import LSNStatus
-    from pinecone.core.openapi.ckb_knowledge_data.model.usage import Usage
+    from pinecone.core.openapi.repository_data.model.document import Document
+    from pinecone.core.openapi.repository_data.model.lsn_status import LSNStatus
+    from pinecone.core.openapi.repository_data.model.usage import Usage
 
     globals()["Document"] = Document
     globals()["LSNStatus"] = LSNStatus

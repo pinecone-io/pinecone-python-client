@@ -1,7 +1,7 @@
 """
-Pinecone Knowledge Base Data Plane API
+Pinecone Control Plane API for Repositories
 
-Pinecone Knowledge Base builds on the vector database to make it easy to store, search and retrieve your data.  # noqa: E501
+Pinecone Repositories make it easy to search and retrieve billions of documents using lexical and semantic search.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
@@ -30,10 +30,10 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="Document")
+T = TypeVar("T", bound="ErrorResponseError")
 
 
-class Document(ModelNormal):
+class ErrorResponseError(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -84,7 +84,9 @@ class Document(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            "id": (str,)  # noqa: E501
+            "code": (str,),  # noqa: E501
+            "message": (str,),  # noqa: E501
+            "details": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
         }
 
     @cached_class_property
@@ -92,7 +94,9 @@ class Document(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "id": "_id"  # noqa: E501
+        "code": "code",  # noqa: E501
+        "message": "message",  # noqa: E501
+        "details": "details",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -101,11 +105,12 @@ class Document(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], id, *args, **kwargs) -> T:  # noqa: E501
-        """Document - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], code, message, *args, **kwargs) -> T:  # noqa: E501
+        """ErrorResponseError - a model defined in OpenAPI
 
         Args:
-            id (str): Unique identifier for the document.
+            code (str): The code of the error. Possible values: `OK`, `UNKNOWN`, `INVALID_ARGUMENT`, `DEADLINE_EXCEEDED`, `QUOTA_EXCEEDED`, `NOT_FOUND`, `ALREADY_EXISTS`, `PERMISSION_DENIED`, `UNAUTHENTICATED`, `RESOURCE_EXHAUSTED`, `FAILED_PRECONDITION`, `ABORTED`, `OUT_OF_RANGE`, `UNIMPLEMENTED`, `INTERNAL`, `UNAVAILABLE`, `DATA_LOSS`, `FORBIDDEN`, `UNPROCESSABLE_ENTITY`, or `PAYMENT_REQUIRED`.
+            message (str):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -138,6 +143,7 @@ class Document(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            details ({str: (bool, dict, float, int, list, str, none_type)}): Additional information about the error. This field is not guaranteed to be present. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -167,7 +173,8 @@ class Document(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.id = id
+        self.code = code
+        self.message = message
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -194,11 +201,12 @@ class Document(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, id, *args, **kwargs) -> None:  # noqa: E501
-        """Document - a model defined in OpenAPI
+    def __init__(self, code, message, *args, **kwargs) -> None:  # noqa: E501
+        """ErrorResponseError - a model defined in OpenAPI
 
         Args:
-            id (str): Unique identifier for the document.
+            code (str): The code of the error. Possible values: `OK`, `UNKNOWN`, `INVALID_ARGUMENT`, `DEADLINE_EXCEEDED`, `QUOTA_EXCEEDED`, `NOT_FOUND`, `ALREADY_EXISTS`, `PERMISSION_DENIED`, `UNAUTHENTICATED`, `RESOURCE_EXHAUSTED`, `FAILED_PRECONDITION`, `ABORTED`, `OUT_OF_RANGE`, `UNIMPLEMENTED`, `INTERNAL`, `UNAVAILABLE`, `DATA_LOSS`, `FORBIDDEN`, `UNPROCESSABLE_ENTITY`, or `PAYMENT_REQUIRED`.
+            message (str):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -231,6 +239,7 @@ class Document(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            details ({str: (bool, dict, float, int, list, str, none_type)}): Additional information about the error. This field is not guaranteed to be present. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -258,7 +267,8 @@ class Document(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.id = id
+        self.code = code
+        self.message = message
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
