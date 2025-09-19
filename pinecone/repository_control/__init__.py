@@ -1,9 +1,9 @@
-from .enums import *
 from .models import *
 from .repository_control import RepositoryControl
+from pinecone.db_control.enums import *
 
 __all__ = [
-    # from .enums
+    # from pinecone.db_control.enums
     "CloudProvider",
     "AwsRegion",
     "GcpRegion",
@@ -11,8 +11,8 @@ __all__ = [
     # from .models
     "ServerlessSpec",
     "ServerlessSpecDefinition",
-    "IndexList",
-    "IndexModel",
+    "RepositoryList",
+    "RepositoryModel",
     # direct imports
     "RepositoryControl",
 ]

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Union
 from enum import Enum
 
-from ..enums import CloudProvider, AwsRegion, GcpRegion, AzureRegion
+from pinecone.db_control.enums import CloudProvider, AwsRegion, GcpRegion, AzureRegion
 
 
 @dataclass(frozen=True)
