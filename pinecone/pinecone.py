@@ -275,6 +275,21 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         return self._db_control
 
     @property
+    def repository(self):
+        """
+        RepositoryControl is a namespace where an instance of the `pinecone.repository_control.RepositoryControl` class is lazily created and cached.
+        """
+        if self._repository_control is None:
+            from pinecone.repository_control.repository_control import RepositoryControl
+
+            self._repository_control = RepositoryControl(
+                config=self._config,
+                openapi_config=self._openapi_config,
+                pool_threads=self._pool_threads,
+            )
+        return self._repository_control
+
+    @property
     def index_host_store(self) -> "IndexHostStore":
         """:meta private:"""
         warnings.warn(
