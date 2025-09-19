@@ -169,37 +169,37 @@ class Repository:
     # -------------
     def upsert(self, namespace: str, document: Dict[str, Any], **kwargs) -> dict:
         """
-        POST /knowledge-bases//namespaces/{namespace}/documents/upsert
+        POST /repositories/namespaces/{namespace}/documents/upsert
         Returns UpsertDocumentResponse as dict.
         """
         if not isinstance(document, dict):
             raise TypeError("document must be a dict (JSON-serializable).")
 
-        path = f"/knowledge-bases/{namespace}/documents/upsert"
+        path = f"/repositories/{namespace}/documents/upsert"
         return self._request("POST", path, json_body=document, **kwargs)
 
     def fetch(self, namespace: str, document_id: str, **kwargs) -> dict:
         """
-        GET /knowledge-bases/{namespace}/documents/{document_id}
+        GET /repositories/{namespace}/documents/{document_id}
         Returns GetDocumentResponse as dict.
         """
-        path = f"/knowledge-bases/{namespace}/documents/{document_id}"
+        path = f"/repositories/{namespace}/documents/{document_id}"
         return self._request("GET", path, **kwargs)
 
     def list(self, namespace: str, **kwargs) -> dict:
         """
-        GET /knowledge-bases/{namespace}/documents
+        GET /repositories/{namespace}/documents
         Returns ListDocumentsResponse as dict.
         """
-        path = f"/knowledge-bases/{namespace}/documents"
+        path = f"/repositories/{namespace}/documents"
         # Spec does not define query params, but keep hook if server adds (e.g., pagination).
         params = kwargs.get("params")
         return self._request("GET", path, params=params, **kwargs)
 
     def delete(self, namespace: str, document_id: str, **kwargs) -> dict:
         """
-        DELETE /knowledge-bases/{namespace}/documents/{document_id}
+        DELETE /repositories/{namespace}/documents/{document_id}
         Returns DeleteDocumentResponse as dict.
         """
-        path = f"/knowledge-bases/{namespace}/documents/{document_id}"
+        path = f"/repositories/{namespace}/documents/{document_id}"
         return self._request("DELETE", path, **kwargs)
