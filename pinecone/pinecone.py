@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from pinecone.config import Config, OpenApiConfiguration
     from pinecone.db_data import _Index as Index, _IndexAsyncio as IndexAsyncio
-    from pinecone.repository.data import _Repository as Repository
+    from pinecone.repository_data import _Repository as Repository
     from pinecone.db_control.index_host_store import IndexHostStore
     from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
     from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict, ConfigureIndexEmbed
@@ -520,7 +520,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         )
 
     def Repository(self, name: str = "", host: str = "", **kwargs) -> "Repository":
-        from pinecone.repository.data import _Repository
+        from pinecone.repository_data import _Repository
 
         if name == "" and host == "":
             raise ValueError("Either name or host must be specified")
