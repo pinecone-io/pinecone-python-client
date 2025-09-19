@@ -243,6 +243,9 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         self._db_control = None  # Lazy initialization
         """ :meta private: """
 
+        self._repository_control = None  # Lazy initialization
+        """ :meta private: """
+
         super().__init__()  # Initialize PluginAware
 
     @property
@@ -477,7 +480,6 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
     def describe_restore_job(self, *, job_id: str) -> "RestoreJobModel":
         return self.db.restore_job.describe(job_id=job_id)
 
-    @require_kwargs
     def create_repository(
         self,
         name: str,
@@ -489,15 +491,12 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
             name=name, spec=spec, schema=schema, timeout=timeout
         )
 
-    @require_kwargs
     def describe_repository(self, name: str) -> "RepositoryModel":
         return self.repository_ctrl.repository.describe(name=name)
 
-    @require_kwargs
     def list_repositories(self) -> "RepositoryList":
         return self.repository_ctrl.repository.list()
 
-    @require_kwargs
     def delete_repository(self, name: str, timeout: Optional[int] = None):
         return self.repository_ctrl.repository.delete(name=name, timeout=timeout)
 

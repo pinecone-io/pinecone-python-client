@@ -12,6 +12,9 @@ from pinecone.core.openapi.repository_control.model.serverless_spec import (
 )
 from pinecone.core.openapi.repository_control.model.serverless_spec import ServerlessSpec
 from pinecone.core.openapi.repository_control.model.document_schema import DocumentSchema
+from pinecone.core.openapi.repository_control.model.document_schema_field_map import (
+    DocumentSchemaFieldMap,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -36,13 +39,13 @@ class PineconeRepositoryControlRequestFactory:
                     serverless=ServerlessSpecModel(**spec["serverless"])
                 )
             else:
-                raise ValueError("spec must contain either 'serverless', 'pod', or 'byoc' key")
+                raise ValueError("spec must contain a 'serverless' key")
         elif isinstance(spec, ServerlessSpec):
             repository_spec = RepositorySpec(
                 serverless=ServerlessSpecModel(cloud=spec.cloud, region=spec.region)
             )
         else:
-            raise TypeError("spec must be of type dict, ServerlessSpec, PodSpec, or ByocSpec")
+            raise TypeError("spec must be of type dict or ServerlessSpec")
 
         return repository_spec
 
@@ -50,7 +53,9 @@ class PineconeRepositoryControlRequestFactory:
     def __parse_repository_schema(schema: Union[Dict, DocumentSchema]) -> DocumentSchema:
         if isinstance(schema, dict):
             if "fields" in schema:
-                repository_schema = DocumentSchema(**schema["fields"])
+                repository_schema = DocumentSchema(
+                    fields=DocumentSchemaFieldMap(**schema["fields"])
+                )
             else:
                 raise ValueError("schema must contain a 'fields' key")
         elif isinstance(schema, DocumentSchema):
