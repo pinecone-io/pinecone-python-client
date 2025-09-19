@@ -43,6 +43,7 @@ if TYPE_CHECKING:
         RestoreJobModel,
         RestoreJobList,
     )
+    from pinecone.repository_control.models import RepositoryModel, RepositoryList, DocumentSchema
 
 
 class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
@@ -275,7 +276,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         return self._db_control
 
     @property
-    def repository(self):
+    def repository_ctrl(self):
         """
         RepositoryControl is a namespace where an instance of the `pinecone.repository_control.RepositoryControl` class is lazily created and cached.
         """
@@ -476,6 +477,30 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
     def describe_restore_job(self, *, job_id: str) -> "RestoreJobModel":
         return self.db.restore_job.describe(job_id=job_id)
 
+    @require_kwargs
+    def create_repository(
+        self,
+        name: str,
+        spec: Union[Dict, "ServerlessSpec"],
+        schema: Union[Dict, "DocumentSchema"],
+        timeout: Optional[int] = None,
+    ) -> "RepositoryModel":
+        return self.repository_ctrl.repository.create(
+            name=name, spec=spec, schema=schema, timeout=timeout
+        )
+
+    @require_kwargs
+    def describe_repository(self, name: str) -> "RepositoryModel":
+        return self.repository_ctrl.repository.describe(name=name)
+
+    @require_kwargs
+    def list_repositories(self) -> "RepositoryList":
+        return self.repository_ctrl.repository.list()
+
+    @require_kwargs
+    def delete_repository(self, name: str, timeout: Optional[int] = None):
+        return self.repository_ctrl.repository.delete(name=name, timeout=timeout)
+
     @staticmethod
     def from_texts(*args, **kwargs):
         """:meta private:"""
@@ -550,9 +575,8 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
             # Use host url if it is provided
             repository_host = normalize_host(host)
         else:
-            # TODO, get host url from describe_kb using the index name
-            # index_host = self.db.index._get_host(name)
-            raise ValueError("host lookup not yet supported, specify host parameter")
+            # Otherwise, get host url from describe_repository using the repo name
+            repository_host = self.repository_ctrl.repository._get_host(name)
 
         return _Repository(
             host=repository_host,
