@@ -1,6 +1,6 @@
 import logging
 import json
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict, List, Any, Tuple, Union
 from urllib.parse import urljoin
 
 import requests
@@ -8,6 +8,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from multiprocessing import cpu_count
 from pinecone.core.openapi.repository_data import API_VERSION
+from .models.document import Document
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +109,7 @@ class Repository:
         headers: Optional[dict] = None,
         params: Optional[dict] = None,
         echo: Optional[bool] = None,
-    ) -> dict:
+    ) -> Dict:
         url = urljoin(self._base_url + "/", path.lstrip("/"))
         hdrs = dict(self._default_headers)
         if headers:
@@ -167,26 +168,41 @@ class Repository:
     # -------------
     # API methods
     # -------------
-    def upsert(self, namespace: str, document: Dict[str, Any], **kwargs) -> dict:
+    def upsert(self, namespace: str, document: Union[Dict[str, Any], Document], **kwargs) -> Dict:
         """
         POST /namespaces/{namespace}/documents/upsert
         Returns UpsertDocumentResponse as dict.
         """
-        if not isinstance(document, dict):
-            raise TypeError("document must be a dict (JSON-serializable).")
+        if isinstance(document, Document):
+            json_body = document.to_dict()
+        elif isinstance(document, dict):
+            json_body = document
+        else:
+            raise TypeError("document must be a dict or Document.")
 
         path = f"/namespaces/{namespace}/documents/upsert"
-        return self._request("POST", path, json_body=document, **kwargs)
+        return self._request("POST", path, json_body=json_body, **kwargs)
 
-    def fetch(self, namespace: str, document_id: str, **kwargs) -> dict:
+    def fetch(self, namespace: str, document_id: str, **kwargs) -> Document:
         """
         GET /namespaces/{namespace}/documents/{document_id}
         Returns GetDocumentResponse as dict.
         """
         path = f"/namespaces/{namespace}/documents/{document_id}"
-        return self._request("GET", path, **kwargs)
+        payload = self._request("GET", path, **kwargs)
 
-    def list(self, namespace: str, **kwargs) -> dict:
+        if not isinstance(payload, dict):
+            raise ValueError("Unexpected fetch-documents response format, expected dict response")
+
+        doc = payload.get("document")
+        if not doc or not isinstance(doc, dict):
+            raise ValueError(
+                "Unexpected fetch-documents response format, expected 'document' key of type dict"
+            )
+
+        return Document.from_api(doc)
+
+    def list(self, namespace: str, **kwargs) -> List[Document]:
         """
         GET /namespaces/{namespace}/documents
         Returns ListDocumentsResponse as dict.
@@ -194,9 +210,23 @@ class Repository:
         path = f"/namespaces/{namespace}/documents"
         # Spec does not define query params, but keep hook if server adds (e.g., pagination).
         params = kwargs.get("params")
-        return self._request("GET", path, params=params, **kwargs)
+        payload = self._request("GET", path, params=params, **kwargs)
 
-    def delete(self, namespace: str, document_id: str, **kwargs) -> dict:
+        candidates: List[Dict[str, Any]] = []
+        if not isinstance(payload, dict):
+            raise ValueError("Unexpected list-documents response format, expected dict response")
+
+        docs = payload.get("documents")
+        if not docs or not isinstance(docs, list):
+            raise ValueError(
+                "Unexpected list-documents response format, expected 'documents' key of type list"
+            )
+
+        candidates = docs
+
+        return [Document.from_api(doc) for doc in candidates]
+
+    def delete(self, namespace: str, document_id: str, **kwargs):
         """
         DELETE /namespaces/{namespace}/documents/{document_id}
         Returns DeleteDocumentResponse as dict.
