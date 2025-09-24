@@ -1,10 +1,11 @@
 from .repository import Repository
+from .models.document import Document
 
 
 _Repository = Repository  # alias for backwards compatibility
 
 
-__all__ = ["_Repository"]
+__all__ = ["_Repository", "Document"]
 
 
 def __getattr__(name):
