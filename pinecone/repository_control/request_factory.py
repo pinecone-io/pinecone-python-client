@@ -55,21 +55,20 @@ class PineconeRepositoryControlRequestFactory:
         return repository_spec
 
     @staticmethod
-    def __parse_repository_schema(schema: Union[Dict, DocumentSchema]) -> DocumentSchema:
+    def __parse_repository_schema(schema: Union[Dict, DocumentSchema]) -> OpenAPIDocumentSchema:
         if isinstance(schema, dict):
             if "fields" in schema:
                 openapi_schema = OpenAPIDocumentSchema(
                     fields=OpenAPIDocumentSchemaFieldMap(**schema["fields"])
                 )
-                repository_schema = DocumentSchema(openapi_schema)
+                return openapi_schema
             else:
                 raise ValueError("schema must contain a 'fields' key")
         elif isinstance(schema, DocumentSchema):
-            repository_schema = schema
+            # Extract the OpenAPI schema from the wrapper
+            return schema.schema
         else:
             raise TypeError("schema must be of type dict or DocumentSchema")
-
-        return repository_schema
 
     @staticmethod
     def create_repository_request(
