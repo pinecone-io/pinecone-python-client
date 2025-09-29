@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from pinecone.config import Config, OpenApiConfiguration
     from pinecone.db_data import _Index as Index, _IndexAsyncio as IndexAsyncio
+    from pinecone.repository_data import _Repository as Repository
     from pinecone.db_control.index_host_store import IndexHostStore
     from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
     from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict, ConfigureIndexEmbed
@@ -42,6 +43,7 @@ if TYPE_CHECKING:
         RestoreJobModel,
         RestoreJobList,
     )
+    from pinecone.repository_control.models import RepositoryModel, RepositoryList, DocumentSchema
 
 
 class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
@@ -241,6 +243,9 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         self._db_control = None  # Lazy initialization
         """ :meta private: """
 
+        self._repository_control = None  # Lazy initialization
+        """ :meta private: """
+
         super().__init__()  # Initialize PluginAware
 
     @property
@@ -272,6 +277,21 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
                 pool_threads=self._pool_threads,
             )
         return self._db_control
+
+    @property
+    def repository_ctrl(self):
+        """
+        RepositoryControl is a namespace where an instance of the `pinecone.repository_control.RepositoryControl` class is lazily created and cached.
+        """
+        if self._repository_control is None:
+            from pinecone.repository_control.repository_control import RepositoryControl
+
+            self._repository_control = RepositoryControl(
+                config=self._config,
+                openapi_config=self._openapi_config,
+                pool_threads=self._pool_threads,
+            )
+        return self._repository_control
 
     @property
     def index_host_store(self) -> "IndexHostStore":
@@ -460,6 +480,26 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
     def describe_restore_job(self, *, job_id: str) -> "RestoreJobModel":
         return self.db.restore_job.describe(job_id=job_id)
 
+    def create_repository(
+        self,
+        name: str,
+        spec: Union[Dict, "ServerlessSpec"],
+        schema: Union[Dict, "DocumentSchema"],
+        timeout: Optional[int] = None,
+    ) -> "RepositoryModel":
+        return self.repository_ctrl.repository.create(
+            name=name, spec=spec, schema=schema, timeout=timeout
+        )
+
+    def describe_repository(self, name: str) -> "RepositoryModel":
+        return self.repository_ctrl.repository.describe(name=name)
+
+    def list_repositories(self) -> "RepositoryList":
+        return self.repository_ctrl.repository.list()
+
+    def delete_repository(self, name: str, timeout: Optional[int] = None):
+        return self.repository_ctrl.repository.delete(name=name, timeout=timeout)
+
     @staticmethod
     def from_texts(*args, **kwargs):
         """:meta private:"""
@@ -513,6 +553,34 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         return _IndexAsyncio(
             host=index_host,
             api_key=api_key,
+            openapi_config=openapi_config,
+            source_tag=self.config.source_tag,
+            **kwargs,
+        )
+
+    def Repository(self, name: str = "", host: str = "", **kwargs) -> "Repository":
+        from pinecone.repository_data import _Repository
+
+        if name == "" and host == "":
+            raise ValueError("Either name or host must be specified")
+
+        pt = kwargs.pop("pool_threads", None) or self._pool_threads
+        api_key = self._config.api_key
+        openapi_config = self._openapi_config
+
+        if host != "":
+            check_realistic_host(host)
+
+            # Use host url if it is provided
+            repository_host = normalize_host(host)
+        else:
+            # Otherwise, get host url from describe_repository using the repo name
+            repository_host = self.repository_ctrl.repository._get_host(name)
+
+        return _Repository(
+            host=repository_host,
+            api_key=api_key,
+            pool_threads=pt,
             openapi_config=openapi_config,
             source_tag=self.config.source_tag,
             **kwargs,
