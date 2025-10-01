@@ -26,6 +26,7 @@ class RepositoryRequestFactory:
         filter: Optional[Dict[str, Any]] = None,
         # TODO, add options
     ) -> SearchDocuments:
+        filter = {} if filter is None else filter
         return SearchDocuments(
             query=QueryModel(inputs=QueryInputModel(text=query_str), top_k=top_k, filter=filter)
         )
