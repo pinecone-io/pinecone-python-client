@@ -21,11 +21,11 @@ def non_openapi_kwargs(kwargs: Dict[str, Any]) -> Dict[str, Any]:
 class RepositoryRequestFactory:
     @staticmethod
     def search_request(
-        query_text: str,
+        query_str: str,
         top_k: int,
         filter: Optional[Dict[str, Any]] = None,
         # TODO, add options
     ) -> SearchDocuments:
         return SearchDocuments(
-            query=QueryModel(inputs=QueryInputModel(text=query_text), top_k=top_k, filter=filter)
+            query=QueryModel(inputs=QueryInputModel(text=query_str), top_k=top_k, filter=filter)
         )

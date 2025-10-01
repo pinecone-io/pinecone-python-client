@@ -250,10 +250,10 @@ class Repository:
     def search(
         self,
         namespace: str,
-        query_text: str,
+        query_str: str,
         top_k: Optional[int] = None,
         filter: Optional[Dict[str, Any]] = None,
     ) -> SearchDocumentsResponse:
         return self._search_client.search(
-            namespace=namespace, query_text=query_text, top_k=top_k, filter=filter
+            namespace=namespace, query_str=query_str, top_k=top_k, filter=filter
         )

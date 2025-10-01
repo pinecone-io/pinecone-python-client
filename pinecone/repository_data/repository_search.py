@@ -106,7 +106,7 @@ class RepositorySearch:
     def search(
         self,
         namespace: str,
-        query_text: str,
+        query_str: str,
         top_k: Optional[int] = 10,
         filter: Optional[Dict[str, Any]] = None,
     ) -> SearchDocumentsResponse:
@@ -114,7 +114,7 @@ class RepositorySearch:
             raise Exception("Namespace is required when searching documents")
 
         request = RepositoryRequestFactory.search_request(
-            namespace=namespace, query_text=query_text, top_k=top_k, filter=filter
+            query_str=query_str, top_k=top_k, filter=filter
         )
 
-        return self._repo_api.search_records_namespace(namespace, request)
+        return self._repo_api.search_documents(namespace, request)
