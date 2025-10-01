@@ -1,15 +1,16 @@
 # flake8: noqa
 
 """
-Pinecone Data Plane API for Repositories
+    Pinecone Data Plane API for Repositories
 
-Pinecone Repositories build on the vector database to make it easy to store, search and retrieve your data.  # noqa: E501
+    Pinecone Repositories build on the vector database to make it easy to store, search and retrieve your data.  # noqa: E501
 
-This file is @generated using OpenAPI.
+    This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: unstable
-Contact: support@pinecone.io
+    The version of the OpenAPI document: unstable
+    Contact: support@pinecone.io
 """
+
 
 __version__ = "1.0.0"
 
@@ -26,5 +27,4 @@ from pinecone.openapi_support.exceptions import PineconeApiTypeError
 from pinecone.openapi_support.exceptions import PineconeApiValueError
 from pinecone.openapi_support.exceptions import PineconeApiKeyError
 from pinecone.openapi_support.exceptions import PineconeApiException
-
-API_VERSION = "unstable"
+API_VERSION = 'unstable'
