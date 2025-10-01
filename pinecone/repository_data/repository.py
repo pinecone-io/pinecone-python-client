@@ -12,8 +12,6 @@ from .models.document import Document
 from .repository_search import RepositorySearch
 
 from pinecone.core.openapi.repository_data.models import SearchDocumentsResponse
-from .dataclasses import SearchQuery
-from .types import SearchQueryTypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -250,6 +248,12 @@ class Repository:
         return self._request("DELETE", path, **kwargs)
 
     def search(
-        self, namespace: str, query: Union[SearchQueryTypedDict, SearchQuery]
+        self,
+        namespace: str,
+        query_text: str,
+        top_k: Optional[int] = None,
+        filter: Optional[Dict[str, Any]] = None,
     ) -> SearchDocumentsResponse:
-        return self._search_client.search(namespace, query)
+        return self._search_client.search(
+            namespace=namespace, query_text=query_text, top_k=top_k, filter=filter
+        )

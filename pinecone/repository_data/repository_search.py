@@ -1,6 +1,6 @@
 import warnings
 import logging
-from typing import Union, Optional, Dict, Any, TYPE_CHECKING
+from typing import Optional, Dict, Any, TYPE_CHECKING
 
 from pinecone.config import ConfigBuilder
 
@@ -8,9 +8,7 @@ from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.repository_data.api.document_operations_api import DocumentOperationsApi
 from pinecone.core.openapi.repository_data import API_VERSION
 from pinecone.core.openapi.repository_data.models import SearchDocumentsResponse
-from .dataclasses import SearchQuery
 from .request_factory import RepositoryRequestFactory
-from .types import SearchQueryTypedDict
 from ..utils import setup_openapi_client, validate_and_convert_errors, filter_dict
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
 
@@ -106,11 +104,17 @@ class RepositorySearch:
 
     @validate_and_convert_errors
     def search(
-        self, namespace: str, query: Union[SearchQueryTypedDict, SearchQuery]
+        self,
+        namespace: str,
+        query_text: str,
+        top_k: Optional[int] = 10,
+        filter: Optional[Dict[str, Any]] = None,
     ) -> SearchDocumentsResponse:
         if namespace is None:
             raise Exception("Namespace is required when searching documents")
 
-        request = RepositoryRequestFactory.search_request(query=query)
+        request = RepositoryRequestFactory.search_request(
+            namespace=namespace, query_text=query_text, top_k=top_k, filter=filter
+        )
 
         return self._repo_api.search_records_namespace(namespace, request)
