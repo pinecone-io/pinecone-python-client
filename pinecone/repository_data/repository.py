@@ -163,6 +163,17 @@ class Repository:
             timeout=self._timeout,
         )
 
+        if do_echo:
+            print("\n\n----- HTTP Response -----")
+            print(f"{resp.status_code} {resp.reason}")
+            print("Headers:", resp.headers)
+            try:
+                resp_body = json.dumps(resp.json(), indent=2)
+            except Exception:
+                resp_body = resp.text
+            print("Body:", resp_body)
+            print("------------------------")
+
         # Try to parse JSON payload (even on errors) for better messages
         payload: Optional[dict]
         try:
