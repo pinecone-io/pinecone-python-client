@@ -9,6 +9,11 @@ from urllib3.util.retry import Retry
 from multiprocessing import cpu_count
 from pinecone.core.openapi.repository_data import API_VERSION
 from .models.document import Document
+from .repository_search import RepositorySearch
+
+from pinecone.core.openapi.repository_data.models import SearchDocumentsResponse
+from .dataclasses import SearchQuery
+from .types import SearchQueryTypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +101,16 @@ class Repository:
         }
         if additional_headers:
             self._default_headers.update(additional_headers)
+
+        # Search uses the OpenAPI client-based impl
+        self._search_client = RepositorySearch(
+            api_key=api_key,
+            host=host,
+            pool_threads=pool_threads,
+            additional_headers=additional_headers,
+            openapi_config=openapi_config,
+            **kwargs,
+        )
 
     # -----------------------
     # Internal request helper
@@ -233,3 +248,8 @@ class Repository:
         """
         path = f"/namespaces/{namespace}/documents/{document_id}"
         return self._request("DELETE", path, **kwargs)
+
+    def search(
+        self, namespace: str, query: Union[SearchQueryTypedDict, SearchQuery]
+    ) -> SearchDocumentsResponse:
+        return self._search_client.search(namespace, query)
