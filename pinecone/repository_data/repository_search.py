@@ -113,6 +113,9 @@ class RepositorySearch:
         if namespace is None:
             raise Exception("Namespace is required when searching documents")
 
+        if top_k is None:
+            top_k = 10
+
         request = RepositoryRequestFactory.search_request(
             query_str=query_str, top_k=top_k, filter=filter
         )
