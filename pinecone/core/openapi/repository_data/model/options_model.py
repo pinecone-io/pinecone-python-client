@@ -28,14 +28,18 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
+def lazy_import():
+    from pinecone.core.openapi.repository_data.model.context_options_model import ContextOptionsModel
+    globals()['ContextOptionsModel'] = ContextOptionsModel
+
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="LSNStatus")
+T = TypeVar("T", bound="OptionsModel")
 
 
-class LSNStatus(ModelNormal):
+class OptionsModel(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -73,6 +77,7 @@ class LSNStatus(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
+        lazy_import()
         return (bool, dict, float, int, list, str, none_type,)  # noqa: E501
 
     _nullable = False
@@ -87,9 +92,9 @@ class LSNStatus(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
+        lazy_import()
         return {
-            'reconciled': (int,),  # noqa: E501
-            'committed': (int,),  # noqa: E501
+            'context': (ContextOptionsModel,),  # noqa: E501
         }
 
     @cached_class_property
@@ -98,8 +103,7 @@ class LSNStatus(ModelNormal):
 
 
     attribute_map: Dict[str, str] = {
-        'reconciled': 'reconciled',  # noqa: E501
-        'committed': 'committed',  # noqa: E501
+        'context': 'context',  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([
@@ -109,11 +113,8 @@ class LSNStatus(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], reconciled, *args, **kwargs) -> T:  # noqa: E501
-        """LSNStatus - a model defined in OpenAPI
-
-        Args:
-            reconciled (int): The latest reconciled log sequence number.
+    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
+        """OptionsModel - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -146,7 +147,7 @@ class LSNStatus(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            committed (int): The committed log sequence number for this write operation. [optional]  # noqa: E501
+            context (ContextOptionsModel): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop('_enforce_allowed_values', False)
@@ -178,7 +179,6 @@ class LSNStatus(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.reconciled = reconciled
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
@@ -201,11 +201,8 @@ class LSNStatus(ModelNormal):
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, reconciled, *args, **kwargs) -> None:  # noqa: E501
-        """LSNStatus - a model defined in OpenAPI
-
-        Args:
-            reconciled (int): The latest reconciled log sequence number.
+    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
+        """OptionsModel - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -238,7 +235,7 @@ class LSNStatus(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            committed (int): The committed log sequence number for this write operation. [optional]  # noqa: E501
+            context (ContextOptionsModel): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -268,7 +265,6 @@ class LSNStatus(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.reconciled = reconciled
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \

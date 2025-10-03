@@ -32,10 +32,10 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="LSNStatus")
+T = TypeVar("T", bound="QueryInputModelOneOf")
 
 
-class LSNStatus(ModelNormal):
+class QueryInputModelOneOf(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -88,8 +88,7 @@ class LSNStatus(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            'reconciled': (int,),  # noqa: E501
-            'committed': (int,),  # noqa: E501
+            'text': (str,),  # noqa: E501
         }
 
     @cached_class_property
@@ -98,8 +97,7 @@ class LSNStatus(ModelNormal):
 
 
     attribute_map: Dict[str, str] = {
-        'reconciled': 'reconciled',  # noqa: E501
-        'committed': 'committed',  # noqa: E501
+        'text': 'text',  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([
@@ -109,11 +107,11 @@ class LSNStatus(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], reconciled, *args, **kwargs) -> T:  # noqa: E501
-        """LSNStatus - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], text, *args, **kwargs) -> T:  # noqa: E501
+        """QueryInputModelOneOf - a model defined in OpenAPI
 
         Args:
-            reconciled (int): The latest reconciled log sequence number.
+            text (str): The query string used to search.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -146,7 +144,6 @@ class LSNStatus(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            committed (int): The committed log sequence number for this write operation. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop('_enforce_allowed_values', False)
@@ -178,7 +175,7 @@ class LSNStatus(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.reconciled = reconciled
+        self.text = text
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
@@ -201,11 +198,11 @@ class LSNStatus(ModelNormal):
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, reconciled, *args, **kwargs) -> None:  # noqa: E501
-        """LSNStatus - a model defined in OpenAPI
+    def __init__(self, text, *args, **kwargs) -> None:  # noqa: E501
+        """QueryInputModelOneOf - a model defined in OpenAPI
 
         Args:
-            reconciled (int): The latest reconciled log sequence number.
+            text (str): The query string used to search.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -238,7 +235,6 @@ class LSNStatus(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            committed (int): The committed log sequence number for this write operation. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -268,7 +264,7 @@ class LSNStatus(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.reconciled = reconciled
+        self.text = text
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \

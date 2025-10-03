@@ -9,6 +9,9 @@ from urllib3.util.retry import Retry
 from multiprocessing import cpu_count
 from pinecone.core.openapi.repository_data import API_VERSION
 from .models.document import Document
+from .repository_search import RepositorySearch
+
+from pinecone.core.openapi.repository_data.models import SearchDocumentsResponse
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +100,16 @@ class Repository:
         if additional_headers:
             self._default_headers.update(additional_headers)
 
+        # Search uses the OpenAPI client-based impl
+        self._search_client = RepositorySearch(
+            api_key=api_key,
+            host=host,
+            pool_threads=pool_threads,
+            additional_headers=additional_headers,
+            openapi_config=openapi_config,
+            **kwargs,
+        )
+
     # -----------------------
     # Internal request helper
     # -----------------------
@@ -156,6 +169,16 @@ class Repository:
             payload = resp.json() if resp.content else None
         except json.JSONDecodeError:
             payload = None
+
+        if do_echo:
+            print("\n\n----- HTTP Response -----")
+            print(f"{resp.status_code} {resp.reason}")
+            print("Headers:", resp.headers)
+            if payload:
+                print("Body:", json.dumps(payload, indent=2))
+            else:
+                print("Body: <empty>")
+            print("------------------------")
 
         if not (200 <= resp.status_code < 300):
             msg = payload.get("message") if isinstance(payload, dict) else resp.text
@@ -233,3 +256,14 @@ class Repository:
         """
         path = f"/namespaces/{namespace}/documents/{document_id}"
         return self._request("DELETE", path, **kwargs)
+
+    def search(
+        self,
+        namespace: str,
+        query_str: str,
+        top_k: Optional[int] = None,
+        filter: Optional[Dict[str, Any]] = None,
+    ) -> SearchDocumentsResponse:
+        return self._search_client.search(
+            namespace=namespace, query_str=query_str, top_k=top_k, filter=filter
+        )
