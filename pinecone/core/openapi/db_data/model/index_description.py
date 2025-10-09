@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -98,6 +98,8 @@ class IndexDescription(ModelNormal):
             "total_vector_count": (int,),  # noqa: E501
             "metric": (str,),  # noqa: E501
             "vector_type": (str,),  # noqa: E501
+            "memory_fullness": (float,),  # noqa: E501
+            "storage_fullness": (float,),  # noqa: E501
         }
 
     @cached_class_property
@@ -111,6 +113,8 @@ class IndexDescription(ModelNormal):
         "total_vector_count": "totalVectorCount",  # noqa: E501
         "metric": "metric",  # noqa: E501
         "vector_type": "vectorType",  # noqa: E501
+        "memory_fullness": "memory_fullness",  # noqa: E501
+        "storage_fullness": "storage_fullness",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -159,6 +163,8 @@ class IndexDescription(ModelNormal):
             total_vector_count (int): The total number of vectors in the index, regardless of whether a metadata filter expression was passed [optional]  # noqa: E501
             metric (str): The metric used to measure similarity. [optional]  # noqa: E501
             vector_type (str): The type of vectors stored in the index. [optional]  # noqa: E501
+            memory_fullness (float): The amount of memory used by a dedicated index [optional]  # noqa: E501
+            storage_fullness (float): The amount of storage used by a dedicated index [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -254,6 +260,8 @@ class IndexDescription(ModelNormal):
             total_vector_count (int): The total number of vectors in the index, regardless of whether a metadata filter expression was passed [optional]  # noqa: E501
             metric (str): The metric used to measure similarity. [optional]  # noqa: E501
             vector_type (str): The type of vectors stored in the index. [optional]  # noqa: E501
+            memory_fullness (float): The amount of memory used by a dedicated index [optional]  # noqa: E501
+            storage_fullness (float): The amount of storage used by a dedicated index [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

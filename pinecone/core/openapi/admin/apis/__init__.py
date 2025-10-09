@@ -14,4 +14,5 @@
 
 # Import APIs into API package:
 from pinecone.core.openapi.admin.api.api_keys_api import APIKeysApi
+from pinecone.core.openapi.admin.api.organizations_api import OrganizationsApi
 from pinecone.core.openapi.admin.api.projects_api import ProjectsApi

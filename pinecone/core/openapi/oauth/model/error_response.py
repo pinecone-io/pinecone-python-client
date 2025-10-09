@@ -1,11 +1,11 @@
 """
-Pinecone Admin API
+Pinecone OAuth API
 
-Provides an API for managing a Pinecone organization and its resources.   # noqa: E501
+Provides an API for authenticating with Pinecone.   # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -27,19 +27,13 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
-def lazy_import():
-    from pinecone.core.openapi.admin.model.inline_response401_error import InlineResponse401Error
-
-    globals()["InlineResponse401Error"] = InlineResponse401Error
-
-
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="InlineResponse401")
+T = TypeVar("T", bound="ErrorResponse")
 
 
-class InlineResponse401(ModelNormal):
+class ErrorResponse(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -75,7 +69,6 @@ class InlineResponse401(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -90,10 +83,9 @@ class InlineResponse401(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
-            "status": (int,),  # noqa: E501
-            "error": (InlineResponse401Error,),  # noqa: E501
+            "error": (str,),  # noqa: E501
+            "error_description": (str,),  # noqa: E501
         }
 
     @cached_class_property
@@ -101,8 +93,8 @@ class InlineResponse401(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "status": "status",  # noqa: E501
         "error": "error",  # noqa: E501
+        "error_description": "error_description",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -111,12 +103,8 @@ class InlineResponse401(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], status, error, *args, **kwargs) -> T:  # noqa: E501
-        """InlineResponse401 - a model defined in OpenAPI
-
-        Args:
-            status (int): The HTTP status code of the error.
-            error (InlineResponse401Error):
+    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
+        """ErrorResponse - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -149,6 +137,8 @@ class InlineResponse401(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            error (str): A code identifying the error that occurred. [optional]  # noqa: E501
+            error_description (str): A human-readable description of the error. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -178,8 +168,6 @@ class InlineResponse401(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.status = status
-        self.error = error
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -206,12 +194,8 @@ class InlineResponse401(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, status, error, *args, **kwargs) -> None:  # noqa: E501
-        """InlineResponse401 - a model defined in OpenAPI
-
-        Args:
-            status (int): The HTTP status code of the error.
-            error (InlineResponse401Error):
+    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
+        """ErrorResponse - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -244,6 +228,8 @@ class InlineResponse401(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            error (str): A code identifying the error that occurred. [optional]  # noqa: E501
+            error_description (str): A human-readable description of the error. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -271,8 +257,6 @@ class InlineResponse401(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.status = status
-        self.error = error
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

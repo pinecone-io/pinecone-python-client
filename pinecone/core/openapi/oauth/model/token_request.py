@@ -5,7 +5,7 @@ Provides an API for authenticating with Pinecone.   # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -59,10 +59,7 @@ class TokenRequest(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("grant_type",): {"CLIENT_CREDENTIALS": "client_credentials"},
-        ("audience",): {"HTTPS://API.PINECONE.IO/": "https://api.pinecone.io/"},
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 
@@ -110,16 +107,18 @@ class TokenRequest(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], client_id, client_secret, *args, **kwargs) -> T:  # noqa: E501
+    def _from_openapi_data(
+        cls: Type[T], client_id, client_secret, grant_type, audience, *args, **kwargs
+    ) -> T:  # noqa: E501
         """TokenRequest - a model defined in OpenAPI
 
         Args:
             client_id (str): The service account's client ID.
             client_secret (str): The service account's client secret.
+            grant_type (str): The type of grant to use.
+            audience (str): The audience for the token.
 
         Keyword Args:
-            grant_type (str): The type of grant to use.  defaults to "client_credentials", must be one of ["client_credentials", ]  # noqa: E501
-            audience (str): The audience for the token.  defaults to "https://api.pinecone.io/", must be one of ["https://api.pinecone.io/", ]  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -152,8 +151,6 @@ class TokenRequest(ModelNormal):
                                 _visited_composed_classes = (Animal,)
         """
 
-        grant_type = kwargs.get("grant_type", "client_credentials")
-        audience = kwargs.get("audience", "https://api.pinecone.io/")
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
         _enforce_validations = kwargs.pop("_enforce_validations", False)
         _check_type = kwargs.pop("_check_type", True)
@@ -211,16 +208,16 @@ class TokenRequest(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, client_id, client_secret, *args, **kwargs) -> None:  # noqa: E501
+    def __init__(self, client_id, client_secret, grant_type, audience, *args, **kwargs) -> None:  # noqa: E501
         """TokenRequest - a model defined in OpenAPI
 
         Args:
             client_id (str): The service account's client ID.
             client_secret (str): The service account's client secret.
+            grant_type (str): The type of grant to use.
+            audience (str): The audience for the token.
 
         Keyword Args:
-            grant_type (str): The type of grant to use.  defaults to "client_credentials", must be one of ["client_credentials", ]  # noqa: E501
-            audience (str): The audience for the token.  defaults to "https://api.pinecone.io/", must be one of ["https://api.pinecone.io/", ]  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -253,8 +250,6 @@ class TokenRequest(ModelNormal):
                                 _visited_composed_classes = (Animal,)
         """
 
-        grant_type = kwargs.get("grant_type", "client_credentials")
-        audience = kwargs.get("audience", "https://api.pinecone.io/")
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
         _enforce_validations = kwargs.pop("_enforce_validations", True)
         _check_type = kwargs.pop("_check_type", True)

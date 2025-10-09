@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -28,8 +28,10 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
+    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
     from pinecone.core.openapi.db_control.model.index_tags import IndexTags
 
+    globals()["BackupModelSchema"] = BackupModelSchema
     globals()["IndexTags"] = IndexTags
 
 
@@ -65,9 +67,7 @@ class BackupModel(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("metric",): {"COSINE": "cosine", "EUCLIDEAN": "euclidean", "DOTPRODUCT": "dotproduct"}
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
         ("dimension",): {"inclusive_maximum": 20000, "inclusive_minimum": 1}
@@ -106,6 +106,7 @@ class BackupModel(ModelNormal):
             "description": (str,),  # noqa: E501
             "dimension": (int,),  # noqa: E501
             "metric": (str,),  # noqa: E501
+            "schema": (BackupModelSchema,),  # noqa: E501
             "record_count": (int,),  # noqa: E501
             "namespace_count": (int,),  # noqa: E501
             "size_bytes": (int,),  # noqa: E501
@@ -128,6 +129,7 @@ class BackupModel(ModelNormal):
         "description": "description",  # noqa: E501
         "dimension": "dimension",  # noqa: E501
         "metric": "metric",  # noqa: E501
+        "schema": "schema",  # noqa: E501
         "record_count": "record_count",  # noqa: E501
         "namespace_count": "namespace_count",  # noqa: E501
         "size_bytes": "size_bytes",  # noqa: E501
@@ -196,7 +198,8 @@ class BackupModel(ModelNormal):
             name (str): Optional user-defined name for the backup. [optional]  # noqa: E501
             description (str): Optional description providing context for the backup. [optional]  # noqa: E501
             dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'. [optional]  # noqa: E501
+            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'. Possible values: `cosine`, `euclidean`, or `dotproduct`. [optional]  # noqa: E501
+            schema (BackupModelSchema): [optional]  # noqa: E501
             record_count (int): Total number of records in the backup. [optional]  # noqa: E501
             namespace_count (int): Number of namespaces in the backup. [optional]  # noqa: E501
             size_bytes (int): Size of the backup in bytes. [optional]  # noqa: E501
@@ -310,7 +313,8 @@ class BackupModel(ModelNormal):
             name (str): Optional user-defined name for the backup. [optional]  # noqa: E501
             description (str): Optional description providing context for the backup. [optional]  # noqa: E501
             dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'. [optional]  # noqa: E501
+            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'. Possible values: `cosine`, `euclidean`, or `dotproduct`. [optional]  # noqa: E501
+            schema (BackupModelSchema): [optional]  # noqa: E501
             record_count (int): Total number of records in the backup. [optional]  # noqa: E501
             namespace_count (int): Number of namespaces in the backup. [optional]  # noqa: E501
             size_bytes (int): Size of the backup in bytes. [optional]  # noqa: E501

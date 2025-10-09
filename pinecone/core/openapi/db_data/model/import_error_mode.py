@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -59,9 +59,7 @@ class ImportErrorMode(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("on_error",): {"ABORT": "abort", "CONTINUE": "continue"}
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 
@@ -137,7 +135,7 @@ class ImportErrorMode(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            on_error (str): Indicates how to respond to errors during the import process. [optional]  # noqa: E501
+            on_error (str): Indicates how to respond to errors during the import process. Possible values: `abort` or `continue`. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -227,7 +225,7 @@ class ImportErrorMode(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            on_error (str): Indicates how to respond to errors during the import process. [optional]  # noqa: E501
+            on_error (str): Indicates how to respond to errors during the import process. Possible values: `abort` or `continue`. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -59,28 +59,7 @@ class ErrorResponseError(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("code",): {
-            "OK": "OK",
-            "UNKNOWN": "UNKNOWN",
-            "INVALID_ARGUMENT": "INVALID_ARGUMENT",
-            "DEADLINE_EXCEEDED": "DEADLINE_EXCEEDED",
-            "QUOTA_EXCEEDED": "QUOTA_EXCEEDED",
-            "NOT_FOUND": "NOT_FOUND",
-            "ALREADY_EXISTS": "ALREADY_EXISTS",
-            "PERMISSION_DENIED": "PERMISSION_DENIED",
-            "UNAUTHENTICATED": "UNAUTHENTICATED",
-            "RESOURCE_EXHAUSTED": "RESOURCE_EXHAUSTED",
-            "FAILED_PRECONDITION": "FAILED_PRECONDITION",
-            "ABORTED": "ABORTED",
-            "OUT_OF_RANGE": "OUT_OF_RANGE",
-            "UNIMPLEMENTED": "UNIMPLEMENTED",
-            "INTERNAL": "INTERNAL",
-            "UNAVAILABLE": "UNAVAILABLE",
-            "DATA_LOSS": "DATA_LOSS",
-            "FORBIDDEN": "FORBIDDEN",
-        }
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 
@@ -130,8 +109,8 @@ class ErrorResponseError(ModelNormal):
         """ErrorResponseError - a model defined in OpenAPI
 
         Args:
-            code (str):
-            message (str):
+            code (str): The error code. Possible values: `OK`, `UNKNOWN`, `INVALID_ARGUMENT`, `DEADLINE_EXCEEDED`, `QUOTA_EXCEEDED`, `NOT_FOUND`, `ALREADY_EXISTS`, `PERMISSION_DENIED`, `UNAUTHENTICATED`, `RESOURCE_EXHAUSTED`, `FAILED_PRECONDITION`, `ABORTED`, `OUT_OF_RANGE`, `UNIMPLEMENTED`, `INTERNAL`, `UNAVAILABLE`, `DATA_LOSS`, or `FORBIDDEN`.
+            message (str): A human-readable error message describing the error.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -226,8 +205,8 @@ class ErrorResponseError(ModelNormal):
         """ErrorResponseError - a model defined in OpenAPI
 
         Args:
-            code (str):
-            message (str):
+            code (str): The error code. Possible values: `OK`, `UNKNOWN`, `INVALID_ARGUMENT`, `DEADLINE_EXCEEDED`, `QUOTA_EXCEEDED`, `NOT_FOUND`, `ALREADY_EXISTS`, `PERMISSION_DENIED`, `UNAUTHENTICATED`, `RESOURCE_EXHAUSTED`, `FAILED_PRECONDITION`, `ABORTED`, `OUT_OF_RANGE`, `UNIMPLEMENTED`, `INTERNAL`, `UNAVAILABLE`, `DATA_LOSS`, or `FORBIDDEN`.
+            message (str): A human-readable error message describing the error.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types

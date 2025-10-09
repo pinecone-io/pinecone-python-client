@@ -1,11 +1,11 @@
 """
-Pinecone Admin API
+Pinecone Control Plane API
 
-Provides an API for managing a Pinecone organization and its resources.   # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -28,18 +28,20 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
-    from pinecone.core.openapi.admin.model.api_key import APIKey
+    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_config import (
+        ReadCapacityDedicatedConfig,
+    )
 
-    globals()["APIKey"] = APIKey
+    globals()["ReadCapacityDedicatedConfig"] = ReadCapacityDedicatedConfig
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="InlineResponse2001")
+T = TypeVar("T", bound="ReadCapacityDedicatedSpec")
 
 
-class InlineResponse2001(ModelNormal):
+class ReadCapacityDedicatedSpec(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -92,7 +94,8 @@ class InlineResponse2001(ModelNormal):
         """
         lazy_import()
         return {
-            "data": ([APIKey],)  # noqa: E501
+            "mode": (str,),  # noqa: E501
+            "dedicated": (ReadCapacityDedicatedConfig,),  # noqa: E501
         }
 
     @cached_class_property
@@ -100,7 +103,8 @@ class InlineResponse2001(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "data": "data"  # noqa: E501
+        "mode": "mode",  # noqa: E501
+        "dedicated": "dedicated",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -109,8 +113,12 @@ class InlineResponse2001(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """InlineResponse2001 - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], mode, dedicated, *args, **kwargs) -> T:  # noqa: E501
+        """ReadCapacityDedicatedSpec - a model defined in OpenAPI
+
+        Args:
+            mode (str): The mode of the index. Possible values: `OnDemand` or `Dedicated`. Defaults to `OnDemand`. If set to `Dedicated`, `dedicated.node_type`, and `dedicated.scaling` must be specified.
+            dedicated (ReadCapacityDedicatedConfig):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -143,7 +151,6 @@ class InlineResponse2001(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            data ([APIKey]): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -173,6 +180,8 @@ class InlineResponse2001(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.mode = mode
+        self.dedicated = dedicated
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -199,8 +208,12 @@ class InlineResponse2001(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """InlineResponse2001 - a model defined in OpenAPI
+    def __init__(self, mode, dedicated, *args, **kwargs) -> None:  # noqa: E501
+        """ReadCapacityDedicatedSpec - a model defined in OpenAPI
+
+        Args:
+            mode (str): The mode of the index. Possible values: `OnDemand` or `Dedicated`. Defaults to `OnDemand`. If set to `Dedicated`, `dedicated.node_type`, and `dedicated.scaling` must be specified.
+            dedicated (ReadCapacityDedicatedConfig):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -233,7 +246,6 @@ class InlineResponse2001(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            data ([APIKey]): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -261,6 +273,8 @@ class InlineResponse2001(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.mode = mode
+        self.dedicated = dedicated
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

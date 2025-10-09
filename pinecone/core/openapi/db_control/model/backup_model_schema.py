@@ -1,11 +1,11 @@
 """
-Pinecone Admin API
+Pinecone Control Plane API
 
-Provides an API for managing a Pinecone organization and its resources.   # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -27,13 +27,21 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
+def lazy_import():
+    from pinecone.core.openapi.db_control.model.backup_model_schema_fields import (
+        BackupModelSchemaFields,
+    )
+
+    globals()["BackupModelSchemaFields"] = BackupModelSchemaFields
+
+
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="InlineResponse401Error")
+T = TypeVar("T", bound="BackupModelSchema")
 
 
-class InlineResponse401Error(ModelNormal):
+class BackupModelSchema(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -59,29 +67,7 @@ class InlineResponse401Error(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("code",): {
-            "OK": "OK",
-            "UNKNOWN": "UNKNOWN",
-            "INVALID_ARGUMENT": "INVALID_ARGUMENT",
-            "DEADLINE_EXCEEDED": "DEADLINE_EXCEEDED",
-            "QUOTA_EXCEEDED": "QUOTA_EXCEEDED",
-            "NOT_FOUND": "NOT_FOUND",
-            "ALREADY_EXISTS": "ALREADY_EXISTS",
-            "PERMISSION_DENIED": "PERMISSION_DENIED",
-            "UNAUTHENTICATED": "UNAUTHENTICATED",
-            "RESOURCE_EXHAUSTED": "RESOURCE_EXHAUSTED",
-            "FAILED_PRECONDITION": "FAILED_PRECONDITION",
-            "ABORTED": "ABORTED",
-            "OUT_OF_RANGE": "OUT_OF_RANGE",
-            "UNIMPLEMENTED": "UNIMPLEMENTED",
-            "INTERNAL": "INTERNAL",
-            "UNAVAILABLE": "UNAVAILABLE",
-            "DATA_LOSS": "DATA_LOSS",
-            "FORBIDDEN": "FORBIDDEN",
-            "UNPROCESSABLE_ENTITY": "UNPROCESSABLE_ENTITY",
-        }
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 
@@ -91,6 +77,7 @@ class InlineResponse401Error(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
+        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -105,10 +92,9 @@ class InlineResponse401Error(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
+        lazy_import()
         return {
-            "code": (str,),  # noqa: E501
-            "message": (str,),  # noqa: E501
-            "details": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "fields": ({str: (BackupModelSchemaFields,)},)  # noqa: E501
         }
 
     @cached_class_property
@@ -116,9 +102,7 @@ class InlineResponse401Error(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "code": "code",  # noqa: E501
-        "message": "message",  # noqa: E501
-        "details": "details",  # noqa: E501
+        "fields": "fields"  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -127,12 +111,11 @@ class InlineResponse401Error(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], code, message, *args, **kwargs) -> T:  # noqa: E501
-        """InlineResponse401Error - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], fields, *args, **kwargs) -> T:  # noqa: E501
+        """BackupModelSchema - a model defined in OpenAPI
 
         Args:
-            code (str):
-            message (str):
+            fields ({str: (BackupModelSchemaFields,)}): A map of metadata field names to their configuration. The field name must be a valid metadata field name. The field name must be unique.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -165,7 +148,6 @@ class InlineResponse401Error(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            details ({str: (bool, dict, float, int, list, str, none_type)}): Additional information about the error. This field is not guaranteed to be present. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -195,8 +177,7 @@ class InlineResponse401Error(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.code = code
-        self.message = message
+        self.fields = fields
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -223,12 +204,11 @@ class InlineResponse401Error(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, code, message, *args, **kwargs) -> None:  # noqa: E501
-        """InlineResponse401Error - a model defined in OpenAPI
+    def __init__(self, fields, *args, **kwargs) -> None:  # noqa: E501
+        """BackupModelSchema - a model defined in OpenAPI
 
         Args:
-            code (str):
-            message (str):
+            fields ({str: (BackupModelSchemaFields,)}): A map of metadata field names to their configuration. The field name must be a valid metadata field name. The field name must be unique.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -261,7 +241,6 @@ class InlineResponse401Error(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            details ({str: (bool, dict, float, int, list, str, none_type)}): Additional information about the error. This field is not guaranteed to be present. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -289,8 +268,7 @@ class InlineResponse401Error(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.code = code
-        self.message = message
+        self.fields = fields
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

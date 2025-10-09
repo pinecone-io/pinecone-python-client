@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -25,6 +25,12 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     validate_get_composed_info,
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
+
+
+def lazy_import():
+    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
+
+    globals()["BackupModelSchema"] = BackupModelSchema
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -69,6 +75,7 @@ class ByocSpec(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
+        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -83,8 +90,10 @@ class ByocSpec(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
+        lazy_import()
         return {
-            "environment": (str,)  # noqa: E501
+            "environment": (str,),  # noqa: E501
+            "schema": (BackupModelSchema,),  # noqa: E501
         }
 
     @cached_class_property
@@ -92,7 +101,8 @@ class ByocSpec(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "environment": "environment"  # noqa: E501
+        "environment": "environment",  # noqa: E501
+        "schema": "schema",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -138,6 +148,7 @@ class ByocSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            schema (BackupModelSchema): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -231,6 +242,7 @@ class ByocSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            schema (BackupModelSchema): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

@@ -9,6 +9,13 @@
 # import sys
 # sys.setrecursionlimit(n)
 
+from pinecone.core.openapi.db_data.model.create_namespace_request import CreateNamespaceRequest
+from pinecone.core.openapi.db_data.model.create_namespace_request_schema import (
+    CreateNamespaceRequestSchema,
+)
+from pinecone.core.openapi.db_data.model.create_namespace_request_schema_fields import (
+    CreateNamespaceRequestSchemaFields,
+)
 from pinecone.core.openapi.db_data.model.delete_request import DeleteRequest
 from pinecone.core.openapi.db_data.model.describe_index_stats_request import (
     DescribeIndexStatsRequest,
@@ -26,12 +33,12 @@ from pinecone.core.openapi.db_data.model.namespace_description import NamespaceD
 from pinecone.core.openapi.db_data.model.namespace_summary import NamespaceSummary
 from pinecone.core.openapi.db_data.model.pagination import Pagination
 from pinecone.core.openapi.db_data.model.protobuf_any import ProtobufAny
-from pinecone.core.openapi.db_data.model.protobuf_null_value import ProtobufNullValue
 from pinecone.core.openapi.db_data.model.query_request import QueryRequest
 from pinecone.core.openapi.db_data.model.query_response import QueryResponse
 from pinecone.core.openapi.db_data.model.query_vector import QueryVector
 from pinecone.core.openapi.db_data.model.rpc_status import RpcStatus
 from pinecone.core.openapi.db_data.model.scored_vector import ScoredVector
+from pinecone.core.openapi.db_data.model.search_match_terms import SearchMatchTerms
 from pinecone.core.openapi.db_data.model.search_records_request import SearchRecordsRequest
 from pinecone.core.openapi.db_data.model.search_records_request_query import (
     SearchRecordsRequestQuery,
@@ -45,7 +52,6 @@ from pinecone.core.openapi.db_data.model.search_records_response_result import (
 )
 from pinecone.core.openapi.db_data.model.search_records_vector import SearchRecordsVector
 from pinecone.core.openapi.db_data.model.search_usage import SearchUsage
-from pinecone.core.openapi.db_data.model.search_vector import SearchVector
 from pinecone.core.openapi.db_data.model.single_query_results import SingleQueryResults
 from pinecone.core.openapi.db_data.model.sparse_values import SparseValues
 from pinecone.core.openapi.db_data.model.start_import_request import StartImportRequest

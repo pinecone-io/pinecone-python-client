@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -59,19 +59,7 @@ class IndexModelStatus(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("state",): {
-            "INITIALIZING": "Initializing",
-            "INITIALIZATIONFAILED": "InitializationFailed",
-            "SCALINGUP": "ScalingUp",
-            "SCALINGDOWN": "ScalingDown",
-            "SCALINGUPPODSIZE": "ScalingUpPodSize",
-            "SCALINGDOWNPODSIZE": "ScalingDownPodSize",
-            "TERMINATING": "Terminating",
-            "READY": "Ready",
-            "DISABLED": "Disabled",
-        }
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 
@@ -119,8 +107,8 @@ class IndexModelStatus(ModelNormal):
         """IndexModelStatus - a model defined in OpenAPI
 
         Args:
-            ready (bool):
-            state (str):
+            ready (bool): Whether the index is ready for use
+            state (str): The state of the index. Possible values: `Initializing`, `InitializationFailed`, `ScalingUp`, `ScalingDown`, `ScalingUpPodSize`, `ScalingDownPodSize`, `Terminating`, `Ready`, or `Disabled`.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -214,8 +202,8 @@ class IndexModelStatus(ModelNormal):
         """IndexModelStatus - a model defined in OpenAPI
 
         Args:
-            ready (bool):
-            state (str):
+            ready (bool): Whether the index is ready for use
+            state (str): The state of the index. Possible values: `Initializing`, `InitializationFailed`, `ScalingUp`, `ScalingDown`, `ScalingUpPodSize`, `ScalingDownPodSize`, `Terminating`, `Ready`, or `Disabled`.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types

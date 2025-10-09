@@ -1,11 +1,11 @@
 """
-Pinecone Admin API
+Pinecone Control Plane API
 
-Provides an API for managing a Pinecone organization and its resources.   # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -28,18 +28,28 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
-    from pinecone.core.openapi.admin.model.project import Project
+    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_config import (
+        ReadCapacityDedicatedConfig,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
+        ReadCapacityDedicatedSpec,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity_on_demand_spec import (
+        ReadCapacityOnDemandSpec,
+    )
 
-    globals()["Project"] = Project
+    globals()["ReadCapacityDedicatedConfig"] = ReadCapacityDedicatedConfig
+    globals()["ReadCapacityDedicatedSpec"] = ReadCapacityDedicatedSpec
+    globals()["ReadCapacityOnDemandSpec"] = ReadCapacityOnDemandSpec
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="InlineResponse200")
+T = TypeVar("T", bound="ReadCapacity")
 
 
-class InlineResponse200(ModelNormal):
+class ReadCapacity(ModelComposed):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -92,27 +102,37 @@ class InlineResponse200(ModelNormal):
         """
         lazy_import()
         return {
-            "data": ([Project],)  # noqa: E501
+            "mode": (str,),  # noqa: E501
+            "dedicated": (ReadCapacityDedicatedConfig,),  # noqa: E501
         }
 
     @cached_class_property
     def discriminator(cls):
-        return None
+        lazy_import()
+        val = {
+            "Dedicated": ReadCapacityDedicatedSpec,
+            "OnDemand": ReadCapacityOnDemandSpec,
+            "ReadCapacityDedicatedSpec": ReadCapacityDedicatedSpec,
+            "ReadCapacityOnDemandSpec": ReadCapacityOnDemandSpec,
+        }
+        if not val:
+            return None
+        return {"mode": val}
 
     attribute_map: Dict[str, str] = {
-        "data": "data"  # noqa: E501
+        "mode": "mode",  # noqa: E501
+        "dedicated": "dedicated",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
 
-    _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
-
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """InlineResponse200 - a model defined in OpenAPI
+        """ReadCapacity - a model defined in OpenAPI
 
         Keyword Args:
+            mode (str): The mode of the index. Possible values: `OnDemand` or `Dedicated`. Defaults to `OnDemand`. If set to `Dedicated`, `dedicated.node_type`, and `dedicated.scaling` must be specified.
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -143,11 +163,9 @@ class InlineResponse200(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            data ([Project]): [optional]  # noqa: E501
+            dedicated (ReadCapacityDedicatedConfig): [optional]  # noqa: E501
         """
 
-        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
-        _enforce_validations = kwargs.pop("_enforce_validations", False)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -165,24 +183,36 @@ class InlineResponse200(ModelNormal):
             )
 
         self._data_store = {}
-        self._enforce_allowed_values = _enforce_allowed_values
-        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        constant_args = {
+            "_check_type": _check_type,
+            "_path_to_item": _path_to_item,
+            "_spec_property_naming": _spec_property_naming,
+            "_configuration": _configuration,
+            "_visited_composed_classes": self._visited_composed_classes,
+        }
+        composed_info = validate_get_composed_info(constant_args, kwargs, self)
+        self._composed_instances = composed_info[0]
+        self._var_name_to_model_instances = composed_info[1]
+        self._additional_properties_model_instances = composed_info[2]
+        discarded_args = composed_info[3]
+
         for var_name, var_value in kwargs.items():
             if (
-                var_name not in self.attribute_map
+                var_name in discarded_args
                 and self._configuration is not None
                 and self._configuration.discard_unknown_keys
-                and self.additional_properties_type is None
+                and self._additional_properties_model_instances
             ):
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
+
         return self
 
     required_properties = set(
@@ -195,14 +225,18 @@ class InlineResponse200(ModelNormal):
             "_path_to_item",
             "_configuration",
             "_visited_composed_classes",
+            "_composed_instances",
+            "_var_name_to_model_instances",
+            "_additional_properties_model_instances",
         ]
     )
 
     @convert_js_args_to_python_args
     def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """InlineResponse200 - a model defined in OpenAPI
+        """ReadCapacity - a model defined in OpenAPI
 
         Keyword Args:
+            mode (str): The mode of the index. Possible values: `OnDemand` or `Dedicated`. Defaults to `OnDemand`. If set to `Dedicated`, `dedicated.node_type`, and `dedicated.scaling` must be specified.
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -233,7 +267,7 @@ class InlineResponse200(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            data ([Project]): [optional]  # noqa: E501
+            dedicated (ReadCapacityDedicatedConfig): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -261,12 +295,25 @@ class InlineResponse200(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        constant_args = {
+            "_check_type": _check_type,
+            "_path_to_item": _path_to_item,
+            "_spec_property_naming": _spec_property_naming,
+            "_configuration": _configuration,
+            "_visited_composed_classes": self._visited_composed_classes,
+        }
+        composed_info = validate_get_composed_info(constant_args, kwargs, self)
+        self._composed_instances = composed_info[0]
+        self._var_name_to_model_instances = composed_info[1]
+        self._additional_properties_model_instances = composed_info[2]
+        discarded_args = composed_info[3]
+
         for var_name, var_value in kwargs.items():
             if (
-                var_name not in self.attribute_map
+                var_name in discarded_args
                 and self._configuration is not None
                 and self._configuration.discard_unknown_keys
-                and self.additional_properties_type is None
+                and self._additional_properties_model_instances
             ):
                 # discard variable.
                 continue
@@ -276,3 +323,19 @@ class InlineResponse200(ModelNormal):
                     f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
                     f"class with read only attributes."
                 )
+
+    @cached_property
+    def _composed_schemas():  # type: ignore
+        # we need this here to make our import statements work
+        # we must store _composed_schemas in here so the code is only run
+        # when we invoke this method. If we kept this at the class
+        # level we would get an error beause the class level
+        # code would be run when this module is imported, and these composed
+        # classes don't exist yet because their module has not finished
+        # loading
+        lazy_import()
+        return {
+            "anyOf": [],
+            "allOf": [],
+            "oneOf": [ReadCapacityDedicatedSpec, ReadCapacityOnDemandSpec],
+        }

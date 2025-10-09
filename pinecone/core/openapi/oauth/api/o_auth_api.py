@@ -5,7 +5,7 @@ Provides an API for authenticating with Pinecone.   # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -23,7 +23,7 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     none_type,
     validate_and_convert_types,
 )
-from pinecone.core.openapi.oauth.model.inline_response400 import InlineResponse400
+from pinecone.core.openapi.oauth.model.error_response import ErrorResponse
 from pinecone.core.openapi.oauth.model.token_request import TokenRequest
 from pinecone.core.openapi.oauth.model.token_response import TokenResponse
 
@@ -39,18 +39,24 @@ class OAuthApi:
             api_client = ApiClient()
         self.api_client = api_client
 
-        def __get_token(self, token_request, **kwargs: ExtraOpenApiKwargsTypedDict):
-            """Get an access token  # noqa: E501
+        def __get_token(
+            self,
+            token_request,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ):
+            """Create an access token  # noqa: E501
 
             Obtain an access token for a service account using the OAuth2 client credentials flow. An access token is needed to authorize requests to the Pinecone Admin API. The host domain for OAuth endpoints is `login.pinecone.io`.   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.get_token(token_request, async_req=True)
+            >>> thread = api.get_token(token_request, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 token_request (TokenRequest): A request to exchange client credentials for an access token.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -76,6 +82,7 @@ class OAuthApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["token_request"] = token_request
             return self.call_with_http_info(**kwargs)
 
@@ -89,8 +96,8 @@ class OAuthApi:
                 "servers": None,
             },
             params_map={
-                "all": ["token_request"],
-                "required": ["token_request"],
+                "all": ["x_pinecone_api_version", "token_request"],
+                "required": ["x_pinecone_api_version", "token_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -98,9 +105,12 @@ class OAuthApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"token_request": (TokenRequest,)},
-                "attribute_map": {},
-                "location_map": {"token_request": "body"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "token_request": (TokenRequest,),
+                },
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header", "token_request": "body"},
                 "collection_format_map": {},
             },
             headers_map={
@@ -123,14 +133,15 @@ class AsyncioOAuthApi:
             api_client = AsyncioApiClient()
         self.api_client = api_client
 
-        async def __get_token(self, token_request, **kwargs):
-            """Get an access token  # noqa: E501
+        async def __get_token(self, token_request, x_pinecone_api_version="2025-10", **kwargs):
+            """Create an access token  # noqa: E501
 
             Obtain an access token for a service account using the OAuth2 client credentials flow. An access token is needed to authorize requests to the Pinecone Admin API. The host domain for OAuth endpoints is `login.pinecone.io`.   # noqa: E501
 
 
             Args:
                 token_request (TokenRequest): A request to exchange client credentials for an access token.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -153,6 +164,7 @@ class AsyncioOAuthApi:
                 TokenResponse
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["token_request"] = token_request
             return await self.call_with_http_info(**kwargs)
 
@@ -166,8 +178,8 @@ class AsyncioOAuthApi:
                 "servers": None,
             },
             params_map={
-                "all": ["token_request"],
-                "required": ["token_request"],
+                "all": ["x_pinecone_api_version", "token_request"],
+                "required": ["x_pinecone_api_version", "token_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -175,9 +187,12 @@ class AsyncioOAuthApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"token_request": (TokenRequest,)},
-                "attribute_map": {},
-                "location_map": {"token_request": "body"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "token_request": (TokenRequest,),
+                },
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header", "token_request": "body"},
                 "collection_format_map": {},
             },
             headers_map={

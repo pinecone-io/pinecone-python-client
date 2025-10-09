@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -31,15 +31,9 @@ def lazy_import():
     from pinecone.core.openapi.db_control.model.configure_index_request_embed import (
         ConfigureIndexRequestEmbed,
     )
-    from pinecone.core.openapi.db_control.model.configure_index_request_spec import (
-        ConfigureIndexRequestSpec,
-    )
-    from pinecone.core.openapi.db_control.model.deletion_protection import DeletionProtection
     from pinecone.core.openapi.db_control.model.index_tags import IndexTags
 
     globals()["ConfigureIndexRequestEmbed"] = ConfigureIndexRequestEmbed
-    globals()["ConfigureIndexRequestSpec"] = ConfigureIndexRequestSpec
-    globals()["DeletionProtection"] = DeletionProtection
     globals()["IndexTags"] = IndexTags
 
 
@@ -102,8 +96,8 @@ class ConfigureIndexRequest(ModelNormal):
         """
         lazy_import()
         return {
-            "spec": (ConfigureIndexRequestSpec,),  # noqa: E501
-            "deletion_protection": (DeletionProtection,),  # noqa: E501
+            "spec": (dict,),  # noqa: E501
+            "deletion_protection": (str,),  # noqa: E501
             "tags": (IndexTags,),  # noqa: E501
             "embed": (ConfigureIndexRequestEmbed,),  # noqa: E501
         }
@@ -159,8 +153,8 @@ class ConfigureIndexRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            spec (ConfigureIndexRequestSpec): [optional]  # noqa: E501
-            deletion_protection (DeletionProtection): [optional]  # noqa: E501
+            spec (dict): The spec object defines how the index should be deployed.  Only some attributes of an index's spec may be updated.  In general, you can modify settings related to scaling and  configuration but you cannot change the cloud or region  where the index is hosted. [optional]  # noqa: E501
+            deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. [optional] if omitted the server will use the default value of "disabled".  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
             embed (ConfigureIndexRequestEmbed): [optional]  # noqa: E501
         """
@@ -252,8 +246,8 @@ class ConfigureIndexRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            spec (ConfigureIndexRequestSpec): [optional]  # noqa: E501
-            deletion_protection (DeletionProtection): [optional]  # noqa: E501
+            spec (dict): The spec object defines how the index should be deployed.  Only some attributes of an index's spec may be updated.  In general, you can modify settings related to scaling and  configuration but you cannot change the cloud or region  where the index is hosted. [optional]  # noqa: E501
+            deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. [optional] if omitted the server will use the default value of "disabled".  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
             embed (ConfigureIndexRequestEmbed): [optional]  # noqa: E501
         """

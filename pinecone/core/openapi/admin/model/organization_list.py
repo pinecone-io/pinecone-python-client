@@ -1,11 +1,11 @@
 """
-Pinecone Control Plane API
+Pinecone Admin API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Provides an API for managing a Pinecone organization and its resources.   # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -27,13 +27,19 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
+def lazy_import():
+    from pinecone.core.openapi.admin.model.organization import Organization
+
+    globals()["Organization"] = Organization
+
+
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="ConfigureIndexRequestSpecPod")
+T = TypeVar("T", bound="OrganizationList")
 
 
-class ConfigureIndexRequestSpecPod(ModelNormal):
+class OrganizationList(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -61,9 +67,7 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
 
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-        ("replicas",): {"inclusive_minimum": 1}
-    }
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -71,6 +75,7 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
+        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -85,9 +90,9 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
+        lazy_import()
         return {
-            "replicas": (int,),  # noqa: E501
-            "pod_type": (str,),  # noqa: E501
+            "data": ([Organization],)  # noqa: E501
         }
 
     @cached_class_property
@@ -95,8 +100,7 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "replicas": "replicas",  # noqa: E501
-        "pod_type": "pod_type",  # noqa: E501
+        "data": "data"  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -105,8 +109,11 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """ConfigureIndexRequestSpecPod - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], data, *args, **kwargs) -> T:  # noqa: E501
+        """OrganizationList - a model defined in OpenAPI
+
+        Args:
+            data ([Organization]):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -139,8 +146,6 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change. [optional] if omitted the server will use the default value of 1.  # noqa: E501
-            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`. [optional] if omitted the server will use the default value of "p1.x1".  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -170,6 +175,7 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.data = data
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -196,8 +202,11 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """ConfigureIndexRequestSpecPod - a model defined in OpenAPI
+    def __init__(self, data, *args, **kwargs) -> None:  # noqa: E501
+        """OrganizationList - a model defined in OpenAPI
+
+        Args:
+            data ([Organization]):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -230,8 +239,6 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change. [optional] if omitted the server will use the default value of 1.  # noqa: E501
-            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`. [optional] if omitted the server will use the default value of "p1.x1".  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -259,6 +266,7 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.data = data
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
