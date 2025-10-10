@@ -1,10 +1,7 @@
 import pytest
 
 from pinecone.openapi_support import ApiClient, PineconeApiException
-from pinecone.core.openapi.db_data.models import (
-    StartImportResponse,
-    ImportErrorMode as ImportErrorModeGeneratedClass,
-)
+from pinecone.core.openapi.db_data.models import StartImportResponse
 
 from pinecone.db_data.resources.sync.bulk_import import BulkImportResource, ImportErrorMode
 
@@ -135,11 +132,6 @@ class TestBulkImportStartImport:
             client.start()
 
         assert "missing 1 required positional argument" in str(e.value)
-
-    def test_enums_are_aligned(self):
-        modes = dir(ImportErrorMode)
-        for key, _ in ImportErrorModeGeneratedClass().allowed_values[("on_error",)].items():
-            assert key in modes
 
 
 class TestDescribeImport:

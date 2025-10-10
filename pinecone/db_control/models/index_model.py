@@ -6,7 +6,6 @@ from pinecone.utils.repr_overrides import custom_serializer
 class IndexModel:
     def __init__(self, index: OpenAPIIndexModel):
         self.index = index
-        self.deletion_protection = index.deletion_protection.value
 
     def __str__(self):
         return str(self.index)

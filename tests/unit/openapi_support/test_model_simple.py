@@ -1,12 +1,6 @@
-from pinecone.core.openapi.db_control.models import DeletionProtection
+from pinecone.core.openapi.db_data.models import VectorValues
 
 
 def test_simple_model_instantiation():
-    dp = DeletionProtection(value="enabled")
-    assert dp.value == "enabled"
-
-    dp2 = DeletionProtection(value="disabled")
-    assert dp2.value == "disabled"
-
-    dp3 = DeletionProtection("enabled")
-    assert dp3.value == "enabled"
+    vv = VectorValues(value=[1.0, 2.0, 3.0])
+    assert vv.value == [1.0, 2.0, 3.0]

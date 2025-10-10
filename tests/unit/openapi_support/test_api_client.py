@@ -1,9 +1,5 @@
-from pinecone.core.openapi.db_control.models import (
-    IndexModel,
-    IndexModelStatus,
-    IndexModelSpec,
-    DeletionProtection,
-)
+from pinecone.core.openapi.db_control.models import IndexModel, IndexModelStatus
+from pinecone.core.openapi.db_data.models import VectorValues
 from pinecone.openapi_support.serializer import Serializer
 from pinecone.openapi_support.api_client_utils import parameters_to_tuples
 from datetime import date, datetime
@@ -64,7 +60,7 @@ class TestSanitization:
             dimension=10,
             metric="cosine",
             host="localhost",
-            spec=IndexModelSpec(),
+            spec={},
             status=IndexModelStatus(ready=True, state="Ready"),
             vector_type="dense",
         )
@@ -82,10 +78,10 @@ class TestSanitization:
             name="myindex2",
             metric="cosine",
             host="localhost",
-            spec=IndexModelSpec(),
+            spec={},
             status=IndexModelStatus(ready=True, state="Ready"),
             vector_type="sparse",
-            deletion_protection=DeletionProtection(value="enabled"),
+            deletion_protection="enabled",
         )
         assert Serializer.sanitize_for_serialization(m2) == {
             "name": "myindex2",
@@ -99,8 +95,8 @@ class TestSanitization:
 
     def test_sanitize_for_serialization_serializes_model_simple(self):
         # ModelSimple is used to model named values which are not objects
-        m = DeletionProtection(value="enabled")
-        assert Serializer.sanitize_for_serialization(m) == "enabled"
+        m = VectorValues(value=[1.0, 2.0, 3.0])
+        assert Serializer.sanitize_for_serialization(m) == [1.0, 2.0, 3.0]
 
 
 class TestParametersToTuples:
