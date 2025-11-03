@@ -126,6 +126,80 @@ pc.create_index(
 )
 ```
 
+## Read capacity configuration
+
+Serverless indexes support two read capacity modes: OnDemand (default) and Dedicated. By default, indexes are created with OnDemand read capacity, which automatically scales to handle your query load without pre-allocated resources.
+
+### OnDemand read capacity (default)
+
+OnDemand mode is the default and doesn't require any configuration. If you want to explicitly specify it, you can pass `read_capacity` to `ServerlessSpec`:
+
+```python
+from pinecone import (
+    Pinecone,
+    ServerlessSpec,
+    CloudProvider,
+    AwsRegion,
+    Metric
+)
+
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+
+pc.create_index(
+    name='my-index',
+    dimension=1536,
+    metric=Metric.COSINE,
+    spec=ServerlessSpec(
+        cloud=CloudProvider.AWS,
+        region=AwsRegion.US_WEST_2,
+        read_capacity={"mode": "OnDemand"}
+    )
+)
+```
+
+### Dedicated read capacity
+
+For workloads that require guaranteed capacity and lower latency, you can configure dedicated read nodes. This allows you to pre-allocate compute resources for query handling. When using Dedicated mode, you must specify:
+
+- `node_type`: The type of machines to use (`"b1"` or `"t1"`). `"t1"` includes increased processing power and memory.
+- `scaling`: The scaling strategy. Currently only `"Manual"` is supported.
+- `manual`: Manual scaling configuration with `shards` and `replicas`.
+
+```python
+from pinecone import (
+    Pinecone,
+    ServerlessSpec,
+    CloudProvider,
+    AwsRegion,
+    Metric
+)
+
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+
+pc.create_index(
+    name='my-index',
+    dimension=1536,
+    metric=Metric.COSINE,
+    spec=ServerlessSpec(
+        cloud=CloudProvider.AWS,
+        region=AwsRegion.US_WEST_2,
+        read_capacity={
+            "mode": "Dedicated",
+            "dedicated": {
+                "node_type": "t1",
+                "scaling": "Manual",
+                "manual": {
+                    "shards": 2,
+                    "replicas": 2
+                }
+            }
+        }
+    )
+)
+```
+
+For more details on dedicated read capacity, see the [dedicated read nodes guide](https://docs.pinecone.io/guides/index-data/dedicated-read-nodes).
+
 ## Configuring, listing, describing, and deleting
 
 See [shared index actions](shared-index-actions.md) to learn about how to manage the lifecycle of your index after it is created.

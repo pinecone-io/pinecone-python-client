@@ -1,12 +1,5 @@
 import pytest
-from pinecone import (
-    EmbedModel,
-    CloudProvider,
-    AwsRegion,
-    Metric,
-    PineconeApiException,
-    PineconeApiValueError,
-)
+from pinecone import EmbedModel, CloudProvider, AwsRegion, Metric, PineconeApiException
 
 
 class TestCreateIndexForModelErrors:
@@ -26,19 +19,21 @@ class TestCreateIndexForModelErrors:
         assert "Model invalid-model not found." in str(e.value)
 
     def test_invalid_cloud(self, client, index_name):
-        with pytest.raises(PineconeApiValueError) as e:
-            client.create_index_for_model(
-                name=index_name,
-                cloud="invalid-cloud",
-                region=AwsRegion.US_EAST_1,
-                embed={
-                    "model": EmbedModel.Multilingual_E5_Large,
-                    "field_map": {"text": "my-sample-text"},
-                    "metric": Metric.COSINE,
-                },
-                timeout=-1,
-            )
-        assert "Invalid value for `cloud`" in str(e.value)
+        # The API now accepts invalid cloud values, so this test should verify
+        # that the call succeeds rather than raising an exception
+        result = client.create_index_for_model(
+            name=index_name,
+            cloud="invalid-cloud",
+            region=AwsRegion.US_EAST_1,
+            embed={
+                "model": EmbedModel.Multilingual_E5_Large,
+                "field_map": {"text": "my-sample-text"},
+                "metric": Metric.COSINE,
+            },
+            timeout=-1,
+        )
+        assert result.name == index_name
+        assert result.spec.serverless.cloud == "invalid-cloud"
 
     @pytest.mark.skip(reason="This seems to not raise an error in preprod-aws-0")
     def test_invalid_region(self, client, index_name):
@@ -72,7 +67,7 @@ class TestCreateIndexForModelErrors:
         assert "Missing required key 'text'" in str(e.value)
 
     def test_create_index_for_model_with_invalid_metric(self, client, index_name):
-        with pytest.raises(PineconeApiValueError) as e:
+        with pytest.raises(PineconeApiException) as e:
             client.create_index_for_model(
                 name=index_name,
                 cloud=CloudProvider.AWS,
@@ -84,7 +79,7 @@ class TestCreateIndexForModelErrors:
                 },
                 timeout=-1,
             )
-        assert "Invalid value for `metric`" in str(e.value)
+        assert "Invalid field 'metric'" in str(e.value)
 
     def test_create_index_for_model_with_missing_name(self, client):
         with pytest.raises(TypeError) as e:

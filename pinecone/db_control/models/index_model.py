@@ -1,6 +1,7 @@
 from pinecone.core.openapi.db_control.model.index_model import IndexModel as OpenAPIIndexModel
 import json
 from pinecone.utils.repr_overrides import custom_serializer
+from pinecone.utils.dict_like import DictLike
 
 
 class IndexModel:
@@ -11,7 +12,11 @@ class IndexModel:
         return str(self.index)
 
     def __getattr__(self, attr):
-        return getattr(self.index, attr)
+        value = getattr(self.index, attr)
+        # If the attribute is 'spec' and it's a dictionary, wrap it in DictLike
+        if attr == "spec" and isinstance(value, dict):
+            return DictLike(value)
+        return value
 
     def __getitem__(self, key):
         return self.__getattr__(key)

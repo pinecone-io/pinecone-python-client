@@ -311,7 +311,8 @@ class PineconeAsyncioDBControlInterface(ABC):
         :param metric: Type of similarity metric used in the vector index when querying, one of ``{"cosine", "dotproduct", "euclidean"}``.
         :type metric: str, optional
         :param spec: A dictionary containing configurations describing how the index should be deployed. For serverless indexes,
-            specify region and cloud. For pod indexes, specify replicas, shards, pods, pod_type, metadata_config, and source_collection.
+            specify region, cloud, and optionally read_capacity (for OnDemand or Dedicated read capacity modes).
+            For pod indexes, specify replicas, shards, pods, pod_type, metadata_config, and source_collection.
             Alternatively, use the ``ServerlessSpec`` or ``PodSpec`` objects to specify these configurations.
         :type spec: Dict
         :param dimension: If you are creating an index with ``vector_type="dense"`` (which is the default), you need to specify ``dimension`` to indicate the size of your vectors.
@@ -349,13 +350,15 @@ class PineconeAsyncioDBControlInterface(ABC):
 
             async def main():
                 async with PineconeAsyncio(api_key=os.environ.get("PINECONE_API_KEY")) as pc:
+                    # Create with OnDemand read capacity (default)
                     await pc.create_index(
                         name="my_index",
                         dimension=1536,
                         metric=Metric.COSINE,
                         spec=ServerlessSpec(
                             cloud=CloudProvider.AWS,
-                            region=AwsRegion.US_WEST_2
+                            region=AwsRegion.US_WEST_2,
+                            read_capacity={"mode": "OnDemand"}
                         ),
                         deletion_protection=DeletionProtection.DISABLED,
                         vector_type=VectorType.DENSE,
@@ -364,6 +367,30 @@ class PineconeAsyncioDBControlInterface(ABC):
                             "app": "image-search",
                             "env": "testing"
                         }
+                    )
+
+                    # Create with Dedicated read capacity
+                    await pc.create_index(
+                        name="my_dedicated_index",
+                        dimension=1536,
+                        metric=Metric.COSINE,
+                        spec=ServerlessSpec(
+                            cloud=CloudProvider.AWS,
+                            region=AwsRegion.US_WEST_2,
+                            read_capacity={
+                                "mode": "Dedicated",
+                                "dedicated": {
+                                    "node_type": "t1",
+                                    "scaling": "Manual",
+                                    "manual": {
+                                        "shards": 2,
+                                        "replicas": 2
+                                    }
+                                }
+                            }
+                        ),
+                        deletion_protection=DeletionProtection.DISABLED,
+                        vector_type=VectorType.DENSE
                     )
 
             asyncio.run(main())

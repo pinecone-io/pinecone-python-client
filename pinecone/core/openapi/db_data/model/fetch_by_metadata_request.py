@@ -27,19 +27,13 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
-def lazy_import():
-    from pinecone.core.openapi.db_data.model.sparse_values import SparseValues
-
-    globals()["SparseValues"] = SparseValues
-
-
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="UpdateRequest")
+T = TypeVar("T", bound="FetchByMetadataRequest")
 
 
-class UpdateRequest(ModelNormal):
+class FetchByMetadataRequest(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -68,8 +62,7 @@ class UpdateRequest(ModelNormal):
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-        ("id",): {"max_length": 512, "min_length": 1},
-        ("values",): {},
+        ("limit",): {"inclusive_minimum": 1}
     }
 
     @cached_class_property
@@ -78,7 +71,6 @@ class UpdateRequest(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -93,15 +85,11 @@ class UpdateRequest(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
-            "id": (str,),  # noqa: E501
-            "values": ([float],),  # noqa: E501
-            "sparse_values": (SparseValues,),  # noqa: E501
-            "set_metadata": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
             "namespace": (str,),  # noqa: E501
             "filter": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
-            "dry_run": (bool,),  # noqa: E501
+            "limit": (int,),  # noqa: E501
+            "pagination_token": (str,),  # noqa: E501
         }
 
     @cached_class_property
@@ -109,13 +97,10 @@ class UpdateRequest(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "id": "id",  # noqa: E501
-        "values": "values",  # noqa: E501
-        "sparse_values": "sparseValues",  # noqa: E501
-        "set_metadata": "setMetadata",  # noqa: E501
         "namespace": "namespace",  # noqa: E501
         "filter": "filter",  # noqa: E501
-        "dry_run": "dryRun",  # noqa: E501
+        "limit": "limit",  # noqa: E501
+        "pagination_token": "paginationToken",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -125,7 +110,7 @@ class UpdateRequest(ModelNormal):
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """UpdateRequest - a model defined in OpenAPI
+        """FetchByMetadataRequest - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -158,13 +143,10 @@ class UpdateRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            id (str): Vector's unique id. [optional]  # noqa: E501
-            values ([float]): Vector data. [optional]  # noqa: E501
-            sparse_values (SparseValues): [optional]  # noqa: E501
-            set_metadata ({str: (bool, dict, float, int, list, str, none_type)}): Metadata to set for the vector. [optional]  # noqa: E501
-            namespace (str): The namespace containing the vector to update. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): A metadata filter expression. When updating metadata across records in a namespace,  the update is applied to all records that match the filter.  See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
-            dry_run (bool): If `true`, return the number of records that match the `filter`, but do not execute the update.  Default is `false`. [optional] if omitted the server will use the default value of False.  # noqa: E501
+            namespace (str): The namespace to fetch vectors from. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): Metadata filter expression to select vectors. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
+            limit (int): Max number of vectors to return. [optional] if omitted the server will use the default value of 100.  # noqa: E501
+            pagination_token (str): Pagination token to continue a previous listing operation. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -221,7 +203,7 @@ class UpdateRequest(ModelNormal):
 
     @convert_js_args_to_python_args
     def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """UpdateRequest - a model defined in OpenAPI
+        """FetchByMetadataRequest - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -254,13 +236,10 @@ class UpdateRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            id (str): Vector's unique id. [optional]  # noqa: E501
-            values ([float]): Vector data. [optional]  # noqa: E501
-            sparse_values (SparseValues): [optional]  # noqa: E501
-            set_metadata ({str: (bool, dict, float, int, list, str, none_type)}): Metadata to set for the vector. [optional]  # noqa: E501
-            namespace (str): The namespace containing the vector to update. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): A metadata filter expression. When updating metadata across records in a namespace,  the update is applied to all records that match the filter.  See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
-            dry_run (bool): If `true`, return the number of records that match the `filter`, but do not execute the update.  Default is `false`. [optional] if omitted the server will use the default value of False.  # noqa: E501
+            namespace (str): The namespace to fetch vectors from. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): Metadata filter expression to select vectors. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
+            limit (int): Max number of vectors to return. [optional] if omitted the server will use the default value of 100.  # noqa: E501
+            pagination_token (str): Pagination token to continue a previous listing operation. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

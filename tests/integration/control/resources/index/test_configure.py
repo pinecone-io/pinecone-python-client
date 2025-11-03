@@ -49,20 +49,14 @@ class TestConfigureIndexTags:
         desc = pc.db.index.describe(name=name)
         assert desc.embed is None
 
-        embed_config = {
-            "model": "multilingual-e5-large",
-            "field_map": {"text": "chunk_text"},
-        }
+        embed_config = {"model": "multilingual-e5-large", "field_map": {"text": "chunk_text"}}
         pc.db.index.configure(name=name, embed=embed_config)
 
         desc = pc.db.index.describe(name=name)
         assert desc.embed.model == "multilingual-e5-large"
         assert desc.embed.field_map == {"text": "chunk_text"}
         assert desc.embed.read_parameters == {"input_type": "query", "truncate": "END"}
-        assert desc.embed.write_parameters == {
-            "input_type": "passage",
-            "truncate": "END",
-        }
+        assert desc.embed.write_parameters == {"input_type": "passage", "truncate": "END"}
         assert desc.embed.vector_type == "dense"
         assert desc.embed.dimension == 1024
         assert desc.embed.metric == "cosine"

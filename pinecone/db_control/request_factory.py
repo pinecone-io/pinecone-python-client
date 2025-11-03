@@ -13,10 +13,25 @@ from pinecone.core.openapi.db_control.model.create_index_for_model_request_embed
 )
 from pinecone.core.openapi.db_control.model.create_index_request import CreateIndexRequest
 from pinecone.core.openapi.db_control.model.configure_index_request import ConfigureIndexRequest
+from pinecone.core.openapi.db_control.model.configure_index_request_embed import (
+    ConfigureIndexRequestEmbed,
+)
 from pinecone.core.openapi.db_control.model.index_spec import IndexSpec
 from pinecone.core.openapi.db_control.model.index_tags import IndexTags
 from pinecone.core.openapi.db_control.model.serverless_spec import (
     ServerlessSpec as ServerlessSpecModel,
+)
+from pinecone.core.openapi.db_control.model.read_capacity_on_demand_spec import (
+    ReadCapacityOnDemandSpec,
+)
+from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
+    ReadCapacityDedicatedSpec,
+)
+from pinecone.core.openapi.db_control.model.read_capacity_dedicated_config import (
+    ReadCapacityDedicatedConfig,
+)
+from pinecone.core.openapi.db_control.model.scaling_config_manual import (
+    ScalingConfigManual,
 )
 from pinecone.core.openapi.db_control.model.byoc_spec import ByocSpec as ByocSpecModel
 from pinecone.core.openapi.db_control.model.pod_spec import PodSpec as PodSpecModel
@@ -66,13 +81,45 @@ class PineconeDBControlRequestFactory:
             raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
 
     @staticmethod
+    def __parse_read_capacity(read_capacity: Dict[str, Any]):
+        """Convert read_capacity dict to appropriate OpenAPI model."""
+        if not read_capacity:
+            return None
+
+        mode = read_capacity.get("mode")
+        if mode == "OnDemand":
+            return ReadCapacityOnDemandSpec(mode="OnDemand")
+        elif mode == "Dedicated":
+            dedicated_config = read_capacity.get("dedicated", {})
+            manual_config = dedicated_config.get("manual")
+            manual = None
+            if manual_config:
+                manual = ScalingConfigManual(
+                    shards=manual_config["shards"], replicas=manual_config["replicas"]
+                )
+            dedicated = ReadCapacityDedicatedConfig(
+                node_type=dedicated_config["node_type"],
+                scaling=dedicated_config["scaling"],
+                manual=manual,
+            )
+            return ReadCapacityDedicatedSpec(mode="Dedicated", dedicated=dedicated)
+        else:
+            raise ValueError(f"Invalid read_capacity mode: {mode}. Must be 'OnDemand' or 'Dedicated'")
+
+    @staticmethod
     def __parse_index_spec(spec: Union[Dict, ServerlessSpec, PodSpec, ByocSpec]) -> IndexSpec:
         if isinstance(spec, dict):
             if "serverless" in spec:
                 spec["serverless"]["cloud"] = convert_enum_to_string(spec["serverless"]["cloud"])
                 spec["serverless"]["region"] = convert_enum_to_string(spec["serverless"]["region"])
 
-                index_spec = IndexSpec(serverless=ServerlessSpecModel(**spec["serverless"]))
+                serverless_dict = spec["serverless"].copy()
+                if "read_capacity" in serverless_dict:
+                    serverless_dict["read_capacity"] = PineconeDBControlRequestFactory.__parse_read_capacity(
+                        serverless_dict["read_capacity"]
+                    )
+
+                index_spec = IndexSpec(serverless=ServerlessSpecModel(**serverless_dict))
             elif "pod" in spec:
                 spec["pod"]["environment"] = convert_enum_to_string(spec["pod"]["environment"])
                 args_dict = parse_non_empty_args(
@@ -95,9 +142,12 @@ class PineconeDBControlRequestFactory:
             else:
                 raise ValueError("spec must contain either 'serverless', 'pod', or 'byoc' key")
         elif isinstance(spec, ServerlessSpec):
-            index_spec = IndexSpec(
-                serverless=ServerlessSpecModel(cloud=spec.cloud, region=spec.region)
-            )
+            serverless_args = {"cloud": spec.cloud, "region": spec.region}
+            if spec.read_capacity is not None:
+                serverless_args["read_capacity"] = PineconeDBControlRequestFactory.__parse_read_capacity(
+                    spec.read_capacity
+                )
+            index_spec = IndexSpec(serverless=ServerlessSpecModel(**serverless_args))
         elif isinstance(spec, PodSpec):
             args_dict = parse_non_empty_args(
                 [

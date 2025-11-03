@@ -10,7 +10,7 @@ class TestCreateIndexApiErrorCases:
 
     def test_create_index_invalid_metric(self, client, create_sl_index_params):
         create_sl_index_params["metric"] = "invalid"
-        with pytest.raises(PineconeApiValueError):
+        with pytest.raises(PineconeApiException):
             client.create_index(**create_sl_index_params)
 
     def test_create_index_with_invalid_neg_dimension(self, client, create_sl_index_params):

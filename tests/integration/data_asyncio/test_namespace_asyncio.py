@@ -7,6 +7,7 @@ from tests.integration.data_asyncio.conftest import build_asyncioindex_client
 
 logger = logging.getLogger(__name__)
 
+
 async def setup_namespace_data(index, namespace: str, num_vectors: int = 2):
     """Helper function to set up test data in a namespace"""
     vectors = [(f"id_{i}", [0.1, 0.2]) for i in range(num_vectors)]
@@ -106,8 +107,8 @@ class TestNamespaceOperationsAsyncio:
             # Verify each namespace has correct structure
             for ns in namespaces:
                 assert isinstance(ns, NamespaceDescription)
-                assert hasattr(ns, 'name')
-                assert hasattr(ns, 'vector_count')
+                assert hasattr(ns, "name")
+                assert hasattr(ns, "vector_count")
         finally:
             # Delete all namespaces before next test is run
             await delete_all_namespaces(asyncio_idx)
@@ -129,8 +130,8 @@ class TestNamespaceOperationsAsyncio:
             assert len(namespaces.namespaces) == 2  # Should get exactly 2 namespaces
             for ns in namespaces.namespaces:
                 assert isinstance(ns, NamespaceDescription)
-                assert hasattr(ns, 'name')
-                assert hasattr(ns, 'vector_count')
+                assert hasattr(ns, "name")
+                assert hasattr(ns, "vector_count")
         finally:
             # Delete all namespaces before next test is run
             await delete_all_namespaces(asyncio_idx)
@@ -152,16 +153,14 @@ class TestNamespaceOperationsAsyncio:
 
             # Get second page
             next_response = await asyncio_idx.list_namespaces_paginated(
-                limit=2,
-                pagination_token=response.pagination.next
+                limit=2, pagination_token=response.pagination.next
             )
             assert len(next_response.namespaces) == 2
             assert next_response.pagination.next is not None
 
             # Get final page
             final_response = await asyncio_idx.list_namespaces_paginated(
-                limit=2,
-                pagination_token=next_response.pagination.next
+                limit=2, pagination_token=next_response.pagination.next
             )
             assert len(final_response.namespaces) == 1
             assert final_response.pagination is None

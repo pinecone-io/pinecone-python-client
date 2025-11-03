@@ -85,9 +85,11 @@ def poll_stats_for_namespace(
             f'Waiting for namespace "{namespace}" to have vectors. Total time waited: {total_time} seconds'
         )
         stats = idx.describe_index_stats()
+        # Handle empty namespace being stored as "__default__" in the API response
+        target_namespace = namespace if namespace != "" else "__default__"
         if (
-            namespace in stats.namespaces
-            and stats.namespaces[namespace].vector_count >= expected_count
+            target_namespace in stats.namespaces
+            and stats.namespaces[target_namespace].vector_count >= expected_count
         ):
             done = True
         elif total_time > max_sleep:
@@ -96,7 +98,7 @@ def poll_stats_for_namespace(
             total_time += delta_t
             logger.debug(f"Found index stats: {stats}.")
             logger.debug(
-                f"Waiting for {expected_count} vectors in namespace {namespace}. Found {stats.namespaces.get(namespace, {'vector_count': 0})['vector_count']} vectors."
+                f"Waiting for {expected_count} vectors in namespace {namespace}. Found {stats.namespaces.get(target_namespace, {'vector_count': 0})['vector_count']} vectors."
             )
             time.sleep(delta_t)
 

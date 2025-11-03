@@ -13,6 +13,7 @@ from pinecone.utils import convert_enum_to_string
 class EmbedModel(Enum):
     Multilingual_E5_Large = "multilingual-e5-large"
     Pinecone_Sparse_English_V0 = "pinecone-sparse-english-v0"
+    Llama_Text_Embed_V2 = "llama-text-embed-v2"
 
 
 class RerankModel(Enum):
