@@ -20,9 +20,18 @@ class ModelInfo:
         if self._model_info.supported_metrics is not None:
             # Handle both cases: list of strings (Python 3.13+) or list of enum-like objects
             metrics_value = self._model_info.supported_metrics.value
-            self.supported_metrics = [
-                sm if isinstance(sm, str) else sm.value for sm in metrics_value
-            ]
+            if metrics_value is None:
+                self.supported_metrics = []
+            else:
+                self.supported_metrics = []
+                for sm in metrics_value:
+                    if isinstance(sm, str):
+                        self.supported_metrics.append(sm)
+                    elif hasattr(sm, "value"):
+                        self.supported_metrics.append(sm.value)
+                    else:
+                        # Fallback: use the value as-is
+                        self.supported_metrics.append(sm)
         else:
             self.supported_metrics = []
 
