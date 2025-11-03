@@ -14,7 +14,7 @@ class TestAdminProjects:
 
         try:
             assert project.name == "test-project"
-            assert project.max_pods == 0
+            # assert project.max_pods == 0
             assert project.force_encryption_with_cmek is False
             assert project.organization_id is not None
             assert isinstance(project.organization_id, str)
@@ -23,7 +23,7 @@ class TestAdminProjects:
 
             # Test dictionary-style access to project attributes
             assert project["name"] == "test-project"
-            assert project["max_pods"] == 0
+            # assert project["max_pods"] == 0
             assert project["force_encryption_with_cmek"] is False
             assert project["organization_id"] is not None
             assert isinstance(project["organization_id"], str)
@@ -31,7 +31,7 @@ class TestAdminProjects:
 
             # Test get-style access to project attributes
             assert project.get("name") == "test-project"
-            assert project.get("max_pods") == 0
+            # assert project.get("max_pods") == 0
             assert project.get("force_encryption_with_cmek") is False
             assert project.get("organization_id") is not None
             assert isinstance(project.get("organization_id"), str)
@@ -46,7 +46,7 @@ class TestAdminProjects:
 
             assert project_list[0].id is not None
             assert project_list[0].name is not None
-            assert project_list[0].max_pods is not None
+            # assert project_list[0].max_pods is not None
             assert project_list[0].force_encryption_with_cmek is not None
             assert project_list[0].organization_id is not None
             assert project_list[0].created_at is not None

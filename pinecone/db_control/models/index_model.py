@@ -1,4 +1,5 @@
 from pinecone.core.openapi.db_control.model.index_model import IndexModel as OpenAPIIndexModel
+from pinecone.core.openapi.db_control.model.index_spec import IndexSpec
 import json
 from pinecone.utils.repr_overrides import custom_serializer
 
@@ -6,12 +7,35 @@ from pinecone.utils.repr_overrides import custom_serializer
 class IndexModel:
     def __init__(self, index: OpenAPIIndexModel):
         self.index = index
+        self._spec_cache = None
 
     def __str__(self):
         return str(self.index)
 
     def __getattr__(self, attr):
+        if attr == "spec":
+            return self._get_spec()
         return getattr(self.index, attr)
+
+    def _get_spec(self):
+        if self._spec_cache is not None:
+            return self._spec_cache
+
+        # Access _data_store directly to avoid OpenAPI model attribute resolution
+        spec_value = self.index._data_store.get("spec")
+        if spec_value is None:
+            # Fallback to getattr in case spec is stored differently
+            spec_value = getattr(self.index, "spec", None)
+
+        if isinstance(spec_value, dict):
+            self._spec_cache = IndexSpec._from_openapi_data(**spec_value)
+        elif spec_value is None:
+            self._spec_cache = None
+        else:
+            # Already an IndexSpec instance or some other object
+            self._spec_cache = spec_value
+
+        return self._spec_cache
 
     def __getitem__(self, key):
         return self.__getattr__(key)
