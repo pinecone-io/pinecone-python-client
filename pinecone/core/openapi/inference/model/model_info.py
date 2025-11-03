@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -150,7 +150,7 @@ class ModelInfo(ModelNormal):
             model (str): The name of the model.
             short_description (str): A summary of the model.
             type (str): The type of model (e.g. 'embed' or 'rerank').
-            supported_parameters ([ModelInfoSupportedParameter]):
+            supported_parameters ([ModelInfoSupportedParameter]): List of parameters supported by the model.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -259,7 +259,7 @@ class ModelInfo(ModelNormal):
             model (str): The name of the model.
             short_description (str): A summary of the model.
             type (str): The type of model (e.g. 'embed' or 'rerank').
-            supported_parameters ([ModelInfoSupportedParameter]):
+            supported_parameters ([ModelInfoSupportedParameter]): List of parameters supported by the model.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types

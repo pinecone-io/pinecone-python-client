@@ -13,17 +13,8 @@ from pinecone.core.openapi.db_control.model.create_index_for_model_request_embed
 )
 from pinecone.core.openapi.db_control.model.create_index_request import CreateIndexRequest
 from pinecone.core.openapi.db_control.model.configure_index_request import ConfigureIndexRequest
-from pinecone.core.openapi.db_control.model.configure_index_request_spec import (
-    ConfigureIndexRequestSpec,
-)
-from pinecone.core.openapi.db_control.model.configure_index_request_spec_pod import (
-    ConfigureIndexRequestSpecPod,
-)
 from pinecone.core.openapi.db_control.model.configure_index_request_embed import (
     ConfigureIndexRequestEmbed,
-)
-from pinecone.core.openapi.db_control.model.deletion_protection import (
-    DeletionProtection as DeletionProtectionModel,
 )
 from pinecone.core.openapi.db_control.model.index_spec import IndexSpec
 from pinecone.core.openapi.db_control.model.index_tags import IndexTags
@@ -70,12 +61,10 @@ class PineconeDBControlRequestFactory:
             return IndexTags(**tags)
 
     @staticmethod
-    def __parse_deletion_protection(
-        deletion_protection: Union[DeletionProtection, str],
-    ) -> DeletionProtectionModel:
+    def __parse_deletion_protection(deletion_protection: Union[DeletionProtection, str]) -> str:
         deletion_protection = convert_enum_to_string(deletion_protection)
         if deletion_protection in ["enabled", "disabled"]:
-            return DeletionProtectionModel(deletion_protection)
+            return deletion_protection
         else:
             raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
 
@@ -247,11 +236,11 @@ class PineconeDBControlRequestFactory:
         embed: Optional[Union[ConfigureIndexEmbed, Dict]] = None,
     ):
         if deletion_protection is None:
-            dp = DeletionProtectionModel(description.deletion_protection)
+            dp = description.deletion_protection
         elif isinstance(deletion_protection, DeletionProtection):
-            dp = DeletionProtectionModel(deletion_protection.value)
+            dp = deletion_protection.value
         elif deletion_protection in ["enabled", "disabled"]:
-            dp = DeletionProtectionModel(deletion_protection)
+            dp = deletion_protection
         else:
             raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
 
@@ -281,7 +270,7 @@ class PineconeDBControlRequestFactory:
 
         spec = None
         if pod_config_args:
-            spec = ConfigureIndexRequestSpec(pod=ConfigureIndexRequestSpecPod(**pod_config_args))
+            spec = {"pod": pod_config_args}
 
         args_dict = parse_non_empty_args(
             [

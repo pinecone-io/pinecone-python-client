@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -25,12 +25,6 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     validate_get_composed_info,
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
-
-
-def lazy_import():
-    from pinecone.core.openapi.inference.model.model_info_metric import ModelInfoMetric
-
-    globals()["ModelInfoMetric"] = ModelInfoMetric
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -71,7 +65,6 @@ class ModelInfoSupportedMetrics(ModelSimple):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -86,8 +79,7 @@ class ModelInfoSupportedMetrics(ModelSimple):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
-        return {"value": ([ModelInfoMetric],)}
+        return {"value": ([str],)}
 
     @cached_class_property
     def discriminator(cls):
@@ -119,10 +111,10 @@ class ModelInfoSupportedMetrics(ModelSimple):
         Note that value can be passed either in args or in kwargs, but not in both.
 
         Args:
-            args[0] ([ModelInfoMetric]): The distance metrics supported by the model for similarity search..  # noqa: E501
+            args[0] ([str]): The distance metrics supported by the model for similarity search..  # noqa: E501
 
         Keyword Args:
-            value ([ModelInfoMetric]): The distance metrics supported by the model for similarity search..  # noqa: E501
+            value ([str]): The distance metrics supported by the model for similarity search..  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -211,10 +203,10 @@ class ModelInfoSupportedMetrics(ModelSimple):
         Note that value can be passed either in args or in kwargs, but not in both.
 
         Args:
-            args[0] ([ModelInfoMetric]): The distance metrics supported by the model for similarity search.  # noqa: E501
+            args[0] ([str]): The distance metrics supported by the model for similarity search.  # noqa: E501
 
         Keyword Args:
-            value ([ModelInfoMetric]): The distance metrics supported by the model for similarity search.  # noqa: E501
+            value ([str]): The distance metrics supported by the model for similarity search.  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.

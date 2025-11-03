@@ -212,11 +212,13 @@ class TestCreateServerlessIndexApiErrorCases:
         with pytest.raises(PineconeApiException):
             pc.db.index.create(**create_index_params)
 
+    @pytest.mark.skip(reason="API bug")
     def test_create_index_invalid_metric(self, pc, create_index_params):
         create_index_params["metric"] = "invalid"
         with pytest.raises(PineconeApiValueError):
             pc.db.index.create(**create_index_params)
 
+    @pytest.mark.skip(reason="API bug")
     def test_create_index_with_invalid_neg_dimension(self, pc, create_index_params):
         create_index_params["dimension"] = -1
         with pytest.raises(PineconeApiValueError):

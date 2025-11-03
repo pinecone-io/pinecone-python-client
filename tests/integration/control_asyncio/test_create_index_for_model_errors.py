@@ -5,7 +5,7 @@ from pinecone import (
     AwsRegion,
     Metric,
     PineconeApiException,
-    PineconeApiValueError,
+    NotFoundException,
     PineconeAsyncio,
 )
 
@@ -33,7 +33,7 @@ class TestCreateIndexForModelErrors:
     async def test_invalid_cloud(self, index_name):
         pc = PineconeAsyncio()
 
-        with pytest.raises(PineconeApiValueError) as e:
+        with pytest.raises(NotFoundException) as e:
             await pc.create_index_for_model(
                 name=index_name,
                 cloud="invalid-cloud",
@@ -45,7 +45,9 @@ class TestCreateIndexForModelErrors:
                 },
                 timeout=-1,
             )
-        assert "Invalid value for `cloud`" in str(e.value)
+        assert "cloud" in str(e.value).lower() and (
+            "invalid" in str(e.value).lower() or "not found" in str(e.value).lower()
+        )
         await pc.close()
 
     @pytest.mark.skip(reason="This seems to not raise an error in preprod-aws-0")
@@ -88,7 +90,7 @@ class TestCreateIndexForModelErrors:
     async def test_create_index_for_model_with_invalid_metric(self, index_name):
         pc = PineconeAsyncio()
 
-        with pytest.raises(PineconeApiValueError) as e:
+        with pytest.raises(PineconeApiException) as e:
             await pc.create_index_for_model(
                 name=index_name,
                 cloud=CloudProvider.AWS,
@@ -100,7 +102,7 @@ class TestCreateIndexForModelErrors:
                 },
                 timeout=-1,
             )
-        assert "Invalid value for `metric`" in str(e.value)
+        assert "metric" in str(e.value).lower() and "invalid" in str(e.value).lower()
         await pc.close()
 
     async def test_create_index_for_model_with_missing_name(self):

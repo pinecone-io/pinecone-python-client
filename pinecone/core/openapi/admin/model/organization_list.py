@@ -5,7 +5,7 @@ Provides an API for managing a Pinecone organization and its resources.   # noqa
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -28,18 +28,18 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
-    from pinecone.core.openapi.admin.model.project import Project
+    from pinecone.core.openapi.admin.model.organization import Organization
 
-    globals()["Project"] = Project
+    globals()["Organization"] = Organization
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="InlineResponse200")
+T = TypeVar("T", bound="OrganizationList")
 
 
-class InlineResponse200(ModelNormal):
+class OrganizationList(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -92,7 +92,7 @@ class InlineResponse200(ModelNormal):
         """
         lazy_import()
         return {
-            "data": ([Project],)  # noqa: E501
+            "data": ([Organization],)  # noqa: E501
         }
 
     @cached_class_property
@@ -109,8 +109,11 @@ class InlineResponse200(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """InlineResponse200 - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], data, *args, **kwargs) -> T:  # noqa: E501
+        """OrganizationList - a model defined in OpenAPI
+
+        Args:
+            data ([Organization]):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -143,7 +146,6 @@ class InlineResponse200(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            data ([Project]): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -173,6 +175,7 @@ class InlineResponse200(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.data = data
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -199,8 +202,11 @@ class InlineResponse200(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """InlineResponse200 - a model defined in OpenAPI
+    def __init__(self, data, *args, **kwargs) -> None:  # noqa: E501
+        """OrganizationList - a model defined in OpenAPI
+
+        Args:
+            data ([Organization]):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -233,7 +239,6 @@ class InlineResponse200(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            data ([Project]): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -261,6 +266,7 @@ class InlineResponse200(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.data = data
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

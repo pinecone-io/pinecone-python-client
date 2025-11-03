@@ -1,11 +1,11 @@
 """
-Pinecone Control Plane API
+Pinecone Data Plane API
 
 Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -27,21 +27,13 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
-def lazy_import():
-    from pinecone.core.openapi.db_control.model.configure_index_request_spec_pod import (
-        ConfigureIndexRequestSpecPod,
-    )
-
-    globals()["ConfigureIndexRequestSpecPod"] = ConfigureIndexRequestSpecPod
-
-
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="ConfigureIndexRequestSpec")
+T = TypeVar("T", bound="CreateNamespaceRequestSchemaFields")
 
 
-class ConfigureIndexRequestSpec(ModelNormal):
+class CreateNamespaceRequestSchemaFields(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -77,7 +69,6 @@ class ConfigureIndexRequestSpec(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -92,9 +83,8 @@ class ConfigureIndexRequestSpec(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
-            "pod": (ConfigureIndexRequestSpecPod,)  # noqa: E501
+            "filterable": (bool,)  # noqa: E501
         }
 
     @cached_class_property
@@ -102,7 +92,7 @@ class ConfigureIndexRequestSpec(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "pod": "pod"  # noqa: E501
+        "filterable": "filterable"  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -111,11 +101,8 @@ class ConfigureIndexRequestSpec(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], pod, *args, **kwargs) -> T:  # noqa: E501
-        """ConfigureIndexRequestSpec - a model defined in OpenAPI
-
-        Args:
-            pod (ConfigureIndexRequestSpecPod):
+    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
+        """CreateNamespaceRequestSchemaFields - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -148,6 +135,7 @@ class ConfigureIndexRequestSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            filterable (bool): Whether the field is filterable. If true, the field is indexed and can be used in filters. Only true values are allowed. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -177,7 +165,6 @@ class ConfigureIndexRequestSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.pod = pod
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -204,11 +191,8 @@ class ConfigureIndexRequestSpec(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, pod, *args, **kwargs) -> None:  # noqa: E501
-        """ConfigureIndexRequestSpec - a model defined in OpenAPI
-
-        Args:
-            pod (ConfigureIndexRequestSpecPod):
+    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
+        """CreateNamespaceRequestSchemaFields - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -241,6 +225,7 @@ class ConfigureIndexRequestSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            filterable (bool): Whether the field is filterable. If true, the field is indexed and can be used in filters. Only true values are allowed. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -268,7 +253,6 @@ class ConfigureIndexRequestSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.pod = pod
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

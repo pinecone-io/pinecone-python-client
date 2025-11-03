@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -59,13 +59,7 @@ class CollectionModel(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("status",): {
-            "INITIALIZING": "Initializing",
-            "READY": "Ready",
-            "TERMINATING": "Terminating",
-        }
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
         ("dimension",): {"inclusive_maximum": 20000, "inclusive_minimum": 1}
@@ -124,7 +118,7 @@ class CollectionModel(ModelNormal):
 
         Args:
             name (str): The name of the collection.
-            status (str): The status of the collection.
+            status (str): The status of the collection. Possible values: `Initializing`, `Ready`, or `Terminating`.
             environment (str): The environment where the collection is hosted.
 
         Keyword Args:
@@ -224,7 +218,7 @@ class CollectionModel(ModelNormal):
 
         Args:
             name (str): The name of the collection.
-            status (str): The status of the collection.
+            status (str): The status of the collection. Possible values: `Initializing`, `Ready`, or `Terminating`.
             environment (str): The environment where the collection is hosted.
 
         Keyword Args:

@@ -1,11 +1,11 @@
 """
-Pinecone Control Plane API
+Pinecone Data Plane API
 
 Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -30,10 +30,10 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="ConfigureIndexRequestSpecPod")
+T = TypeVar("T", bound="FetchByMetadataRequest")
 
 
-class ConfigureIndexRequestSpecPod(ModelNormal):
+class FetchByMetadataRequest(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -62,7 +62,7 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-        ("replicas",): {"inclusive_minimum": 1}
+        ("limit",): {"inclusive_minimum": 1}
     }
 
     @cached_class_property
@@ -86,8 +86,10 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            "replicas": (int,),  # noqa: E501
-            "pod_type": (str,),  # noqa: E501
+            "namespace": (str,),  # noqa: E501
+            "filter": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "limit": (int,),  # noqa: E501
+            "pagination_token": (str,),  # noqa: E501
         }
 
     @cached_class_property
@@ -95,8 +97,10 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "replicas": "replicas",  # noqa: E501
-        "pod_type": "pod_type",  # noqa: E501
+        "namespace": "namespace",  # noqa: E501
+        "filter": "filter",  # noqa: E501
+        "limit": "limit",  # noqa: E501
+        "pagination_token": "paginationToken",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -106,7 +110,7 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """ConfigureIndexRequestSpecPod - a model defined in OpenAPI
+        """FetchByMetadataRequest - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -139,8 +143,10 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change. [optional] if omitted the server will use the default value of 1.  # noqa: E501
-            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`. [optional] if omitted the server will use the default value of "p1.x1".  # noqa: E501
+            namespace (str): The namespace to fetch vectors from. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): Metadata filter expression to select vectors. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
+            limit (int): Max number of vectors to return. [optional] if omitted the server will use the default value of 100.  # noqa: E501
+            pagination_token (str): Pagination token to continue a previous listing operation. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -197,7 +203,7 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
 
     @convert_js_args_to_python_args
     def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """ConfigureIndexRequestSpecPod - a model defined in OpenAPI
+        """FetchByMetadataRequest - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -230,8 +236,10 @@ class ConfigureIndexRequestSpecPod(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change. [optional] if omitted the server will use the default value of 1.  # noqa: E501
-            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`. [optional] if omitted the server will use the default value of "p1.x1".  # noqa: E501
+            namespace (str): The namespace to fetch vectors from. [optional]  # noqa: E501
+            filter ({str: (bool, dict, float, int, list, str, none_type)}): Metadata filter expression to select vectors. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
+            limit (int): Max number of vectors to return. [optional] if omitted the server will use the default value of 100.  # noqa: E501
+            pagination_token (str): Pagination token to continue a previous listing operation. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

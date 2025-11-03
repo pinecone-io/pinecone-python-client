@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -147,7 +147,7 @@ class BackupList(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            data ([BackupModel]): [optional]  # noqa: E501
+            data ([BackupModel]): List of backup objects [optional]  # noqa: E501
             pagination (PaginationResponse): [optional]  # noqa: E501
         """
 
@@ -238,7 +238,7 @@ class BackupList(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            data ([BackupModel]): [optional]  # noqa: E501
+            data ([BackupModel]): List of backup objects [optional]  # noqa: E501
             pagination (PaginationResponse): [optional]  # noqa: E501
         """
 

@@ -5,7 +5,7 @@ from pinecone import (
     AwsRegion,
     Metric,
     PineconeApiException,
-    PineconeApiValueError,
+    NotFoundException,
 )
 
 
@@ -26,7 +26,7 @@ class TestCreateIndexForModelErrors:
         assert "Model invalid-model not found." in str(e.value)
 
     def test_invalid_cloud(self, client, index_name):
-        with pytest.raises(PineconeApiValueError) as e:
+        with pytest.raises(NotFoundException) as e:
             client.create_index_for_model(
                 name=index_name,
                 cloud="invalid-cloud",
@@ -38,7 +38,9 @@ class TestCreateIndexForModelErrors:
                 },
                 timeout=-1,
             )
-        assert "Invalid value for `cloud`" in str(e.value)
+        assert "cloud" in str(e.value).lower() and (
+            "invalid" in str(e.value).lower() or "not found" in str(e.value).lower()
+        )
 
     @pytest.mark.skip(reason="This seems to not raise an error in preprod-aws-0")
     def test_invalid_region(self, client, index_name):
@@ -72,7 +74,7 @@ class TestCreateIndexForModelErrors:
         assert "Missing required key 'text'" in str(e.value)
 
     def test_create_index_for_model_with_invalid_metric(self, client, index_name):
-        with pytest.raises(PineconeApiValueError) as e:
+        with pytest.raises(PineconeApiException) as e:
             client.create_index_for_model(
                 name=index_name,
                 cloud=CloudProvider.AWS,
@@ -84,7 +86,7 @@ class TestCreateIndexForModelErrors:
                 },
                 timeout=-1,
             )
-        assert "Invalid value for `metric`" in str(e.value)
+        assert "metric" in str(e.value).lower() and "invalid" in str(e.value).lower()
 
     def test_create_index_for_model_with_missing_name(self, client):
         with pytest.raises(TypeError) as e:

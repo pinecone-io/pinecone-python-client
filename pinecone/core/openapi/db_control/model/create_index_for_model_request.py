@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -28,15 +28,17 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
+    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
     from pinecone.core.openapi.db_control.model.create_index_for_model_request_embed import (
         CreateIndexForModelRequestEmbed,
     )
-    from pinecone.core.openapi.db_control.model.deletion_protection import DeletionProtection
     from pinecone.core.openapi.db_control.model.index_tags import IndexTags
+    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
 
+    globals()["BackupModelSchema"] = BackupModelSchema
     globals()["CreateIndexForModelRequestEmbed"] = CreateIndexForModelRequestEmbed
-    globals()["DeletionProtection"] = DeletionProtection
     globals()["IndexTags"] = IndexTags
+    globals()["ReadCapacity"] = ReadCapacity
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -71,9 +73,7 @@ class CreateIndexForModelRequest(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("cloud",): {"GCP": "gcp", "AWS": "aws", "AZURE": "azure"}
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
         ("name",): {"max_length": 45, "min_length": 1}
@@ -106,8 +106,10 @@ class CreateIndexForModelRequest(ModelNormal):
             "cloud": (str,),  # noqa: E501
             "region": (str,),  # noqa: E501
             "embed": (CreateIndexForModelRequestEmbed,),  # noqa: E501
-            "deletion_protection": (DeletionProtection,),  # noqa: E501
+            "deletion_protection": (str,),  # noqa: E501
             "tags": (IndexTags,),  # noqa: E501
+            "schema": (BackupModelSchema,),  # noqa: E501
+            "read_capacity": (ReadCapacity,),  # noqa: E501
         }
 
     @cached_class_property
@@ -121,6 +123,8 @@ class CreateIndexForModelRequest(ModelNormal):
         "embed": "embed",  # noqa: E501
         "deletion_protection": "deletion_protection",  # noqa: E501
         "tags": "tags",  # noqa: E501
+        "schema": "schema",  # noqa: E501
+        "read_capacity": "read_capacity",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -134,7 +138,7 @@ class CreateIndexForModelRequest(ModelNormal):
 
         Args:
             name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.
-            cloud (str): The public cloud where you would like your index hosted.
+            cloud (str): The public cloud where you would like your index hosted. Possible values: `gcp`, `aws`, or `azure`.
             region (str): The region where you would like your index to be created.
             embed (CreateIndexForModelRequestEmbed):
 
@@ -169,8 +173,10 @@ class CreateIndexForModelRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            deletion_protection (DeletionProtection): [optional]  # noqa: E501
+            deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. [optional] if omitted the server will use the default value of "disabled".  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
+            schema (BackupModelSchema): [optional]  # noqa: E501
+            read_capacity (ReadCapacity): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -235,7 +241,7 @@ class CreateIndexForModelRequest(ModelNormal):
 
         Args:
             name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.
-            cloud (str): The public cloud where you would like your index hosted.
+            cloud (str): The public cloud where you would like your index hosted. Possible values: `gcp`, `aws`, or `azure`.
             region (str): The region where you would like your index to be created.
             embed (CreateIndexForModelRequestEmbed):
 
@@ -270,8 +276,10 @@ class CreateIndexForModelRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            deletion_protection (DeletionProtection): [optional]  # noqa: E501
+            deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. [optional] if omitted the server will use the default value of "disabled".  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
+            schema (BackupModelSchema): [optional]  # noqa: E501
+            read_capacity (ReadCapacity): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

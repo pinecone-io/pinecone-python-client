@@ -3,10 +3,7 @@ from pinecone import IndexList
 from pinecone.core.openapi.db_control.models import (
     IndexList as OpenApiIndexList,
     IndexModel as OpenApiIndexModel,
-    IndexModelSpec,
     IndexModelStatus,
-    DeletionProtection,
-    PodSpec as OpenApiPodSpec,
 )
 
 
@@ -20,12 +17,16 @@ def index_list_response():
                 metric="cosine",
                 host="https://test-index-1.pinecone.io",
                 status=IndexModelStatus(ready=True, state="Ready"),
-                deletion_protection=DeletionProtection("enabled"),
-                spec=IndexModelSpec(
-                    pod=OpenApiPodSpec(
-                        environment="us-west1-gcp", pod_type="p1.x1", pods=1, replicas=1, shards=1
-                    )
-                ),
+                deletion_protection="enabled",
+                spec={
+                    "pod": {
+                        "environment": "us-west1-gcp",
+                        "pod_type": "p1.x1",
+                        "pods": 1,
+                        "replicas": 1,
+                        "shards": 1,
+                    }
+                },
             ),
             OpenApiIndexModel(
                 name="test-index-2",
@@ -33,12 +34,16 @@ def index_list_response():
                 metric="cosine",
                 host="https://test-index-2.pinecone.io",
                 status=IndexModelStatus(ready=True, state="Ready"),
-                deletion_protection=DeletionProtection("disabled"),
-                spec=IndexModelSpec(
-                    pod=OpenApiPodSpec(
-                        environment="us-west1-gcp", pod_type="p1.x1", pods=1, replicas=1, shards=1
-                    )
-                ),
+                deletion_protection="disabled",
+                spec={
+                    "pod": {
+                        "environment": "us-west1-gcp",
+                        "pod_type": "p1.x1",
+                        "pods": 1,
+                        "replicas": 1,
+                        "shards": 1,
+                    }
+                },
             ),
         ],
         _check_type=False,
@@ -66,7 +71,7 @@ class TestIndexList:
         assert input.indexes[0].dimension == iil[0].dimension
         assert input.indexes[0].metric == iil[0].metric
         assert input.indexes[0].host == iil[0].host
-        assert input.indexes[0].deletion_protection.value == iil[0].deletion_protection
+        assert input.indexes[0].deletion_protection == iil[0].deletion_protection
         assert iil[0].deletion_protection == "enabled"
 
         assert input.indexes[1].name == iil[1].name

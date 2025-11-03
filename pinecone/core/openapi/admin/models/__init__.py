@@ -13,9 +13,13 @@ from pinecone.core.openapi.admin.model.api_key import APIKey
 from pinecone.core.openapi.admin.model.api_key_with_secret import APIKeyWithSecret
 from pinecone.core.openapi.admin.model.create_api_key_request import CreateAPIKeyRequest
 from pinecone.core.openapi.admin.model.create_project_request import CreateProjectRequest
-from pinecone.core.openapi.admin.model.inline_response200 import InlineResponse200
-from pinecone.core.openapi.admin.model.inline_response2001 import InlineResponse2001
-from pinecone.core.openapi.admin.model.inline_response401 import InlineResponse401
-from pinecone.core.openapi.admin.model.inline_response401_error import InlineResponse401Error
+from pinecone.core.openapi.admin.model.error_response import ErrorResponse
+from pinecone.core.openapi.admin.model.error_response_error import ErrorResponseError
+from pinecone.core.openapi.admin.model.list_api_keys_response import ListApiKeysResponse
+from pinecone.core.openapi.admin.model.organization import Organization
+from pinecone.core.openapi.admin.model.organization_list import OrganizationList
 from pinecone.core.openapi.admin.model.project import Project
+from pinecone.core.openapi.admin.model.project_list import ProjectList
+from pinecone.core.openapi.admin.model.update_api_key_request import UpdateAPIKeyRequest
+from pinecone.core.openapi.admin.model.update_organization_request import UpdateOrganizationRequest
 from pinecone.core.openapi.admin.model.update_project_request import UpdateProjectRequest

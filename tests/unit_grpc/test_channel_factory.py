@@ -25,9 +25,11 @@ class TestGrpcChannelFactory:
         )
         endpoint = "test.endpoint:443"
 
-        with patch("grpc.secure_channel") as mock_secure_channel, patch(
-            "certifi.where", return_value="/path/to/certifi/cacert.pem"
-        ), patch("builtins.open", new_callable=MagicMock) as mock_open:
+        with (
+            patch("grpc.secure_channel") as mock_secure_channel,
+            patch("certifi.where", return_value="/path/to/certifi/cacert.pem"),
+            patch("builtins.open", new_callable=MagicMock) as mock_open,
+        ):
             # Mock the file object to return bytes when read() is called
             mock_file = MagicMock()
             mock_file.read.return_value = b"mocked_cert_data"
@@ -94,9 +96,11 @@ class TestGrpcChannelFactoryAsyncio:
         )
         endpoint = "test.endpoint:443"
 
-        with patch("grpc.aio.secure_channel") as mock_secure_aio_channel, patch(
-            "certifi.where", return_value="/path/to/certifi/cacert.pem"
-        ), patch("builtins.open", new_callable=MagicMock) as mock_open:
+        with (
+            patch("grpc.aio.secure_channel") as mock_secure_aio_channel,
+            patch("certifi.where", return_value="/path/to/certifi/cacert.pem"),
+            patch("builtins.open", new_callable=MagicMock) as mock_open,
+        ):
             # Mock the file object to return bytes when read() is called
             mock_file = MagicMock()
             mock_file.read.return_value = b"mocked_cert_data"

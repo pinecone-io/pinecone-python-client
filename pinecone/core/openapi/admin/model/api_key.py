@@ -5,7 +5,7 @@ Provides an API for managing a Pinecone organization and its resources.   # noqa
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -59,16 +59,7 @@ class APIKey(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("roles",): {
-            "PROJECTEDITOR": "ProjectEditor",
-            "PROJECTVIEWER": "ProjectViewer",
-            "CONTROLPLANEEDITOR": "ControlPlaneEditor",
-            "CONTROLPLANEVIEWER": "ControlPlaneViewer",
-            "DATAPLANEEDITOR": "DataPlaneEditor",
-            "DATAPLANEVIEWER": "DataPlaneViewer",
-        }
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 

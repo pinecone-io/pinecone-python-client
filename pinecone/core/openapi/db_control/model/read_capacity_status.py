@@ -1,11 +1,11 @@
 """
-Pinecone OAuth API
+Pinecone Control Plane API
 
-Provides an API for authenticating with Pinecone.   # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -30,10 +30,10 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="InlineResponse400")
+T = TypeVar("T", bound="ReadCapacityStatus")
 
 
-class InlineResponse400(ModelNormal):
+class ReadCapacityStatus(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -84,8 +84,10 @@ class InlineResponse400(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            "error": (str,),  # noqa: E501
-            "error_description": (str,),  # noqa: E501
+            "state": (str,),  # noqa: E501
+            "current_replicas": (int,),  # noqa: E501
+            "current_shards": (int,),  # noqa: E501
+            "error_message": (str,),  # noqa: E501
         }
 
     @cached_class_property
@@ -93,8 +95,10 @@ class InlineResponse400(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "error": "error",  # noqa: E501
-        "error_description": "error_description",  # noqa: E501
+        "state": "state",  # noqa: E501
+        "current_replicas": "current_replicas",  # noqa: E501
+        "current_shards": "current_shards",  # noqa: E501
+        "error_message": "error_message",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -103,8 +107,11 @@ class InlineResponse400(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """InlineResponse400 - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], state, *args, **kwargs) -> T:  # noqa: E501
+        """ReadCapacityStatus - a model defined in OpenAPI
+
+        Args:
+            state (str): The `state` describes the overall status of factors relating to the read capacity of an index.   Available values: - `Ready` is the state most of the time - `Scaling` if the number of replicas or shards has been recently updated by calling the [configure index endpoint](https://docs.pinecone.io/reference/api/2025-10/control-plane/configure_index) - `Migrating` if the index is being migrated to a new `node_type` - `Error` if there is an error with the read capacity configuration. In that case, see `error_message` for more details.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -137,8 +144,9 @@ class InlineResponse400(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            error (str): A code identifying the error that occurred. [optional]  # noqa: E501
-            error_description (str): A human-readable description of the error. [optional]  # noqa: E501
+            current_replicas (int): The number of replicas. Each replica has dedicated  compute resources and data storage. Increasing this number  will increase the total throughput of the index. [optional]  # noqa: E501
+            current_shards (int): The number of shards. Each shard has dedicated storage.  Increasing shards alleiviates index fullness.  [optional]  # noqa: E501
+            error_message (str): An optional error message indicating any issues with your read capacity configuration [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -168,6 +176,7 @@ class InlineResponse400(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.state = state
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -194,8 +203,11 @@ class InlineResponse400(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """InlineResponse400 - a model defined in OpenAPI
+    def __init__(self, state, *args, **kwargs) -> None:  # noqa: E501
+        """ReadCapacityStatus - a model defined in OpenAPI
+
+        Args:
+            state (str): The `state` describes the overall status of factors relating to the read capacity of an index.   Available values: - `Ready` is the state most of the time - `Scaling` if the number of replicas or shards has been recently updated by calling the [configure index endpoint](https://docs.pinecone.io/reference/api/2025-10/control-plane/configure_index) - `Migrating` if the index is being migrated to a new `node_type` - `Error` if there is an error with the read capacity configuration. In that case, see `error_message` for more details.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -228,8 +240,9 @@ class InlineResponse400(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            error (str): A code identifying the error that occurred. [optional]  # noqa: E501
-            error_description (str): A human-readable description of the error. [optional]  # noqa: E501
+            current_replicas (int): The number of replicas. Each replica has dedicated  compute resources and data storage. Increasing this number  will increase the total throughput of the index. [optional]  # noqa: E501
+            current_shards (int): The number of shards. Each shard has dedicated storage.  Increasing shards alleiviates index fullness.  [optional]  # noqa: E501
+            error_message (str): An optional error message indicating any issues with your read capacity configuration [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -257,6 +270,7 @@ class InlineResponse400(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.state = state
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

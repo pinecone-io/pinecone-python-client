@@ -48,4 +48,10 @@ class TestUpsertDense:
         # Check the vector count reflects some data has been upserted
         stats = idx.describe_index_stats()
         assert stats.total_vector_count >= 9
-        assert stats.namespaces[target_namespace].vector_count == 9
+        # The default namespace may be represented as "" or "__default__" in the API response
+        if target_namespace == "":
+            namespace_key = "__default__" if "__default__" in stats.namespaces else ""
+        else:
+            namespace_key = target_namespace
+        assert namespace_key in stats.namespaces
+        assert stats.namespaces[namespace_key].vector_count == 9

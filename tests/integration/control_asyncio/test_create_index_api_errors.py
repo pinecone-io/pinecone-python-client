@@ -14,7 +14,7 @@ class TestCreateIndexApiErrorCases:
     async def test_create_index_invalid_metric(self, create_sl_index_params):
         pc = PineconeAsyncio()
         create_sl_index_params["metric"] = "invalid"
-        with pytest.raises(PineconeApiValueError):
+        with pytest.raises(PineconeApiException):
             await pc.create_index(**create_sl_index_params)
         await pc.close()
 

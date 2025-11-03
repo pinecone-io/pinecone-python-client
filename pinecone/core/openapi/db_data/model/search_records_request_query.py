@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -28,8 +28,10 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
+    from pinecone.core.openapi.db_data.model.search_match_terms import SearchMatchTerms
     from pinecone.core.openapi.db_data.model.search_records_vector import SearchRecordsVector
 
+    globals()["SearchMatchTerms"] = SearchMatchTerms
     globals()["SearchRecordsVector"] = SearchRecordsVector
 
 
@@ -97,6 +99,7 @@ class SearchRecordsRequestQuery(ModelNormal):
             "inputs": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
             "vector": (SearchRecordsVector,),  # noqa: E501
             "id": (str,),  # noqa: E501
+            "match_terms": (SearchMatchTerms,),  # noqa: E501
         }
 
     @cached_class_property
@@ -109,6 +112,7 @@ class SearchRecordsRequestQuery(ModelNormal):
         "inputs": "inputs",  # noqa: E501
         "vector": "vector",  # noqa: E501
         "id": "id",  # noqa: E501
+        "match_terms": "match_terms",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -158,6 +162,7 @@ class SearchRecordsRequestQuery(ModelNormal):
             inputs ({str: (bool, dict, float, int, list, str, none_type)}): [optional]  # noqa: E501
             vector (SearchRecordsVector): [optional]  # noqa: E501
             id (str): The unique ID of the vector to be used as a query vector. [optional]  # noqa: E501
+            match_terms (SearchMatchTerms): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -255,6 +260,7 @@ class SearchRecordsRequestQuery(ModelNormal):
             inputs ({str: (bool, dict, float, int, list, str, none_type)}): [optional]  # noqa: E501
             vector (SearchRecordsVector): [optional]  # noqa: E501
             id (str): The unique ID of the vector to be used as a query vector. [optional]  # noqa: E501
+            match_terms (SearchMatchTerms): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

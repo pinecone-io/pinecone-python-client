@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -25,6 +25,14 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     validate_get_composed_info,
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
+
+
+def lazy_import():
+    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
+    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
+
+    globals()["BackupModelSchema"] = BackupModelSchema
+    globals()["ReadCapacity"] = ReadCapacity
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -59,9 +67,7 @@ class ServerlessSpec(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("cloud",): {"GCP": "gcp", "AWS": "aws", "AZURE": "azure"}
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 
@@ -71,6 +77,7 @@ class ServerlessSpec(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
+        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -85,9 +92,13 @@ class ServerlessSpec(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
+        lazy_import()
         return {
             "cloud": (str,),  # noqa: E501
             "region": (str,),  # noqa: E501
+            "read_capacity": (ReadCapacity,),  # noqa: E501
+            "source_collection": (str,),  # noqa: E501
+            "schema": (BackupModelSchema,),  # noqa: E501
         }
 
     @cached_class_property
@@ -97,6 +108,9 @@ class ServerlessSpec(ModelNormal):
     attribute_map: Dict[str, str] = {
         "cloud": "cloud",  # noqa: E501
         "region": "region",  # noqa: E501
+        "read_capacity": "read_capacity",  # noqa: E501
+        "source_collection": "source_collection",  # noqa: E501
+        "schema": "schema",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -109,7 +123,7 @@ class ServerlessSpec(ModelNormal):
         """ServerlessSpec - a model defined in OpenAPI
 
         Args:
-            cloud (str): The public cloud where you would like your index hosted.
+            cloud (str): The public cloud where you would like your index hosted. Possible values: `gcp`, `aws`, or `azure`.
             region (str): The region where you would like your index to be created.
 
         Keyword Args:
@@ -143,6 +157,9 @@ class ServerlessSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            read_capacity (ReadCapacity): [optional]  # noqa: E501
+            source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
+            schema (BackupModelSchema): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -204,7 +221,7 @@ class ServerlessSpec(ModelNormal):
         """ServerlessSpec - a model defined in OpenAPI
 
         Args:
-            cloud (str): The public cloud where you would like your index hosted.
+            cloud (str): The public cloud where you would like your index hosted. Possible values: `gcp`, `aws`, or `azure`.
             region (str): The region where you would like your index to be created.
 
         Keyword Args:
@@ -238,6 +255,9 @@ class ServerlessSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            read_capacity (ReadCapacity): [optional]  # noqa: E501
+            source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
+            schema (BackupModelSchema): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

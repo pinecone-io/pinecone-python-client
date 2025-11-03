@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -43,16 +43,18 @@ class InferenceApi:
             api_client = ApiClient()
         self.api_client = api_client
 
-        def __embed(self, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __embed(self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict):
             """Generate vectors  # noqa: E501
 
             Generate vector embeddings for input data. This endpoint uses Pinecone's [hosted embedding models](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.embed(async_req=True)
+            >>> thread = api.embed(x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
+            Args:
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 embed_request (EmbedRequest): Generate embeddings for inputs. [optional]
@@ -79,6 +81,7 @@ class InferenceApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             return self.call_with_http_info(**kwargs)
 
         self.embed = _Endpoint(
@@ -91,8 +94,8 @@ class InferenceApi:
                 "servers": None,
             },
             params_map={
-                "all": ["embed_request"],
-                "required": [],
+                "all": ["x_pinecone_api_version", "embed_request"],
+                "required": ["x_pinecone_api_version"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -100,9 +103,12 @@ class InferenceApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"embed_request": (EmbedRequest,)},
-                "attribute_map": {},
-                "location_map": {"embed_request": "body"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "embed_request": (EmbedRequest,),
+                },
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header", "embed_request": "body"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -110,18 +116,24 @@ class InferenceApi:
             callable=__embed,
         )
 
-        def __get_model(self, model_name, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __get_model(
+            self,
+            model_name,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ):
             """Describe a model  # noqa: E501
 
             Get a description of a model hosted by Pinecone.   You can use hosted models as an integrated part of Pinecone operations or for standalone embedding and reranking. For more details, see [Vector embedding](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding) and [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.get_model(model_name, async_req=True)
+            >>> thread = api.get_model(model_name, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 model_name (str): The name of the model to look up.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -147,6 +159,7 @@ class InferenceApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["model_name"] = model_name
             return self.call_with_http_info(**kwargs)
 
@@ -160,8 +173,8 @@ class InferenceApi:
                 "servers": None,
             },
             params_map={
-                "all": ["model_name"],
-                "required": ["model_name"],
+                "all": ["x_pinecone_api_version", "model_name"],
+                "required": ["x_pinecone_api_version", "model_name"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -169,9 +182,12 @@ class InferenceApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"model_name": (str,)},
-                "attribute_map": {"model_name": "model_name"},
-                "location_map": {"model_name": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "model_name": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "model_name": "model_name",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "model_name": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -179,16 +195,20 @@ class InferenceApi:
             callable=__get_model,
         )
 
-        def __list_models(self, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __list_models(
+            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+        ):
             """List available models  # noqa: E501
 
             List the embedding and reranking models hosted by Pinecone.   You can use hosted models as an integrated part of Pinecone operations or for standalone embedding and reranking. For more details, see [Vector embedding](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding) and [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_models(async_req=True)
+            >>> thread = api.list_models(x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
+            Args:
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 type (str): Filter models by type ('embed' or 'rerank'). [optional]
@@ -216,6 +236,7 @@ class InferenceApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             return self.call_with_http_info(**kwargs)
 
         self.list_models = _Endpoint(
@@ -228,8 +249,8 @@ class InferenceApi:
                 "servers": None,
             },
             params_map={
-                "all": ["type", "vector_type"],
-                "required": [],
+                "all": ["x_pinecone_api_version", "type", "vector_type"],
+                "required": ["x_pinecone_api_version"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -237,9 +258,21 @@ class InferenceApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"type": (str,), "vector_type": (str,)},
-                "attribute_map": {"type": "type", "vector_type": "vector_type"},
-                "location_map": {"type": "query", "vector_type": "query"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "type": (str,),
+                    "vector_type": (str,),
+                },
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "type": "type",
+                    "vector_type": "vector_type",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "type": "query",
+                    "vector_type": "query",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -247,16 +280,18 @@ class InferenceApi:
             callable=__list_models,
         )
 
-        def __rerank(self, **kwargs: ExtraOpenApiKwargsTypedDict):
-            """Rerank documents  # noqa: E501
+        def __rerank(self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict):
+            """Rerank results  # noqa: E501
 
             Rerank results according to their relevance to a query.  For guidance and examples, see [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.rerank(async_req=True)
+            >>> thread = api.rerank(x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
+            Args:
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 rerank_request (RerankRequest): Rerank documents for the given query [optional]
@@ -283,6 +318,7 @@ class InferenceApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             return self.call_with_http_info(**kwargs)
 
         self.rerank = _Endpoint(
@@ -295,8 +331,8 @@ class InferenceApi:
                 "servers": None,
             },
             params_map={
-                "all": ["rerank_request"],
-                "required": [],
+                "all": ["x_pinecone_api_version", "rerank_request"],
+                "required": ["x_pinecone_api_version"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -304,9 +340,12 @@ class InferenceApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"rerank_request": (RerankRequest,)},
-                "attribute_map": {},
-                "location_map": {"rerank_request": "body"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "rerank_request": (RerankRequest,),
+                },
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header", "rerank_request": "body"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -326,12 +365,14 @@ class AsyncioInferenceApi:
             api_client = AsyncioApiClient()
         self.api_client = api_client
 
-        async def __embed(self, **kwargs):
+        async def __embed(self, x_pinecone_api_version="2025-10", **kwargs):
             """Generate vectors  # noqa: E501
 
             Generate vector embeddings for input data. This endpoint uses Pinecone's [hosted embedding models](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models).  # noqa: E501
 
 
+            Args:
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 embed_request (EmbedRequest): Generate embeddings for inputs. [optional]
@@ -355,6 +396,7 @@ class AsyncioInferenceApi:
                 EmbeddingsList
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             return await self.call_with_http_info(**kwargs)
 
         self.embed = _AsyncioEndpoint(
@@ -367,8 +409,8 @@ class AsyncioInferenceApi:
                 "servers": None,
             },
             params_map={
-                "all": ["embed_request"],
-                "required": [],
+                "all": ["x_pinecone_api_version", "embed_request"],
+                "required": ["x_pinecone_api_version"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -376,9 +418,12 @@ class AsyncioInferenceApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"embed_request": (EmbedRequest,)},
-                "attribute_map": {},
-                "location_map": {"embed_request": "body"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "embed_request": (EmbedRequest,),
+                },
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header", "embed_request": "body"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -386,7 +431,7 @@ class AsyncioInferenceApi:
             callable=__embed,
         )
 
-        async def __get_model(self, model_name, **kwargs):
+        async def __get_model(self, model_name, x_pinecone_api_version="2025-10", **kwargs):
             """Describe a model  # noqa: E501
 
             Get a description of a model hosted by Pinecone.   You can use hosted models as an integrated part of Pinecone operations or for standalone embedding and reranking. For more details, see [Vector embedding](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding) and [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
@@ -394,6 +439,7 @@ class AsyncioInferenceApi:
 
             Args:
                 model_name (str): The name of the model to look up.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -416,6 +462,7 @@ class AsyncioInferenceApi:
                 ModelInfo
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["model_name"] = model_name
             return await self.call_with_http_info(**kwargs)
 
@@ -429,8 +476,8 @@ class AsyncioInferenceApi:
                 "servers": None,
             },
             params_map={
-                "all": ["model_name"],
-                "required": ["model_name"],
+                "all": ["x_pinecone_api_version", "model_name"],
+                "required": ["x_pinecone_api_version", "model_name"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -438,9 +485,12 @@ class AsyncioInferenceApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"model_name": (str,)},
-                "attribute_map": {"model_name": "model_name"},
-                "location_map": {"model_name": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "model_name": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "model_name": "model_name",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "model_name": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -448,12 +498,14 @@ class AsyncioInferenceApi:
             callable=__get_model,
         )
 
-        async def __list_models(self, **kwargs):
+        async def __list_models(self, x_pinecone_api_version="2025-10", **kwargs):
             """List available models  # noqa: E501
 
             List the embedding and reranking models hosted by Pinecone.   You can use hosted models as an integrated part of Pinecone operations or for standalone embedding and reranking. For more details, see [Vector embedding](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding) and [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
 
 
+            Args:
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 type (str): Filter models by type ('embed' or 'rerank'). [optional]
@@ -478,6 +530,7 @@ class AsyncioInferenceApi:
                 ModelInfoList
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             return await self.call_with_http_info(**kwargs)
 
         self.list_models = _AsyncioEndpoint(
@@ -490,8 +543,8 @@ class AsyncioInferenceApi:
                 "servers": None,
             },
             params_map={
-                "all": ["type", "vector_type"],
-                "required": [],
+                "all": ["x_pinecone_api_version", "type", "vector_type"],
+                "required": ["x_pinecone_api_version"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -499,9 +552,21 @@ class AsyncioInferenceApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"type": (str,), "vector_type": (str,)},
-                "attribute_map": {"type": "type", "vector_type": "vector_type"},
-                "location_map": {"type": "query", "vector_type": "query"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "type": (str,),
+                    "vector_type": (str,),
+                },
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "type": "type",
+                    "vector_type": "vector_type",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "type": "query",
+                    "vector_type": "query",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -509,12 +574,14 @@ class AsyncioInferenceApi:
             callable=__list_models,
         )
 
-        async def __rerank(self, **kwargs):
-            """Rerank documents  # noqa: E501
+        async def __rerank(self, x_pinecone_api_version="2025-10", **kwargs):
+            """Rerank results  # noqa: E501
 
             Rerank results according to their relevance to a query.  For guidance and examples, see [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
 
 
+            Args:
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 rerank_request (RerankRequest): Rerank documents for the given query [optional]
@@ -538,6 +605,7 @@ class AsyncioInferenceApi:
                 RerankResult
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             return await self.call_with_http_info(**kwargs)
 
         self.rerank = _AsyncioEndpoint(
@@ -550,8 +618,8 @@ class AsyncioInferenceApi:
                 "servers": None,
             },
             params_map={
-                "all": ["rerank_request"],
-                "required": [],
+                "all": ["x_pinecone_api_version", "rerank_request"],
+                "required": ["x_pinecone_api_version"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -559,9 +627,12 @@ class AsyncioInferenceApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"rerank_request": (RerankRequest,)},
-                "attribute_map": {},
-                "location_map": {"rerank_request": "body"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "rerank_request": (RerankRequest,),
+                },
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header", "rerank_request": "body"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},

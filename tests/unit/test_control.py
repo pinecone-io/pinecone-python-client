@@ -11,14 +11,7 @@ from pinecone import (
     PodIndexEnvironment,
     PodType,
 )
-from pinecone.core.openapi.db_control.models import (
-    IndexList,
-    IndexModel,
-    DeletionProtection,
-    IndexModelSpec,
-    ServerlessSpec as ServerlessSpecOpenApi,
-    IndexModelStatus,
-)
+from pinecone.core.openapi.db_control.models import IndexList, IndexModel, IndexModelStatus
 from pinecone.utils import PluginAware
 
 
@@ -31,10 +24,10 @@ def description_with_status(status: bool):
         name="foo",
         status=IndexModelStatus(ready=status, state=state),
         dimension=10,
-        deletion_protection=DeletionProtection(value="enabled"),
+        deletion_protection="enabled",
         host="https://foo.pinecone.io",
         metric="euclidean",
-        spec=IndexModelSpec(serverless=ServerlessSpecOpenApi(cloud="aws", region="us-west1")),
+        spec={"serverless": {"cloud": "aws", "region": "us-west1"}},
     )
 
 
@@ -49,7 +42,7 @@ def index_list_response():
                 host="asdf.pinecone.io",
                 status={"ready": True},
                 spec={},
-                deletion_protection=DeletionProtection("enabled"),
+                deletion_protection="enabled",
                 _check_type=False,
             ),
             IndexModel(
@@ -59,7 +52,7 @@ def index_list_response():
                 host="asdf.pinecone.io",
                 status={"ready": True},
                 spec={},
-                deletion_protection=DeletionProtection("enabled"),
+                deletion_protection="enabled",
                 _check_type=False,
             ),
             IndexModel(
@@ -69,7 +62,7 @@ def index_list_response():
                 host="asdf.pinecone.io",
                 status={"ready": True},
                 spec={},
-                deletion_protection=DeletionProtection("disabled"),
+                deletion_protection="disabled",
                 _check_type=False,
             ),
         ]
