@@ -27,6 +27,8 @@ from pinecone.core.openapi.db_data.model.delete_request import DeleteRequest
 from pinecone.core.openapi.db_data.model.describe_index_stats_request import (
     DescribeIndexStatsRequest,
 )
+from pinecone.core.openapi.db_data.model.fetch_by_metadata_request import FetchByMetadataRequest
+from pinecone.core.openapi.db_data.model.fetch_by_metadata_response import FetchByMetadataResponse
 from pinecone.core.openapi.db_data.model.fetch_response import FetchResponse
 from pinecone.core.openapi.db_data.model.index_description import IndexDescription
 from pinecone.core.openapi.db_data.model.list_response import ListResponse
@@ -36,6 +38,7 @@ from pinecone.core.openapi.db_data.model.rpc_status import RpcStatus
 from pinecone.core.openapi.db_data.model.search_records_request import SearchRecordsRequest
 from pinecone.core.openapi.db_data.model.search_records_response import SearchRecordsResponse
 from pinecone.core.openapi.db_data.model.update_request import UpdateRequest
+from pinecone.core.openapi.db_data.model.update_response import UpdateResponse
 from pinecone.core.openapi.db_data.model.upsert_record import UpsertRecord
 from pinecone.core.openapi.db_data.model.upsert_request import UpsertRequest
 from pinecone.core.openapi.db_data.model.upsert_response import UpsertResponse
@@ -214,7 +217,7 @@ class VectorOperationsApi:
         )
 
         def __fetch_vectors(
-            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self, ids, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
         ):
             """Fetch vectors  # noqa: E501
 
@@ -222,13 +225,15 @@ class VectorOperationsApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.fetch_vectors(x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.fetch_vectors(ids, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
+                ids ([str]): The vector IDs to fetch. Does not accept values containing spaces.
                 x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
+                namespace (str): The namespace to fetch vectors from. If not provided, the default namespace is used. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -253,6 +258,7 @@ class VectorOperationsApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["ids"] = ids
             return self.call_with_http_info(**kwargs)
 
         self.fetch_vectors = _Endpoint(
@@ -265,8 +271,8 @@ class VectorOperationsApi:
                 "servers": None,
             },
             params_map={
-                "all": ["x_pinecone_api_version"],
-                "required": ["x_pinecone_api_version"],
+                "all": ["x_pinecone_api_version", "ids", "namespace"],
+                "required": ["x_pinecone_api_version", "ids"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -274,14 +280,108 @@ class VectorOperationsApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"x_pinecone_api_version": (str,)},
-                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
-                "location_map": {"x_pinecone_api_version": "header"},
-                "collection_format_map": {},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "ids": ([str],),
+                    "namespace": (str,),
+                },
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "ids": "ids",
+                    "namespace": "namespace",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "ids": "query",
+                    "namespace": "query",
+                },
+                "collection_format_map": {"ids": "multi"},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
             callable=__fetch_vectors,
+        )
+
+        def __fetch_vectors_by_metadata(
+            self,
+            fetch_by_metadata_request,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ):
+            """Fetch vectors by metadata  # noqa: E501
+
+            Look up and return vectors by metadata filter from a single namespace. The returned vectors include the vector data and/or metadata. For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
+            This method makes a synchronous HTTP request by default. To make an
+            asynchronous HTTP request, please pass async_req=True
+
+            >>> thread = api.fetch_vectors_by_metadata(fetch_by_metadata_request, x_pinecone_api_version="2025-10", async_req=True)
+            >>> result = thread.get()
+
+            Args:
+                fetch_by_metadata_request (FetchByMetadataRequest):
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+
+            Keyword Args:
+                _return_http_data_only (bool): response data without head status
+                    code and headers. Default is True.
+                _preload_content (bool): if False, the urllib3.HTTPResponse object
+                    will be returned without reading/decoding response data.
+                    Default is True.
+                _request_timeout (int/float/tuple): timeout setting for this request. If
+                    one number provided, it will be total request timeout. It can also
+                    be a pair (tuple) of (connection, read) timeouts.
+                    Default is None.
+                _check_input_type (bool): specifies if type checking
+                    should be done one the data sent to the server.
+                    Default is True.
+                _check_return_type (bool): specifies if type checking
+                    should be done one the data received from the server.
+                    Default is True.
+                async_req (bool): execute request asynchronously
+
+            Returns:
+                FetchByMetadataResponse
+                    If the method is called asynchronously, returns the request
+                    thread.
+            """
+            kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["fetch_by_metadata_request"] = fetch_by_metadata_request
+            return self.call_with_http_info(**kwargs)
+
+        self.fetch_vectors_by_metadata = _Endpoint(
+            settings={
+                "response_type": (FetchByMetadataResponse,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/vectors/fetch_by_metadata",
+                "operation_id": "fetch_vectors_by_metadata",
+                "http_method": "POST",
+                "servers": None,
+            },
+            params_map={
+                "all": ["x_pinecone_api_version", "fetch_by_metadata_request"],
+                "required": ["x_pinecone_api_version", "fetch_by_metadata_request"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
+            root_map={
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "fetch_by_metadata_request": (FetchByMetadataRequest,),
+                },
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "fetch_by_metadata_request": "body",
+                },
+                "collection_format_map": {},
+            },
+            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
+            api_client=api_client,
+            callable=__fetch_vectors_by_metadata,
         )
 
         def __list_vectors(
@@ -300,6 +400,10 @@ class VectorOperationsApi:
                 x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
+                prefix (str): The vector IDs to fetch. Does not accept values containing spaces. [optional]
+                limit (int): Max number of IDs to return per page. [optional] if omitted the server will use the default value of 100.
+                pagination_token (str): Pagination token to continue a previous listing operation. [optional]
+                namespace (str): The namespace to list vectors from. If not provided, the default namespace is used. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -336,7 +440,13 @@ class VectorOperationsApi:
                 "servers": None,
             },
             params_map={
-                "all": ["x_pinecone_api_version"],
+                "all": [
+                    "x_pinecone_api_version",
+                    "prefix",
+                    "limit",
+                    "pagination_token",
+                    "namespace",
+                ],
                 "required": ["x_pinecone_api_version"],
                 "nullable": [],
                 "enum": [],
@@ -345,9 +455,27 @@ class VectorOperationsApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"x_pinecone_api_version": (str,)},
-                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
-                "location_map": {"x_pinecone_api_version": "header"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "prefix": (str,),
+                    "limit": (int,),
+                    "pagination_token": (str,),
+                    "namespace": (str,),
+                },
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "prefix": "prefix",
+                    "limit": "limit",
+                    "pagination_token": "paginationToken",
+                    "namespace": "namespace",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "prefix": "query",
+                    "limit": "query",
+                    "pagination_token": "query",
+                    "namespace": "query",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -562,7 +690,7 @@ class VectorOperationsApi:
                 async_req (bool): execute request asynchronously
 
             Returns:
-                {str: (bool, dict, float, int, list, str, none_type)}
+                UpdateResponse
                     If the method is called asynchronously, returns the request
                     thread.
             """
@@ -573,7 +701,7 @@ class VectorOperationsApi:
 
         self.update_vector = _Endpoint(
             settings={
-                "response_type": ({str: (bool, dict, float, int, list, str, none_type)},),
+                "response_type": (UpdateResponse,),
                 "auth": ["ApiKeyAuth"],
                 "endpoint_path": "/vectors/update",
                 "operation_id": "update_vector",
@@ -925,16 +1053,18 @@ class AsyncioVectorOperationsApi:
             callable=__describe_index_stats,
         )
 
-        async def __fetch_vectors(self, x_pinecone_api_version="2025-10", **kwargs):
+        async def __fetch_vectors(self, ids, x_pinecone_api_version="2025-10", **kwargs):
             """Fetch vectors  # noqa: E501
 
             Look up and return vectors by ID from a single namespace. The returned vectors include the vector data and/or metadata.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
 
 
             Args:
+                ids ([str]): The vector IDs to fetch. Does not accept values containing spaces.
                 x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
+                namespace (str): The namespace to fetch vectors from. If not provided, the default namespace is used. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -956,6 +1086,7 @@ class AsyncioVectorOperationsApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["ids"] = ids
             return await self.call_with_http_info(**kwargs)
 
         self.fetch_vectors = _AsyncioEndpoint(
@@ -968,8 +1099,8 @@ class AsyncioVectorOperationsApi:
                 "servers": None,
             },
             params_map={
-                "all": ["x_pinecone_api_version"],
-                "required": ["x_pinecone_api_version"],
+                "all": ["x_pinecone_api_version", "ids", "namespace"],
+                "required": ["x_pinecone_api_version", "ids"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -977,14 +1108,98 @@ class AsyncioVectorOperationsApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"x_pinecone_api_version": (str,)},
-                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
-                "location_map": {"x_pinecone_api_version": "header"},
-                "collection_format_map": {},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "ids": ([str],),
+                    "namespace": (str,),
+                },
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "ids": "ids",
+                    "namespace": "namespace",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "ids": "query",
+                    "namespace": "query",
+                },
+                "collection_format_map": {"ids": "multi"},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
             callable=__fetch_vectors,
+        )
+
+        async def __fetch_vectors_by_metadata(
+            self, fetch_by_metadata_request, x_pinecone_api_version="2025-10", **kwargs
+        ):
+            """Fetch vectors by metadata  # noqa: E501
+
+            Look up and return vectors by metadata filter from a single namespace. The returned vectors include the vector data and/or metadata. For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
+
+
+            Args:
+                fetch_by_metadata_request (FetchByMetadataRequest):
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+
+            Keyword Args:
+                _return_http_data_only (bool): response data without head status
+                    code and headers. Default is True.
+                _preload_content (bool): if False, the urllib3.HTTPResponse object
+                    will be returned without reading/decoding response data.
+                    Default is True.
+                _request_timeout (int/float/tuple): timeout setting for this request. If
+                    one number provided, it will be total request timeout. It can also
+                    be a pair (tuple) of (connection, read) timeouts.
+                    Default is None.
+                _check_input_type (bool): specifies if type checking
+                    should be done one the data sent to the server.
+                    Default is True.
+                _check_return_type (bool): specifies if type checking
+                    should be done one the data received from the server.
+                    Default is True.
+
+            Returns:
+                FetchByMetadataResponse
+            """
+            self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["fetch_by_metadata_request"] = fetch_by_metadata_request
+            return await self.call_with_http_info(**kwargs)
+
+        self.fetch_vectors_by_metadata = _AsyncioEndpoint(
+            settings={
+                "response_type": (FetchByMetadataResponse,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/vectors/fetch_by_metadata",
+                "operation_id": "fetch_vectors_by_metadata",
+                "http_method": "POST",
+                "servers": None,
+            },
+            params_map={
+                "all": ["x_pinecone_api_version", "fetch_by_metadata_request"],
+                "required": ["x_pinecone_api_version", "fetch_by_metadata_request"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
+            root_map={
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "fetch_by_metadata_request": (FetchByMetadataRequest,),
+                },
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "fetch_by_metadata_request": "body",
+                },
+                "collection_format_map": {},
+            },
+            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
+            api_client=api_client,
+            callable=__fetch_vectors_by_metadata,
         )
 
         async def __list_vectors(self, x_pinecone_api_version="2025-10", **kwargs):
@@ -997,6 +1212,10 @@ class AsyncioVectorOperationsApi:
                 x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
+                prefix (str): The vector IDs to fetch. Does not accept values containing spaces. [optional]
+                limit (int): Max number of IDs to return per page. [optional] if omitted the server will use the default value of 100.
+                pagination_token (str): Pagination token to continue a previous listing operation. [optional]
+                namespace (str): The namespace to list vectors from. If not provided, the default namespace is used. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -1030,7 +1249,13 @@ class AsyncioVectorOperationsApi:
                 "servers": None,
             },
             params_map={
-                "all": ["x_pinecone_api_version"],
+                "all": [
+                    "x_pinecone_api_version",
+                    "prefix",
+                    "limit",
+                    "pagination_token",
+                    "namespace",
+                ],
                 "required": ["x_pinecone_api_version"],
                 "nullable": [],
                 "enum": [],
@@ -1039,9 +1264,27 @@ class AsyncioVectorOperationsApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"x_pinecone_api_version": (str,)},
-                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
-                "location_map": {"x_pinecone_api_version": "header"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "prefix": (str,),
+                    "limit": (int,),
+                    "pagination_token": (str,),
+                    "namespace": (str,),
+                },
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "prefix": "prefix",
+                    "limit": "limit",
+                    "pagination_token": "paginationToken",
+                    "namespace": "namespace",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "prefix": "query",
+                    "limit": "query",
+                    "pagination_token": "query",
+                    "namespace": "query",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -1223,7 +1466,7 @@ class AsyncioVectorOperationsApi:
                     Default is True.
 
             Returns:
-                {str: (bool, dict, float, int, list, str, none_type)}
+                UpdateResponse
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
@@ -1232,7 +1475,7 @@ class AsyncioVectorOperationsApi:
 
         self.update_vector = _AsyncioEndpoint(
             settings={
-                "response_type": ({str: (bool, dict, float, int, list, str, none_type)},),
+                "response_type": (UpdateResponse,),
                 "auth": ["ApiKeyAuth"],
                 "endpoint_path": "/vectors/update",
                 "operation_id": "update_vector",

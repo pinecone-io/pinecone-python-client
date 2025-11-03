@@ -20,6 +20,8 @@ from pinecone.core.openapi.db_data.model.delete_request import DeleteRequest
 from pinecone.core.openapi.db_data.model.describe_index_stats_request import (
     DescribeIndexStatsRequest,
 )
+from pinecone.core.openapi.db_data.model.fetch_by_metadata_request import FetchByMetadataRequest
+from pinecone.core.openapi.db_data.model.fetch_by_metadata_response import FetchByMetadataResponse
 from pinecone.core.openapi.db_data.model.fetch_response import FetchResponse
 from pinecone.core.openapi.db_data.model.hit import Hit
 from pinecone.core.openapi.db_data.model.import_error_mode import ImportErrorMode
@@ -57,6 +59,7 @@ from pinecone.core.openapi.db_data.model.sparse_values import SparseValues
 from pinecone.core.openapi.db_data.model.start_import_request import StartImportRequest
 from pinecone.core.openapi.db_data.model.start_import_response import StartImportResponse
 from pinecone.core.openapi.db_data.model.update_request import UpdateRequest
+from pinecone.core.openapi.db_data.model.update_response import UpdateResponse
 from pinecone.core.openapi.db_data.model.upsert_record import UpsertRecord
 from pinecone.core.openapi.db_data.model.upsert_request import UpsertRequest
 from pinecone.core.openapi.db_data.model.upsert_response import UpsertResponse

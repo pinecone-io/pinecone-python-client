@@ -37,9 +37,15 @@ class TestCollectionsHappyPath:
             all_vectors_available = True
             desc = idx.describe_index_stats()
             for namespace in namespaces:
+                # The default namespace may be represented as "" or "__default__" in the API response
+                namespace_key = (
+                    "__default__"
+                    if namespace == "" and "__default__" in desc.namespaces
+                    else namespace
+                )
                 if (
-                    desc.namespaces.get(namespace, None) is None
-                    or desc.namespaces[namespace]["vector_count"] != num_vectors
+                    desc.namespaces.get(namespace_key, None) is None
+                    or desc.namespaces[namespace_key]["vector_count"] != num_vectors
                 ):
                     logger.debug(f"Waiting for vectors to be available in namespace {namespace}...")
                     all_vectors_available = False

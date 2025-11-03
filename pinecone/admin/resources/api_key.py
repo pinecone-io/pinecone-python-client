@@ -66,7 +66,7 @@ class ApiKeyResource:
                 print(api_key.description)
                 print(api_key.roles)
         """
-        return self._api_keys_api.list_api_keys(project_id=project_id)
+        return self._api_keys_api.list_project_api_keys(project_id=project_id)
 
     @require_kwargs
     def fetch(self, api_key_id: str):

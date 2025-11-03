@@ -290,7 +290,7 @@ class APIKeysApi:
             callable=__fetch_api_key,
         )
 
-        def __list_api_keys(
+        def __list_project_api_keys(
             self,
             project_id,
             x_pinecone_api_version="2025-10",
@@ -302,7 +302,7 @@ class APIKeysApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_api_keys(project_id, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.list_project_api_keys(project_id, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
@@ -337,12 +337,12 @@ class APIKeysApi:
             kwargs["project_id"] = project_id
             return self.call_with_http_info(**kwargs)
 
-        self.list_api_keys = _Endpoint(
+        self.list_project_api_keys = _Endpoint(
             settings={
                 "response_type": (ListApiKeysResponse,),
                 "auth": ["BearerAuth"],
                 "endpoint_path": "/admin/projects/{project_id}/api-keys",
-                "operation_id": "list_api_keys",
+                "operation_id": "list_project_api_keys",
                 "http_method": "GET",
                 "servers": None,
             },
@@ -366,7 +366,7 @@ class APIKeysApi:
             },
             headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__list_api_keys,
+            callable=__list_project_api_keys,
         )
 
         def __update_api_key(
@@ -684,7 +684,9 @@ class AsyncioAPIKeysApi:
             callable=__fetch_api_key,
         )
 
-        async def __list_api_keys(self, project_id, x_pinecone_api_version="2025-10", **kwargs):
+        async def __list_project_api_keys(
+            self, project_id, x_pinecone_api_version="2025-10", **kwargs
+        ):
             """List API keys  # noqa: E501
 
             List all API keys in a project.  # noqa: E501
@@ -719,12 +721,12 @@ class AsyncioAPIKeysApi:
             kwargs["project_id"] = project_id
             return await self.call_with_http_info(**kwargs)
 
-        self.list_api_keys = _AsyncioEndpoint(
+        self.list_project_api_keys = _AsyncioEndpoint(
             settings={
                 "response_type": (ListApiKeysResponse,),
                 "auth": ["BearerAuth"],
                 "endpoint_path": "/admin/projects/{project_id}/api-keys",
-                "operation_id": "list_api_keys",
+                "operation_id": "list_project_api_keys",
                 "http_method": "GET",
                 "servers": None,
             },
@@ -748,7 +750,7 @@ class AsyncioAPIKeysApi:
             },
             headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__list_api_keys,
+            callable=__list_project_api_keys,
         )
 
         async def __update_api_key(
