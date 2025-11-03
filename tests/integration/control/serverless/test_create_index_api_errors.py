@@ -10,12 +10,14 @@ class TestCreateIndexApiErrorCases:
 
     def test_create_index_invalid_metric(self, client, create_sl_index_params):
         create_sl_index_params["metric"] = "invalid"
-        with pytest.raises(PineconeApiValueError):
+        with pytest.raises(PineconeApiException):
             client.create_index(**create_sl_index_params)
 
     def test_create_index_with_invalid_neg_dimension(self, client, create_sl_index_params):
         create_sl_index_params["dimension"] = -1
-        with pytest.raises(PineconeApiValueError):
+        # Accept either exception: PineconeApiValueError if client-side validation is enabled,
+        # PineconeApiException once client-side validation is disabled
+        with pytest.raises((PineconeApiException, PineconeApiValueError)):
             client.create_index(**create_sl_index_params)
 
     def test_create_index_that_already_exists(self, client, create_sl_index_params):
