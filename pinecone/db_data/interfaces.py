@@ -823,7 +823,7 @@ class IndexInterface(ABC):
     @abstractmethod
     @require_kwargs
     def list_namespaces(
-            self, limit: Optional[int] = None, **kwargs
+        self, limit: Optional[int] = None, **kwargs
     ) -> Iterator[ListNamespacesResponse]:
         """List all namespaces in an index. This method automatically handles pagination to return all results.
 

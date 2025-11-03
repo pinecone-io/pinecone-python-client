@@ -13,6 +13,9 @@ from pinecone.core.openapi.db_control.model.create_index_for_model_request_embed
 )
 from pinecone.core.openapi.db_control.model.create_index_request import CreateIndexRequest
 from pinecone.core.openapi.db_control.model.configure_index_request import ConfigureIndexRequest
+from pinecone.core.openapi.db_control.model.configure_index_request_embed import (
+    ConfigureIndexRequestEmbed,
+)
 from pinecone.core.openapi.db_control.model.index_spec import IndexSpec
 from pinecone.core.openapi.db_control.model.index_tags import IndexTags
 from pinecone.core.openapi.db_control.model.serverless_spec import (

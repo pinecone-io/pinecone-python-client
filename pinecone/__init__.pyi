@@ -78,10 +78,7 @@ from pinecone.db_control.models import (
     PodSpec,
     PodSpecDefinition,
 )
-from pinecone.db_control.types import (
-    ConfigureIndexEmbed,
-    CreateIndexForModelEmbedTypedDict,
-)
+from pinecone.db_control.types import ConfigureIndexEmbed, CreateIndexForModelEmbedTypedDict
 from pinecone.pinecone import Pinecone
 from pinecone.pinecone_asyncio import PineconeAsyncio
 

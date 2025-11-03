@@ -142,24 +142,17 @@ def parse_namespace_description(response: Message) -> NamespaceDescription:
 
 def parse_list_namespaces_response(response: Message) -> ListNamespacesResponse:
     json_response = json_format.MessageToDict(response)
-    
+
     namespaces = []
     for ns in json_response.get("namespaces", []):
-        namespaces.append(NamespaceDescription(
-            name=ns.get("name", ""),
-            record_count=ns.get("recordCount", 0),
-            _check_type=False,
-        ))
-    
+        namespaces.append(
+            NamespaceDescription(
+                name=ns.get("name", ""), record_count=ns.get("recordCount", 0), _check_type=False
+            )
+        )
+
     pagination = None
     if "pagination" in json_response and json_response["pagination"]:
-        pagination = Pagination(
-            next=json_response["pagination"].get("next", ""),
-            _check_type=False,
-        )
-    
-    return ListNamespacesResponse(
-        namespaces=namespaces,
-        pagination=pagination,
-        _check_type=False,
-    )
+        pagination = Pagination(next=json_response["pagination"].get("next", ""), _check_type=False)
+
+    return ListNamespacesResponse(namespaces=namespaces, pagination=pagination, _check_type=False)

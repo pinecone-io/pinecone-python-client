@@ -1,10 +1,7 @@
 from typing import Optional, AsyncIterator
 
 from pinecone.core.openapi.db_data.api.namespace_operations_api import AsyncioNamespaceOperationsApi
-from pinecone.core.openapi.db_data.models import (
-    ListNamespacesResponse,
-    NamespaceDescription,
-)
+from pinecone.core.openapi.db_data.models import ListNamespacesResponse, NamespaceDescription
 
 from pinecone.utils import install_json_repr_override, require_kwargs
 
@@ -44,7 +41,9 @@ class NamespaceResourceAsyncio:
         return await self.__namespace_operations_api.delete_namespace(**args)
 
     @require_kwargs
-    async def list(self, limit: Optional[int] = None, **kwargs) -> AsyncIterator[ListNamespacesResponse]:
+    async def list(
+        self, limit: Optional[int] = None, **kwargs
+    ) -> AsyncIterator[ListNamespacesResponse]:
         """
         Args:
             limit (Optional[int]): The maximum number of namespaces to fetch in each network call. If unspecified, the server will use a default value. [optional]
@@ -103,5 +102,7 @@ class NamespaceResourceAsyncio:
                 eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
                 >>> next_results = await index.list_paginated(limit=5, pagination_token=results.pagination.next)
         """
-        args = NamespaceRequestFactory.list_namespaces_args(limit=limit, pagination_token=pagination_token, **kwargs)
+        args = NamespaceRequestFactory.list_namespaces_args(
+            limit=limit, pagination_token=pagination_token, **kwargs
+        )
         return await self.__namespace_operations_api.list_namespaces_operation(**args)

@@ -62,7 +62,14 @@ from ..db_data.types import (
 )
 
 
-__all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues", "NamespaceDescription", "ListNamespacesResponse"]
+__all__ = [
+    "GRPCIndex",
+    "GRPCVector",
+    "GRPCQueryVector",
+    "GRPCSparseValues",
+    "NamespaceDescription",
+    "ListNamespacesResponse",
+]
 
 _logger = logging.getLogger(__name__)
 """ :meta private: """
@@ -690,9 +697,7 @@ class GRPCIndex(GRPCIndexBase):
         return parse_stats_response(json_response)
 
     @require_kwargs
-    def describe_namespace(
-        self, namespace: str, **kwargs
-    ) -> NamespaceDescription:
+    def describe_namespace(self, namespace: str, **kwargs) -> NamespaceDescription:
         """
         The describe_namespace operation returns information about a specific namespace,
         including the total number of vectors in the namespace.
@@ -714,9 +719,7 @@ class GRPCIndex(GRPCIndexBase):
         return parse_namespace_description(response)
 
     @require_kwargs
-    def delete_namespace(
-        self, namespace: str, **kwargs
-    ) -> Dict[str, Any]:
+    def delete_namespace(self, namespace: str, **kwargs) -> Dict[str, Any]:
         """
         The delete_namespace operation deletes a namespace from an index.
         This operation is irreversible and will permanently delete all data in the namespace.
@@ -739,10 +742,7 @@ class GRPCIndex(GRPCIndexBase):
 
     @require_kwargs
     def list_namespaces_paginated(
-        self,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
-        **kwargs,
+        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
     ) -> ListNamespacesResponse:
         """
         The list_namespaces_paginated operation returns a list of all namespaces in a serverless index.
@@ -767,10 +767,7 @@ class GRPCIndex(GRPCIndexBase):
         Returns: ListNamespacesResponse object which contains the list of namespaces and pagination information.
         """
         args_dict = self._parse_non_empty_args(
-            [
-                ("limit", limit),
-                ("pagination_token", pagination_token),
-            ]
+            [("limit", limit), ("pagination_token", pagination_token)]
         )
         timeout = kwargs.pop("timeout", None)
         request = ListNamespacesRequest(**args_dict, **kwargs)

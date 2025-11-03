@@ -5,6 +5,7 @@ from pinecone import NamespaceDescription
 
 logger = logging.getLogger(__name__)
 
+
 def setup_namespace_data(index, namespace: str, num_vectors: int = 2):
     """Helper function to set up test data in a namespace"""
     vectors = [(f"id_{i}", [0.1, 0.2]) for i in range(num_vectors)]
@@ -39,6 +40,7 @@ def delete_all_namespaces(index):
         time.sleep(5)
     except Exception as e:
         logger.error(f"Error in delete_all_namespaces: {e}")
+
 
 class TestNamespaceOperations:
     def test_describe_namespace(self, idx):
@@ -94,8 +96,8 @@ class TestNamespaceOperations:
             # Verify each namespace has correct structure
             for ns in namespaces:
                 assert isinstance(ns, NamespaceDescription)
-                assert hasattr(ns, 'name')
-                assert hasattr(ns, 'vector_count')
+                assert hasattr(ns, "name")
+                assert hasattr(ns, "vector_count")
         finally:
             # Delete all namespaces before next test is run
             delete_all_namespaces(idx)
@@ -115,13 +117,12 @@ class TestNamespaceOperations:
             assert len(namespaces) >= 2  # Should get at least 2 namespaces
             for ns in namespaces:
                 assert isinstance(ns, NamespaceDescription)
-                assert hasattr(ns, 'name')
-                assert hasattr(ns, 'vector_count')
+                assert hasattr(ns, "name")
+                assert hasattr(ns, "vector_count")
 
         finally:
             # Delete all namespaces before next test is run
             delete_all_namespaces(idx)
-
 
     def test_list_namespaces_paginated(self, idx):
         """Test listing namespaces with pagination"""
@@ -138,16 +139,14 @@ class TestNamespaceOperations:
 
             # Get second page
             next_response = idx.list_namespaces_paginated(
-                limit=2,
-                pagination_token=response.pagination.next
+                limit=2, pagination_token=response.pagination.next
             )
             assert len(next_response.namespaces) == 2
             assert next_response.pagination.next is not None
 
             # Get final page
             final_response = idx.list_namespaces_paginated(
-                limit=2,
-                pagination_token=next_response.pagination.next
+                limit=2, pagination_token=next_response.pagination.next
             )
             assert len(final_response.namespaces) == 1
             assert final_response.pagination is None

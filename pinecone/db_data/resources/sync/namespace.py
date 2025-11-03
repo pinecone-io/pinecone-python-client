@@ -1,10 +1,7 @@
 from typing import Optional, Iterator
 
 from pinecone.core.openapi.db_data.api.namespace_operations_api import NamespaceOperationsApi
-from pinecone.core.openapi.db_data.models import (
-    ListNamespacesResponse,
-    NamespaceDescription,
-)
+from pinecone.core.openapi.db_data.models import ListNamespacesResponse, NamespaceDescription
 
 from pinecone.utils import install_json_repr_override, PluginAware, require_kwargs
 
@@ -15,13 +12,7 @@ for m in [ListNamespacesResponse, NamespaceDescription]:
 
 
 class NamespaceResource(PluginAware):
-    def __init__(
-        self,
-        api_client,
-        config,
-        openapi_config,
-        pool_threads: int,
-    ) -> None:
+    def __init__(self, api_client, config, openapi_config, pool_threads: int) -> None:
         self.config = config
         """ :meta private: """
 
@@ -119,5 +110,7 @@ class NamespaceResource(PluginAware):
                 eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
                 >>> next_results = index.list_paginated(limit=5, pagination_token=results.pagination.next)
         """
-        args = NamespaceRequestFactory.list_namespaces_args(limit=limit, pagination_token=pagination_token, **kwargs)
+        args = NamespaceRequestFactory.list_namespaces_args(
+            limit=limit, pagination_token=pagination_token, **kwargs
+        )
         return self.__namespace_operations_api.list_namespaces_operation(**args)

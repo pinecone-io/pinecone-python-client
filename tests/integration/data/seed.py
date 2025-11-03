@@ -124,7 +124,7 @@ def weird_valid_ids():
         '" onfocus=JaVaSCript:alert(10) autofocus',
         "javascript:alert(1)",
         "javascript:alert(1);",
-        '<img src\x32=x onerror="javascript:alert(182)">' "1;DROP TABLE users",
+        '<img src\x32=x onerror="javascript:alert(182)">1;DROP TABLE users',
         "' OR 1=1 -- 1",
         "' OR '1'='1",
     ]
