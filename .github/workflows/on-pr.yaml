@@ -16,7 +16,13 @@ on:
       - '*.gif'
       - '*.svg'
       - '*.example'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      run_all_tests:
+        description: 'Run all integration tests regardless of changes'
+        required: false
+        default: 'false'
+        type: boolean
 
 permissions: {}
 
@@ -34,6 +40,62 @@ jobs:
     with:
       python_versions_json: '["3.9"]'
 
+  determine-test-suites:
+    name: Determine test suites
+    runs-on: ubuntu-latest
+    outputs:
+      rest_sync_suites: ${{ steps.determine.outputs.rest_sync_suites }}
+      rest_asyncio_suites: ${{ steps.determine.outputs.rest_asyncio_suites }}
+      grpc_sync_suites: ${{ steps.determine.outputs.grpc_sync_suites }}
+      admin_suites: ${{ steps.determine.outputs.admin_suites }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for git diff
+      - name: Determine test suites
+        id: determine
+        run: |
+          run_all="${{ github.event.inputs.run_all_tests == 'true' }}"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base_ref="${{ github.event.pull_request.base.ref }}"
+          else
+            base_ref="main"
+          fi
+
+          if [ "$run_all" = "true" ]; then
+            echo "Running all tests (manual override)"
+            python3 .github/scripts/determine-test-suites.py --run-all --output-format json > test_suites.json
+          else
+            echo "Determining test suites based on changed files (base: $base_ref)"
+            if ! python3 .github/scripts/determine-test-suites.py --base-ref "$base_ref" --output-format json > test_suites.json 2>&1; then
+              echo "Script failed, falling back to all tests"
+              python3 .github/scripts/determine-test-suites.py --run-all --output-format json > test_suites.json
+            fi
+          fi
+
+          # Validate JSON was created
+          if [ ! -f test_suites.json ] || ! jq empty test_suites.json 2>/dev/null; then
+            echo "Error: Failed to generate valid test_suites.json, falling back to all tests"
+            python3 .github/scripts/determine-test-suites.py --run-all --output-format json > test_suites.json
+          fi
+
+          # Extract each job type's suites and set as outputs
+          rest_sync=$(jq -c '.rest_sync' test_suites.json)
+          rest_asyncio=$(jq -c '.rest_asyncio' test_suites.json)
+          grpc_sync=$(jq -c '.grpc_sync' test_suites.json)
+          admin=$(jq -c '.admin' test_suites.json)
+
+          echo "rest_sync_suites=$rest_sync" >> $GITHUB_OUTPUT
+          echo "rest_asyncio_suites=$rest_asyncio" >> $GITHUB_OUTPUT
+          echo "grpc_sync_suites=$grpc_sync" >> $GITHUB_OUTPUT
+          echo "admin_suites=$admin" >> $GITHUB_OUTPUT
+
+          echo "Selected test suites:"
+          echo "REST sync: $rest_sync"
+          echo "REST asyncio: $rest_asyncio"
+          echo "gRPC sync: $grpc_sync"
+          echo "Admin: $admin"
+
   create-project:
     uses: './.github/workflows/project-setup.yaml'
     secrets: inherit
@@ -41,14 +103,20 @@ jobs:
       - unit-tests
 
   integration-tests:
+    if: always() && (needs.unit-tests.result == 'success' && needs.create-project.result == 'success' && needs.determine-test-suites.result == 'success')
     uses: './.github/workflows/testing-integration.yaml'
     secrets: inherit
     needs:
       - unit-tests
       - create-project
+      - determine-test-suites
     with:
       encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
       python_versions_json: '["3.13", "3.9"]'
+      rest_sync_suites_json: ${{ needs.determine-test-suites.outputs.rest_sync_suites || '' }}
+      rest_asyncio_suites_json: ${{ needs.determine-test-suites.outputs.rest_asyncio_suites || '' }}
+      grpc_sync_suites_json: ${{ needs.determine-test-suites.outputs.grpc_sync_suites || '' }}
+      admin_suites_json: ${{ needs.determine-test-suites.outputs.admin_suites || '' }}
 
   cleanup-project:
     if: ${{ always() }}
