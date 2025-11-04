@@ -95,10 +95,12 @@ class Index(PluginAware, IndexInterface):
         api_key: str,
         host: str,
         pool_threads: Optional[int] = None,
-        additional_headers: Optional[Dict[str, str]] = {},
+        additional_headers: Optional[Dict[str, str]] = None,
         openapi_config=None,
         **kwargs,
     ):
+        if additional_headers is None:
+            additional_headers = {}
         self._config = ConfigBuilder.build(
             api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
@@ -133,8 +135,8 @@ class Index(PluginAware, IndexInterface):
         self._namespace_resource = None
         """ :meta private: """
 
-        # Pass the same api_client to the ImportFeatureMixin
-        super().__init__(api_client=self._api_client)
+        # Initialize PluginAware parent class
+        super().__init__()
 
     @property
     def config(self) -> "Config":
@@ -281,7 +283,47 @@ class Index(PluginAware, IndexInterface):
 
         return UpsertResponse(upserted_count=upserted_count)
 
-    def upsert_records(self, namespace: str, records: List[Dict]):
+    @validate_and_convert_errors
+    def upsert_records(self, namespace: str, records: List[Dict[str, Any]]):
+        """Upsert records to a namespace.
+
+        Upsert records to a namespace. A record is a dictionary that contains either an ``id`` or ``_id``
+        field along with other fields that will be stored as metadata. The ``id`` or ``_id`` field is used
+        as the unique identifier for the record. At least one field in the record should correspond to
+        a field mapping in the index's embed configuration.
+
+        When records are upserted, Pinecone converts mapped fields into embeddings and upserts them into
+        the specified namespace of the index.
+
+        Args:
+            namespace (str): The namespace of the index to upsert records to.
+            records (List[Dict[str, Any]]): The records to upsert into the index.
+                Each record should contain either an ``id`` or ``_id`` field.
+
+        Examples:
+
+        .. code-block:: python
+
+            >>> from pinecone import Pinecone, CloudProvider, AwsRegion, EmbedModel, IndexEmbed
+            >>> pc = Pinecone(api_key="<<PINECONE_API_KEY>>")
+            >>> index_model = pc.create_index_for_model(
+            ...     name="my-model-index",
+            ...     cloud=CloudProvider.AWS,
+            ...     region=AwsRegion.US_WEST_2,
+            ...     embed=IndexEmbed(
+            ...         model=EmbedModel.Multilingual_E5_Large,
+            ...         field_map={"text": "my_text_field"}
+            ...     )
+            ... )
+            >>> idx = pc.Index(host=index_model.host)
+            >>> idx.upsert_records(
+            ...     namespace="my-namespace",
+            ...     records=[
+            ...         {"_id": "test1", "my_text_field": "Apple is a popular fruit."},
+            ...         {"_id": "test2", "my_text_field": "The tech company Apple is innovative."},
+            ...     ],
+            ... )
+        """
         args = IndexRequestFactory.upsert_records_args(namespace=namespace, records=records)
         self._vector_api.upsert_records_namespace(**args)
 
@@ -293,9 +335,6 @@ class Index(PluginAware, IndexInterface):
         rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
         fields: Optional[List[str]] = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
-        if namespace is None:
-            raise Exception("Namespace is required when searching records")
-
         request = IndexRequestFactory.search_request(query=query, rerank=rerank, fields=fields)
 
         return self._vector_api.search_records_namespace(namespace, request)

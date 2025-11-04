@@ -159,10 +159,12 @@ class _IndexAsyncio(IndexAsyncioInterface):
         self,
         api_key: str,
         host: str,
-        additional_headers: Optional[Dict[str, str]] = {},
+        additional_headers: Optional[Dict[str, str]] = None,
         openapi_config=None,
         **kwargs,
     ):
+        if additional_headers is None:
+            additional_headers = {}
         self.config = ConfigBuilder.build(
             api_key=api_key, host=host, additional_headers=additional_headers, **kwargs
         )
@@ -613,7 +615,50 @@ class _IndexAsyncio(IndexAsyncioInterface):
             else:
                 done = True
 
-    async def upsert_records(self, namespace: str, records: List[Dict]):
+    @validate_and_convert_errors
+    async def upsert_records(self, namespace: str, records: List[Dict[str, Any]]):
+        """Upsert records to a namespace.
+
+        Upsert records to a namespace. A record is a dictionary that contains either an ``id`` or ``_id``
+        field along with other fields that will be stored as metadata. The ``id`` or ``_id`` field is used
+        as the unique identifier for the record. At least one field in the record should correspond to
+        a field mapping in the index's embed configuration.
+
+        When records are upserted, Pinecone converts mapped fields into embeddings and upserts them into
+        the specified namespace of the index.
+
+        Args:
+            namespace (str): The namespace of the index to upsert records to.
+            records (List[Dict[str, Any]]): The records to upsert into the index.
+                Each record should contain either an ``id`` or ``_id`` field.
+
+        Examples:
+
+        .. code-block:: python
+
+            >>> import asyncio
+            >>> from pinecone import Pinecone, CloudProvider, AwsRegion, EmbedModel, IndexEmbed
+            >>> async def main():
+            ...     pc = Pinecone(api_key="<<PINECONE_API_KEY>>")
+            ...     index_model = pc.create_index_for_model(
+            ...         name="my-model-index",
+            ...         cloud=CloudProvider.AWS,
+            ...         region=AwsRegion.US_WEST_2,
+            ...         embed=IndexEmbed(
+            ...             model=EmbedModel.Multilingual_E5_Large,
+            ...             field_map={"text": "my_text_field"}
+            ...         )
+            ...     )
+            ...     async with pc.IndexAsyncio(host=index_model.host) as idx:
+            ...         await idx.upsert_records(
+            ...             namespace="my-namespace",
+            ...             records=[
+            ...                 {"_id": "test1", "my_text_field": "Apple is a popular fruit."},
+            ...                 {"_id": "test2", "my_text_field": "The tech company Apple is innovative."},
+            ...             ],
+            ...         )
+            >>> asyncio.run(main())
+        """
         args = IndexRequestFactory.upsert_records_args(namespace=namespace, records=records)
         await self._vector_api.upsert_records_namespace(**args)
 
@@ -625,7 +670,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
         fields: Optional[List[str]] = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         if namespace is None:
-            raise Exception("Namespace is required when searching records")
+            raise ValueError("Namespace is required when searching records")
 
         request = IndexRequestFactory.search_request(query=query, rerank=rerank, fields=fields)
 
