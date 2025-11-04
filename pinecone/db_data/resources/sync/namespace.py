@@ -1,4 +1,4 @@
-from typing import Optional, Iterator
+from typing import Optional, Iterator, Any
 
 from pinecone.core.openapi.db_data.api.namespace_operations_api import NamespaceOperationsApi
 from pinecone.core.openapi.db_data.models import ListNamespacesResponse, NamespaceDescription
@@ -24,6 +24,24 @@ class NamespaceResource(PluginAware):
 
         self.__namespace_operations_api = NamespaceOperationsApi(api_client)
         super().__init__()
+
+    @require_kwargs
+    def create(self, name: str, schema: Optional[Any] = None, **kwargs) -> NamespaceDescription:
+        """
+        Args:
+            name (str): The name of the namespace to create
+            schema (Optional[Any]): Optional schema configuration for the namespace. Can be a dictionary or CreateNamespaceRequestSchema object. [optional]
+
+        Returns:
+            ``NamespaceDescription``: Information about the created namespace including vector count
+
+        Create a namespace in a serverless index. For guidance and examples, see
+        `Manage namespaces <https://docs.pinecone.io/guides/manage-data/manage-namespaces>`_.
+
+        **Note:** This operation is not supported for pod-based indexes.
+        """
+        args = NamespaceRequestFactory.create_namespace_args(name=name, schema=schema, **kwargs)
+        return self.__namespace_operations_api.create_namespace(**args)
 
     @require_kwargs
     def describe(self, namespace: str, **kwargs) -> NamespaceDescription:

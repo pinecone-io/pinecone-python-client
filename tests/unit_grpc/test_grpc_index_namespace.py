@@ -1,9 +1,11 @@
 from pinecone import Config
 from pinecone.grpc import GRPCIndex
 from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
+    CreateNamespaceRequest,
     DescribeNamespaceRequest,
     DeleteNamespaceRequest,
     ListNamespacesRequest,
+    MetadataSchema,
 )
 
 
@@ -13,6 +15,39 @@ class TestGrpcIndexNamespace:
         self.index = GRPCIndex(
             config=self.config, index_name="example-name", _endpoint_override="test-endpoint"
         )
+
+    def test_create_namespace(self, mocker):
+        mocker.patch.object(self.index.runner, "run", autospec=True)
+        self.index.create_namespace(name="test_namespace")
+        self.index.runner.run.assert_called_once_with(
+            self.index.stub.CreateNamespace,
+            CreateNamespaceRequest(name="test_namespace"),
+            timeout=None,
+        )
+
+    def test_create_namespace_with_timeout(self, mocker):
+        mocker.patch.object(self.index.runner, "run", autospec=True)
+        self.index.create_namespace(name="test_namespace", timeout=30)
+        self.index.runner.run.assert_called_once_with(
+            self.index.stub.CreateNamespace,
+            CreateNamespaceRequest(name="test_namespace"),
+            timeout=30,
+        )
+
+    def test_create_namespace_with_schema(self, mocker):
+        mocker.patch.object(self.index.runner, "run", autospec=True)
+        schema_dict = {"fields": {"field1": {"filterable": True}, "field2": {"filterable": False}}}
+        self.index.create_namespace(name="test_namespace", schema=schema_dict)
+        call_args = self.index.runner.run.call_args
+        assert call_args[0][0] == self.index.stub.CreateNamespace
+        request = call_args[0][1]
+        assert isinstance(request, CreateNamespaceRequest)
+        assert request.name == "test_namespace"
+        assert isinstance(request.schema, MetadataSchema)
+        assert "field1" in request.schema.fields
+        assert "field2" in request.schema.fields
+        assert request.schema.fields["field1"].filterable is True
+        assert request.schema.fields["field2"].filterable is False
 
     def test_describe_namespace(self, mocker):
         mocker.patch.object(self.index.runner, "run", autospec=True)

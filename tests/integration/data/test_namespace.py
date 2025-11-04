@@ -43,6 +43,77 @@ def delete_all_namespaces(index):
 
 
 class TestNamespaceOperations:
+    def test_create_namespace(self, idx):
+        """Test creating a namespace"""
+        test_namespace = "test_create_namespace_sync"
+
+        try:
+            # Ensure namespace doesn't exist first
+            if verify_namespace_exists(idx, test_namespace):
+                idx.delete_namespace(namespace=test_namespace)
+                time.sleep(10)
+
+            # Create namespace
+            description = idx.create_namespace(name=test_namespace)
+
+            # Verify namespace was created
+            assert isinstance(description, NamespaceDescription)
+            assert description.name == test_namespace
+            # New namespace should have 0 records (record_count may be None, 0, or "0" as string)
+            assert (
+                description.record_count is None
+                or description.record_count == 0
+                or description.record_count == "0"
+            )
+
+            # Verify namespace exists by describing it
+            # Namespace may not be immediately available after creation, so retry with backoff
+            max_retries = 5
+            retry_delay = 2
+            for attempt in range(max_retries):
+                try:
+                    verify_description = idx.describe_namespace(namespace=test_namespace)
+                    assert verify_description.name == test_namespace
+                    break
+                except Exception:
+                    if attempt == max_retries - 1:
+                        raise
+                    time.sleep(retry_delay)
+
+        finally:
+            # Cleanup
+            if verify_namespace_exists(idx, test_namespace):
+                idx.delete_namespace(namespace=test_namespace)
+                time.sleep(10)
+
+    def test_create_namespace_duplicate(self, idx):
+        """Test creating a duplicate namespace raises an error"""
+        test_namespace = "test_create_duplicate_sync"
+
+        try:
+            # Ensure namespace doesn't exist first
+            if verify_namespace_exists(idx, test_namespace):
+                idx.delete_namespace(namespace=test_namespace)
+                time.sleep(10)
+
+            # Create namespace first time
+            description = idx.create_namespace(name=test_namespace)
+            assert description.name == test_namespace
+
+            # Try to create duplicate namespace - should raise an error
+            # GRPC errors raise PineconeException, not PineconeApiException
+            import pytest
+            from pinecone.exceptions import PineconeException
+
+            with pytest.raises(PineconeException):
+                idx.create_namespace(name=test_namespace)
+
+        finally:
+            # Cleanup
+            if verify_namespace_exists(idx, test_namespace):
+                idx.delete_namespace(namespace=test_namespace)
+                time.sleep(10)
+
     def test_describe_namespace(self, idx):
         """Test describing a namespace"""
         # Setup test data

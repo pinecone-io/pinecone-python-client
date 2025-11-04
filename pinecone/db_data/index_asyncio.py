@@ -754,6 +754,13 @@ class _IndexAsyncio(IndexAsyncioInterface):
 
     @validate_and_convert_errors
     @require_kwargs
+    async def create_namespace(
+        self, name: str, schema: Optional[Dict[str, Any]] = None, **kwargs
+    ) -> "NamespaceDescription":
+        return await self.namespace.create(name=name, schema=schema, **kwargs)
+
+    @validate_and_convert_errors
+    @require_kwargs
     async def describe_namespace(self, namespace: str, **kwargs) -> "NamespaceDescription":
         return await self.namespace.describe(namespace=namespace, **kwargs)
 

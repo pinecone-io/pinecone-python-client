@@ -871,6 +871,49 @@ class IndexAsyncioInterface(ABC):
 
     @abstractmethod
     @require_kwargs
+    async def create_namespace(
+        self, name: str, schema: Optional[Dict[str, Any]] = None, **kwargs
+    ) -> NamespaceDescription:
+        """Create a namespace in a serverless index.
+
+        Args:
+            name (str): The name of the namespace to create
+            schema (Optional[Dict[str, Any]]): Optional schema configuration for the namespace as a dictionary. [optional]
+
+        Returns:
+            NamespaceDescription: Information about the created namespace including vector count
+
+        Create a namespace in a serverless index. For guidance and examples, see
+        `Manage namespaces <https://docs.pinecone.io/guides/manage-data/manage-namespaces>`_.
+
+        **Note:** This operation is not supported for pod-based indexes.
+
+        Examples:
+
+            .. code-block:: python
+
+                >>> # Create a namespace with just a name
+                >>> import asyncio
+                >>> from pinecone import Pinecone
+                >>>
+                >>> async def main():
+                ...     pc = Pinecone()
+                ...     async with pc.IndexAsyncio(host="example-index-dojoi3u.svc.eu-west1-gcp.pinecone.io") as idx:
+                ...         namespace = await idx.create_namespace(name="my-namespace")
+                ...         print(f"Created namespace: {namespace.name}, Vector count: {namespace.vector_count}")
+                >>>
+                >>> asyncio.run(main())
+
+                >>> # Create a namespace with schema configuration
+                >>> from pinecone.core.openapi.db_data.model.create_namespace_request_schema import CreateNamespaceRequestSchema
+                >>> schema = CreateNamespaceRequestSchema(fields={...})
+                >>> namespace = await idx.create_namespace(name="my-namespace", schema=schema)
+
+        """
+        pass
+
+    @abstractmethod
+    @require_kwargs
     async def describe_namespace(self, namespace: str, **kwargs) -> NamespaceDescription:
         """Describe a namespace within an index, showing the vector count within the namespace.
 

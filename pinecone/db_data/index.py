@@ -700,6 +700,13 @@ class Index(PluginAware, IndexInterface):
 
     @validate_and_convert_errors
     @require_kwargs
+    def create_namespace(
+        self, name: str, schema: Optional[Dict[str, Any]] = None, **kwargs
+    ) -> "NamespaceDescription":
+        return self.namespace.create(name=name, schema=schema, **kwargs)
+
+    @validate_and_convert_errors
+    @require_kwargs
     def describe_namespace(self, namespace: str, **kwargs) -> "NamespaceDescription":
         return self.namespace.describe(namespace=namespace, **kwargs)
 

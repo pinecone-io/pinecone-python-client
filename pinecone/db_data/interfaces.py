@@ -845,6 +845,40 @@ class IndexInterface(ABC):
 
     @abstractmethod
     @require_kwargs
+    def create_namespace(
+        self, name: str, schema: Optional[Dict[str, Any]] = None, **kwargs
+    ) -> NamespaceDescription:
+        """Create a namespace in a serverless index.
+
+        Args:
+            name (str): The name of the namespace to create
+            schema (Optional[Dict[str, Any]]): Optional schema configuration for the namespace as a dictionary. [optional]
+
+        Returns:
+            NamespaceDescription: Information about the created namespace including vector count
+
+        Create a namespace in a serverless index. For guidance and examples, see
+        `Manage namespaces <https://docs.pinecone.io/guides/manage-data/manage-namespaces>`_.
+
+        **Note:** This operation is not supported for pod-based indexes.
+
+        Examples:
+
+            .. code-block:: python
+
+                >>> # Create a namespace with just a name
+                >>> namespace = index.create_namespace(name="my-namespace")
+                >>> print(f"Created namespace: {namespace.name}, Vector count: {namespace.vector_count}")
+
+                >>> # Create a namespace with schema configuration
+                >>> from pinecone.core.openapi.db_data.model.create_namespace_request_schema import CreateNamespaceRequestSchema
+                >>> schema = CreateNamespaceRequestSchema(fields={...})
+                >>> namespace = index.create_namespace(name="my-namespace", schema=schema)
+        """
+        pass
+
+    @abstractmethod
+    @require_kwargs
     def describe_namespace(self, namespace: str, **kwargs) -> NamespaceDescription:
         """Describe a namespace within an index, showing the vector count within the namespace.
 
