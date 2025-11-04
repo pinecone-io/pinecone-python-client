@@ -76,3 +76,81 @@ class TestCreateIndexForModel:
         assert index.embed.field_map == field_map
         assert index.embed.model == EmbedModel.Multilingual_E5_Large.value
         await pc.close()
+
+    async def test_create_index_for_model_with_read_capacity_ondemand(self, index_name):
+        pc = PineconeAsyncio()
+        field_map = {"text": "my-sample-text"}
+        index = await pc.create_index_for_model(
+            name=index_name,
+            cloud=CloudProvider.AWS,
+            region=AwsRegion.US_EAST_1,
+            embed={"model": EmbedModel.Multilingual_E5_Large, "field_map": field_map},
+            read_capacity={"mode": "OnDemand"},
+            timeout=-1,
+        )
+        assert index.name == index_name
+        assert hasattr(index.spec.serverless, "read_capacity")
+        desc = await pc.describe_index(name=index_name)
+        assert hasattr(desc.spec.serverless, "read_capacity")
+        await pc.close()
+
+    async def test_create_index_for_model_with_read_capacity_dedicated(self, index_name):
+        pc = PineconeAsyncio()
+        field_map = {"text": "my-sample-text"}
+        index = await pc.create_index_for_model(
+            name=index_name,
+            cloud=CloudProvider.AWS,
+            region=AwsRegion.US_EAST_1,
+            embed={"model": EmbedModel.Multilingual_E5_Large, "field_map": field_map},
+            read_capacity={
+                "mode": "Dedicated",
+                "dedicated": {
+                    "node_type": "t1",
+                    "scaling": "Manual",
+                    "manual": {"shards": 1, "replicas": 1},
+                },
+            },
+            timeout=-1,
+        )
+        assert index.name == index_name
+        assert hasattr(index.spec.serverless, "read_capacity")
+        desc = await pc.describe_index(name=index_name)
+        assert hasattr(desc.spec.serverless, "read_capacity")
+        await pc.close()
+
+    async def test_create_index_for_model_with_schema(self, index_name):
+        pc = PineconeAsyncio()
+        field_map = {"text": "my-sample-text"}
+        index = await pc.create_index_for_model(
+            name=index_name,
+            cloud=CloudProvider.AWS,
+            region=AwsRegion.US_EAST_1,
+            embed={"model": EmbedModel.Multilingual_E5_Large, "field_map": field_map},
+            schema={"genre": {"filterable": True}, "year": {"filterable": True}},
+            timeout=-1,
+        )
+        assert index.name == index_name
+        assert hasattr(index.spec.serverless, "schema")
+        desc = await pc.describe_index(name=index_name)
+        assert hasattr(desc.spec.serverless, "schema")
+        await pc.close()
+
+    async def test_create_index_for_model_with_read_capacity_and_schema(self, index_name):
+        pc = PineconeAsyncio()
+        field_map = {"text": "my-sample-text"}
+        index = await pc.create_index_for_model(
+            name=index_name,
+            cloud=CloudProvider.AWS,
+            region=AwsRegion.US_EAST_1,
+            embed={"model": EmbedModel.Multilingual_E5_Large, "field_map": field_map},
+            read_capacity={"mode": "OnDemand"},
+            schema={"genre": {"filterable": True}, "year": {"filterable": True}},
+            timeout=-1,
+        )
+        assert index.name == index_name
+        assert hasattr(index.spec.serverless, "read_capacity")
+        assert hasattr(index.spec.serverless, "schema")
+        desc = await pc.describe_index(name=index_name)
+        assert hasattr(desc.spec.serverless, "read_capacity")
+        assert hasattr(desc.spec.serverless, "schema")
+        await pc.close()

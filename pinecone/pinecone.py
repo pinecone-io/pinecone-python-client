@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Dict, Union, TYPE_CHECKING
+from typing import Optional, Dict, Union, TYPE_CHECKING, Any
 from multiprocessing import cpu_count
 import warnings
 
@@ -19,6 +19,18 @@ if TYPE_CHECKING:
     from pinecone.db_control.index_host_store import IndexHostStore
     from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
     from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict, ConfigureIndexEmbed
+    from pinecone.db_control.models.serverless_spec import (
+        ReadCapacityDict,
+        MetadataSchemaFieldConfig,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
+    from pinecone.core.openapi.db_control.model.read_capacity_on_demand_spec import (
+        ReadCapacityOnDemandSpec,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
+        ReadCapacityDedicatedSpec,
+    )
+    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
     from pinecone.db_control.enums import (
         Metric,
         VectorType,
@@ -350,6 +362,25 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
         tags: Optional[Dict[str, str]] = None,
         deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
+        read_capacity: Optional[
+            Union[
+                "ReadCapacityDict",
+                "ReadCapacity",
+                "ReadCapacityOnDemandSpec",
+                "ReadCapacityDedicatedSpec",
+            ]
+        ] = None,
+        schema: Optional[
+            Union[
+                Dict[
+                    str, "MetadataSchemaFieldConfig"
+                ],  # Direct field mapping: {field_name: {filterable: bool}}
+                Dict[
+                    str, Dict[str, Any]
+                ],  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
+                "BackupModelSchema",  # OpenAPI model instance
+            ]
+        ] = None,
         timeout: Optional[int] = None,
     ) -> "IndexModel":
         return self.db.index.create_for_model(
@@ -359,6 +390,8 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
             embed=embed,
             tags=tags,
             deletion_protection=deletion_protection,
+            read_capacity=read_capacity,
+            schema=schema,
             timeout=timeout,
         )
 
@@ -400,6 +433,14 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         deletion_protection: Optional[Union["DeletionProtection", str]] = None,
         tags: Optional[Dict[str, str]] = None,
         embed: Optional[Union["ConfigureIndexEmbed", Dict]] = None,
+        read_capacity: Optional[
+            Union[
+                "ReadCapacityDict",
+                "ReadCapacity",
+                "ReadCapacityOnDemandSpec",
+                "ReadCapacityDedicatedSpec",
+            ]
+        ] = None,
     ):
         return self.db.index.configure(
             name=name,
@@ -408,6 +449,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
             deletion_protection=deletion_protection,
             tags=tags,
             embed=embed,
+            read_capacity=read_capacity,
         )
 
     def create_collection(self, name: str, source: str) -> None:

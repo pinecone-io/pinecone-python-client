@@ -104,6 +104,29 @@ _db_control_lazy_imports = {
         "pinecone.db_control.types",
         "CreateIndexForModelEmbedTypedDict",
     ),
+    # Read capacity TypedDict classes
+    "ScalingConfigManualDict": (
+        "pinecone.db_control.models.serverless_spec",
+        "ScalingConfigManualDict",
+    ),
+    "ReadCapacityDedicatedConfigDict": (
+        "pinecone.db_control.models.serverless_spec",
+        "ReadCapacityDedicatedConfigDict",
+    ),
+    "ReadCapacityOnDemandDict": (
+        "pinecone.db_control.models.serverless_spec",
+        "ReadCapacityOnDemandDict",
+    ),
+    "ReadCapacityDedicatedDict": (
+        "pinecone.db_control.models.serverless_spec",
+        "ReadCapacityDedicatedDict",
+    ),
+    "ReadCapacityDict": ("pinecone.db_control.models.serverless_spec", "ReadCapacityDict"),
+    # Metadata schema TypedDict class
+    "MetadataSchemaFieldConfig": (
+        "pinecone.db_control.models.serverless_spec",
+        "MetadataSchemaFieldConfig",
+    ),
 }
 
 _config_lazy_imports = {

@@ -1,6 +1,6 @@
 import logging
 import asyncio
-from typing import Optional, Dict, Union
+from typing import Optional, Dict, Union, Any, TYPE_CHECKING
 
 
 from pinecone.db_control.models import (
@@ -31,6 +31,20 @@ from pinecone.db_control.types.configure_index_embed import ConfigureIndexEmbed
 
 logger = logging.getLogger(__name__)
 """ :meta private: """
+
+if TYPE_CHECKING:
+    from pinecone.db_control.models.serverless_spec import (
+        ReadCapacityDict,
+        MetadataSchemaFieldConfig,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
+    from pinecone.core.openapi.db_control.model.read_capacity_on_demand_spec import (
+        ReadCapacityOnDemandSpec,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
+        ReadCapacityDedicatedSpec,
+    )
+    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
 
 
 class IndexResourceAsyncio:
@@ -76,6 +90,25 @@ class IndexResourceAsyncio:
         embed: Union[IndexEmbed, CreateIndexForModelEmbedTypedDict],
         tags: Optional[Dict[str, str]] = None,
         deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
+        read_capacity: Optional[
+            Union[
+                "ReadCapacityDict",
+                "ReadCapacity",
+                "ReadCapacityOnDemandSpec",
+                "ReadCapacityDedicatedSpec",
+            ]
+        ] = None,
+        schema: Optional[
+            Union[
+                Dict[
+                    str, "MetadataSchemaFieldConfig"
+                ],  # Direct field mapping: {field_name: {filterable: bool}}
+                Dict[
+                    str, Dict[str, Any]
+                ],  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
+                "BackupModelSchema",  # OpenAPI model instance
+            ]
+        ] = None,
         timeout: Optional[int] = None,
     ) -> IndexModel:
         req = PineconeDBControlRequestFactory.create_index_for_model_request(
@@ -85,6 +118,8 @@ class IndexResourceAsyncio:
             embed=embed,
             tags=tags,
             deletion_protection=deletion_protection,
+            read_capacity=read_capacity,
+            schema=schema,
         )
         resp = await self._index_api.create_index_for_model(req)
 
@@ -185,6 +220,14 @@ class IndexResourceAsyncio:
         deletion_protection: Optional[Union[DeletionProtection, str]] = None,
         tags: Optional[Dict[str, str]] = None,
         embed: Optional[Union[ConfigureIndexEmbed, Dict]] = None,
+        read_capacity: Optional[
+            Union[
+                "ReadCapacityDict",
+                "ReadCapacity",
+                "ReadCapacityOnDemandSpec",
+                "ReadCapacityDedicatedSpec",
+            ]
+        ] = None,
     ):
         description = await self.describe(name=name)
 
@@ -195,5 +238,6 @@ class IndexResourceAsyncio:
             deletion_protection=deletion_protection,
             tags=tags,
             embed=embed,
+            read_capacity=read_capacity,
         )
         await self._index_api.configure_index(name, configure_index_request=req)
