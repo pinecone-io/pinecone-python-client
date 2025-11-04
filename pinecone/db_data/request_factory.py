@@ -11,6 +11,7 @@ from pinecone.core.openapi.db_data.models import (
     SearchRecordsRequest,
     SearchRecordsRequestQuery,
     SearchRecordsRequestRerank,
+    SearchMatchTerms,
     VectorValues,
     SearchRecordsVector,
     UpsertRecord,
@@ -218,11 +219,18 @@ class IndexRequestFactory:
         if isinstance(query_dict.get("vector", None), SearchQueryVector):
             query_dict["vector"] = query_dict["vector"].as_dict()
 
+        # Extract match_terms for conversion if present
+        match_terms = query_dict.pop("match_terms", None)
+        if match_terms is not None and isinstance(match_terms, dict):
+            match_terms = SearchMatchTerms(**match_terms)
+
         srrq = SearchRecordsRequestQuery(
             **{k: v for k, v in query_dict.items() if k not in {"vector"}}
         )
         if query_dict.get("vector", None) is not None:
             srrq.vector = IndexRequestFactory._parse_search_vector(query_dict["vector"])
+        if match_terms is not None:
+            srrq.match_terms = match_terms
         return srrq
 
     @staticmethod
