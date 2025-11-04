@@ -1,4 +1,5 @@
 import pytest
+import pytest_asyncio
 import json
 import asyncio
 from ..helpers import get_environment_var, generate_index_name
@@ -50,16 +51,20 @@ def build_asyncioindex_client(index_host) -> _IndexAsyncio:
     return Pinecone().IndexAsyncio(host=index_host)
 
 
-@pytest.fixture(scope="session")
-def idx(client, index_name, index_host):
-    print("Building client for {}".format(index_name))
-    return build_asyncioindex_client(index_host)
+@pytest_asyncio.fixture(scope="function")
+async def idx(index_host):
+    print("Building client for async index")
+    client = build_asyncioindex_client(index_host)
+    yield client
+    await client.close()
 
 
-@pytest.fixture(scope="session")
-def sparse_idx(client, sparse_index_name, sparse_index_host):
-    print("Building client for {}".format(sparse_index_name))
-    return build_asyncioindex_client(sparse_index_host)
+@pytest_asyncio.fixture(scope="function")
+async def sparse_idx(sparse_index_host):
+    print("Building client for async sparse index")
+    client = build_asyncioindex_client(sparse_index_host)
+    yield client
+    await client.close()
 
 
 @pytest.fixture(scope="session")

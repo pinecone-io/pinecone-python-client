@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import pinecone.core.grpc.protos.db_data_2025_04_pb2 as db__data__2025__04__pb2
+import pinecone.core.grpc.protos.db_data_2025_10_pb2 as db__data__2025__10__pb2
 
 
 class VectorServiceStub(object):
@@ -18,53 +18,63 @@ class VectorServiceStub(object):
         """
         self.Upsert = channel.unary_unary(
                 '/VectorService/Upsert',
-                request_serializer=db__data__2025__04__pb2.UpsertRequest.SerializeToString,
-                response_deserializer=db__data__2025__04__pb2.UpsertResponse.FromString,
+                request_serializer=db__data__2025__10__pb2.UpsertRequest.SerializeToString,
+                response_deserializer=db__data__2025__10__pb2.UpsertResponse.FromString,
                 )
         self.Delete = channel.unary_unary(
                 '/VectorService/Delete',
-                request_serializer=db__data__2025__04__pb2.DeleteRequest.SerializeToString,
-                response_deserializer=db__data__2025__04__pb2.DeleteResponse.FromString,
+                request_serializer=db__data__2025__10__pb2.DeleteRequest.SerializeToString,
+                response_deserializer=db__data__2025__10__pb2.DeleteResponse.FromString,
                 )
         self.Fetch = channel.unary_unary(
                 '/VectorService/Fetch',
-                request_serializer=db__data__2025__04__pb2.FetchRequest.SerializeToString,
-                response_deserializer=db__data__2025__04__pb2.FetchResponse.FromString,
+                request_serializer=db__data__2025__10__pb2.FetchRequest.SerializeToString,
+                response_deserializer=db__data__2025__10__pb2.FetchResponse.FromString,
                 )
         self.List = channel.unary_unary(
                 '/VectorService/List',
-                request_serializer=db__data__2025__04__pb2.ListRequest.SerializeToString,
-                response_deserializer=db__data__2025__04__pb2.ListResponse.FromString,
+                request_serializer=db__data__2025__10__pb2.ListRequest.SerializeToString,
+                response_deserializer=db__data__2025__10__pb2.ListResponse.FromString,
                 )
         self.Query = channel.unary_unary(
                 '/VectorService/Query',
-                request_serializer=db__data__2025__04__pb2.QueryRequest.SerializeToString,
-                response_deserializer=db__data__2025__04__pb2.QueryResponse.FromString,
+                request_serializer=db__data__2025__10__pb2.QueryRequest.SerializeToString,
+                response_deserializer=db__data__2025__10__pb2.QueryResponse.FromString,
                 )
         self.Update = channel.unary_unary(
                 '/VectorService/Update',
-                request_serializer=db__data__2025__04__pb2.UpdateRequest.SerializeToString,
-                response_deserializer=db__data__2025__04__pb2.UpdateResponse.FromString,
+                request_serializer=db__data__2025__10__pb2.UpdateRequest.SerializeToString,
+                response_deserializer=db__data__2025__10__pb2.UpdateResponse.FromString,
                 )
         self.DescribeIndexStats = channel.unary_unary(
                 '/VectorService/DescribeIndexStats',
-                request_serializer=db__data__2025__04__pb2.DescribeIndexStatsRequest.SerializeToString,
-                response_deserializer=db__data__2025__04__pb2.DescribeIndexStatsResponse.FromString,
+                request_serializer=db__data__2025__10__pb2.DescribeIndexStatsRequest.SerializeToString,
+                response_deserializer=db__data__2025__10__pb2.DescribeIndexStatsResponse.FromString,
                 )
         self.ListNamespaces = channel.unary_unary(
                 '/VectorService/ListNamespaces',
-                request_serializer=db__data__2025__04__pb2.ListNamespacesRequest.SerializeToString,
-                response_deserializer=db__data__2025__04__pb2.ListNamespacesResponse.FromString,
+                request_serializer=db__data__2025__10__pb2.ListNamespacesRequest.SerializeToString,
+                response_deserializer=db__data__2025__10__pb2.ListNamespacesResponse.FromString,
                 )
         self.DescribeNamespace = channel.unary_unary(
                 '/VectorService/DescribeNamespace',
-                request_serializer=db__data__2025__04__pb2.DescribeNamespaceRequest.SerializeToString,
-                response_deserializer=db__data__2025__04__pb2.NamespaceDescription.FromString,
+                request_serializer=db__data__2025__10__pb2.DescribeNamespaceRequest.SerializeToString,
+                response_deserializer=db__data__2025__10__pb2.NamespaceDescription.FromString,
                 )
         self.DeleteNamespace = channel.unary_unary(
                 '/VectorService/DeleteNamespace',
-                request_serializer=db__data__2025__04__pb2.DeleteNamespaceRequest.SerializeToString,
-                response_deserializer=db__data__2025__04__pb2.DeleteResponse.FromString,
+                request_serializer=db__data__2025__10__pb2.DeleteNamespaceRequest.SerializeToString,
+                response_deserializer=db__data__2025__10__pb2.DeleteResponse.FromString,
+                )
+        self.CreateNamespace = channel.unary_unary(
+                '/VectorService/CreateNamespace',
+                request_serializer=db__data__2025__10__pb2.CreateNamespaceRequest.SerializeToString,
+                response_deserializer=db__data__2025__10__pb2.NamespaceDescription.FromString,
+                )
+        self.FetchByMetadata = channel.unary_unary(
+                '/VectorService/FetchByMetadata',
+                request_serializer=db__data__2025__10__pb2.FetchByMetadataRequest.SerializeToString,
+                response_deserializer=db__data__2025__10__pb2.FetchByMetadataResponse.FromString,
                 )
 
 
@@ -157,9 +167,13 @@ class VectorServiceServicer(object):
     def ListNamespaces(self, request, context):
         """List namespaces
 
-        Get a list of all [namespaces](https://docs.pinecone.io/guides/index-data/indexing-overview#namespaces) in a serverless index.
+        List all namespaces in a serverless index.
 
-        Up to 100 namespaces are returned at a time by default, in sorted order (bitwise “C” collation). If the `limit` parameter is set, up to that number of namespaces are returned instead. Whenever there are additional namespaces to return, the response also includes a `pagination_token` that you can use to get the next batch of namespaces. When the response does not include a `pagination_token`, there are no more namespaces to return.
+        Up to 100 namespaces are returned at a time by default, in sorted order (bitwise "C" collation). If the `limit` parameter is set, up to that number of namespaces are returned instead. Whenever there are additional namespaces to return, the response also includes a `pagination_token` that you can use to get the next batch of namespaces. When the response does not include a `pagination_token`, there are no more namespaces to return.
+
+        For guidance and examples, see [Manage namespaces](https://docs.pinecone.io/guides/manage-data/manage-namespaces).
+
+        **Note:** This operation is not supported for pod-based indexes.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -168,7 +182,11 @@ class VectorServiceServicer(object):
     def DescribeNamespace(self, request, context):
         """Describe a namespace
 
-        Describe a [namespace](https://docs.pinecone.io/guides/index-data/indexing-overview#namespaces) in a serverless index, including the total number of vectors in the namespace.
+        Describe a namespace in a serverless index, including the total number of vectors in the namespace.
+
+        For guidance and examples, see [Manage namespaces](https://docs.pinecone.io/guides/manage-data/manage-namespaces).
+
+        **Note:** This operation is not supported for pod-based indexes.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -177,8 +195,31 @@ class VectorServiceServicer(object):
     def DeleteNamespace(self, request, context):
         """Delete a namespace
 
-        Delete a namespace from an index.
+        Delete a namespace from a serverless index. Deleting a namespace is irreversible; all data in the namespace is permanently deleted.
+
+        For guidance and examples, see [Manage namespaces](https://docs.pinecone.io/guides/manage-data/manage-namespaces).
+
+        **Note:** This operation is not supported for pod-based indexes.
         """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CreateNamespace(self, request, context):
+        """Create a namespace
+
+        Create a namespace in a serverless index.
+
+        For guidance and examples, see [Manage namespaces](https://docs.pinecone.io/guides/manage-data/manage-namespaces).
+
+        **Note:** This operation is not supported for pod-based indexes.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def FetchByMetadata(self, request, context):
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -188,53 +229,63 @@ def add_VectorServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Upsert': grpc.unary_unary_rpc_method_handler(
                     servicer.Upsert,
-                    request_deserializer=db__data__2025__04__pb2.UpsertRequest.FromString,
-                    response_serializer=db__data__2025__04__pb2.UpsertResponse.SerializeToString,
+                    request_deserializer=db__data__2025__10__pb2.UpsertRequest.FromString,
+                    response_serializer=db__data__2025__10__pb2.UpsertResponse.SerializeToString,
             ),
             'Delete': grpc.unary_unary_rpc_method_handler(
                     servicer.Delete,
-                    request_deserializer=db__data__2025__04__pb2.DeleteRequest.FromString,
-                    response_serializer=db__data__2025__04__pb2.DeleteResponse.SerializeToString,
+                    request_deserializer=db__data__2025__10__pb2.DeleteRequest.FromString,
+                    response_serializer=db__data__2025__10__pb2.DeleteResponse.SerializeToString,
             ),
             'Fetch': grpc.unary_unary_rpc_method_handler(
                     servicer.Fetch,
-                    request_deserializer=db__data__2025__04__pb2.FetchRequest.FromString,
-                    response_serializer=db__data__2025__04__pb2.FetchResponse.SerializeToString,
+                    request_deserializer=db__data__2025__10__pb2.FetchRequest.FromString,
+                    response_serializer=db__data__2025__10__pb2.FetchResponse.SerializeToString,
             ),
             'List': grpc.unary_unary_rpc_method_handler(
                     servicer.List,
-                    request_deserializer=db__data__2025__04__pb2.ListRequest.FromString,
-                    response_serializer=db__data__2025__04__pb2.ListResponse.SerializeToString,
+                    request_deserializer=db__data__2025__10__pb2.ListRequest.FromString,
+                    response_serializer=db__data__2025__10__pb2.ListResponse.SerializeToString,
             ),
             'Query': grpc.unary_unary_rpc_method_handler(
                     servicer.Query,
-                    request_deserializer=db__data__2025__04__pb2.QueryRequest.FromString,
-                    response_serializer=db__data__2025__04__pb2.QueryResponse.SerializeToString,
+                    request_deserializer=db__data__2025__10__pb2.QueryRequest.FromString,
+                    response_serializer=db__data__2025__10__pb2.QueryResponse.SerializeToString,
             ),
             'Update': grpc.unary_unary_rpc_method_handler(
                     servicer.Update,
-                    request_deserializer=db__data__2025__04__pb2.UpdateRequest.FromString,
-                    response_serializer=db__data__2025__04__pb2.UpdateResponse.SerializeToString,
+                    request_deserializer=db__data__2025__10__pb2.UpdateRequest.FromString,
+                    response_serializer=db__data__2025__10__pb2.UpdateResponse.SerializeToString,
             ),
             'DescribeIndexStats': grpc.unary_unary_rpc_method_handler(
                     servicer.DescribeIndexStats,
-                    request_deserializer=db__data__2025__04__pb2.DescribeIndexStatsRequest.FromString,
-                    response_serializer=db__data__2025__04__pb2.DescribeIndexStatsResponse.SerializeToString,
+                    request_deserializer=db__data__2025__10__pb2.DescribeIndexStatsRequest.FromString,
+                    response_serializer=db__data__2025__10__pb2.DescribeIndexStatsResponse.SerializeToString,
             ),
             'ListNamespaces': grpc.unary_unary_rpc_method_handler(
                     servicer.ListNamespaces,
-                    request_deserializer=db__data__2025__04__pb2.ListNamespacesRequest.FromString,
-                    response_serializer=db__data__2025__04__pb2.ListNamespacesResponse.SerializeToString,
+                    request_deserializer=db__data__2025__10__pb2.ListNamespacesRequest.FromString,
+                    response_serializer=db__data__2025__10__pb2.ListNamespacesResponse.SerializeToString,
             ),
             'DescribeNamespace': grpc.unary_unary_rpc_method_handler(
                     servicer.DescribeNamespace,
-                    request_deserializer=db__data__2025__04__pb2.DescribeNamespaceRequest.FromString,
-                    response_serializer=db__data__2025__04__pb2.NamespaceDescription.SerializeToString,
+                    request_deserializer=db__data__2025__10__pb2.DescribeNamespaceRequest.FromString,
+                    response_serializer=db__data__2025__10__pb2.NamespaceDescription.SerializeToString,
             ),
             'DeleteNamespace': grpc.unary_unary_rpc_method_handler(
                     servicer.DeleteNamespace,
-                    request_deserializer=db__data__2025__04__pb2.DeleteNamespaceRequest.FromString,
-                    response_serializer=db__data__2025__04__pb2.DeleteResponse.SerializeToString,
+                    request_deserializer=db__data__2025__10__pb2.DeleteNamespaceRequest.FromString,
+                    response_serializer=db__data__2025__10__pb2.DeleteResponse.SerializeToString,
+            ),
+            'CreateNamespace': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateNamespace,
+                    request_deserializer=db__data__2025__10__pb2.CreateNamespaceRequest.FromString,
+                    response_serializer=db__data__2025__10__pb2.NamespaceDescription.SerializeToString,
+            ),
+            'FetchByMetadata': grpc.unary_unary_rpc_method_handler(
+                    servicer.FetchByMetadata,
+                    request_deserializer=db__data__2025__10__pb2.FetchByMetadataRequest.FromString,
+                    response_serializer=db__data__2025__10__pb2.FetchByMetadataResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -260,8 +311,8 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/Upsert',
-            db__data__2025__04__pb2.UpsertRequest.SerializeToString,
-            db__data__2025__04__pb2.UpsertResponse.FromString,
+            db__data__2025__10__pb2.UpsertRequest.SerializeToString,
+            db__data__2025__10__pb2.UpsertResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -277,8 +328,8 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/Delete',
-            db__data__2025__04__pb2.DeleteRequest.SerializeToString,
-            db__data__2025__04__pb2.DeleteResponse.FromString,
+            db__data__2025__10__pb2.DeleteRequest.SerializeToString,
+            db__data__2025__10__pb2.DeleteResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -294,8 +345,8 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/Fetch',
-            db__data__2025__04__pb2.FetchRequest.SerializeToString,
-            db__data__2025__04__pb2.FetchResponse.FromString,
+            db__data__2025__10__pb2.FetchRequest.SerializeToString,
+            db__data__2025__10__pb2.FetchResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -311,8 +362,8 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/List',
-            db__data__2025__04__pb2.ListRequest.SerializeToString,
-            db__data__2025__04__pb2.ListResponse.FromString,
+            db__data__2025__10__pb2.ListRequest.SerializeToString,
+            db__data__2025__10__pb2.ListResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -328,8 +379,8 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/Query',
-            db__data__2025__04__pb2.QueryRequest.SerializeToString,
-            db__data__2025__04__pb2.QueryResponse.FromString,
+            db__data__2025__10__pb2.QueryRequest.SerializeToString,
+            db__data__2025__10__pb2.QueryResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -345,8 +396,8 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/Update',
-            db__data__2025__04__pb2.UpdateRequest.SerializeToString,
-            db__data__2025__04__pb2.UpdateResponse.FromString,
+            db__data__2025__10__pb2.UpdateRequest.SerializeToString,
+            db__data__2025__10__pb2.UpdateResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -362,8 +413,8 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/DescribeIndexStats',
-            db__data__2025__04__pb2.DescribeIndexStatsRequest.SerializeToString,
-            db__data__2025__04__pb2.DescribeIndexStatsResponse.FromString,
+            db__data__2025__10__pb2.DescribeIndexStatsRequest.SerializeToString,
+            db__data__2025__10__pb2.DescribeIndexStatsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -379,8 +430,8 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/ListNamespaces',
-            db__data__2025__04__pb2.ListNamespacesRequest.SerializeToString,
-            db__data__2025__04__pb2.ListNamespacesResponse.FromString,
+            db__data__2025__10__pb2.ListNamespacesRequest.SerializeToString,
+            db__data__2025__10__pb2.ListNamespacesResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -396,8 +447,8 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/DescribeNamespace',
-            db__data__2025__04__pb2.DescribeNamespaceRequest.SerializeToString,
-            db__data__2025__04__pb2.NamespaceDescription.FromString,
+            db__data__2025__10__pb2.DescribeNamespaceRequest.SerializeToString,
+            db__data__2025__10__pb2.NamespaceDescription.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -413,7 +464,41 @@ class VectorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/VectorService/DeleteNamespace',
-            db__data__2025__04__pb2.DeleteNamespaceRequest.SerializeToString,
-            db__data__2025__04__pb2.DeleteResponse.FromString,
+            db__data__2025__10__pb2.DeleteNamespaceRequest.SerializeToString,
+            db__data__2025__10__pb2.DeleteResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def CreateNamespace(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/VectorService/CreateNamespace',
+            db__data__2025__10__pb2.CreateNamespaceRequest.SerializeToString,
+            db__data__2025__10__pb2.NamespaceDescription.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def FetchByMetadata(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/VectorService/FetchByMetadata',
+            db__data__2025__10__pb2.FetchByMetadataRequest.SerializeToString,
+            db__data__2025__10__pb2.FetchByMetadataResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

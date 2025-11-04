@@ -11,6 +11,7 @@ from concurrent.futures import as_completed, Future
 from .utils import (
     dict_to_proto_struct,
     parse_fetch_response,
+    parse_fetch_by_metadata_response,
     parse_query_response,
     parse_stats_response,
     parse_upsert_response,
@@ -29,8 +30,9 @@ from pinecone.core.openapi.db_data.models import (
     NamespaceDescription,
     ListNamespacesResponse,
 )
+from pinecone.db_data.dataclasses import FetchByMetadataResponse
 from pinecone.db_control.models.list_response import ListResponse as SimpleListResponse, Pagination
-from pinecone.core.grpc.protos.db_data_2025_04_pb2 import (
+from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
     Vector as GRPCVector,
     QueryVector as GRPCQueryVector,
     UpsertRequest,
@@ -38,6 +40,7 @@ from pinecone.core.grpc.protos.db_data_2025_04_pb2 import (
     DeleteRequest,
     QueryRequest,
     FetchRequest,
+    FetchByMetadataRequest,
     UpdateRequest,
     ListRequest,
     DescribeIndexStatsRequest,
@@ -48,9 +51,9 @@ from pinecone.core.grpc.protos.db_data_2025_04_pb2 import (
     DeleteNamespaceRequest,
     ListNamespacesRequest,
 )
+from pinecone.core.grpc.protos.db_data_2025_10_pb2_grpc import VectorServiceStub
 from pinecone import Vector, SparseValues
 from pinecone.db_data.query_results_aggregator import QueryNamespacesResults, QueryResultsAggregator
-from pinecone.core.grpc.protos.db_data_2025_04_pb2_grpc import VectorServiceStub
 from .base import GRPCIndexBase
 from .future import PineconeGrpcFuture
 from ..db_data.types import (
@@ -362,6 +365,76 @@ class GRPCIndex(GRPCIndexBase):
         else:
             response = self.runner.run(self.stub.Fetch, request, timeout=timeout)
             return parse_fetch_response(response)
+
+    def fetch_by_metadata(
+        self,
+        filter: FilterTypedDict,
+        namespace: Optional[str] = None,
+        limit: Optional[int] = None,
+        pagination_token: Optional[str] = None,
+        async_req: Optional[bool] = False,
+        **kwargs,
+    ) -> Union[FetchByMetadataResponse, PineconeGrpcFuture]:
+        """
+        Fetch vectors by metadata filter.
+
+        Look up and return vectors by metadata filter from a single namespace.
+        The returned vectors include the vector data and/or metadata.
+
+        Examples:
+
+        .. code-block:: python
+
+            >>> index.fetch_by_metadata(
+            ...     filter={'genre': {'$in': ['comedy', 'drama']}, 'year': {'$eq': 2019}},
+            ...     namespace='my_namespace',
+            ...     limit=50
+            ... )
+            >>> index.fetch_by_metadata(
+            ...     filter={'status': 'active'},
+            ...     pagination_token='token123'
+            ... )
+
+        Args:
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+                Metadata filter expression to select vectors.
+                See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`
+            namespace (str): The namespace to fetch vectors from.
+                            If not specified, the default namespace is used. [optional]
+            limit (int): Max number of vectors to return. Defaults to 100. [optional]
+            pagination_token (str): Pagination token to continue a previous listing operation. [optional]
+            async_req (bool): If True, the fetch operation will be performed asynchronously.
+                             Defaults to False. [optional]
+
+        Returns:
+            FetchByMetadataResponse: Object containing the fetched vectors, namespace, usage, and pagination token.
+        """
+        timeout = kwargs.pop("timeout", None)
+
+        if filter is not None:
+            filter_struct = dict_to_proto_struct(filter)
+        else:
+            filter_struct = None
+
+        args_dict = self._parse_non_empty_args(
+            [
+                ("namespace", namespace),
+                ("filter", filter_struct),
+                ("limit", limit),
+                ("pagination_token", pagination_token),
+            ]
+        )
+
+        request = FetchByMetadataRequest(**args_dict, **kwargs)
+
+        if async_req:
+            future = self.runner.run(self.stub.FetchByMetadata.future, request, timeout=timeout)
+            return PineconeGrpcFuture(
+                future, result_transformer=parse_fetch_by_metadata_response, timeout=timeout
+            )
+        else:
+            response = self.runner.run(self.stub.FetchByMetadata, request, timeout=timeout)
+            return parse_fetch_by_metadata_response(response)
 
     def query(
         self,

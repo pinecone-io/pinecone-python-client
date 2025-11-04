@@ -15,7 +15,7 @@ LteFilter = Dict[Literal["$lte"], NumericFieldValue]
 
 InFilter = Dict[Literal["$in"], List[FieldValue]]
 NinFilter = Dict[Literal["$nin"], List[FieldValue]]
-
+ExistsFilter = Dict[Literal["$exists"], bool]
 
 SimpleFilter = Union[
     ExactMatchFilter,
@@ -27,7 +27,9 @@ SimpleFilter = Union[
     LteFilter,
     InFilter,
     NinFilter,
+    ExistsFilter,
 ]
 AndFilter = Dict[Literal["$and"], List[SimpleFilter]]
+OrFilter = Dict[Literal["$or"], List[SimpleFilter]]
 
-FilterTypedDict = Union[SimpleFilter, AndFilter]
+FilterTypedDict = Union[SimpleFilter, AndFilter, OrFilter]

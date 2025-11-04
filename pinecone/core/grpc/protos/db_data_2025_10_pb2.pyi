@@ -90,6 +90,37 @@ class FetchRequest(_message.Message):
     namespace: str
     def __init__(self, ids: _Optional[_Iterable[str]] = ..., namespace: _Optional[str] = ...) -> None: ...
 
+class FetchByMetadataRequest(_message.Message):
+    __slots__ = ("namespace", "filter", "limit", "pagination_token")
+    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
+    FILTER_FIELD_NUMBER: _ClassVar[int]
+    LIMIT_FIELD_NUMBER: _ClassVar[int]
+    PAGINATION_TOKEN_FIELD_NUMBER: _ClassVar[int]
+    namespace: str
+    filter: _struct_pb2.Struct
+    limit: int
+    pagination_token: str
+    def __init__(self, namespace: _Optional[str] = ..., filter: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., limit: _Optional[int] = ..., pagination_token: _Optional[str] = ...) -> None: ...
+
+class FetchByMetadataResponse(_message.Message):
+    __slots__ = ("vectors", "namespace", "usage", "pagination")
+    class VectorsEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: Vector
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[Vector, _Mapping]] = ...) -> None: ...
+    VECTORS_FIELD_NUMBER: _ClassVar[int]
+    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
+    USAGE_FIELD_NUMBER: _ClassVar[int]
+    PAGINATION_FIELD_NUMBER: _ClassVar[int]
+    vectors: _containers.MessageMap[str, Vector]
+    namespace: str
+    usage: Usage
+    pagination: Pagination
+    def __init__(self, vectors: _Optional[_Mapping[str, Vector]] = ..., namespace: _Optional[str] = ..., usage: _Optional[_Union[Usage, _Mapping]] = ..., pagination: _Optional[_Union[Pagination, _Mapping]] = ...) -> None: ...
+
 class FetchResponse(_message.Message):
     __slots__ = ("vectors", "namespace", "usage")
     class VectorsEntry(_message.Message):
@@ -206,22 +237,28 @@ class Usage(_message.Message):
     def __init__(self, read_units: _Optional[int] = ...) -> None: ...
 
 class UpdateRequest(_message.Message):
-    __slots__ = ("id", "values", "sparse_values", "set_metadata", "namespace")
+    __slots__ = ("id", "values", "sparse_values", "set_metadata", "namespace", "filter", "dry_run")
     ID_FIELD_NUMBER: _ClassVar[int]
     VALUES_FIELD_NUMBER: _ClassVar[int]
     SPARSE_VALUES_FIELD_NUMBER: _ClassVar[int]
     SET_METADATA_FIELD_NUMBER: _ClassVar[int]
     NAMESPACE_FIELD_NUMBER: _ClassVar[int]
+    FILTER_FIELD_NUMBER: _ClassVar[int]
+    DRY_RUN_FIELD_NUMBER: _ClassVar[int]
     id: str
     values: _containers.RepeatedScalarFieldContainer[float]
     sparse_values: SparseValues
     set_metadata: _struct_pb2.Struct
     namespace: str
-    def __init__(self, id: _Optional[str] = ..., values: _Optional[_Iterable[float]] = ..., sparse_values: _Optional[_Union[SparseValues, _Mapping]] = ..., set_metadata: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., namespace: _Optional[str] = ...) -> None: ...
+    filter: _struct_pb2.Struct
+    dry_run: bool
+    def __init__(self, id: _Optional[str] = ..., values: _Optional[_Iterable[float]] = ..., sparse_values: _Optional[_Union[SparseValues, _Mapping]] = ..., set_metadata: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., namespace: _Optional[str] = ..., filter: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., dry_run: bool = ...) -> None: ...
 
 class UpdateResponse(_message.Message):
-    __slots__ = ()
-    def __init__(self) -> None: ...
+    __slots__ = ("matched_records",)
+    MATCHED_RECORDS_FIELD_NUMBER: _ClassVar[int]
+    matched_records: int
+    def __init__(self, matched_records: _Optional[int] = ...) -> None: ...
 
 class DescribeIndexStatsRequest(_message.Message):
     __slots__ = ("filter",)
@@ -236,20 +273,24 @@ class NamespaceSummary(_message.Message):
     def __init__(self, vector_count: _Optional[int] = ...) -> None: ...
 
 class ListNamespacesRequest(_message.Message):
-    __slots__ = ("pagination_token", "limit")
+    __slots__ = ("pagination_token", "limit", "prefix")
     PAGINATION_TOKEN_FIELD_NUMBER: _ClassVar[int]
     LIMIT_FIELD_NUMBER: _ClassVar[int]
+    PREFIX_FIELD_NUMBER: _ClassVar[int]
     pagination_token: str
     limit: int
-    def __init__(self, pagination_token: _Optional[str] = ..., limit: _Optional[int] = ...) -> None: ...
+    prefix: str
+    def __init__(self, pagination_token: _Optional[str] = ..., limit: _Optional[int] = ..., prefix: _Optional[str] = ...) -> None: ...
 
 class ListNamespacesResponse(_message.Message):
-    __slots__ = ("namespaces", "pagination")
+    __slots__ = ("namespaces", "pagination", "total_count")
     NAMESPACES_FIELD_NUMBER: _ClassVar[int]
     PAGINATION_FIELD_NUMBER: _ClassVar[int]
+    TOTAL_COUNT_FIELD_NUMBER: _ClassVar[int]
     namespaces: _containers.RepeatedCompositeFieldContainer[NamespaceDescription]
     pagination: Pagination
-    def __init__(self, namespaces: _Optional[_Iterable[_Union[NamespaceDescription, _Mapping]]] = ..., pagination: _Optional[_Union[Pagination, _Mapping]] = ...) -> None: ...
+    total_count: int
+    def __init__(self, namespaces: _Optional[_Iterable[_Union[NamespaceDescription, _Mapping]]] = ..., pagination: _Optional[_Union[Pagination, _Mapping]] = ..., total_count: _Optional[int] = ...) -> None: ...
 
 class DescribeNamespaceRequest(_message.Message):
     __slots__ = ("namespace",)
@@ -257,13 +298,31 @@ class DescribeNamespaceRequest(_message.Message):
     namespace: str
     def __init__(self, namespace: _Optional[str] = ...) -> None: ...
 
+class CreateNamespaceRequest(_message.Message):
+    __slots__ = ("name", "schema")
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    SCHEMA_FIELD_NUMBER: _ClassVar[int]
+    name: str
+    schema: MetadataSchema
+    def __init__(self, name: _Optional[str] = ..., schema: _Optional[_Union[MetadataSchema, _Mapping]] = ...) -> None: ...
+
+class IndexedFields(_message.Message):
+    __slots__ = ("fields",)
+    FIELDS_FIELD_NUMBER: _ClassVar[int]
+    fields: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, fields: _Optional[_Iterable[str]] = ...) -> None: ...
+
 class NamespaceDescription(_message.Message):
-    __slots__ = ("name", "record_count")
+    __slots__ = ("name", "record_count", "schema", "indexed_fields")
     NAME_FIELD_NUMBER: _ClassVar[int]
     RECORD_COUNT_FIELD_NUMBER: _ClassVar[int]
+    SCHEMA_FIELD_NUMBER: _ClassVar[int]
+    INDEXED_FIELDS_FIELD_NUMBER: _ClassVar[int]
     name: str
     record_count: int
-    def __init__(self, name: _Optional[str] = ..., record_count: _Optional[int] = ...) -> None: ...
+    schema: MetadataSchema
+    indexed_fields: IndexedFields
+    def __init__(self, name: _Optional[str] = ..., record_count: _Optional[int] = ..., schema: _Optional[_Union[MetadataSchema, _Mapping]] = ..., indexed_fields: _Optional[_Union[IndexedFields, _Mapping]] = ...) -> None: ...
 
 class DeleteNamespaceRequest(_message.Message):
     __slots__ = ("namespace",)
@@ -272,7 +331,7 @@ class DeleteNamespaceRequest(_message.Message):
     def __init__(self, namespace: _Optional[str] = ...) -> None: ...
 
 class DescribeIndexStatsResponse(_message.Message):
-    __slots__ = ("namespaces", "dimension", "index_fullness", "total_vector_count", "metric", "vector_type")
+    __slots__ = ("namespaces", "dimension", "index_fullness", "total_vector_count", "metric", "vector_type", "memory_fullness", "storage_fullness")
     class NamespacesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -286,10 +345,33 @@ class DescribeIndexStatsResponse(_message.Message):
     TOTAL_VECTOR_COUNT_FIELD_NUMBER: _ClassVar[int]
     METRIC_FIELD_NUMBER: _ClassVar[int]
     VECTOR_TYPE_FIELD_NUMBER: _ClassVar[int]
+    MEMORY_FULLNESS_FIELD_NUMBER: _ClassVar[int]
+    STORAGE_FULLNESS_FIELD_NUMBER: _ClassVar[int]
     namespaces: _containers.MessageMap[str, NamespaceSummary]
     dimension: int
     index_fullness: float
     total_vector_count: int
     metric: str
     vector_type: str
-    def __init__(self, namespaces: _Optional[_Mapping[str, NamespaceSummary]] = ..., dimension: _Optional[int] = ..., index_fullness: _Optional[float] = ..., total_vector_count: _Optional[int] = ..., metric: _Optional[str] = ..., vector_type: _Optional[str] = ...) -> None: ...
+    memory_fullness: float
+    storage_fullness: float
+    def __init__(self, namespaces: _Optional[_Mapping[str, NamespaceSummary]] = ..., dimension: _Optional[int] = ..., index_fullness: _Optional[float] = ..., total_vector_count: _Optional[int] = ..., metric: _Optional[str] = ..., vector_type: _Optional[str] = ..., memory_fullness: _Optional[float] = ..., storage_fullness: _Optional[float] = ...) -> None: ...
+
+class MetadataFieldProperties(_message.Message):
+    __slots__ = ("filterable",)
+    FILTERABLE_FIELD_NUMBER: _ClassVar[int]
+    filterable: bool
+    def __init__(self, filterable: bool = ...) -> None: ...
+
+class MetadataSchema(_message.Message):
+    __slots__ = ("fields",)
+    class FieldsEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: MetadataFieldProperties
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[MetadataFieldProperties, _Mapping]] = ...) -> None: ...
+    FIELDS_FIELD_NUMBER: _ClassVar[int]
+    fields: _containers.MessageMap[str, MetadataFieldProperties]
+    def __init__(self, fields: _Optional[_Mapping[str, MetadataFieldProperties]] = ...) -> None: ...

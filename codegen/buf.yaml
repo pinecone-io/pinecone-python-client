@@ -9,4 +9,4 @@ breaking:
 deps:
   - buf.build/googleapis/googleapis
 modules:
-  - path: apis/_build/2025-04
+  - path: apis/_build/2025-10

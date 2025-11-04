@@ -25,7 +25,7 @@ from .types import (
     SearchQueryTypedDict,
     SearchRerankTypedDict,
 )
-from .dataclasses import SearchQuery, SearchRerank
+from .dataclasses import SearchQuery, SearchRerank, FetchByMetadataResponse
 from pinecone.utils import require_kwargs
 
 
@@ -521,6 +521,49 @@ class IndexInterface(ABC):
                              If not specified, the default namespace is used. [optional]
 
         Returns: FetchResponse object which contains the list of Vector objects, and namespace name.
+        """
+        pass
+
+    @abstractmethod
+    def fetch_by_metadata(
+        self,
+        filter: FilterTypedDict,
+        namespace: Optional[str] = None,
+        limit: Optional[int] = None,
+        pagination_token: Optional[str] = None,
+        **kwargs,
+    ) -> FetchByMetadataResponse:
+        """
+        Fetch vectors by metadata filter.
+
+        Look up and return vectors by metadata filter from a single namespace.
+        The returned vectors include the vector data and/or metadata.
+
+        Examples:
+
+        .. code-block:: python
+
+            >>> index.fetch_by_metadata(
+            ...     filter={'genre': {'$in': ['comedy', 'drama']}, 'year': {'$eq': 2019}},
+            ...     namespace='my_namespace',
+            ...     limit=50
+            ... )
+            >>> index.fetch_by_metadata(
+            ...     filter={'status': 'active'},
+            ...     pagination_token='token123'
+            ... )
+
+        Args:
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+                Metadata filter expression to select vectors.
+                See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`
+            namespace (str): The namespace to fetch vectors from.
+                            If not specified, the default namespace is used. [optional]
+            limit (int): Max number of vectors to return. Defaults to 100. [optional]
+            pagination_token (str): Pagination token to continue a previous listing operation. [optional]
+
+        Returns:
+            FetchByMetadataResponse: Object containing the fetched vectors, namespace, usage, and pagination token.
         """
         pass
 

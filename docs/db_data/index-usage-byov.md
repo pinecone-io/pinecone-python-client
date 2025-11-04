@@ -95,6 +95,41 @@ index = pc.Index(host=os.environ.get('INDEX_HOST'))
 fetch_response = index.fetch(ids=["vec1", "vec2"], namespace="example-namespace")
 ```
 
+## Fetch vectors by metadata
+
+The following example fetches vectors by metadata filter.
+
+```python
+import os
+from pinecone import Pinecone
+
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+
+# Find your index host by calling describe_index
+# through the Pinecone web console
+index = pc.Index(host=os.environ.get('INDEX_HOST'))
+
+# Fetch vectors matching a metadata filter
+fetch_response = index.fetch_by_metadata(
+    filter={"genre": {"$in": ["comedy", "drama"]}, "year": {"$eq": 2019}},
+    namespace="example-namespace",
+    limit=50
+)
+
+# Iterate over the fetched vectors
+for vec_id, vector in fetch_response.vectors.items():
+    print(f"Vector ID: {vector.id}")
+    print(f"Metadata: {vector.metadata}")
+
+# Handle pagination if there are more results
+if fetch_response.pagination:
+    next_page = index.fetch_by_metadata(
+        filter={"genre": {"$in": ["comedy", "drama"]}, "year": {"$eq": 2019}},
+        namespace="example-namespace",
+        pagination_token=fetch_response.pagination.next
+    )
+```
+
 ## Update vectors
 
 The following example updates vectors by ID.

@@ -445,6 +445,50 @@ class TestRestIndex:
             ids=["vec1", "vec2"], namespace="ns"
         )
 
+    def test_fetch_by_metadata_with_filter(self, mocker):
+        mocker.patch.object(self.index._vector_api, "fetch_vectors_by_metadata", autospec=True)
+        filter_dict = {"genre": {"$eq": "action"}}
+        self.index.fetch_by_metadata(filter=filter_dict)
+        call_args = self.index._vector_api.fetch_vectors_by_metadata.call_args
+        assert call_args is not None
+        request = call_args[0][0]
+        assert isinstance(request, oai.FetchByMetadataRequest)
+        assert request.filter == filter_dict
+
+    def test_fetch_by_metadata_with_filter_and_namespace(self, mocker):
+        mocker.patch.object(self.index._vector_api, "fetch_vectors_by_metadata", autospec=True)
+        filter_dict = {"genre": {"$in": ["comedy", "drama"]}}
+        self.index.fetch_by_metadata(filter=filter_dict, namespace="ns")
+        call_args = self.index._vector_api.fetch_vectors_by_metadata.call_args
+        assert call_args is not None
+        request = call_args[0][0]
+        assert isinstance(request, oai.FetchByMetadataRequest)
+        assert request.filter == filter_dict
+        assert request.namespace == "ns"
+
+    def test_fetch_by_metadata_with_limit(self, mocker):
+        mocker.patch.object(self.index._vector_api, "fetch_vectors_by_metadata", autospec=True)
+        filter_dict = {"year": {"$gte": 2020}}
+        self.index.fetch_by_metadata(filter=filter_dict, limit=50)
+        call_args = self.index._vector_api.fetch_vectors_by_metadata.call_args
+        assert call_args is not None
+        request = call_args[0][0]
+        assert isinstance(request, oai.FetchByMetadataRequest)
+        assert request.filter == filter_dict
+        assert request.limit == 50
+
+    def test_fetch_by_metadata_with_pagination_token(self, mocker):
+        mocker.patch.object(self.index._vector_api, "fetch_vectors_by_metadata", autospec=True)
+        filter_dict = {"status": "active"}
+        pagination_token = "token123"
+        self.index.fetch_by_metadata(filter=filter_dict, pagination_token=pagination_token)
+        call_args = self.index._vector_api.fetch_vectors_by_metadata.call_args
+        assert call_args is not None
+        request = call_args[0][0]
+        assert isinstance(request, oai.FetchByMetadataRequest)
+        assert request.filter == filter_dict
+        assert request.pagination_token == pagination_token
+
     # endregion
 
     # region: update tests
