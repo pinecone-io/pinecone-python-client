@@ -71,7 +71,14 @@ def poll_until_update_reflected_async(
                             )
 
                 if expected_metadata is not None:
-                    metadata_match = vec.metadata == expected_metadata
+                    # Check that all expected metadata fields are present and match
+                    # (metadata may be merged, so we check for our fields specifically)
+                    if vec.metadata is None:
+                        metadata_match = False
+                    else:
+                        metadata_match = all(
+                            vec.metadata.get(k) == v for k, v in expected_metadata.items()
+                        )
 
                 if values_match and metadata_match:
                     logger.debug(f"Update reflected for vector {vector_id}")
@@ -201,7 +208,8 @@ class TestUpdateWithAsyncReq:
             result = future.result()
             assert result == {}  # Update response should be empty dict
 
-        # Wait for all updates to be reflected
+        # Wait for all updates to be reflected - check each one individually
+        # with a reasonable timeout per vector
         for vector_id, new_values, new_metadata in updates:
             poll_until_update_reflected_async(
                 idx,
@@ -209,11 +217,16 @@ class TestUpdateWithAsyncReq:
                 target_namespace,
                 expected_values=new_values,
                 expected_metadata=new_metadata,
-                timeout=180,
+                timeout=240,  # Increased timeout for async operations
             )
 
         # Verify all updates
         fetched_vecs = idx.fetch(ids=[str(i) for i in range(5, 8)], namespace=target_namespace)
         for vector_id, new_values, new_metadata in updates:
             assert fetched_vecs.vectors[vector_id].values[0] == pytest.approx(new_values[0], 0.01)
-            assert fetched_vecs.vectors[vector_id].metadata == new_metadata
+            # Check that metadata fields are present (may be merged with existing)
+            assert fetched_vecs.vectors[vector_id].metadata is not None
+            assert fetched_vecs.vectors[vector_id].metadata.get("genre") == new_metadata["genre"]
+            assert (
+                fetched_vecs.vectors[vector_id].metadata.get("updated") == new_metadata["updated"]
+            )

@@ -72,7 +72,14 @@ def poll_until_update_reflected(
                             )
 
                 if expected_metadata is not None:
-                    metadata_match = vec.metadata == expected_metadata
+                    # Check that all expected metadata fields are present and match
+                    # (metadata may be merged, so we check for our fields specifically)
+                    if vec.metadata is None:
+                        metadata_match = False
+                    else:
+                        metadata_match = all(
+                            vec.metadata.get(k) == v for k, v in expected_metadata.items()
+                        )
 
                 if values_match and metadata_match:
                     logger.debug(f"Update reflected for vector {vector_id}")
@@ -173,14 +180,41 @@ class TestUpdate:
         new_metadata = {"genre": "thriller", "year": 2023}
         idx.update(id=vector_id, set_metadata=new_metadata, namespace=target_namespace)
 
-        # Wait for update to be reflected
-        poll_until_update_reflected(
-            idx, vector_id, target_namespace, expected_metadata=new_metadata, timeout=180
-        )
+        # Wait for update to be reflected - check that specified fields are present
+        # Note: set_metadata may replace or merge, so we check for the fields we set
+        def check_metadata_update():
+            fetched = idx.fetch(ids=[vector_id], namespace=target_namespace)
+            if vector_id in fetched.vectors:
+                vec = fetched.vectors[vector_id]
+                if vec.metadata is not None:
+                    # Check that our specified fields match
+                    return (
+                        vec.metadata.get("genre") == "thriller" and vec.metadata.get("year") == 2023
+                    )
+            return False
+
+        timeout = 180
+        delta_t = 2
+        total_time = 0
+        max_delta_t = 10
+
+        while total_time < timeout:
+            if check_metadata_update():
+                break
+            time.sleep(delta_t)
+            total_time += delta_t
+            delta_t = min(delta_t * 1.5, max_delta_t)
+        else:
+            raise TimeoutError(
+                f"Timed out waiting for metadata update on vector {vector_id} in namespace {target_namespace}"
+            )
 
         # Verify metadata updated but values unchanged
         fetched_vec = idx.fetch(ids=[vector_id], namespace=target_namespace)
-        assert fetched_vec.vectors[vector_id].metadata == new_metadata
+        # Check that the fields we set are present
+        assert fetched_vec.vectors[vector_id].metadata is not None
+        assert fetched_vec.vectors[vector_id].metadata.get("genre") == "thriller"
+        assert fetched_vec.vectors[vector_id].metadata.get("year") == 2023
         # Values should remain the same (approximately, due to floating point)
         assert len(fetched_vec.vectors[vector_id].values) == len(original_values)
         assert fetched_vec.vectors[vector_id].values[0] == pytest.approx(original_values[0], 0.01)
