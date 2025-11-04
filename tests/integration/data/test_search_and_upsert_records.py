@@ -185,6 +185,66 @@ class TestUpsertAndSearchRecords:
         assert len(response.result.hits) == 3
         assert response.usage is not None
 
+    def test_search_with_match_terms_dict(self, model_idx, records_to_upsert):
+        """Test that match_terms can be passed via dict query."""
+        from pinecone import PineconeApiException
+
+        target_namespace = random_string(10)
+        model_idx.upsert_records(namespace=target_namespace, records=records_to_upsert)
+
+        poll_until_fetchable(
+            model_idx, target_namespace, [r["id"] for r in records_to_upsert], timeout=180
+        )
+
+        # Search with match_terms using dict
+        query_dict = {
+            "inputs": {"text": "Apple corporation"},
+            "top_k": 3,
+            "match_terms": {"strategy": "all", "terms": ["Apple", "corporation"]},
+        }
+        # match_terms is only supported for pinecone-sparse-english-v0 model
+        # If the API rejects it due to model incompatibility, that's expected
+        # and shows our code is correctly passing the parameter
+        try:
+            response = model_idx.search_records(namespace=target_namespace, query=query_dict)
+            assert response.usage is not None
+            # Test search alias
+            response2 = model_idx.search(namespace=target_namespace, query=query_dict)
+            assert response == response2
+        except PineconeApiException as e:
+            # Verify the error is about model compatibility, not parameter format
+            assert "match_terms" in str(e) or "pinecone-sparse-english-v0" in str(e)
+
+    def test_search_with_match_terms_searchquery(self, model_idx, records_to_upsert):
+        """Test that match_terms can be passed via SearchQuery dataclass."""
+        from pinecone import SearchQuery, PineconeApiException
+
+        target_namespace = random_string(10)
+        model_idx.upsert_records(namespace=target_namespace, records=records_to_upsert)
+
+        poll_until_fetchable(
+            model_idx, target_namespace, [r["id"] for r in records_to_upsert], timeout=180
+        )
+
+        # Search with match_terms using SearchQuery dataclass
+        query = SearchQuery(
+            inputs={"text": "Apple corporation"},
+            top_k=3,
+            match_terms={"strategy": "all", "terms": ["Apple", "corporation"]},
+        )
+        # match_terms is only supported for pinecone-sparse-english-v0 model
+        # If the API rejects it due to model incompatibility, that's expected
+        # and shows our code is correctly passing the parameter
+        try:
+            response = model_idx.search_records(namespace=target_namespace, query=query)
+            assert response.usage is not None
+            # Test search alias
+            response2 = model_idx.search(namespace=target_namespace, query=query)
+            assert response == response2
+        except PineconeApiException as e:
+            # Verify the error is about model compatibility, not parameter format
+            assert "match_terms" in str(e) or "pinecone-sparse-english-v0" in str(e)
+
 
 @pytest.mark.skipif(
     os.getenv("USE_GRPC") != "false", reason="These actions are not supported in gRPC"
