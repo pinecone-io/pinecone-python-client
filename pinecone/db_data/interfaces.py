@@ -705,20 +705,28 @@ class IndexInterface(ABC):
     @abstractmethod
     def update(
         self,
-        id: str,
+        id: Optional[str] = None,
         values: Optional[List[float]] = None,
         set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        filter: Optional[FilterTypedDict] = None,
+        dry_run: Optional[bool] = None,
         **kwargs,
     ) -> Dict[str, Any]:
-        """
-        The Update operation updates vector in a namespace.
+        """The Update operation updates vector(s) in a namespace.
+
+        The update can be performed by vector ID or by metadata filter. When updating by ID,
+        a single vector is updated. When updating by metadata filter, all vectors matching
+        the filter are updated.
+
         If a value is included, it will overwrite the previous value.
-        If a set_metadata is included,
-        the values of the fields specified in it will be added or overwrite the previous value.
+        If a set_metadata is included, the values of the fields specified in it will be
+        added or overwrite the previous value.
 
         Examples:
+
+        Update by ID:
 
         .. code-block:: python
 
@@ -729,18 +737,47 @@ class IndexInterface(ABC):
             >>> index.update(id='id1', values=[1, 2, 3], sparse_values=SparseValues(indices=[1, 2], values=[0.2, 0.4]),
             >>>              namespace='my_namespace')
 
+        Update by metadata filter:
+
+        .. code-block:: python
+
+            >>> # Update metadata for all vectors matching a filter
+            >>> index.update(
+            ...     filter={'genre': {'$eq': 'comedy'}},
+            ...     set_metadata={'status': 'active'},
+            ...     namespace='my_namespace'
+            ... )
+            >>> # Preview how many vectors would be updated (dry run)
+            >>> result = index.update(
+            ...     filter={'year': {'$gte': 2020}},
+            ...     set_metadata={'updated': True},
+            ...     dry_run=True,
+            ...     namespace='my_namespace'
+            ... )
+            >>> print(f"Would update {result.get('matched_records', 0)} vectors")
+
         Args:
-            id (str): Vector's unique id.
-            values (List[float]): vector values to set. [optional]
+            id (str): Vector's unique id. Required when updating by ID. Must be None when filter is provided. [optional]
+            values (List[float]): Vector values to set. [optional]
             set_metadata (Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]]):
-                metadata to set for vector. [optional]
-            namespace (str): Namespace name where to update the vector.. [optional]
-            sparse_values: (Dict[str, Union[List[float], List[int]]]): sparse values to update for the vector.
-                           Expected to be either a SparseValues object or a dict of the form:
-                           {'indices': List[int], 'values': List[float]} where the lists each have the same length.
+                Metadata to set for vector(s). [optional]
+            namespace (str): Namespace name where to update the vector(s). [optional]
+            sparse_values (Dict[str, Union[List[float], List[int]]]): Sparse values to update for the vector.
+                Expected to be either a SparseValues object or a dict of the form:
+                {'indices': List[int], 'values': List[float]} where the lists each have the same length. [optional]
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]): A metadata filter expression.
+                When provided, the update is applied to all records that match the filter. Mutually exclusive with id.
+                See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>`_ [optional]
+            dry_run (bool): If True, return the number of records that match the filter without executing the update.
+                Only meaningful when filter is provided. Defaults to False. [optional]
 
+        Returns:
+            Dict[str, Any]: An empty dictionary if the update was successful when updating by ID.
+                When updating by filter, the dictionary may contain a 'matched_records' key indicating
+                how many records matched the filter (even when dry_run is False).
 
-        Returns: An empty dictionary if the update was successful.
+        Raises:
+            ValueError: If both id and filter are provided, or if neither is provided.
         """
         pass
 

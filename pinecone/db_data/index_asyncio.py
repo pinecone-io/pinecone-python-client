@@ -554,24 +554,145 @@ class _IndexAsyncio(IndexAsyncioInterface):
     @validate_and_convert_errors
     async def update(
         self,
-        id: str,
+        id: Optional[str] = None,
         values: Optional[List[float]] = None,
         set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        filter: Optional[FilterTypedDict] = None,
+        dry_run: Optional[bool] = None,
         **kwargs,
     ) -> Dict[str, Any]:
-        return await self._vector_api.update_vector(
+        """Update vector(s) in a namespace by ID or metadata filter.
+
+        The update can be performed by vector ID or by metadata filter. When updating by ID,
+        a single vector is updated. When updating by metadata filter, all vectors matching
+        the filter are updated.
+
+        If a value is included, it will overwrite the previous value.
+        If a set_metadata is included, the values of the fields specified in it will be
+        added or overwrite the previous value.
+
+        Examples:
+
+        Update by ID:
+
+        .. code-block:: python
+
+            import asyncio
+            from pinecone import Pinecone, Vector, SparseValues
+
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+                    # Update vector values
+                    await idx.update(
+                        id='id1',
+                        values=[0.1, 0.2, 0.3, ...],
+                        namespace='my_namespace'
+                    )
+
+                    # Update metadata
+                    await idx.update(
+                        id='id1',
+                        set_metadata={'key': 'value'},
+                        namespace='my_namespace'
+                    )
+
+                    # Update sparse values
+                    await idx.update(
+                        id='id1',
+                        sparse_values={'indices': [1, 2], 'values': [0.2, 0.4]},
+                        namespace='my_namespace'
+                    )
+
+                    # Update sparse values with SparseValues object
+                    await idx.update(
+                        id='id1',
+                        sparse_values=SparseValues(indices=[234781, 5432], values=[0.2, 0.4]),
+                        namespace='my_namespace'
+                    )
+
+            asyncio.run(main())
+
+        Update by metadata filter:
+
+        .. code-block:: python
+
+            import asyncio
+            from pinecone import Pinecone
+
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-dojoi3u.svc.aped-4627-b74a.pinecone.io") as idx:
+                    # Update metadata for all vectors matching a filter
+                    await idx.update(
+                        filter={'genre': {'$eq': 'comedy'}},
+                        set_metadata={'status': 'active'},
+                        namespace='my_namespace'
+                    )
+
+                    # Preview how many vectors would be updated (dry run)
+                    result = await idx.update(
+                        filter={'year': {'$gte': 2020}},
+                        set_metadata={'updated': True},
+                        dry_run=True,
+                        namespace='my_namespace'
+                    )
+                    print(f"Would update {result.get('matched_records', 0)} vectors")
+
+            asyncio.run(main())
+
+        Args:
+            id (str): Vector's unique id. Required when updating by ID. Must be None when filter is provided. [optional]
+            values (List[float]): Vector values to set. [optional]
+            set_metadata (Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]]):
+                Metadata to set for vector(s). [optional]
+            namespace (str): Namespace name where to update the vector(s). [optional]
+            sparse_values (Dict[str, Union[List[float], List[int]]]): Sparse values to update for the vector.
+                Expected to be either a SparseValues object or a dict of the form:
+                {'indices': List[int], 'values': List[float]} where the lists each have the same length. [optional]
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]): A metadata filter expression.
+                When provided, the update is applied to all records that match the filter. Mutually exclusive with id.
+                See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>`_ [optional]
+            dry_run (bool): If True, return the number of records that match the filter without executing the update.
+                Only meaningful when filter is provided. Defaults to False. [optional]
+
+        Returns:
+            Dict[str, Any]: An empty dictionary if the update was successful when updating by ID.
+                When updating by filter, the dictionary may contain a 'matched_records' key indicating
+                how many records matched the filter (even when dry_run is False).
+
+        Raises:
+            ValueError: If both id and filter are provided, or if neither is provided.
+        """
+        if id is not None and filter is not None:
+            raise ValueError(
+                "Cannot provide both 'id' and 'filter'. Use 'id' to update a single vector or 'filter' to update multiple vectors."
+            )
+        if id is None and filter is None:
+            raise ValueError("Either 'id' or 'filter' must be provided.")
+
+        response = await self._vector_api.update_vector(
             IndexRequestFactory.update_request(
                 id=id,
                 values=values,
                 set_metadata=set_metadata,
                 namespace=namespace,
                 sparse_values=sparse_values,
+                filter=filter,
+                dry_run=dry_run,
                 **kwargs,
             ),
             **self._openapi_kwargs(kwargs),
         )
+
+        # Convert UpdateResponse to dict, including matched_records if present
+        result = {}
+        if hasattr(response, "matched_records") and response.matched_records is not None:
+            result["matched_records"] = response.matched_records
+
+        return result
 
     @validate_and_convert_errors
     async def describe_index_stats(

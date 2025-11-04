@@ -45,7 +45,6 @@ from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
     ListRequest,
     DescribeIndexStatsRequest,
     DeleteResponse,
-    UpdateResponse,
     SparseValues as GRPCSparseValues,
     DescribeNamespaceRequest,
     DeleteNamespaceRequest,
@@ -578,21 +577,29 @@ class GRPCIndex(GRPCIndexBase):
 
     def update(
         self,
-        id: str,
+        id: Optional[str] = None,
         async_req: bool = False,
         values: Optional[List[float]] = None,
         set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
+        filter: Optional[FilterTypedDict] = None,
+        dry_run: Optional[bool] = None,
         **kwargs,
-    ) -> Union[UpdateResponse, PineconeGrpcFuture]:
-        """
-        The Update operation updates vector in a namespace.
+    ) -> Union[Dict[str, Any], PineconeGrpcFuture]:
+        """Update vector(s) in a namespace by ID or metadata filter.
+
+        The update can be performed by vector ID or by metadata filter. When updating by ID,
+        a single vector is updated. When updating by metadata filter, all vectors matching
+        the filter are updated.
+
         If a value is included, it will overwrite the previous value.
-        If a set_metadata is included,
-        the values of the fields specified in it will be added or overwrite the previous value.
+        If a set_metadata is included, the values of the fields specified in it will be
+        added or overwrite the previous value.
 
         Examples:
+
+        Update by ID:
 
         .. code-block:: python
 
@@ -603,25 +610,67 @@ class GRPCIndex(GRPCIndexBase):
             >>> index.update(id='id1', values=[1, 2, 3], sparse_values=GRPCSparseValues(indices=[1, 2], values=[0.2, 0.4]),
             >>>              namespace='my_namespace')
 
+        Update by metadata filter:
+
+        .. code-block:: python
+
+            >>> # Update metadata for all vectors matching a filter
+            >>> index.update(
+            ...     filter={'genre': {'$eq': 'comedy'}},
+            ...     set_metadata={'status': 'active'},
+            ...     namespace='my_namespace'
+            ... )
+            >>> # Preview how many vectors would be updated (dry run)
+            >>> result = index.update(
+            ...     filter={'year': {'$gte': 2020}},
+            ...     set_metadata={'updated': True},
+            ...     dry_run=True,
+            ...     namespace='my_namespace'
+            ... )
+            >>> print(f"Would update {result.get('matched_records', 0)} vectors")
+
         Args:
-            id (str): Vector's unique id.
+            id (str): Vector's unique id. Required when updating by ID. Must be None when filter is provided. [optional]
             async_req (bool): If True, the update operation will be performed asynchronously.
                               Defaults to False. [optional]
-            values (List[float]): vector values to set. [optional]
+            values (List[float]): Vector values to set. [optional]
             set_metadata (Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]]):
-                metadata to set for vector. [optional]
-            namespace (str): Namespace name where to update the vector.. [optional]
-            sparse_values: (Dict[str, Union[List[float], List[int]]]): sparse values to update for the vector.
-                           Expected to be either a GRPCSparseValues object or a dict of the form:
-                           {'indices': List[int], 'values': List[float]} where the lists each have the same length.
+                Metadata to set for vector(s). [optional]
+            namespace (str): Namespace name where to update the vector(s). [optional]
+            sparse_values (Dict[str, Union[List[float], List[int]]]): Sparse values to update for the vector.
+                Expected to be either a GRPCSparseValues object or a dict of the form:
+                {'indices': List[int], 'values': List[float]} where the lists each have the same length. [optional]
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]): A metadata filter expression.
+                When provided, the update is applied to all records that match the filter. Mutually exclusive with id.
+                See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>`_ [optional]
+            dry_run (bool): If True, return the number of records that match the filter without executing the update.
+                Only meaningful when filter is provided. Defaults to False. [optional]
 
+        Returns:
+            Dict[str, Any] or PineconeGrpcFuture: An empty dictionary if the update was successful when updating by ID.
+                When updating by filter, the dictionary may contain a 'matched_records' key indicating
+                how many records matched the filter (even when dry_run is False).
+                If async_req is True, returns a PineconeGrpcFuture object.
 
-        Returns: UpdateResponse (contains no data) or a PineconeGrpcFuture object if async_req is True.
+        Raises:
+            ValueError: If both id and filter are provided, or if neither is provided.
         """
+        if id is not None and filter is not None:
+            raise ValueError(
+                "Cannot provide both 'id' and 'filter'. Use 'id' to update a single vector or 'filter' to update multiple vectors."
+            )
+        if id is None and filter is None:
+            raise ValueError("Either 'id' or 'filter' must be provided.")
+
         if set_metadata is not None:
             set_metadata_struct = dict_to_proto_struct(set_metadata)
         else:
             set_metadata_struct = None
+
+        if filter is not None:
+            filter_struct = dict_to_proto_struct(filter)
+        else:
+            filter_struct = None
 
         timeout = kwargs.pop("timeout", None)
         sparse_values = SparseValuesFactory.build(sparse_values)
@@ -631,17 +680,24 @@ class GRPCIndex(GRPCIndexBase):
                 ("set_metadata", set_metadata_struct),
                 ("namespace", namespace),
                 ("sparse_values", sparse_values),
+                ("filter", filter_struct),
+                ("dry_run", dry_run),
             ]
         )
 
-        request = UpdateRequest(id=id, **args_dict)
+        # Only include id if it's not None
+        request_kwargs = args_dict.copy()
+        if id is not None:
+            request_kwargs["id"] = id
+        request = UpdateRequest(**request_kwargs)
         if async_req:
             future = self.runner.run(self.stub.Update.future, request, timeout=timeout)
             return PineconeGrpcFuture(
                 future, timeout=timeout, result_transformer=parse_update_response
             )
         else:
-            return self.runner.run(self.stub.Update, request, timeout=timeout)
+            response = self.runner.run(self.stub.Update, request, timeout=timeout)
+            return parse_update_response(response)
 
     def list_paginated(
         self,

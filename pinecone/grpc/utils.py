@@ -102,7 +102,17 @@ def parse_upsert_response(response: Message, _check_type: bool = False):
 
 
 def parse_update_response(response: Union[dict, Message], _check_type: bool = False):
-    return {}
+    """Parse UpdateResponse from gRPC, including matched_records if present."""
+    if isinstance(response, Message):
+        json_response = json_format.MessageToDict(response)
+    else:
+        json_response = response
+
+    result = {}
+    if "matchedRecords" in json_response:
+        result["matched_records"] = json_response["matchedRecords"]
+
+    return result
 
 
 def parse_delete_response(response: Union[dict, Message], _check_type: bool = False):

@@ -502,10 +502,66 @@ class TestRestIndex:
 
     def test_update_byIdAnValuesAndMetadata_updateByIdAndValuesAndMetadata(self, mocker):
         mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
-        self.index.update("vec1", values=self.vals1, metadata=self.md1)
+        self.index.update("vec1", values=self.vals1, set_metadata=self.md1)
         self.index._vector_api.update_vector.assert_called_once_with(
-            oai.UpdateRequest(id="vec1", values=self.vals1, metadata=self.md1)
+            oai.UpdateRequest(id="vec1", values=self.vals1, set_metadata=self.md1)
         )
+
+    def test_update_byFilter_updateByFilter(self, mocker):
+        filter_dict = {"genre": {"$eq": "comedy"}}
+        response = oai.UpdateResponse(matched_records=5)
+        mocker.patch.object(
+            self.index._vector_api, "update_vector", return_value=response, autospec=True
+        )
+        result = self.index.update(filter=filter_dict, set_metadata=self.md1, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(filter=filter_dict, set_metadata=self.md1, namespace="ns")
+        )
+        assert result["matched_records"] == 5
+
+    def test_update_byFilterWithDryRun_updateByFilterWithDryRun(self, mocker):
+        filter_dict = {"year": {"$gte": 2020}}
+        response = oai.UpdateResponse(matched_records=10)
+        mocker.patch.object(
+            self.index._vector_api, "update_vector", return_value=response, autospec=True
+        )
+        result = self.index.update(
+            filter=filter_dict, set_metadata=self.md1, dry_run=True, namespace="ns"
+        )
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(
+                filter=filter_dict, set_metadata=self.md1, dry_run=True, namespace="ns"
+            )
+        )
+        assert result["matched_records"] == 10
+
+    def test_update_byFilterWithValues_updateByFilterWithValues(self, mocker):
+        filter_dict = {"status": "active"}
+        response = oai.UpdateResponse(matched_records=3)
+        mocker.patch.object(
+            self.index._vector_api, "update_vector", return_value=response, autospec=True
+        )
+        result = self.index.update(filter=filter_dict, values=self.vals1, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(filter=filter_dict, values=self.vals1, namespace="ns")
+        )
+        assert result["matched_records"] == 3
+
+    def test_update_bothIdAndFilter_raisesValueError(self, mocker):
+        with pytest.raises(ValueError, match="Cannot provide both 'id' and 'filter'"):
+            self.index.update(id="vec1", filter={"genre": "comedy"})
+
+    def test_update_neitherIdNorFilter_raisesValueError(self, mocker):
+        with pytest.raises(ValueError, match="Either 'id' or 'filter' must be provided"):
+            self.index.update(values=self.vals1)
+
+    def test_update_byId_returnsEmptyDict(self, mocker):
+        response = oai.UpdateResponse()
+        mocker.patch.object(
+            self.index._vector_api, "update_vector", return_value=response, autospec=True
+        )
+        result = self.index.update(id="vec1", values=self.vals1)
+        assert result == {}
 
     # endregion
 
