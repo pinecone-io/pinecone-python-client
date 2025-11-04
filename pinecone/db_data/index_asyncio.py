@@ -62,6 +62,8 @@ from .query_results_aggregator import QueryNamespacesResults
 if TYPE_CHECKING:
     from .resources.asyncio.bulk_import_asyncio import BulkImportResourceAsyncio
     from .resources.asyncio.namespace_asyncio import NamespaceResourceAsyncio
+    from .resources.asyncio.vector import VectorResourceAsyncio
+    from .resources.asyncio.record import RecordResourceAsyncio
 
     from pinecone.core.openapi.db_data.models import (
         StartImportResponse,
@@ -193,6 +195,12 @@ class _IndexAsyncio(IndexAsyncioInterface):
         self._namespace_resource = None
         """ :meta private: """
 
+        self._vector_resource = None
+        """ :meta private: """
+
+        self._record_resource = None
+        """ :meta private: """
+
     async def __aenter__(self):
         return self
 
@@ -270,6 +278,31 @@ class _IndexAsyncio(IndexAsyncioInterface):
             self._namespace_resource = NamespaceResourceAsyncio(api_client=self._api_client)
         return self._namespace_resource
 
+    @property
+    def vector(self) -> "VectorResourceAsyncio":
+        """:meta private:"""
+        if self._vector_resource is None:
+            from .resources.asyncio.vector import VectorResourceAsyncio
+
+            self._vector_resource = VectorResourceAsyncio(
+                vector_api=self._vector_api,
+                api_client=self._api_client,
+                openapi_config=self._openapi_config,
+            )
+        return self._vector_resource
+
+    @property
+    def record(self) -> "RecordResourceAsyncio":
+        """:meta private:"""
+        if self._record_resource is None:
+            from .resources.asyncio.record import RecordResourceAsyncio
+
+            self._record_resource = RecordResourceAsyncio(
+                vector_api=self._vector_api,
+                openapi_config=self._openapi_config,
+            )
+        return self._record_resource
+
     @validate_and_convert_errors
     async def upsert(
         self,
@@ -281,58 +314,21 @@ class _IndexAsyncio(IndexAsyncioInterface):
         show_progress: bool = True,
         **kwargs,
     ) -> UpsertResponse:
-        _check_type = kwargs.pop("_check_type", True)
-
-        if batch_size is None:
-            return await self._upsert_batch(vectors, namespace, _check_type, **kwargs)
-
-        if not isinstance(batch_size, int) or batch_size <= 0:
-            raise ValueError("batch_size must be a positive integer")
-
-        upsert_tasks = [
-            self._upsert_batch(vectors[i : i + batch_size], namespace, _check_type, **kwargs)
-            for i in range(0, len(vectors), batch_size)
-        ]
-
-        total_upserted = 0
-        with tqdm(total=len(vectors), desc="Upserted vectors", disable=not show_progress) as pbar:
-            for task in asyncio.as_completed(upsert_tasks):
-                res = await task
-                pbar.update(res.upserted_count)
-                total_upserted += res.upserted_count
-
-        return UpsertResponse(upserted_count=total_upserted)
-
-    @validate_and_convert_errors
-    async def _upsert_batch(
-        self,
-        vectors: Union[
-            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
-        ],
-        namespace: Optional[str],
-        _check_type: bool,
-        **kwargs,
-    ) -> UpsertResponse:
-        args_dict = parse_non_empty_args([("namespace", namespace)])
-
-        def vec_builder(v):
-            return VectorFactory.build(v, check_type=_check_type)
-
-        return await self._vector_api.upsert_vectors(
-            UpsertRequest(
-                vectors=list(map(vec_builder, vectors)),
-                **args_dict,
-                _check_type=_check_type,
-                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS},
-            ),
-            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
+        return await self.vector.upsert(
+            vectors=vectors,
+            namespace=namespace,
+            batch_size=batch_size,
+            show_progress=show_progress,
+            **kwargs,
         )
 
     @validate_and_convert_errors
     async def upsert_from_dataframe(
         self, df, namespace: Optional[str] = None, batch_size: int = 500, show_progress: bool = True
     ):
-        raise NotImplementedError("upsert_from_dataframe is not implemented for asyncio")
+        return await self.vector.upsert_from_dataframe(
+            df=df, namespace=namespace, batch_size=batch_size, show_progress=show_progress
+        )
 
     @validate_and_convert_errors
     async def delete(
@@ -343,35 +339,13 @@ class _IndexAsyncio(IndexAsyncioInterface):
         filter: Optional[FilterTypedDict] = None,
         **kwargs,
     ) -> Dict[str, Any]:
-        _check_type = kwargs.pop("_check_type", False)
-        args_dict = parse_non_empty_args(
-            [("ids", ids), ("delete_all", delete_all), ("namespace", namespace), ("filter", filter)]
-        )
-
-        return await self._vector_api.delete_vectors(
-            DeleteRequest(
-                **args_dict,
-                **{
-                    k: v
-                    for k, v in kwargs.items()
-                    if k not in _OPENAPI_ENDPOINT_PARAMS and v is not None
-                },
-                _check_type=_check_type,
-            ),
-            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
+        return await self.vector.delete(
+            ids=ids, delete_all=delete_all, namespace=namespace, filter=filter, **kwargs
         )
 
     @validate_and_convert_errors
-    async def fetch(
-        self, ids: List[str], namespace: Optional[str] = None, **kwargs
-    ) -> FetchResponse:
-        args_dict = parse_non_empty_args([("namespace", namespace)])
-        result = await self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
-        return FetchResponse(
-            namespace=result.namespace,
-            vectors={k: Vector.from_dict(v) for k, v in result.vectors.items()},
-            usage=result.usage,
-        )
+    async def fetch(self, ids: List[str], namespace: Optional[str] = None, **kwargs) -> FetchResponse:
+        return await self.vector.fetch(ids=ids, namespace=namespace, **kwargs)
 
     @validate_and_convert_errors
     async def fetch_by_metadata(
@@ -421,26 +395,12 @@ class _IndexAsyncio(IndexAsyncioInterface):
         Returns:
             FetchByMetadataResponse: Object containing the fetched vectors, namespace, usage, and pagination token.
         """
-        request = IndexRequestFactory.fetch_by_metadata_request(
+        return await self.vector.fetch_by_metadata(
             filter=filter,
             namespace=namespace,
             limit=limit,
             pagination_token=pagination_token,
             **kwargs,
-        )
-        result = await self._vector_api.fetch_vectors_by_metadata(
-            request, **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
-        )
-
-        pagination = None
-        if result.pagination and result.pagination.next:
-            pagination = Pagination(next=result.pagination.next)
-
-        return FetchByMetadataResponse(
-            namespace=result.namespace or "",
-            vectors={k: Vector.from_dict(v) for k, v in result.vectors.items()},
-            usage=result.usage,
-            pagination=pagination,
         )
 
     @validate_and_convert_errors
@@ -457,7 +417,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
         sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> QueryResponse:
-        response = await self._query(
+        return await self.vector.query(
             *args,
             top_k=top_k,
             vector=vector,
@@ -468,40 +428,6 @@ class _IndexAsyncio(IndexAsyncioInterface):
             include_metadata=include_metadata,
             sparse_vector=sparse_vector,
             **kwargs,
-        )
-        return parse_query_response(response)
-
-    async def _query(
-        self,
-        *args,
-        top_k: int,
-        vector: Optional[List[float]] = None,
-        id: Optional[str] = None,
-        namespace: Optional[str] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
-        **kwargs,
-    ) -> QueryResponse:
-        if len(args) > 0:
-            raise ValueError(
-                "Please use keyword arguments instead of positional arguments. Example: index.query(vector=[0.1, 0.2, 0.3], top_k=10, namespace='my_namespace')"
-            )
-
-        request = IndexRequestFactory.query_request(
-            top_k=top_k,
-            vector=vector,
-            id=id,
-            namespace=namespace,
-            filter=filter,
-            include_values=include_values,
-            include_metadata=include_metadata,
-            sparse_vector=sparse_vector,
-            **kwargs,
-        )
-        return await self._vector_api.query_vectors(
-            request, **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
 
     @validate_and_convert_errors
@@ -519,39 +445,17 @@ class _IndexAsyncio(IndexAsyncioInterface):
         ] = None,
         **kwargs,
     ) -> QueryNamespacesResults:
-        if namespaces is None or len(namespaces) == 0:
-            raise ValueError("At least one namespace must be specified")
-        if sparse_vector is None and vector is not None and len(vector) == 0:
-            # If querying with a vector, it must not be empty
-            raise ValueError("Query vector must not be empty")
-
-        overall_topk = top_k if top_k is not None else 10
-        aggregator = QueryResultsAggregator(top_k=overall_topk, metric=metric)
-
-        target_namespaces = set(namespaces)  # dedup namespaces
-        tasks = [
-            self.query(
-                vector=vector,
-                namespace=ns,
-                top_k=overall_topk,
-                filter=filter,
-                include_values=include_values,
-                include_metadata=include_metadata,
-                sparse_vector=sparse_vector,
-                async_threadpool_executor=True,
-                _preload_content=False,
-                **kwargs,
-            )
-            for ns in target_namespaces
-        ]
-
-        for task in asyncio.as_completed(tasks):
-            raw_result = await task
-            response = json.loads(raw_result.data.decode("utf-8"))
-            aggregator.add_results(response)
-
-        final_results = aggregator.get_results()
-        return final_results
+        return await self.vector.query_namespaces(
+            namespaces=namespaces,
+            metric=metric,
+            top_k=top_k,
+            filter=filter,
+            include_values=include_values,
+            include_metadata=include_metadata,
+            vector=vector,
+            sparse_vector=sparse_vector,
+            **kwargs,
+        )
 
     @validate_and_convert_errors
     async def update(
@@ -563,26 +467,20 @@ class _IndexAsyncio(IndexAsyncioInterface):
         sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
     ) -> Dict[str, Any]:
-        return await self._vector_api.update_vector(
-            IndexRequestFactory.update_request(
-                id=id,
-                values=values,
-                set_metadata=set_metadata,
-                namespace=namespace,
-                sparse_values=sparse_values,
-                **kwargs,
-            ),
-            **self._openapi_kwargs(kwargs),
+        return await self.vector.update(
+            id=id,
+            values=values,
+            set_metadata=set_metadata,
+            namespace=namespace,
+            sparse_values=sparse_values,
+            **kwargs,
         )
 
     @validate_and_convert_errors
     async def describe_index_stats(
         self, filter: Optional[FilterTypedDict] = None, **kwargs
     ) -> DescribeIndexStatsResponse:
-        return await self._vector_api.describe_index_stats(
-            IndexRequestFactory.describe_index_stats_request(filter, **kwargs),
-            **self._openapi_kwargs(kwargs),
-        )
+        return await self.vector.describe_index_stats(filter=filter, **kwargs)
 
     @validate_and_convert_errors
     async def list_paginated(
@@ -593,27 +491,18 @@ class _IndexAsyncio(IndexAsyncioInterface):
         namespace: Optional[str] = None,
         **kwargs,
     ) -> ListResponse:
-        args_dict = IndexRequestFactory.list_paginated_args(
+        return await self.vector.list_paginated(
             prefix=prefix,
             limit=limit,
             pagination_token=pagination_token,
             namespace=namespace,
             **kwargs,
         )
-        return await self._vector_api.list_vectors(**args_dict, **kwargs)
 
     @validate_and_convert_errors
     async def list(self, **kwargs):
-        done = False
-        while not done:
-            results = await self.list_paginated(**kwargs)
-            if len(results.vectors) > 0:
-                yield [v.id for v in results.vectors]
-
-            if results.pagination:
-                kwargs.update({"pagination_token": results.pagination.next})
-            else:
-                done = True
+        async for result in self.vector.list(**kwargs):
+            yield result
 
     @validate_and_convert_errors
     async def upsert_records(self, namespace: str, records: List[Dict[str, Any]]):
@@ -659,8 +548,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
             ...         )
             >>> asyncio.run(main())
         """
-        args = IndexRequestFactory.upsert_records_args(namespace=namespace, records=records)
-        await self._vector_api.upsert_records_namespace(**args)
+        return await self.record.upsert_records(namespace=namespace, records=records)
 
     async def search(
         self,
@@ -669,12 +557,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
         rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
         fields: Optional[List[str]] = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
-        if namespace is None:
-            raise ValueError("Namespace is required when searching records")
-
-        request = IndexRequestFactory.search_request(query=query, rerank=rerank, fields=fields)
-
-        return await self._vector_api.search_records_namespace(namespace, request)
+        return await self.record.search(namespace=namespace, query=query, rerank=rerank, fields=fields)
 
     async def search_records(
         self,
@@ -683,10 +566,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
         rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
         fields: Optional[List[str]] = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
-        return await self.search(namespace, query=query, rerank=rerank, fields=fields)
-
-    def _openapi_kwargs(self, kwargs: Dict[str, Any]) -> Dict[str, Any]:
-        return filter_dict(kwargs, OPENAPI_ENDPOINT_PARAMS)
+        return await self.record.search_records(namespace=namespace, query=query, rerank=rerank, fields=fields)
 
     async def start_import(
         self,

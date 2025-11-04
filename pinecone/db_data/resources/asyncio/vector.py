@@ -1,0 +1,419 @@
+from pinecone.utils.tqdm import tqdm
+import logging
+import asyncio
+import json
+from typing import Union, List, Optional, Dict, Any, Literal
+
+from pinecone.core.openapi.db_data.models import (
+    QueryResponse,
+    IndexDescription as DescribeIndexStatsResponse,
+    UpsertRequest,
+    UpsertResponse,
+    DeleteRequest,
+    ListResponse,
+)
+from pinecone.db_data.dataclasses import (
+    Vector,
+    SparseValues,
+    FetchResponse,
+    FetchByMetadataResponse,
+    Pagination,
+)
+from pinecone.db_data.request_factory import IndexRequestFactory
+from pinecone.db_data.vector_factory import VectorFactory
+from pinecone.db_data.types import (
+    SparseVectorTypedDict,
+    VectorTypedDict,
+    VectorMetadataTypedDict,
+    VectorTuple,
+    VectorTupleWithMetadata,
+    FilterTypedDict,
+)
+from pinecone.utils import (
+    parse_non_empty_args,
+    validate_and_convert_errors,
+    filter_dict,
+)
+from pinecone.db_data.query_results_aggregator import QueryResultsAggregator, QueryNamespacesResults
+from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
+
+logger = logging.getLogger(__name__)
+""" :meta private: """
+
+_OPENAPI_ENDPOINT_PARAMS = (
+    "_return_http_data_only",
+    "_preload_content",
+    "_request_timeout",
+    "_check_input_type",
+    "_check_return_type",
+)
+""" :meta private: """
+
+
+def parse_query_response(response: QueryResponse):
+    if hasattr(response, "_data_store"):
+        # I'm not sure, but I think this is no longer needed. At some point
+        # in the past the query response returned "results" instead of matches
+        # and then for some time it returned both keys even though "results"
+        # was always empty. I'm leaving this here just in case.
+        response._data_store.pop("results", None)
+    return response
+
+
+class VectorResourceAsyncio:
+    """Resource for vector-centric operations on a Pinecone index (async)."""
+
+    def __init__(self, vector_api, api_client, openapi_config):
+        self._vector_api = vector_api
+        """ :meta private: """
+        self._api_client = api_client
+        """ :meta private: """
+        self._openapi_config = openapi_config
+        """ :meta private: """
+
+    def _openapi_kwargs(self, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        return filter_dict(kwargs, OPENAPI_ENDPOINT_PARAMS)
+
+    @validate_and_convert_errors
+    async def upsert(
+        self,
+        vectors: Union[
+            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
+        ],
+        namespace: Optional[str] = None,
+        batch_size: Optional[int] = None,
+        show_progress: bool = True,
+        **kwargs,
+    ) -> UpsertResponse:
+        _check_type = kwargs.pop("_check_type", True)
+
+        if batch_size is None:
+            return await self._upsert_batch(vectors, namespace, _check_type, **kwargs)
+
+        if not isinstance(batch_size, int) or batch_size <= 0:
+            raise ValueError("batch_size must be a positive integer")
+
+        upsert_tasks = [
+            self._upsert_batch(vectors[i : i + batch_size], namespace, _check_type, **kwargs)
+            for i in range(0, len(vectors), batch_size)
+        ]
+
+        total_upserted = 0
+        with tqdm(total=len(vectors), desc="Upserted vectors", disable=not show_progress) as pbar:
+            for task in asyncio.as_completed(upsert_tasks):
+                res = await task
+                pbar.update(res.upserted_count)
+                total_upserted += res.upserted_count
+
+        return UpsertResponse(upserted_count=total_upserted)
+
+    @validate_and_convert_errors
+    async def _upsert_batch(
+        self,
+        vectors: Union[
+            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
+        ],
+        namespace: Optional[str],
+        _check_type: bool,
+        **kwargs,
+    ) -> UpsertResponse:
+        args_dict = parse_non_empty_args([("namespace", namespace)])
+
+        def vec_builder(v):
+            return VectorFactory.build(v, check_type=_check_type)
+
+        return await self._vector_api.upsert_vectors(
+            UpsertRequest(
+                vectors=list(map(vec_builder, vectors)),
+                **args_dict,
+                _check_type=_check_type,
+                **{k: v for k, v in kwargs.items() if k not in _OPENAPI_ENDPOINT_PARAMS},
+            ),
+            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
+        )
+
+    @validate_and_convert_errors
+    async def upsert_from_dataframe(
+        self, df, namespace: Optional[str] = None, batch_size: int = 500, show_progress: bool = True
+    ):
+        raise NotImplementedError("upsert_from_dataframe is not implemented for asyncio")
+
+    @validate_and_convert_errors
+    async def delete(
+        self,
+        ids: Optional[List[str]] = None,
+        delete_all: Optional[bool] = None,
+        namespace: Optional[str] = None,
+        filter: Optional[FilterTypedDict] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        _check_type = kwargs.pop("_check_type", False)
+        args_dict = parse_non_empty_args(
+            [("ids", ids), ("delete_all", delete_all), ("namespace", namespace), ("filter", filter)]
+        )
+
+        return await self._vector_api.delete_vectors(
+            DeleteRequest(
+                **args_dict,
+                **{
+                    k: v
+                    for k, v in kwargs.items()
+                    if k not in _OPENAPI_ENDPOINT_PARAMS and v is not None
+                },
+                _check_type=_check_type,
+            ),
+            **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
+        )
+
+    @validate_and_convert_errors
+    async def fetch(self, ids: List[str], namespace: Optional[str] = None, **kwargs) -> FetchResponse:
+        args_dict = parse_non_empty_args([("namespace", namespace)])
+        result = await self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
+        return FetchResponse(
+            namespace=result.namespace,
+            vectors={k: Vector.from_dict(v) for k, v in result.vectors.items()},
+            usage=result.usage,
+        )
+
+    @validate_and_convert_errors
+    async def fetch_by_metadata(
+        self,
+        filter: FilterTypedDict,
+        namespace: Optional[str] = None,
+        limit: Optional[int] = None,
+        pagination_token: Optional[str] = None,
+        **kwargs,
+    ) -> FetchByMetadataResponse:
+        """Fetch vectors by metadata filter.
+
+        Look up and return vectors by metadata filter from a single namespace.
+        The returned vectors include the vector data and/or metadata.
+
+        Examples:
+
+        .. code-block:: python
+
+            import asyncio
+            from pinecone import Pinecone
+
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-host") as idx:
+                    result = await idx.fetch_by_metadata(
+                        filter={'genre': {'$in': ['comedy', 'drama']}, 'year': {'$eq': 2019}},
+                        namespace='my_namespace',
+                        limit=50
+                    )
+                    for vec_id in result.vectors:
+                        vector = result.vectors[vec_id]
+                        print(vector.id)
+                        print(vector.metadata)
+
+            asyncio.run(main())
+
+        Args:
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+                Metadata filter expression to select vectors.
+                See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`
+            namespace (str): The namespace to fetch vectors from.
+                            If not specified, the default namespace is used. [optional]
+            limit (int): Max number of vectors to return. Defaults to 100. [optional]
+            pagination_token (str): Pagination token to continue a previous listing operation. [optional]
+
+        Returns:
+            FetchByMetadataResponse: Object containing the fetched vectors, namespace, usage, and pagination token.
+        """
+        request = IndexRequestFactory.fetch_by_metadata_request(
+            filter=filter,
+            namespace=namespace,
+            limit=limit,
+            pagination_token=pagination_token,
+            **kwargs,
+        )
+        result = await self._vector_api.fetch_vectors_by_metadata(
+            request, **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
+        )
+
+        pagination = None
+        if result.pagination and result.pagination.next:
+            pagination = Pagination(next=result.pagination.next)
+
+        return FetchByMetadataResponse(
+            namespace=result.namespace or "",
+            vectors={k: Vector.from_dict(v) for k, v in result.vectors.items()},
+            usage=result.usage,
+            pagination=pagination,
+        )
+
+    @validate_and_convert_errors
+    async def query(
+        self,
+        *args,
+        top_k: int,
+        vector: Optional[List[float]] = None,
+        id: Optional[str] = None,
+        namespace: Optional[str] = None,
+        filter: Optional[FilterTypedDict] = None,
+        include_values: Optional[bool] = None,
+        include_metadata: Optional[bool] = None,
+        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        **kwargs,
+    ) -> QueryResponse:
+        response = await self._query(
+            *args,
+            top_k=top_k,
+            vector=vector,
+            id=id,
+            namespace=namespace,
+            filter=filter,
+            include_values=include_values,
+            include_metadata=include_metadata,
+            sparse_vector=sparse_vector,
+            **kwargs,
+        )
+        return parse_query_response(response)
+
+    async def _query(
+        self,
+        *args,
+        top_k: int,
+        vector: Optional[List[float]] = None,
+        id: Optional[str] = None,
+        namespace: Optional[str] = None,
+        filter: Optional[FilterTypedDict] = None,
+        include_values: Optional[bool] = None,
+        include_metadata: Optional[bool] = None,
+        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        **kwargs,
+    ) -> QueryResponse:
+        if len(args) > 0:
+            raise ValueError(
+                "Please use keyword arguments instead of positional arguments. Example: index.query(vector=[0.1, 0.2, 0.3], top_k=10, namespace='my_namespace')"
+            )
+
+        request = IndexRequestFactory.query_request(
+            top_k=top_k,
+            vector=vector,
+            id=id,
+            namespace=namespace,
+            filter=filter,
+            include_values=include_values,
+            include_metadata=include_metadata,
+            sparse_vector=sparse_vector,
+            **kwargs,
+        )
+        return await self._vector_api.query_vectors(
+            request, **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
+        )
+
+    @validate_and_convert_errors
+    async def query_namespaces(
+        self,
+        namespaces: List[str],
+        metric: Literal["cosine", "euclidean", "dotproduct"],
+        top_k: Optional[int] = None,
+        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        include_values: Optional[bool] = None,
+        include_metadata: Optional[bool] = None,
+        vector: Optional[List[float]] = None,
+        sparse_vector: Optional[
+            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
+        ] = None,
+        **kwargs,
+    ) -> QueryNamespacesResults:
+        if namespaces is None or len(namespaces) == 0:
+            raise ValueError("At least one namespace must be specified")
+        if sparse_vector is None and vector is not None and len(vector) == 0:
+            # If querying with a vector, it must not be empty
+            raise ValueError("Query vector must not be empty")
+
+        overall_topk = top_k if top_k is not None else 10
+        aggregator = QueryResultsAggregator(top_k=overall_topk, metric=metric)
+
+        target_namespaces = set(namespaces)  # dedup namespaces
+        tasks = [
+            self.query(
+                vector=vector,
+                namespace=ns,
+                top_k=overall_topk,
+                filter=filter,
+                include_values=include_values,
+                include_metadata=include_metadata,
+                sparse_vector=sparse_vector,
+                async_threadpool_executor=True,
+                _preload_content=False,
+                **kwargs,
+            )
+            for ns in target_namespaces
+        ]
+
+        for task in asyncio.as_completed(tasks):
+            raw_result = await task
+            response = json.loads(raw_result.data.decode("utf-8"))
+            aggregator.add_results(response)
+
+        final_results = aggregator.get_results()
+        return final_results
+
+    @validate_and_convert_errors
+    async def update(
+        self,
+        id: str,
+        values: Optional[List[float]] = None,
+        set_metadata: Optional[VectorMetadataTypedDict] = None,
+        namespace: Optional[str] = None,
+        sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        return await self._vector_api.update_vector(
+            IndexRequestFactory.update_request(
+                id=id,
+                values=values,
+                set_metadata=set_metadata,
+                namespace=namespace,
+                sparse_values=sparse_values,
+                **kwargs,
+            ),
+            **self._openapi_kwargs(kwargs),
+        )
+
+    @validate_and_convert_errors
+    async def describe_index_stats(
+        self, filter: Optional[FilterTypedDict] = None, **kwargs
+    ) -> DescribeIndexStatsResponse:
+        return await self._vector_api.describe_index_stats(
+            IndexRequestFactory.describe_index_stats_request(filter, **kwargs),
+            **self._openapi_kwargs(kwargs),
+        )
+
+    @validate_and_convert_errors
+    async def list_paginated(
+        self,
+        prefix: Optional[str] = None,
+        limit: Optional[int] = None,
+        pagination_token: Optional[str] = None,
+        namespace: Optional[str] = None,
+        **kwargs,
+    ) -> ListResponse:
+        args_dict = IndexRequestFactory.list_paginated_args(
+            prefix=prefix,
+            limit=limit,
+            pagination_token=pagination_token,
+            namespace=namespace,
+            **kwargs,
+        )
+        return await self._vector_api.list_vectors(**args_dict, **kwargs)
+
+    @validate_and_convert_errors
+    async def list(self, **kwargs):
+        done = False
+        while not done:
+            results = await self.list_paginated(**kwargs)
+            if len(results.vectors) > 0:
+                yield [v.id for v in results.vectors]
+
+            if results.pagination:
+                kwargs.update({"pagination_token": results.pagination.next})
+            else:
+                done = True
+
