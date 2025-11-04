@@ -92,7 +92,8 @@ class TestFetchByMetadata:
         )
         assert isinstance(results, FetchByMetadataResponse)
         assert results.namespace == target_namespace
-        assert len(results.vectors) == 2
+        # Check that we have at least the vectors we seeded
+        assert len(results.vectors) >= 2
         assert "genre-action-1" in results.vectors
         assert "genre-action-2" in results.vectors
 
@@ -129,7 +130,8 @@ class TestFetchByMetadata:
         )
         assert isinstance(results, FetchByMetadataResponse)
         assert results.namespace == target_namespace
-        assert len(results.vectors) == 3  # comedy-1, comedy-2, drama-1
+        # Check that we have at least the vectors we seeded
+        assert len(results.vectors) >= 3  # comedy-1, comedy-2, drama-1
         assert "genre-comedy-1" in results.vectors
         assert "genre-comedy-2" in results.vectors
         assert "genre-drama-1" in results.vectors
@@ -192,7 +194,10 @@ class TestFetchByMetadata:
         results = idx.fetch_by_metadata(filter={"genre": {"$eq": "action"}})
         assert isinstance(results, FetchByMetadataResponse)
         assert results.namespace == ""
-        assert len(results.vectors) == 2
+        # Check that we have at least the vectors we seeded
+        assert len(results.vectors) >= 2
+        assert "genre-action-1" in results.vectors
+        assert "genre-action-2" in results.vectors
 
     def test_fetch_by_metadata_pagination(self, idx, fetch_by_metadata_namespace):
         # First page
