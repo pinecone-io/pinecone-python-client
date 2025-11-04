@@ -67,8 +67,18 @@ class TestNamespaceOperations:
             )
 
             # Verify namespace exists by describing it
-            verify_description = idx.describe_namespace(namespace=test_namespace)
-            assert verify_description.name == test_namespace
+            # Namespace may not be immediately available after creation, so retry with backoff
+            max_retries = 5
+            retry_delay = 2
+            for attempt in range(max_retries):
+                try:
+                    verify_description = idx.describe_namespace(namespace=test_namespace)
+                    assert verify_description.name == test_namespace
+                    break
+                except Exception:
+                    if attempt == max_retries - 1:
+                        raise
+                    time.sleep(retry_delay)
 
         finally:
             # Cleanup
@@ -91,10 +101,11 @@ class TestNamespaceOperations:
             assert description.name == test_namespace
 
             # Try to create duplicate namespace - should raise an error
+            # GRPC errors raise PineconeException, not PineconeApiException
             import pytest
-            from pinecone.exceptions import PineconeApiException
+            from pinecone.exceptions import PineconeException
 
-            with pytest.raises(PineconeApiException):
+            with pytest.raises(PineconeException):
                 idx.create_namespace(name=test_namespace)
 
         finally:
