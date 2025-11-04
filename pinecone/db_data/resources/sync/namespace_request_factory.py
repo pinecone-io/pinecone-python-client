@@ -1,6 +1,10 @@
-from typing import Optional, TypedDict, Any, cast
+from typing import Optional, TypedDict, Any, cast, Dict, Union
 
 from pinecone.utils import parse_non_empty_args
+from pinecone.core.openapi.db_data.model.create_namespace_request import CreateNamespaceRequest
+from pinecone.core.openapi.db_data.model.create_namespace_request_schema import (
+    CreateNamespaceRequestSchema,
+)
 
 
 class DescribeNamespaceArgs(TypedDict, total=False):
@@ -9,6 +13,10 @@ class DescribeNamespaceArgs(TypedDict, total=False):
 
 class DeleteNamespaceArgs(TypedDict, total=False):
     namespace: str
+
+
+class CreateNamespaceArgs(TypedDict, total=False):
+    create_namespace_request: CreateNamespaceRequest
 
 
 class NamespaceRequestFactory:
@@ -25,6 +33,30 @@ class NamespaceRequestFactory:
             raise ValueError("namespace must be string")
         base_args = {"namespace": namespace}
         return cast(DeleteNamespaceArgs, {**base_args, **kwargs})
+
+    @staticmethod
+    def create_namespace_args(
+        name: str,
+        schema: Optional[Union[CreateNamespaceRequestSchema, Dict[str, Any]]] = None,
+        **kwargs,
+    ) -> CreateNamespaceArgs:
+        if not isinstance(name, str):
+            raise ValueError("name must be string")
+        if name.strip() == "":
+            raise ValueError("name must not be empty")
+
+        request_kwargs: Dict[str, Any] = {"name": name}
+        if schema is not None:
+            if isinstance(schema, dict):
+                schema_obj = CreateNamespaceRequestSchema(**schema)
+                request_kwargs["schema"] = schema_obj
+            else:
+                # schema is already CreateNamespaceRequestSchema
+                request_kwargs["schema"] = cast(CreateNamespaceRequestSchema, schema)
+
+        create_namespace_request = CreateNamespaceRequest(**request_kwargs)
+        base_args = {"create_namespace_request": create_namespace_request}
+        return cast(CreateNamespaceArgs, {**base_args, **kwargs})
 
     @staticmethod
     def list_namespaces_args(

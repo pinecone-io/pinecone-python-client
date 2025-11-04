@@ -46,6 +46,69 @@ async def delete_all_namespaces(index):
 
 class TestNamespaceOperationsAsyncio:
     @pytest.mark.asyncio
+    async def test_create_namespace(self, index_host):
+        """Test creating a namespace"""
+        asyncio_idx = build_asyncioindex_client(index_host)
+        test_namespace = "test_create_namespace_async"
+
+        try:
+            # Ensure namespace doesn't exist first
+            if await verify_namespace_exists(asyncio_idx, test_namespace):
+                await asyncio_idx.delete_namespace(namespace=test_namespace)
+                await asyncio.sleep(10)
+
+            # Create namespace
+            description = await asyncio_idx.create_namespace(name=test_namespace)
+
+            # Verify namespace was created
+            assert isinstance(description, NamespaceDescription)
+            assert description.name == test_namespace
+            # New namespace should have 0 records (record_count may be None, 0, or "0" as string)
+            assert (
+                description.record_count is None
+                or description.record_count == 0
+                or description.record_count == "0"
+            )
+
+            # Verify namespace exists by describing it
+            verify_description = await asyncio_idx.describe_namespace(namespace=test_namespace)
+            assert verify_description.name == test_namespace
+
+        finally:
+            # Cleanup
+            if await verify_namespace_exists(asyncio_idx, test_namespace):
+                await asyncio_idx.delete_namespace(namespace=test_namespace)
+                await asyncio.sleep(10)
+
+    @pytest.mark.asyncio
+    async def test_create_namespace_duplicate(self, index_host):
+        """Test creating a duplicate namespace raises an error"""
+        asyncio_idx = build_asyncioindex_client(index_host)
+        test_namespace = "test_create_duplicate_async"
+
+        try:
+            # Ensure namespace doesn't exist first
+            if await verify_namespace_exists(asyncio_idx, test_namespace):
+                await asyncio_idx.delete_namespace(namespace=test_namespace)
+                await asyncio.sleep(10)
+
+            # Create namespace first time
+            description = await asyncio_idx.create_namespace(name=test_namespace)
+            assert description.name == test_namespace
+
+            # Try to create duplicate namespace - should raise an error
+            from pinecone.exceptions import PineconeApiException
+
+            with pytest.raises(PineconeApiException):
+                await asyncio_idx.create_namespace(name=test_namespace)
+
+        finally:
+            # Cleanup
+            if await verify_namespace_exists(asyncio_idx, test_namespace):
+                await asyncio_idx.delete_namespace(namespace=test_namespace)
+                await asyncio.sleep(10)
+
+    @pytest.mark.asyncio
     async def test_describe_namespace(self, index_host):
         """Test describing a namespace"""
         asyncio_idx = build_asyncioindex_client(index_host)

@@ -50,6 +50,9 @@ from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
     DescribeNamespaceRequest,
     DeleteNamespaceRequest,
     ListNamespacesRequest,
+    CreateNamespaceRequest,
+    MetadataSchema,
+    MetadataFieldProperties,
 )
 from pinecone.core.grpc.protos.db_data_2025_10_pb2_grpc import VectorServiceStub
 from pinecone import Vector, SparseValues
@@ -768,6 +771,65 @@ class GRPCIndex(GRPCIndexBase):
         response = self.runner.run(self.stub.DescribeIndexStats, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_stats_response(json_response)
+
+    @require_kwargs
+    def create_namespace(
+        self, name: str, schema: Optional[Dict[str, Any]] = None, async_req: bool = False, **kwargs
+    ) -> Union[NamespaceDescription, PineconeGrpcFuture]:
+        """
+        The create_namespace operation creates a namespace in a serverless index.
+
+        Examples:
+
+        .. code-block:: python
+
+            >>> index.create_namespace(name='my_namespace')
+
+            >>> # Create namespace asynchronously
+            >>> future = index.create_namespace(name='my_namespace', async_req=True)
+            >>> namespace = future.result()
+
+        Args:
+            name (str): The name of the namespace to create.
+            schema (Optional[Dict[str, Any]]): Optional schema configuration for the namespace as a dictionary. [optional]
+            async_req (bool): If True, the create_namespace operation will be performed asynchronously. [optional]
+
+        Returns: NamespaceDescription object which contains information about the created namespace, or a PineconeGrpcFuture object if async_req is True.
+        """
+        timeout = kwargs.pop("timeout", None)
+
+        # Build MetadataSchema from dict if provided
+        metadata_schema = None
+        if schema is not None:
+            if isinstance(schema, dict):
+                # Convert dict to MetadataSchema
+                fields = {}
+                for key, value in schema.get("fields", {}).items():
+                    if isinstance(value, dict):
+                        filterable = value.get("filterable", False)
+                        fields[key] = MetadataFieldProperties(filterable=filterable)
+                    else:
+                        # If value is already a MetadataFieldProperties, use it directly
+                        fields[key] = value
+                metadata_schema = MetadataSchema(fields=fields)
+            else:
+                # Assume it's already a MetadataSchema
+                metadata_schema = schema
+
+        request_kwargs: Dict[str, Any] = {"name": name}
+        if metadata_schema is not None:
+            request_kwargs["schema"] = metadata_schema
+
+        request = CreateNamespaceRequest(**request_kwargs)
+
+        if async_req:
+            future = self.runner.run(self.stub.CreateNamespace.future, request, timeout=timeout)
+            return PineconeGrpcFuture(
+                future, timeout=timeout, result_transformer=parse_namespace_description
+            )
+
+        response = self.runner.run(self.stub.CreateNamespace, request, timeout=timeout)
+        return parse_namespace_description(response)
 
     @require_kwargs
     def describe_namespace(self, namespace: str, **kwargs) -> NamespaceDescription:
