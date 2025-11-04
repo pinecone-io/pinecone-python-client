@@ -126,6 +126,133 @@ pc.create_index(
 )
 ```
 
+## Read Capacity Configuration
+
+You can configure the read capacity mode for your serverless index. By default, indexes are created with `OnDemand` mode. You can also specify `Dedicated` mode with dedicated read nodes.
+
+### Dedicated Read Capacity
+
+Dedicated mode allocates dedicated read nodes for your workload. You must specify `node_type`, `scaling`, and scaling configuration.
+
+```python
+from pinecone import (
+    Pinecone,
+    ServerlessSpec,
+    CloudProvider,
+    GcpRegion,
+    Metric
+)
+
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+
+pc.create_index(
+    name='my-index',
+    dimension=1536,
+    metric=Metric.COSINE,
+    spec=ServerlessSpec(
+        cloud=CloudProvider.GCP,
+        region=GcpRegion.US_CENTRAL1,
+        read_capacity={
+            "mode": "Dedicated",
+            "dedicated": {
+                "node_type": "t1",
+                "scaling": "Manual",
+                "manual": {
+                    "shards": 2,
+                    "replicas": 2
+                }
+            }
+        }
+    )
+)
+```
+
+### Configuring Read Capacity
+
+You can change the read capacity configuration of an existing serverless index using `configure_index`. This allows you to:
+
+- Switch between OnDemand and Dedicated modes
+- Adjust the number of shards and replicas for Dedicated mode with manual scaling
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+
+# Switch to OnDemand read capacity
+pc.configure_index(
+    name='my-index',
+    read_capacity={"mode": "OnDemand"}
+)
+
+# Switch to Dedicated read capacity with manual scaling
+pc.configure_index(
+    name='my-index',
+    read_capacity={
+        "mode": "Dedicated",
+        "dedicated": {
+            "node_type": "t1",
+            "scaling": "Manual",
+            "manual": {
+                "shards": 3,
+                "replicas": 2
+            }
+        }
+    }
+)
+
+# Scale up by increasing shards and replicas
+pc.configure_index(
+    name='my-index',
+    read_capacity={
+        "mode": "Dedicated",
+        "dedicated": {
+            "node_type": "t1",
+            "scaling": "Manual",
+            "manual": {
+                "shards": 4,
+                "replicas": 3
+            }
+        }
+    }
+)
+```
+
+When you change read capacity configuration, the index will transition to the new configuration. You can use `describe_index` to check the status of the transition.
+
+## Metadata Schema Configuration
+
+You can configure which metadata fields are filterable by specifying a metadata schema. By default, all metadata fields are indexed. However, large amounts of metadata can cause slower index building as well as slower query execution, particularly when data is not cached in a query executor's memory and local SSD and must be fetched from object storage.
+
+To prevent performance issues due to excessive metadata, you can limit metadata indexing to the fields that you plan to use for query filtering. When you specify a metadata schema, only fields marked as `filterable: True` are indexed and can be used in filters.
+
+```python
+from pinecone import (
+    Pinecone,
+    ServerlessSpec,
+    CloudProvider,
+    AwsRegion,
+    Metric
+)
+
+pc = Pinecone(api_key='<<PINECONE_API_KEY>>')
+
+pc.create_index(
+    name='my-index',
+    dimension=1536,
+    metric=Metric.COSINE,
+    spec=ServerlessSpec(
+        cloud=CloudProvider.AWS,
+        region=AwsRegion.US_WEST_2,
+        schema={
+            "genre": {"filterable": True},
+            "year": {"filterable": True},
+            "description": {"filterable": True}
+        }
+    )
+)
+```
+
 ## Configuring, listing, describing, and deleting
 
 See [shared index actions](shared-index-actions.md) to learn about how to manage the lifecycle of your index after it is created.

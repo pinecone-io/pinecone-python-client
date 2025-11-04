@@ -66,3 +66,69 @@ class TestCreateIndexForModel:
         assert index.spec.serverless.region == "us-east-1"
         assert index.embed.field_map == field_map
         assert index.embed.model == EmbedModel.Multilingual_E5_Large.value
+
+    def test_create_index_for_model_with_read_capacity_ondemand(self, client, index_name):
+        field_map = {"text": "my-sample-text"}
+        index = client.create_index_for_model(
+            name=index_name,
+            cloud=CloudProvider.AWS,
+            region=AwsRegion.US_EAST_1,
+            embed={"model": EmbedModel.Multilingual_E5_Large, "field_map": field_map},
+            read_capacity={"mode": "OnDemand"},
+            timeout=-1,
+        )
+        assert index.name == index_name
+        assert hasattr(index.spec.serverless, "read_capacity")
+        desc = client.describe_index(name=index_name)
+        assert hasattr(desc.spec.serverless, "read_capacity")
+
+    def test_create_index_for_model_with_read_capacity_dedicated(self, client, index_name):
+        field_map = {"text": "my-sample-text"}
+        index = client.create_index_for_model(
+            name=index_name,
+            cloud=CloudProvider.AWS,
+            region=AwsRegion.US_EAST_1,
+            embed={"model": EmbedModel.Multilingual_E5_Large, "field_map": field_map},
+            read_capacity={
+                "mode": "Dedicated",
+                "dedicated": {"node_type": "t1", "scaling": "Manual"},
+            },
+            timeout=-1,
+        )
+        assert index.name == index_name
+        assert hasattr(index.spec.serverless, "read_capacity")
+        desc = client.describe_index(name=index_name)
+        assert hasattr(desc.spec.serverless, "read_capacity")
+
+    def test_create_index_for_model_with_schema(self, client, index_name):
+        field_map = {"text": "my-sample-text"}
+        index = client.create_index_for_model(
+            name=index_name,
+            cloud=CloudProvider.AWS,
+            region=AwsRegion.US_EAST_1,
+            embed={"model": EmbedModel.Multilingual_E5_Large, "field_map": field_map},
+            schema={"genre": {"filterable": True}, "year": {"filterable": True}},
+            timeout=-1,
+        )
+        assert index.name == index_name
+        assert hasattr(index.spec.serverless, "schema")
+        desc = client.describe_index(name=index_name)
+        assert hasattr(desc.spec.serverless, "schema")
+
+    def test_create_index_for_model_with_read_capacity_and_schema(self, client, index_name):
+        field_map = {"text": "my-sample-text"}
+        index = client.create_index_for_model(
+            name=index_name,
+            cloud=CloudProvider.AWS,
+            region=AwsRegion.US_EAST_1,
+            embed={"model": EmbedModel.Multilingual_E5_Large, "field_map": field_map},
+            read_capacity={"mode": "OnDemand"},
+            schema={"genre": {"filterable": True}, "year": {"filterable": True}},
+            timeout=-1,
+        )
+        assert index.name == index_name
+        assert hasattr(index.spec.serverless, "read_capacity")
+        assert hasattr(index.spec.serverless, "schema")
+        desc = client.describe_index(name=index_name)
+        assert hasattr(desc.spec.serverless, "read_capacity")
+        assert hasattr(desc.spec.serverless, "schema")

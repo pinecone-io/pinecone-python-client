@@ -158,3 +158,136 @@ class TestAsyncioCreateIndex:
         desc2 = await pc.describe_index(index_name)
         assert desc2.deletion_protection == "disabled"
         await pc.close()
+
+    async def test_create_with_read_capacity_ondemand(self, index_name):
+        pc = PineconeAsyncio()
+        resp = await pc.create_index(
+            name=index_name,
+            dimension=10,
+            spec=ServerlessSpec(
+                cloud=CloudProvider.AWS,
+                region=AwsRegion.US_EAST_1,
+                read_capacity={"mode": "OnDemand"},
+            ),
+        )
+        assert resp.name == index_name
+        assert resp.dimension == 10
+        desc = await pc.describe_index(name=index_name)
+        assert desc.name == index_name
+        # Verify read_capacity is set (structure may vary in response)
+        assert hasattr(desc.spec.serverless, "read_capacity")
+        await pc.close()
+
+    async def test_create_with_read_capacity_dedicated(self, index_name):
+        pc = PineconeAsyncio()
+        resp = await pc.create_index(
+            name=index_name,
+            dimension=10,
+            spec=ServerlessSpec(
+                cloud=CloudProvider.AWS,
+                region=AwsRegion.US_EAST_1,
+                read_capacity={
+                    "mode": "Dedicated",
+                    "dedicated": {
+                        "node_type": "t1",
+                        "scaling": "Manual",
+                        "manual": {"shards": 1, "replicas": 1},
+                    },
+                },
+            ),
+        )
+        assert resp.name == index_name
+        assert resp.dimension == 10
+        desc = await pc.describe_index(name=index_name)
+        assert desc.name == index_name
+        # Verify read_capacity is set
+        assert hasattr(desc.spec.serverless, "read_capacity")
+        await pc.close()
+
+    async def test_create_with_metadata_schema(self, index_name):
+        pc = PineconeAsyncio()
+        resp = await pc.create_index(
+            name=index_name,
+            dimension=10,
+            spec=ServerlessSpec(
+                cloud=CloudProvider.AWS,
+                region=AwsRegion.US_EAST_1,
+                schema={"genre": {"filterable": True}, "year": {"filterable": True}},
+            ),
+        )
+        assert resp.name == index_name
+        assert resp.dimension == 10
+        desc = await pc.describe_index(name=index_name)
+        assert desc.name == index_name
+        # Verify schema is set (structure may vary in response)
+        assert hasattr(desc.spec.serverless, "schema")
+        await pc.close()
+
+    async def test_create_with_read_capacity_and_metadata_schema(self, index_name):
+        pc = PineconeAsyncio()
+        resp = await pc.create_index(
+            name=index_name,
+            dimension=10,
+            spec=ServerlessSpec(
+                cloud=CloudProvider.AWS,
+                region=AwsRegion.US_EAST_1,
+                read_capacity={"mode": "OnDemand"},
+                schema={"genre": {"filterable": True}, "year": {"filterable": True}},
+            ),
+        )
+        assert resp.name == index_name
+        assert resp.dimension == 10
+        desc = await pc.describe_index(name=index_name)
+        assert desc.name == index_name
+        assert hasattr(desc.spec.serverless, "read_capacity")
+        assert hasattr(desc.spec.serverless, "schema")
+        await pc.close()
+
+    async def test_create_with_dict_spec_metadata_schema(self, index_name):
+        """Test dict-based spec with schema (code path in request_factory.py lines 145-167)"""
+        pc = PineconeAsyncio()
+        resp = await pc.create_index(
+            name=index_name,
+            dimension=10,
+            spec={
+                "serverless": {
+                    "cloud": "aws",
+                    "region": "us-east-1",
+                    "schema": {
+                        "fields": {"genre": {"filterable": True}, "year": {"filterable": True}}
+                    },
+                }
+            },
+        )
+        assert resp.name == index_name
+        assert resp.dimension == 10
+        desc = await pc.describe_index(name=index_name)
+        assert desc.name == index_name
+        # Verify schema is set (structure may vary in response)
+        assert hasattr(desc.spec.serverless, "schema")
+        await pc.close()
+
+    async def test_create_with_dict_spec_read_capacity_and_metadata_schema(self, index_name):
+        """Test dict-based spec with read_capacity and schema"""
+        pc = PineconeAsyncio()
+        resp = await pc.create_index(
+            name=index_name,
+            dimension=10,
+            spec={
+                "serverless": {
+                    "cloud": "aws",
+                    "region": "us-east-1",
+                    "read_capacity": {"mode": "OnDemand"},
+                    "schema": {
+                        "fields": {"genre": {"filterable": True}, "year": {"filterable": True}}
+                    },
+                }
+            },
+        )
+        assert resp.name == index_name
+        assert resp.dimension == 10
+        desc = await pc.describe_index(name=index_name)
+        assert desc.name == index_name
+        assert hasattr(desc.spec.serverless, "read_capacity")
+        assert hasattr(desc.spec.serverless, "schema")
+        await pc.close()

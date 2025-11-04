@@ -1,6 +1,6 @@
 import time
 import logging
-from typing import Optional, Dict, Union, TYPE_CHECKING
+from typing import Optional, Dict, Union, TYPE_CHECKING, Any
 
 from pinecone.db_control.index_host_store import IndexHostStore
 
@@ -29,6 +29,18 @@ if TYPE_CHECKING:
         AzureRegion,
     )
     from pinecone.db_control.models import ServerlessSpec, PodSpec, ByocSpec, IndexEmbed
+    from pinecone.db_control.models.serverless_spec import (
+        ReadCapacityDict,
+        MetadataSchemaFieldConfig,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
+    from pinecone.core.openapi.db_control.model.read_capacity_on_demand_spec import (
+        ReadCapacityOnDemandSpec,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
+        ReadCapacityDedicatedSpec,
+    )
+    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
 
 
 class IndexResource(PluginAware):
@@ -94,6 +106,25 @@ class IndexResource(PluginAware):
         embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
         tags: Optional[Dict[str, str]] = None,
         deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
+        read_capacity: Optional[
+            Union[
+                "ReadCapacityDict",
+                "ReadCapacity",
+                "ReadCapacityOnDemandSpec",
+                "ReadCapacityDedicatedSpec",
+            ]
+        ] = None,
+        schema: Optional[
+            Union[
+                Dict[
+                    str, "MetadataSchemaFieldConfig"
+                ],  # Direct field mapping: {field_name: {filterable: bool}}
+                Dict[
+                    str, Dict[str, Any]
+                ],  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
+                "BackupModelSchema",  # OpenAPI model instance
+            ]
+        ] = None,
         timeout: Optional[int] = None,
     ) -> IndexModel:
         req = PineconeDBControlRequestFactory.create_index_for_model_request(
@@ -103,6 +134,8 @@ class IndexResource(PluginAware):
             embed=embed,
             tags=tags,
             deletion_protection=deletion_protection,
+            read_capacity=read_capacity,
+            schema=schema,
         )
         resp = self._index_api.create_index_for_model(req)
 
@@ -226,6 +259,14 @@ class IndexResource(PluginAware):
         deletion_protection: Optional[Union["DeletionProtection", str]] = None,
         tags: Optional[Dict[str, str]] = None,
         embed: Optional[Union["ConfigureIndexEmbed", Dict]] = None,
+        read_capacity: Optional[
+            Union[
+                "ReadCapacityDict",
+                "ReadCapacity",
+                "ReadCapacityOnDemandSpec",
+                "ReadCapacityDedicatedSpec",
+            ]
+        ] = None,
     ) -> None:
         api_instance = self._index_api
         description = self.describe(name=name)
@@ -237,6 +278,7 @@ class IndexResource(PluginAware):
             deletion_protection=deletion_protection,
             tags=tags,
             embed=embed,
+            read_capacity=read_capacity,
         )
         api_instance.configure_index(name, configure_index_request=req)
 

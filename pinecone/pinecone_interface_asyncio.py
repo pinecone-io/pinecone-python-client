@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from typing import Optional, Dict, Union, TYPE_CHECKING
+from typing import Optional, Dict, Union, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from pinecone.config import Config
@@ -31,6 +31,18 @@ if TYPE_CHECKING:
         AzureRegion,
     )
     from pinecone.db_control.types import ConfigureIndexEmbed, CreateIndexForModelEmbedTypedDict
+    from pinecone.db_control.models.serverless_spec import (
+        ReadCapacityDict,
+        MetadataSchemaFieldConfig,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
+    from pinecone.core.openapi.db_control.model.read_capacity_on_demand_spec import (
+        ReadCapacityOnDemandSpec,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
+        ReadCapacityDedicatedSpec,
+    )
+    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
 
 
 class PineconeAsyncioDBControlInterface(ABC):
@@ -311,7 +323,9 @@ class PineconeAsyncioDBControlInterface(ABC):
         :param metric: Type of similarity metric used in the vector index when querying, one of ``{"cosine", "dotproduct", "euclidean"}``.
         :type metric: str, optional
         :param spec: A dictionary containing configurations describing how the index should be deployed. For serverless indexes,
-            specify region and cloud. For pod indexes, specify replicas, shards, pods, pod_type, metadata_config, and source_collection.
+            specify region and cloud. Optionally, you can specify ``read_capacity`` to configure dedicated read capacity mode
+            (OnDemand or Dedicated) and ``schema`` to configure which metadata fields are filterable. For pod indexes, specify
+            replicas, shards, pods, pod_type, metadata_config, and source_collection.
             Alternatively, use the ``ServerlessSpec`` or ``PodSpec`` objects to specify these configurations.
         :type spec: Dict
         :param dimension: If you are creating an index with ``vector_type="dense"`` (which is the default), you need to specify ``dimension`` to indicate the size of your vectors.
@@ -417,6 +431,25 @@ class PineconeAsyncioDBControlInterface(ABC):
         embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
         tags: Optional[Dict[str, str]] = None,
         deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
+        read_capacity: Optional[
+            Union[
+                "ReadCapacityDict",
+                "ReadCapacity",
+                "ReadCapacityOnDemandSpec",
+                "ReadCapacityDedicatedSpec",
+            ]
+        ] = None,
+        schema: Optional[
+            Union[
+                Dict[
+                    str, "MetadataSchemaFieldConfig"
+                ],  # Direct field mapping: {field_name: {filterable: bool}}
+                Dict[
+                    str, Dict[str, Any]
+                ],  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
+                "BackupModelSchema",  # OpenAPI model instance
+            ]
+        ] = None,
         timeout: Optional[int] = None,
     ) -> "IndexModel":
         """
@@ -434,6 +467,13 @@ class PineconeAsyncioDBControlInterface(ABC):
         :type tags: Optional[Dict[str, str]]
         :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. This setting can be changed with ``configure_index``.
         :type deletion_protection: Optional[Literal["enabled", "disabled"]]
+        :param read_capacity: Optional read capacity configuration. You can specify ``read_capacity`` to configure dedicated read capacity mode
+            (OnDemand or Dedicated). See ``ServerlessSpec`` documentation for details on read capacity configuration.
+        :type read_capacity: Optional[Union[ReadCapacityDict, ReadCapacity, ReadCapacityOnDemandSpec, ReadCapacityDedicatedSpec]]
+        :param schema: Optional metadata schema configuration. You can specify ``schema`` to configure which metadata fields are filterable.
+            The schema can be provided as a dictionary mapping field names to their configurations (e.g., ``{"genre": {"filterable": True}}``)
+            or as a dictionary with a ``fields`` key (e.g., ``{"fields": {"genre": {"filterable": True}}}``).
+        :type schema: Optional[Union[Dict[str, MetadataSchemaFieldConfig], Dict[str, Dict[str, Any]], BackupModelSchema]]
         :type timeout: Optional[int]
         :param timeout: Specify the number of seconds to wait until index is ready to receive data. If None, wait indefinitely; if >=0, time out after this many seconds;
             if -1, return immediately and do not wait.
@@ -712,6 +752,14 @@ class PineconeAsyncioDBControlInterface(ABC):
         deletion_protection: Optional[Union["DeletionProtection", str]] = None,
         tags: Optional[Dict[str, str]] = None,
         embed: Optional[Union["ConfigureIndexEmbed", Dict]] = None,
+        read_capacity: Optional[
+            Union[
+                "ReadCapacityDict",
+                "ReadCapacity",
+                "ReadCapacityOnDemandSpec",
+                "ReadCapacityDedicatedSpec",
+            ]
+        ] = None,
     ):
         """
         :param: name: the name of the Index
@@ -724,13 +772,55 @@ class PineconeAsyncioDBControlInterface(ABC):
             The index vector type and dimension must match the model vector type and dimension, and the index similarity metric must be supported by the model.
             You can later change the embedding configuration to update the field_map, read_parameters, or write_parameters. Once set, the model cannot be changed.
         :type embed: Optional[Union[ConfigureIndexEmbed, Dict]], optional
+        :param read_capacity: Optional read capacity configuration for serverless indexes. You can specify ``read_capacity`` to configure dedicated read capacity mode
+            (OnDemand or Dedicated). See ``ServerlessSpec`` documentation for details on read capacity configuration.
+            Note that read capacity configuration is only available for serverless indexes.
+        :type read_capacity: Optional[Union[ReadCapacityDict, ReadCapacity, ReadCapacityOnDemandSpec, ReadCapacityDedicatedSpec]]
 
         This method is used to modify an index's configuration. It can be used to:
 
+        - Configure read capacity for serverless indexes using ``read_capacity``
         - Scale a pod-based index horizontally using ``replicas``
         - Scale a pod-based index vertically using ``pod_type``
         - Enable or disable deletion protection using ``deletion_protection``
         - Add, change, or remove tags using ``tags``
+
+        **Configuring read capacity for serverless indexes**
+
+        To configure read capacity for serverless indexes, pass the ``read_capacity`` parameter to the ``configure_index`` method.
+        You can configure either OnDemand or Dedicated read capacity mode.
+
+        .. code-block:: python
+
+            import asyncio
+            from pinecone import PineconeAsyncio
+
+            async def main():
+                async with PineconeAsyncio() as pc:
+                    # Configure to OnDemand read capacity (default)
+                    await pc.configure_index(
+                        name="my_index",
+                        read_capacity={"mode": "OnDemand"}
+                    )
+
+                    # Configure to Dedicated read capacity with manual scaling
+                    await pc.configure_index(
+                        name="my_index",
+                        read_capacity={
+                            "mode": "Dedicated",
+                            "dedicated": {
+                                "node_type": "t1",
+                                "scaling": "Manual",
+                                "manual": {"shards": 1, "replicas": 1}
+                            }
+                        }
+                    )
+
+                    # Verify the configuration was applied
+                    desc = await pc.describe_index("my_index")
+                    assert desc.spec.serverless.read_capacity.mode == "Dedicated"
+
+            asyncio.run(main())
 
         **Scaling pod-based indexes**
 
