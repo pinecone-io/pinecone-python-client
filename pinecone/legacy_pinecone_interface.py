@@ -125,14 +125,27 @@ class LegacyPineconeDBControlInterface(ABC):
                 metric=Metric.COSINE,
                 spec=ServerlessSpec(
                     cloud=CloudProvider.AWS,
-                    region=AwsRegion.US_WEST_2
+                    region=AwsRegion.US_WEST_2,
+                    read_capacity={
+                        "mode": "Dedicated",
+                        "dedicated": {
+                            "node_type": "t1",
+                            "scaling": "Manual",
+                            "manual": {"shards": 2, "replicas": 2},
+                        },
+                    },
+                    schema={
+                        "genre": {"filterable": True},
+                        "year": {"filterable": True},
+                        "rating": {"filterable": True},
+                    },
                 ),
                 deletion_protection=DeletionProtection.DISABLED,
                 vector_type=VectorType.DENSE,
                 tags={
                     "model": "clip",
                     "app": "image-search",
-                    "env": "testing"
+                    "env": "production"
                 }
             )
 
@@ -281,7 +294,7 @@ class LegacyPineconeDBControlInterface(ABC):
             pc = Pinecone()
 
             if not pc.has_index("book-search"):
-                desc = await pc.create_index_for_model(
+                desc = pc.create_index_for_model(
                     name="book-search",
                     cloud=CloudProvider.AWS,
                     region=AwsRegion.US_EAST_1,
@@ -294,6 +307,46 @@ class LegacyPineconeDBControlInterface(ABC):
                     )
                 )
 
+        .. code-block:: python
+            :caption: Creating an index for model with schema and dedicated read capacity
+
+            from pinecone import (
+                Pinecone,
+                IndexEmbed,
+                CloudProvider,
+                AwsRegion,
+                EmbedModel,
+                Metric,
+            )
+
+            pc = Pinecone()
+
+            if not pc.has_index("book-search"):
+                desc = pc.create_index_for_model(
+                    name="book-search",
+                    cloud=CloudProvider.AWS,
+                    region=AwsRegion.US_EAST_1,
+                    embed=IndexEmbed(
+                        model=EmbedModel.Multilingual_E5_Large,
+                        metric=Metric.COSINE,
+                        field_map={
+                            "text": "description",
+                        },
+                    ),
+                    read_capacity={
+                        "mode": "Dedicated",
+                        "dedicated": {
+                            "node_type": "t1",
+                            "scaling": "Manual",
+                            "manual": {"shards": 2, "replicas": 2},
+                        },
+                    },
+                    schema={
+                        "genre": {"filterable": True},
+                        "year": {"filterable": True},
+                        "rating": {"filterable": True},
+                    },
+                )
 
         .. seealso::
 

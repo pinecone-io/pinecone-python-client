@@ -66,11 +66,11 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     .. code-block:: python
 
         import asyncio
-        from pinecone import Pinecone
+        from pinecone import PineconeAsyncio
 
         async def main():
-            pc = Pinecone()
-            async with pc.IndexAsyncio(host="my-index.pinecone.io") as idx:
+            async with PineconeAsyncio() as pc:
+                async with pc.IndexAsyncio(host="my-index.pinecone.io") as idx:
                     await idx.upsert(vectors=[(1, [1, 2, 3]), (2, [4, 5, 6])])
 
         asyncio.run(main())
@@ -88,6 +88,27 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         additional_headers: Optional[Dict[str, str]] = {},
         **kwargs,
     ):
+        """
+        Initialize the ``PineconeAsyncio`` client.
+
+        :param api_key: The API key to use for authentication. If not passed via kwarg, the API key will be read from the environment variable ``PINECONE_API_KEY``.
+        :type api_key: str, optional
+        :param host: The control plane host. If unspecified, the host ``api.pinecone.io`` will be used.
+        :type host: str, optional
+        :param proxy_url: The URL of the proxy to use for the connection.
+        :type proxy_url: str, optional
+        :param ssl_ca_certs: The path to the SSL CA certificate bundle to use for the connection. This path should point to a file in PEM format. When not passed, the SDK will use the certificate bundle returned from ``certifi.where()``.
+        :type ssl_ca_certs: str, optional
+        :param ssl_verify: SSL verification is performed by default, but can be disabled using the boolean flag when testing with Pinecone Local or troubleshooting a proxy setup. You should never run with SSL verification disabled in production.
+        :type ssl_verify: bool, optional
+        :param additional_headers: Additional headers to pass to the API. This is mainly to support internal testing at Pinecone. End users should not need to use this unless following specific instructions to do so.
+        :type additional_headers: Dict[str, str], optional
+
+        .. note::
+
+            The ``proxy_headers`` parameter is not currently supported for ``PineconeAsyncio``.
+
+        """
         for deprecated_kwarg in {"config", "openapi_config"}:
             if deprecated_kwarg in kwargs:
                 raise NotImplementedError(
@@ -131,7 +152,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         """Cleanup resources used by the Pinecone client.
 
         This method should be called when the client is no longer needed so that
-        it can cleanup the aioahttp session and other resources.
+        it can cleanup the aiohttp session and other resources.
 
         After close has been called, the client instance should not be used.
 
@@ -145,7 +166,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
                 desc = await pc.describe_index(name="my-index")
                 await pc.close()
 
-                asyncio.run(main())
+            asyncio.run(main())
 
         If you are using the client as a context manager, the close method is called automatically
         when exiting.
@@ -159,8 +180,9 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
                 async with PineconeAsyncio() as pc:
                     desc = await pc.describe_index(name="my-index")
 
-            # No need to call close in this case because the "async with" syntax
-            # automatically calls close when exiting the block.
+                # No need to call close in this case because the "async with" syntax
+                # automatically calls close when exiting the block.
+
             asyncio.run(main())
 
         """
@@ -177,6 +199,9 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
 
     @property
     def db(self):
+        """
+        db is a namespace where an instance of the ``pinecone.db_control.DBControlAsyncio`` class is lazily created and cached.
+        """
         if self._db_control is None:
             from .db_control.db_control_asyncio import DBControlAsyncio
 

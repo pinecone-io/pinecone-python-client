@@ -120,11 +120,11 @@ class PineconeAsyncioDBControlInterface(ABC):
 
             asyncio.run(main())
 
-        Failing to do this may result in error messages appearing from the underlyling aiohttp library.
+        Failing to do this may result in error messages appearing from the underlying aiohttp library.
 
         **Configuration with environment variables**
 
-        If you instantiate the Pinecone client with no arguments, it will attempt to read the API key from the environment variable ``PINECONE_API_KEY``.
+        If you instantiate the PineconeAsyncio client with no arguments, it will attempt to read the API key from the environment variable ``PINECONE_API_KEY``.
 
         .. code-block:: python
 
@@ -140,44 +140,7 @@ class PineconeAsyncioDBControlInterface(ABC):
 
         **Configuration with keyword arguments**
 
-        If you prefer being more explicit in your code, you can also pass the API  as
-
-        **Configuration with environment variables**
-
-        If you instantiate the Pinecone client with no arguments, it will attempt to read the API key from the environment variable ``PINECONE_API_KEY``.
-
-        .. code-block:: python
-
-            import asyncio
-            from pinecone import PineconeAsyncio
-
-            async def main():
-                async with PineconeAsyncio() as pc:
-                    # Do async things
-                    index_list = await pc.list_indexes()
-
-            asyncio.run(main())
-
-
-        **Configuration with environment variables**
-
-        If you instantiate the Pinecone client with no arguments, it will attempt to read the API key from the environment variable ``PINECONE_API_KEY``.
-
-        .. code-block:: python
-
-            import asyncio
-            from pinecone import PineconeAsyncio
-
-            async def main():
-                async with PineconeAsyncio() as pc:
-                    # Do async things
-                    index_list = await pc.list_indexes()
-
-            asyncio.run(main())
-
-        **Configuration with keyword arguments**
-
-        If you prefer being more explicit in your code, you can also pass the API  as a keyword argument.
+        If you prefer being more explicit in your code, you can also pass the API key as a keyword argument.
 
         .. code-block:: python
 
@@ -186,7 +149,7 @@ class PineconeAsyncioDBControlInterface(ABC):
             from pinecone import PineconeAsyncio
 
             async def main():
-                async with Pinecone(api_key=os.environ.get("PINECONE_API_KEY")) as pc:
+                async with PineconeAsyncio(api_key=os.environ.get("PINECONE_API_KEY")) as pc:
                     # Do async things
                     index_list = await pc.list_indexes()
 
@@ -369,14 +332,27 @@ class PineconeAsyncioDBControlInterface(ABC):
                         metric=Metric.COSINE,
                         spec=ServerlessSpec(
                             cloud=CloudProvider.AWS,
-                            region=AwsRegion.US_WEST_2
+                            region=AwsRegion.US_WEST_2,
+                            read_capacity={
+                                "mode": "Dedicated",
+                                "dedicated": {
+                                    "node_type": "t1",
+                                    "scaling": "Manual",
+                                    "manual": {"shards": 2, "replicas": 2},
+                                },
+                            },
+                            schema={
+                                "genre": {"filterable": True},
+                                "year": {"filterable": True},
+                                "rating": {"filterable": True},
+                            },
                         ),
                         deletion_protection=DeletionProtection.DISABLED,
                         vector_type=VectorType.DENSE,
                         tags={
                             "model": "clip",
                             "app": "image-search",
-                            "env": "testing"
+                            "env": "production"
                         }
                     )
 
@@ -513,6 +489,52 @@ class PineconeAsyncioDBControlInterface(ABC):
                                     "text": "description",
                                 },
                             )
+                        )
+
+            asyncio.run(main())
+
+        **Creating an index for model with schema and dedicated read capacity**
+
+        .. code-block:: python
+
+            import asyncio
+
+            from pinecone import (
+                PineconeAsyncio,
+                IndexEmbed,
+                CloudProvider,
+                AwsRegion,
+                EmbedModel,
+                Metric,
+            )
+
+            async def main():
+                async with PineconeAsyncio() as pc:
+                    if not await pc.has_index("book-search"):
+                        desc = await pc.create_index_for_model(
+                            name="book-search",
+                            cloud=CloudProvider.AWS,
+                            region=AwsRegion.US_EAST_1,
+                            embed=IndexEmbed(
+                                model=EmbedModel.Multilingual_E5_Large,
+                                metric=Metric.COSINE,
+                                field_map={
+                                    "text": "description",
+                                },
+                            ),
+                            read_capacity={
+                                "mode": "Dedicated",
+                                "dedicated": {
+                                    "node_type": "t1",
+                                    "scaling": "Manual",
+                                    "manual": {"shards": 2, "replicas": 2},
+                                },
+                            },
+                            schema={
+                                "genre": {"filterable": True},
+                                "year": {"filterable": True},
+                                "rating": {"filterable": True},
+                            },
                         )
 
             asyncio.run(main())

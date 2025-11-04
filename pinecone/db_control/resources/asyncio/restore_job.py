@@ -15,11 +15,10 @@ class RestoreJobResourceAsyncio:
         """
         Get a restore job by ID.
 
-        Args:
-            job_id (str): The ID of the restore job to get.
-
-        Returns:
-            RestoreJobModel: The restore job.
+        :param job_id: The ID of the restore job to get.
+        :type job_id: str
+        :return: The restore job.
+        :rtype: RestoreJobModel
         """
         job = await self._index_api.describe_restore_job(job_id=job_id)
         return RestoreJobModel(job)
@@ -29,11 +28,10 @@ class RestoreJobResourceAsyncio:
         """
         Get a restore job by ID. Alias for get.
 
-        Args:
-            job_id (str): The ID of the restore job to get.
-
-        Returns:
-            RestoreJobModel: The restore job.
+        :param job_id: The ID of the restore job to get.
+        :type job_id: str
+        :return: The restore job.
+        :rtype: RestoreJobModel
         """
         return await self.get(job_id=job_id)
 
@@ -44,12 +42,12 @@ class RestoreJobResourceAsyncio:
         """
         List all restore jobs.
 
-        Args:
-            limit (int): The maximum number of restore jobs to return.
-            pagination_token (str): The pagination token to use for the next page of restore jobs.
-
-        Returns:
-            List[RestoreJobModel]: The list of restore jobs.
+        :param limit: The maximum number of restore jobs to return.
+        :type limit: int, optional
+        :param pagination_token: The pagination token to use for the next page of restore jobs.
+        :type pagination_token: str, optional
+        :return: The list of restore jobs.
+        :rtype: RestoreJobList
         """
         args = parse_non_empty_args([("limit", limit), ("pagination_token", pagination_token)])
         jobs = await self._index_api.list_restore_jobs(**args)

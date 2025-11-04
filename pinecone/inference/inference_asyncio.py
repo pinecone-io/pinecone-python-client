@@ -16,25 +16,25 @@ if TYPE_CHECKING:
 
 class AsyncioInference:
     """
-    The `AsyncioInference` class configures and uses the Pinecone Inference API to generate embeddings and
+    The ``AsyncioInference`` class configures and uses the Pinecone Inference API to generate embeddings and
     rank documents.
 
-    This class is generally not instantiated directly, but rather accessed through a parent `Pinecone` client
+    This class is generally not instantiated directly, but rather accessed through a parent ``PineconeAsyncio`` client
     object that is responsible for managing shared configurations.
 
-    ```python
-    from pinecone import PineconeAsyncio
+    .. code-block:: python
 
-    pc = PineconeAsyncio()
-    embeddings = await pc.inference.embed(
-        model="text-embedding-3-small",
-        inputs=["Hello, world!"],
-        parameters={"input_type": "passage", "truncate": "END"}
-    )
-    ```
+        from pinecone import PineconeAsyncio
 
-    :param config: A `pinecone.config.Config` object, configured and built in the Pinecone class.
-    :type config: `pinecone.config.Config`, required
+        async with PineconeAsyncio() as pc:
+            embeddings = await pc.inference.embed(
+                model="text-embedding-3-small",
+                inputs=["Hello, world!"],
+                parameters={"input_type": "passage", "truncate": "END"}
+            )
+
+    :param config: A ``pinecone.config.Config`` object, configured and built in the PineconeAsyncio class.
+    :type config: ``pinecone.config.Config``, required
     """
 
     EmbedModel = EmbedModelEnum
@@ -68,22 +68,37 @@ class AsyncioInference:
         :param parameters: A dictionary of parameters to use when generating embeddings.
         :type parameters: dict, optional
 
-        :return: EmbeddingsList object with keys `data`, `model`, and `usage`. The `data` key contains a list of
-        `n` embeddings, where `n` = len(inputs) and type(n) = Embedding. Precision of returned embeddings is either
-        float16 or float32, with float32 being the default. `model` key is the model used to generate the embeddings.
-        `usage` key contains the total number of tokens used at request-time.
+        :return: ``EmbeddingsList`` object with keys ``data``, ``model``, and ``usage``. The ``data`` key contains a list of
+            ``n`` embeddings, where ``n`` = len(inputs). Precision of returned embeddings is either
+            float16 or float32, with float32 being the default. ``model`` key is the model used to generate the embeddings.
+            ``usage`` key contains the total number of tokens used at request-time.
+        :rtype: EmbeddingsList
 
         Example:
-        >>> inputs = ["Who created the first computer?"]
-        >>> outputs = await pc.inference.embed(model="multilingual-e5-large", inputs=inputs, parameters={"input_type": "passage", "truncate": "END"})
-        >>> print(outputs)
-        EmbeddingsList(
-            model='multilingual-e5-large',
-            data=[
-                {'values': [0.1, ...., 0.2]},
-              ],
-            usage={'total_tokens': 6}
-        )
+
+        .. code-block:: python
+
+            import asyncio
+            from pinecone import PineconeAsyncio
+
+            async def main():
+                async with PineconeAsyncio() as pc:
+                    inputs = ["Who created the first computer?"]
+                    outputs = await pc.inference.embed(
+                        model="multilingual-e5-large",
+                        inputs=inputs,
+                        parameters={"input_type": "passage", "truncate": "END"}
+                    )
+                    print(outputs)
+                    # EmbeddingsList(
+                    #     model='multilingual-e5-large',
+                    #     data=[
+                    #         {'values': [0.1, ...., 0.2]},
+                    #     ],
+                    #     usage={'total_tokens': 6}
+                    # )
+
+            asyncio.run(main())
         """
         request_body = InferenceRequestBuilder.embed_request(
             model=model, inputs=inputs, parameters=parameters
@@ -96,27 +111,33 @@ class AsyncioInference:
         """
         Model is a resource that describes models available in the Pinecone Inference API.
 
-        Curently you can get or list models.
+        Currently you can get or list models.
 
-        ```python
-        async with PineconeAsyncio() as pc:
-            # List all models
-            models = await pc.inference.model.list()
+        .. code-block:: python
 
-            # List models, with model type filtering
-            models = await pc.inference.model.list(type="embed")
-            models = await pc.inference.model.list(type="rerank")
+            import asyncio
+            from pinecone import PineconeAsyncio
 
-            # List models, with vector type filtering
-            models = await pc.inference.model.list(vector_type="dense")
-            models = await pc.inference.model.list(vector_type="sparse")
+            async def main():
+                async with PineconeAsyncio() as pc:
+                    # List all models
+                    models = await pc.inference.model.list()
 
-            # List models, with both type and vector type filtering
-            models = await pc.inference.model.list(type="rerank", vector_type="dense")
+                    # List models, with model type filtering
+                    models = await pc.inference.model.list(type="embed")
+                    models = await pc.inference.model.list(type="rerank")
 
-            # Get details on a specific model
-            model = await pc.inference.model.get("text-embedding-3-small")
-        ```
+                    # List models, with vector type filtering
+                    models = await pc.inference.model.list(vector_type="dense")
+                    models = await pc.inference.model.list(vector_type="sparse")
+
+                    # List models, with both type and vector type filtering
+                    models = await pc.inference.model.list(type="rerank", vector_type="dense")
+
+                    # Get details on a specific model
+                    model = await pc.inference.model.get("text-embedding-3-small")
+
+            asyncio.run(main())
         """
         if self._model is None:
             from .resources.asyncio.model import ModelAsyncio as ModelAsyncioResource
@@ -159,37 +180,48 @@ class AsyncioInference:
         :param parameters: A dictionary of parameters to use when ranking documents.
         :type parameters: dict, optional
 
-        :return: RerankResult object with keys `data` and `usage`. The `data` key contains a list of
-        `n` documents, where `n` = `top_n` and type(n) = Document. The documents are sorted in order of
-        relevance, with the first being the most relevant. The `index` field can be used to locate the document
-        relative to the list of documents specified in the request. Each document contains a `score` key
-        representing how close the document relates to the query.
+        :return: ``RerankResult`` object with keys ``data`` and ``usage``. The ``data`` key contains a list of
+            ``n`` documents, where ``n`` = ``top_n``. The documents are sorted in order of
+            relevance, with the first being the most relevant. The ``index`` field can be used to locate the document
+            relative to the list of documents specified in the request. Each document contains a ``score`` key
+            representing how close the document relates to the query.
+        :rtype: RerankResult
 
         Example:
-        >>> result = await pc.inference.rerank(
-                model="bge-reranker-v2-m3",
-                query="Tell me about tech companies",
-                documents=[
-                    "Apple is a popular fruit known for its sweetness and crisp texture.",
-                    "Software is still eating the world.",
-                    "Many people enjoy eating apples as a healthy snack.",
-                    "Acme Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
-                    "An apple a day keeps the doctor away, as the saying goes.",
-                ],
-                top_n=2,
-                return_documents=True,
-            )
-        >>> print(result)
-        RerankResult(
-          model='bge-reranker-v2-m3',
-          data=[
-            { index=3, score=0.020980744,
-              document={text="Acme Inc. has rev..."} },
-            { index=1, score=0.00034015716,
-              document={text="Software is still..."} }
-          ],
-          usage={'rerank_units': 1}
-        )
+
+        .. code-block:: python
+
+            import asyncio
+            from pinecone import PineconeAsyncio
+
+            async def main():
+                async with PineconeAsyncio() as pc:
+                    result = await pc.inference.rerank(
+                        model="bge-reranker-v2-m3",
+                        query="Tell me about tech companies",
+                        documents=[
+                            "Apple is a popular fruit known for its sweetness and crisp texture.",
+                            "Software is still eating the world.",
+                            "Many people enjoy eating apples as a healthy snack.",
+                            "Acme Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
+                            "An apple a day keeps the doctor away, as the saying goes.",
+                        ],
+                        top_n=2,
+                        return_documents=True,
+                    )
+                    print(result)
+                    # RerankResult(
+                    #     model='bge-reranker-v2-m3',
+                    #     data=[
+                    #         { index=3, score=0.020980744,
+                    #           document={text="Acme Inc. has rev..."} },
+                    #         { index=1, score=0.00034015716,
+                    #           document={text="Software is still..."} }
+                    #     ],
+                    #     usage={'rerank_units': 1}
+                    # )
+
+            asyncio.run(main())
         """
         rerank_request = InferenceRequestBuilder.rerank(
             model=model,
@@ -217,6 +249,7 @@ class AsyncioInference:
         :type vector_type: str, optional
 
         :return: A list of models.
+        :rtype: ModelInfoList
         """
         args = parse_non_empty_args([("type", type), ("vector_type", vector_type)])
         resp = await self.__inference_api.list_models(**args)
@@ -227,15 +260,23 @@ class AsyncioInference:
         """
         Get details on a specific model.
 
-        ```python
-        async with PineconeAsyncio() as pc:
-            model = await pc.inference.get_model(model_name="text-embedding-3-small")
-        ```
-
         :param model_name: The name of the model to get details on.
         :type model_name: str, required
-
         :return: A ModelInfo object.
+        :rtype: ModelInfo
+
+        Example:
+
+        .. code-block:: python
+
+            import asyncio
+            from pinecone import PineconeAsyncio
+
+            async def main():
+                async with PineconeAsyncio() as pc:
+                    model = await pc.inference.get_model(model_name="text-embedding-3-small")
+
+            asyncio.run(main())
         """
         resp = await self.__inference_api.get_model(model_name=model_name)
         return ModelInfo(resp)

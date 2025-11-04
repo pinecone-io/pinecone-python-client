@@ -98,10 +98,10 @@ search and retrieve records.
 Inference
 =========
 
-.. automethod:: pinecone.inference::Inference.embed
+.. automethod:: pinecone.inference::AsyncioInference.embed
 
-.. automethod:: pinecone.inference::Inference.rerank
+.. automethod:: pinecone.inference::AsyncioInference.rerank
 
-.. automethod:: pinecone.inference::Inference.list_models
+.. automethod:: pinecone.inference::AsyncioInference.list_models
 
-.. automethod:: pinecone.inference::Inference.get_model
+.. automethod:: pinecone.inference::AsyncioInference.get_model

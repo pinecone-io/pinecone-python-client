@@ -52,6 +52,7 @@ class Model(PluginAware):
         :type vector_type: str, optional
 
         :return: A list of models.
+        :rtype: ModelInfoList
         """
         args = parse_non_empty_args([("type", type), ("vector_type", vector_type)])
         return ModelInfoList(self.__inference_api.list_models(**args))
@@ -65,5 +66,6 @@ class Model(PluginAware):
         :type model_name: str, required
 
         :return: A model.
+        :rtype: ModelInfo
         """
         return ModelInfo(self.__inference_api.get_model(model_name=model_name))
