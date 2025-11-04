@@ -8,6 +8,22 @@ on:
       python_versions_json:
         required: true
         type: string
+      rest_sync_suites_json:
+        required: false
+        type: string
+        description: 'JSON array of REST sync test suites to run (if not provided, runs all)'
+      rest_asyncio_suites_json:
+        required: false
+        type: string
+        description: 'JSON array of REST asyncio test suites to run (if not provided, runs all)'
+      grpc_sync_suites_json:
+        required: false
+        type: string
+        description: 'JSON array of gRPC sync test suites to run (if not provided, runs all)'
+      admin_suites_json:
+        required: false
+        type: string
+        description: 'JSON array of admin test suites to run (if not provided, runs all)'
 
 permissions: {}
 
@@ -15,20 +31,13 @@ jobs:
   rest-sync:
     name: rest ${{ matrix.python_version }} ${{ matrix.test_suite }}
     runs-on: ubuntu-latest
+    if: ${{ inputs.rest_sync_suites_json == '' || (inputs.rest_sync_suites_json != '' && fromJson(inputs.rest_sync_suites_json)[0] != null) }}
     strategy:
       fail-fast: false
       max-parallel: 4
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite:
-          - control/serverless
-          - control/resources/index
-          - control/resources/collections
-          # - control/resources/backup
-          - inference/sync
-          - plugins
-          - data
-          # - control/resources/restore_job # Backup tests must run before these
+        test_suite: ${{ inputs.rest_sync_suites_json != '' && fromJson(inputs.rest_sync_suites_json) || fromJson('["control/serverless", "control/resources/index", "control/resources/collections", "inference/sync", "plugins", "data"]') }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
@@ -47,18 +56,13 @@ jobs:
   rest-asyncio:
     name: asyncio ${{ matrix.python_version }} ${{ matrix.test_suite }}
     runs-on: ubuntu-latest
+    if: ${{ inputs.rest_asyncio_suites_json == '' || (inputs.rest_asyncio_suites_json != '' && fromJson(inputs.rest_asyncio_suites_json)[0] != null) }}
     strategy:
       fail-fast: false
       max-parallel: 4
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite:
-          - control_asyncio/resources/index
-          # - control_asyncio/resources/backup
-          - control_asyncio/*.py
-          - inference/asyncio
-          - data_asyncio
-          # - control_asyncio/resources/restore_job # Backup tests must run before these
+        test_suite: ${{ inputs.rest_asyncio_suites_json != '' && fromJson(inputs.rest_asyncio_suites_json) || fromJson('["control_asyncio/resources/index", "control_asyncio/*.py", "inference/asyncio", "data_asyncio"]') }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
@@ -76,13 +80,12 @@ jobs:
   grpc-sync:
     name: grpc sync ${{ matrix.python_version }} ${{ matrix.test_suite }}
     runs-on: ubuntu-latest
+    if: ${{ inputs.grpc_sync_suites_json == '' || (inputs.grpc_sync_suites_json != '' && fromJson(inputs.grpc_sync_suites_json)[0] != null) }}
     strategy:
       fail-fast: false
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite:
-          - data
-          - data_grpc_futures
+        test_suite: ${{ inputs.grpc_sync_suites_json != '' && fromJson(inputs.grpc_sync_suites_json) || fromJson('["data", "data_grpc_futures"]') }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
@@ -101,12 +104,12 @@ jobs:
   admin:
     name: admin ${{ matrix.python_version }}
     runs-on: ubuntu-latest
+    if: ${{ inputs.admin_suites_json == '' || (inputs.admin_suites_json != '' && fromJson(inputs.admin_suites_json)[0] != null) }}
     strategy:
       fail-fast: false
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite:
-          - admin
+        test_suite: ${{ inputs.admin_suites_json != '' && fromJson(inputs.admin_suites_json) || fromJson('["admin"]') }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
