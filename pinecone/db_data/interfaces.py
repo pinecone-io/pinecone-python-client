@@ -352,7 +352,13 @@ class IndexInterface(ABC):
         """
         :param namespace: The namespace in the index to search.
         :type namespace: str, required
-        :param query: The SearchQuery to use for the search.
+        :param query: The SearchQuery to use for the search. The query can include a ``match_terms`` field
+                      to specify which terms must be present in the text of each search hit. The match_terms
+                      should be a dict with ``strategy`` (str) and ``terms`` (List[str]) keys, e.g.
+                      ``{"strategy": "all", "terms": ["term1", "term2"]}``. Currently only "all" strategy
+                      is supported, which means all specified terms must be present.
+                      **Note:** match_terms is only supported for sparse indexes with integrated embedding
+                      configured to use the pinecone-sparse-english-v0 model.
         :type query: Union[Dict, SearchQuery], required
         :param rerank: The SearchRerank to use with the search request.
         :type rerank: Union[Dict, SearchRerank], optional
