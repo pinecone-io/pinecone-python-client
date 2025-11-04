@@ -15,9 +15,9 @@ from pinecone.core.openapi.db_data.models import (
     NamespaceSummary,
     NamespaceDescription,
     ListNamespacesResponse,
-    Pagination,
+    Pagination as OpenApiPagination,
 )
-from pinecone.db_data.dataclasses import FetchResponse
+from pinecone.db_data.dataclasses import FetchResponse, FetchByMetadataResponse, Pagination
 
 from google.protobuf.struct_pb2 import Struct
 
@@ -60,6 +60,34 @@ def parse_fetch_response(response: Message):
 
     return FetchResponse(
         vectors=vd, namespace=namespace, usage=parse_usage(json_response.get("usage", {}))
+    )
+
+
+def parse_fetch_by_metadata_response(response: Message):
+    json_response = json_format.MessageToDict(response)
+
+    vd = {}
+    vectors = json_response.get("vectors", {})
+    namespace = json_response.get("namespace", "")
+
+    for id, vec in vectors.items():
+        vd[id] = _Vector(
+            id=vec["id"],
+            values=vec.get("values", None),
+            sparse_values=parse_sparse_values(vec.get("sparseValues", None)),
+            metadata=vec.get("metadata", None),
+            _check_type=False,
+        )
+
+    pagination = None
+    if json_response.get("pagination") and json_response["pagination"].get("next"):
+        pagination = Pagination(next=json_response["pagination"]["next"])
+
+    return FetchByMetadataResponse(
+        vectors=vd,
+        namespace=namespace,
+        usage=parse_usage(json_response.get("usage", {})),
+        pagination=pagination,
     )
 
 
@@ -153,6 +181,8 @@ def parse_list_namespaces_response(response: Message) -> ListNamespacesResponse:
 
     pagination = None
     if "pagination" in json_response and json_response["pagination"]:
-        pagination = Pagination(next=json_response["pagination"].get("next", ""), _check_type=False)
+        pagination = OpenApiPagination(
+            next=json_response["pagination"].get("next", ""), _check_type=False
+        )
 
     return ListNamespacesResponse(namespaces=namespaces, pagination=pagination, _check_type=False)

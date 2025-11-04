@@ -12,6 +12,7 @@ from pinecone.core.openapi.db_data.models import (
     SearchRecordsVector,
     VectorValues,
     SearchRecordsRequest,
+    FetchByMetadataRequest,
 )
 
 from pinecone import RerankModel
@@ -399,3 +400,50 @@ class TestIndexRequestFactory:
             ),
             fields=["*"],
         )
+
+    def test_fetch_by_metadata_request_with_filter(self):
+        request = IndexRequestFactory.fetch_by_metadata_request(filter={"genre": {"$eq": "action"}})
+        assert request == FetchByMetadataRequest(filter={"genre": {"$eq": "action"}})
+
+    def test_fetch_by_metadata_request_with_filter_and_namespace(self):
+        request = IndexRequestFactory.fetch_by_metadata_request(
+            filter={"genre": {"$in": ["comedy", "drama"]}}, namespace="my_namespace"
+        )
+        assert request == FetchByMetadataRequest(
+            filter={"genre": {"$in": ["comedy", "drama"]}}, namespace="my_namespace"
+        )
+
+    def test_fetch_by_metadata_request_with_limit(self):
+        request = IndexRequestFactory.fetch_by_metadata_request(
+            filter={"year": {"$gte": 2020}}, limit=50
+        )
+        assert request == FetchByMetadataRequest(filter={"year": {"$gte": 2020}}, limit=50)
+
+    def test_fetch_by_metadata_request_with_pagination_token(self):
+        request = IndexRequestFactory.fetch_by_metadata_request(
+            filter={"status": "active"}, pagination_token="token123"
+        )
+        assert request == FetchByMetadataRequest(
+            filter={"status": "active"}, pagination_token="token123"
+        )
+
+    def test_fetch_by_metadata_request_with_all_params(self):
+        request = IndexRequestFactory.fetch_by_metadata_request(
+            filter={"genre": {"$eq": "action"}, "year": {"$eq": 2020}},
+            namespace="my_namespace",
+            limit=100,
+            pagination_token="token456",
+        )
+        assert request == FetchByMetadataRequest(
+            filter={"genre": {"$eq": "action"}, "year": {"$eq": 2020}},
+            namespace="my_namespace",
+            limit=100,
+            pagination_token="token456",
+        )
+
+    def test_fetch_by_metadata_request_without_optional_params(self):
+        request = IndexRequestFactory.fetch_by_metadata_request(filter={"genre": {"$eq": "action"}})
+        assert request.filter == {"genre": {"$eq": "action"}}
+        assert request.namespace is None
+        assert request.limit is None
+        assert request.pagination_token is None

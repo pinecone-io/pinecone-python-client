@@ -2,8 +2,8 @@ import time
 import grpc
 import logging
 from concurrent import futures
-import pinecone.core.grpc.protos.db_data_2025_04_pb2 as pb2
-import pinecone.core.grpc.protos.db_data_2025_04_pb2_grpc as pb2_grpc
+import pinecone.core.grpc.protos.db_data_2025_10_pb2 as pb2
+import pinecone.core.grpc.protos.db_data_2025_10_pb2_grpc as pb2_grpc
 
 logger = logging.getLogger(__name__)
 

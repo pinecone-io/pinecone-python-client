@@ -7,6 +7,7 @@ from pinecone.core.openapi.db_data.models import (
     DeleteRequest,
     UpdateRequest,
     DescribeIndexStatsRequest,
+    FetchByMetadataRequest,
     SearchRecordsRequest,
     SearchRecordsRequestQuery,
     SearchRecordsRequestRerank,
@@ -109,6 +110,27 @@ class IndexRequestFactory:
             [("ids", ids), ("delete_all", delete_all), ("namespace", namespace), ("filter", filter)]
         )
         return DeleteRequest(**args_dict, **non_openapi_kwargs(kwargs), _check_type=_check_type)
+
+    @staticmethod
+    def fetch_by_metadata_request(
+        filter: FilterTypedDict,
+        namespace: Optional[str] = None,
+        limit: Optional[int] = None,
+        pagination_token: Optional[str] = None,
+        **kwargs,
+    ) -> FetchByMetadataRequest:
+        _check_type = kwargs.pop("_check_type", False)
+        args_dict = parse_non_empty_args(
+            [
+                ("namespace", namespace),
+                ("filter", filter),
+                ("limit", limit),
+                ("pagination_token", pagination_token),
+            ]
+        )
+        return FetchByMetadataRequest(
+            **args_dict, **non_openapi_kwargs(kwargs), _check_type=_check_type
+        )
 
     @staticmethod
     def update_request(

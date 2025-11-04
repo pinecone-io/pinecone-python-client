@@ -1,6 +1,6 @@
 from pinecone import Config
 from pinecone.grpc import GRPCIndex
-from pinecone.core.grpc.protos.db_data_2025_04_pb2 import FetchRequest
+from pinecone.core.grpc.protos.db_data_2025_10_pb2 import FetchRequest
 
 
 class TestGrpcIndexFetch:
