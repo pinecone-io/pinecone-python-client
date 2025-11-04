@@ -116,6 +116,7 @@ class Admin:
         # Lazily initialize resources
         self._project = None
         self._api_key = None
+        self._organization = None
 
     @property
     def project(self):
@@ -231,3 +232,62 @@ class Admin:
     def api_keys(self):
         """Alias for :func:`api_key`"""
         return self.api_key
+
+    @property
+    def organization(self):
+        """A namespace for organization-related operations
+
+        Alias for :func:`organizations`.
+
+        To learn about all organization-related operations, see :func:`pinecone.admin.resources.OrganizationResource`.
+
+        Examples
+        --------
+
+        .. code-block:: python
+            :caption: Listing all organizations
+
+            from pinecone import Admin
+
+            # Using environment variables to pass PINECONE_CLIENT_ID and PINECONE_CLIENT_SECRET
+            admin = Admin()
+
+            # List all organizations
+            organizations_response = admin.organization.list()
+            for org in organizations_response.data:
+                print(org.id)
+                print(org.name)
+
+        .. code-block:: python
+            :caption: Fetching an organization
+
+            from pinecone import Admin
+
+            admin = Admin()
+            organization = admin.organization.get(organization_id="my-organization-id")
+            print(organization.name)
+            print(organization.plan)
+
+        .. code-block:: python
+            :caption: Updating an organization
+
+            from pinecone import Admin
+
+            admin = Admin()
+            organization = admin.organization.update(
+                organization_id="my-organization-id",
+                name="updated-organization-name"
+            )
+            print(organization.name)
+
+        """
+        if self._organization is None:
+            from pinecone.admin.resources import OrganizationResource
+
+            self._organization = OrganizationResource(self._child_api_client)
+        return self._organization
+
+    @property
+    def organizations(self):
+        """Alias for :func:`organization`"""
+        return self.organization

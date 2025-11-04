@@ -125,3 +125,66 @@ class TestAdminApiKey:
         finally:
             admin.project.delete(project_id=project.id)
             logger.info(f"Project deleted: {project.id}")
+
+    def test_update_api_key(self):
+        admin = Admin()
+        project_name = "test-project-for-api-key-update"
+        if not admin.project.exists(name=project_name):
+            project = admin.project.create(name=project_name)
+        else:
+            project = admin.project.get(name=project_name)
+
+        try:
+            # Create an API key
+            key_response = admin.api_key.create(
+                project_id=project.id, name="test-api-key-update", roles=["ProjectEditor"]
+            )
+            logger.info(f"API key created: {key_response.key.id}")
+
+            original_roles = key_response.key.roles
+
+            # Update the API key's name
+            updated_key = admin.api_key.update(
+                api_key_id=key_response.key.id, name="test-api-key-updated-name"
+            )
+            logger.info(f"API key updated: {updated_key.id}")
+
+            assert updated_key.id == key_response.key.id
+            assert updated_key.name == "test-api-key-updated-name"
+            assert updated_key.roles == original_roles  # Roles should not change
+
+            # Update the API key's roles
+            updated_key = admin.api_key.update(
+                api_key_id=key_response.key.id, roles=["ProjectViewer"]
+            )
+            logger.info(f"API key roles updated: {updated_key.id}")
+
+            assert updated_key.id == key_response.key.id
+            assert updated_key.name == "test-api-key-updated-name"  # Name should not change
+            assert updated_key.roles == ["ProjectViewer"]
+
+            # Update both name and roles
+            updated_key = admin.api_key.update(
+                api_key_id=key_response.key.id,
+                name="test-api-key-final",
+                roles=["ProjectEditor", "DataPlaneEditor"],
+            )
+            logger.info(f"API key name and roles updated: {updated_key.id}")
+
+            assert updated_key.id == key_response.key.id
+            assert updated_key.name == "test-api-key-final"
+            assert set(updated_key.roles) == set(["ProjectEditor", "DataPlaneEditor"])
+
+            # Verify by fetching the key
+            fetched_key = admin.api_key.fetch(api_key_id=key_response.key.id)
+            assert fetched_key.name == "test-api-key-final"
+            assert set(fetched_key.roles) == set(["ProjectEditor", "DataPlaneEditor"])
+
+            # Clean up
+            admin.api_key.delete(api_key_id=key_response.key.id)
+            logger.info(f"API key deleted: {key_response.key.id}")
+
+        finally:
+            # Clean up project
+            admin.project.delete(project_id=project.id)
+            logger.info(f"Project deleted: {project.id}")

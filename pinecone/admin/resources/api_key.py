@@ -2,12 +2,12 @@ from typing import Optional, List
 from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.admin.apis import APIKeysApi
 from pinecone.utils import require_kwargs, parse_non_empty_args
-from pinecone.core.openapi.admin.models import CreateAPIKeyRequest
+from pinecone.core.openapi.admin.models import CreateAPIKeyRequest, UpdateAPIKeyRequest
 
 
 class ApiKeyResource:
     """
-    This class is used to create, delete, list, and fetch API keys.
+    This class is used to create, delete, list, fetch, and update API keys.
 
     .. note::
         The class should not be instantiated directly. Instead, access this classes
@@ -207,4 +207,81 @@ class ApiKeyResource:
         create_api_key_request = CreateAPIKeyRequest(**parse_non_empty_args(args))
         return self._api_keys_api.create_api_key(
             project_id=project_id, create_api_key_request=create_api_key_request
+        )
+
+    @require_kwargs
+    def update(
+        self, api_key_id: str, name: Optional[str] = None, roles: Optional[List[str]] = None
+    ):
+        """
+        Update an API key.
+
+        :param api_key_id: The id of the API key to update.
+        :type api_key_id: str
+        :param name: A new name for the API key. The name must be 1-80 characters long.
+            If omitted, the name will not be updated.
+        :type name: Optional[str]
+        :param roles: A new set of roles for the API key. Available roles include:
+            ``ProjectEditor``, ``ProjectViewer``, ``ControlPlaneEditor``,
+            ``ControlPlaneViewer``, ``DataPlaneEditor``, ``DataPlaneViewer``.
+            Existing roles will be removed if not included. If this field is omitted,
+            the roles will not be updated.
+        :type roles: Optional[List[str]]
+        :return: The updated API key.
+        :rtype: APIKey
+
+        Examples
+        --------
+
+        .. code-block:: python
+            :caption: Update an API key's name
+            :emphasize-lines: 7-10
+
+            from pinecone import Admin
+
+            # Credentials read from PINECONE_CLIENT_ID and
+            # PINECONE_CLIENT_SECRET environment variables
+            admin = Admin()
+
+            api_key = admin.api_key.update(
+                api_key_id='my-api-key-id',
+                name='updated-api-key-name'
+            )
+            print(api_key.name)
+
+        .. code-block:: python
+            :caption: Update an API key's roles
+            :emphasize-lines: 7-10
+
+            from pinecone import Admin
+
+            admin = Admin()
+
+            api_key = admin.api_key.update(
+                api_key_id='my-api-key-id',
+                roles=['ProjectViewer']
+            )
+            print(api_key.roles)
+
+        .. code-block:: python
+            :caption: Update both name and roles
+            :emphasize-lines: 7-12
+
+            from pinecone import Admin
+
+            admin = Admin()
+
+            api_key = admin.api_key.update(
+                api_key_id='my-api-key-id',
+                name='updated-name',
+                roles=['ProjectEditor', 'DataPlaneEditor']
+            )
+            print(api_key.name)
+            print(api_key.roles)
+
+        """
+        args = [("name", name), ("roles", roles)]
+        update_request = UpdateAPIKeyRequest(**parse_non_empty_args(args))
+        return self._api_keys_api.update_api_key(
+            api_key_id=api_key_id, update_api_key_request=update_request
         )
