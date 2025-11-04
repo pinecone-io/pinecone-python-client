@@ -91,7 +91,11 @@ class TestCreateIndexForModel:
             embed={"model": EmbedModel.Multilingual_E5_Large, "field_map": field_map},
             read_capacity={
                 "mode": "Dedicated",
-                "dedicated": {"node_type": "t1", "scaling": "Manual"},
+                "dedicated": {
+                    "node_type": "t1",
+                    "scaling": "Manual",
+                    "manual": {"shards": 1, "replicas": 1},
+                },
             },
             timeout=-1,
         )

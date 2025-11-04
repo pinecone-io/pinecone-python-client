@@ -16,7 +16,11 @@ class TestConfigureIndexReadCapacity:
             name=ready_sl_index,
             read_capacity={
                 "mode": "Dedicated",
-                "dedicated": {"node_type": "t1", "scaling": "Manual"},
+                "dedicated": {
+                    "node_type": "t1",
+                    "scaling": "Manual",
+                    "manual": {"shards": 1, "replicas": 1},
+                },
             },
         )
 
@@ -67,7 +71,11 @@ class TestConfigureIndexReadCapacity:
             name=ready_sl_index,
             read_capacity={
                 "mode": "Dedicated",
-                "dedicated": {"node_type": "t1", "scaling": "Manual"},
+                "dedicated": {
+                    "node_type": "t1",
+                    "scaling": "Manual",
+                    "manual": {"shards": 1, "replicas": 1},
+                },
             },
         )
         desc = client.describe_index(name=ready_sl_index)

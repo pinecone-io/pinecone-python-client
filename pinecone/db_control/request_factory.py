@@ -120,9 +120,37 @@ class PineconeDBControlRequestFactory:
                 node_type = dedicated_dict["node_type"]
                 scaling = dedicated_dict["scaling"]
                 dedicated_config_kwargs = {"node_type": node_type, "scaling": scaling}
-                if "manual" in dedicated_dict:
+
+                # Validate that manual scaling configuration is provided when scaling is "Manual"
+                if scaling == "Manual":
+                    if "manual" not in dedicated_dict or dedicated_dict.get("manual") is None:
+                        raise ValueError(
+                            "When using 'Manual' scaling with Dedicated read capacity mode, "
+                            "the 'manual' field with 'shards' and 'replicas' is required. "
+                            "Please specify 'manual': {'shards': <number>, 'replicas': <number>} "
+                            "in the 'dedicated' configuration."
+                        )
+                    manual_dict = dedicated_dict["manual"]
+                    if not isinstance(manual_dict, dict):
+                        raise ValueError(
+                            "The 'manual' field must be a dictionary with 'shards' and 'replicas' keys."
+                        )
+                    if "shards" not in manual_dict or "replicas" not in manual_dict:
+                        missing = []
+                        if "shards" not in manual_dict:
+                            missing.append("shards")
+                        if "replicas" not in manual_dict:
+                            missing.append("replicas")
+                        raise ValueError(
+                            f"The 'manual' configuration is missing required fields: {', '.join(missing)}. "
+                            "Please provide both 'shards' and 'replicas' in the 'manual' configuration."
+                        )
+                    dedicated_config_kwargs["manual"] = ScalingConfigManual(**manual_dict)
+                elif "manual" in dedicated_dict:
+                    # Allow manual to be provided for other scaling types (future compatibility)
                     manual_dict = dedicated_dict["manual"]
                     dedicated_config_kwargs["manual"] = ScalingConfigManual(**manual_dict)
+
                 dedicated_config = ReadCapacityDedicatedConfig(**dedicated_config_kwargs)
                 return ReadCapacityDedicatedSpec(mode="Dedicated", dedicated=dedicated_config)
             else:
