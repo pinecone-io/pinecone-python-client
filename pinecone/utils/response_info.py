@@ -44,13 +44,21 @@ def extract_response_info(headers: Optional[Dict[str, Any]]) -> ResponseInfo:
         headers = {}
 
     # Normalize headers to lowercase keys
+    # Exclude timing-dependent headers that cause test flakiness
+    timing_headers = {
+        "x-envoy-upstream-service-time",
+        "date",
+        "x-request-id",  # Request IDs are unique per request
+    }
     raw_headers: Dict[str, str] = {}
     for key, value in headers.items():
-        if isinstance(value, (list, tuple)) and len(value) > 0:
-            # Handle headers that may be lists
-            raw_headers[key.lower()] = str(value[0])
-        else:
-            raw_headers[key.lower()] = str(value)
+        key_lower = key.lower()
+        if key_lower not in timing_headers:
+            if isinstance(value, (list, tuple)) and len(value) > 0:
+                # Handle headers that may be lists
+                raw_headers[key_lower] = str(value[0])
+            else:
+                raw_headers[key_lower] = str(value)
 
     result: ResponseInfo = {"raw_headers": raw_headers}
 

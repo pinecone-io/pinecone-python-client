@@ -1,6 +1,10 @@
 import logging
 from pinecone import Pinecone
 from datetime import datetime, timedelta
+import dotenv
+
+dotenv.load_dotenv()
+
 
 logger = logging.getLogger(__name__)
 

@@ -589,14 +589,14 @@ class _IndexAsyncio(IndexAsyncioInterface):
 
         target_namespaces = set(namespaces)  # dedup namespaces
         tasks = [
-            self.query(
+            self._query(
+                top_k=overall_topk,
                 vector=vector,
                 namespace=ns,
-                top_k=overall_topk,
-                filter=filter,
+                filter=filter,  # type: ignore[arg-type]
                 include_values=include_values,
                 include_metadata=include_metadata,
-                sparse_vector=sparse_vector,
+                sparse_vector=sparse_vector,  # type: ignore[arg-type]
                 async_threadpool_executor=True,
                 _preload_content=False,
                 **kwargs,
@@ -606,8 +606,16 @@ class _IndexAsyncio(IndexAsyncioInterface):
 
         for task in asyncio.as_completed(tasks):
             raw_result = await task
-            response = json.loads(raw_result.data.decode("utf-8"))
-            aggregator.add_results(response)
+            # When _preload_content=False, _query returns a RESTResponse object
+            from pinecone.openapi_support.rest_utils import RESTResponse
+
+            if isinstance(raw_result, RESTResponse):
+                response = json.loads(raw_result.data.decode("utf-8"))
+                aggregator.add_results(response)
+            else:
+                # Fallback: if somehow we got an OpenAPIQueryResponse, parse it
+                response = json.loads(raw_result.to_dict())
+                aggregator.add_results(response)
 
         final_results = aggregator.get_results()
         return final_results
