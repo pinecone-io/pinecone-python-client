@@ -446,8 +446,7 @@ class GRPCIndex(GRPCIndexBase):
             )
         else:
             response = self.runner.run(self.stub.Query, request, timeout=timeout)
-            json_response = json_format.MessageToDict(response)
-            return parse_query_response(json_response, _check_type=False)
+            return parse_query_response(response, _check_type=False)
 
     def query_namespaces(
         self,

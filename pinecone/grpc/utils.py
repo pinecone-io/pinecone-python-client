@@ -10,6 +10,7 @@ from pinecone.core.openapi.db_data.models import (
     ScoredVector,
     SparseValues,
     QueryResponse,
+    FetchResponse,
     IndexDescription as DescribeIndexStatsResponse,
     UpsertResponse,
     NamespaceSummary,
@@ -17,7 +18,7 @@ from pinecone.core.openapi.db_data.models import (
     ListNamespacesResponse,
     Pagination,
 )
-from pinecone.db_data.dataclasses import FetchResponse
+import pinecone.core.grpc.protos.db_data_2025_04_pb2 as pc_pb2
 
 from google.protobuf.struct_pb2 import Struct
 
@@ -34,37 +35,35 @@ def dict_to_proto_struct(d: Optional[dict]) -> "Struct":
     return s
 
 
-def parse_sparse_values(sparse_values: dict):
-    return (
-        SparseValues(indices=sparse_values["indices"], values=sparse_values["values"])
-        if sparse_values
-        else SparseValues(indices=[], values=[])
+def parse_sparse_values(sparse_values: pc_pb2.SparseValues):
+    return SparseValues(
+        indices=list(sparse_values.indices),
+        values=list(sparse_values.values),
     )
 
 
-def parse_fetch_response(response: Message):
-    json_response = json_format.MessageToDict(response)
-
+def parse_fetch_response(response: pc_pb2.FetchResponse):
     vd = {}
-    vectors = json_response.get("vectors", {})
-    namespace = json_response.get("namespace", "")
 
-    for id, vec in vectors.items():
-        vd[id] = _Vector(
-            id=vec["id"],
-            values=vec.get("values", None),
-            sparse_values=parse_sparse_values(vec.get("sparseValues", None)),
-            metadata=vec.get("metadata", None),
+    for vec_id, vec in response.vectors.items():
+        vd[vec_id] = _Vector(
+            id=vec.id,
+            values=list(vec.values),
+            sparse_values=parse_sparse_values(vec.sparse_values),
+            metadata=json_format.MessageToDict(vec.metadata),
             _check_type=False,
         )
 
     return FetchResponse(
-        vectors=vd, namespace=namespace, usage=parse_usage(json_response.get("usage", {}))
+        vectors=vd,
+        namespace=response.namespace,
+        usage=parse_usage(response.usage),
+        _check_type=False,
     )
 
 
-def parse_usage(usage: dict):
-    return Usage(read_units=int(usage.get("readUnits", 0)))
+def parse_usage(usage: pc_pb2.Usage):
+    return Usage(read_units=usage.read_units, _check_type=False)
 
 
 def parse_upsert_response(response: Message, _check_type: bool = False):
@@ -81,36 +80,25 @@ def parse_delete_response(response: Union[dict, Message], _check_type: bool = Fa
     return {}
 
 
-def parse_query_response(response: Union[dict, Message], _check_type: bool = False):
-    if isinstance(response, Message):
-        json_response = json_format.MessageToDict(response)
-    else:
-        json_response = response
-
+def parse_query_response(response: pc_pb2.QueryResponse, _check_type: bool = False):
     matches = []
-    for item in json_response.get("matches", []):
+    for item in response.matches:
         sc = ScoredVector(
-            id=item["id"],
-            score=item.get("score", 0.0),
-            values=item.get("values", []),
-            sparse_values=parse_sparse_values(item.get("sparseValues")),
-            metadata=item.get("metadata", None),
+            id=item.id,
+            score=item.score,
+            values=list(item.values),
+            sparse_values=parse_sparse_values(item.sparse_values),
+            metadata=json_format.MessageToDict(item.metadata),
             _check_type=_check_type,
         )
         matches.append(sc)
 
-    # Due to OpenAPI model classes / actual parsing cost, we want to avoid
-    # creating empty `Usage` objects and then passing them into QueryResponse
-    # when they are not actually present in the response from the server.
-    args = {
-        "namespace": json_response.get("namespace", ""),
-        "matches": matches,
-        "_check_type": _check_type,
-    }
-    usage = json_response.get("usage")
-    if usage:
-        args["usage"] = parse_usage(usage)
-    return QueryResponse(**args)
+    return QueryResponse(
+        namespace=response.namespace,
+        matches=matches,
+        usage=parse_usage(response.usage),
+        _check_type=_check_type,
+    )
 
 
 def parse_stats_response(response: dict):
