@@ -1,6 +1,11 @@
 import pytest
 from pinecone import QueryResponse, Vector
-from ..helpers import embedding_values, poll_fetch_for_ids_in_namespace, random_string
+from ..helpers import (
+    embedding_values,
+    poll_fetch_for_ids_in_namespace,
+    poll_until_lsn_reconciled,
+    random_string,
+)
 import logging
 import time
 
@@ -20,7 +25,7 @@ def query_namespace():
 def seed(idx, namespace):
     # Upsert without metadata
     logger.info(f"Seeding vectors without metadata into namespace '{namespace}'")
-    idx.upsert(
+    response = idx.upsert(
         vectors=[
             ("1", embedding_values(2)),
             ("2", embedding_values(2)),
@@ -28,10 +33,17 @@ def seed(idx, namespace):
         ],
         namespace=namespace,
     )
+    committed_lsn = None
+    if hasattr(response, "_response_info") and response._response_info:
+        committed_lsn = response._response_info.get("lsn_committed")
+        # Assert that _response_info is present when we extract LSN
+        assert (
+            response._response_info is not None
+        ), "Expected _response_info to be present on upsert response"
 
     # Upsert with metadata
     logger.info(f"Seeding vectors with metadata into namespace '{namespace}'")
-    idx.upsert(
+    response2 = idx.upsert(
         vectors=[
             Vector(
                 id="4", values=embedding_values(2), metadata={"genre": "action", "runtime": 120}
@@ -43,9 +55,18 @@ def seed(idx, namespace):
         ],
         namespace=namespace,
     )
+    if hasattr(response2, "_response_info") and response2._response_info:
+        committed_lsn2 = response2._response_info.get("lsn_committed")
+        # Assert that _response_info is present when we extract LSN
+        assert (
+            response2._response_info is not None
+        ), "Expected _response_info to be present on upsert response"
+        # Use the latest LSN
+        if committed_lsn2 is not None:
+            committed_lsn = committed_lsn2
 
     # Upsert with dict
-    idx.upsert(
+    response3 = idx.upsert(
         vectors=[
             {"id": "7", "values": embedding_values(2)},
             {"id": "8", "values": embedding_values(2)},
@@ -53,10 +74,35 @@ def seed(idx, namespace):
         ],
         namespace=namespace,
     )
+    if hasattr(response3, "_response_info") and response3._response_info:
+        committed_lsn3 = response3._response_info.get("lsn_committed")
+        # Assert that _response_info is present when we extract LSN
+        assert (
+            response3._response_info is not None
+        ), "Expected _response_info to be present on upsert response"
+        # Use the latest LSN
+        if committed_lsn3 is not None:
+            committed_lsn = committed_lsn3
 
-    poll_fetch_for_ids_in_namespace(
-        idx, ids=["1", "2", "3", "4", "5", "6", "7", "8", "9"], namespace=namespace
-    )
+    # Use LSN-based polling if available, otherwise fallback to fetch polling
+    if committed_lsn is not None:
+        logger.info(f"Using LSN-based polling for namespace '{namespace}', LSN: {committed_lsn}")
+        poll_until_lsn_reconciled(
+            idx,
+            committed_lsn,
+            operation_name="seed",
+            check_fn=lambda: len(
+                idx.fetch(
+                    ids=["1", "2", "3", "4", "5", "6", "7", "8", "9"], namespace=namespace
+                ).vectors
+            )
+            == 9,
+        )
+    else:
+        logger.info(f"LSN not available, falling back to fetch polling for namespace '{namespace}'")
+        poll_fetch_for_ids_in_namespace(
+            idx, ids=["1", "2", "3", "4", "5", "6", "7", "8", "9"], namespace=namespace
+        )
 
 
 @pytest.fixture(scope="class")

@@ -2,10 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Union, List, Optional, Dict, Any, Iterator
 
 from pinecone.core.openapi.db_data.models import (
-    FetchResponse,
-    QueryResponse,
     IndexDescription as DescribeIndexStatsResponse,
-    UpsertResponse,
     Vector,
     ListResponse,
     SparseValues,
@@ -25,7 +22,14 @@ from .types import (
     SearchQueryTypedDict,
     SearchRerankTypedDict,
 )
-from .dataclasses import SearchQuery, SearchRerank, FetchByMetadataResponse
+from .dataclasses import (
+    SearchQuery,
+    SearchRerank,
+    FetchResponse,
+    FetchByMetadataResponse,
+    QueryResponse,
+    UpsertResponse,
+)
 from pinecone.utils import require_kwargs
 
 
@@ -246,7 +250,7 @@ class IndexInterface(ABC):
         pass
 
     @abstractmethod
-    def upsert_records(self, namespace: str, records: List[Dict]):
+    def upsert_records(self, namespace: str, records: List[Dict]) -> UpsertResponse:
         """
         :param namespace: The namespace of the index to upsert records to.
         :type namespace: str, required

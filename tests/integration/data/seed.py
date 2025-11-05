@@ -11,7 +11,7 @@ def setup_data(idx, target_namespace, wait):
     logger.info(
         "Upserting 3 vectors as tuples to namespace '%s' without metadata", target_namespace
     )
-    idx.upsert(
+    response1 = idx.upsert(
         vectors=[
             ("1", embedding_values(2)),
             ("2", embedding_values(2)),
@@ -19,12 +19,19 @@ def setup_data(idx, target_namespace, wait):
         ],
         namespace=target_namespace,
     )
+    committed_lsn = None
+    if hasattr(response1, "_response_info") and response1._response_info:
+        committed_lsn = response1._response_info.get("lsn_committed")
+        # Assert that _response_info is present when we extract LSN
+        assert (
+            response1._response_info is not None
+        ), "Expected _response_info to be present on upsert response"
 
     # Upsert with metadata
     logger.info(
         "Upserting 3 vectors as Vector objects to namespace '%s' with metadata", target_namespace
     )
-    idx.upsert(
+    response2 = idx.upsert(
         vectors=[
             Vector(
                 id="4", values=embedding_values(2), metadata={"genre": "action", "runtime": 120}
@@ -36,10 +43,18 @@ def setup_data(idx, target_namespace, wait):
         ],
         namespace=target_namespace,
     )
+    if hasattr(response2, "_response_info") and response2._response_info:
+        committed_lsn2 = response2._response_info.get("lsn_committed")
+        # Assert that _response_info is present when we extract LSN
+        assert (
+            response2._response_info is not None
+        ), "Expected _response_info to be present on upsert response"
+        if committed_lsn2 is not None:
+            committed_lsn = committed_lsn2
 
     # Upsert with dict
     logger.info("Upserting 3 vectors as dicts to namespace '%s'", target_namespace)
-    idx.upsert(
+    response3 = idx.upsert(
         vectors=[
             {"id": "7", "values": embedding_values(2)},
             {"id": "8", "values": embedding_values(2)},
@@ -47,11 +62,29 @@ def setup_data(idx, target_namespace, wait):
         ],
         namespace=target_namespace,
     )
+    if hasattr(response3, "_response_info") and response3._response_info:
+        committed_lsn3 = response3._response_info.get("lsn_committed")
+        # Assert that _response_info is present when we extract LSN
+        assert (
+            response3._response_info is not None
+        ), "Expected _response_info to be present on upsert response"
+        if committed_lsn3 is not None:
+            committed_lsn = committed_lsn3
 
     if wait:
-        poll_fetch_for_ids_in_namespace(
-            idx, ids=["1", "2", "3", "4", "5", "6", "7", "8", "9"], namespace=target_namespace
-        )
+        ids = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+        if committed_lsn is not None:
+            from ..helpers import poll_until_lsn_reconciled
+
+            poll_until_lsn_reconciled(
+                idx,
+                committed_lsn,
+                operation_name="setup_data",
+                check_fn=lambda: len(idx.fetch(ids=ids, namespace=target_namespace).vectors)
+                == len(ids),
+            )
+        else:
+            poll_fetch_for_ids_in_namespace(idx, ids=ids, namespace=target_namespace)
 
 
 def weird_invalid_ids():
@@ -139,9 +172,31 @@ def weird_valid_ids():
 def setup_weird_ids_data(idx, target_namespace, wait):
     weird_ids = weird_valid_ids()
     batch_size = 100
+    committed_lsn = None
     for i in range(0, len(weird_ids), batch_size):
         chunk = weird_ids[i : i + batch_size]
-        idx.upsert(vectors=[(x, embedding_values(2)) for x in chunk], namespace=target_namespace)
+        response = idx.upsert(
+            vectors=[(x, embedding_values(2)) for x in chunk], namespace=target_namespace
+        )
+        if hasattr(response, "_response_info") and response._response_info:
+            chunk_lsn = response._response_info.get("lsn_committed")
+            # Assert that _response_info is present when we extract LSN
+            assert (
+                response._response_info is not None
+            ), "Expected _response_info to be present on upsert response"
+            if chunk_lsn is not None:
+                committed_lsn = chunk_lsn
 
     if wait:
-        poll_fetch_for_ids_in_namespace(idx, ids=weird_ids, namespace=target_namespace)
+        if committed_lsn is not None:
+            from ..helpers import poll_until_lsn_reconciled
+
+            poll_until_lsn_reconciled(
+                idx,
+                committed_lsn,
+                operation_name="setup_weird_ids_data",
+                check_fn=lambda: len(idx.fetch(ids=weird_ids, namespace=target_namespace).vectors)
+                == len(weird_ids),
+            )
+        else:
+            poll_fetch_for_ids_in_namespace(idx, ids=weird_ids, namespace=target_namespace)

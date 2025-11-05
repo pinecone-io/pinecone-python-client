@@ -15,10 +15,9 @@ from pinecone.openapi_support import AsyncioApiClient
 from pinecone.core.openapi.db_data.api.vector_operations_api import AsyncioVectorOperationsApi
 from pinecone.core.openapi.db_data import API_VERSION
 from pinecone.core.openapi.db_data.models import (
-    QueryResponse,
+    QueryResponse as OpenAPIQueryResponse,
     IndexDescription as DescribeIndexStatsResponse,
     UpsertRequest,
-    UpsertResponse,
     DeleteRequest,
     ListResponse,
     SearchRecordsResponse,
@@ -51,6 +50,8 @@ from .dataclasses import (
     Pagination,
     SearchQuery,
     SearchRerank,
+    QueryResponse,
+    UpsertResponse,
 )
 
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
@@ -85,14 +86,23 @@ _OPENAPI_ENDPOINT_PARAMS = (
 """ :meta private: """
 
 
-def parse_query_response(response: QueryResponse):
+def parse_query_response(response: OpenAPIQueryResponse):
+    """:meta private:"""
+    # Convert OpenAPI QueryResponse to dataclass QueryResponse
+    response_info = None
+    if hasattr(response, "_response_info"):
+        response_info = response._response_info
+
+    # Remove deprecated 'results' field if present
     if hasattr(response, "_data_store"):
-        # I'm not sure, but I think this is no longer needed. At some point
-        # in the past the query response returned "results" instead of matches
-        # and then for some time it returned both keys even though "results"
-        # was always empty. I'm leaving this here just in case.
         response._data_store.pop("results", None)
-    return response
+
+    return QueryResponse(
+        matches=response.matches,
+        namespace=response.namespace or "",
+        usage=response.usage if hasattr(response, "usage") and response.usage else None,
+        _response_info=response_info,
+    )
 
 
 class _IndexAsyncio(IndexAsyncioInterface):
@@ -293,13 +303,21 @@ class _IndexAsyncio(IndexAsyncioInterface):
         ]
 
         total_upserted = 0
+        last_result = None
         with tqdm(total=len(vectors), desc="Upserted vectors", disable=not show_progress) as pbar:
             for task in asyncio.as_completed(upsert_tasks):
                 res = await task
                 pbar.update(res.upserted_count)
                 total_upserted += res.upserted_count
+                last_result = res
 
-        return UpsertResponse(upserted_count=total_upserted)
+        # Create aggregated response with metadata from last completed batch
+        # Note: For parallel batches, this uses the last completed result (order may vary)
+        response_info = None
+        if last_result and hasattr(last_result, "_response_info"):
+            response_info = last_result._response_info
+
+        return UpsertResponse(upserted_count=total_upserted, _response_info=response_info)
 
     @validate_and_convert_errors
     async def _upsert_batch(
@@ -316,7 +334,8 @@ class _IndexAsyncio(IndexAsyncioInterface):
         def vec_builder(v):
             return VectorFactory.build(v, check_type=_check_type)
 
-        return await self._vector_api.upsert_vectors(
+        # Convert OpenAPI UpsertResponse to dataclass UpsertResponse
+        result = await self._vector_api.upsert_vectors(
             UpsertRequest(
                 vectors=list(map(vec_builder, vectors)),
                 **args_dict,
@@ -325,6 +344,12 @@ class _IndexAsyncio(IndexAsyncioInterface):
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
         )
+
+        response_info = None
+        if hasattr(result, "_response_info"):
+            response_info = result._response_info
+
+        return UpsertResponse(upserted_count=result.upserted_count, _response_info=response_info)
 
     @validate_and_convert_errors
     async def upsert_from_dataframe(
@@ -365,11 +390,18 @@ class _IndexAsyncio(IndexAsyncioInterface):
     ) -> FetchResponse:
         args_dict = parse_non_empty_args([("namespace", namespace)])
         result = await self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
-        return FetchResponse(
+        # Copy response info from OpenAPI response if present
+        response_info = None
+        if hasattr(result, "_response_info"):
+            response_info = result._response_info
+
+        fetch_response = FetchResponse(
             namespace=result.namespace,
             vectors={k: Vector.from_dict(v) for k, v in result.vectors.items()},
             usage=result.usage,
+            _response_info=response_info,
         )
+        return fetch_response
 
     @validate_and_convert_errors
     async def fetch_by_metadata(
@@ -434,12 +466,19 @@ class _IndexAsyncio(IndexAsyncioInterface):
         if result.pagination and result.pagination.next:
             pagination = Pagination(next=result.pagination.next)
 
-        return FetchByMetadataResponse(
+        # Copy response info from OpenAPI response if present
+        response_info = None
+        if hasattr(result, "_response_info"):
+            response_info = result._response_info
+
+        fetch_by_metadata_response = FetchByMetadataResponse(
             namespace=result.namespace or "",
             vectors={k: Vector.from_dict(v) for k, v in result.vectors.items()},
             usage=result.usage,
             pagination=pagination,
+            _response_info=response_info,
         )
+        return fetch_by_metadata_response
 
     @validate_and_convert_errors
     async def query(
@@ -481,7 +520,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
         include_metadata: Optional[bool] = None,
         sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
-    ) -> QueryResponse:
+    ) -> OpenAPIQueryResponse:
         if len(args) > 0:
             raise ValueError(
                 "Please use keyword arguments instead of positional arguments. Example: index.query(vector=[0.1, 0.2, 0.3], top_k=10, namespace='my_namespace')"
@@ -613,9 +652,27 @@ class _IndexAsyncio(IndexAsyncioInterface):
             else:
                 done = True
 
-    async def upsert_records(self, namespace: str, records: List[Dict]):
+    async def upsert_records(self, namespace: str, records: List[Dict]) -> UpsertResponse:
         args = IndexRequestFactory.upsert_records_args(namespace=namespace, records=records)
-        await self._vector_api.upsert_records_namespace(**args)
+        # Use _return_http_data_only=False to get headers for LSN extraction
+        result = await self._vector_api.upsert_records_namespace(
+            _return_http_data_only=False, **args
+        )
+        # result is a tuple: (data, status, headers) when _return_http_data_only=False
+        response_info = None
+        if isinstance(result, tuple) and len(result) >= 3:
+            headers = result[2]
+            if headers:
+                from pinecone.utils.response_info import extract_response_info
+
+                response_info = extract_response_info(headers)
+                # Only keep if we have meaningful LSN data
+                if response_info and "lsn_committed" not in response_info:
+                    response_info = None
+
+        # Count records (could be len(records) but we don't know if any failed)
+        # For now, assume all succeeded
+        return UpsertResponse(upserted_count=len(records), _response_info=response_info)
 
     async def search(
         self,

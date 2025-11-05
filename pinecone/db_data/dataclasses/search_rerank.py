@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from typing import Optional, Dict, Any, List
 from pinecone.inference import RerankModel
+from .utils import DictLike
 
 
 @dataclass
-class SearchRerank:
+class SearchRerank(DictLike):
     """
     SearchRerank represents a rerank request when searching within a specific namespace.
     """

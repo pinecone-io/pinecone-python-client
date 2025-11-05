@@ -29,6 +29,7 @@ from pinecone.core.openapi.db_data.models import (
     IndexDescription as DescribeIndexStatsResponse,
     NamespaceDescription,
     ListNamespacesResponse,
+    UpsertResponse as OpenApiUpsertResponse,
 )
 from pinecone.db_data.dataclasses import FetchByMetadataResponse
 from pinecone.db_control.models.list_response import ListResponse as SimpleListResponse, Pagination
@@ -36,7 +37,6 @@ from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
     Vector as GRPCVector,
     QueryVector as GRPCQueryVector,
     UpsertRequest,
-    UpsertResponse,
     DeleteRequest,
     QueryRequest,
     FetchRequest,
@@ -97,7 +97,7 @@ class GRPCIndex(GRPCIndexBase):
         batch_size: Optional[int] = None,
         show_progress: bool = True,
         **kwargs,
-    ) -> Union[UpsertResponse, PineconeGrpcFuture]:
+    ) -> Union[OpenApiUpsertResponse, PineconeGrpcFuture]:
         """
         The upsert operation writes vectors into a namespace.
         If a new value is upserted for an existing vector id, it will overwrite the previous value.
@@ -168,7 +168,10 @@ class GRPCIndex(GRPCIndexBase):
         if async_req:
             args_dict = self._parse_non_empty_args([("namespace", namespace)])
             request = UpsertRequest(vectors=vectors, **args_dict, **kwargs)
-            future = self.runner.run(self.stub.Upsert.future, request, timeout=timeout)
+            future_result = self.runner.run(self.stub.Upsert.future, request, timeout=timeout)
+            # For .future calls, runner returns (future, None) since .future doesn't support with_call
+            # The future itself will provide trailing metadata when it completes
+            future = future_result[0] if isinstance(future_result, tuple) else future_result
             return PineconeGrpcFuture(
                 future, timeout=timeout, result_transformer=parse_upsert_response
             )
@@ -181,6 +184,7 @@ class GRPCIndex(GRPCIndexBase):
 
         pbar = tqdm(total=len(vectors), disable=not show_progress, desc="Upserted vectors")
         total_upserted = 0
+        last_batch_result = None
         for i in range(0, len(vectors), batch_size):
             batch_result = self._upsert_batch(
                 vectors[i : i + batch_size], namespace, timeout=timeout, **kwargs
@@ -188,15 +192,23 @@ class GRPCIndex(GRPCIndexBase):
             pbar.update(batch_result.upserted_count)
             # we can't use here pbar.n for the case show_progress=False
             total_upserted += batch_result.upserted_count
+            last_batch_result = batch_result
 
-        return UpsertResponse(upserted_count=total_upserted)
+        # Create aggregated response with metadata from final batch
+        aggregated_response = OpenApiUpsertResponse(upserted_count=total_upserted)
+        if last_batch_result and hasattr(last_batch_result, "_response_info"):
+            aggregated_response._response_info = last_batch_result._response_info  # type: ignore
+        return aggregated_response
 
     def _upsert_batch(
         self, vectors: List[GRPCVector], namespace: Optional[str], timeout: Optional[int], **kwargs
-    ) -> UpsertResponse:
+    ) -> OpenApiUpsertResponse:
         args_dict = self._parse_non_empty_args([("namespace", namespace)])
         request = UpsertRequest(vectors=vectors, **args_dict)
-        return self.runner.run(self.stub.Upsert, request, timeout=timeout, **kwargs)
+        response, trailing_metadata = self.runner.run(
+            self.stub.Upsert, request, timeout=timeout, **kwargs
+        )
+        return parse_upsert_response(response, trailing_metadata=trailing_metadata)
 
     def upsert_from_dataframe(
         self,
@@ -205,7 +217,7 @@ class GRPCIndex(GRPCIndexBase):
         batch_size: int = 500,
         use_async_requests: bool = True,
         show_progress: bool = True,
-    ) -> UpsertResponse:
+    ) -> OpenApiUpsertResponse:
         """Upserts a dataframe into the index.
 
         Args:
@@ -245,11 +257,16 @@ class GRPCIndex(GRPCIndexBase):
             ]
 
         upserted_count = 0
+        last_result = None
         for res in results:
             if hasattr(res, "upserted_count") and isinstance(res.upserted_count, int):
                 upserted_count += res.upserted_count
+                last_result = res
 
-        return UpsertResponse(upserted_count=upserted_count)
+        response = OpenApiUpsertResponse(upserted_count=upserted_count)
+        if last_result and hasattr(last_result, "_response_info"):
+            response._response_info = last_result._response_info  # type: ignore
+        return response
 
     @staticmethod
     def _iter_dataframe(df, batch_size):
@@ -322,12 +339,17 @@ class GRPCIndex(GRPCIndexBase):
 
         request = DeleteRequest(**args_dict, **kwargs)
         if async_req:
-            future = self.runner.run(self.stub.Delete.future, request, timeout=timeout)
+            future_result = self.runner.run(self.stub.Delete.future, request, timeout=timeout)
+            # For .future calls, runner returns (future, None) since .future doesn't support with_call
+            future = future_result[0] if isinstance(future_result, tuple) else future_result
             return PineconeGrpcFuture(
                 future, timeout=timeout, result_transformer=parse_delete_response
             )
         else:
-            return self.runner.run(self.stub.Delete, request, timeout=timeout)
+            response, trailing_metadata = self.runner.run(
+                self.stub.Delete, request, timeout=timeout
+            )
+            return parse_delete_response(response, trailing_metadata=trailing_metadata)
 
     def fetch(
         self,
@@ -361,13 +383,15 @@ class GRPCIndex(GRPCIndexBase):
         request = FetchRequest(ids=ids, **args_dict, **kwargs)
 
         if async_req:
-            future = self.runner.run(self.stub.Fetch.future, request, timeout=timeout)
+            future_result = self.runner.run(self.stub.Fetch.future, request, timeout=timeout)
+            # For .future calls, runner returns (future, None) since .future doesn't support with_call
+            future = future_result[0] if isinstance(future_result, tuple) else future_result
             return PineconeGrpcFuture(
                 future, result_transformer=parse_fetch_response, timeout=timeout
             )
         else:
-            response = self.runner.run(self.stub.Fetch, request, timeout=timeout)
-            return parse_fetch_response(response)
+            response, trailing_metadata = self.runner.run(self.stub.Fetch, request, timeout=timeout)
+            return parse_fetch_response(response, trailing_metadata=trailing_metadata)
 
     def fetch_by_metadata(
         self,
@@ -431,13 +455,19 @@ class GRPCIndex(GRPCIndexBase):
         request = FetchByMetadataRequest(**args_dict, **kwargs)
 
         if async_req:
-            future = self.runner.run(self.stub.FetchByMetadata.future, request, timeout=timeout)
+            future_result = self.runner.run(
+                self.stub.FetchByMetadata.future, request, timeout=timeout
+            )
+            # For .future calls, runner returns (future, None) since .future doesn't support with_call
+            future = future_result[0] if isinstance(future_result, tuple) else future_result
             return PineconeGrpcFuture(
                 future, result_transformer=parse_fetch_by_metadata_response, timeout=timeout
             )
         else:
-            response = self.runner.run(self.stub.FetchByMetadata, request, timeout=timeout)
-            return parse_fetch_by_metadata_response(response)
+            response, trailing_metadata = self.runner.run(
+                self.stub.FetchByMetadata, request, timeout=timeout
+            )
+            return parse_fetch_by_metadata_response(response, trailing_metadata=trailing_metadata)
 
     def query(
         self,
@@ -523,14 +553,18 @@ class GRPCIndex(GRPCIndexBase):
         timeout = kwargs.pop("timeout", None)
 
         if async_req:
-            future = self.runner.run(self.stub.Query.future, request, timeout=timeout)
+            future_result = self.runner.run(self.stub.Query.future, request, timeout=timeout)
+            # For .future calls, runner returns (future, None) since .future doesn't support with_call
+            future = future_result[0] if isinstance(future_result, tuple) else future_result
             return PineconeGrpcFuture(
                 future, result_transformer=parse_query_response, timeout=timeout
             )
         else:
-            response = self.runner.run(self.stub.Query, request, timeout=timeout)
+            response, trailing_metadata = self.runner.run(self.stub.Query, request, timeout=timeout)
             json_response = json_format.MessageToDict(response)
-            return parse_query_response(json_response, _check_type=False)
+            return parse_query_response(
+                json_response, _check_type=False, trailing_metadata=trailing_metadata
+            )
 
     def query_namespaces(
         self,
@@ -636,12 +670,17 @@ class GRPCIndex(GRPCIndexBase):
 
         request = UpdateRequest(id=id, **args_dict)
         if async_req:
-            future = self.runner.run(self.stub.Update.future, request, timeout=timeout)
+            future_result = self.runner.run(self.stub.Update.future, request, timeout=timeout)
+            # For .future calls, runner returns (future, None) since .future doesn't support with_call
+            future = future_result[0] if isinstance(future_result, tuple) else future_result
             return PineconeGrpcFuture(
                 future, timeout=timeout, result_transformer=parse_update_response
             )
         else:
-            return self.runner.run(self.stub.Update, request, timeout=timeout)
+            response, trailing_metadata = self.runner.run(
+                self.stub.Update, request, timeout=timeout
+            )
+            return parse_update_response(response, trailing_metadata=trailing_metadata)
 
     def list_paginated(
         self,
@@ -689,7 +728,7 @@ class GRPCIndex(GRPCIndexBase):
         )
         request = ListRequest(**args_dict, **kwargs)
         timeout = kwargs.pop("timeout", None)
-        response = self.runner.run(self.stub.List, request, timeout=timeout)
+        response, _ = self.runner.run(self.stub.List, request, timeout=timeout)
 
         if response.pagination and response.pagination.next != "":
             pagination = Pagination(next=response.pagination.next)
@@ -768,7 +807,7 @@ class GRPCIndex(GRPCIndexBase):
         timeout = kwargs.pop("timeout", None)
 
         request = DescribeIndexStatsRequest(**args_dict)
-        response = self.runner.run(self.stub.DescribeIndexStats, request, timeout=timeout)
+        response, _ = self.runner.run(self.stub.DescribeIndexStats, request, timeout=timeout)
         json_response = json_format.MessageToDict(response)
         return parse_stats_response(json_response)
 
@@ -823,12 +862,16 @@ class GRPCIndex(GRPCIndexBase):
         request = CreateNamespaceRequest(**request_kwargs)
 
         if async_req:
-            future = self.runner.run(self.stub.CreateNamespace.future, request, timeout=timeout)
+            future_result = self.runner.run(
+                self.stub.CreateNamespace.future, request, timeout=timeout
+            )
+            # For .future calls, runner returns (future, None) since .future doesn't support with_call
+            future = future_result[0] if isinstance(future_result, tuple) else future_result
             return PineconeGrpcFuture(
                 future, timeout=timeout, result_transformer=parse_namespace_description
             )
 
-        response = self.runner.run(self.stub.CreateNamespace, request, timeout=timeout)
+        response, _ = self.runner.run(self.stub.CreateNamespace, request, timeout=timeout)
         return parse_namespace_description(response)
 
     @require_kwargs
@@ -850,7 +893,7 @@ class GRPCIndex(GRPCIndexBase):
         """
         timeout = kwargs.pop("timeout", None)
         request = DescribeNamespaceRequest(namespace=namespace)
-        response = self.runner.run(self.stub.DescribeNamespace, request, timeout=timeout)
+        response, _ = self.runner.run(self.stub.DescribeNamespace, request, timeout=timeout)
         return parse_namespace_description(response)
 
     @require_kwargs
@@ -872,8 +915,10 @@ class GRPCIndex(GRPCIndexBase):
         """
         timeout = kwargs.pop("timeout", None)
         request = DeleteNamespaceRequest(namespace=namespace)
-        response = self.runner.run(self.stub.DeleteNamespace, request, timeout=timeout)
-        return parse_delete_response(response)
+        response, trailing_metadata = self.runner.run(
+            self.stub.DeleteNamespace, request, timeout=timeout
+        )
+        return parse_delete_response(response, trailing_metadata=trailing_metadata)
 
     @require_kwargs
     def list_namespaces_paginated(
@@ -906,7 +951,7 @@ class GRPCIndex(GRPCIndexBase):
         )
         timeout = kwargs.pop("timeout", None)
         request = ListNamespacesRequest(**args_dict, **kwargs)
-        response = self.runner.run(self.stub.ListNamespaces, request, timeout=timeout)
+        response, _ = self.runner.run(self.stub.ListNamespaces, request, timeout=timeout)
         return parse_list_namespaces_response(response)
 
     @require_kwargs

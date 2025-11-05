@@ -11,7 +11,7 @@ class TestQueryNamespacesRest:
         ns2 = f"{ns_prefix}-ns2"
         ns3 = f"{ns_prefix}-ns3"
 
-        idx.upsert(
+        response1 = idx.upsert(
             vectors=[
                 Vector(id="id1", values=[0.1, 0.2], metadata={"genre": "drama", "key": 1}),
                 Vector(id="id2", values=[0.2, 0.3], metadata={"genre": "drama", "key": 2}),
@@ -20,7 +20,7 @@ class TestQueryNamespacesRest:
             ],
             namespace=ns1,
         )
-        idx.upsert(
+        response2 = idx.upsert(
             vectors=[
                 Vector(id="id5", values=[0.21, 0.22], metadata={"genre": "drama", "key": 1}),
                 Vector(id="id6", values=[0.22, 0.23], metadata={"genre": "drama", "key": 2}),
@@ -29,7 +29,7 @@ class TestQueryNamespacesRest:
             ],
             namespace=ns2,
         )
-        idx.upsert(
+        response3 = idx.upsert(
             vectors=[
                 Vector(id="id9", values=[0.31, 0.32], metadata={"genre": "drama", "key": 1}),
                 Vector(id="id10", values=[0.32, 0.33], metadata={"genre": "drama", "key": 2}),
@@ -39,9 +39,46 @@ class TestQueryNamespacesRest:
             namespace=ns3,
         )
 
-        poll_stats_for_namespace(idx, namespace=ns1, expected_count=4)
-        poll_stats_for_namespace(idx, namespace=ns2, expected_count=4)
-        poll_stats_for_namespace(idx, namespace=ns3, expected_count=4)
+        # Extract LSN from last response (use the latest one)
+        committed_lsn = None
+        for response in [response1, response2, response3]:
+            if hasattr(response, "_response_info") and response._response_info:
+                response_lsn = response._response_info.get("lsn_committed")
+                # Assert that _response_info is present when we extract LSN
+                assert (
+                    response._response_info is not None
+                ), "Expected _response_info to be present on upsert response"
+                if response_lsn is not None:
+                    committed_lsn = response_lsn
+
+        # Use LSN-based polling if available, otherwise fallback to stats polling
+        if committed_lsn is not None:
+            from ..helpers import poll_until_lsn_reconciled
+
+            def check_namespace_count(ns, expected):
+                stats = idx.describe_index_stats()
+                namespace_key = (
+                    "__default__" if ns == "" and "__default__" in stats.namespaces else ns
+                )
+                return (
+                    namespace_key in stats.namespaces
+                    and stats.namespaces[namespace_key].vector_count >= expected
+                )
+
+            poll_until_lsn_reconciled(
+                idx,
+                committed_lsn,
+                operation_name="test_query_namespaces",
+                check_fn=lambda: (
+                    check_namespace_count(ns1, 4)
+                    and check_namespace_count(ns2, 4)
+                    and check_namespace_count(ns3, 4)
+                ),
+            )
+        else:
+            poll_stats_for_namespace(idx, namespace=ns1, expected_count=4)
+            poll_stats_for_namespace(idx, namespace=ns2, expected_count=4)
+            poll_stats_for_namespace(idx, namespace=ns3, expected_count=4)
 
         results = idx.query_namespaces(
             vector=[0.1, 0.2],
@@ -152,14 +189,14 @@ class TestQueryNamespacesRest:
         ns1 = f"{ns_prefix}-ns1"
         ns2 = f"{ns_prefix}-ns2"
 
-        idx.upsert(
+        response1 = idx.upsert(
             vectors=[
                 Vector(id="id1", values=[0.1, 0.2], metadata={"genre": "drama", "key": 1}),
                 Vector(id="id2", values=[0.2, 0.3], metadata={"genre": "drama", "key": 2}),
             ],
             namespace=ns1,
         )
-        idx.upsert(
+        response2 = idx.upsert(
             vectors=[
                 Vector(id="id5", values=[0.21, 0.22], metadata={"genre": "drama", "key": 1}),
                 Vector(id="id6", values=[0.22, 0.23], metadata={"genre": "drama", "key": 2}),
@@ -167,8 +204,41 @@ class TestQueryNamespacesRest:
             namespace=ns2,
         )
 
-        poll_stats_for_namespace(idx, namespace=ns1, expected_count=2)
-        poll_stats_for_namespace(idx, namespace=ns2, expected_count=2)
+        # Extract LSN from last response
+        committed_lsn = None
+        for response in [response1, response2]:
+            if hasattr(response, "_response_info") and response._response_info:
+                response_lsn = response._response_info.get("lsn_committed")
+                # Assert that _response_info is present when we extract LSN
+                assert (
+                    response._response_info is not None
+                ), "Expected _response_info to be present on upsert response"
+                if response_lsn is not None:
+                    committed_lsn = response_lsn
+
+        # Use LSN-based polling if available, otherwise fallback to stats polling
+        if committed_lsn is not None:
+            from ..helpers import poll_until_lsn_reconciled
+
+            def check_namespace_count(ns, expected):
+                stats = idx.describe_index_stats()
+                namespace_key = (
+                    "__default__" if ns == "" and "__default__" in stats.namespaces else ns
+                )
+                return (
+                    namespace_key in stats.namespaces
+                    and stats.namespaces[namespace_key].vector_count >= expected
+                )
+
+            poll_until_lsn_reconciled(
+                idx,
+                committed_lsn,
+                operation_name="test_single_result_per_namespace",
+                check_fn=lambda: (check_namespace_count(ns1, 2) and check_namespace_count(ns2, 2)),
+            )
+        else:
+            poll_stats_for_namespace(idx, namespace=ns1, expected_count=2)
+            poll_stats_for_namespace(idx, namespace=ns2, expected_count=2)
 
         results = idx.query_namespaces(
             vector=[0.1, 0.21],

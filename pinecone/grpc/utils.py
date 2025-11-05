@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional, Union, Dict
 from google.protobuf import json_format
 from google.protobuf.message import Message
 
@@ -42,7 +42,7 @@ def parse_sparse_values(sparse_values: dict):
     )
 
 
-def parse_fetch_response(response: Message):
+def parse_fetch_response(response: Message, trailing_metadata: Optional[Dict[str, str]] = None):
     json_response = json_format.MessageToDict(response)
 
     vd = {}
@@ -58,12 +58,22 @@ def parse_fetch_response(response: Message):
             _check_type=False,
         )
 
-    return FetchResponse(
+    fetch_response = FetchResponse(
         vectors=vd, namespace=namespace, usage=parse_usage(json_response.get("usage", {}))
     )
+    # Attach response info from trailing metadata
+    if trailing_metadata:
+        from pinecone.utils.response_info import extract_response_info
+
+        response_info = extract_response_info(trailing_metadata)
+        if response_info:
+            fetch_response._response_info = response_info  # type: ignore
+    return fetch_response
 
 
-def parse_fetch_by_metadata_response(response: Message):
+def parse_fetch_by_metadata_response(
+    response: Message, trailing_metadata: Optional[Dict[str, str]] = None
+):
     json_response = json_format.MessageToDict(response)
 
     vd = {}
@@ -83,33 +93,85 @@ def parse_fetch_by_metadata_response(response: Message):
     if json_response.get("pagination") and json_response["pagination"].get("next"):
         pagination = Pagination(next=json_response["pagination"]["next"])
 
-    return FetchByMetadataResponse(
+    fetch_by_metadata_response = FetchByMetadataResponse(
         vectors=vd,
         namespace=namespace,
         usage=parse_usage(json_response.get("usage", {})),
         pagination=pagination,
     )
+    # Attach response info from trailing metadata
+    if trailing_metadata:
+        from pinecone.utils.response_info import extract_response_info
+
+        response_info = extract_response_info(trailing_metadata)
+        if response_info:
+            fetch_by_metadata_response._response_info = response_info  # type: ignore
+    return fetch_by_metadata_response
 
 
 def parse_usage(usage: dict):
     return Usage(read_units=int(usage.get("readUnits", 0)))
 
 
-def parse_upsert_response(response: Message, _check_type: bool = False):
+def parse_upsert_response(
+    response: Message, _check_type: bool = False, trailing_metadata: Optional[Dict[str, str]] = None
+):
     json_response = json_format.MessageToDict(response)
     upserted_count = json_response.get("upsertedCount", 0)
-    return UpsertResponse(upserted_count=int(upserted_count))
+    upsert_response = UpsertResponse(upserted_count=int(upserted_count))
+    # Attach response info from trailing metadata
+    if trailing_metadata:
+        from pinecone.utils.response_info import extract_response_info
+
+        response_info = extract_response_info(trailing_metadata)
+        if response_info:
+            upsert_response._response_info = response_info  # type: ignore
+    return upsert_response
 
 
-def parse_update_response(response: Union[dict, Message], _check_type: bool = False):
-    return {}
+def parse_update_response(
+    response: Union[dict, Message],
+    _check_type: bool = False,
+    trailing_metadata: Optional[Dict[str, str]] = None,
+):
+    result = {}
+    # Attach response info from trailing metadata only if it has LSN values
+    if trailing_metadata:
+        from pinecone.utils.response_info import extract_response_info
+
+        response_info = extract_response_info(trailing_metadata)
+        # Only attach if we have meaningful LSN data, not just raw headers
+        if response_info and (
+            "lsn_committed" in response_info or "lsn_reconciled" in response_info
+        ):
+            result["_response_info"] = response_info  # type: ignore
+    return result
 
 
-def parse_delete_response(response: Union[dict, Message], _check_type: bool = False):
-    return {}
+def parse_delete_response(
+    response: Union[dict, Message],
+    _check_type: bool = False,
+    trailing_metadata: Optional[Dict[str, str]] = None,
+):
+    result = {}
+    # Attach response info from trailing metadata only if it has LSN values
+    if trailing_metadata:
+        from pinecone.utils.response_info import extract_response_info
+
+        response_info = extract_response_info(trailing_metadata)
+        # Only attach if we have meaningful LSN data, not just raw headers
+        if response_info and (
+            "lsn_committed" in response_info or "lsn_reconciled" in response_info
+        ):
+            result["_response_info"] = response_info  # type: ignore
+    return result
 
 
-def parse_query_response(response: Union[dict, Message], _check_type: bool = False):
+def parse_query_response(
+    response: Union[dict, Message],
+    _check_type: bool = False,
+    trailing_metadata: Optional[Dict[str, str]] = None,
+):
     if isinstance(response, Message):
         json_response = json_format.MessageToDict(response)
     else:
@@ -138,7 +200,15 @@ def parse_query_response(response: Union[dict, Message], _check_type: bool = Fal
     usage = json_response.get("usage")
     if usage:
         args["usage"] = parse_usage(usage)
-    return QueryResponse(**args)
+    query_response = QueryResponse(**args)
+    # Attach response info from trailing metadata
+    if trailing_metadata:
+        from pinecone.utils.response_info import extract_response_info
+
+        response_info = extract_response_info(trailing_metadata)
+        if response_info:
+            query_response._response_info = response_info  # type: ignore
+    return query_response
 
 
 def parse_stats_response(response: dict):

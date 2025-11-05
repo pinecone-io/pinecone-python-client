@@ -1,8 +1,9 @@
 import logging
 import pytest
-from ..helpers import poll_fetch_for_ids_in_namespace, embedding_values, random_string
+from ..helpers import embedding_values, random_string
 
-from pinecone import Vector, FetchByMetadataResponse
+from pinecone import Vector
+from pinecone.db_data.dataclasses import FetchByMetadataResponse
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ def seed_for_fetch_by_metadata(idx, namespace):
     logger.info(f"Seeding vectors with metadata into namespace '{namespace}'")
 
     # Upsert vectors with different metadata
-    idx.upsert(
+    response = idx.upsert(
         vectors=[
             Vector(
                 id="genre-action-1",
@@ -54,19 +55,39 @@ def seed_for_fetch_by_metadata(idx, namespace):
         namespace=namespace,
     )
 
-    poll_fetch_for_ids_in_namespace(
-        idx,
-        ids=[
-            "genre-action-1",
-            "genre-action-2",
-            "genre-comedy-1",
-            "genre-comedy-2",
-            "genre-drama-1",
-            "genre-romance-1",
-            "no-metadata-1",
-        ],
-        namespace=namespace,
-    )
+    # Extract LSN from response if available
+    committed_lsn = None
+    if hasattr(response, "_response_info") and response._response_info:
+        committed_lsn = response._response_info.get("lsn_committed")
+        # Assert that _response_info is present when we extract LSN
+        assert (
+            response._response_info is not None
+        ), "Expected _response_info to be present on upsert response"
+
+    # Use LSN-based polling if available, otherwise fallback to fetch polling
+    ids = [
+        "genre-action-1",
+        "genre-action-2",
+        "genre-comedy-1",
+        "genre-comedy-2",
+        "genre-drama-1",
+        "genre-romance-1",
+        "no-metadata-1",
+    ]
+
+    if committed_lsn is not None:
+        from ..helpers import poll_until_lsn_reconciled
+
+        poll_until_lsn_reconciled(
+            idx,
+            committed_lsn,
+            operation_name="seed_for_fetch_by_metadata",
+            check_fn=lambda: len(idx.fetch(ids=ids, namespace=namespace).vectors) == len(ids),
+        )
+    else:
+        from ..helpers import poll_fetch_for_ids_in_namespace
+
+        poll_fetch_for_ids_in_namespace(idx, ids=ids, namespace=namespace)
 
 
 @pytest.fixture(scope="class")

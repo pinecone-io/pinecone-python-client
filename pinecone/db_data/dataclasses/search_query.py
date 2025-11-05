@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from typing import Optional, Any, Dict, Union
 from .search_query_vector import SearchQueryVector
+from .utils import DictLike
 from ..types.search_query_vector_typed_dict import SearchQueryVectorTypedDict
 
 
 @dataclass
-class SearchQuery:
+class SearchQuery(DictLike):
     """
     SearchQuery represents the query when searching within a specific namespace.
     """

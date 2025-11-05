@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Dict, Tuple, Optional
+from typing import Dict, Tuple, Optional, Any
 
 from grpc._channel import _InactiveRpcError
 
@@ -36,13 +36,47 @@ class GrpcRunner:
         credentials: Optional[CallCredentials] = None,
         wait_for_ready: Optional[bool] = None,
         compression: Optional[Compression] = None,
-    ):
+    ) -> Tuple[Any, Optional[Dict[str, str]]]:
+        """Run a GRPC call and return response with trailing metadata.
+
+        Returns:
+            Tuple of (response, trailing_metadata_dict). trailing_metadata_dict may be None.
+        """
+
         @wraps(func)
         def wrapped():
             user_provided_metadata = metadata or {}
             _metadata = self._prepare_metadata(user_provided_metadata)
             try:
-                return func(
+                # For unary calls, use with_call to get trailing metadata
+                # Check if func supports with_call (it's a method descriptor)
+                if hasattr(func, "with_call") and callable(getattr(func, "with_call", None)):
+                    try:
+                        result = func.with_call(
+                            request,
+                            timeout=timeout,
+                            metadata=_metadata,
+                            credentials=credentials,
+                            wait_for_ready=wait_for_ready,
+                            compression=compression,
+                        )
+                        # Check if result is a tuple (real gRPC call)
+                        if isinstance(result, tuple) and len(result) == 2:
+                            response, call = result
+                            # Extract trailing metadata
+                            trailing_metadata = call.trailing_metadata()
+                            metadata_dict = (
+                                {key: value for key, value in trailing_metadata}
+                                if trailing_metadata
+                                else None
+                            )
+                            return response, metadata_dict
+                        # If with_call doesn't return a tuple, it's likely a mock - fall through to call func directly
+                    except (TypeError, ValueError):
+                        # If with_call fails or doesn't return expected format, fall back
+                        pass
+                # Fallback: call func directly (for mocks or methods without with_call)
+                response = func(
                     request,
                     timeout=timeout,
                     metadata=_metadata,
@@ -50,6 +84,7 @@ class GrpcRunner:
                     wait_for_ready=wait_for_ready,
                     compression=compression,
                 )
+                return response, None
             except _InactiveRpcError as e:
                 raise PineconeException(e._state.debug_error_string) from e
 
@@ -64,13 +99,46 @@ class GrpcRunner:
         credentials: Optional[CallCredentials] = None,
         wait_for_ready: Optional[bool] = None,
         compression: Optional[Compression] = None,
-    ):
+    ) -> Tuple[Any, Optional[Dict[str, str]]]:
+        """Run an async GRPC call and return response with trailing metadata.
+
+        Returns:
+            Tuple of (response, trailing_metadata_dict). trailing_metadata_dict may be None.
+        """
+
         @wraps(func)
         async def wrapped():
             user_provided_metadata = metadata or {}
             _metadata = self._prepare_metadata(user_provided_metadata)
             try:
-                return await func(
+                # For async unary calls, use with_call to get trailing metadata
+                if hasattr(func, "with_call") and callable(getattr(func, "with_call", None)):
+                    try:
+                        result = await func.with_call(
+                            request,
+                            timeout=timeout,
+                            metadata=_metadata,
+                            credentials=credentials,
+                            wait_for_ready=wait_for_ready,
+                            compression=compression,
+                        )
+                        # Check if result is a tuple (real gRPC call)
+                        if isinstance(result, tuple) and len(result) == 2:
+                            response, call = result
+                            # Extract trailing metadata
+                            trailing_metadata = await call.trailing_metadata()
+                            metadata_dict = (
+                                {key: value for key, value in trailing_metadata}
+                                if trailing_metadata
+                                else None
+                            )
+                            return response, metadata_dict
+                        # If with_call doesn't return a tuple, it's likely a mock - fall through to call func directly
+                    except (TypeError, ValueError):
+                        # If with_call fails or doesn't return expected format, fall back
+                        pass
+                # Fallback: call func directly (for mocks or methods without with_call)
+                response = await func(
                     request,
                     timeout=timeout,
                     metadata=_metadata,
@@ -78,6 +146,7 @@ class GrpcRunner:
                     wait_for_ready=wait_for_ready,
                     compression=compression,
                 )
+                return response, None
             except _InactiveRpcError as e:
                 raise PineconeException(e._state.debug_error_string) from e
 

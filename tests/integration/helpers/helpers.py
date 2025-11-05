@@ -11,6 +11,7 @@ from datetime import datetime
 import json
 from pinecone.db_data import _Index
 from pinecone import Pinecone, NotFoundException, PineconeApiException
+from tests.integration.helpers.lsn_utils import is_lsn_reconciled
 from typing import List, Callable, Awaitable, Optional, Union
 
 logger = logging.getLogger(__name__)
@@ -124,6 +125,103 @@ def poll_fetch_for_ids_in_namespace(idx: _Index, ids: List[str], namespace: str)
         if total_time > max_sleep:
             raise TimeoutError(f"Timed out waiting for namespace {namespace} to have vectors")
         else:
+            total_time += delta_t
+            time.sleep(delta_t)
+
+
+def poll_until_lsn_reconciled(
+    idx: _Index,
+    target_lsn: Optional[int],
+    operation_name: str = "read",
+    max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 180)),
+    check_fn: Optional[Callable[[], bool]] = None,
+) -> None:
+    """Poll until a target LSN has been reconciled using LSN headers.
+
+    This function uses LSN headers from query operations to determine
+    freshness instead of polling describe_index_stats, which is faster.
+
+    Args:
+        idx: The index client to use for polling
+        target_lsn: The LSN value to wait for (from a write operation)
+        operation_name: Name of the operation being checked (for logging)
+        max_sleep: Maximum time to wait in seconds
+        check_fn: Optional additional check function that must return True
+
+    Raises:
+        TimeoutError: If the LSN is not reconciled within max_sleep seconds
+    """
+    if target_lsn is None:
+        logger.debug("No target LSN provided, cannot use LSN-based polling")
+        return
+
+    # Get index dimension for query vector (once, not every iteration)
+    dimension = None
+    try:
+        stats = idx.describe_index_stats()
+        dimension = stats.dimension
+    except Exception:
+        logger.debug("Could not get index dimension, will use check_fn")
+
+    delta_t = 2  # Use shorter interval for LSN polling
+    total_time = 0
+    done = False
+
+    while not done:
+        logger.debug(
+            f"Polling for LSN reconciliation. Target LSN: {target_lsn}, "
+            f"operation: {operation_name}, total time: {total_time}s"
+        )
+
+        # Try query as a lightweight operation to check LSN
+        # Query operations return x-pinecone-max-indexed-lsn header
+        if dimension is not None:
+            try:
+                from pinecone.db_data.request_factory import IndexRequestFactory
+
+                # Use a minimal query to get headers (this is more efficient than describe_index_stats)
+                # We'll use a zero vector query, but we only care about headers
+                request = IndexRequestFactory.query_request(
+                    top_k=1,
+                    vector=[0.0] * dimension,  # Zero vector matching index dimension
+                    namespace="",
+                )
+                response = idx._vector_api.query_vectors(request)
+                reconciled_lsn = None
+                if hasattr(response, "_response_info") and response._response_info:
+                    reconciled_lsn = response._response_info.get("lsn_reconciled")
+
+                if reconciled_lsn is not None:
+                    logger.debug(f"Current reconciled LSN: {reconciled_lsn}, target: {target_lsn}")
+                    if is_lsn_reconciled(target_lsn, reconciled_lsn):
+                        # LSN is reconciled, check if additional condition is met
+                        if check_fn is None or check_fn():
+                            done = True
+                            logger.debug(f"LSN {target_lsn} is reconciled after {total_time}s")
+                    else:
+                        logger.debug(
+                            f"LSN not yet reconciled. Reconciled: {reconciled_lsn}, "
+                            f"target: {target_lsn}"
+                        )
+                else:
+                    # LSN headers not available, fallback to check_fn or return
+                    logger.debug("LSN headers not available in response")
+                    if check_fn is not None and check_fn():
+                        done = True
+            except Exception as e:
+                logger.debug(f"Error checking LSN: {e}")
+                # Fall through to check_fn fallback
+
+        # If dimension is None or LSN check failed, fallback to check_fn
+        if not done and dimension is None:
+            if check_fn is not None and check_fn():
+                done = True
+
+        if not done:
+            if total_time >= max_sleep:
+                raise TimeoutError(
+                    f"Timeout waiting for LSN {target_lsn} to be reconciled after {total_time}s"
+                )
             total_time += delta_t
             time.sleep(delta_t)
 

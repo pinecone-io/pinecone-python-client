@@ -166,6 +166,19 @@ class AsyncioApiClient(object):
         else:
             return_data = None
 
+        # Attach response info to response object if it exists and has LSN values
+        if return_data is not None:
+            headers = response_data.getheaders()
+            if headers:
+                from pinecone.utils.response_info import extract_response_info
+
+                response_info = extract_response_info(headers)
+                # Only attach if we have meaningful LSN data, not just raw headers
+                if response_info and (
+                    "lsn_committed" in response_info or "lsn_reconciled" in response_info
+                ):
+                    return_data._response_info = response_info  # type: ignore
+
         if _return_http_data_only:
             return return_data
         else:

@@ -44,7 +44,28 @@ class PineconeGrpcFuture(ConcurrentFuture):
 
     def set_result(self, result):
         if self._result_transformer:
-            result = self._result_transformer(result)
+            # Extract trailing metadata from GRPC future if available
+            trailing_metadata = None
+            try:
+                if hasattr(self._grpc_future, "trailing_metadata"):
+                    trailing_metadata_tuple = self._grpc_future.trailing_metadata()
+                    if trailing_metadata_tuple:
+                        trailing_metadata = {key: value for key, value in trailing_metadata_tuple}
+            except Exception:
+                # If trailing_metadata() fails, continue without it
+                pass
+
+            # Pass trailing_metadata to transformer if it accepts it
+            if trailing_metadata is not None:
+                import inspect
+
+                sig = inspect.signature(self._result_transformer)
+                if "trailing_metadata" in sig.parameters:
+                    result = self._result_transformer(result, trailing_metadata=trailing_metadata)
+                else:
+                    result = self._result_transformer(result)
+            else:
+                result = self._result_transformer(result)
         return super().set_result(result)
 
     def cancel(self):
