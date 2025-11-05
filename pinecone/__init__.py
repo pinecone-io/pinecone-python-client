@@ -56,6 +56,7 @@ _db_data_lazy_imports = {
     "QueryRequest": ("pinecone.db_data.models", "QueryRequest"),
     "QueryResponse": ("pinecone.db_data.dataclasses", "QueryResponse"),
     "UpsertResponse": ("pinecone.db_data.dataclasses", "UpsertResponse"),
+    "UpdateResponse": ("pinecone.db_data.dataclasses", "UpdateResponse"),
     "UpdateRequest": ("pinecone.db_data.models", "UpdateRequest"),
     "NamespaceDescription": ("pinecone.core.openapi.db_data.models", "NamespaceDescription"),
     "ImportErrorMode": ("pinecone.db_data.resources.sync.bulk_import", "ImportErrorMode"),

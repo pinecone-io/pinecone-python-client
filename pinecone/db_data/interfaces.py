@@ -29,6 +29,7 @@ from .dataclasses import (
     FetchByMetadataResponse,
     QueryResponse,
     UpsertResponse,
+    UpdateResponse,
 )
 from pinecone.utils import require_kwargs
 
@@ -470,7 +471,7 @@ class IndexInterface(ABC):
         namespace: Optional[str] = None,
         filter: Optional[FilterTypedDict] = None,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> UpdateResponse:
         """
         Args:
             ids (List[str]): Vector ids to delete [optional]
@@ -715,7 +716,7 @@ class IndexInterface(ABC):
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> UpdateResponse:
         """
         The Update operation updates vector in a namespace.
         If a value is included, it will overwrite the previous value.

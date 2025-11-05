@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, cast
 
 from .utils import DictLike
 from pinecone.utils.response_info import ResponseInfo
@@ -14,10 +14,12 @@ class QueryResponse(DictLike):
         matches: List of matched vectors with scores.
         namespace: The namespace that was queried.
         usage: Usage information (optional).
-        _response_info: Response metadata including LSN headers (optional).
+        _response_info: Response metadata including LSN headers.
     """
 
     matches: List[ScoredVector]
     namespace: str
     usage: Optional[Usage] = None
-    _response_info: Optional[ResponseInfo] = field(default=None, repr=True, compare=False)
+    _response_info: ResponseInfo = field(
+        default_factory=lambda: cast(ResponseInfo, {"raw_headers": {}}), repr=True, compare=False
+    )

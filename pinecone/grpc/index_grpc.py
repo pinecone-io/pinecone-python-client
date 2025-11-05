@@ -31,7 +31,7 @@ from pinecone.core.openapi.db_data.models import (
     ListNamespacesResponse,
     UpsertResponse as OpenApiUpsertResponse,
 )
-from pinecone.db_data.dataclasses import FetchByMetadataResponse
+from pinecone.db_data.dataclasses import FetchByMetadataResponse, UpdateResponse
 from pinecone.db_control.models.list_response import ListResponse as SimpleListResponse, Pagination
 from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
     Vector as GRPCVector,
@@ -45,7 +45,6 @@ from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
     ListRequest,
     DescribeIndexStatsRequest,
     DeleteResponse,
-    UpdateResponse,
     SparseValues as GRPCSparseValues,
     DescribeNamespaceRequest,
     DeleteNamespaceRequest,

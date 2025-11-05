@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Optional
+from typing import Dict, Optional, cast
 
 from .vector import Vector
 from .utils import DictLike
@@ -17,4 +17,6 @@ class FetchByMetadataResponse(DictLike):
     vectors: Dict[str, Vector]
     usage: Dict[str, int]
     pagination: Optional[Pagination] = None
-    _response_info: Optional[ResponseInfo] = field(default=None, repr=False, compare=False)
+    _response_info: ResponseInfo = field(
+        default_factory=lambda: cast(ResponseInfo, {"raw_headers": {}}), repr=True, compare=False
+    )

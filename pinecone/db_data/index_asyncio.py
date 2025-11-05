@@ -52,6 +52,7 @@ from .dataclasses import (
     SearchRerank,
     QueryResponse,
     UpsertResponse,
+    UpdateResponse,
 )
 
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
@@ -89,9 +90,14 @@ _OPENAPI_ENDPOINT_PARAMS = (
 def parse_query_response(response: OpenAPIQueryResponse):
     """:meta private:"""
     # Convert OpenAPI QueryResponse to dataclass QueryResponse
+    from pinecone.utils.response_info import extract_response_info
+
     response_info = None
     if hasattr(response, "_response_info"):
         response_info = response._response_info
+
+    if response_info is None:
+        response_info = extract_response_info({})
 
     # Remove deprecated 'results' field if present
     if hasattr(response, "_data_store"):
@@ -313,9 +319,13 @@ class _IndexAsyncio(IndexAsyncioInterface):
 
         # Create aggregated response with metadata from last completed batch
         # Note: For parallel batches, this uses the last completed result (order may vary)
+        from pinecone.utils.response_info import extract_response_info
+
         response_info = None
         if last_result and hasattr(last_result, "_response_info"):
             response_info = last_result._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
 
         return UpsertResponse(upserted_count=total_upserted, _response_info=response_info)
 
@@ -345,9 +355,13 @@ class _IndexAsyncio(IndexAsyncioInterface):
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
         )
 
+        from pinecone.utils.response_info import extract_response_info
+
         response_info = None
         if hasattr(result, "_response_info"):
             response_info = result._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
 
         return UpsertResponse(upserted_count=result.upserted_count, _response_info=response_info)
 
@@ -391,9 +405,13 @@ class _IndexAsyncio(IndexAsyncioInterface):
         args_dict = parse_non_empty_args([("namespace", namespace)])
         result = await self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
         # Copy response info from OpenAPI response if present
+        from pinecone.utils.response_info import extract_response_info
+
         response_info = None
         if hasattr(result, "_response_info"):
             response_info = result._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
 
         fetch_response = FetchResponse(
             namespace=result.namespace,
@@ -467,9 +485,13 @@ class _IndexAsyncio(IndexAsyncioInterface):
             pagination = Pagination(next=result.pagination.next)
 
         # Copy response info from OpenAPI response if present
+        from pinecone.utils.response_info import extract_response_info
+
         response_info = None
         if hasattr(result, "_response_info"):
             response_info = result._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
 
         fetch_by_metadata_response = FetchByMetadataResponse(
             namespace=result.namespace or "",
@@ -599,8 +621,8 @@ class _IndexAsyncio(IndexAsyncioInterface):
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
-    ) -> Dict[str, Any]:
-        return await self._vector_api.update_vector(
+    ) -> UpdateResponse:
+        result = await self._vector_api.update_vector(
             IndexRequestFactory.update_request(
                 id=id,
                 values=values,
@@ -611,6 +633,17 @@ class _IndexAsyncio(IndexAsyncioInterface):
             ),
             **self._openapi_kwargs(kwargs),
         )
+        # Extract response info from result if it's an OpenAPI model with _response_info
+        response_info = None
+        if hasattr(result, "_response_info"):
+            response_info = result._response_info
+        else:
+            # If result is a dict or empty, create default response_info
+            from pinecone.utils.response_info import extract_response_info
+
+            response_info = extract_response_info({})
+
+        return UpdateResponse(_response_info=response_info)
 
     @validate_and_convert_errors
     async def describe_index_stats(
@@ -666,9 +699,13 @@ class _IndexAsyncio(IndexAsyncioInterface):
                 from pinecone.utils.response_info import extract_response_info
 
                 response_info = extract_response_info(headers)
-                # Only keep if we have meaningful LSN data
-                if response_info and "lsn_committed" not in response_info:
-                    response_info = None
+                # response_info may contain raw_headers even without LSN values
+
+        # Ensure response_info is always present
+        if response_info is None:
+            from pinecone.utils.response_info import extract_response_info
+
+            response_info = extract_response_info({})
 
         # Count records (could be len(records) but we don't know if any failed)
         # For now, assume all succeeded

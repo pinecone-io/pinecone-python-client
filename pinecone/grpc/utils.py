@@ -134,18 +134,18 @@ def parse_update_response(
     _check_type: bool = False,
     trailing_metadata: Optional[Dict[str, str]] = None,
 ):
-    result = {}
-    # Attach response info from trailing metadata only if it has LSN values
-    if trailing_metadata:
-        from pinecone.utils.response_info import extract_response_info
+    from pinecone.db_data.dataclasses import UpdateResponse
+    from pinecone.utils.response_info import extract_response_info
 
+    # Extract response info from trailing metadata if it exists
+    response_info = None
+    if trailing_metadata:
         response_info = extract_response_info(trailing_metadata)
-        # Only attach if we have meaningful LSN data, not just raw headers
-        if response_info and (
-            "lsn_committed" in response_info or "lsn_reconciled" in response_info
-        ):
-            result["_response_info"] = response_info  # type: ignore
-    return result
+
+    if response_info is None:
+        response_info = extract_response_info({})
+
+    return UpdateResponse(_response_info=response_info)
 
 
 def parse_delete_response(
@@ -154,15 +154,13 @@ def parse_delete_response(
     trailing_metadata: Optional[Dict[str, str]] = None,
 ):
     result = {}
-    # Attach response info from trailing metadata only if it has LSN values
+    # Attach response info from trailing metadata if it exists
     if trailing_metadata:
         from pinecone.utils.response_info import extract_response_info
 
         response_info = extract_response_info(trailing_metadata)
-        # Only attach if we have meaningful LSN data, not just raw headers
-        if response_info and (
-            "lsn_committed" in response_info or "lsn_reconciled" in response_info
-        ):
+        # Attach if response_info exists (may contain raw_headers even without LSN values)
+        if response_info:
             result["_response_info"] = response_info  # type: ignore
     return result
 

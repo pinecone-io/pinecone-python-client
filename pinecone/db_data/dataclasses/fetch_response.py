@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Optional
+from typing import Dict, cast
 
 from .vector import Vector
 from .utils import DictLike
@@ -11,4 +11,6 @@ class FetchResponse(DictLike):
     namespace: str
     vectors: Dict[str, Vector]
     usage: Dict[str, int]
-    _response_info: Optional[ResponseInfo] = field(default=None, repr=False, compare=False)
+    _response_info: ResponseInfo = field(
+        default_factory=lambda: cast(ResponseInfo, {"raw_headers": {}}), repr=True, compare=False
+    )

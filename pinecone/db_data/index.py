@@ -27,6 +27,7 @@ from .dataclasses import (
     SearchRerank,
     QueryResponse,
     UpsertResponse,
+    UpdateResponse,
 )
 from .interfaces import IndexInterface
 from .request_factory import IndexRequestFactory
@@ -76,9 +77,14 @@ logger = logging.getLogger(__name__)
 def parse_query_response(response: OpenAPIQueryResponse):
     """:meta private:"""
     # Convert OpenAPI QueryResponse to dataclass QueryResponse
+    from pinecone.utils.response_info import extract_response_info
+
     response_info = None
     if hasattr(response, "_response_info"):
         response_info = response._response_info
+
+    if response_info is None:
+        response_info = extract_response_info({})
 
     # Remove deprecated 'results' field if present
     if hasattr(response, "_data_store"):
@@ -242,9 +248,13 @@ class Index(PluginAware, IndexInterface):
 
                     def get(self, timeout=None):
                         openapi_response = self._apply_result.get(timeout)
+                        from pinecone.utils.response_info import extract_response_info
+
                         response_info = None
                         if hasattr(openapi_response, "_response_info"):
                             response_info = openapi_response._response_info
+                        if response_info is None:
+                            response_info = extract_response_info({})
                         return UpsertResponse(
                             upserted_count=openapi_response.upserted_count,
                             _response_info=response_info,
@@ -279,9 +289,13 @@ class Index(PluginAware, IndexInterface):
 
         # _response_info may be attached if LSN headers were present in the last batch
         # Create dataclass UpsertResponse from the last batch result
+        from pinecone.utils.response_info import extract_response_info
+
         response_info = None
         if batch_result and hasattr(batch_result, "_response_info"):
             response_info = batch_result._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
 
         return UpsertResponse(upserted_count=total_upserted, _response_info=response_info)
 
@@ -307,9 +321,13 @@ class Index(PluginAware, IndexInterface):
             # The ApplyResult contains OpenAPIUpsertResponse which will be converted when .get() is called
             return result  # type: ignore[return-value]  # ApplyResult is not tracked through OpenAPI layers
 
+        from pinecone.utils.response_info import extract_response_info
+
         response_info = None
         if hasattr(result, "_response_info"):
             response_info = result._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
 
         return UpsertResponse(upserted_count=result.upserted_count, _response_info=response_info)
 
@@ -347,9 +365,13 @@ class Index(PluginAware, IndexInterface):
             last_result = res
 
         # Create aggregated response with metadata from final batch
+        from pinecone.utils.response_info import extract_response_info
+
         response_info = None
         if last_result and hasattr(last_result, "_response_info"):
             response_info = last_result._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
 
         return UpsertResponse(upserted_count=upserted_count, _response_info=response_info)
 
@@ -365,9 +387,13 @@ class Index(PluginAware, IndexInterface):
                 from pinecone.utils.response_info import extract_response_info
 
                 response_info = extract_response_info(headers)
-                # Only keep if we have meaningful LSN data
-                if response_info and "lsn_committed" not in response_info:
-                    response_info = None
+                # response_info may contain raw_headers even without LSN values
+
+        # Ensure response_info is always present
+        if response_info is None:
+            from pinecone.utils.response_info import extract_response_info
+
+            response_info = extract_response_info({})
 
         # Count records (could be len(records) but we don't know if any failed)
         # For now, assume all succeeded
@@ -419,9 +445,13 @@ class Index(PluginAware, IndexInterface):
         args_dict = parse_non_empty_args([("namespace", namespace)])
         result = self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
         # Copy response info from OpenAPI response if present
+        from pinecone.utils.response_info import extract_response_info
+
         response_info = None
         if hasattr(result, "_response_info"):
             response_info = result._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
 
         fetch_response = FetchResponse(
             namespace=result.namespace,
@@ -485,9 +515,13 @@ class Index(PluginAware, IndexInterface):
             pagination = Pagination(next=result.pagination.next)
 
         # Copy response info from OpenAPI response if present
+        from pinecone.utils.response_info import extract_response_info
+
         response_info = None
         if hasattr(result, "_response_info"):
             response_info = result._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
 
         fetch_by_metadata_response = FetchByMetadataResponse(
             namespace=result.namespace or "",
@@ -624,8 +658,8 @@ class Index(PluginAware, IndexInterface):
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
-    ) -> Dict[str, Any]:
-        return self._vector_api.update_vector(
+    ) -> UpdateResponse:
+        result = self._vector_api.update_vector(
             IndexRequestFactory.update_request(
                 id=id,
                 values=values,
@@ -636,6 +670,17 @@ class Index(PluginAware, IndexInterface):
             ),
             **self._openapi_kwargs(kwargs),
         )
+        # Extract response info from result if it's an OpenAPI model with _response_info
+        response_info = None
+        if hasattr(result, "_response_info"):
+            response_info = result._response_info
+        else:
+            # If result is a dict or empty, create default response_info
+            from pinecone.utils.response_info import extract_response_info
+
+            response_info = extract_response_info({})
+
+        return UpdateResponse(_response_info=response_info)
 
     @validate_and_convert_errors
     def describe_index_stats(

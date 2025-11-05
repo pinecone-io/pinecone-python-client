@@ -32,9 +32,13 @@ from pinecone.db_data.dataclasses import (
     SearchQuery,
     SearchQueryVector,
     SearchRerank,
+    FetchResponse,
+    FetchByMetadataResponse,
+    QueryResponse,
+    UpsertResponse,
+    UpdateResponse,
 )
 from pinecone.db_data.models import (
-    FetchResponse,
     DeleteRequest,
     DescribeIndexStatsRequest,
     IndexDescription as DescribeIndexStatsResponse,
@@ -42,8 +46,6 @@ from pinecone.db_data.models import (
     ScoredVector,
     SingleQueryResults,
     QueryRequest,
-    QueryResponse,
-    UpsertResponse,
     UpdateRequest,
 )
 from pinecone.core.openapi.db_data.models import NamespaceDescription
@@ -120,8 +122,13 @@ __all__ = [
     "SearchQuery",
     "SearchQueryVector",
     "SearchRerank",
-    # Model classes
+    # Data response classes
     "FetchResponse",
+    "FetchByMetadataResponse",
+    "QueryResponse",
+    "UpsertResponse",
+    "UpdateResponse",
+    # Model classes
     "DeleteRequest",
     "DescribeIndexStatsRequest",
     "DescribeIndexStatsResponse",
@@ -129,8 +136,6 @@ __all__ = [
     "ScoredVector",
     "SingleQueryResults",
     "QueryRequest",
-    "QueryResponse",
-    "UpsertResponse",
     "UpdateRequest",
     "NamespaceDescription",
     "ImportErrorMode",
