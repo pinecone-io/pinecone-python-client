@@ -1,8 +1,7 @@
 import pytest
-from pinecone import QueryResponse, Vector
-from ..helpers import embedding_values, poll_fetch_for_ids_in_namespace, generate_name
+from pinecone import QueryResponse, Vector, FilterBuilder
+from ..helpers import embedding_values, poll_until_lsn_reconciled, generate_name
 import logging
-import time
 from pinecone.grpc import GRPCIndex
 from concurrent.futures import wait, ALL_COMPLETED
 
@@ -25,9 +24,9 @@ def seed(idx, namespace):
     logger.info(f"Seeding vectors without metadata into namespace '{namespace}'")
     upsert1 = idx.upsert(
         vectors=[
-            ("1", embedding_values(2)),
-            ("2", embedding_values(2)),
-            ("3", embedding_values(2)),
+            ("1", embedding_values(2), {"test_file": "test_query_future.py"}),
+            ("2", embedding_values(2), {"test_file": "test_query_future.py"}),
+            ("3", embedding_values(2), {"test_file": "test_query_future.py"}),
         ],
         namespace=namespace,
         async_req=True,
@@ -38,11 +37,19 @@ def seed(idx, namespace):
     upsert2 = idx.upsert(
         vectors=[
             Vector(
-                id="4", values=embedding_values(2), metadata={"genre": "action", "runtime": 120}
+                id="4",
+                values=embedding_values(2),
+                metadata={"genre": "action", "runtime": 120, "test_file": "test_query_future.py"},
             ),
-            Vector(id="5", values=embedding_values(2), metadata={"genre": "comedy", "runtime": 90}),
             Vector(
-                id="6", values=embedding_values(2), metadata={"genre": "romance", "runtime": 240}
+                id="5",
+                values=embedding_values(2),
+                metadata={"genre": "comedy", "runtime": 90, "test_file": "test_query_future.py"},
+            ),
+            Vector(
+                id="6",
+                values=embedding_values(2),
+                metadata={"genre": "romance", "runtime": 240, "test_file": "test_query_future.py"},
             ),
         ],
         namespace=namespace,
@@ -52,9 +59,21 @@ def seed(idx, namespace):
     # Upsert with dict
     upsert3 = idx.upsert(
         vectors=[
-            {"id": "7", "values": embedding_values(2)},
-            {"id": "8", "values": embedding_values(2)},
-            {"id": "9", "values": embedding_values(2)},
+            {
+                "id": "7",
+                "values": embedding_values(2),
+                "metadata": {"test_file": "test_query_future.py"},
+            },
+            {
+                "id": "8",
+                "values": embedding_values(2),
+                "metadata": {"test_file": "test_query_future.py"},
+            },
+            {
+                "id": "9",
+                "values": embedding_values(2),
+                "metadata": {"test_file": "test_query_future.py"},
+            },
         ],
         namespace=namespace,
         async_req=True,
@@ -62,16 +81,17 @@ def seed(idx, namespace):
 
     wait([upsert1, upsert2, upsert3], timeout=10, return_when=ALL_COMPLETED)
 
-    poll_fetch_for_ids_in_namespace(
-        idx, ids=["1", "2", "3", "4", "5", "6", "7", "8", "9"], namespace=namespace
-    )
+    upsert_results = [upsert1.result(), upsert2.result(), upsert3.result()]
+    for upsert_result in upsert_results:
+        lsn_committed = upsert_result._response_info.get("lsn_committed")
+        if lsn_committed is not None:
+            poll_until_lsn_reconciled(idx, lsn_committed, namespace=namespace)
 
 
 @pytest.fixture(scope="class")
 def seed_for_query(idx, query_namespace):
     seed(idx, query_namespace)
     seed(idx, "")
-    time.sleep(30)
     yield
 
 
@@ -86,7 +106,13 @@ class TestQueryAsync:
     ):
         target_namespace = query_namespace if use_nondefault_namespace else ""
 
-        query_future = idx.query(id="1", namespace=target_namespace, top_k=10, async_req=True)
+        query_future = idx.query(
+            id="1",
+            namespace=target_namespace,
+            filter=FilterBuilder().eq("test_file", "test_query_future.py").build(),
+            top_k=10,
+            async_req=True,
+        )
 
         done, not_done = wait([query_future], timeout=10, return_when=ALL_COMPLETED)
 
@@ -140,6 +166,7 @@ class TestQueryAsync:
             namespace=target_namespace,
             include_metadata=True,
             top_k=10,
+            filter=FilterBuilder().eq("test_file", "test_query_future.py").build(),
             async_req=True,
         ).result()
         assert isinstance(query_result, QueryResponse) == True
@@ -163,6 +190,7 @@ class TestQueryAsync:
         query_result = idx.query(
             vector=embedding_values(2),
             namespace=target_namespace,
+            filter=FilterBuilder().eq("test_file", "test_query_future.py").build(),
             include_values=True,
             include_metadata=True,
             top_k=10,
@@ -309,7 +337,7 @@ class TestQueryWithFilterAsync:
         query_result = idx.query(
             id="1",
             namespace=target_namespace,
-            filter={"genre": {"$nin": ["romance"]}},
+            filter=FilterBuilder().nin("genre", ["romance"]).build(),
             include_metadata=True,
             top_k=10,
             async_req=True,
@@ -321,7 +349,7 @@ class TestQueryWithFilterAsync:
         matches_with_metadata = [
             match
             for match in query_result.matches
-            if match.metadata is not None and match.metadata != {}
+            if match.metadata is not None and match.metadata.get("genre") is not None
         ]
         # Check that we have at least the vectors we seeded
         assert len(matches_with_metadata) >= 2
@@ -351,7 +379,7 @@ class TestQueryWithFilterAsync:
         matches_with_metadata = [
             match
             for match in query_result.matches
-            if match.metadata is not None and match.metadata != {}
+            if match.metadata is not None and match.metadata.get("genre") is not None
         ]
         # Check that we have at least the vector we seeded
         assert len(matches_with_metadata) >= 1
@@ -381,7 +409,7 @@ class TestQueryWithFilterAsync:
         matches_with_metadata = [
             match
             for match in query_result.matches
-            if match.metadata is not None and match.metadata != {}
+            if match.metadata is not None and match.metadata.get("genre") is not None
         ]
         # Check that we have at least the vectors we seeded
         assert len(matches_with_metadata) >= 2

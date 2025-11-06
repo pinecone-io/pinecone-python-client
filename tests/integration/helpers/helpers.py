@@ -86,7 +86,7 @@ def get_query_response(idx, namespace: str, dimension: Optional[int] = None):
 
 def poll_until_lsn_reconciled(
     idx: _Index,
-    target_lsn: int,
+    target_lsn: Optional[int],
     namespace: str,
     max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 180)),
 ) -> None:
@@ -102,6 +102,7 @@ def poll_until_lsn_reconciled(
 
     Raises:
         TimeoutError: If the LSN is not reconciled within max_sleep seconds
+        ValueError: If target_lsn is None (LSN should always be available)
     """
     if target_lsn is None:
         raise ValueError("No target LSN provided")

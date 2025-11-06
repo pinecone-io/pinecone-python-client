@@ -37,10 +37,10 @@ class GrpcRunner:
         wait_for_ready: Optional[bool] = None,
         compression: Optional[Compression] = None,
     ) -> Tuple[Any, Optional[Dict[str, str]]]:
-        """Run a GRPC call and return response with trailing metadata.
+        """Run a GRPC call and return response with initial metadata.
 
         Returns:
-            Tuple of (response, trailing_metadata_dict). trailing_metadata_dict may be None.
+            Tuple of (response, initial_metadata_dict). initial_metadata_dict may be None.
         """
 
         @wraps(func)
@@ -63,14 +63,14 @@ class GrpcRunner:
                         # Check if result is a tuple (real gRPC call)
                         if isinstance(result, tuple) and len(result) == 2:
                             response, call = result
-                            # Extract trailing metadata
-                            trailing_metadata = call.trailing_metadata()
-                            metadata_dict = (
-                                {key: value for key, value in trailing_metadata}
-                                if trailing_metadata
+                            # Extract initial metadata (sent from server at start of call)
+                            initial_metadata = call.initial_metadata()
+                            initial_metadata_dict = (
+                                {key: value for key, value in initial_metadata}
+                                if initial_metadata
                                 else None
                             )
-                            return response, metadata_dict
+                            return response, initial_metadata_dict
                         # If with_call doesn't return a tuple, it's likely a mock - fall through to call func directly
                     except (TypeError, ValueError):
                         # If with_call fails or doesn't return expected format, fall back
@@ -100,10 +100,10 @@ class GrpcRunner:
         wait_for_ready: Optional[bool] = None,
         compression: Optional[Compression] = None,
     ) -> Tuple[Any, Optional[Dict[str, str]]]:
-        """Run an async GRPC call and return response with trailing metadata.
+        """Run an async GRPC call and return response with initial metadata.
 
         Returns:
-            Tuple of (response, trailing_metadata_dict). trailing_metadata_dict may be None.
+            Tuple of (response, initial_metadata_dict). initial_metadata_dict may be None.
         """
 
         @wraps(func)
@@ -125,14 +125,14 @@ class GrpcRunner:
                         # Check if result is a tuple (real gRPC call)
                         if isinstance(result, tuple) and len(result) == 2:
                             response, call = result
-                            # Extract trailing metadata
-                            trailing_metadata = await call.trailing_metadata()
-                            metadata_dict = (
-                                {key: value for key, value in trailing_metadata}
-                                if trailing_metadata
+                            # Extract initial metadata (sent from server at start of call)
+                            initial_metadata = await call.initial_metadata()
+                            initial_metadata_dict = (
+                                {key: value for key, value in initial_metadata}
+                                if initial_metadata
                                 else None
                             )
-                            return response, metadata_dict
+                            return response, initial_metadata_dict
                         # If with_call doesn't return a tuple, it's likely a mock - fall through to call func directly
                     except (TypeError, ValueError):
                         # If with_call fails or doesn't return expected format, fall back

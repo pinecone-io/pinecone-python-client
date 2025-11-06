@@ -1,5 +1,5 @@
 import pytest
-from ..helpers import poll_fetch_for_ids_in_namespace, embedding_values, generate_name
+from ..helpers import poll_until_lsn_reconciled, embedding_values, generate_name
 from pinecone import Vector
 import logging
 from pinecone.grpc import PineconeGrpcFuture
@@ -15,7 +15,7 @@ def fetch_namespace_future():
 def seed(idx, namespace):
     # Upsert without metadata
     logger.info("Seeding vectors without metadata to namespace '%s'", namespace)
-    idx.upsert(
+    upsert1 = idx.upsert(
         vectors=[
             ("1", embedding_values(2)),
             ("2", embedding_values(2)),
@@ -26,7 +26,7 @@ def seed(idx, namespace):
 
     # Upsert with metadata
     logger.info("Seeding vectors with metadata to namespace '%s'", namespace)
-    idx.upsert(
+    upsert2 = idx.upsert(
         vectors=[
             Vector(
                 id="4", values=embedding_values(2), metadata={"genre": "action", "runtime": 120}
@@ -40,7 +40,7 @@ def seed(idx, namespace):
     )
 
     # Upsert with dict
-    idx.upsert(
+    upsert3 = idx.upsert(
         vectors=[
             {"id": "7", "values": embedding_values(2)},
             {"id": "8", "values": embedding_values(2)},
@@ -49,9 +49,9 @@ def seed(idx, namespace):
         namespace=namespace,
     )
 
-    poll_fetch_for_ids_in_namespace(
-        idx, ids=["1", "2", "3", "4", "5", "6", "7", "8", "9"], namespace=namespace
-    )
+    poll_until_lsn_reconciled(idx, upsert1._response_info.get("lsn_committed"), namespace=namespace)
+    poll_until_lsn_reconciled(idx, upsert2._response_info.get("lsn_committed"), namespace=namespace)
+    poll_until_lsn_reconciled(idx, upsert3._response_info.get("lsn_committed"), namespace=namespace)
 
 
 @pytest.mark.usefixtures("fetch_namespace_future")

@@ -1,6 +1,6 @@
 import pytest
 from pinecone import Vector, PineconeException
-from ..helpers import poll_stats_for_namespace, embedding_values, generate_name
+from ..helpers import poll_until_lsn_reconciled, embedding_values, generate_name
 
 
 @pytest.fixture(scope="class")
@@ -46,21 +46,18 @@ class TestUpsertWithAsyncReq:
             async_req=True,
         )
 
-        poll_stats_for_namespace(idx, target_namespace, 9)
-
-        # Check the vector count reflects some data has been upserted
-        stats = idx.describe_index_stats()
-        assert stats.total_vector_count >= 9
-        assert stats.namespaces[target_namespace].vector_count == 9
-
         # Use returned futures
         from concurrent.futures import as_completed
 
         total_upserted = 0
+        upsert_lsn = []
         for future in as_completed([upsert1, upsert2, upsert3], timeout=10):
             total_upserted += future.result().upserted_count
-
+            upsert_lsn.append(future.result()._response_info.get("lsn_committed"))
         assert total_upserted == 9
+
+        for lsn in upsert_lsn:
+            poll_until_lsn_reconciled(idx, lsn, namespace=target_namespace)
 
     def test_upsert_to_namespace_when_failed_req(self, idx, namespace_query_async):
         target_namespace = namespace_query_async
@@ -107,6 +104,7 @@ class TestUpsertWithAsyncReq:
         assert len(not_done) == 0
 
         total_upserted = 0
+        upsert_lsn = []
         for future in done:
             if future.exception():
                 assert future is upsert2
@@ -116,4 +114,8 @@ class TestUpsertWithAsyncReq:
                 )
             else:
                 total_upserted += future.result().upserted_count
+                upsert_lsn.append(future.result()._response_info.get("lsn_committed"))
         assert total_upserted == 6
+
+        for lsn in upsert_lsn:
+            poll_until_lsn_reconciled(idx, lsn, namespace=target_namespace)
