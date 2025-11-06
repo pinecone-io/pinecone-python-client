@@ -26,7 +26,7 @@ jobs:
     uses: './.github/workflows/testing-unit.yaml'
     secrets: inherit
     with:
-      python_versions_json: '["3.9"]'
+      python_versions_json: '["3.10"]'
 
   create-project:
     uses: './.github/workflows/project-setup.yaml'
@@ -42,7 +42,7 @@ jobs:
       - create-project
     with:
       encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
-      python_versions_json: '["3.9", "3.13"]'
+      python_versions_json: '["3.10", "3.13"]'
 
   dependency-tests:
     uses: './.github/workflows/testing-dependency.yaml'
