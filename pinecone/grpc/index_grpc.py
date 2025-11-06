@@ -477,6 +477,55 @@ class GRPCIndex(GRPCIndexBase):
             )
             return parse_fetch_by_metadata_response(response, initial_metadata=initial_metadata)
 
+    def _query(
+        self,
+        vector: Optional[List[float]] = None,
+        id: Optional[str] = None,
+        namespace: Optional[str] = None,
+        top_k: Optional[int] = None,
+        filter: Optional[FilterTypedDict] = None,
+        include_values: Optional[bool] = None,
+        include_metadata: Optional[bool] = None,
+        sparse_vector: Optional[
+            Union[SparseValues, GRPCSparseValues, SparseVectorTypedDict]
+        ] = None,
+        **kwargs,
+    ) -> Tuple[Dict[str, Any], Optional[Dict[str, str]]]:
+        """
+        Low-level query method that returns raw JSON dict and initial metadata without parsing.
+        Used internally by query() and query_namespaces() for performance.
+
+        Returns:
+            Tuple of (json_dict, initial_metadata). initial_metadata may be None.
+        """
+        if vector is not None and id is not None:
+            raise ValueError("Cannot specify both `id` and `vector`")
+
+        if filter is not None:
+            filter_struct = dict_to_proto_struct(filter)
+        else:
+            filter_struct = None
+
+        sparse_vector = SparseValuesFactory.build(sparse_vector)
+        args_dict = self._parse_non_empty_args(
+            [
+                ("vector", vector),
+                ("id", id),
+                ("namespace", namespace),
+                ("top_k", top_k),
+                ("filter", filter_struct),
+                ("include_values", include_values),
+                ("include_metadata", include_metadata),
+                ("sparse_vector", sparse_vector),
+            ]
+        )
+
+        request = QueryRequest(**args_dict)
+
+        timeout = kwargs.pop("timeout", None)
+        response, initial_metadata = self.runner.run(self.stub.Query, request, timeout=timeout)
+        return json_format.MessageToDict(response), initial_metadata
+
     def query(
         self,
         vector: Optional[List[float]] = None,
@@ -534,42 +583,53 @@ class GRPCIndex(GRPCIndexBase):
                  and namespace name.
         """
 
-        if vector is not None and id is not None:
-            raise ValueError("Cannot specify both `id` and `vector`")
-
-        if filter is not None:
-            filter_struct = dict_to_proto_struct(filter)
-        else:
-            filter_struct = None
-
-        sparse_vector = SparseValuesFactory.build(sparse_vector)
-        args_dict = self._parse_non_empty_args(
-            [
-                ("vector", vector),
-                ("id", id),
-                ("namespace", namespace),
-                ("top_k", top_k),
-                ("filter", filter_struct),
-                ("include_values", include_values),
-                ("include_metadata", include_metadata),
-                ("sparse_vector", sparse_vector),
-            ]
-        )
-
-        request = QueryRequest(**args_dict)
-
         timeout = kwargs.pop("timeout", None)
 
         if async_req:
+            # For async requests, we need to build the request manually
+            if vector is not None and id is not None:
+                raise ValueError("Cannot specify both `id` and `vector`")
+
+            if filter is not None:
+                filter_struct = dict_to_proto_struct(filter)
+            else:
+                filter_struct = None
+
+            sparse_vector = SparseValuesFactory.build(sparse_vector)
+            args_dict = self._parse_non_empty_args(
+                [
+                    ("vector", vector),
+                    ("id", id),
+                    ("namespace", namespace),
+                    ("top_k", top_k),
+                    ("filter", filter_struct),
+                    ("include_values", include_values),
+                    ("include_metadata", include_metadata),
+                    ("sparse_vector", sparse_vector),
+                ]
+            )
+
+            request = QueryRequest(**args_dict)
             future_result = self.runner.run(self.stub.Query.future, request, timeout=timeout)
-            # For .future calls, runner returns (future, None, None) since .future doesn't support with_call
+            # For .future calls, runner returns (future, None) since .future doesn't support with_call
             future = future_result[0] if isinstance(future_result, tuple) else future_result
             return PineconeGrpcFuture(
                 future, result_transformer=parse_query_response, timeout=timeout
             )
         else:
-            response, initial_metadata = self.runner.run(self.stub.Query, request, timeout=timeout)
-            json_response = json_format.MessageToDict(response)
+            # For sync requests, use _query to get raw dict and metadata, then parse it
+            json_response, initial_metadata = self._query(
+                vector=vector,
+                id=id,
+                namespace=namespace,
+                top_k=top_k,
+                filter=filter,
+                include_values=include_values,
+                include_metadata=include_metadata,
+                sparse_vector=sparse_vector,
+                timeout=timeout,
+                **kwargs,
+            )
             return parse_query_response(
                 json_response, _check_type=False, initial_metadata=initial_metadata
             )
@@ -597,7 +657,7 @@ class GRPCIndex(GRPCIndexBase):
         target_namespaces = set(namespaces)  # dedup namespaces
         futures = [
             self.threadpool_executor.submit(
-                self.query,
+                self._query,
                 vector=vector,
                 namespace=ns,
                 top_k=overall_topk,
@@ -605,7 +665,6 @@ class GRPCIndex(GRPCIndexBase):
                 include_values=include_values,
                 include_metadata=include_metadata,
                 sparse_vector=sparse_vector,
-                async_req=False,
                 **kwargs,
             )
             for ns in target_namespaces
@@ -613,7 +672,9 @@ class GRPCIndex(GRPCIndexBase):
 
         only_futures = cast(Iterable[Future], futures)
         for response in as_completed(only_futures):
-            aggregator.add_results(response.result())
+            json_response, _ = response.result()  # Ignore initial_metadata for query_namespaces
+            # Pass raw dict directly to aggregator - no parsing needed
+            aggregator.add_results(json_response)
 
         final_results = aggregator.get_results()
         return final_results

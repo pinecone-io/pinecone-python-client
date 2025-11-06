@@ -18,6 +18,7 @@ from pinecone.core.openapi.db_data.models import (
 from pinecone.db_data.dataclasses import (
     FetchResponse,
     FetchByMetadataResponse,
+    Vector,
     Pagination,
     QueryResponse,
     UpsertResponse,
@@ -54,12 +55,20 @@ def parse_fetch_response(response: Message, initial_metadata: Optional[Dict[str,
     namespace = json_response.get("namespace", "")
 
     for id, vec in vectors.items():
-        vd[id] = _Vector(
+        # Convert to Vector dataclass
+        sparse_vals = vec.get("sparseValues")
+        parsed_sparse = None
+        if sparse_vals:
+            from pinecone.db_data.dataclasses import SparseValues
+
+            parsed_sparse = SparseValues(
+                indices=sparse_vals.get("indices", []), values=sparse_vals.get("values", [])
+            )
+        vd[id] = Vector(
             id=vec["id"],
-            values=vec.get("values", None),
-            sparse_values=parse_sparse_values(vec.get("sparseValues", None)),
+            values=vec.get("values") or [],
+            sparse_values=parsed_sparse,
             metadata=vec.get("metadata", None),
-            _check_type=False,
         )
 
     # Extract response info from initial metadata
@@ -209,7 +218,8 @@ def parse_query_response(
 def parse_stats_response(response: dict):
     fullness = response.get("indexFullness", 0.0)
     total_vector_count = response.get("totalVectorCount", 0)
-    dimension = response.get("dimension", 0)
+    # For sparse indexes, dimension is not present, so use None instead of 0
+    dimension = response.get("dimension") if "dimension" in response else None
     summaries = response.get("namespaces", {})
     namespace_summaries = {}
     for key in summaries:

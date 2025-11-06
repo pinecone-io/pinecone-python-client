@@ -33,7 +33,7 @@ runs:
     - name: Run tests
       id: run-tests
       shell: bash
-      run: poetry run pytest tests/integration/${{ inputs.test_suite }} --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
+      run: poetry run pytest tests/integration/${{ inputs.test_suite }} --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG --durations=20
       env:
         PINECONE_API_KEY: ${{ steps.decrypt-api-key.outputs.decrypted_secret }}
         PINECONE_ADDITIONAL_HEADERS: ${{ inputs.PINECONE_ADDITIONAL_HEADERS }}
