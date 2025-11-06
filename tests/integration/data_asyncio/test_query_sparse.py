@@ -80,29 +80,19 @@ async def test_query_sparse(sparse_index_host, target_namespace):
     )
 
     await poll_until_lsn_reconciled_async(
-        asyncio_sparse_idx,
-        target_lsn=upsert1._response_info.get("lsn_committed"),
-        namespace=target_namespace,
+        asyncio_sparse_idx, upsert1._response_info, namespace=target_namespace
     )
     await poll_until_lsn_reconciled_async(
-        asyncio_sparse_idx,
-        target_lsn=upsert2._response_info.get("lsn_committed"),
-        namespace=target_namespace,
+        asyncio_sparse_idx, upsert2._response_info, namespace=target_namespace
     )
     await poll_until_lsn_reconciled_async(
-        asyncio_sparse_idx,
-        target_lsn=upsert3._response_info.get("lsn_committed"),
-        namespace=target_namespace,
+        asyncio_sparse_idx, upsert3._response_info, namespace=target_namespace
     )
     await poll_until_lsn_reconciled_async(
-        asyncio_sparse_idx,
-        target_lsn=upsert4._response_info.get("lsn_committed"),
-        namespace=target_namespace,
+        asyncio_sparse_idx, upsert4._response_info, namespace=target_namespace
     )
     await poll_until_lsn_reconciled_async(
-        asyncio_sparse_idx,
-        target_lsn=upsert5._response_info.get("lsn_committed"),
-        namespace=target_namespace,
+        asyncio_sparse_idx, upsert5._response_info, namespace=target_namespace
     )
 
     # # Check the vector count reflects some data has been upserted

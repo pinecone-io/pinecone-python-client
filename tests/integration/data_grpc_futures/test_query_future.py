@@ -83,9 +83,7 @@ def seed(idx, namespace):
 
     upsert_results = [upsert1.result(), upsert2.result(), upsert3.result()]
     for upsert_result in upsert_results:
-        lsn_committed = upsert_result._response_info.get("lsn_committed")
-        if lsn_committed is not None:
-            poll_until_lsn_reconciled(idx, lsn_committed, namespace=namespace)
+        poll_until_lsn_reconciled(idx, upsert_result._response_info, namespace=namespace)
 
 
 @pytest.fixture(scope="class")

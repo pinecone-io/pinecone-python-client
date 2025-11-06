@@ -69,18 +69,10 @@ class TestUpsertSparse:
             namespace=target_namespace,
         )
 
-        poll_until_lsn_reconciled(
-            sparse_idx, response1._response_info.get("lsn_committed"), namespace=target_namespace
-        )
-        poll_until_lsn_reconciled(
-            sparse_idx, response2._response_info.get("lsn_committed"), namespace=target_namespace
-        )
-        poll_until_lsn_reconciled(
-            sparse_idx, response3._response_info.get("lsn_committed"), namespace=target_namespace
-        )
-        poll_until_lsn_reconciled(
-            sparse_idx, response4._response_info.get("lsn_committed"), namespace=target_namespace
-        )
+        poll_until_lsn_reconciled(sparse_idx, response1._response_info, namespace=target_namespace)
+        poll_until_lsn_reconciled(sparse_idx, response2._response_info, namespace=target_namespace)
+        poll_until_lsn_reconciled(sparse_idx, response3._response_info, namespace=target_namespace)
+        poll_until_lsn_reconciled(sparse_idx, response4._response_info, namespace=target_namespace)
 
         results = sparse_idx.query(
             sparse_vector={"indices": [5, 6, 7, 8, 9], "values": embedding_values(5)},

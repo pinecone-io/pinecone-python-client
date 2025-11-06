@@ -55,9 +55,7 @@ async def seed_for_fetch_by_metadata(idx, namespace):
         namespace=namespace,
     )
 
-    await poll_until_lsn_reconciled_async(
-        idx, target_lsn=upsert1._response_info.get("lsn_committed"), namespace=namespace
-    )
+    await poll_until_lsn_reconciled_async(idx, upsert1._response_info, namespace=namespace)
 
 
 @pytest_asyncio.fixture(scope="function")

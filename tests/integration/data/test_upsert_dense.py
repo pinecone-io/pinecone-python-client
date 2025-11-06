@@ -42,9 +42,7 @@ class TestUpsertDense:
             namespace=target_namespace,
         )
 
-        poll_until_lsn_reconciled(
-            idx, response3._response_info.get("lsn_committed"), namespace=target_namespace
-        )
+        poll_until_lsn_reconciled(idx, response3._response_info, namespace=target_namespace)
 
         stats = idx.describe_index_stats()
         assert stats.namespaces[target_namespace].vector_count == 9

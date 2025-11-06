@@ -5,7 +5,7 @@ import asyncio
 from ..helpers import get_environment_var, generate_index_name
 from pinecone.db_data import _IndexAsyncio
 import logging
-from typing import Callable, Optional, Awaitable, Union
+from typing import Callable, Optional, Awaitable, Union, Dict, Any
 
 from pinecone import CloudProvider, AwsRegion, IndexEmbed, EmbedModel
 
@@ -148,7 +148,7 @@ async def get_query_response(asyncio_idx, namespace: str, dimension: Optional[in
 
 
 async def poll_until_lsn_reconciled_async(
-    asyncio_idx, target_lsn: int, namespace: str, max_wait_time: int = 60 * 3
+    asyncio_idx, response_info: Dict[str, Any], namespace: str, max_wait_time: int = 60 * 3
 ) -> None:
     """Poll until a target LSN has been reconciled using LSN headers (async).
 
@@ -157,13 +157,27 @@ async def poll_until_lsn_reconciled_async(
 
     Args:
         asyncio_idx: The async index client to use for polling
-        target_lsn: The LSN value to wait for (from a write operation)
+        response_info: ResponseInfo dictionary from a write operation (upsert, delete)
+                       containing raw_headers with the committed LSN
         namespace: The namespace to wait for
         max_wait_time: Maximum time to wait in seconds
 
     Raises:
         TimeoutError: If the LSN is not reconciled within max_wait_time seconds
+        ValueError: If target_lsn cannot be extracted from response_info (LSN should always be available)
     """
+    from tests.integration.helpers.lsn_utils import (
+        extract_lsn_committed,
+        extract_lsn_reconciled,
+        is_lsn_reconciled,
+    )
+
+    # Extract target_lsn from response_info.raw_headers
+    raw_headers = response_info.get("raw_headers", {})
+    target_lsn = extract_lsn_committed(raw_headers)
+    if target_lsn is None:
+        raise ValueError("No target LSN found in response_info.raw_headers")
+
     # Get index dimension for query vector (once, not every iteration)
     dimension = None
     try:
@@ -185,11 +199,11 @@ async def poll_until_lsn_reconciled_async(
         # Try query as a lightweight operation to check LSN
         # Query operations return x-pinecone-max-indexed-lsn header
         try:
-            from tests.integration.helpers.lsn_utils import is_lsn_reconciled
-
             # Use a minimal query to get headers (this is more efficient than describe_index_stats)
             response = await get_query_response(asyncio_idx, namespace, dimension)
-            reconciled_lsn = response._response_info.get("lsn_reconciled")
+            # Extract reconciled_lsn from query response's raw_headers
+            query_raw_headers = response._response_info.get("raw_headers", {})
+            reconciled_lsn = extract_lsn_reconciled(query_raw_headers)
 
             logger.debug(f"Current reconciled LSN: {reconciled_lsn}, target: {target_lsn}")
             if is_lsn_reconciled(target_lsn, reconciled_lsn):

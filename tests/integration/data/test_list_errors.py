@@ -14,16 +14,15 @@ def list_errors_namespace():
 @pytest.fixture(scope="session")
 def seed_for_list2(idx, list_errors_namespace, wait=True):
     logger.debug(f"Upserting into list namespace '{list_errors_namespace}'")
-    last_lsn = 0
     for i in range(0, 1000, 50):
         response = idx.upsert(
             vectors=[(str(i + d), embedding_values(2)) for d in range(50)],
             namespace=list_errors_namespace,
         )
-        last_lsn = response._response_info.get("lsn_committed")
+        last_response_info = response._response_info
 
     if wait:
-        poll_until_lsn_reconciled(idx, target_lsn=last_lsn, namespace=list_errors_namespace)
+        poll_until_lsn_reconciled(idx, last_response_info, namespace=list_errors_namespace)
 
     yield
 

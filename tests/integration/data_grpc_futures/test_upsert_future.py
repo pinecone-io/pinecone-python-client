@@ -53,11 +53,11 @@ class TestUpsertWithAsyncReq:
         upsert_lsn = []
         for future in as_completed([upsert1, upsert2, upsert3], timeout=10):
             total_upserted += future.result().upserted_count
-            upsert_lsn.append(future.result()._response_info.get("lsn_committed"))
+            upsert_lsn.append(future.result()._response_info)
         assert total_upserted == 9
 
-        for lsn in upsert_lsn:
-            poll_until_lsn_reconciled(idx, lsn, namespace=target_namespace)
+        for response_info in upsert_lsn:
+            poll_until_lsn_reconciled(idx, response_info, namespace=target_namespace)
 
     def test_upsert_to_namespace_when_failed_req(self, idx, namespace_query_async):
         target_namespace = namespace_query_async
@@ -114,8 +114,8 @@ class TestUpsertWithAsyncReq:
                 )
             else:
                 total_upserted += future.result().upserted_count
-                upsert_lsn.append(future.result()._response_info.get("lsn_committed"))
+                upsert_lsn.append(future.result()._response_info)
         assert total_upserted == 6
 
-        for lsn in upsert_lsn:
-            poll_until_lsn_reconciled(idx, lsn, namespace=target_namespace)
+        for response_info in upsert_lsn:
+            poll_until_lsn_reconciled(idx, response_info, namespace=target_namespace)

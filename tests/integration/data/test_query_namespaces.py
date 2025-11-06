@@ -39,15 +39,9 @@ class TestQueryNamespacesRest:
             namespace=ns3,
         )
 
-        poll_until_lsn_reconciled(
-            idx, target_lsn=response1._response_info.get("lsn_committed"), namespace=ns1
-        )
-        poll_until_lsn_reconciled(
-            idx, target_lsn=response2._response_info.get("lsn_committed"), namespace=ns2
-        )
-        poll_until_lsn_reconciled(
-            idx, target_lsn=response3._response_info.get("lsn_committed"), namespace=ns3
-        )
+        poll_until_lsn_reconciled(idx, response1._response_info, namespace=ns1)
+        poll_until_lsn_reconciled(idx, response2._response_info, namespace=ns2)
+        poll_until_lsn_reconciled(idx, response3._response_info, namespace=ns3)
 
         results = idx.query_namespaces(
             vector=[0.1, 0.2],
@@ -173,12 +167,8 @@ class TestQueryNamespacesRest:
             namespace=ns2,
         )
 
-        poll_until_lsn_reconciled(
-            idx, target_lsn=upsert1._response_info.get("lsn_committed"), namespace=ns1
-        )
-        poll_until_lsn_reconciled(
-            idx, target_lsn=upsert2._response_info.get("lsn_committed"), namespace=ns2
-        )
+        poll_until_lsn_reconciled(idx, upsert1._response_info, namespace=ns1)
+        poll_until_lsn_reconciled(idx, upsert2._response_info, namespace=ns2)
 
         results = idx.query_namespaces(
             vector=[0.1, 0.21],

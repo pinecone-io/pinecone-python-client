@@ -49,7 +49,7 @@ def seed(idx, namespace):
         ],
         namespace=namespace,
     )
-    return upsert3._response_info.get("lsn_committed")
+    return upsert3._response_info
 
 
 def seed_sparse(sparse_idx, namespace):
@@ -66,20 +66,20 @@ def seed_sparse(sparse_idx, namespace):
         ],
         namespace=namespace,
     )
-    return upsert1._response_info.get("lsn_committed")
+    return upsert1._response_info
 
 
 @pytest.fixture(scope="function")
 def seed_for_fetch(idx, sparse_idx, fetch_namespace):
-    lsn_committed = seed(idx, fetch_namespace)
-    lsn_committed2 = seed(idx, "__default__")
-    lsn_committed3 = seed_sparse(sparse_idx, fetch_namespace)
-    lsn_committed4 = seed_sparse(sparse_idx, "__default__")
+    response_info1 = seed(idx, fetch_namespace)
+    response_info2 = seed(idx, "__default__")
+    response_info3 = seed_sparse(sparse_idx, fetch_namespace)
+    response_info4 = seed_sparse(sparse_idx, "__default__")
 
-    poll_until_lsn_reconciled(idx, target_lsn=lsn_committed, namespace=fetch_namespace)
-    poll_until_lsn_reconciled(idx, target_lsn=lsn_committed2, namespace="__default__")
-    poll_until_lsn_reconciled(sparse_idx, target_lsn=lsn_committed3, namespace=fetch_namespace)
-    poll_until_lsn_reconciled(sparse_idx, target_lsn=lsn_committed4, namespace="__default__")
+    poll_until_lsn_reconciled(idx, response_info1, namespace=fetch_namespace)
+    poll_until_lsn_reconciled(idx, response_info2, namespace="__default__")
+    poll_until_lsn_reconciled(sparse_idx, response_info3, namespace=fetch_namespace)
+    poll_until_lsn_reconciled(sparse_idx, response_info4, namespace="__default__")
     yield
 
 

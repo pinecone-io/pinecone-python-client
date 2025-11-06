@@ -61,15 +61,15 @@ def seed(idx, namespace):
         namespace=namespace,
     )
 
-    return upsert3._response_info.get("lsn_committed")
+    return upsert3._response_info
 
 
 @pytest.fixture(scope="class")
 def seed_for_query(idx, query_namespace):
-    lsn_committed1 = seed(idx, query_namespace)
-    lsn_committed2 = seed(idx, "")
-    poll_until_lsn_reconciled(idx, target_lsn=lsn_committed1, namespace=query_namespace)
-    poll_until_lsn_reconciled(idx, target_lsn=lsn_committed2, namespace="")
+    response_info1 = seed(idx, query_namespace)
+    response_info2 = seed(idx, "")
+    poll_until_lsn_reconciled(idx, response_info1, namespace=query_namespace)
+    poll_until_lsn_reconciled(idx, response_info2, namespace="")
     yield
 
 

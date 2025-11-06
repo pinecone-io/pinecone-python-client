@@ -49,9 +49,9 @@ def seed(idx, namespace):
         namespace=namespace,
     )
 
-    poll_until_lsn_reconciled(idx, upsert1._response_info.get("lsn_committed"), namespace=namespace)
-    poll_until_lsn_reconciled(idx, upsert2._response_info.get("lsn_committed"), namespace=namespace)
-    poll_until_lsn_reconciled(idx, upsert3._response_info.get("lsn_committed"), namespace=namespace)
+    poll_until_lsn_reconciled(idx, upsert1._response_info, namespace=namespace)
+    poll_until_lsn_reconciled(idx, upsert2._response_info, namespace=namespace)
+    poll_until_lsn_reconciled(idx, upsert3._response_info, namespace=namespace)
 
 
 @pytest.mark.usefixtures("fetch_namespace_future")

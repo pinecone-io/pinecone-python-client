@@ -36,9 +36,7 @@ def seed_for_fetch_by_metadata(idx, namespace):
         namespace=namespace,
     )
 
-    poll_until_lsn_reconciled(
-        idx, response._response_info.get("lsn_committed"), namespace=namespace
-    )
+    poll_until_lsn_reconciled(idx, response._response_info, namespace=namespace)
 
 
 @pytest.mark.usefixtures("fetch_by_metadata_namespace_future")

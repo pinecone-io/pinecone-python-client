@@ -12,9 +12,7 @@ async def setup_namespace_data(index, namespace: str, num_vectors: int = 2):
     """Helper function to set up test data in a namespace"""
     vectors = [(f"id_{i}", [0.1, 0.2]) for i in range(num_vectors)]
     upsert1 = await index.upsert(vectors=vectors, namespace=namespace)
-    await poll_until_lsn_reconciled_async(
-        index, target_lsn=upsert1._response_info.get("lsn_committed"), namespace=namespace
-    )
+    await poll_until_lsn_reconciled_async(index, upsert1._response_info, namespace=namespace)
 
 
 async def verify_namespace_exists(index, namespace: str) -> bool:

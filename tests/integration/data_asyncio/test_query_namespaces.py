@@ -43,15 +43,9 @@ class TestQueryNamespacesRest:
             namespace=ns3,
         )
 
-        await poll_until_lsn_reconciled_async(
-            asyncio_idx, target_lsn=upsert1._response_info.get("lsn_committed"), namespace=ns1
-        )
-        await poll_until_lsn_reconciled_async(
-            asyncio_idx, target_lsn=upsert2._response_info.get("lsn_committed"), namespace=ns2
-        )
-        await poll_until_lsn_reconciled_async(
-            asyncio_idx, target_lsn=upsert3._response_info.get("lsn_committed"), namespace=ns3
-        )
+        await poll_until_lsn_reconciled_async(asyncio_idx, upsert1._response_info, namespace=ns1)
+        await poll_until_lsn_reconciled_async(asyncio_idx, upsert2._response_info, namespace=ns2)
+        await poll_until_lsn_reconciled_async(asyncio_idx, upsert3._response_info, namespace=ns3)
 
         results = await asyncio_idx.query_namespaces(
             vector=[0.1, 0.2],
@@ -180,12 +174,8 @@ class TestQueryNamespacesRest:
             namespace=ns2,
         )
 
-        await poll_until_lsn_reconciled_async(
-            asyncio_idx, target_lsn=upsert1._response_info.get("lsn_committed"), namespace=ns1
-        )
-        await poll_until_lsn_reconciled_async(
-            asyncio_idx, target_lsn=upsert2._response_info.get("lsn_committed"), namespace=ns2
-        )
+        await poll_until_lsn_reconciled_async(asyncio_idx, upsert1._response_info, namespace=ns1)
+        await poll_until_lsn_reconciled_async(asyncio_idx, upsert2._response_info, namespace=ns2)
 
         results = await asyncio_idx.query_namespaces(
             vector=[0.1, 0.21],

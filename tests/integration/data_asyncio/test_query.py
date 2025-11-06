@@ -44,19 +44,13 @@ async def test_query(index_host, dimension, target_namespace):
     upsert3 = await asyncio_idx.upsert(vectors=dict_vectors, namespace=target_namespace)
 
     await poll_until_lsn_reconciled_async(
-        asyncio_idx,
-        target_lsn=upsert1._response_info.get("lsn_committed"),
-        namespace=target_namespace,
+        asyncio_idx, upsert1._response_info, namespace=target_namespace
     )
     await poll_until_lsn_reconciled_async(
-        asyncio_idx,
-        target_lsn=upsert2._response_info.get("lsn_committed"),
-        namespace=target_namespace,
+        asyncio_idx, upsert2._response_info, namespace=target_namespace
     )
     await poll_until_lsn_reconciled_async(
-        asyncio_idx,
-        target_lsn=upsert3._response_info.get("lsn_committed"),
-        namespace=target_namespace,
+        asyncio_idx, upsert3._response_info, namespace=target_namespace
     )
 
     # Check the vector count reflects some data has been upserted

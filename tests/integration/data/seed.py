@@ -48,15 +48,9 @@ def setup_data(idx, target_namespace, wait):
         namespace=target_namespace,
     )
 
-    poll_until_lsn_reconciled(
-        idx, target_lsn=upsert1._response_info.get("lsn_committed"), namespace=target_namespace
-    )
-    poll_until_lsn_reconciled(
-        idx, target_lsn=upsert2._response_info.get("lsn_committed"), namespace=target_namespace
-    )
-    poll_until_lsn_reconciled(
-        idx, target_lsn=upsert3._response_info.get("lsn_committed"), namespace=target_namespace
-    )
+    poll_until_lsn_reconciled(idx, upsert1._response_info, namespace=target_namespace)
+    poll_until_lsn_reconciled(idx, upsert2._response_info, namespace=target_namespace)
+    poll_until_lsn_reconciled(idx, upsert3._response_info, namespace=target_namespace)
 
 
 def weird_invalid_ids():
@@ -144,15 +138,14 @@ def weird_valid_ids():
 def setup_weird_ids_data(idx, target_namespace, wait):
     weird_ids = weird_valid_ids()
     batch_size = 100
-    last_lsn = None
     for i in range(0, len(weird_ids), batch_size):
         chunk = weird_ids[i : i + batch_size]
         upsert1 = idx.upsert(
             vectors=[(x, embedding_values(2)) for x in chunk], namespace=target_namespace
         )
 
-        chunk_lsn = upsert1._response_info.get("lsn_committed")
-        last_lsn = chunk_lsn
+        chunk_response_info = upsert1._response_info
+        last_response_info = chunk_response_info
 
     if wait:
-        poll_until_lsn_reconciled(idx, target_lsn=last_lsn, namespace=target_namespace)
+        poll_until_lsn_reconciled(idx, last_response_info, namespace=target_namespace)

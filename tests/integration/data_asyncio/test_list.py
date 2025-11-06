@@ -20,9 +20,7 @@ async def test_list(index_host, dimension, target_namespace):
     )
 
     await poll_until_lsn_reconciled_async(
-        asyncio_idx,
-        target_lsn=upsert1._response_info.get("lsn_committed"),
-        namespace=target_namespace,
+        asyncio_idx, upsert1._response_info, namespace=target_namespace
     )
 
     # List all vectors

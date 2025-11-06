@@ -32,9 +32,7 @@ async def test_upsert_with_batch_size_sparse(sparse_index_host, target_namespace
     )
 
     await poll_until_lsn_reconciled_async(
-        asyncio_sparse_idx,
-        target_lsn=upsert1._response_info.get("lsn_committed"),
-        namespace=target_namespace,
+        asyncio_sparse_idx, upsert1._response_info, namespace=target_namespace
     )
 
     # Upsert with invalid batch size
@@ -67,9 +65,7 @@ async def test_upsert_with_batch_size_sparse(sparse_index_host, target_namespace
         )
 
     await poll_until_lsn_reconciled_async(
-        asyncio_sparse_idx,
-        target_lsn=upsert1._response_info.get("lsn_committed"),
-        namespace=target_namespace,
+        asyncio_sparse_idx, upsert1._response_info, namespace=target_namespace
     )
 
     fetched_vec = await asyncio_sparse_idx.fetch(ids=["1", "2", "3"], namespace=target_namespace)

@@ -57,9 +57,7 @@ class TestUpsertAndSearchRecords:
         )
 
         await poll_until_lsn_reconciled_async(
-            model_idx,
-            target_lsn=upsert1._response_info.get("lsn_committed"),
-            namespace=target_namespace,
+            model_idx, upsert1._response_info, namespace=target_namespace
         )
 
         response = await model_idx.search_records(
@@ -106,9 +104,7 @@ class TestUpsertAndSearchRecords:
         )
 
         await poll_until_lsn_reconciled_async(
-            model_idx,
-            target_lsn=upsert1._response_info.get("lsn_committed"),
-            namespace=target_namespace,
+            model_idx, upsert1._response_info, namespace=target_namespace
         )
 
         # Search for similar records
@@ -131,9 +127,7 @@ class TestUpsertAndSearchRecords:
         )
 
         await poll_until_lsn_reconciled_async(
-            model_idx,
-            target_lsn=upsert1._response_info.get("lsn_committed"),
-            namespace=target_namespace,
+            model_idx, upsert1._response_info, namespace=target_namespace
         )
 
         # Search for similar records
@@ -164,9 +158,7 @@ class TestUpsertAndSearchRecords:
         )
 
         await poll_until_lsn_reconciled_async(
-            model_idx,
-            target_lsn=upsert1._response_info.get("lsn_committed"),
-            namespace=target_namespace,
+            model_idx, upsert1._response_info, namespace=target_namespace
         )
 
         # Search for similar records
@@ -195,9 +187,7 @@ class TestUpsertAndSearchRecords:
         )
 
         await poll_until_lsn_reconciled_async(
-            model_idx,
-            target_lsn=upsert1._response_info.get("lsn_committed"),
-            namespace=target_namespace,
+            model_idx, upsert1._response_info, namespace=target_namespace
         )
 
         # Search with match_terms using dict
@@ -231,9 +221,7 @@ class TestUpsertAndSearchRecords:
         )
 
         await poll_until_lsn_reconciled_async(
-            model_idx,
-            target_lsn=upsert1._response_info.get("lsn_committed"),
-            namespace=target_namespace,
+            model_idx, upsert1._response_info, namespace=target_namespace
         )
 
         # Search with match_terms using SearchQuery dataclass
@@ -269,9 +257,7 @@ class TestUpsertAndSearchRecordsErrorCases:
         )
 
         await poll_until_lsn_reconciled_async(
-            model_idx,
-            target_lsn=upsert1._response_info.get("lsn_committed"),
-            namespace=target_namespace,
+            model_idx, upsert1._response_info, namespace=target_namespace
         )
 
         with pytest.raises(PineconeApiException, match=r"Model 'non-existent-model' not found"):

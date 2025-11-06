@@ -55,16 +55,16 @@ def seed_for_fetch_by_metadata(idx, namespace):
         namespace=namespace,
     )
 
-    # Extract LSN from response
-    return upsert1._response_info.get("lsn_committed")
+    # Return response_info
+    return upsert1._response_info
 
 
 @pytest.fixture(scope="class")
 def seed_for_fetch_by_metadata_fixture(idx, fetch_by_metadata_namespace):
-    lsn_committed = seed_for_fetch_by_metadata(idx, fetch_by_metadata_namespace)
-    lsn_committed2 = seed_for_fetch_by_metadata(idx, "__default__")
-    poll_until_lsn_reconciled(idx, target_lsn=lsn_committed, namespace=fetch_by_metadata_namespace)
-    poll_until_lsn_reconciled(idx, target_lsn=lsn_committed2, namespace="__default__")
+    response_info1 = seed_for_fetch_by_metadata(idx, fetch_by_metadata_namespace)
+    response_info2 = seed_for_fetch_by_metadata(idx, "__default__")
+    poll_until_lsn_reconciled(idx, response_info1, namespace=fetch_by_metadata_namespace)
+    poll_until_lsn_reconciled(idx, response_info2, namespace="__default__")
     yield
 
 

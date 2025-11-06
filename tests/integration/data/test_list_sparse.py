@@ -37,14 +37,8 @@ def seed_sparse_index(sparse_idx):
     )
 
     logger.info("seeding sparse index")
-    poll_until_lsn_reconciled(
-        sparse_idx, target_lsn=upsert1._response_info.get("lsn_committed"), namespace="__default__"
-    )
-    poll_until_lsn_reconciled(
-        sparse_idx,
-        target_lsn=upsert2._response_info.get("lsn_committed"),
-        namespace="listnamespace",
-    )
+    poll_until_lsn_reconciled(sparse_idx, upsert1._response_info, namespace="__default__")
+    poll_until_lsn_reconciled(sparse_idx, upsert2._response_info, namespace="listnamespace")
 
     yield
 

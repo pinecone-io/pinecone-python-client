@@ -12,7 +12,7 @@ import json
 from pinecone.db_data import _Index
 from pinecone import Pinecone, NotFoundException, PineconeApiException
 from tests.integration.helpers.lsn_utils import is_lsn_reconciled
-from typing import Callable, Awaitable, Optional, Union
+from typing import Callable, Awaitable, Optional, Union, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ def get_query_response(idx, namespace: str, dimension: Optional[int] = None):
 
 def poll_until_lsn_reconciled(
     idx: _Index,
-    target_lsn: int,
+    response_info: Dict[str, Any],
     namespace: str,
     max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 180)),
 ) -> None:
@@ -97,13 +97,22 @@ def poll_until_lsn_reconciled(
 
     Args:
         idx: The index client to use for polling
-        target_lsn: The LSN value to wait for (from a write operation)
+        response_info: ResponseInfo dictionary from a write operation (upsert, delete)
+                       containing raw_headers with the committed LSN
+        namespace: The namespace to wait for
         max_sleep: Maximum time to wait in seconds
 
     Raises:
         TimeoutError: If the LSN is not reconciled within max_sleep seconds
-        ValueError: If target_lsn is None (LSN should always be available)
+        ValueError: If target_lsn cannot be extracted from response_info (LSN should always be available)
     """
+    from tests.integration.helpers.lsn_utils import extract_lsn_committed, extract_lsn_reconciled
+
+    # Extract target_lsn from response_info.raw_headers
+    raw_headers = response_info.get("raw_headers", {})
+    target_lsn = extract_lsn_committed(raw_headers)
+    if target_lsn is None:
+        raise ValueError("No target LSN found in response_info.raw_headers")
 
     # Get index dimension for query vector (once, not every iteration)
     dimension = None
@@ -126,7 +135,9 @@ def poll_until_lsn_reconciled(
         # Try query as a lightweight operation to check LSN
         # Query operations return x-pinecone-max-indexed-lsn header
         response = get_query_response(idx, namespace, dimension)
-        reconciled_lsn = response._response_info.get("lsn_reconciled")
+        # Extract reconciled_lsn from query response's raw_headers
+        query_raw_headers = response._response_info.get("raw_headers", {})
+        reconciled_lsn = extract_lsn_reconciled(query_raw_headers)
         logger.debug(f"Current reconciled LSN: {reconciled_lsn}, target: {target_lsn}")
         if is_lsn_reconciled(target_lsn, reconciled_lsn):
             # LSN is reconciled, check if additional condition is met

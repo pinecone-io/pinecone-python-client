@@ -43,12 +43,8 @@ class TestUpsertHybrid:
             namespace=target_namespace,
         )
 
-        poll_until_lsn_reconciled(
-            idx, response1._response_info.get("lsn_committed"), namespace=target_namespace
-        )
-        poll_until_lsn_reconciled(
-            idx, response2._response_info.get("lsn_committed"), namespace=target_namespace
-        )
+        poll_until_lsn_reconciled(idx, response1._response_info, namespace=target_namespace)
+        poll_until_lsn_reconciled(idx, response2._response_info, namespace=target_namespace)
 
         # Check the vector count reflects some data has been upserted
         stats = idx.describe_index_stats()

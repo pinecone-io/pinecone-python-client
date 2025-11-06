@@ -89,15 +89,9 @@ class TestQueryNamespacesRest_Sparse:
             namespace=ns3,
         )
 
-        poll_until_lsn_reconciled(
-            sparse_idx, target_lsn=upsert1._response_info.get("lsn_committed"), namespace=ns1
-        )
-        poll_until_lsn_reconciled(
-            sparse_idx, target_lsn=upsert2._response_info.get("lsn_committed"), namespace=ns2
-        )
-        poll_until_lsn_reconciled(
-            sparse_idx, target_lsn=upsert3._response_info.get("lsn_committed"), namespace=ns3
-        )
+        poll_until_lsn_reconciled(sparse_idx, upsert1._response_info, namespace=ns1)
+        poll_until_lsn_reconciled(sparse_idx, upsert2._response_info, namespace=ns2)
+        poll_until_lsn_reconciled(sparse_idx, upsert3._response_info, namespace=ns3)
 
         results = sparse_idx.query_namespaces(
             sparse_vector=SparseValues(indices=[1], values=[24.5]),

@@ -15,9 +15,7 @@ async def test_upsert_with_batch_size_dense(index_host, dimension, target_namesp
     )
 
     await poll_until_lsn_reconciled_async(
-        asyncio_idx,
-        target_lsn=upsert1._response_info.get("lsn_committed"),
-        namespace=target_namespace,
+        asyncio_idx, upsert1._response_info, namespace=target_namespace
     )
 
     fetch_ids = [vector.id for vector in vectors_to_upsert]

@@ -26,12 +26,8 @@ def seed_for_query_error_cases(idx, query_error_namespace):
         ],
         namespace="__default__",
     )
-    poll_until_lsn_reconciled(
-        idx, target_lsn=upsert1._response_info.get("lsn_committed"), namespace=query_error_namespace
-    )
-    poll_until_lsn_reconciled(
-        idx, target_lsn=upsert2._response_info.get("lsn_committed"), namespace="__default__"
-    )
+    poll_until_lsn_reconciled(idx, upsert1._response_info, namespace=query_error_namespace)
+    poll_until_lsn_reconciled(idx, upsert2._response_info, namespace="__default__")
     yield
 
 

@@ -3,42 +3,36 @@
 from typing import Dict, Any, Optional, TypedDict
 
 
-class ResponseInfo(TypedDict, total=False):
-    """Response metadata including LSN values and raw headers.
+class ResponseInfo(TypedDict):
+    """Response metadata including raw headers.
 
     Attributes:
-        lsn_committed: Committed LSN from write operations (upsert, delete).
-        lsn_reconciled: Reconciled LSN from read operations (query).
         raw_headers: Dictionary of all response headers (normalized to lowercase).
     """
 
-    lsn_committed: int
-    lsn_reconciled: int
     raw_headers: Dict[str, str]
 
 
 def extract_response_info(headers: Optional[Dict[str, Any]]) -> ResponseInfo:
-    """Extract LSN values and raw headers from response headers.
+    """Extract raw headers from response headers.
 
-    Extracts LSN (Log Sequence Number) headers from API response headers
-    and returns them in a structured format. Header names are matched
-    case-insensitively.
+    Extracts and normalizes response headers from API responses.
+    Header names are normalized to lowercase keys.
 
     Args:
         headers: Dictionary of response headers, or None.
 
     Returns:
-        ResponseInfo dictionary with optional LSN values and raw headers.
-        The raw_headers dictionary is always present and contains all
+        ResponseInfo dictionary with raw_headers containing all
         headers normalized to lowercase keys.
 
     Examples:
         >>> headers = {"x-pinecone-request-lsn": "12345", "Content-Type": "application/json"}
         >>> info = extract_response_info(headers)
-        >>> info["lsn_committed"]
-        12345
         >>> info["raw_headers"]["content-type"]
         'application/json'
+        >>> info["raw_headers"]["x-pinecone-request-lsn"]
+        '12345'
     """
     if headers is None:
         headers = {}
@@ -60,32 +54,4 @@ def extract_response_info(headers: Optional[Dict[str, Any]]) -> ResponseInfo:
             else:
                 raw_headers[key_lower] = str(value)
 
-    result: ResponseInfo = {"raw_headers": raw_headers}
-
-    # Extract committed LSN (from write operations)
-    committed_header = None
-    for key in raw_headers:
-        if key == "x-pinecone-request-lsn":
-            committed_header = raw_headers[key]
-            break
-
-    if committed_header:
-        try:
-            result["lsn_committed"] = int(committed_header)
-        except (ValueError, TypeError):
-            pass
-
-    # Extract reconciled LSN (from read operations)
-    reconciled_header = None
-    for key in raw_headers:
-        if key == "x-pinecone-max-indexed-lsn":
-            reconciled_header = raw_headers[key]
-            break
-
-    if reconciled_header:
-        try:
-            result["lsn_reconciled"] = int(reconciled_header)
-        except (ValueError, TypeError):
-            pass
-
-    return result
+    return {"raw_headers": raw_headers}

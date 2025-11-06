@@ -28,9 +28,7 @@ class TestAsyncioUpdateSparse:
         )
 
         await poll_until_lsn_reconciled_async(
-            asyncio_idx,
-            target_lsn=upsert1._response_info.get("lsn_committed"),
-            namespace=target_namespace,
+            asyncio_idx, upsert1._response_info, namespace=target_namespace
         )
 
         # Update values
@@ -40,9 +38,7 @@ class TestAsyncioUpdateSparse:
         )
 
         await poll_until_lsn_reconciled_async(
-            asyncio_idx,
-            target_lsn=update1._response_info.get("lsn_committed"),
-            namespace=target_namespace,
+            asyncio_idx, update1._response_info, namespace=target_namespace
         )
 
         fetch_updated = await asyncio_idx.fetch(ids=["1"], namespace=target_namespace)
@@ -70,9 +66,7 @@ class TestAsyncioUpdateSparse:
         )
 
         await poll_until_lsn_reconciled_async(
-            asyncio_idx,
-            target_lsn=upsert1._response_info.get("lsn_committed"),
-            namespace=target_namespace,
+            asyncio_idx, upsert1._response_info, namespace=target_namespace
         )
 
         # Update metadata
@@ -81,9 +75,7 @@ class TestAsyncioUpdateSparse:
         )
 
         await poll_until_lsn_reconciled_async(
-            asyncio_idx,
-            target_lsn=update1._response_info.get("lsn_committed"),
-            namespace=target_namespace,
+            asyncio_idx, update1._response_info, namespace=target_namespace
         )
 
         fetch_updated = await asyncio_idx.fetch(ids=["2"], namespace=target_namespace)
