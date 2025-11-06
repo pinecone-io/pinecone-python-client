@@ -36,7 +36,11 @@ class TestBulkImportStartImport:
 
         assert my_import.id == "1"
         assert my_import["id"] == "1"
-        assert my_import.to_dict() == {"id": "1"}
+        result_dict = my_import.to_dict()
+        assert result_dict["id"] == "1"
+        # _response_info may be present if headers are available
+        if "_response_info" in result_dict:
+            assert isinstance(result_dict["_response_info"], dict)
         assert my_import.__class__ == StartImportResponse
 
     def test_start_with_kwargs(self, mocker):
@@ -50,7 +54,11 @@ class TestBulkImportStartImport:
         my_import = client.start(uri="s3://path/to/file.parquet", integration_id="123-456-789")
         assert my_import.id == "1"
         assert my_import["id"] == "1"
-        assert my_import.to_dict() == {"id": "1"}
+        result_dict = my_import.to_dict()
+        assert result_dict["id"] == "1"
+        # _response_info may be present if headers are available
+        if "_response_info" in result_dict:
+            assert isinstance(result_dict["_response_info"], dict)
         assert my_import.__class__ == StartImportResponse
 
         # By default, use continue error mode
