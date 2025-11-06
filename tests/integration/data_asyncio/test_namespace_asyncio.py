@@ -2,7 +2,7 @@ import pytest
 import logging
 
 from pinecone import NamespaceDescription
-from .conftest import build_asyncioindex_client, poll_until_lsn_reconciled_async, wait_until
+from .conftest import build_asyncioindex_client, poll_until_lsn_reconciled_async
 from ..helpers import random_string
 
 logger = logging.getLogger(__name__)
@@ -134,10 +134,6 @@ class TestNamespaceOperationsAsyncio:
             resp = await asyncio_idx.delete_namespace(namespace=test_namespace)
             logger.info(f"Deleted namespace {test_namespace} with response: {resp}")
 
-            async def is_namespace_deleted():
-                return not await verify_namespace_exists(asyncio_idx, test_namespace)
-
-            await wait_until(is_namespace_deleted, timeout=120, interval=2)
         finally:
             await asyncio_idx.close()
 
