@@ -34,7 +34,6 @@ jobs:
     if: ${{ inputs.rest_sync_suites_json == '' || (inputs.rest_sync_suites_json != '' && fromJson(inputs.rest_sync_suites_json)[0] != null) }}
     strategy:
       fail-fast: false
-      max-parallel: 4
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
         test_suite: ${{ inputs.rest_sync_suites_json != '' && fromJson(inputs.rest_sync_suites_json) || fromJson('["control/serverless", "control/resources/index", "control/resources/collections", "inference/sync", "plugins", "data"]') }}
@@ -59,7 +58,6 @@ jobs:
     if: ${{ inputs.rest_asyncio_suites_json == '' || (inputs.rest_asyncio_suites_json != '' && fromJson(inputs.rest_asyncio_suites_json)[0] != null) }}
     strategy:
       fail-fast: false
-      max-parallel: 4
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
         test_suite: ${{ inputs.rest_asyncio_suites_json != '' && fromJson(inputs.rest_asyncio_suites_json) || fromJson('["control_asyncio/resources/index", "control_asyncio/*.py", "inference/asyncio", "data_asyncio"]') }}

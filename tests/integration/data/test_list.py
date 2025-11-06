@@ -1,6 +1,6 @@
 import logging
 import pytest
-from ..helpers import poll_fetch_for_ids_in_namespace, embedding_values, random_string
+from ..helpers import embedding_values, random_string, poll_until_lsn_reconciled
 
 logger = logging.getLogger(__name__)
 
@@ -14,12 +14,13 @@ def list_namespace():
 def seed_for_list(idx, list_namespace, wait=True):
     logger.debug(f"Upserting into list namespace '{list_namespace}'")
     for i in range(0, 1000, 50):
-        idx.upsert(
+        response = idx.upsert(
             vectors=[(str(i + d), embedding_values(2)) for d in range(50)], namespace=list_namespace
         )
+        last_response_info = response._response_info
 
     if wait:
-        poll_fetch_for_ids_in_namespace(idx, ids=["999"], namespace=list_namespace)
+        poll_until_lsn_reconciled(idx, last_response_info, namespace=list_namespace)
 
     yield
 

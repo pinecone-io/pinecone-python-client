@@ -44,7 +44,22 @@ class PineconeGrpcFuture(ConcurrentFuture):
 
     def set_result(self, result):
         if self._result_transformer:
-            result = self._result_transformer(result)
+            # Extract initial metadata from GRPC future if available
+            initial_metadata = None
+            try:
+                if hasattr(self._grpc_future, "initial_metadata"):
+                    initial_metadata_tuple = self._grpc_future.initial_metadata()
+                    if initial_metadata_tuple:
+                        initial_metadata = {key: value for key, value in initial_metadata_tuple}
+            except Exception:
+                # If metadata extraction fails, continue without it
+                pass
+
+            # Always pass initial_metadata if available (transformer is internal API)
+            if initial_metadata is not None:
+                result = self._result_transformer(result, initial_metadata=initial_metadata)
+            else:
+                result = self._result_transformer(result)
         return super().set_result(result)
 
     def cancel(self):

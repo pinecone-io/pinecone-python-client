@@ -9,3 +9,10 @@ class DictLike:
             setattr(self, key, value)
         else:
             raise KeyError(f"{key} is not a valid field")
+
+    def get(self, key, default=None):
+        """Dict-like get method for compatibility with tests that use .get()"""
+        try:
+            return self[key]
+        except KeyError:
+            return default

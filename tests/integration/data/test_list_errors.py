@@ -1,6 +1,6 @@
 from pinecone import PineconeException
 import pytest
-from ..helpers import poll_fetch_for_ids_in_namespace, random_string, embedding_values
+from ..helpers import poll_until_lsn_reconciled, random_string, embedding_values
 import logging
 
 logger = logging.getLogger(__name__)
@@ -15,20 +15,21 @@ def list_errors_namespace():
 def seed_for_list2(idx, list_errors_namespace, wait=True):
     logger.debug(f"Upserting into list namespace '{list_errors_namespace}'")
     for i in range(0, 1000, 50):
-        idx.upsert(
+        response = idx.upsert(
             vectors=[(str(i + d), embedding_values(2)) for d in range(50)],
             namespace=list_errors_namespace,
         )
+        last_response_info = response._response_info
 
     if wait:
-        poll_fetch_for_ids_in_namespace(idx, ids=["999"], namespace=list_errors_namespace)
+        poll_until_lsn_reconciled(idx, last_response_info, namespace=list_errors_namespace)
 
     yield
 
 
-@pytest.mark.usefixtures("seed_for_list2")
 class TestListErrors:
     @pytest.mark.skip(reason="Bug filed https://github.com/pinecone-io/pinecone-db/issues/9578")
+    @pytest.mark.usefixtures("seed_for_list2")
     def test_list_change_prefix_while_fetching_next_page(self, idx, list_errors_namespace):
         results = idx.list_paginated(prefix="99", limit=5, namespace=list_errors_namespace)
         with pytest.raises(PineconeException) as e:
@@ -39,6 +40,7 @@ class TestListErrors:
         assert "prefix" in str(e.value)
 
     @pytest.mark.skip(reason="Bug filed")
+    @pytest.mark.usefixtures("seed_for_list2")
     def test_list_change_namespace_while_fetching_next_page(self, idx, list_errors_namespace):
         results = idx.list_paginated(limit=5, namespace=list_errors_namespace)
         with pytest.raises(PineconeException) as e:

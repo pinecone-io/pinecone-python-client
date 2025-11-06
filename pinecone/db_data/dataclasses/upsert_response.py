@@ -1,22 +1,20 @@
 from dataclasses import dataclass, field
-from typing import Dict, Optional, cast
+from typing import cast
 
-from .vector import Vector
 from .utils import DictLike
 from pinecone.utils.response_info import ResponseInfo
 
 
 @dataclass
-class Pagination(DictLike):
-    next: str
+class UpsertResponse(DictLike):
+    """Response from an upsert operation.
 
+    Attributes:
+        upserted_count: Number of vectors that were upserted.
+        _response_info: Response metadata including LSN headers.
+    """
 
-@dataclass
-class FetchByMetadataResponse(DictLike):
-    namespace: str
-    vectors: Dict[str, Vector]
-    usage: Dict[str, int]
-    pagination: Optional[Pagination] = None
+    upserted_count: int
     _response_info: ResponseInfo = field(
         default_factory=lambda: cast(ResponseInfo, {"raw_headers": {}}), repr=True, compare=False
     )

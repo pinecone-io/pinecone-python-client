@@ -1,8 +1,8 @@
 import logging
 import pytest
 import pytest_asyncio
-import asyncio
 from ..helpers import embedding_values, random_string
+from .conftest import poll_until_lsn_reconciled_async
 from pinecone import Vector, FetchByMetadataResponse
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ async def seed_for_fetch_by_metadata(idx, namespace):
     logger.info(f"Seeding vectors with metadata into namespace '{namespace}'")
 
     # Upsert vectors with different metadata
-    await idx.upsert(
+    upsert1 = await idx.upsert(
         vectors=[
             Vector(
                 id="genre-action-1",
@@ -55,28 +55,13 @@ async def seed_for_fetch_by_metadata(idx, namespace):
         namespace=namespace,
     )
 
-    # Wait for vectors to be available by polling fetch_by_metadata
-    max_wait = 60
-    wait_time = 0
-    while wait_time < max_wait:
-        try:
-            results = await idx.fetch_by_metadata(
-                filter={"genre": {"$in": ["action", "comedy", "drama", "romance"]}},
-                namespace=namespace,
-                limit=10,
-            )
-            if len(results.vectors) >= 6:  # At least 6 vectors with genre metadata
-                break
-        except Exception:
-            pass
-        await asyncio.sleep(2)
-        wait_time += 2
+    await poll_until_lsn_reconciled_async(idx, upsert1._response_info, namespace=namespace)
 
 
 @pytest_asyncio.fixture(scope="function")
 async def seed_for_fetch_by_metadata_fixture(idx, fetch_by_metadata_namespace):
     await seed_for_fetch_by_metadata(idx, fetch_by_metadata_namespace)
-    await seed_for_fetch_by_metadata(idx, "")
+    await seed_for_fetch_by_metadata(idx, "__default__")
     yield
 
 
@@ -90,7 +75,9 @@ class TestFetchByMetadataAsyncio:
     async def test_fetch_by_metadata_simple_filter(
         self, idx, fetch_by_metadata_namespace, use_nondefault_namespace
     ):
-        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else ""
+        target_namespace = (
+            fetch_by_metadata_namespace if use_nondefault_namespace else "__default__"
+        )
 
         results = await idx.fetch_by_metadata(
             filter={"genre": {"$eq": "action"}}, namespace=target_namespace

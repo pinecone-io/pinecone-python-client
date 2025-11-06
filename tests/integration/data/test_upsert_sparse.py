@@ -1,21 +1,18 @@
-import pytest
 import random
 from pinecone import Vector, SparseValues
-from ..helpers import poll_stats_for_namespace, embedding_values
+from ..helpers import embedding_values, random_string, poll_until_lsn_reconciled
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-@pytest.mark.skip(reason="Sparse indexes are not yet supported")
 class TestUpsertSparse:
-    @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
-    def test_upsert_sparse_to_namespace(self, sparse_idx, use_nondefault_namespace, namespace):
-        target_namespace = namespace if use_nondefault_namespace else ""
+    def test_upsert_sparse_to_namespace(self, sparse_idx):
+        target_namespace = random_string(20)
 
         # Upsert with objects
-        sparse_idx.upsert(
+        response1 = sparse_idx.upsert(
             vectors=[
                 Vector(
                     id=str(i),
@@ -29,7 +26,7 @@ class TestUpsertSparse:
         )
 
         # Upsert with dict
-        sparse_idx.upsert(
+        response2 = sparse_idx.upsert(
             vectors=[
                 {
                     "id": str(i),
@@ -44,7 +41,7 @@ class TestUpsertSparse:
         )
 
         # Upsert with mixed types, dict with SparseValues object
-        sparse_idx.upsert(
+        response3 = sparse_idx.upsert(
             vectors=[
                 {
                     "id": str(i),
@@ -58,7 +55,7 @@ class TestUpsertSparse:
         )
 
         # Upsert with mixed types, object with dict
-        sparse_idx.upsert(
+        response4 = sparse_idx.upsert(
             vectors=[
                 Vector(
                     id=str(i),
@@ -72,7 +69,10 @@ class TestUpsertSparse:
             namespace=target_namespace,
         )
 
-        poll_stats_for_namespace(sparse_idx, target_namespace, 99, max_sleep=300)
+        poll_until_lsn_reconciled(sparse_idx, response1._response_info, namespace=target_namespace)
+        poll_until_lsn_reconciled(sparse_idx, response2._response_info, namespace=target_namespace)
+        poll_until_lsn_reconciled(sparse_idx, response3._response_info, namespace=target_namespace)
+        poll_until_lsn_reconciled(sparse_idx, response4._response_info, namespace=target_namespace)
 
         results = sparse_idx.query(
             sparse_vector={"indices": [5, 6, 7, 8, 9], "values": embedding_values(5)},

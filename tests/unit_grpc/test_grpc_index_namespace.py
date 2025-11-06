@@ -6,6 +6,8 @@ from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
     DeleteNamespaceRequest,
     ListNamespacesRequest,
     MetadataSchema,
+    NamespaceDescription as GRPCNamespaceDescription,
+    ListNamespacesResponse as GRPCListNamespacesResponse,
 )
 
 
@@ -17,7 +19,8 @@ class TestGrpcIndexNamespace:
         )
 
     def test_create_namespace(self, mocker):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = GRPCNamespaceDescription()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
         self.index.create_namespace(name="test_namespace")
         self.index.runner.run.assert_called_once_with(
             self.index.stub.CreateNamespace,
@@ -26,7 +29,8 @@ class TestGrpcIndexNamespace:
         )
 
     def test_create_namespace_with_timeout(self, mocker):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = GRPCNamespaceDescription()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
         self.index.create_namespace(name="test_namespace", timeout=30)
         self.index.runner.run.assert_called_once_with(
             self.index.stub.CreateNamespace,
@@ -35,7 +39,8 @@ class TestGrpcIndexNamespace:
         )
 
     def test_create_namespace_with_schema(self, mocker):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = GRPCNamespaceDescription()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
         schema_dict = {"fields": {"field1": {"filterable": True}, "field2": {"filterable": False}}}
         self.index.create_namespace(name="test_namespace", schema=schema_dict)
         call_args = self.index.runner.run.call_args
@@ -50,7 +55,8 @@ class TestGrpcIndexNamespace:
         assert request.schema.fields["field2"].filterable is False
 
     def test_describe_namespace(self, mocker):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = GRPCNamespaceDescription()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
         self.index.describe_namespace(namespace="test_namespace")
         self.index.runner.run.assert_called_once_with(
             self.index.stub.DescribeNamespace,
@@ -59,7 +65,8 @@ class TestGrpcIndexNamespace:
         )
 
     def test_describe_namespace_with_timeout(self, mocker):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = GRPCNamespaceDescription()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
         self.index.describe_namespace(namespace="test_namespace", timeout=30)
         self.index.runner.run.assert_called_once_with(
             self.index.stub.DescribeNamespace,
@@ -68,7 +75,8 @@ class TestGrpcIndexNamespace:
         )
 
     def test_delete_namespace(self, mocker):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = mocker.Mock()  # DeleteResponse is just a dict
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
         self.index.delete_namespace(namespace="test_namespace")
         self.index.runner.run.assert_called_once_with(
             self.index.stub.DeleteNamespace,
@@ -77,7 +85,8 @@ class TestGrpcIndexNamespace:
         )
 
     def test_delete_namespace_with_timeout(self, mocker):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = mocker.Mock()  # DeleteResponse is just a dict
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
         self.index.delete_namespace(namespace="test_namespace", timeout=30)
         self.index.runner.run.assert_called_once_with(
             self.index.stub.DeleteNamespace,
@@ -86,7 +95,8 @@ class TestGrpcIndexNamespace:
         )
 
     def test_list_namespaces_paginated(self, mocker):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = GRPCListNamespacesResponse()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
         self.index.list_namespaces_paginated(limit=10, pagination_token="token123")
         self.index.runner.run.assert_called_once_with(
             self.index.stub.ListNamespaces,
@@ -95,14 +105,16 @@ class TestGrpcIndexNamespace:
         )
 
     def test_list_namespaces_paginated_with_timeout(self, mocker):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = GRPCListNamespacesResponse()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
         self.index.list_namespaces_paginated(limit=10, timeout=30)
         self.index.runner.run.assert_called_once_with(
             self.index.stub.ListNamespaces, ListNamespacesRequest(limit=10), timeout=30
         )
 
     def test_list_namespaces_paginated_no_args(self, mocker):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = GRPCListNamespacesResponse()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
         self.index.list_namespaces_paginated()
         self.index.runner.run.assert_called_once_with(
             self.index.stub.ListNamespaces, ListNamespacesRequest(), timeout=None

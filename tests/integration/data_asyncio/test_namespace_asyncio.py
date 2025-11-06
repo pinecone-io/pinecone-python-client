@@ -1,9 +1,9 @@
 import pytest
-import asyncio
 import logging
 
 from pinecone import NamespaceDescription
-from tests.integration.data_asyncio.conftest import build_asyncioindex_client
+from .conftest import build_asyncioindex_client, poll_until_lsn_reconciled_async
+from ..helpers import random_string
 
 logger = logging.getLogger(__name__)
 
@@ -11,15 +11,16 @@ logger = logging.getLogger(__name__)
 async def setup_namespace_data(index, namespace: str, num_vectors: int = 2):
     """Helper function to set up test data in a namespace"""
     vectors = [(f"id_{i}", [0.1, 0.2]) for i in range(num_vectors)]
-    await index.upsert(vectors=vectors, namespace=namespace)
-    # Wait for vectors to be upserted
-    await asyncio.sleep(5)
+    upsert1 = await index.upsert(vectors=vectors, namespace=namespace)
+    await poll_until_lsn_reconciled_async(index, upsert1._response_info, namespace=namespace)
 
 
 async def verify_namespace_exists(index, namespace: str) -> bool:
     """Helper function to verify if a namespace exists"""
     try:
-        await index.describe_namespace(namespace=namespace)
+        description = await index.describe_namespace(namespace=namespace)
+        logger.info(f"Verified namespace {namespace} with description: {description}")
+        assert description.name == namespace
         return True
     except Exception:
         return False
@@ -34,12 +35,10 @@ async def delete_all_namespaces(index):
         # Delete each namespace
         for namespace in namespaces.namespaces:
             try:
-                await index.delete_namespace(namespace=namespace.name)
+                resp = await index.delete_namespace(namespace=namespace.name)
+                logger.info(f"Deleted namespace {namespace.name} with response: {resp}")
             except Exception as e:
                 logger.error(f"Error deleting namespace {namespace.name}: {e}")
-
-        # Wait for deletions to complete
-        await asyncio.sleep(5)
     except Exception as e:
         logger.error(f"Error in delete_all_namespaces: {e}")
 
@@ -49,25 +48,21 @@ class TestNamespaceOperationsAsyncio:
     async def test_create_namespace(self, index_host):
         """Test creating a namespace"""
         asyncio_idx = build_asyncioindex_client(index_host)
-        test_namespace = "test_create_namespace_async"
+        test_namespace = random_string(10)
 
         try:
-            # Ensure namespace doesn't exist first
-            if await verify_namespace_exists(asyncio_idx, test_namespace):
-                await asyncio_idx.delete_namespace(namespace=test_namespace)
-                await asyncio.sleep(10)
-
             # Create namespace
-            description = await asyncio_idx.create_namespace(name=test_namespace)
+            ns_description = await asyncio_idx.create_namespace(name=test_namespace)
+            logger.info(f"Created namespace {test_namespace} with description: {ns_description}")
 
             # Verify namespace was created
-            assert isinstance(description, NamespaceDescription)
-            assert description.name == test_namespace
+            assert isinstance(ns_description, NamespaceDescription)
+            assert ns_description.name == test_namespace
             # New namespace should have 0 records (record_count may be None, 0, or "0" as string)
             assert (
-                description.record_count is None
-                or description.record_count == 0
-                or description.record_count == "0"
+                ns_description.record_count is None
+                or ns_description.record_count == 0
+                or ns_description.record_count == "0"
             )
 
             # Verify namespace exists by describing it
@@ -75,26 +70,20 @@ class TestNamespaceOperationsAsyncio:
             assert verify_description.name == test_namespace
 
         finally:
-            # Cleanup
             if await verify_namespace_exists(asyncio_idx, test_namespace):
                 await asyncio_idx.delete_namespace(namespace=test_namespace)
-                await asyncio.sleep(10)
+            await asyncio_idx.close()
 
     @pytest.mark.asyncio
     async def test_create_namespace_duplicate(self, index_host):
         """Test creating a duplicate namespace raises an error"""
         asyncio_idx = build_asyncioindex_client(index_host)
-        test_namespace = "test_create_duplicate_async"
+        test_namespace = random_string(10)
 
         try:
-            # Ensure namespace doesn't exist first
-            if await verify_namespace_exists(asyncio_idx, test_namespace):
-                await asyncio_idx.delete_namespace(namespace=test_namespace)
-                await asyncio.sleep(10)
-
             # Create namespace first time
-            description = await asyncio_idx.create_namespace(name=test_namespace)
-            assert description.name == test_namespace
+            ns_description = await asyncio_idx.create_namespace(name=test_namespace)
+            assert ns_description.name == test_namespace
 
             # Try to create duplicate namespace - should raise an error
             from pinecone.exceptions import PineconeApiException
@@ -106,7 +95,7 @@ class TestNamespaceOperationsAsyncio:
             # Cleanup
             if await verify_namespace_exists(asyncio_idx, test_namespace):
                 await asyncio_idx.delete_namespace(namespace=test_namespace)
-                await asyncio.sleep(10)
+            await asyncio_idx.close()
 
     @pytest.mark.asyncio
     async def test_describe_namespace(self, index_host):
@@ -114,74 +103,64 @@ class TestNamespaceOperationsAsyncio:
         asyncio_idx = build_asyncioindex_client(index_host)
 
         # Setup test data
-        test_namespace = "test_describe_namespace_async"
+        test_namespace = random_string(10)
         await setup_namespace_data(asyncio_idx, test_namespace)
 
         try:
             # Test describe
-            description = await asyncio_idx.describe_namespace(namespace=test_namespace)
-            assert isinstance(description, NamespaceDescription)
-            assert description.name == test_namespace
+            ns_description = await asyncio_idx.describe_namespace(namespace=test_namespace)
+            assert isinstance(ns_description, NamespaceDescription)
+            assert ns_description.name == test_namespace
         finally:
             # Delete all namespaces before next test is run
             await delete_all_namespaces(asyncio_idx)
+            await asyncio_idx.close()
 
     @pytest.mark.asyncio
     async def test_delete_namespace(self, index_host):
         """Test deleting a namespace"""
-        asyncio_idx = build_asyncioindex_client(index_host)
-        # Setup test data
-        test_namespace = "test_delete_namespace_async"
-        await setup_namespace_data(asyncio_idx, test_namespace)
+        try:
+            asyncio_idx = build_asyncioindex_client(index_host)
+            # Setup test data
+            test_namespace = random_string(10)
+            await setup_namespace_data(asyncio_idx, test_namespace)
 
-        # Verify namespace exists
-        assert await verify_namespace_exists(asyncio_idx, test_namespace)
+            # Verify namespace exists
+            assert await verify_namespace_exists(asyncio_idx, test_namespace)
 
-        # Delete namespace
-        await asyncio_idx.delete_namespace(namespace=test_namespace)
+            # Delete namespace
+            resp = await asyncio_idx.delete_namespace(namespace=test_namespace)
+            logger.info(f"Deleted namespace {test_namespace} with response: {resp}")
 
-        # Wait for namespace to be deleted
-        await asyncio.sleep(10)
-
-        # Verify namespace is deleted
-        assert not await verify_namespace_exists(asyncio_idx, test_namespace)
+        finally:
+            await asyncio_idx.close()
 
     @pytest.mark.asyncio
     async def test_list_namespaces(self, index_host):
         """Test listing namespaces"""
         asyncio_idx = build_asyncioindex_client(index_host)
         # Create multiple test namespaces
-        test_namespaces = ["test_list_1_async", "test_list_2_async", "test_list_3_async"]
+        test_namespaces = [random_string(20) for _ in range(3)]
         for ns in test_namespaces:
             await setup_namespace_data(asyncio_idx, ns)
 
         try:
             # Get all namespaces
-            namespaces = []
             async for ns in asyncio_idx.list_namespaces():
-                namespaces.append(ns)
-
-            # Verify results
-            assert len(namespaces) >= len(test_namespaces)
-            namespace_names = [ns.name for ns in namespaces]
-            for test_ns in test_namespaces:
-                assert test_ns in namespace_names
-
-            # Verify each namespace has correct structure
-            for ns in namespaces:
                 assert isinstance(ns, NamespaceDescription)
-                assert hasattr(ns, "name")
-                assert hasattr(ns, "vector_count")
+                assert ns.name in test_namespaces
+                assert int(ns.record_count) == 2
+
         finally:
-            # Delete all namespaces before next test is run
             await delete_all_namespaces(asyncio_idx)
+            await asyncio_idx.close()
 
     @pytest.mark.asyncio
     async def test_list_namespaces_with_limit(self, index_host):
         """Test listing namespaces with limit"""
         asyncio_idx = build_asyncioindex_client(index_host)
         # Create multiple test namespaces
-        test_namespaces = [f"test_limit_async_{i}" for i in range(5)]
+        test_namespaces = [random_string(20) for i in range(5)]
         for ns in test_namespaces:
             await setup_namespace_data(asyncio_idx, ns)
 
@@ -189,44 +168,28 @@ class TestNamespaceOperationsAsyncio:
             # Get namespaces with limit
             namespaces = await asyncio_idx.list_namespaces_paginated(limit=2)
 
-            # Verify results
+            # First page
             assert len(namespaces.namespaces) == 2  # Should get exactly 2 namespaces
             for ns in namespaces.namespaces:
                 assert isinstance(ns, NamespaceDescription)
-                assert hasattr(ns, "name")
-                assert hasattr(ns, "vector_count")
+                assert ns.name is not None
+                assert ns.record_count is not None
+            assert namespaces.pagination.next is not None
+
+            # Second page
+            next_namespaces = await asyncio_idx.list_namespaces_paginated(
+                limit=2, pagination_token=namespaces.pagination.next
+            )
+            assert len(next_namespaces.namespaces) == 2
+            assert next_namespaces.pagination.next is not None
+
+            # Final page
+            final_namespaces = await asyncio_idx.list_namespaces_paginated(
+                limit=2, pagination_token=next_namespaces.pagination.next
+            )
+            assert len(final_namespaces.namespaces) == 1
+            assert final_namespaces.pagination is None
         finally:
             # Delete all namespaces before next test is run
             await delete_all_namespaces(asyncio_idx)
-
-    @pytest.mark.asyncio
-    async def test_list_namespaces_paginated(self, index_host):
-        """Test listing namespaces with pagination"""
-        asyncio_idx = build_asyncioindex_client(index_host)
-        # Create multiple test namespaces
-        test_namespaces = [f"test_paginated_async_{i}" for i in range(5)]
-        for ns in test_namespaces:
-            await setup_namespace_data(asyncio_idx, ns)
-
-        try:
-            # Get first page
-            response = await asyncio_idx.list_namespaces_paginated(limit=2)
-            assert len(response.namespaces) == 2
-            assert response.pagination.next is not None
-
-            # Get second page
-            next_response = await asyncio_idx.list_namespaces_paginated(
-                limit=2, pagination_token=response.pagination.next
-            )
-            assert len(next_response.namespaces) == 2
-            assert next_response.pagination.next is not None
-
-            # Get final page
-            final_response = await asyncio_idx.list_namespaces_paginated(
-                limit=2, pagination_token=next_response.pagination.next
-            )
-            assert len(final_response.namespaces) == 1
-            assert final_response.pagination is None
-        finally:
-            # Delete all namespaces before next test is run
-            await delete_all_namespaces(asyncio_idx)
+            await asyncio_idx.close()

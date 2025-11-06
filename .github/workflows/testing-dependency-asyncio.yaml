@@ -18,10 +18,10 @@ jobs:
       fail-fast: false
       matrix:
         python_version:
-          - 3.9
+          - '3.10'
           - 3.13
         aiohttp_version:
-          - 3.9.0
+          - 3.10.0
           - 3.11.5
     steps:
       - uses: actions/checkout@v4

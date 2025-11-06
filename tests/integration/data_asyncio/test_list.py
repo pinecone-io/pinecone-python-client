@@ -1,6 +1,6 @@
 import pytest
 from pinecone import Vector
-from .conftest import build_asyncioindex_client, poll_for_freshness
+from .conftest import build_asyncioindex_client, poll_until_lsn_reconciled_async
 from ..helpers import random_string, embedding_values
 
 
@@ -9,7 +9,7 @@ from ..helpers import random_string, embedding_values
 async def test_list(index_host, dimension, target_namespace):
     asyncio_idx = build_asyncioindex_client(index_host)
 
-    await asyncio_idx.upsert(
+    upsert1 = await asyncio_idx.upsert(
         vectors=[
             Vector(id=str(i), values=embedding_values(dimension), metadata={"genre": "action"})
             for i in range(100)
@@ -19,7 +19,9 @@ async def test_list(index_host, dimension, target_namespace):
         show_progress=False,
     )
 
-    await poll_for_freshness(asyncio_idx, target_namespace, 100)
+    await poll_until_lsn_reconciled_async(
+        asyncio_idx, upsert1._response_info, namespace=target_namespace
+    )
 
     # List all vectors
     async for ids_list in asyncio_idx.list(namespace=target_namespace, limit=11, prefix="9"):

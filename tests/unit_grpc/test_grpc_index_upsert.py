@@ -9,15 +9,16 @@ from pinecone.grpc import GRPCIndex
 from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
     Vector,
     UpsertRequest,
-    UpsertResponse,
     SparseValues,
+    UpsertResponse as GRPCUpsertResponse,
 )
+from google.protobuf import json_format
 from pinecone.grpc.utils import dict_to_proto_struct
 from grpc import Future as GrpcFuture
 
 
 class MockUpsertDelegate(GrpcFuture):
-    def __init__(self, upsert_response: UpsertResponse):
+    def __init__(self, upsert_response: GRPCUpsertResponse):
         self.response = upsert_response
 
     def result(self, timeout=None):
@@ -102,19 +103,25 @@ class TestGrpcIndexUpsert:
     def test_upsert_tuplesOfIdVec_UpserWithoutMD(
         self, mocker, vals1, vals2, expected_vec1, expected_vec2
     ):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = GRPCUpsertResponse(upserted_count=2)
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
+        mocker.patch.object(json_format, "MessageToDict", return_value={"upsertedCount": 2})
         self.index.upsert([("vec1", vals1), ("vec2", vals2)], namespace="ns")
         self._assert_called_once([expected_vec1, expected_vec2])
 
     def test_upsert_tuplesOfIdVecMD_UpsertVectorsWithMD(
         self, mocker, vals1, md1, vals2, md2, expected_vec_md1, expected_vec_md2
     ):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = GRPCUpsertResponse(upserted_count=2)
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
+        mocker.patch.object(json_format, "MessageToDict", return_value={"upsertedCount": 2})
         self.index.upsert([("vec1", vals1, md1), ("vec2", vals2, md2)], namespace="ns")
         self._assert_called_once([expected_vec_md1, expected_vec_md2])
 
     def test_upsert_vectors_upsertInputVectors(self, mocker, expected_vec_md1, expected_vec_md2):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = GRPCUpsertResponse(upserted_count=2)
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
+        mocker.patch.object(json_format, "MessageToDict", return_value={"upsertedCount": 2})
         self.index.upsert([expected_vec_md1, expected_vec_md2], namespace="ns")
         self._assert_called_once([expected_vec_md1, expected_vec_md2])
 
@@ -132,7 +139,9 @@ class TestGrpcIndexUpsert:
         expected_vec_md_sparse1,
         expected_vec_md_sparse2,
     ):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = GRPCUpsertResponse(upserted_count=2)
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
+        mocker.patch.object(json_format, "MessageToDict", return_value={"upsertedCount": 2})
         self.index.upsert(
             [
                 Vector(
@@ -153,7 +162,9 @@ class TestGrpcIndexUpsert:
         self._assert_called_once([expected_vec_md_sparse1, expected_vec_md_sparse2])
 
     def test_upsert_dict(self, mocker, vals1, vals2, expected_vec1, expected_vec2):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = GRPCUpsertResponse(upserted_count=2)
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
+        mocker.patch.object(json_format, "MessageToDict", return_value={"upsertedCount": 2})
         dict1 = {"id": "vec1", "values": vals1}
         dict2 = {"id": "vec2", "values": vals2}
         self.index.upsert([dict1, dict2], namespace="ns")
@@ -162,7 +173,9 @@ class TestGrpcIndexUpsert:
     def test_upsert_dict_md(
         self, mocker, vals1, md1, vals2, md2, expected_vec_md1, expected_vec_md2
     ):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = GRPCUpsertResponse(upserted_count=2)
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
+        mocker.patch.object(json_format, "MessageToDict", return_value={"upsertedCount": 2})
         dict1 = {"id": "vec1", "values": vals1, "metadata": md1}
         dict2 = {"id": "vec2", "values": vals2, "metadata": md2}
         self.index.upsert([dict1, dict2], namespace="ns")
@@ -178,7 +191,9 @@ class TestGrpcIndexUpsert:
         sparse_indices_2,
         sparse_values_2,
     ):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = GRPCUpsertResponse(upserted_count=2)
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
+        mocker.patch.object(json_format, "MessageToDict", return_value={"upsertedCount": 2})
         dict1 = {
             "id": "vec1",
             "values": vals1,
@@ -219,7 +234,9 @@ class TestGrpcIndexUpsert:
         sparse_indices_2,
         sparse_values_2,
     ):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = GRPCUpsertResponse(upserted_count=2)
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
+        mocker.patch.object(json_format, "MessageToDict", return_value={"upsertedCount": 2})
         dict1 = {
             "id": "vec1",
             "values": vals1,
@@ -384,7 +401,7 @@ class TestGrpcIndexUpsert:
             "run",
             autospec=True,
             side_effect=lambda stub, upsert_request, timeout: MockUpsertDelegate(
-                UpsertResponse(upserted_count=len(upsert_request.vectors))
+                GRPCUpsertResponse(upserted_count=len(upsert_request.vectors))
             ),
         )
         df = pd.DataFrame(
@@ -426,8 +443,9 @@ class TestGrpcIndexUpsert:
             self.index.runner,
             "run",
             autospec=True,
-            side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
-                upserted_count=len(upsert_request.vectors)
+            side_effect=lambda stub, upsert_request, timeout: (
+                GRPCUpsertResponse(upserted_count=len(upsert_request.vectors)),
+                None,
             ),
         )
         df = pd.DataFrame(
@@ -507,10 +525,12 @@ class TestGrpcIndexUpsert:
             self.index.runner,
             "run",
             autospec=True,
-            side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
-                upserted_count=len(upsert_request.vectors)
+            side_effect=lambda stub, upsert_request, timeout: (
+                GRPCUpsertResponse(upserted_count=len(upsert_request.vectors)),
+                None,
             ),
         )
+        mocker.patch.object(json_format, "MessageToDict", return_value={"upsertedCount": 1})
 
         result = self.index.upsert(
             [expected_vec_md1, expected_vec_md2], namespace="ns", batch_size=1, show_progress=False
@@ -539,10 +559,22 @@ class TestGrpcIndexUpsert:
             self.index.runner,
             "run",
             autospec=True,
-            side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
-                upserted_count=len(upsert_request.vectors)
+            side_effect=lambda stub, upsert_request, timeout: (
+                GRPCUpsertResponse(upserted_count=len(upsert_request.vectors)),
+                None,
             ),
         )
+        call_count = [0]
+
+        def mock_message_to_dict(msg):
+            call_count[0] += 1
+            # First call: 2 vectors, second call: 1 vector
+            if call_count[0] == 1:
+                return {"upsertedCount": 2}
+            else:
+                return {"upsertedCount": 1}
+
+        mocker.patch.object(json_format, "MessageToDict", side_effect=mock_message_to_dict)
 
         result = self.index.upsert(
             [
@@ -577,10 +609,12 @@ class TestGrpcIndexUpsert:
             self.index.runner,
             "run",
             autospec=True,
-            side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
-                upserted_count=len(upsert_request.vectors)
+            side_effect=lambda stub, upsert_request, timeout: (
+                GRPCUpsertResponse(upserted_count=len(upsert_request.vectors)),
+                None,
             ),
         )
+        mocker.patch.object(json_format, "MessageToDict", return_value={"upsertedCount": 2})
 
         result = self.index.upsert(
             [expected_vec_md1, expected_vec_md2], namespace="ns", batch_size=5
@@ -596,10 +630,22 @@ class TestGrpcIndexUpsert:
             self.index.runner,
             "run",
             autospec=True,
-            side_effect=lambda stub, upsert_request, timeout: UpsertResponse(
-                upserted_count=len(upsert_request.vectors)
+            side_effect=lambda stub, upsert_request, timeout: (
+                GRPCUpsertResponse(upserted_count=len(upsert_request.vectors)),
+                None,
             ),
         )
+        call_count = [0]
+
+        def mock_message_to_dict(msg):
+            call_count[0] += 1
+            # First call: 2 vectors, second call: 1 vector
+            if call_count[0] == 1:
+                return {"upsertedCount": 2}
+            else:
+                return {"upsertedCount": 1}
+
+        mocker.patch.object(json_format, "MessageToDict", side_effect=mock_message_to_dict)
 
         result = self.index.upsert(
             [("vec1", vals1, md1), ("vec2", vals2, md2), ("vec3", vals1, md1)],

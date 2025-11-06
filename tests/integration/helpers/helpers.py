@@ -11,7 +11,8 @@ from datetime import datetime
 import json
 from pinecone.db_data import _Index
 from pinecone import Pinecone, NotFoundException, PineconeApiException
-from typing import List, Callable, Awaitable, Optional, Union
+from tests.integration.helpers.lsn_utils import is_lsn_reconciled
+from typing import Callable, Awaitable, Optional, Union, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -71,59 +72,87 @@ def get_environment_var(name: str, defaultVal: Any = None) -> str:
         return val
 
 
-def poll_stats_for_namespace(
+def get_query_response(idx, namespace: str, dimension: Optional[int] = None):
+    if dimension is not None:
+        return idx.query(top_k=1, vector=[0.0] * dimension, namespace=namespace)
+    else:
+        from pinecone import SparseValues
+
+        response = idx.query(
+            top_k=1, namespace=namespace, sparse_vector=SparseValues(indices=[0], values=[1.0])
+        )
+        return response
+
+
+def poll_until_lsn_reconciled(
     idx: _Index,
+    response_info: Dict[str, Any],
     namespace: str,
-    expected_count: int,
     max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 180)),
 ) -> None:
-    delta_t = 5
-    total_time = 0
-    done = False
-    while not done:
-        logger.debug(
-            f'Waiting for namespace "{namespace}" to have vectors. Total time waited: {total_time} seconds'
-        )
+    """Poll until a target LSN has been reconciled using LSN headers.
+
+    This function uses LSN headers from query operations to determine
+    freshness instead of polling describe_index_stats, which is faster.
+
+    Args:
+        idx: The index client to use for polling
+        response_info: ResponseInfo dictionary from a write operation (upsert, delete)
+                       containing raw_headers with the committed LSN
+        namespace: The namespace to wait for
+        max_sleep: Maximum time to wait in seconds
+
+    Raises:
+        TimeoutError: If the LSN is not reconciled within max_sleep seconds
+        ValueError: If target_lsn cannot be extracted from response_info (LSN should always be available)
+    """
+    from tests.integration.helpers.lsn_utils import extract_lsn_committed, extract_lsn_reconciled
+
+    # Extract target_lsn from response_info.raw_headers
+    raw_headers = response_info.get("raw_headers", {})
+    target_lsn = extract_lsn_committed(raw_headers)
+    if target_lsn is None:
+        raise ValueError("No target LSN found in response_info.raw_headers")
+
+    # Get index dimension for query vector (once, not every iteration)
+    dimension = None
+    try:
         stats = idx.describe_index_stats()
-        # The default namespace may be represented as "" or "__default__" in the API response
-        namespace_key = (
-            "__default__" if namespace == "" and "__default__" in stats.namespaces else namespace
-        )
-        if (
-            namespace_key in stats.namespaces
-            and stats.namespaces[namespace_key].vector_count >= expected_count
-        ):
-            done = True
-        elif total_time > max_sleep:
-            raise TimeoutError(f"Timed out waiting for namespace {namespace} to have vectors")
-        else:
-            total_time += delta_t
-            logger.debug(f"Found index stats: {stats}.")
-            logger.debug(
-                f"Waiting for {expected_count} vectors in namespace {namespace}. Found {stats.namespaces.get(namespace_key, {'vector_count': 0})['vector_count']} vectors."
-            )
-            time.sleep(delta_t)
+        dimension = stats.dimension
+    except Exception:
+        logger.debug("Could not get index dimension")
 
-
-def poll_fetch_for_ids_in_namespace(idx: _Index, ids: List[str], namespace: str) -> None:
-    max_sleep = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 60))
-    delta_t = 5
+    delta_t = 2  # Use shorter interval for LSN polling
     total_time = 0
     done = False
+
     while not done:
         logger.debug(
-            f'Attempting to fetch from "{namespace}". Total time waited: {total_time} seconds'
+            f"Polling for LSN reconciliation. Target LSN: {target_lsn}, "
+            f"total time: {total_time}s"
         )
-        results = idx.fetch(ids=ids, namespace=namespace)
-        logger.debug(results)
 
-        all_present = all(key in results.vectors for key in ids)
-        if all_present:
+        # Try query as a lightweight operation to check LSN
+        # Query operations return x-pinecone-max-indexed-lsn header
+        response = get_query_response(idx, namespace, dimension)
+        # Extract reconciled_lsn from query response's raw_headers
+        query_raw_headers = response._response_info.get("raw_headers", {})
+        reconciled_lsn = extract_lsn_reconciled(query_raw_headers)
+        logger.debug(f"Current reconciled LSN: {reconciled_lsn}, target: {target_lsn}")
+        if is_lsn_reconciled(target_lsn, reconciled_lsn):
+            # LSN is reconciled, check if additional condition is met
             done = True
-
-        if total_time > max_sleep:
-            raise TimeoutError(f"Timed out waiting for namespace {namespace} to have vectors")
+            logger.debug(f"LSN {target_lsn} is reconciled after {total_time}s")
         else:
+            logger.debug(
+                f"LSN not yet reconciled. Reconciled: {reconciled_lsn}, target: {target_lsn}"
+            )
+
+        if not done:
+            if total_time >= max_sleep:
+                raise TimeoutError(
+                    f"Timeout waiting for LSN {target_lsn} to be reconciled after {total_time}s"
+                )
             total_time += delta_t
             time.sleep(delta_t)
 

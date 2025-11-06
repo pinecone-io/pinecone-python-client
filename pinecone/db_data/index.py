@@ -10,9 +10,8 @@ from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.db_data.api.vector_operations_api import VectorOperationsApi
 from pinecone.core.openapi.db_data import API_VERSION
 from pinecone.core.openapi.db_data.models import (
-    QueryResponse,
+    QueryResponse as OpenAPIQueryResponse,
     IndexDescription as DescribeIndexStatsResponse,
-    UpsertResponse,
     ListResponse,
     SearchRecordsResponse,
     ListNamespacesResponse,
@@ -26,6 +25,9 @@ from .dataclasses import (
     Pagination,
     SearchQuery,
     SearchRerank,
+    QueryResponse,
+    UpsertResponse,
+    UpdateResponse,
 )
 from .interfaces import IndexInterface
 from .request_factory import IndexRequestFactory
@@ -72,10 +74,28 @@ logger = logging.getLogger(__name__)
 """ :meta private: """
 
 
-def parse_query_response(response: QueryResponse):
+def parse_query_response(response: OpenAPIQueryResponse):
     """:meta private:"""
-    response._data_store.pop("results", None)
-    return response
+    # Convert OpenAPI QueryResponse to dataclass QueryResponse
+    from pinecone.utils.response_info import extract_response_info
+
+    response_info = None
+    if hasattr(response, "_response_info"):
+        response_info = response._response_info
+
+    if response_info is None:
+        response_info = extract_response_info({})
+
+    # Remove deprecated 'results' field if present
+    if hasattr(response, "_data_store"):
+        response._data_store.pop("results", None)
+
+    return QueryResponse(
+        matches=response.matches,
+        namespace=response.namespace or "",
+        usage=response.usage if hasattr(response, "usage") and response.usage else None,
+        _response_info=response_info,
+    )
 
 
 class Index(PluginAware, IndexInterface):
@@ -206,7 +226,7 @@ class Index(PluginAware, IndexInterface):
         batch_size: Optional[int] = None,
         show_progress: bool = True,
         **kwargs,
-    ) -> UpsertResponse:
+    ) -> Union[UpsertResponse, ApplyResult]:
         _check_type = kwargs.pop("_check_type", True)
 
         if kwargs.get("async_req", False) and batch_size is not None:
@@ -217,7 +237,37 @@ class Index(PluginAware, IndexInterface):
             )
 
         if batch_size is None:
-            return self._upsert_batch(vectors, namespace, _check_type, **kwargs)
+            result = self._upsert_batch(vectors, namespace, _check_type, **kwargs)
+            # If async_req=True, result is an ApplyResult[OpenAPIUpsertResponse]
+            # We need to wrap it to convert to our dataclass when .get() is called
+            if kwargs.get("async_req", False):
+                # Create a wrapper that transforms the OpenAPI response to our dataclass
+                class UpsertResponseTransformer:
+                    def __init__(self, apply_result: ApplyResult):
+                        self._apply_result = apply_result
+
+                    def get(self, timeout=None):
+                        openapi_response = self._apply_result.get(timeout)
+                        from pinecone.utils.response_info import extract_response_info
+
+                        response_info = None
+                        if hasattr(openapi_response, "_response_info"):
+                            response_info = openapi_response._response_info
+                        if response_info is None:
+                            response_info = extract_response_info({})
+                        return UpsertResponse(
+                            upserted_count=openapi_response.upserted_count,
+                            _response_info=response_info,
+                        )
+
+                    def __getattr__(self, name):
+                        # Delegate other methods to the underlying ApplyResult
+                        return getattr(self._apply_result, name)
+
+                # result is ApplyResult when async_req=True
+                return UpsertResponseTransformer(result)  # type: ignore[arg-type, return-value]
+            # result is UpsertResponse when async_req=False
+            return result  # type: ignore[return-value]
 
         if not isinstance(batch_size, int) or batch_size <= 0:
             raise ValueError("batch_size must be a positive integer")
@@ -228,11 +278,26 @@ class Index(PluginAware, IndexInterface):
             batch_result = self._upsert_batch(
                 vectors[i : i + batch_size], namespace, _check_type, **kwargs
             )
+            # When batch_size is provided, async_req cannot be True (checked above),
+            # so batch_result is always UpsertResponse, not ApplyResult
+            assert isinstance(
+                batch_result, UpsertResponse
+            ), "batch_result must be UpsertResponse when batch_size is provided"
             pbar.update(batch_result.upserted_count)
             # we can't use here pbar.n for the case show_progress=False
             total_upserted += batch_result.upserted_count
 
-        return UpsertResponse(upserted_count=total_upserted)
+        # _response_info may be attached if LSN headers were present in the last batch
+        # Create dataclass UpsertResponse from the last batch result
+        from pinecone.utils.response_info import extract_response_info
+
+        response_info = None
+        if batch_result and hasattr(batch_result, "_response_info"):
+            response_info = batch_result._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
+
+        return UpsertResponse(upserted_count=total_upserted, _response_info=response_info)
 
     def _upsert_batch(
         self,
@@ -242,11 +307,29 @@ class Index(PluginAware, IndexInterface):
         namespace: Optional[str],
         _check_type: bool,
         **kwargs,
-    ) -> UpsertResponse:
-        return self._vector_api.upsert_vectors(
+    ) -> Union[UpsertResponse, ApplyResult]:
+        # Convert OpenAPI UpsertResponse to dataclass UpsertResponse
+        result = self._vector_api.upsert_vectors(
             IndexRequestFactory.upsert_request(vectors, namespace, _check_type, **kwargs),
             **self._openapi_kwargs(kwargs),
         )
+
+        # If async_req=True, result is an ApplyResult[OpenAPIUpsertResponse]
+        # We need to wrap it in a transformer that converts to our dataclass
+        if kwargs.get("async_req", False):
+            # Return ApplyResult - it will be unwrapped by the caller
+            # The ApplyResult contains OpenAPIUpsertResponse which will be converted when .get() is called
+            return result  # type: ignore[return-value]  # ApplyResult is not tracked through OpenAPI layers
+
+        from pinecone.utils.response_info import extract_response_info
+
+        response_info = None
+        if hasattr(result, "_response_info"):
+            response_info = result._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
+
+        return UpsertResponse(upserted_count=result.upserted_count, _response_info=response_info)
 
     @staticmethod
     def _iter_dataframe(df, batch_size):
@@ -276,14 +359,45 @@ class Index(PluginAware, IndexInterface):
             results.append(res)
 
         upserted_count = 0
+        last_result = None
         for res in results:
             upserted_count += res.upserted_count
+            last_result = res
 
-        return UpsertResponse(upserted_count=upserted_count)
+        # Create aggregated response with metadata from final batch
+        from pinecone.utils.response_info import extract_response_info
 
-    def upsert_records(self, namespace: str, records: List[Dict]):
+        response_info = None
+        if last_result and hasattr(last_result, "_response_info"):
+            response_info = last_result._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
+
+        return UpsertResponse(upserted_count=upserted_count, _response_info=response_info)
+
+    def upsert_records(self, namespace: str, records: List[Dict]) -> UpsertResponse:
         args = IndexRequestFactory.upsert_records_args(namespace=namespace, records=records)
-        self._vector_api.upsert_records_namespace(**args)
+        # Use _return_http_data_only=False to get headers for LSN extraction
+        result = self._vector_api.upsert_records_namespace(_return_http_data_only=False, **args)
+        # result is a tuple: (data, status, headers) when _return_http_data_only=False
+        response_info = None
+        if isinstance(result, tuple) and len(result) >= 3:
+            headers = result[2]
+            if headers:
+                from pinecone.utils.response_info import extract_response_info
+
+                response_info = extract_response_info(headers)
+                # response_info may contain raw_headers even without LSN values
+
+        # Ensure response_info is always present
+        if response_info is None:
+            from pinecone.utils.response_info import extract_response_info
+
+            response_info = extract_response_info({})
+
+        # Count records (could be len(records) but we don't know if any failed)
+        # For now, assume all succeeded
+        return UpsertResponse(upserted_count=len(records), _response_info=response_info)
 
     @validate_and_convert_errors
     def search(
@@ -330,11 +444,22 @@ class Index(PluginAware, IndexInterface):
     def fetch(self, ids: List[str], namespace: Optional[str] = None, **kwargs) -> FetchResponse:
         args_dict = parse_non_empty_args([("namespace", namespace)])
         result = self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
-        return FetchResponse(
+        # Copy response info from OpenAPI response if present
+        from pinecone.utils.response_info import extract_response_info
+
+        response_info = None
+        if hasattr(result, "_response_info"):
+            response_info = result._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
+
+        fetch_response = FetchResponse(
             namespace=result.namespace,
             vectors={k: Vector.from_dict(v) for k, v in result.vectors.items()},
             usage=result.usage,
+            _response_info=response_info,
         )
+        return fetch_response
 
     @validate_and_convert_errors
     def fetch_by_metadata(
@@ -389,12 +514,23 @@ class Index(PluginAware, IndexInterface):
         if result.pagination and result.pagination.next:
             pagination = Pagination(next=result.pagination.next)
 
-        return FetchByMetadataResponse(
+        # Copy response info from OpenAPI response if present
+        from pinecone.utils.response_info import extract_response_info
+
+        response_info = None
+        if hasattr(result, "_response_info"):
+            response_info = result._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
+
+        fetch_by_metadata_response = FetchByMetadataResponse(
             namespace=result.namespace or "",
             vectors={k: Vector.from_dict(v) for k, v in result.vectors.items()},
             usage=result.usage,
             pagination=pagination,
+            _response_info=response_info,
         )
+        return fetch_by_metadata_response
 
     @validate_and_convert_errors
     def query(
@@ -424,7 +560,9 @@ class Index(PluginAware, IndexInterface):
         )
 
         if kwargs.get("async_req", False) or kwargs.get("async_threadpool_executor", False):
-            return response
+            # For async requests, the OpenAPI client wraps the response in ApplyResult
+            # The response is already an ApplyResult[OpenAPIQueryResponse]
+            return response  # type: ignore[return-value]  # ApplyResult is not tracked through OpenAPI layers
         else:
             return parse_query_response(response)
 
@@ -440,7 +578,7 @@ class Index(PluginAware, IndexInterface):
         include_metadata: Optional[bool] = None,
         sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
-    ) -> QueryResponse:
+    ) -> OpenAPIQueryResponse:
         if len(args) > 0:
             raise ValueError(
                 "The argument order for `query()` has changed; please use keyword arguments instead of positional arguments. Example: index.query(vector=[0.1, 0.2, 0.3], top_k=10, namespace='my_namespace')"
@@ -520,8 +658,8 @@ class Index(PluginAware, IndexInterface):
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         **kwargs,
-    ) -> Dict[str, Any]:
-        return self._vector_api.update_vector(
+    ) -> UpdateResponse:
+        result = self._vector_api.update_vector(
             IndexRequestFactory.update_request(
                 id=id,
                 values=values,
@@ -532,6 +670,17 @@ class Index(PluginAware, IndexInterface):
             ),
             **self._openapi_kwargs(kwargs),
         )
+        # Extract response info from result if it's an OpenAPI model with _response_info
+        response_info = None
+        if hasattr(result, "_response_info"):
+            response_info = result._response_info
+        else:
+            # If result is a dict or empty, create default response_info
+            from pinecone.utils.response_info import extract_response_info
+
+            response_info = extract_response_info({})
+
+        return UpdateResponse(_response_info=response_info)
 
     @validate_and_convert_errors
     def describe_index_stats(

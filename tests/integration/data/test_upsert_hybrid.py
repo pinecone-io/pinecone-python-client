@@ -1,7 +1,7 @@
 import pytest
 import os
 from pinecone import Vector, SparseValues
-from ..helpers import poll_stats_for_namespace, embedding_values
+from ..helpers import poll_until_lsn_reconciled, embedding_values
 
 
 @pytest.mark.skipif(
@@ -15,7 +15,7 @@ class TestUpsertHybrid:
         target_namespace = namespace if use_nondefault_namespace else ""
 
         # Upsert with sparse values object
-        idx.upsert(
+        response1 = idx.upsert(
             vectors=[
                 Vector(
                     id="1",
@@ -27,7 +27,7 @@ class TestUpsertHybrid:
         )
 
         # Upsert with sparse values dict
-        idx.upsert(
+        response2 = idx.upsert(
             vectors=[
                 {
                     "id": "2",
@@ -43,7 +43,8 @@ class TestUpsertHybrid:
             namespace=target_namespace,
         )
 
-        poll_stats_for_namespace(idx, target_namespace, 9)
+        poll_until_lsn_reconciled(idx, response1._response_info, namespace=target_namespace)
+        poll_until_lsn_reconciled(idx, response2._response_info, namespace=target_namespace)
 
         # Check the vector count reflects some data has been upserted
         stats = idx.describe_index_stats()

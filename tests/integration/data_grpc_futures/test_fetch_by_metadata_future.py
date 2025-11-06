@@ -1,5 +1,5 @@
 import pytest
-from ..helpers import poll_fetch_for_ids_in_namespace, embedding_values, generate_name
+from ..helpers import poll_until_lsn_reconciled, embedding_values, generate_name
 from pinecone import Vector
 import logging
 from pinecone.grpc import PineconeGrpcFuture
@@ -15,7 +15,7 @@ def fetch_by_metadata_namespace_future():
 def seed_for_fetch_by_metadata(idx, namespace):
     # Upsert vectors with different metadata for filtering tests
     logger.info("Seeding vectors with metadata to namespace '%s'", namespace)
-    idx.upsert(
+    response = idx.upsert(
         vectors=[
             Vector(
                 id="meta1", values=embedding_values(2), metadata={"genre": "action", "year": 2020}
@@ -36,9 +36,7 @@ def seed_for_fetch_by_metadata(idx, namespace):
         namespace=namespace,
     )
 
-    poll_fetch_for_ids_in_namespace(
-        idx, ids=["meta1", "meta2", "meta3", "meta4", "meta5"], namespace=namespace
-    )
+    poll_until_lsn_reconciled(idx, response._response_info, namespace=namespace)
 
 
 @pytest.mark.usefixtures("fetch_by_metadata_namespace_future")

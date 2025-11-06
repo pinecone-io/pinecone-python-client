@@ -1,6 +1,6 @@
 import pytest
 from pinecone import PineconeException
-from ..helpers import embedding_values
+from ..helpers import embedding_values, poll_until_lsn_reconciled
 
 
 @pytest.fixture(scope="session")
@@ -10,7 +10,7 @@ def query_error_namespace():
 
 @pytest.fixture(scope="session")
 def seed_for_query_error_cases(idx, query_error_namespace):
-    idx.upsert(
+    upsert1 = idx.upsert(
         vectors=[
             ("1", embedding_values(2)),
             ("2", embedding_values(2)),
@@ -18,6 +18,16 @@ def seed_for_query_error_cases(idx, query_error_namespace):
         ],
         namespace=query_error_namespace,
     )
+    upsert2 = idx.upsert(
+        vectors=[
+            ("4", embedding_values(2)),
+            ("5", embedding_values(2)),
+            ("6", embedding_values(2)),
+        ],
+        namespace="__default__",
+    )
+    poll_until_lsn_reconciled(idx, upsert1._response_info, namespace=query_error_namespace)
+    poll_until_lsn_reconciled(idx, upsert2._response_info, namespace="__default__")
     yield
 
 
@@ -28,7 +38,7 @@ class TestQueryErrorCases:
         target_namespace = query_error_namespace if use_nondefault_namespace else ""
 
         with pytest.raises(PineconeException) as e:
-            idx.query(vector=[1, 2, 3], namespace=target_namespace, top_k=10)
+            idx.query(vector=[0.23, 2.23, 3.43], namespace=target_namespace, top_k=10)
 
         assert "vector" in str(e.value).lower()
 

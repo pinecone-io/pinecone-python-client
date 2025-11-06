@@ -2,9 +2,13 @@ import pytest
 import os
 import json
 import uuid
+import dotenv
 from ..helpers import get_environment_var, generate_index_name, index_tags as index_tags_helper
 import logging
 from pinecone import EmbedModel, CloudProvider, AwsRegion, IndexEmbed
+
+# Load environment variables from .env file for integration tests
+dotenv.load_dotenv()
 
 logger = logging.getLogger(__name__)
 

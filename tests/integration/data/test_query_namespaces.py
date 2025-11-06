@@ -1,5 +1,5 @@
 import pytest
-from ..helpers import random_string, poll_stats_for_namespace
+from ..helpers import random_string, poll_until_lsn_reconciled
 
 from pinecone import Vector
 
@@ -11,7 +11,7 @@ class TestQueryNamespacesRest:
         ns2 = f"{ns_prefix}-ns2"
         ns3 = f"{ns_prefix}-ns3"
 
-        idx.upsert(
+        response1 = idx.upsert(
             vectors=[
                 Vector(id="id1", values=[0.1, 0.2], metadata={"genre": "drama", "key": 1}),
                 Vector(id="id2", values=[0.2, 0.3], metadata={"genre": "drama", "key": 2}),
@@ -20,7 +20,7 @@ class TestQueryNamespacesRest:
             ],
             namespace=ns1,
         )
-        idx.upsert(
+        response2 = idx.upsert(
             vectors=[
                 Vector(id="id5", values=[0.21, 0.22], metadata={"genre": "drama", "key": 1}),
                 Vector(id="id6", values=[0.22, 0.23], metadata={"genre": "drama", "key": 2}),
@@ -29,7 +29,7 @@ class TestQueryNamespacesRest:
             ],
             namespace=ns2,
         )
-        idx.upsert(
+        response3 = idx.upsert(
             vectors=[
                 Vector(id="id9", values=[0.31, 0.32], metadata={"genre": "drama", "key": 1}),
                 Vector(id="id10", values=[0.32, 0.33], metadata={"genre": "drama", "key": 2}),
@@ -39,9 +39,9 @@ class TestQueryNamespacesRest:
             namespace=ns3,
         )
 
-        poll_stats_for_namespace(idx, namespace=ns1, expected_count=4)
-        poll_stats_for_namespace(idx, namespace=ns2, expected_count=4)
-        poll_stats_for_namespace(idx, namespace=ns3, expected_count=4)
+        poll_until_lsn_reconciled(idx, response1._response_info, namespace=ns1)
+        poll_until_lsn_reconciled(idx, response2._response_info, namespace=ns2)
+        poll_until_lsn_reconciled(idx, response3._response_info, namespace=ns3)
 
         results = idx.query_namespaces(
             vector=[0.1, 0.2],
@@ -152,14 +152,14 @@ class TestQueryNamespacesRest:
         ns1 = f"{ns_prefix}-ns1"
         ns2 = f"{ns_prefix}-ns2"
 
-        idx.upsert(
+        upsert1 = idx.upsert(
             vectors=[
                 Vector(id="id1", values=[0.1, 0.2], metadata={"genre": "drama", "key": 1}),
                 Vector(id="id2", values=[0.2, 0.3], metadata={"genre": "drama", "key": 2}),
             ],
             namespace=ns1,
         )
-        idx.upsert(
+        upsert2 = idx.upsert(
             vectors=[
                 Vector(id="id5", values=[0.21, 0.22], metadata={"genre": "drama", "key": 1}),
                 Vector(id="id6", values=[0.22, 0.23], metadata={"genre": "drama", "key": 2}),
@@ -167,8 +167,8 @@ class TestQueryNamespacesRest:
             namespace=ns2,
         )
 
-        poll_stats_for_namespace(idx, namespace=ns1, expected_count=2)
-        poll_stats_for_namespace(idx, namespace=ns2, expected_count=2)
+        poll_until_lsn_reconciled(idx, upsert1._response_info, namespace=ns1)
+        poll_until_lsn_reconciled(idx, upsert2._response_info, namespace=ns2)
 
         results = idx.query_namespaces(
             vector=[0.1, 0.21],

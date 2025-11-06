@@ -1,5 +1,5 @@
 import pytest
-from .conftest import build_asyncioindex_client, poll_for_freshness
+from .conftest import build_asyncioindex_client, poll_until_lsn_reconciled_async
 from ..helpers import random_string
 
 from pinecone import Vector, SparseValues
@@ -15,7 +15,7 @@ class TestQueryNamespacesRest_Sparse:
         ns2 = f"{ns_prefix}-ns2"
         ns3 = f"{ns_prefix}-ns3"
 
-        await asyncio_idx.upsert(
+        upsert1 = await asyncio_idx.upsert(
             vectors=[
                 Vector(
                     id="id1",
@@ -40,7 +40,7 @@ class TestQueryNamespacesRest_Sparse:
             ],
             namespace=ns1,
         )
-        await asyncio_idx.upsert(
+        upsert2 = await asyncio_idx.upsert(
             vectors=[
                 Vector(
                     id="id5",
@@ -65,7 +65,7 @@ class TestQueryNamespacesRest_Sparse:
             ],
             namespace=ns2,
         )
-        await asyncio_idx.upsert(
+        upsert3 = await asyncio_idx.upsert(
             vectors=[
                 Vector(
                     id="id9",
@@ -91,9 +91,9 @@ class TestQueryNamespacesRest_Sparse:
             namespace=ns3,
         )
 
-        await poll_for_freshness(asyncio_idx, ns1, 4)
-        await poll_for_freshness(asyncio_idx, ns2, 4)
-        await poll_for_freshness(asyncio_idx, ns3, 4)
+        await poll_until_lsn_reconciled_async(asyncio_idx, upsert1._response_info, namespace=ns1)
+        await poll_until_lsn_reconciled_async(asyncio_idx, upsert2._response_info, namespace=ns2)
+        await poll_until_lsn_reconciled_async(asyncio_idx, upsert3._response_info, namespace=ns3)
 
         results = await asyncio_idx.query_namespaces(
             sparse_vector=SparseValues(indices=[1], values=[24.5]),

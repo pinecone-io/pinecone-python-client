@@ -1,4 +1,4 @@
-from ..helpers import poll_fetch_for_ids_in_namespace, embedding_values
+from ..helpers import embedding_values, poll_until_lsn_reconciled
 from pinecone import Vector
 import itertools
 import logging
@@ -11,7 +11,7 @@ def setup_data(idx, target_namespace, wait):
     logger.info(
         "Upserting 3 vectors as tuples to namespace '%s' without metadata", target_namespace
     )
-    idx.upsert(
+    upsert1 = idx.upsert(
         vectors=[
             ("1", embedding_values(2)),
             ("2", embedding_values(2)),
@@ -24,7 +24,7 @@ def setup_data(idx, target_namespace, wait):
     logger.info(
         "Upserting 3 vectors as Vector objects to namespace '%s' with metadata", target_namespace
     )
-    idx.upsert(
+    upsert2 = idx.upsert(
         vectors=[
             Vector(
                 id="4", values=embedding_values(2), metadata={"genre": "action", "runtime": 120}
@@ -39,7 +39,7 @@ def setup_data(idx, target_namespace, wait):
 
     # Upsert with dict
     logger.info("Upserting 3 vectors as dicts to namespace '%s'", target_namespace)
-    idx.upsert(
+    upsert3 = idx.upsert(
         vectors=[
             {"id": "7", "values": embedding_values(2)},
             {"id": "8", "values": embedding_values(2)},
@@ -48,10 +48,9 @@ def setup_data(idx, target_namespace, wait):
         namespace=target_namespace,
     )
 
-    if wait:
-        poll_fetch_for_ids_in_namespace(
-            idx, ids=["1", "2", "3", "4", "5", "6", "7", "8", "9"], namespace=target_namespace
-        )
+    poll_until_lsn_reconciled(idx, upsert1._response_info, namespace=target_namespace)
+    poll_until_lsn_reconciled(idx, upsert2._response_info, namespace=target_namespace)
+    poll_until_lsn_reconciled(idx, upsert3._response_info, namespace=target_namespace)
 
 
 def weird_invalid_ids():
@@ -141,7 +140,12 @@ def setup_weird_ids_data(idx, target_namespace, wait):
     batch_size = 100
     for i in range(0, len(weird_ids), batch_size):
         chunk = weird_ids[i : i + batch_size]
-        idx.upsert(vectors=[(x, embedding_values(2)) for x in chunk], namespace=target_namespace)
+        upsert1 = idx.upsert(
+            vectors=[(x, embedding_values(2)) for x in chunk], namespace=target_namespace
+        )
+
+        chunk_response_info = upsert1._response_info
+        last_response_info = chunk_response_info
 
     if wait:
-        poll_fetch_for_ids_in_namespace(idx, ids=weird_ids, namespace=target_namespace)
+        poll_until_lsn_reconciled(idx, last_response_info, namespace=target_namespace)

@@ -1,5 +1,5 @@
 from pinecone import Vector
-from ..helpers import poll_stats_for_namespace, random_string
+from ..helpers import poll_until_lsn_reconciled, random_string
 import logging
 import time
 
@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 def seed_vectors(idx, namespace):
     logger.info("Seeding vectors with ids [id1, id2, id3] to namespace '%s'", namespace)
-    idx.upsert(
+    response = idx.upsert(
         vectors=[
             Vector(id="id1", values=[0.1, 0.2]),
             Vector(id="id2", values=[0.1, 0.2]),
@@ -16,7 +16,7 @@ def seed_vectors(idx, namespace):
         ],
         namespace=namespace,
     )
-    poll_stats_for_namespace(idx, namespace, 3)
+    poll_until_lsn_reconciled(idx, response._response_info, namespace=namespace)
 
 
 class TestDeleteFuture:
@@ -32,7 +32,7 @@ class TestDeleteFuture:
 
         for future in as_completed([delete_one, delete_two], timeout=10):
             resp = future.result()
-            assert resp == {}
+            assert resp["_response_info"] is not None
 
         time.sleep(10)
 
@@ -63,4 +63,4 @@ class TestDeleteFuture:
 
         for future in as_completed([delete_ns1, delete_ns2], timeout=10):
             resp = future.result()
-            assert resp == {}
+            assert resp["_response_info"] is not None

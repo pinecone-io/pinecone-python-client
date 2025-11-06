@@ -1,12 +1,7 @@
 import logging
 import pytest
 import random
-from ..helpers import (
-    poll_fetch_for_ids_in_namespace,
-    poll_stats_for_namespace,
-    embedding_values,
-    random_string,
-)
+from ..helpers import embedding_values, random_string, poll_until_lsn_reconciled
 
 from pinecone import PineconeException, FetchResponse, Vector, SparseValues
 
@@ -46,7 +41,7 @@ def seed(idx, namespace):
     )
 
     # Upsert with dict
-    idx.upsert(
+    upsert3 = idx.upsert(
         vectors=[
             {"id": "7", "values": embedding_values(2)},
             {"id": "8", "values": embedding_values(2)},
@@ -54,16 +49,37 @@ def seed(idx, namespace):
         ],
         namespace=namespace,
     )
+    return upsert3._response_info
 
-    poll_fetch_for_ids_in_namespace(
-        idx, ids=["1", "2", "3", "4", "5", "6", "7", "8", "9"], namespace=namespace
+
+def seed_sparse(sparse_idx, namespace):
+    upsert1 = sparse_idx.upsert(
+        vectors=[
+            Vector(
+                id=str(i),
+                sparse_values=SparseValues(
+                    indices=[i, random.randint(2000, 4000)], values=embedding_values(2)
+                ),
+                metadata={"genre": "action", "runtime": 120},
+            )
+            for i in range(50)
+        ],
+        namespace=namespace,
     )
+    return upsert1._response_info
 
 
-@pytest.fixture(scope="class")
-def seed_for_fetch(idx, fetch_namespace):
-    seed(idx, fetch_namespace)
-    seed(idx, "")
+@pytest.fixture(scope="function")
+def seed_for_fetch(idx, sparse_idx, fetch_namespace):
+    response_info1 = seed(idx, fetch_namespace)
+    response_info2 = seed(idx, "__default__")
+    response_info3 = seed_sparse(sparse_idx, fetch_namespace)
+    response_info4 = seed_sparse(sparse_idx, "__default__")
+
+    poll_until_lsn_reconciled(idx, response_info1, namespace=fetch_namespace)
+    poll_until_lsn_reconciled(idx, response_info2, namespace="__default__")
+    poll_until_lsn_reconciled(sparse_idx, response_info3, namespace=fetch_namespace)
+    poll_until_lsn_reconciled(sparse_idx, response_info4, namespace="__default__")
     yield
 
 
@@ -74,7 +90,7 @@ class TestFetch:
 
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
     def test_fetch_multiple_by_id(self, idx, fetch_namespace, use_nondefault_namespace):
-        target_namespace = fetch_namespace if use_nondefault_namespace else ""
+        target_namespace = fetch_namespace if use_nondefault_namespace else "__default__"
 
         results = idx.fetch(ids=["1", "2", "4"], namespace=target_namespace)
         assert isinstance(results, FetchResponse) == True
@@ -99,7 +115,7 @@ class TestFetch:
 
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
     def test_fetch_single_by_id(self, idx, fetch_namespace, use_nondefault_namespace):
-        target_namespace = fetch_namespace if use_nondefault_namespace else ""
+        target_namespace = fetch_namespace if use_nondefault_namespace else "__default__"
 
         results = idx.fetch(ids=["1"], namespace=target_namespace)
         assert results.namespace == target_namespace
@@ -111,7 +127,7 @@ class TestFetch:
 
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
     def test_fetch_nonexistent_id(self, idx, fetch_namespace, use_nondefault_namespace):
-        target_namespace = fetch_namespace if use_nondefault_namespace else ""
+        target_namespace = fetch_namespace if use_nondefault_namespace else "__default__"
 
         # Fetch id that is missing
         results = idx.fetch(ids=["100"], namespace=target_namespace)
@@ -128,7 +144,7 @@ class TestFetch:
 
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
     def test_fetch_with_empty_list_of_ids(self, idx, fetch_namespace, use_nondefault_namespace):
-        target_namespace = fetch_namespace if use_nondefault_namespace else ""
+        target_namespace = fetch_namespace if use_nondefault_namespace else "__default__"
 
         # Fetch with empty list of ids
         with pytest.raises(PineconeException) as e:
@@ -144,22 +160,6 @@ class TestFetch:
         assert results.vectors["4"].metadata is not None
 
     def test_fetch_sparse_index(self, sparse_idx):
-        sparse_idx.upsert(
-            vectors=[
-                Vector(
-                    id=str(i),
-                    sparse_values=SparseValues(
-                        indices=[i, random.randint(2000, 4000)], values=embedding_values(2)
-                    ),
-                    metadata={"genre": "action", "runtime": 120},
-                )
-                for i in range(50)
-            ],
-            namespace="",
-        )
-
-        poll_stats_for_namespace(sparse_idx, "", 50, max_sleep=120)
-
         fetch_results = sparse_idx.fetch(ids=[str(i) for i in range(10)])
         assert fetch_results.namespace == ""
         assert len(fetch_results.vectors) == 10

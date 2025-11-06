@@ -1,11 +1,15 @@
 import pytest
 from pinecone import Vector, SparseValues
-from ..helpers import poll_stats_for_namespace
+from ..helpers import poll_until_lsn_reconciled
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="class")
 def seed_sparse_index(sparse_idx):
-    sparse_idx.upsert(
+    upsert1 = sparse_idx.upsert(
         vectors=[
             Vector(
                 id=str(i),
@@ -13,13 +17,12 @@ def seed_sparse_index(sparse_idx):
                     indices=[i, i * 2, i * 3], values=[i * 0.1, i * 0.2, i * 0.3]
                 ),
             )
-            for i in range(1000)
+            for i in range(2, 1000)
         ],
         batch_size=100,
-        namespace="",
     )
 
-    sparse_idx.upsert(
+    upsert2 = sparse_idx.upsert(
         vectors=[
             Vector(
                 id=str(i),
@@ -27,20 +30,19 @@ def seed_sparse_index(sparse_idx):
                     indices=[i, i * 2, i * 3], values=[i * 0.1, i * 0.2, i * 0.3]
                 ),
             )
-            for i in range(1000)
+            for i in range(2, 1000)
         ],
         batch_size=100,
-        namespace="nondefault",
+        namespace="listnamespace",
     )
 
-    print("seeding sparse index")
-    poll_stats_for_namespace(sparse_idx, "", 1000, max_sleep=120)
-    poll_stats_for_namespace(sparse_idx, "nondefault", 1000, max_sleep=120)
+    logger.info("seeding sparse index")
+    poll_until_lsn_reconciled(sparse_idx, upsert1._response_info, namespace="__default__")
+    poll_until_lsn_reconciled(sparse_idx, upsert2._response_info, namespace="listnamespace")
 
     yield
 
 
-@pytest.mark.skip(reason="Sparse indexes are not yet supported")
 @pytest.mark.usefixtures("seed_sparse_index")
 class TestListPaginated_SparseIndex:
     def test_list_when_no_results(self, sparse_idx):
@@ -54,22 +56,23 @@ class TestListPaginated_SparseIndex:
         results = sparse_idx.list_paginated()
 
         assert results is not None
-        assert len(results.vectors) == 9
+        assert len(results.vectors) == 100
         assert results.namespace == ""
         # assert results.pagination == None
 
-    def test_list_when_limit(self, sparse_idx, list_namespace):
-        results = sparse_idx.list_paginated(limit=10, namespace=list_namespace)
+    def test_list_when_limit(self, sparse_idx):
+        results = sparse_idx.list_paginated(limit=10, namespace="listnamespace")
 
         assert results is not None
         assert len(results.vectors) == 10
-        assert results.namespace == list_namespace
+        assert results.namespace == "listnamespace"
         assert results.pagination is not None
         assert results.pagination.next is not None
         assert isinstance(results.pagination.next, str)
         assert results.pagination.next != ""
 
-    def test_list_when_using_pagination(self, sparse_idx, list_namespace):
+    def test_list_when_using_pagination(self, sparse_idx):
+        list_namespace = "listnamespace"
         results = sparse_idx.list_paginated(prefix="99", limit=5, namespace=list_namespace)
         next_results = sparse_idx.list_paginated(
             prefix="99", limit=5, namespace=list_namespace, pagination_token=results.pagination.next
@@ -91,23 +94,23 @@ class TestListPaginated_SparseIndex:
         # assert next_next_results.pagination == None
 
 
-@pytest.mark.skip(reason="Sparse indexes are not yet supported")
 @pytest.mark.usefixtures("seed_sparse_index")
 class TestList:
     def test_list_with_defaults(self, sparse_idx):
         pages = []
         page_sizes = []
         page_count = 0
-        for ids in sparse_idx.list():
+        for ids in sparse_idx.list(namespace="listnamespace"):
             page_count += 1
             assert ids is not None
             page_sizes.append(len(ids))
             pages.append(ids)
 
-        assert page_count == 1
-        assert page_sizes == [9]
+        assert page_count == 10
+        assert page_sizes == [100, 100, 100, 100, 100, 100, 100, 100, 100, 98]
 
-    def test_list(self, sparse_idx, list_namespace):
+    def test_list(self, sparse_idx):
+        list_namespace = "listnamespace"
         results = sparse_idx.list(prefix="99", limit=20, namespace=list_namespace)
 
         page_count = 0
@@ -130,7 +133,8 @@ class TestList:
             ]
         assert page_count == 1
 
-    def test_list_when_no_results_for_prefix(self, sparse_idx, list_namespace):
+    def test_list_when_no_results_for_prefix(self, sparse_idx):
+        list_namespace = "listnamespace"
         page_count = 0
         for ids in sparse_idx.list(prefix="no-results", namespace=list_namespace):
             page_count += 1
@@ -142,7 +146,8 @@ class TestList:
             page_count += 1
         assert page_count == 0
 
-    def test_list_when_multiple_pages(self, sparse_idx, list_namespace):
+    def test_list_when_multiple_pages(self, sparse_idx):
+        list_namespace = "listnamespace"
         pages = []
         page_sizes = []
         page_count = 0
@@ -159,7 +164,8 @@ class TestList:
         assert pages[1] == ["994", "995", "996", "997", "998"]
         assert pages[2] == ["999"]
 
-    def test_list_then_fetch(self, sparse_idx, list_namespace):
+    def test_list_then_fetch(self, sparse_idx):
+        list_namespace = "listnamespace"
         vectors = []
 
         for ids in sparse_idx.list(prefix="99", limit=5, namespace=list_namespace):

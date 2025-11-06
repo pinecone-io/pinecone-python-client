@@ -1,7 +1,7 @@
 import pytest
 from pinecone import Vector
 from pinecone import PineconeApiException
-from .conftest import build_asyncioindex_client, poll_for_freshness
+from .conftest import build_asyncioindex_client, poll_until_lsn_reconciled_async
 from ..helpers import random_string, embedding_values
 
 import logging
@@ -23,7 +23,7 @@ async def test_query(index_host, dimension, target_namespace):
     # Upsert with tuples
     tuple_vectors = [("1", emb()), ("2", emb()), ("3", emb())]
     logger.info(f"Upserting {len(tuple_vectors)} vectors")
-    await asyncio_idx.upsert(vectors=tuple_vectors, namespace=target_namespace)
+    upsert1 = await asyncio_idx.upsert(vectors=tuple_vectors, namespace=target_namespace)
 
     # Upsert with objects
     object_vectors = [
@@ -32,7 +32,7 @@ async def test_query(index_host, dimension, target_namespace):
         Vector(id="6", values=emb(), metadata={"genre": "horror"}),
     ]
     logger.info(f"Upserting {len(object_vectors)} vectors")
-    await asyncio_idx.upsert(vectors=object_vectors, namespace=target_namespace)
+    upsert2 = await asyncio_idx.upsert(vectors=object_vectors, namespace=target_namespace)
 
     # Upsert with dict
     dict_vectors = [
@@ -41,17 +41,22 @@ async def test_query(index_host, dimension, target_namespace):
         {"id": "9", "values": emb()},
     ]
     logger.info(f"Upserting {len(dict_vectors)} vectors")
-    await asyncio_idx.upsert(vectors=dict_vectors, namespace=target_namespace)
+    upsert3 = await asyncio_idx.upsert(vectors=dict_vectors, namespace=target_namespace)
 
-    await poll_for_freshness(asyncio_idx, target_namespace, 9)
+    await poll_until_lsn_reconciled_async(
+        asyncio_idx, upsert1._response_info, namespace=target_namespace
+    )
+    await poll_until_lsn_reconciled_async(
+        asyncio_idx, upsert2._response_info, namespace=target_namespace
+    )
+    await poll_until_lsn_reconciled_async(
+        asyncio_idx, upsert3._response_info, namespace=target_namespace
+    )
 
     # Check the vector count reflects some data has been upserted
     stats = await asyncio_idx.describe_index_stats()
     logger.info(f"Index stats: {stats}")
-    assert stats.total_vector_count >= 9
-    # default namespace could have other stuff from other tests
-    if target_namespace != "":
-        assert stats.namespaces[target_namespace].vector_count == 9
+    assert stats.namespaces[target_namespace].vector_count == 9
 
     results1 = await asyncio_idx.query(top_k=4, namespace=target_namespace, vector=emb())
     logger.info(f"Results 1: {results1}")

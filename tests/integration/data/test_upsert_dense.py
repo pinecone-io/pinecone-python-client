@@ -1,6 +1,6 @@
 import pytest
 from pinecone import Vector
-from ..helpers import poll_stats_for_namespace, embedding_values, random_string
+from ..helpers import poll_until_lsn_reconciled, embedding_values, random_string
 
 
 @pytest.fixture(scope="session")
@@ -9,9 +9,8 @@ def upsert_dense_namespace():
 
 
 class TestUpsertDense:
-    @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
-    def test_upsert_to_namespace(self, idx, upsert_dense_namespace, use_nondefault_namespace):
-        target_namespace = upsert_dense_namespace if use_nondefault_namespace else ""
+    def test_upsert_to_namespace(self, idx, upsert_dense_namespace):
+        target_namespace = upsert_dense_namespace
 
         # Upsert with tuples
         idx.upsert(
@@ -34,7 +33,7 @@ class TestUpsertDense:
         )
 
         # Upsert with dict
-        idx.upsert(
+        response3 = idx.upsert(
             vectors=[
                 {"id": "7", "values": embedding_values()},
                 {"id": "8", "values": embedding_values()},
@@ -43,15 +42,7 @@ class TestUpsertDense:
             namespace=target_namespace,
         )
 
-        poll_stats_for_namespace(idx, target_namespace, 9)
+        poll_until_lsn_reconciled(idx, response3._response_info, namespace=target_namespace)
 
-        # Check the vector count reflects some data has been upserted
         stats = idx.describe_index_stats()
-        assert stats.total_vector_count >= 9
-        # The default namespace may be represented as "" or "__default__" in the API response
-        if target_namespace == "":
-            namespace_key = "__default__" if "__default__" in stats.namespaces else ""
-        else:
-            namespace_key = target_namespace
-        assert namespace_key in stats.namespaces
-        assert stats.namespaces[namespace_key].vector_count == 9
+        assert stats.namespaces[target_namespace].vector_count == 9

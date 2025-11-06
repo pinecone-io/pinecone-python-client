@@ -166,6 +166,20 @@ class AsyncioApiClient(object):
         else:
             return_data = None
 
+        # Attach response info to response object if it exists
+        if return_data is not None:
+            headers = response_data.getheaders()
+            if headers:
+                from pinecone.utils.response_info import extract_response_info
+
+                response_info = extract_response_info(headers)
+                # Attach if response_info exists (may contain raw_headers even without LSN values)
+                if response_info:
+                    if isinstance(return_data, dict):
+                        return_data["_response_info"] = response_info
+                    else:
+                        return_data._response_info = response_info  # type: ignore
+
         if _return_http_data_only:
             return return_data
         else:

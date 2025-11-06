@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional, List
+from .utils import DictLike
 
 
 @dataclass
-class SearchQueryVector:
+class SearchQueryVector(DictLike):
     """
     SearchQueryVector represents the vector values used to query.
     """

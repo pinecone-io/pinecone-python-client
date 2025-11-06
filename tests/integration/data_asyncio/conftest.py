@@ -5,7 +5,7 @@ import asyncio
 from ..helpers import get_environment_var, generate_index_name
 from pinecone.db_data import _IndexAsyncio
 import logging
-from typing import Callable, Optional, Awaitable, Union
+from typing import Callable, Optional, Awaitable, Union, Dict, Any
 
 from pinecone import CloudProvider, AwsRegion, IndexEmbed, EmbedModel
 
@@ -135,38 +135,95 @@ def model_index_host(model_index_name):
     pc.delete_index(model_index_name, -1)
 
 
-async def poll_for_freshness(asyncio_idx, target_namespace, target_vector_count):
-    max_wait_time = 60 * 3  # 3 minutes
-    time_waited = 0
-    wait_per_iteration = 5
+async def get_query_response(asyncio_idx, namespace: str, dimension: Optional[int] = None):
+    if dimension is not None:
+        return await asyncio_idx.query(top_k=1, vector=[0.0] * dimension, namespace=namespace)
+    else:
+        from pinecone import SparseValues
 
-    while True:
-        stats = await asyncio_idx.describe_index_stats()
-        logger.debug(
-            "Polling for freshness on index %s. Current vector count: %s. Waiting for: %s",
-            asyncio_idx,
-            stats.total_vector_count,
-            target_vector_count,
+        response = await asyncio_idx.query(
+            top_k=1, namespace=namespace, sparse_vector=SparseValues(indices=[0], values=[1.0])
         )
-        if target_namespace == "":
-            if stats.total_vector_count >= target_vector_count:
-                break
-        else:
-            if (
-                target_namespace in stats.namespaces
-                and stats.namespaces[target_namespace].vector_count >= target_vector_count
-            ):
-                break
-        time_waited += wait_per_iteration
-        if time_waited >= max_wait_time:
-            raise TimeoutError(
-                "Timeout waiting for index to have expected vector count of {}".format(
-                    target_vector_count
-                )
-            )
-        await asyncio.sleep(wait_per_iteration)
+        return response
 
-    return stats
+
+async def poll_until_lsn_reconciled_async(
+    asyncio_idx, response_info: Dict[str, Any], namespace: str, max_wait_time: int = 60 * 3
+) -> None:
+    """Poll until a target LSN has been reconciled using LSN headers (async).
+
+    This function uses LSN headers from fetch/query operations to determine
+    freshness instead of polling describe_index_stats, which is faster.
+
+    Args:
+        asyncio_idx: The async index client to use for polling
+        response_info: ResponseInfo dictionary from a write operation (upsert, delete)
+                       containing raw_headers with the committed LSN
+        namespace: The namespace to wait for
+        max_wait_time: Maximum time to wait in seconds
+
+    Raises:
+        TimeoutError: If the LSN is not reconciled within max_wait_time seconds
+        ValueError: If target_lsn cannot be extracted from response_info (LSN should always be available)
+    """
+    from tests.integration.helpers.lsn_utils import (
+        extract_lsn_committed,
+        extract_lsn_reconciled,
+        is_lsn_reconciled,
+    )
+
+    # Extract target_lsn from response_info.raw_headers
+    raw_headers = response_info.get("raw_headers", {})
+    target_lsn = extract_lsn_committed(raw_headers)
+    if target_lsn is None:
+        raise ValueError("No target LSN found in response_info.raw_headers")
+
+    # Get index dimension for query vector (once, not every iteration)
+    dimension = None
+    try:
+        stats = await asyncio_idx.describe_index_stats()
+        dimension = stats.dimension
+    except Exception:
+        logger.debug("Could not get index dimension")
+
+    delta_t = 2  # Use shorter interval for LSN polling
+    total_time = 0
+    done = False
+
+    while not done:
+        logger.debug(
+            f"Polling for LSN reconciliation (async). Target LSN: {target_lsn}, "
+            f"namespace: {namespace}, total time: {total_time}s"
+        )
+
+        # Try query as a lightweight operation to check LSN
+        # Query operations return x-pinecone-max-indexed-lsn header
+        try:
+            # Use a minimal query to get headers (this is more efficient than describe_index_stats)
+            response = await get_query_response(asyncio_idx, namespace, dimension)
+            # Extract reconciled_lsn from query response's raw_headers
+            query_raw_headers = response._response_info.get("raw_headers", {})
+            reconciled_lsn = extract_lsn_reconciled(query_raw_headers)
+
+            logger.debug(f"Current reconciled LSN: {reconciled_lsn}, target: {target_lsn}")
+            if is_lsn_reconciled(target_lsn, reconciled_lsn):
+                # LSN is reconciled, check if additional condition is met
+                done = True
+                logger.debug(f"LSN {target_lsn} is reconciled after {total_time}s")
+            else:
+                logger.debug(
+                    f"LSN not yet reconciled. Reconciled: {reconciled_lsn}, target: {target_lsn}"
+                )
+        except Exception as e:
+            logger.debug(f"Error checking LSN: {e}")
+
+        if not done:
+            if total_time >= max_wait_time:
+                raise TimeoutError(
+                    f"Timeout waiting for LSN {target_lsn} to be reconciled after {total_time}s"
+                )
+            total_time += delta_t
+            await asyncio.sleep(delta_t)
 
 
 async def wait_until(

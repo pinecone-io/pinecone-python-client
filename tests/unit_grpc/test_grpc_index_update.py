@@ -1,6 +1,6 @@
 from pinecone import Config
 from pinecone.grpc import GRPCIndex
-from pinecone.core.grpc.protos.db_data_2025_10_pb2 import UpdateRequest
+from pinecone.core.grpc.protos.db_data_2025_10_pb2 import UpdateRequest, UpdateResponse
 from pinecone.grpc.utils import dict_to_proto_struct
 
 
@@ -12,7 +12,8 @@ class TestGrpcIndexUpdate:
         )
 
     def test_update_byIdAnValues_updateByIdAndValues(self, mocker, vals1):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = UpdateResponse()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
         self.index.update(id="vec1", values=vals1, namespace="ns", timeout=30)
         self.index.runner.run.assert_called_once_with(
             self.index.stub.Update,
@@ -32,7 +33,8 @@ class TestGrpcIndexUpdate:
     def test_update_byIdAnValuesAndMetadata_updateByIdAndValuesAndMetadata(
         self, mocker, vals1, md1
     ):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = UpdateResponse()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
         self.index.update("vec1", values=vals1, set_metadata=md1)
         self.index.runner.run.assert_called_once_with(
             self.index.stub.Update,

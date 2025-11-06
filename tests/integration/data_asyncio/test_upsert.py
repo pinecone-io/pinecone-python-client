@@ -1,6 +1,6 @@
 import pytest
 from pinecone import Vector, PineconeApiException, PineconeApiTypeError
-from .conftest import build_asyncioindex_client
+from .conftest import build_asyncioindex_client, poll_until_lsn_reconciled_async
 from ..helpers import random_string, embedding_values
 
 
@@ -9,12 +9,19 @@ from ..helpers import random_string, embedding_values
 async def test_upsert_with_batch_size_dense(index_host, dimension, target_namespace):
     asyncio_idx = build_asyncioindex_client(index_host)
 
-    await asyncio_idx.upsert(
-        vectors=[Vector(id=str(i), values=embedding_values(dimension)) for i in range(100)],
-        namespace=target_namespace,
-        batch_size=10,
-        show_progress=False,
+    vectors_to_upsert = [Vector(id=str(i), values=embedding_values(dimension)) for i in range(100)]
+    upsert1 = await asyncio_idx.upsert(
+        vectors=vectors_to_upsert, namespace=target_namespace, batch_size=10, show_progress=False
     )
+
+    await poll_until_lsn_reconciled_async(
+        asyncio_idx, upsert1._response_info, namespace=target_namespace
+    )
+
+    fetch_ids = [vector.id for vector in vectors_to_upsert]
+    fetched_vec = await asyncio_idx.fetch(ids=fetch_ids, namespace=target_namespace)
+    assert len(fetched_vec.vectors.keys()) == len(vectors_to_upsert)
+
     await asyncio_idx.close()
 
 

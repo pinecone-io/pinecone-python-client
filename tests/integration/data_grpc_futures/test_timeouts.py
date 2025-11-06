@@ -261,7 +261,11 @@ class TestGrpcAsyncTimeouts_Update:
 
         result = update_results.result()
         assert result is not None
-        assert result == {}
+        # Update now returns UpdateResponse dataclass with _response_info
+        from pinecone.db_data.dataclasses import UpdateResponse
+
+        assert isinstance(result, UpdateResponse)
+        assert result._response_info is not None
 
     def test_update_with_custom_timeout_not_exceeded(self, local_idx: GRPCIndex):
         deadline = SERVER_SLEEP_SECONDS + 1
@@ -283,7 +287,7 @@ class TestGrpcAsyncTimeouts_Update:
 
         result = update_results.result()
         assert result is not None
-        assert result == {}
+        assert result._response_info is not None
 
 
 @pytest.mark.usefixtures("grpc_server")
@@ -324,7 +328,9 @@ class TestGrpcAsyncTimeouts_Delete:
 
         result = delete_results.result()
         assert result is not None
-        assert result == {}
+        # Delete now returns dict with _response_info
+        assert isinstance(result, dict)
+        assert result["_response_info"] is not None
 
     def test_delete_with_default_timeout(self, local_idx: GRPCIndex):
         delete_results = local_idx.delete(
@@ -341,7 +347,9 @@ class TestGrpcAsyncTimeouts_Delete:
 
         result = delete_results.result()
         assert result is not None
-        assert result == {}
+        # Delete returns a dict, not an object with attributes
+        assert isinstance(result, dict)
+        assert result["_response_info"] is not None
 
 
 @pytest.mark.usefixtures("grpc_server")

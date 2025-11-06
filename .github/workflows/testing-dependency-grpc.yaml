@@ -12,13 +12,13 @@ on:
 
 jobs:
   dependency-matrix-grpc:
-    name: GRPC py3.9/py3.10
+    name: GRPC py3.10/py3.10
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python_version:
-          - 3.9
+          - '3.10'
           - "3.10"
         grpcio_version:
           - 1.44.0

@@ -358,8 +358,10 @@ class TestRestIndex:
     # region: query tests
 
     def test_query_byVectorNoFilter_queryVectorNoFilter(self, mocker):
-        response = QueryResponse(
-            results=[],
+        # Mock should return OpenAPI QueryResponse, not dataclass
+        from pinecone.core.openapi.db_data.models import QueryResponse as OpenAPIQueryResponse
+
+        response = OpenAPIQueryResponse(
             matches=[oai.ScoredVector(id="1", score=0.9, values=[0.0], metadata={"a": 2})],
             namespace="test",
         )
@@ -376,7 +378,11 @@ class TestRestIndex:
             matches=[oai.ScoredVector(id="1", score=0.9, values=[0.0], metadata={"a": 2})],
             namespace="test",
         )
-        assert expected.to_dict() == actual.to_dict()
+        # Compare dataclasses by comparing fields directly
+        assert expected.matches == actual.matches
+        assert expected.namespace == actual.namespace
+        assert expected.usage == actual.usage
+        # _response_info may not be present in test mocks, so we don't assert it
 
     def test_query_byVectorWithFilter_queryVectorWithFilter(self, mocker):
         mocker.patch.object(self.index._vector_api, "query_vectors", autospec=True)
