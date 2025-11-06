@@ -12,7 +12,7 @@ import json
 from pinecone.db_data import _Index
 from pinecone import Pinecone, NotFoundException, PineconeApiException
 from tests.integration.helpers.lsn_utils import is_lsn_reconciled
-from typing import List, Callable, Awaitable, Optional, Union
+from typing import Callable, Awaitable, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -72,69 +72,23 @@ def get_environment_var(name: str, defaultVal: Any = None) -> str:
         return val
 
 
-def poll_stats_for_namespace(
-    idx: _Index,
-    namespace: str,
-    expected_count: int,
-    max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 180)),
-) -> None:
-    delta_t = 5
-    total_time = 0
-    done = False
-    while not done:
-        logger.debug(
-            f'Waiting for namespace "{namespace}" to have vectors. Total time waited: {total_time} seconds'
+def get_query_response(idx, namespace: str, dimension: Optional[int] = None):
+    if dimension is not None:
+        return idx.query(top_k=1, vector=[0.0] * dimension, namespace=namespace)
+    else:
+        from pinecone import SparseValues
+
+        response = idx.query(
+            top_k=1, namespace=namespace, sparse_vector=SparseValues(indices=[0], values=[1.0])
         )
-        stats = idx.describe_index_stats()
-        # The default namespace may be represented as "" or "__default__" in the API response
-        namespace_key = (
-            "__default__" if namespace == "" and "__default__" in stats.namespaces else namespace
-        )
-        if (
-            namespace_key in stats.namespaces
-            and stats.namespaces[namespace_key].vector_count >= expected_count
-        ):
-            done = True
-        elif total_time > max_sleep:
-            raise TimeoutError(f"Timed out waiting for namespace {namespace} to have vectors")
-        else:
-            total_time += delta_t
-            logger.debug(f"Found index stats: {stats}.")
-            logger.debug(
-                f"Waiting for {expected_count} vectors in namespace {namespace}. Found {stats.namespaces.get(namespace_key, {'vector_count': 0})['vector_count']} vectors."
-            )
-            time.sleep(delta_t)
-
-
-def poll_fetch_for_ids_in_namespace(idx: _Index, ids: List[str], namespace: str) -> None:
-    max_sleep = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 60))
-    delta_t = 5
-    total_time = 0
-    done = False
-    while not done:
-        logger.debug(
-            f'Attempting to fetch from "{namespace}". Total time waited: {total_time} seconds'
-        )
-        results = idx.fetch(ids=ids, namespace=namespace)
-        logger.debug(results)
-
-        all_present = all(key in results.vectors for key in ids)
-        if all_present:
-            done = True
-
-        if total_time > max_sleep:
-            raise TimeoutError(f"Timed out waiting for namespace {namespace} to have vectors")
-        else:
-            total_time += delta_t
-            time.sleep(delta_t)
+        return response
 
 
 def poll_until_lsn_reconciled(
     idx: _Index,
-    target_lsn: Optional[int],
-    operation_name: str = "read",
+    target_lsn: int,
+    namespace: str,
     max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 180)),
-    check_fn: Optional[Callable[[], bool]] = None,
 ) -> None:
     """Poll until a target LSN has been reconciled using LSN headers.
 
@@ -144,16 +98,13 @@ def poll_until_lsn_reconciled(
     Args:
         idx: The index client to use for polling
         target_lsn: The LSN value to wait for (from a write operation)
-        operation_name: Name of the operation being checked (for logging)
         max_sleep: Maximum time to wait in seconds
-        check_fn: Optional additional check function that must return True
 
     Raises:
         TimeoutError: If the LSN is not reconciled within max_sleep seconds
     """
     if target_lsn is None:
-        logger.debug("No target LSN provided, cannot use LSN-based polling")
-        return
+        raise ValueError("No target LSN provided")
 
     # Get index dimension for query vector (once, not every iteration)
     dimension = None
@@ -161,7 +112,7 @@ def poll_until_lsn_reconciled(
         stats = idx.describe_index_stats()
         dimension = stats.dimension
     except Exception:
-        logger.debug("Could not get index dimension, will use check_fn")
+        logger.debug("Could not get index dimension")
 
     delta_t = 2  # Use shorter interval for LSN polling
     total_time = 0
@@ -170,49 +121,22 @@ def poll_until_lsn_reconciled(
     while not done:
         logger.debug(
             f"Polling for LSN reconciliation. Target LSN: {target_lsn}, "
-            f"operation: {operation_name}, total time: {total_time}s"
+            f"total time: {total_time}s"
         )
 
         # Try query as a lightweight operation to check LSN
         # Query operations return x-pinecone-max-indexed-lsn header
-        if dimension is not None:
-            try:
-                # Use a minimal query to get headers (this is more efficient than describe_index_stats)
-                # We'll use a zero vector query, but we only care about headers
-                response = idx.query(
-                    top_k=1,
-                    vector=[0.0] * dimension,  # Zero vector matching index dimension
-                    namespace="",
-                )
-                reconciled_lsn = None
-                if hasattr(response, "_response_info") and response._response_info:
-                    reconciled_lsn = response._response_info.get("lsn_reconciled")
-
-                if reconciled_lsn is not None:
-                    logger.debug(f"Current reconciled LSN: {reconciled_lsn}, target: {target_lsn}")
-                    if is_lsn_reconciled(target_lsn, reconciled_lsn):
-                        # LSN is reconciled, check if additional condition is met
-                        if check_fn is None or check_fn():
-                            done = True
-                            logger.debug(f"LSN {target_lsn} is reconciled after {total_time}s")
-                    else:
-                        logger.debug(
-                            f"LSN not yet reconciled. Reconciled: {reconciled_lsn}, "
-                            f"target: {target_lsn}"
-                        )
-                else:
-                    # LSN headers not available, fallback to check_fn or return
-                    logger.debug("LSN headers not available in response")
-                    if check_fn is not None and check_fn():
-                        done = True
-            except Exception as e:
-                logger.debug(f"Error checking LSN: {e}")
-                # Fall through to check_fn fallback
-
-        # If dimension is None or LSN check failed, fallback to check_fn
-        if not done and dimension is None:
-            if check_fn is not None and check_fn():
-                done = True
+        response = get_query_response(idx, namespace, dimension)
+        reconciled_lsn = response._response_info.get("lsn_reconciled")
+        logger.debug(f"Current reconciled LSN: {reconciled_lsn}, target: {target_lsn}")
+        if is_lsn_reconciled(target_lsn, reconciled_lsn):
+            # LSN is reconciled, check if additional condition is met
+            done = True
+            logger.debug(f"LSN {target_lsn} is reconciled after {total_time}s")
+        else:
+            logger.debug(
+                f"LSN not yet reconciled. Reconciled: {reconciled_lsn}, target: {target_lsn}"
+            )
 
         if not done:
             if total_time >= max_sleep:

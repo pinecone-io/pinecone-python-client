@@ -1,5 +1,5 @@
 import pytest
-from ..helpers import random_string, poll_stats_for_namespace
+from ..helpers import random_string, poll_until_lsn_reconciled
 from pinecone.db_data.query_results_aggregator import QueryResultsAggregatorInvalidTopKError
 
 from pinecone import Vector, SparseValues
@@ -13,7 +13,7 @@ class TestQueryNamespacesRest_Sparse:
         ns2 = f"{ns_prefix}-ns2"
         ns3 = f"{ns_prefix}-ns3"
 
-        sparse_idx.upsert(
+        upsert1 = sparse_idx.upsert(
             vectors=[
                 Vector(
                     id="id1",
@@ -38,7 +38,7 @@ class TestQueryNamespacesRest_Sparse:
             ],
             namespace=ns1,
         )
-        sparse_idx.upsert(
+        upsert2 = sparse_idx.upsert(
             vectors=[
                 Vector(
                     id="id5",
@@ -63,7 +63,7 @@ class TestQueryNamespacesRest_Sparse:
             ],
             namespace=ns2,
         )
-        sparse_idx.upsert(
+        upsert3 = sparse_idx.upsert(
             vectors=[
                 Vector(
                     id="id9",
@@ -89,9 +89,15 @@ class TestQueryNamespacesRest_Sparse:
             namespace=ns3,
         )
 
-        poll_stats_for_namespace(sparse_idx, namespace=ns1, expected_count=4)
-        poll_stats_for_namespace(sparse_idx, namespace=ns2, expected_count=4)
-        poll_stats_for_namespace(sparse_idx, namespace=ns3, expected_count=4)
+        poll_until_lsn_reconciled(
+            sparse_idx, target_lsn=upsert1._response_info.get("lsn_committed"), namespace=ns1
+        )
+        poll_until_lsn_reconciled(
+            sparse_idx, target_lsn=upsert2._response_info.get("lsn_committed"), namespace=ns2
+        )
+        poll_until_lsn_reconciled(
+            sparse_idx, target_lsn=upsert3._response_info.get("lsn_committed"), namespace=ns3
+        )
 
         results = sparse_idx.query_namespaces(
             sparse_vector=SparseValues(indices=[1], values=[24.5]),

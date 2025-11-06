@@ -1,12 +1,7 @@
 import logging
 import pytest
 import random
-from ..helpers import (
-    poll_fetch_for_ids_in_namespace,
-    poll_stats_for_namespace,
-    embedding_values,
-    random_string,
-)
+from ..helpers import embedding_values, random_string, poll_until_lsn_reconciled
 
 from pinecone import PineconeException, FetchResponse, Vector, SparseValues
 
@@ -21,7 +16,7 @@ def fetch_namespace():
 def seed(idx, namespace):
     # Upsert without metadata
     logger.info(f"Seeding vectors without metadata into namespace '{namespace}'")
-    response1 = idx.upsert(
+    idx.upsert(
         vectors=[
             ("1", embedding_values(2)),
             ("2", embedding_values(2)),
@@ -29,17 +24,10 @@ def seed(idx, namespace):
         ],
         namespace=namespace,
     )
-    committed_lsn = None
-    if hasattr(response1, "_response_info") and response1._response_info:
-        committed_lsn = response1._response_info.get("lsn_committed")
-        # Assert that _response_info is present when we extract LSN
-        assert (
-            response1._response_info is not None
-        ), "Expected _response_info to be present on upsert response"
 
     # Upsert with metadata
     logger.info(f"Seeding vectors with metadata into namespace '{namespace}'")
-    response2 = idx.upsert(
+    idx.upsert(
         vectors=[
             Vector(
                 id="4", values=embedding_values(2), metadata={"genre": "action", "runtime": 120}
@@ -51,17 +39,9 @@ def seed(idx, namespace):
         ],
         namespace=namespace,
     )
-    if hasattr(response2, "_response_info") and response2._response_info:
-        committed_lsn2 = response2._response_info.get("lsn_committed")
-        # Assert that _response_info is present when we extract LSN
-        assert (
-            response2._response_info is not None
-        ), "Expected _response_info to be present on upsert response"
-        if committed_lsn2 is not None:
-            committed_lsn = committed_lsn2
 
     # Upsert with dict
-    response3 = idx.upsert(
+    upsert3 = idx.upsert(
         vectors=[
             {"id": "7", "values": embedding_values(2)},
             {"id": "8", "values": embedding_values(2)},
@@ -69,34 +49,37 @@ def seed(idx, namespace):
         ],
         namespace=namespace,
     )
-    if hasattr(response3, "_response_info") and response3._response_info:
-        committed_lsn3 = response3._response_info.get("lsn_committed")
-        # Assert that _response_info is present when we extract LSN
-        assert (
-            response3._response_info is not None
-        ), "Expected _response_info to be present on upsert response"
-        if committed_lsn3 is not None:
-            committed_lsn = committed_lsn3
-
-    # Use LSN-based polling if available, otherwise fallback to fetch polling
-    ids = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
-    if committed_lsn is not None:
-        from ..helpers import poll_until_lsn_reconciled
-
-        poll_until_lsn_reconciled(
-            idx,
-            committed_lsn,
-            operation_name="seed",
-            check_fn=lambda: len(idx.fetch(ids=ids, namespace=namespace).vectors) == len(ids),
-        )
-    else:
-        poll_fetch_for_ids_in_namespace(idx, ids=ids, namespace=namespace)
+    return upsert3._response_info.get("lsn_committed")
 
 
-@pytest.fixture(scope="class")
-def seed_for_fetch(idx, fetch_namespace):
-    seed(idx, fetch_namespace)
-    seed(idx, "")
+def seed_sparse(sparse_idx, namespace):
+    upsert1 = sparse_idx.upsert(
+        vectors=[
+            Vector(
+                id=str(i),
+                sparse_values=SparseValues(
+                    indices=[i, random.randint(2000, 4000)], values=embedding_values(2)
+                ),
+                metadata={"genre": "action", "runtime": 120},
+            )
+            for i in range(50)
+        ],
+        namespace=namespace,
+    )
+    return upsert1._response_info.get("lsn_committed")
+
+
+@pytest.fixture(scope="function")
+def seed_for_fetch(idx, sparse_idx, fetch_namespace):
+    lsn_committed = seed(idx, fetch_namespace)
+    lsn_committed2 = seed(idx, "__default__")
+    lsn_committed3 = seed_sparse(sparse_idx, fetch_namespace)
+    lsn_committed4 = seed_sparse(sparse_idx, "__default__")
+
+    poll_until_lsn_reconciled(idx, target_lsn=lsn_committed, namespace=fetch_namespace)
+    poll_until_lsn_reconciled(idx, target_lsn=lsn_committed2, namespace="__default__")
+    poll_until_lsn_reconciled(sparse_idx, target_lsn=lsn_committed3, namespace=fetch_namespace)
+    poll_until_lsn_reconciled(sparse_idx, target_lsn=lsn_committed4, namespace="__default__")
     yield
 
 
@@ -107,7 +90,7 @@ class TestFetch:
 
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
     def test_fetch_multiple_by_id(self, idx, fetch_namespace, use_nondefault_namespace):
-        target_namespace = fetch_namespace if use_nondefault_namespace else ""
+        target_namespace = fetch_namespace if use_nondefault_namespace else "__default__"
 
         results = idx.fetch(ids=["1", "2", "4"], namespace=target_namespace)
         assert isinstance(results, FetchResponse) == True
@@ -132,7 +115,7 @@ class TestFetch:
 
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
     def test_fetch_single_by_id(self, idx, fetch_namespace, use_nondefault_namespace):
-        target_namespace = fetch_namespace if use_nondefault_namespace else ""
+        target_namespace = fetch_namespace if use_nondefault_namespace else "__default__"
 
         results = idx.fetch(ids=["1"], namespace=target_namespace)
         assert results.namespace == target_namespace
@@ -144,7 +127,7 @@ class TestFetch:
 
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
     def test_fetch_nonexistent_id(self, idx, fetch_namespace, use_nondefault_namespace):
-        target_namespace = fetch_namespace if use_nondefault_namespace else ""
+        target_namespace = fetch_namespace if use_nondefault_namespace else "__default__"
 
         # Fetch id that is missing
         results = idx.fetch(ids=["100"], namespace=target_namespace)
@@ -161,7 +144,7 @@ class TestFetch:
 
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
     def test_fetch_with_empty_list_of_ids(self, idx, fetch_namespace, use_nondefault_namespace):
-        target_namespace = fetch_namespace if use_nondefault_namespace else ""
+        target_namespace = fetch_namespace if use_nondefault_namespace else "__default__"
 
         # Fetch with empty list of ids
         with pytest.raises(PineconeException) as e:
@@ -177,48 +160,6 @@ class TestFetch:
         assert results.vectors["4"].metadata is not None
 
     def test_fetch_sparse_index(self, sparse_idx):
-        response = sparse_idx.upsert(
-            vectors=[
-                Vector(
-                    id=str(i),
-                    sparse_values=SparseValues(
-                        indices=[i, random.randint(2000, 4000)], values=embedding_values(2)
-                    ),
-                    metadata={"genre": "action", "runtime": 120},
-                )
-                for i in range(50)
-            ],
-            namespace="",
-        )
-
-        # Extract LSN from response if available
-        committed_lsn = None
-        if hasattr(response, "_response_info") and response._response_info:
-            committed_lsn = response._response_info.get("lsn_committed")
-            # Assert that _response_info is present when we extract LSN
-            assert (
-                response._response_info is not None
-            ), "Expected _response_info to be present on upsert response"
-
-        # Use LSN-based polling if available, otherwise fallback to stats polling
-        if committed_lsn is not None:
-            from ..helpers import poll_until_lsn_reconciled
-
-            poll_until_lsn_reconciled(
-                sparse_idx,
-                committed_lsn,
-                operation_name="test_fetch_sparse_index",
-                check_fn=lambda: (
-                    sparse_idx.describe_index_stats().namespaces.get("__default__", {}).vector_count
-                    >= 50
-                    if "__default__" in sparse_idx.describe_index_stats().namespaces
-                    else sparse_idx.describe_index_stats().namespaces.get("", {}).vector_count >= 50
-                ),
-                max_sleep=120,
-            )
-        else:
-            poll_stats_for_namespace(sparse_idx, "", 50, max_sleep=120)
-
         fetch_results = sparse_idx.fetch(ids=[str(i) for i in range(10)])
         assert fetch_results.namespace == ""
         assert len(fetch_results.vectors) == 10

@@ -170,7 +170,7 @@ async def poll_until_lsn_reconciled_async(
         stats = await asyncio_idx.describe_index_stats()
         dimension = stats.dimension
     except Exception:
-        logger.debug("Could not get index dimension, will use check_fn")
+        logger.debug("Could not get index dimension")
 
     delta_t = 2  # Use shorter interval for LSN polling
     total_time = 0

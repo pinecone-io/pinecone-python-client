@@ -1,6 +1,6 @@
 import logging
 import pytest
-from ..helpers import embedding_values, random_string
+from ..helpers import embedding_values, random_string, poll_until_lsn_reconciled
 
 from pinecone import Vector
 from pinecone.db_data.dataclasses import FetchByMetadataResponse
@@ -18,7 +18,7 @@ def seed_for_fetch_by_metadata(idx, namespace):
     logger.info(f"Seeding vectors with metadata into namespace '{namespace}'")
 
     # Upsert vectors with different metadata
-    response = idx.upsert(
+    upsert1 = idx.upsert(
         vectors=[
             Vector(
                 id="genre-action-1",
@@ -55,17 +55,16 @@ def seed_for_fetch_by_metadata(idx, namespace):
         namespace=namespace,
     )
 
-    # Extract LSN from response if available
-    committed_lsn = response._response_info.get("lsn_committed")
-
-    from ..helpers import poll_until_lsn_reconciled
-
-    poll_until_lsn_reconciled(idx, committed_lsn, operation_name="seed_for_fetch_by_metadata")
+    # Extract LSN from response
+    return upsert1._response_info.get("lsn_committed")
 
 
 @pytest.fixture(scope="class")
 def seed_for_fetch_by_metadata_fixture(idx, fetch_by_metadata_namespace):
-    seed_for_fetch_by_metadata(idx, fetch_by_metadata_namespace)
+    lsn_committed = seed_for_fetch_by_metadata(idx, fetch_by_metadata_namespace)
+    lsn_committed2 = seed_for_fetch_by_metadata(idx, "__default__")
+    poll_until_lsn_reconciled(idx, target_lsn=lsn_committed, namespace=fetch_by_metadata_namespace)
+    poll_until_lsn_reconciled(idx, target_lsn=lsn_committed2, namespace="__default__")
     yield
 
 
@@ -81,6 +80,7 @@ class TestFetchByMetadata:
             filter={"genre": {"$eq": "action"}}, namespace=target_namespace
         )
         assert isinstance(results, FetchByMetadataResponse)
+        assert results._response_info is not None
         assert results.namespace == target_namespace
         # Check that we have at least the vectors we seeded
         assert len(results.vectors) >= 2
@@ -100,26 +100,28 @@ class TestFetchByMetadata:
     def test_fetch_by_metadata_with_limit(
         self, idx, fetch_by_metadata_namespace, use_nondefault_namespace
     ):
-        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else ""
+        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else None
+        response_namespace = target_namespace if target_namespace is not None else ""
 
         results = idx.fetch_by_metadata(
             filter={"genre": {"$eq": "action"}}, namespace=target_namespace, limit=1
         )
         assert isinstance(results, FetchByMetadataResponse)
-        assert results.namespace == target_namespace
+        assert results.namespace == response_namespace
         assert len(results.vectors) == 1
 
     @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
     def test_fetch_by_metadata_with_in_operator(
         self, idx, fetch_by_metadata_namespace, use_nondefault_namespace
     ):
-        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else ""
+        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else None
+        response_namespace = target_namespace if target_namespace is not None else ""
 
         results = idx.fetch_by_metadata(
             filter={"genre": {"$in": ["comedy", "drama"]}}, namespace=target_namespace
         )
         assert isinstance(results, FetchByMetadataResponse)
-        assert results.namespace == target_namespace
+        assert results.namespace == response_namespace
         # Check that we have at least the vectors we seeded
         assert len(results.vectors) >= 3  # comedy-1, comedy-2, drama-1
         assert "genre-comedy-1" in results.vectors
@@ -130,13 +132,14 @@ class TestFetchByMetadata:
     def test_fetch_by_metadata_with_multiple_conditions(
         self, idx, fetch_by_metadata_namespace, use_nondefault_namespace
     ):
-        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else ""
+        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else None
+        response_namespace = target_namespace if target_namespace is not None else ""
 
         results = idx.fetch_by_metadata(
             filter={"genre": {"$eq": "action"}, "year": {"$eq": 2020}}, namespace=target_namespace
         )
         assert isinstance(results, FetchByMetadataResponse)
-        assert results.namespace == target_namespace
+        assert results.namespace == response_namespace
         assert len(results.vectors) == 1
         assert "genre-action-1" in results.vectors
         assert results.vectors["genre-action-1"].metadata["year"] == 2020
@@ -145,11 +148,12 @@ class TestFetchByMetadata:
     def test_fetch_by_metadata_with_numeric_filter(
         self, idx, fetch_by_metadata_namespace, use_nondefault_namespace
     ):
-        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else ""
+        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else None
+        response_namespace = target_namespace if target_namespace is not None else ""
 
         results = idx.fetch_by_metadata(filter={"year": {"$gte": 2021}}, namespace=target_namespace)
         assert isinstance(results, FetchByMetadataResponse)
-        assert results.namespace == target_namespace
+        assert results.namespace == response_namespace
         # Should return action-2, comedy-2, romance-1 (all year >= 2021)
         assert len(results.vectors) >= 3
         assert "genre-action-2" in results.vectors
@@ -160,13 +164,14 @@ class TestFetchByMetadata:
     def test_fetch_by_metadata_no_results(
         self, idx, fetch_by_metadata_namespace, use_nondefault_namespace
     ):
-        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else ""
+        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else None
+        response_namespace = target_namespace if target_namespace is not None else ""
 
         results = idx.fetch_by_metadata(
             filter={"genre": {"$eq": "horror"}}, namespace=target_namespace
         )
         assert isinstance(results, FetchByMetadataResponse)
-        assert results.namespace == target_namespace
+        assert results.namespace == response_namespace
         assert len(results.vectors) == 0
 
     def test_fetch_by_metadata_nonexistent_namespace(self, idx):
