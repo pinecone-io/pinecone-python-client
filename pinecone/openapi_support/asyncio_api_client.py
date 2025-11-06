@@ -175,7 +175,10 @@ class AsyncioApiClient(object):
                 response_info = extract_response_info(headers)
                 # Attach if response_info exists (may contain raw_headers even without LSN values)
                 if response_info:
-                    return_data._response_info = response_info  # type: ignore
+                    if isinstance(return_data, dict):
+                        return_data["_response_info"] = response_info
+                    else:
+                        return_data._response_info = response_info  # type: ignore
 
         if _return_http_data_only:
             return return_data

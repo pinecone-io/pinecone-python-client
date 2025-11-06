@@ -1,7 +1,7 @@
 import pytest
 import random
 from pinecone import Vector, SparseValues, PineconeApiException
-from .conftest import build_asyncioindex_client, poll_for_freshness
+from .conftest import build_asyncioindex_client, poll_until_lsn_reconciled_async
 from ..helpers import random_string, embedding_values
 
 
@@ -11,7 +11,7 @@ async def test_query_sparse(sparse_index_host, target_namespace):
     asyncio_sparse_idx = build_asyncioindex_client(sparse_index_host)
 
     # Upsert with Vector objects containing sparse values dict
-    await asyncio_sparse_idx.upsert(
+    upsert1 = await asyncio_sparse_idx.upsert(
         vectors=[
             Vector(
                 id=str(i),
@@ -23,7 +23,7 @@ async def test_query_sparse(sparse_index_host, target_namespace):
         namespace=target_namespace,
     )
     # Make one have unique metadata for later assertions
-    await asyncio_sparse_idx.upsert(
+    upsert2 = await asyncio_sparse_idx.upsert(
         vectors=[
             Vector(
                 id=str(10),
@@ -35,7 +35,7 @@ async def test_query_sparse(sparse_index_host, target_namespace):
     )
 
     # Upsert with objects with SparseValues object
-    await asyncio_sparse_idx.upsert(
+    upsert3 = await asyncio_sparse_idx.upsert(
         vectors=[
             Vector(
                 id=str(i),
@@ -50,7 +50,7 @@ async def test_query_sparse(sparse_index_host, target_namespace):
     )
 
     # Upsert with dict
-    await asyncio_sparse_idx.upsert(
+    upsert4 = await asyncio_sparse_idx.upsert(
         vectors=[
             {
                 "id": str(i),
@@ -66,7 +66,7 @@ async def test_query_sparse(sparse_index_host, target_namespace):
     )
 
     # Upsert with mixed types, dict with SparseValues object
-    await asyncio_sparse_idx.upsert(
+    upsert5 = await asyncio_sparse_idx.upsert(
         vectors=[
             {
                 "id": str(i),
@@ -79,7 +79,31 @@ async def test_query_sparse(sparse_index_host, target_namespace):
         namespace=target_namespace,
     )
 
-    await poll_for_freshness(asyncio_sparse_idx, target_namespace, 200)
+    await poll_until_lsn_reconciled_async(
+        asyncio_sparse_idx,
+        target_lsn=upsert1._response_info.get("lsn_committed"),
+        namespace=target_namespace,
+    )
+    await poll_until_lsn_reconciled_async(
+        asyncio_sparse_idx,
+        target_lsn=upsert2._response_info.get("lsn_committed"),
+        namespace=target_namespace,
+    )
+    await poll_until_lsn_reconciled_async(
+        asyncio_sparse_idx,
+        target_lsn=upsert3._response_info.get("lsn_committed"),
+        namespace=target_namespace,
+    )
+    await poll_until_lsn_reconciled_async(
+        asyncio_sparse_idx,
+        target_lsn=upsert4._response_info.get("lsn_committed"),
+        namespace=target_namespace,
+    )
+    await poll_until_lsn_reconciled_async(
+        asyncio_sparse_idx,
+        target_lsn=upsert5._response_info.get("lsn_committed"),
+        namespace=target_namespace,
+    )
 
     # # Check the vector count reflects some data has been upserted
     stats = await asyncio_sparse_idx.describe_index_stats()

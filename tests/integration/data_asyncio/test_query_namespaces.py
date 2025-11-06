@@ -1,6 +1,6 @@
 import pytest
 from ..helpers import random_string
-from .conftest import build_asyncioindex_client, poll_for_freshness
+from .conftest import build_asyncioindex_client, poll_until_lsn_reconciled_async
 
 from pinecone import Vector
 
@@ -15,7 +15,7 @@ class TestQueryNamespacesRest:
         ns2 = f"{ns_prefix}-ns2"
         ns3 = f"{ns_prefix}-ns3"
 
-        await asyncio_idx.upsert(
+        upsert1 = await asyncio_idx.upsert(
             vectors=[
                 Vector(id="id1", values=[0.1, 0.2], metadata={"genre": "drama", "key": 1}),
                 Vector(id="id2", values=[0.2, 0.3], metadata={"genre": "drama", "key": 2}),
@@ -24,7 +24,7 @@ class TestQueryNamespacesRest:
             ],
             namespace=ns1,
         )
-        await asyncio_idx.upsert(
+        upsert2 = await asyncio_idx.upsert(
             vectors=[
                 Vector(id="id5", values=[0.21, 0.22], metadata={"genre": "drama", "key": 1}),
                 Vector(id="id6", values=[0.22, 0.23], metadata={"genre": "drama", "key": 2}),
@@ -33,7 +33,7 @@ class TestQueryNamespacesRest:
             ],
             namespace=ns2,
         )
-        await asyncio_idx.upsert(
+        upsert3 = await asyncio_idx.upsert(
             vectors=[
                 Vector(id="id9", values=[0.31, 0.32], metadata={"genre": "drama", "key": 1}),
                 Vector(id="id10", values=[0.32, 0.33], metadata={"genre": "drama", "key": 2}),
@@ -43,9 +43,15 @@ class TestQueryNamespacesRest:
             namespace=ns3,
         )
 
-        await poll_for_freshness(asyncio_idx, ns1, 4)
-        await poll_for_freshness(asyncio_idx, ns2, 4)
-        await poll_for_freshness(asyncio_idx, ns3, 4)
+        await poll_until_lsn_reconciled_async(
+            asyncio_idx, target_lsn=upsert1._response_info.get("lsn_committed"), namespace=ns1
+        )
+        await poll_until_lsn_reconciled_async(
+            asyncio_idx, target_lsn=upsert2._response_info.get("lsn_committed"), namespace=ns2
+        )
+        await poll_until_lsn_reconciled_async(
+            asyncio_idx, target_lsn=upsert3._response_info.get("lsn_committed"), namespace=ns3
+        )
 
         results = await asyncio_idx.query_namespaces(
             vector=[0.1, 0.2],
@@ -159,14 +165,14 @@ class TestQueryNamespacesRest:
         ns1 = f"{ns_prefix}-ns1"
         ns2 = f"{ns_prefix}-ns2"
 
-        await asyncio_idx.upsert(
+        upsert1 = await asyncio_idx.upsert(
             vectors=[
                 Vector(id="id1", values=[0.1, 0.2], metadata={"genre": "drama", "key": 1}),
                 Vector(id="id2", values=[0.2, 0.3], metadata={"genre": "drama", "key": 2}),
             ],
             namespace=ns1,
         )
-        await asyncio_idx.upsert(
+        upsert2 = await asyncio_idx.upsert(
             vectors=[
                 Vector(id="id5", values=[0.21, 0.22], metadata={"genre": "drama", "key": 1}),
                 Vector(id="id6", values=[0.22, 0.23], metadata={"genre": "drama", "key": 2}),
@@ -174,8 +180,12 @@ class TestQueryNamespacesRest:
             namespace=ns2,
         )
 
-        await poll_for_freshness(asyncio_idx, ns1, 2)
-        await poll_for_freshness(asyncio_idx, ns2, 2)
+        await poll_until_lsn_reconciled_async(
+            asyncio_idx, target_lsn=upsert1._response_info.get("lsn_committed"), namespace=ns1
+        )
+        await poll_until_lsn_reconciled_async(
+            asyncio_idx, target_lsn=upsert2._response_info.get("lsn_committed"), namespace=ns2
+        )
 
         results = await asyncio_idx.query_namespaces(
             vector=[0.1, 0.21],

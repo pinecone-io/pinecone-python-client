@@ -3,8 +3,12 @@
 
 import pytest
 from pinecone import Vector, SparseValues, PineconeApiException
-from .conftest import build_asyncioindex_client, poll_for_freshness
+from .conftest import build_asyncioindex_client, poll_until_lsn_reconciled_async
 from ..helpers import random_string, embedding_values
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.mark.asyncio
@@ -12,7 +16,7 @@ from ..helpers import random_string, embedding_values
 async def test_upsert_with_batch_size_sparse(sparse_index_host, target_namespace):
     asyncio_sparse_idx = build_asyncioindex_client(sparse_index_host)
 
-    await asyncio_sparse_idx.upsert(
+    upsert1 = await asyncio_sparse_idx.upsert(
         vectors=[
             Vector(
                 id=str(i),
@@ -27,7 +31,11 @@ async def test_upsert_with_batch_size_sparse(sparse_index_host, target_namespace
         show_progress=False,
     )
 
-    await poll_for_freshness(asyncio_sparse_idx, target_namespace, 100)
+    await poll_until_lsn_reconciled_async(
+        asyncio_sparse_idx,
+        target_lsn=upsert1._response_info.get("lsn_committed"),
+        namespace=target_namespace,
+    )
 
     # Upsert with invalid batch size
     with pytest.raises(ValueError) as e:
@@ -57,4 +65,21 @@ async def test_upsert_with_batch_size_sparse(sparse_index_host, target_namespace
             namespace=target_namespace,
             batch_size=10,
         )
+
+    await poll_until_lsn_reconciled_async(
+        asyncio_sparse_idx,
+        target_lsn=upsert1._response_info.get("lsn_committed"),
+        namespace=target_namespace,
+    )
+
+    fetched_vec = await asyncio_sparse_idx.fetch(ids=["1", "2", "3"], namespace=target_namespace)
+    assert len(fetched_vec.vectors.keys()) == 3
+    assert "1" in fetched_vec.vectors
+    assert "2" in fetched_vec.vectors
+    assert "3" in fetched_vec.vectors
+
+    assert (
+        fetched_vec._response_info is not None
+    ), "Expected _response_info to be present on fetch response"
+    logger.info(f"Fetch response info: {fetched_vec._response_info}")
     await asyncio_sparse_idx.close()

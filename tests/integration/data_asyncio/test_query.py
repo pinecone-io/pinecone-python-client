@@ -1,7 +1,7 @@
 import pytest
 from pinecone import Vector
 from pinecone import PineconeApiException
-from .conftest import build_asyncioindex_client, poll_for_freshness, poll_until_lsn_reconciled_async
+from .conftest import build_asyncioindex_client, poll_until_lsn_reconciled_async
 from ..helpers import random_string, embedding_values
 
 import logging
@@ -23,14 +23,7 @@ async def test_query(index_host, dimension, target_namespace):
     # Upsert with tuples
     tuple_vectors = [("1", emb()), ("2", emb()), ("3", emb())]
     logger.info(f"Upserting {len(tuple_vectors)} vectors")
-    response1 = await asyncio_idx.upsert(vectors=tuple_vectors, namespace=target_namespace)
-    committed_lsn = None
-    if hasattr(response1, "_response_info") and response1._response_info:
-        committed_lsn = response1._response_info.get("lsn_committed")
-        # Assert that _response_info is present when we extract LSN
-        assert (
-            response1._response_info is not None
-        ), "Expected _response_info to be present on upsert response"
+    upsert1 = await asyncio_idx.upsert(vectors=tuple_vectors, namespace=target_namespace)
 
     # Upsert with objects
     object_vectors = [
@@ -39,15 +32,7 @@ async def test_query(index_host, dimension, target_namespace):
         Vector(id="6", values=emb(), metadata={"genre": "horror"}),
     ]
     logger.info(f"Upserting {len(object_vectors)} vectors")
-    response2 = await asyncio_idx.upsert(vectors=object_vectors, namespace=target_namespace)
-    if hasattr(response2, "_response_info") and response2._response_info:
-        committed_lsn2 = response2._response_info.get("lsn_committed")
-        # Assert that _response_info is present when we extract LSN
-        assert (
-            response2._response_info is not None
-        ), "Expected _response_info to be present on upsert response"
-        if committed_lsn2 is not None:
-            committed_lsn = committed_lsn2
+    upsert2 = await asyncio_idx.upsert(vectors=object_vectors, namespace=target_namespace)
 
     # Upsert with dict
     dict_vectors = [
@@ -56,44 +41,28 @@ async def test_query(index_host, dimension, target_namespace):
         {"id": "9", "values": emb()},
     ]
     logger.info(f"Upserting {len(dict_vectors)} vectors")
-    response3 = await asyncio_idx.upsert(vectors=dict_vectors, namespace=target_namespace)
-    if hasattr(response3, "_response_info") and response3._response_info:
-        committed_lsn3 = response3._response_info.get("lsn_committed")
-        # Assert that _response_info is present when we extract LSN
-        assert (
-            response3._response_info is not None
-        ), "Expected _response_info to be present on upsert response"
-        if committed_lsn3 is not None:
-            committed_lsn = committed_lsn3
+    upsert3 = await asyncio_idx.upsert(vectors=dict_vectors, namespace=target_namespace)
 
-    # Use LSN-based polling if available, otherwise fallback to stats polling
-    if committed_lsn is not None:
-        logger.info(f"Using LSN-based polling, LSN: {committed_lsn}")
-
-        async def check_vector_count():
-            stats = await asyncio_idx.describe_index_stats()
-            if target_namespace == "":
-                return stats.total_vector_count >= 9
-            else:
-                return (
-                    target_namespace in stats.namespaces
-                    and stats.namespaces[target_namespace].vector_count >= 9
-                )
-
-        await poll_until_lsn_reconciled_async(
-            asyncio_idx, committed_lsn, operation_name="test_query", check_fn=check_vector_count
-        )
-    else:
-        logger.info("LSN not available, falling back to stats polling")
-        await poll_for_freshness(asyncio_idx, target_namespace, 9)
+    await poll_until_lsn_reconciled_async(
+        asyncio_idx,
+        target_lsn=upsert1._response_info.get("lsn_committed"),
+        namespace=target_namespace,
+    )
+    await poll_until_lsn_reconciled_async(
+        asyncio_idx,
+        target_lsn=upsert2._response_info.get("lsn_committed"),
+        namespace=target_namespace,
+    )
+    await poll_until_lsn_reconciled_async(
+        asyncio_idx,
+        target_lsn=upsert3._response_info.get("lsn_committed"),
+        namespace=target_namespace,
+    )
 
     # Check the vector count reflects some data has been upserted
     stats = await asyncio_idx.describe_index_stats()
     logger.info(f"Index stats: {stats}")
-    assert stats.total_vector_count >= 9
-    # default namespace could have other stuff from other tests
-    if target_namespace != "":
-        assert stats.namespaces[target_namespace].vector_count == 9
+    assert stats.namespaces[target_namespace].vector_count == 9
 
     results1 = await asyncio_idx.query(top_k=4, namespace=target_namespace, vector=emb())
     logger.info(f"Results 1: {results1}")

@@ -135,12 +135,20 @@ def model_index_host(model_index_name):
     pc.delete_index(model_index_name, -1)
 
 
+async def get_query_response(asyncio_idx, namespace: str, dimension: Optional[int] = None):
+    if dimension is not None:
+        return await asyncio_idx.query(top_k=1, vector=[0.0] * dimension, namespace=namespace)
+    else:
+        from pinecone import SparseValues
+
+        response = await asyncio_idx.query(
+            top_k=1, namespace=namespace, sparse_vector=SparseValues(indices=[0], values=[1.0])
+        )
+        return response
+
+
 async def poll_until_lsn_reconciled_async(
-    asyncio_idx,
-    target_lsn: Optional[int],
-    operation_name: str = "read",
-    max_wait_time: int = 60 * 3,
-    check_fn: Optional[Callable[[], Awaitable[bool]]] = None,
+    asyncio_idx, target_lsn: int, namespace: str, max_wait_time: int = 60 * 3
 ) -> None:
     """Poll until a target LSN has been reconciled using LSN headers (async).
 
@@ -150,17 +158,12 @@ async def poll_until_lsn_reconciled_async(
     Args:
         asyncio_idx: The async index client to use for polling
         target_lsn: The LSN value to wait for (from a write operation)
-        operation_name: Name of the operation being checked (for logging)
+        namespace: The namespace to wait for
         max_wait_time: Maximum time to wait in seconds
-        check_fn: Optional additional async check function that must return True
 
     Raises:
         TimeoutError: If the LSN is not reconciled within max_wait_time seconds
     """
-    if target_lsn is None:
-        logger.debug("No target LSN provided, cannot use LSN-based polling")
-        return
-
     # Get index dimension for query vector (once, not every iteration)
     dimension = None
     try:
@@ -176,70 +179,29 @@ async def poll_until_lsn_reconciled_async(
     while not done:
         logger.debug(
             f"Polling for LSN reconciliation (async). Target LSN: {target_lsn}, "
-            f"operation: {operation_name}, total time: {total_time}s"
+            f"namespace: {namespace}, total time: {total_time}s"
         )
 
         # Try query as a lightweight operation to check LSN
         # Query operations return x-pinecone-max-indexed-lsn header
-        if dimension is not None:
-            try:
-                from pinecone.db_data.request_factory import IndexRequestFactory
-                from tests.integration.helpers.lsn_utils import is_lsn_reconciled
+        try:
+            from tests.integration.helpers.lsn_utils import is_lsn_reconciled
 
-                # Use a minimal query to get headers (this is more efficient than describe_index_stats)
-                request = IndexRequestFactory.query_request(
-                    top_k=1,
-                    vector=[0.0] * dimension,  # Zero vector matching index dimension
-                    namespace="",
+            # Use a minimal query to get headers (this is more efficient than describe_index_stats)
+            response = await get_query_response(asyncio_idx, namespace, dimension)
+            reconciled_lsn = response._response_info.get("lsn_reconciled")
+
+            logger.debug(f"Current reconciled LSN: {reconciled_lsn}, target: {target_lsn}")
+            if is_lsn_reconciled(target_lsn, reconciled_lsn):
+                # LSN is reconciled, check if additional condition is met
+                done = True
+                logger.debug(f"LSN {target_lsn} is reconciled after {total_time}s")
+            else:
+                logger.debug(
+                    f"LSN not yet reconciled. Reconciled: {reconciled_lsn}, target: {target_lsn}"
                 )
-                response = await asyncio_idx._vector_api.query_vectors(request)
-                reconciled_lsn = None
-                if hasattr(response, "_response_info") and response._response_info:
-                    reconciled_lsn = response._response_info.get("lsn_reconciled")
-
-                if reconciled_lsn is not None:
-                    logger.debug(f"Current reconciled LSN: {reconciled_lsn}, target: {target_lsn}")
-                    if is_lsn_reconciled(target_lsn, reconciled_lsn):
-                        # LSN is reconciled, check if additional condition is met
-                        if check_fn is None:
-                            done = True
-                        else:
-                            if asyncio.iscoroutinefunction(check_fn):
-                                if await check_fn():
-                                    done = True
-                            else:
-                                if check_fn():
-                                    done = True
-                        if done:
-                            logger.debug(f"LSN {target_lsn} is reconciled after {total_time}s")
-                    else:
-                        logger.debug(
-                            f"LSN not yet reconciled. Reconciled: {reconciled_lsn}, "
-                            f"target: {target_lsn}"
-                        )
-                else:
-                    # LSN headers not available, fallback to check_fn or return
-                    logger.debug("LSN headers not available in response")
-                    if check_fn is not None:
-                        if asyncio.iscoroutinefunction(check_fn):
-                            if await check_fn():
-                                done = True
-                        else:
-                            if check_fn():
-                                done = True
-            except Exception as e:
-                logger.debug(f"Error checking LSN: {e}")
-                # Fall through to check_fn fallback
-
-        # If dimension is None or LSN check failed, fallback to check_fn
-        if not done and dimension is None:
-            if check_fn is not None:
-                if asyncio.iscoroutinefunction(check_fn):
-                    if await check_fn():
-                        done = True
-                else:
-                    if check_fn():
-                        done = True
+        except Exception as e:
+            logger.debug(f"Error checking LSN: {e}")
 
         if not done:
             if total_time >= max_wait_time:
@@ -248,40 +210,6 @@ async def poll_until_lsn_reconciled_async(
                 )
             total_time += delta_t
             await asyncio.sleep(delta_t)
-
-
-async def poll_for_freshness(asyncio_idx, target_namespace, target_vector_count):
-    max_wait_time = 60 * 3  # 3 minutes
-    time_waited = 0
-    wait_per_iteration = 5
-
-    while True:
-        stats = await asyncio_idx.describe_index_stats()
-        logger.debug(
-            "Polling for freshness on index %s. Current vector count: %s. Waiting for: %s",
-            asyncio_idx,
-            stats.total_vector_count,
-            target_vector_count,
-        )
-        if target_namespace == "":
-            if stats.total_vector_count >= target_vector_count:
-                break
-        else:
-            if (
-                target_namespace in stats.namespaces
-                and stats.namespaces[target_namespace].vector_count >= target_vector_count
-            ):
-                break
-        time_waited += wait_per_iteration
-        if time_waited >= max_wait_time:
-            raise TimeoutError(
-                "Timeout waiting for index to have expected vector count of {}".format(
-                    target_vector_count
-                )
-            )
-        await asyncio.sleep(wait_per_iteration)
-
-    return stats
 
 
 async def wait_until(

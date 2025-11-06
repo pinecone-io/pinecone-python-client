@@ -1,7 +1,7 @@
 import pytest
 import logging
 from ..helpers import random_string, embedding_values
-from .conftest import build_asyncioindex_client, poll_for_freshness
+from .conftest import build_asyncioindex_client, poll_until_lsn_reconciled_async
 
 from pinecone import RerankModel, PineconeApiException
 
@@ -52,9 +52,15 @@ class TestUpsertAndSearchRecords:
         model_idx = build_asyncioindex_client(model_index_host)
 
         target_namespace = random_string(10)
-        await model_idx.upsert_records(namespace=target_namespace, records=records_to_upsert)
+        upsert1 = await model_idx.upsert_records(
+            namespace=target_namespace, records=records_to_upsert
+        )
 
-        await poll_for_freshness(model_idx, target_namespace, len(records_to_upsert))
+        await poll_until_lsn_reconciled_async(
+            model_idx,
+            target_lsn=upsert1._response_info.get("lsn_committed"),
+            namespace=target_namespace,
+        )
 
         response = await model_idx.search_records(
             namespace=target_namespace, query={"inputs": {"text": "Apple corporation"}, "top_k": 3}
@@ -95,9 +101,15 @@ class TestUpsertAndSearchRecords:
         model_idx = build_asyncioindex_client(model_index_host)
 
         target_namespace = random_string(10)
-        await model_idx.upsert_records(namespace=target_namespace, records=records_to_upsert)
+        upsert1 = await model_idx.upsert_records(
+            namespace=target_namespace, records=records_to_upsert
+        )
 
-        await poll_for_freshness(model_idx, target_namespace, len(records_to_upsert))
+        await poll_until_lsn_reconciled_async(
+            model_idx,
+            target_lsn=upsert1._response_info.get("lsn_committed"),
+            namespace=target_namespace,
+        )
 
         # Search for similar records
         search_query = {"top_k": 3, "vector": {"values": embedding_values(model_index_dimension)}}
@@ -114,9 +126,15 @@ class TestUpsertAndSearchRecords:
     async def test_search_with_rerank(self, model_index_host, records_to_upsert, rerank_model):
         model_idx = build_asyncioindex_client(model_index_host)
         target_namespace = random_string(10)
-        await model_idx.upsert_records(namespace=target_namespace, records=records_to_upsert)
+        upsert1 = await model_idx.upsert_records(
+            namespace=target_namespace, records=records_to_upsert
+        )
 
-        await poll_for_freshness(model_idx, target_namespace, len(records_to_upsert))
+        await poll_until_lsn_reconciled_async(
+            model_idx,
+            target_lsn=upsert1._response_info.get("lsn_committed"),
+            namespace=target_namespace,
+        )
 
         # Search for similar records
         response = await model_idx.search_records(
@@ -141,10 +159,15 @@ class TestUpsertAndSearchRecords:
     async def test_search_with_rerank_query(self, model_index_host, records_to_upsert):
         model_idx = build_asyncioindex_client(model_index_host)
         target_namespace = random_string(10)
-        await model_idx.upsert_records(namespace=target_namespace, records=records_to_upsert)
+        upsert1 = await model_idx.upsert_records(
+            namespace=target_namespace, records=records_to_upsert
+        )
 
-        # Sleep for freshness
-        await poll_for_freshness(model_idx, target_namespace, len(records_to_upsert))
+        await poll_until_lsn_reconciled_async(
+            model_idx,
+            target_lsn=upsert1._response_info.get("lsn_committed"),
+            namespace=target_namespace,
+        )
 
         # Search for similar records
         response = await model_idx.search_records(
@@ -167,9 +190,15 @@ class TestUpsertAndSearchRecords:
 
         model_idx = build_asyncioindex_client(model_index_host)
         target_namespace = random_string(10)
-        await model_idx.upsert_records(namespace=target_namespace, records=records_to_upsert)
+        upsert1 = await model_idx.upsert_records(
+            namespace=target_namespace, records=records_to_upsert
+        )
 
-        await poll_for_freshness(model_idx, target_namespace, len(records_to_upsert))
+        await poll_until_lsn_reconciled_async(
+            model_idx,
+            target_lsn=upsert1._response_info.get("lsn_committed"),
+            namespace=target_namespace,
+        )
 
         # Search with match_terms using dict
         query_dict = {
@@ -197,9 +226,15 @@ class TestUpsertAndSearchRecords:
 
         model_idx = build_asyncioindex_client(model_index_host)
         target_namespace = random_string(10)
-        await model_idx.upsert_records(namespace=target_namespace, records=records_to_upsert)
+        upsert1 = await model_idx.upsert_records(
+            namespace=target_namespace, records=records_to_upsert
+        )
 
-        await poll_for_freshness(model_idx, target_namespace, len(records_to_upsert))
+        await poll_until_lsn_reconciled_async(
+            model_idx,
+            target_lsn=upsert1._response_info.get("lsn_committed"),
+            namespace=target_namespace,
+        )
 
         # Search with match_terms using SearchQuery dataclass
         query = SearchQuery(
@@ -229,9 +264,15 @@ class TestUpsertAndSearchRecordsErrorCases:
     ):
         model_idx = build_asyncioindex_client(model_index_host)
         target_namespace = random_string(10)
-        await model_idx.upsert_records(namespace=target_namespace, records=records_to_upsert)
+        upsert1 = await model_idx.upsert_records(
+            namespace=target_namespace, records=records_to_upsert
+        )
 
-        await poll_for_freshness(model_idx, target_namespace, len(records_to_upsert))
+        await poll_until_lsn_reconciled_async(
+            model_idx,
+            target_lsn=upsert1._response_info.get("lsn_committed"),
+            namespace=target_namespace,
+        )
 
         with pytest.raises(PineconeApiException, match=r"Model 'non-existent-model' not found"):
             await model_idx.search_records(
@@ -242,25 +283,5 @@ class TestUpsertAndSearchRecordsErrorCases:
                     "rank_fields": ["my_text_field"],
                     "top_n": 3,
                 },
-            )
-        await model_idx.close()
-
-    @pytest.mark.skip(reason="Possible bug in the API")
-    async def test_search_with_rerank_empty_rank_fields_error(
-        self, model_index_host, records_to_upsert
-    ):
-        model_idx = build_asyncioindex_client(model_index_host)
-        target_namespace = random_string(10)
-        await model_idx.upsert_records(namespace=target_namespace, records=records_to_upsert)
-
-        await poll_for_freshness(model_idx, target_namespace, len(records_to_upsert))
-
-        with pytest.raises(
-            PineconeApiException, match=r"Only one rank field is supported for model"
-        ):
-            await model_idx.search_records(
-                namespace="test-namespace",
-                query={"inputs": {"text": "Apple corporation"}, "top_k": 3},
-                rerank={"model": "bge-reranker-v2-m3", "rank_fields": [], "top_n": 3},
             )
         await model_idx.close()

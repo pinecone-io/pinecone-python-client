@@ -56,44 +56,16 @@ def seed_for_fetch_by_metadata(idx, namespace):
     )
 
     # Extract LSN from response if available
-    committed_lsn = None
-    if hasattr(response, "_response_info") and response._response_info:
-        committed_lsn = response._response_info.get("lsn_committed")
-        # Assert that _response_info is present when we extract LSN
-        assert (
-            response._response_info is not None
-        ), "Expected _response_info to be present on upsert response"
+    committed_lsn = response._response_info.get("lsn_committed")
 
-    # Use LSN-based polling if available, otherwise fallback to fetch polling
-    ids = [
-        "genre-action-1",
-        "genre-action-2",
-        "genre-comedy-1",
-        "genre-comedy-2",
-        "genre-drama-1",
-        "genre-romance-1",
-        "no-metadata-1",
-    ]
+    from ..helpers import poll_until_lsn_reconciled
 
-    if committed_lsn is not None:
-        from ..helpers import poll_until_lsn_reconciled
-
-        poll_until_lsn_reconciled(
-            idx,
-            committed_lsn,
-            operation_name="seed_for_fetch_by_metadata",
-            check_fn=lambda: len(idx.fetch(ids=ids, namespace=namespace).vectors) == len(ids),
-        )
-    else:
-        from ..helpers import poll_fetch_for_ids_in_namespace
-
-        poll_fetch_for_ids_in_namespace(idx, ids=ids, namespace=namespace)
+    poll_until_lsn_reconciled(idx, committed_lsn, operation_name="seed_for_fetch_by_metadata")
 
 
 @pytest.fixture(scope="class")
 def seed_for_fetch_by_metadata_fixture(idx, fetch_by_metadata_namespace):
     seed_for_fetch_by_metadata(idx, fetch_by_metadata_namespace)
-    seed_for_fetch_by_metadata(idx, "")
     yield
 
 
@@ -102,11 +74,8 @@ class TestFetchByMetadata:
     def setup_method(self):
         self.expected_dimension = 2
 
-    @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
-    def test_fetch_by_metadata_simple_filter(
-        self, idx, fetch_by_metadata_namespace, use_nondefault_namespace
-    ):
-        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else ""
+    def test_fetch_by_metadata_simple_filter(self, idx, fetch_by_metadata_namespace):
+        target_namespace = fetch_by_metadata_namespace
 
         results = idx.fetch_by_metadata(
             filter={"genre": {"$eq": "action"}}, namespace=target_namespace

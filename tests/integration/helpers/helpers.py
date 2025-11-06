@@ -177,16 +177,13 @@ def poll_until_lsn_reconciled(
         # Query operations return x-pinecone-max-indexed-lsn header
         if dimension is not None:
             try:
-                from pinecone.db_data.request_factory import IndexRequestFactory
-
                 # Use a minimal query to get headers (this is more efficient than describe_index_stats)
                 # We'll use a zero vector query, but we only care about headers
-                request = IndexRequestFactory.query_request(
+                response = idx.query(
                     top_k=1,
                     vector=[0.0] * dimension,  # Zero vector matching index dimension
                     namespace="",
                 )
-                response = idx._vector_api.query_vectors(request)
                 reconciled_lsn = None
                 if hasattr(response, "_response_info") and response._response_info:
                     reconciled_lsn = response._response_info.get("lsn_reconciled")
