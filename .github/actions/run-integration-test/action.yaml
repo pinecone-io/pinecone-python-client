@@ -69,6 +69,5 @@ runs:
         PINECONE_CLIENT_ID: ${{ inputs.client_id }}
         PINECONE_CLIENT_SECRET: ${{ inputs.client_secret }}
         USE_GRPC: ${{ inputs.use_grpc }}
-        SKIP_WEIRD: 'true'
         INDEX_HOST_DENSE: ${{ inputs.INDEX_HOST_DENSE }}
         INDEX_HOST_SPARSE: ${{ inputs.INDEX_HOST_SPARSE }}
