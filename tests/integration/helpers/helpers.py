@@ -84,6 +84,56 @@ def get_query_response(idx, namespace: str, dimension: Optional[int] = None):
         return response
 
 
+def poll_stats_for_namespace(
+    idx: _Index, namespace: str, expected_count: int, max_wait_time: int = 60 * 3
+):
+    """
+    Polls until a namespace has the expected vector count.
+
+    Args:
+        idx: The index to poll
+        namespace: The namespace to check
+        expected_count: The expected vector count
+        max_wait_time: Maximum time to wait in seconds
+
+    Returns:
+        The index stats when the expected count is reached
+
+    Raises:
+        TimeoutError: If the expected count is not reached within max_wait_time seconds
+    """
+    time_waited = 0
+    wait_per_iteration = 5
+    while True:
+        stats = idx.describe_index_stats()
+        if namespace == "":
+            namespace_key = "__default__" if "__default__" in stats.namespaces else ""
+        else:
+            namespace_key = namespace
+
+        current_count = 0
+        if namespace_key in stats.namespaces:
+            current_count = stats.namespaces[namespace_key].vector_count
+
+        logger.debug(
+            "Polling for namespace %s. Current vector count: %s. Waiting for: %s",
+            namespace,
+            current_count,
+            expected_count,
+        )
+
+        if namespace_key in stats.namespaces and current_count >= expected_count:
+            break
+
+        time_waited += wait_per_iteration
+        if time_waited >= max_wait_time:
+            raise TimeoutError(
+                f"Timeout waiting for namespace {namespace} to have expected vector count of {expected_count}"
+            )
+        time.sleep(wait_per_iteration)
+    return stats
+
+
 def poll_until_lsn_reconciled(
     idx: _Index,
     response_info: Dict[str, Any],
