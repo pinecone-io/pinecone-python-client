@@ -8,35 +8,18 @@ on:
       python_versions_json:
         required: true
         type: string
-      rest_sync_suites_json:
-        required: false
-        type: string
-        description: 'JSON array of REST sync test suites to run (if not provided, runs all)'
-      rest_asyncio_suites_json:
-        required: false
-        type: string
-        description: 'JSON array of REST asyncio test suites to run (if not provided, runs all)'
-      grpc_sync_suites_json:
-        required: false
-        type: string
-        description: 'JSON array of gRPC sync test suites to run (if not provided, runs all)'
-      admin_suites_json:
-        required: false
-        type: string
-        description: 'JSON array of admin test suites to run (if not provided, runs all)'
 
 permissions: {}
 
 jobs:
-  rest-sync:
-    name: rest ${{ matrix.python_version }} ${{ matrix.test_suite }}
+  rest_sync:
+    name: rest ${{ matrix.python_version }}
     runs-on: ubuntu-latest
-    if: ${{ inputs.rest_sync_suites_json == '' || (inputs.rest_sync_suites_json != '' && fromJson(inputs.rest_sync_suites_json)[0] != null) }}
     strategy:
       fail-fast: false
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite: ${{ inputs.rest_sync_suites_json != '' && fromJson(inputs.rest_sync_suites_json) || fromJson('["control/serverless", "control/resources/index", "control/resources/collections", "inference/sync", "plugins", "data"]') }}
+        split_group_to_run: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
@@ -49,74 +32,8 @@ jobs:
         with:
           encrypted_project_api_key: '${{ inputs.encrypted_project_api_key }}'
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
-          test_suite: '${{ matrix.test_suite }}'
-
-
-  rest-asyncio:
-    name: asyncio ${{ matrix.python_version }} ${{ matrix.test_suite }}
-    runs-on: ubuntu-latest
-    if: ${{ inputs.rest_asyncio_suites_json == '' || (inputs.rest_asyncio_suites_json != '' && fromJson(inputs.rest_asyncio_suites_json)[0] != null) }}
-    strategy:
-      fail-fast: false
-      matrix:
-        python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite: ${{ inputs.rest_asyncio_suites_json != '' && fromJson(inputs.rest_asyncio_suites_json) || fromJson('["control_asyncio/resources/index", "control_asyncio/*.py", "inference/asyncio", "data_asyncio"]') }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
-        with:
-          include_asyncio: true
-          include_grpc: false
-          python_version: '${{ matrix.python_version }}'
-      - uses: ./.github/actions/run-integration-test
-        with:
-          encrypted_project_api_key: '${{ inputs.encrypted_project_api_key }}'
-          encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
-          test_suite: '${{ matrix.test_suite }}'
-
-  grpc-sync:
-    name: grpc sync ${{ matrix.python_version }} ${{ matrix.test_suite }}
-    runs-on: ubuntu-latest
-    if: ${{ inputs.grpc_sync_suites_json == '' || (inputs.grpc_sync_suites_json != '' && fromJson(inputs.grpc_sync_suites_json)[0] != null) }}
-    strategy:
-      fail-fast: false
-      matrix:
-        python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite: ${{ inputs.grpc_sync_suites_json != '' && fromJson(inputs.grpc_sync_suites_json) || fromJson('["data", "data_grpc_futures"]') }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
-        with:
-          include_grpc: true
-          include_asyncio: false
-          python_version: '${{ matrix.python_version }}'
-      - uses: ./.github/actions/run-integration-test
-        with:
-          encrypted_project_api_key: '${{ inputs.encrypted_project_api_key }}'
-          encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
-          test_suite: '${{ matrix.test_suite }}'
-          use_grpc: 'true'
-
-  admin:
-    name: admin ${{ matrix.python_version }}
-    runs-on: ubuntu-latest
-    if: ${{ inputs.admin_suites_json == '' || (inputs.admin_suites_json != '' && fromJson(inputs.admin_suites_json)[0] != null) }}
-    strategy:
-      fail-fast: false
-      matrix:
-        python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite: ${{ inputs.admin_suites_json != '' && fromJson(inputs.admin_suites_json) || fromJson('["admin"]') }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
-        with:
-          include_grpc: false
-          include_asyncio: false
-          python_version: '${{ matrix.python_version }}'
-      - run: poetry run pytest tests/integration/${{ matrix.test_suite }} --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
-        env:
+          test_suite: 'tests/integration/rest_sync'
+          total_num_split_groups: 5
+          split_group_to_run: ${{ matrix.split_group_to_run }}
           PINECONE_CLIENT_ID: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
           PINECONE_CLIENT_SECRET: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}

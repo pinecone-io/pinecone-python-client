@@ -19,7 +19,21 @@ inputs:
     description: 'Whether to use gRPC or REST'
     required: false
     default: 'false'
-
+  PINECONE_CLIENT_ID:
+    description: 'The client ID to use for admin tests'
+    required: false
+  PINECONE_CLIENT_SECRET:
+    description: 'The client secret to use for admin tests'
+    required: false
+  durations_file:
+    description: 'Metadata file used to calculate splits'
+    required: false
+  total_num_split_groups:
+    description: 'Number of split groups'
+    required: true
+  split_group_to_run:
+    description: 'The split group to run in this build'
+    required: true
 runs:
   using: 'composite'
   steps:
@@ -33,9 +47,19 @@ runs:
     - name: Run tests
       id: run-tests
       shell: bash
-      run: poetry run pytest tests/integration/${{ inputs.test_suite }} --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG --durations=20
+      run: |
+        poetry run pytest ${{ inputs.test_suite }} \
+          --retries 2 \
+          --retry-delay 35 \
+          --log-cli-level=DEBUG \
+          --durations-path=${{ inputs.durations_file }} \
+          --splits=${{ inputs.total_num_split_groups }} \
+          --group=${{ inputs.split_group_to_run }} \
+          -s -vv
       env:
         PINECONE_API_KEY: ${{ steps.decrypt-api-key.outputs.decrypted_secret }}
         PINECONE_ADDITIONAL_HEADERS: ${{ inputs.PINECONE_ADDITIONAL_HEADERS }}
+        PINECONE_CLIENT_ID: ${{ inputs.client_id }}
+        PINECONE_CLIENT_SECRET: ${{ inputs.client_secret }}
         USE_GRPC: ${{ inputs.use_grpc }}
         SKIP_WEIRD: 'true'
