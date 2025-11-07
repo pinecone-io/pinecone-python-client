@@ -1,5 +1,5 @@
 import pytest
-from pinecone import ByocSpec, ServerlessSpec
+from pinecone import ByocSpec, ServerlessSpec, CloudProvider, AwsRegion  # type: ignore[attr-defined]
 from pinecone.db_control.request_factory import PineconeDBControlRequestFactory
 
 
@@ -39,6 +39,22 @@ class TestIndexRequestFactory:
             metric="cosine",
             dimension=1024,
             spec={"serverless": {"cloud": "aws", "region": "us-east-1"}},
+        )
+        assert req.name == "test-index"
+        assert req.metric == "cosine"
+        assert req.dimension == 1024
+        assert req.spec.serverless.cloud == "aws"
+        assert req.spec.serverless.region == "us-east-1"
+        assert req.vector_type == "dense"
+        assert req.deletion_protection == "disabled"
+
+    def test_create_index_request_with_spec_serverless_dict_enums(self):
+        """Test that dict format with enum values is correctly converted to request body."""
+        req = PineconeDBControlRequestFactory.create_index_request(
+            name="test-index",
+            metric="cosine",
+            dimension=1024,
+            spec={"serverless": {"cloud": CloudProvider.AWS, "region": AwsRegion.US_EAST_1}},
         )
         assert req.name == "test-index"
         assert req.metric == "cosine"

@@ -118,51 +118,12 @@ class TestUpsertFailsSparseValuesDimensionMismatch:
             )
 
 
-class TestUpsertFailsWhenValuesMissing:
-    def test_upsert_fails_when_values_missing_objects(self, idx):
-        with pytest.raises(ValueError):
-            idx.upsert(vectors=[Vector(id="1"), Vector(id="2")])
-
-    def test_upsert_fails_when_values_missing_tuples(self, idx):
-        with pytest.raises(ValueError):
-            idx.upsert(vectors=[("1",), ("2",)])
-
-    def test_upsert_fails_when_values_missing_dicts(self, idx):
-        with pytest.raises(ValueError):
-            idx.upsert(vectors=[{"id": "1"}, {"id": "2"}])
-
-
-class TestUpsertFailsWhenValuesWrongType:
-    def test_upsert_fails_when_values_wrong_type_objects(self, idx):
-        with pytest.raises(Exception):
-            idx.upsert(vectors=[Vector(id="1", values="abc"), Vector(id="2", values="def")])
-
-    def test_upsert_fails_when_values_wrong_type_tuples(self, idx):
-        if os.environ.get("USE_GRPC", "false") == "true":
-            expected_exception = TypeError
-        else:
-            expected_exception = PineconeException
-
-        with pytest.raises(expected_exception):
-            idx.upsert(vectors=[("1", "abc"), ("2", "def")])
-
-    def test_upsert_fails_when_values_wrong_type_dicts(self, idx):
-        with pytest.raises(TypeError):
-            idx.upsert(vectors=[{"id": "1", "values": "abc"}, {"id": "2", "values": "def"}])
-
-
 class TestUpsertFailsWhenVectorsMissing:
+    # Note: test_upsert_fails_when_vectors_empty remains as integration test
+    # because empty list validation happens at OpenAPI/API level
     def test_upsert_fails_when_vectors_empty(self, idx):
         with pytest.raises(PineconeException):
             idx.upsert(vectors=[])
-
-    def test_upsert_fails_when_vectors_wrong_type(self, idx):
-        with pytest.raises(ValueError):
-            idx.upsert(vectors="abc")
-
-    def test_upsert_fails_when_vectors_missing(self, idx):
-        with pytest.raises(TypeError):
-            idx.upsert()
 
 
 class TestUpsertIdMissing:
