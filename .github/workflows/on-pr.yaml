@@ -46,29 +46,18 @@ jobs:
     needs:
       - unit-tests
 
-  shared-fixtures-create:
-    uses: './.github/workflows/shared-fixtures-create.yaml'
-    secrets: inherit
-    needs:
-      - unit-tests
-      - create-project
-    with:
-      encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
-      python_versions_json: '["3.10"]'
-
   integration-tests:
     if: always() && (needs.unit-tests.result == 'success' && needs.create-project.result == 'success')
     uses: './.github/workflows/testing-integration.yaml'
     secrets: inherit
     needs:
-      - shared-fixtures-create
       - unit-tests
       - create-project
     with:
       encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
       python_versions_json: '["3.10"]'
-      dense_index_host: ${{ needs.shared-fixtures-create.outputs.index_host_dense }}
-      sparse_index_host: ${{ needs.shared-fixtures-create.outputs.index_host_sparse }}
+      dense_index_host: ${{ needs.create-project.outputs.index_host_dense }}
+      sparse_index_host: ${{ needs.create-project.outputs.index_host_sparse }}
 
   cleanup-project:
     if: ${{ always() }}

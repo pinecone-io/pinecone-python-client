@@ -62,30 +62,6 @@ class TestCollectionErrorCases:
             )
         assert "Index and collection must have the same dimension" in str(e.value)
 
-    # def test_create_index_from_notready_collection(self, client, ready_index, random_vector, dimension, metric, environment):
-    #     index = client.Index(ready_index)
-    #     num_vectors = 10
-    #     vectors = [ (str(i), random_vector()) for i in range(num_vectors) ]
-    #     index.upsert(vectors=vectors)
-
-    #     collection_name = 'coll-notready-' + random_string()
-    #     client.create_collection(name=collection_name, source=ready_index)
-
-    #     # Not doing any waiting for collection to be ready
-
-    #     with pytest.raises(Exception) as e:
-    #         client.create_index(
-    #             name='coll-notready-idx-' + random_string(),
-    #             dimension=dimension,
-    #             metric=metric,
-    #             spec=PodSpec(
-    #                 environment=environment,
-    #                 source_collection=collection_name
-    #             )
-    #         )
-    #     client.delete_collection(collection_name)
-    #     assert 'Source collection is not ready' in str(e.value)
-
     def test_create_collection_from_not_ready_index(self, client, notready_index):
         name = generate_collection_name("coll3")
         with pytest.raises(Exception) as e:

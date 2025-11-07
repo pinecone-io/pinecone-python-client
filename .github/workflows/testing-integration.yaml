@@ -27,7 +27,7 @@ jobs:
       fail-fast: false
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
-        split_group_to_run: [1, 2, 3, 4, 5, 6, 7, 8]
+        split_group_to_run: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
@@ -41,7 +41,7 @@ jobs:
           encrypted_project_api_key: '${{ inputs.encrypted_project_api_key }}'
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
           test_suite: 'tests/integration/rest_sync'
-          total_num_split_groups: 8
+          total_num_split_groups: 12
           durations_file: '.durations_rest_sync'
           split_group_to_run: ${{ matrix.split_group_to_run }}
           PINECONE_CLIENT_ID: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
