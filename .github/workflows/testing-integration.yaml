@@ -38,3 +38,57 @@ jobs:
           split_group_to_run: ${{ matrix.split_group_to_run }}
           PINECONE_CLIENT_ID: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
           PINECONE_CLIENT_SECRET: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}
+
+  rest_asyncio:
+    name: rest_asyncio ${{ matrix.python_version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python_version: ${{ fromJson(inputs.python_versions_json) }}
+        split_group_to_run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+        with:
+          include_asyncio: true
+          include_grpc: false
+          python_version: '${{ matrix.python_version }}'
+      - uses: ./.github/actions/run-integration-test
+        with:
+          encrypted_project_api_key: '${{ inputs.encrypted_project_api_key }}'
+          encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
+          test_suite: 'tests/integration/rest_asyncio'
+          total_num_split_groups: 20
+          durations_file: '.durations_rest_sync'
+          split_group_to_run: ${{ matrix.split_group_to_run }}
+          PINECONE_CLIENT_ID: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
+          PINECONE_CLIENT_SECRET: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}
+
+  grpc:
+    name: grpc ${{ matrix.python_version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python_version: ${{ fromJson(inputs.python_versions_json) }}
+        split_group_to_run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+        with:
+          include_asyncio: false
+          include_grpc: true
+          python_version: '${{ matrix.python_version }}'
+      - uses: ./.github/actions/run-integration-test
+        with:
+          encrypted_project_api_key: '${{ inputs.encrypted_project_api_key }}'
+          encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
+          test_suite: 'tests/integration/grpc'
+          total_num_split_groups: 20
+          durations_file: '.durations_rest_sync'
+          split_group_to_run: ${{ matrix.split_group_to_run }}
+          PINECONE_CLIENT_ID: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
+          PINECONE_CLIENT_SECRET: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}
