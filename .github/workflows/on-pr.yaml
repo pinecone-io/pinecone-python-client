@@ -56,10 +56,6 @@ jobs:
     with:
       encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
       python_versions_json: '["3.10"]'
-      rest_sync_suites_json: ''
-      rest_asyncio_suites_json: ''
-      grpc_sync_suites_json: ''
-      admin_suites_json: ''
 
   cleanup-project:
     if: ${{ always() }}
