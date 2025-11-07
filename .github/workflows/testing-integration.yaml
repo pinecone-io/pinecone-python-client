@@ -8,6 +8,14 @@ on:
       python_versions_json:
         required: true
         type: string
+      dense_index_host:
+        required: true
+        type: string
+        description: 'The host of a dense index for db data tests'
+      sparse_index_host:
+        required: true
+        type: string
+        description: 'The host of the sparse index for db data tests'
 
 permissions: {}
 
@@ -19,7 +27,7 @@ jobs:
       fail-fast: false
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
-        split_group_to_run: [1, 2]
+        split_group_to_run: [4, 5]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
@@ -46,7 +54,7 @@ jobs:
       fail-fast: false
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
-        split_group_to_run: [1, 2]
+        split_group_to_run: [4, 5]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
@@ -73,7 +81,7 @@ jobs:
       fail-fast: false
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
-        split_group_to_run: [1, 2]
+        split_group_to_run: [4, 5]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry

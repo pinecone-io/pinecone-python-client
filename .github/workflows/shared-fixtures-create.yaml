@@ -1,0 +1,74 @@
+name: Create Shared Fixtures
+
+on:
+  workflow_call:
+    inputs:
+      encrypted_project_api_key:
+        required: true
+        type: string
+      python_versions_json:
+        required: true
+        type: string
+
+    outputs:
+      index_name_dense:
+        description: 'The name of the dense index'
+        value: ${{ jobs.create-fixtures.outputs.index_name_dense }}
+      index_host_dense:
+        description: 'The host of the dense index'
+        value: ${{ jobs.create-fixtures.outputs.index_host_dense }}
+      index_name_sparse:
+        description: 'The name of the sparse index'
+        value: ${{ jobs.create-fixtures.outputs.index_name_sparse }}
+      index_host_sparse:
+        description: 'The host of the sparse index'
+        value: ${{ jobs.create-fixtures.outputs.index_host_sparse }}
+
+permissions: {}
+
+jobs:
+  create-fixtures:
+    runs-on: ubuntu-latest
+    outputs:
+        index_name_dense: ${{ steps.create-index-dense.outputs.index_name }}
+        index_host_dense: ${{ steps.create-index-dense.outputs.index_host }}
+        index_name_sparse: ${{ steps.create-index-sparse.outputs.index_name }}
+        index_host_sparse: ${{ steps.create-index-sparse.outputs.index_host }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Poetry
+        uses: ./.github/actions/setup-poetry
+        with:
+          python_version: '3.10'
+
+      - name: Decrypt Pinecone API key
+        id: decrypt-api-key
+        uses: ./.github/actions/secret-decrypt
+        with:
+          encrypted_secret: ${{ inputs.encrypted_project_api_key }}
+          encryption_key: ${{ secrets.FERNET_ENCRYPTION_KEY }}
+
+      - name: Create dense index
+        id: create-index-dense
+        uses: ./.github/actions/index-create
+        with:
+          PINECONE_API_KEY: ${{ steps.decrypt-api-key.outputs.decrypted_secret }}
+          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
+          name_prefix: 'shared'
+          region: 'us-central1'
+          cloud: 'gcp'
+          dimension: '2'
+          metric: 'cosine'
+          vector_type: 'dense'
+
+      - name: Create sparse index
+        id: create-index-sparse
+        uses: ./.github/actions/index-create
+        with:
+          PINECONE_API_KEY: ${{ steps.decrypt-api-key.outputs.decrypted_secret }}
+          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
+          name_prefix: 'shared'
+          region: 'us-central1'
+          cloud: 'gcp'
+          vector_type: 'sparse'
+          metric: 'dotproduct'

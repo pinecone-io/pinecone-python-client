@@ -34,6 +34,13 @@ inputs:
   split_group_to_run:
     description: 'The split group to run in this build'
     required: true
+  INDEX_HOST_DENSE:
+    description: 'The host of the dense index for db data tests'
+    required: false
+  INDEX_HOST_SPARSE:
+    description: 'The host of the sparse index for db data tests'
+    required: false
+
 runs:
   using: 'composite'
   steps:
@@ -63,3 +70,5 @@ runs:
         PINECONE_CLIENT_SECRET: ${{ inputs.client_secret }}
         USE_GRPC: ${{ inputs.use_grpc }}
         SKIP_WEIRD: 'true'
+        INDEX_HOST_DENSE: ${{ inputs.INDEX_HOST_DENSE }}
+        INDEX_HOST_SPARSE: ${{ inputs.INDEX_HOST_SPARSE }}

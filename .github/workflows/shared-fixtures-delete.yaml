@@ -1,0 +1,41 @@
+name: Shared Fixtures Delete
+
+on:
+  workflow_call:
+    inputs:
+      encrypted_project_api_key:
+        type: string
+        description: 'The encrypted project api key'
+      index_name_dense:
+        type: string
+        description: 'The name of the dense index'
+      index_name_sparse:
+        type: string
+        description: 'The name of the sparse index'
+
+permissions: {}
+
+jobs:
+  delete-shared-fixtures:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-poetry
+        with:
+          python_version: '3.10'
+      - name: Decrypt Pinecone API key
+        id: decrypt-api-key
+        uses: ./.github/actions/secret-decrypt
+        with:
+          encrypted_secret: ${{ inputs.encrypted_project_api_key }}
+          encryption_key: ${{ secrets.FERNET_ENCRYPTION_KEY }}
+      - uses: ./.github/actions/index-delete
+        with:
+          index_name: ${{ inputs.index_name_dense }}
+          PINECONE_API_KEY: ${{ steps.decrypt-api-key.outputs.decrypted_secret }}
+          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
+      - uses: ./.github/actions/index-delete
+        with:
+          index_name: ${{ inputs.index_name_sparse }}
+          PINECONE_API_KEY: ${{ steps.decrypt-api-key.outputs.decrypted_secret }}
+          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
