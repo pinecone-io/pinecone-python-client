@@ -61,7 +61,7 @@ jobs:
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
           test_suite: 'tests/integration/rest_asyncio'
           total_num_split_groups: 20
-          durations_file: '.durations_rest_sync'
+          durations_file: '.durations_rest_asyncio'
           split_group_to_run: ${{ matrix.split_group_to_run }}
           PINECONE_CLIENT_ID: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
           PINECONE_CLIENT_SECRET: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}
@@ -88,7 +88,7 @@ jobs:
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
           test_suite: 'tests/integration/grpc'
           total_num_split_groups: 20
-          durations_file: '.durations_rest_sync'
+          durations_file: '.durations_grpc'
           split_group_to_run: ${{ matrix.split_group_to_run }}
           PINECONE_CLIENT_ID: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
           PINECONE_CLIENT_SECRET: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}
