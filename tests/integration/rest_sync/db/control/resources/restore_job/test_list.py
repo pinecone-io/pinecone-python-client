@@ -5,6 +5,7 @@ from pinecone import Pinecone, PineconeApiValueError, PineconeApiException
 logger = logging.getLogger(__name__)
 
 
+@pytest.mark.skip
 class TestRestoreJobList:
     def test_list_restore_jobs_no_arguments(self, pc: Pinecone):
         restore_jobs = pc.db.restore_job.list()

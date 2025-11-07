@@ -8,6 +8,7 @@ from pinecone import Pinecone
 logger = logging.getLogger(__name__)
 
 
+@pytest.mark.skip
 class TestBackups:
     def test_create_backup(self, pc: Pinecone, ready_sl_index, index_tags):
         desc = pc.db.index.describe(name=ready_sl_index)

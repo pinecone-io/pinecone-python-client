@@ -1,6 +1,8 @@
 import pytest
 import json
+import os
 import uuid
+from typing import List
 from tests.integration.helpers import (
     get_environment_var,
     index_tags as index_tags_helper,
@@ -14,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 RUN_ID = str(uuid.uuid4())
 
-created_indexes = []
+created_indexes: List[str] = []
 
 
 @pytest.fixture(scope="session")
@@ -37,9 +39,17 @@ def spec():
 
 @pytest.fixture(scope="session")
 def model_idx(pc, index_tags, request):
+    env_host = os.getenv("INDEX_HOST_EMBEDDED_MODEL")
+    if env_host:
+        logger.info(f"Using pre-created index host from INDEX_HOST_EMBEDDED_MODEL: {env_host}")
+        return pc.Index(host=env_host)
+
     model_index_name = generate_name(request.node.name, "embed")
     if not pc.has_index(name=model_index_name):
-        logger.info(f"Creating index {model_index_name}")
+        logger.warning(
+            f"INDEX_HOST_EMBEDDED_MODEL not set. Creating new index {model_index_name}. "
+            "Consider using pre-created indexes via environment variables for CI parallelization."
+        )
         pc.create_index_for_model(
             name=model_index_name,
             cloud=CloudProvider.AWS,
@@ -73,6 +83,11 @@ def create_index(pc, create_args):
 
 @pytest.fixture(scope="session")
 def idx(pc, spec, index_tags, request):
+    env_host = os.getenv("INDEX_HOST_DENSE")
+    if env_host:
+        logger.info(f"Using pre-created index host from INDEX_HOST_DENSE: {env_host}")
+        return pc.Index(host=env_host)
+
     index_name = generate_name(request.node.name, "dense")
     logger.info(f"Request: {request.node}")
     create_args = {
@@ -82,6 +97,11 @@ def idx(pc, spec, index_tags, request):
         "spec": spec,
         "tags": index_tags,
     }
+    if not pc.has_index(name=create_args["name"]):
+        logger.warning(
+            f"INDEX_HOST_DENSE not set. Creating new index {index_name}. "
+            "Consider using pre-created indexes via environment variables for CI parallelization."
+        )
     host = create_index(pc, create_args)
     logger.info(f"Using index {index_name} with host {host} as idx")
     created_indexes.append(index_name)
@@ -90,6 +110,11 @@ def idx(pc, spec, index_tags, request):
 
 @pytest.fixture(scope="session")
 def sparse_idx(pc, spec, index_tags, request):
+    env_host = os.getenv("INDEX_HOST_SPARSE")
+    if env_host:
+        logger.info(f"Using pre-created index host from INDEX_HOST_SPARSE: {env_host}")
+        return pc.Index(host=env_host)
+
     index_name = generate_name(request.node.name, "sparse")
     create_args = {
         "name": index_name,
@@ -98,6 +123,11 @@ def sparse_idx(pc, spec, index_tags, request):
         "vector_type": "sparse",
         "tags": index_tags,
     }
+    if not pc.has_index(name=create_args["name"]):
+        logger.warning(
+            f"INDEX_HOST_SPARSE not set. Creating new index {index_name}. "
+            "Consider using pre-created indexes via environment variables for CI parallelization."
+        )
     host = create_index(pc, create_args)
     created_indexes.append(index_name)
     return pc.Index(host=host)

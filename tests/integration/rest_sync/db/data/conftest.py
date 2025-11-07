@@ -117,10 +117,19 @@ def model_idx(client, model_index_name, model_index_host):
 
 @pytest.fixture(scope="session")
 def model_index_host(model_index_name, index_tags):
+    env_host = os.getenv("INDEX_HOST_EMBEDDED_MODEL")
+    if env_host:
+        logger.info(f"Using pre-created index host from INDEX_HOST_EMBEDDED_MODEL: {env_host}")
+        yield env_host
+        return
+
     pc = build_client()
 
     if model_index_name not in pc.list_indexes().names():
-        logger.info(f"Creating index {model_index_name}")
+        logger.warning(
+            f"INDEX_HOST_EMBEDDED_MODEL not set. Creating new index {model_index_name}. "
+            "Consider using pre-created indexes via environment variables for CI parallelization."
+        )
         pc.create_index_for_model(
             name=model_index_name,
             cloud=CloudProvider.AWS,
@@ -144,10 +153,19 @@ def model_index_host(model_index_name, index_tags):
 
 @pytest.fixture(scope="session")
 def index_host(index_name, metric, spec, index_tags):
+    env_host = os.getenv("INDEX_HOST_DENSE")
+    if env_host:
+        logger.info(f"Using pre-created index host from INDEX_HOST_DENSE: {env_host}")
+        yield env_host
+        return
+
     pc = build_client()
 
     if index_name not in pc.list_indexes().names():
-        logger.info(f"Creating index {index_name}")
+        logger.warning(
+            f"INDEX_HOST_DENSE not set. Creating new index {index_name}. "
+            "Consider using pre-created indexes via environment variables for CI parallelization."
+        )
         pc.create_index(name=index_name, dimension=2, metric=metric, spec=spec, tags=index_tags)
     else:
         logger.info(f"Index {index_name} already exists")
@@ -161,10 +179,19 @@ def index_host(index_name, metric, spec, index_tags):
 
 @pytest.fixture(scope="session")
 def sparse_index_host(sparse_index_name, spec, index_tags):
+    env_host = os.getenv("INDEX_HOST_SPARSE")
+    if env_host:
+        logger.info(f"Using pre-created index host from INDEX_HOST_SPARSE: {env_host}")
+        yield env_host
+        return
+
     pc = build_client()
 
     if sparse_index_name not in pc.list_indexes().names():
-        logger.info(f"Creating index {sparse_index_name}")
+        logger.warning(
+            f"INDEX_HOST_SPARSE not set. Creating new index {sparse_index_name}. "
+            "Consider using pre-created indexes via environment variables for CI parallelization."
+        )
         pc.create_index(
             name=sparse_index_name,
             metric="dotproduct",
@@ -184,10 +211,19 @@ def sparse_index_host(sparse_index_name, spec, index_tags):
 
 @pytest.fixture(scope="session")
 def hybrid_index_host(hybrid_index_name, spec, index_tags):
+    env_host = os.getenv("INDEX_HOST_HYBRID")
+    if env_host:
+        logger.info(f"Using pre-created index host from INDEX_HOST_HYBRID: {env_host}")
+        yield env_host
+        return
+
     pc = build_client()
 
     if hybrid_index_name not in pc.list_indexes().names():
-        logger.info(f"Creating index {hybrid_index_name}")
+        logger.warning(
+            f"INDEX_HOST_HYBRID not set. Creating new index {hybrid_index_name}. "
+            "Consider using pre-created indexes via environment variables for CI parallelization."
+        )
         pc.create_index(
             name=hybrid_index_name, dimension=2, metric="dotproduct", spec=spec, tags=index_tags
         )

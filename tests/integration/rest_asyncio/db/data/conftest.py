@@ -1,6 +1,7 @@
 import pytest
 import pytest_asyncio
 import json
+import os
 import asyncio
 from tests.integration.helpers import get_environment_var, generate_index_name
 from pinecone.db_data import _IndexAsyncio
@@ -69,12 +70,21 @@ async def sparse_idx(sparse_index_host):
 
 @pytest.fixture(scope="session")
 def index_host(index_name, metric, spec, dimension):
+    env_host = os.getenv("INDEX_HOST_DENSE")
+    if env_host:
+        logger.info(f"Using pre-created index host from INDEX_HOST_DENSE: {env_host}")
+        yield env_host
+        return
+
     from pinecone import Pinecone
 
     pc = Pinecone()
 
     if index_name not in pc.list_indexes().names():
-        logger.info("Creating index with name: " + index_name)
+        logger.warning(
+            f"INDEX_HOST_DENSE not set. Creating new index {index_name}. "
+            "Consider using pre-created indexes via environment variables for CI parallelization."
+        )
         pc.create_index(name=index_name, dimension=dimension, metric=metric, spec=spec)
     else:
         logger.info("Index with name " + index_name + " already exists")
@@ -88,12 +98,21 @@ def index_host(index_name, metric, spec, dimension):
 
 @pytest.fixture(scope="session")
 def sparse_index_host(sparse_index_name, spec):
+    env_host = os.getenv("INDEX_HOST_SPARSE")
+    if env_host:
+        logger.info(f"Using pre-created index host from INDEX_HOST_SPARSE: {env_host}")
+        yield env_host
+        return
+
     from pinecone import Pinecone
 
     pc = Pinecone()
 
     if sparse_index_name not in pc.list_indexes().names():
-        logger.info(f"Creating index with name {sparse_index_name}")
+        logger.warning(
+            f"INDEX_HOST_SPARSE not set. Creating new index {sparse_index_name}. "
+            "Consider using pre-created indexes via environment variables for CI parallelization."
+        )
         pc.create_index(
             name=sparse_index_name, metric="dotproduct", spec=spec, vector_type="sparse"
         )
@@ -109,12 +128,21 @@ def sparse_index_host(sparse_index_name, spec):
 
 @pytest.fixture(scope="session")
 def model_index_host(model_index_name):
+    env_host = os.getenv("INDEX_HOST_EMBEDDED_MODEL")
+    if env_host:
+        logger.info(f"Using pre-created index host from INDEX_HOST_EMBEDDED_MODEL: {env_host}")
+        yield env_host
+        return
+
     from pinecone import Pinecone
 
     pc = Pinecone()
 
     if model_index_name not in pc.list_indexes().names():
-        logger.info(f"Creating index {model_index_name}")
+        logger.warning(
+            f"INDEX_HOST_EMBEDDED_MODEL not set. Creating new index {model_index_name}. "
+            "Consider using pre-created indexes via environment variables for CI parallelization."
+        )
         pc.create_index_for_model(
             name=model_index_name,
             cloud=CloudProvider.AWS,

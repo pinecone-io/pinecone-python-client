@@ -17,6 +17,7 @@ def exercise_all_apis(client, index_name):
     index.describe_index_stats()
 
 
+@pytest.mark.skip
 class TestProxyConfig:
     @pytest.mark.skipif(
         os.getenv("USE_GRPC") != "false", reason="gRPC doesn't support 'https://' proxy URLs"

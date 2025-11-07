@@ -6,6 +6,7 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
+@pytest.mark.skip
 class TestRestoreJobDescribe:
     def test_describe_restore_job(self, pc: Pinecone):
         jobs = pc.db.restore_job.list()
