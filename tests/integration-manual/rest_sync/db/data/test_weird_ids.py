@@ -1,7 +1,7 @@
 import os
 import pytest
 from tests.integration.helpers import random_string
-from .seed import weird_valid_ids, weird_invalid_ids, setup_weird_ids_data
+from .weird_ids_setup import weird_valid_ids, weird_invalid_ids, setup_weird_ids_data
 import logging
 
 logger = logging.getLogger(__name__)
