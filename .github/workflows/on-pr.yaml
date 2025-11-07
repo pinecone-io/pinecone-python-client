@@ -70,18 +70,6 @@ jobs:
       dense_index_host: ${{ needs.shared-fixtures-create.outputs.index_host_dense }}
       sparse_index_host: ${{ needs.shared-fixtures-create.outputs.index_host_sparse }}
 
-  shared-fixtures-delete:
-    uses: './.github/workflows/shared-fixtures-delete.yaml'
-    secrets: inherit
-    needs:
-      - create-project
-      - shared-fixtures-create
-      - integration-tests
-    with:
-      encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
-      index_name_dense: ${{ needs.shared-fixtures-create.outputs.index_name_dense }}
-      index_name_sparse: ${{ needs.shared-fixtures-create.outputs.index_name_sparse }}
-
   cleanup-project:
     if: ${{ always() }}
     needs:
