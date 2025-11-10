@@ -25,15 +25,6 @@ inputs:
   PINECONE_CLIENT_SECRET:
     description: 'The client secret to use for admin tests'
     required: false
-  durations_file:
-    description: 'Metadata file used to calculate splits'
-    required: false
-  total_num_split_groups:
-    description: 'Number of split groups'
-    required: true
-  split_group_to_run:
-    description: 'The split group to run in this build'
-    required: true
   INDEX_HOST_DENSE:
     description: 'The host of the dense index for db data tests'
     required: false
@@ -59,9 +50,6 @@ runs:
           --retries 2 \
           --retry-delay 35 \
           --log-cli-level=DEBUG \
-          --durations-path=${{ inputs.durations_file }} \
-          --splits=${{ inputs.total_num_split_groups }} \
-          --group=${{ inputs.split_group_to_run }} \
           -s -vv
       env:
         PINECONE_API_KEY: ${{ steps.decrypt-api-key.outputs.decrypted_secret }}

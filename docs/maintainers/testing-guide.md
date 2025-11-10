@@ -6,6 +6,7 @@ We have a lot of different types of tests in this repository. At a high level, t
 tests
 ├── dependency
 ├── integration
+├── integration-manual
 ├── perf
 ├── unit
 ├── unit_grpc
@@ -15,6 +16,8 @@ tests
 - `dependency`: These tests are a set of very minimal end-to-end integration tests that ensure basic functionality works to upsert and query vectors from an index. These are rarely run locally; we use them in CI to confirm the client can be used when installed with a large matrix of different python versions and versions of key dependencies. See [`.github/workflows/testing-dependency.yaml`](https://github.com/pinecone-io/pinecone-python-client/blob/main/.github/workflows/testing-dependency.yaml) for more details on how these are run.
 
 - `integration`: These are a large suite of end-to-end integration tests exercising most of the core functions of the product. They are slow and expensive to run, but they give the greatest confidence the SDK actually works end-to-end. See notes below on how to setup the required configuration and run individual tests if you are iterating on a bug or feature and want to get more rapid feedback than running the entire suite in CI will give you. In CI, these are run using [`.github/workflows/testing-dependency.yaml`](https://github.com/pinecone-io/pinecone-python-client/blob/main/.github/workflows/testing-integration.yaml).
+
+- `integration-manual`: These are integration tests that are not run automatically in CI but can be run manually when needed. These typically include tests for features that are expensive to run (like backups and restores), tests that require special setup (like proxy configuration), or tests that exercise edge cases that don't need to be validated on every PR. To run these manually, use: `poetry run pytest tests/integration-manual`
 
 - `perf`: These tests are still being developed. But eventually, they will play an important roll in making sure we don't regress on client performance when building new features.
 
@@ -69,9 +72,9 @@ I never run all of these locally in one shot because it would take too long and 
 
 If I see one or a few tests broken in CI, I will run just those tests locally while iterating on the fix:
 
-- Run the tests for a specific part of the SDK (example: index): `poetry run pytest tests/integration/control/resources/index`
-- Run the tests in a single file: `poetry run pytest tests/integration/control/resources/index/test_create.py`
-- Run a single test `poetry run pytest tests/integration/control/resources/index/test_list.py::TestListIndexes::test_list_indexes_includes_ready_indexes`
+- Run the tests for a specific part of the SDK (example: index): `poetry run pytest tests/integration/db/control/sync/resources/index`
+- Run the tests in a single file: `poetry run pytest tests/integration/db/control/sync/resources/index/test_create.py`
+- Run a single test `poetry run pytest tests/integration/db/control/sync/resources/index/test_list.py::TestListIndexes::test_list_indexes_includes_ready_indexes`
 
 ### Fixtures and other test configuration
 
@@ -99,7 +102,7 @@ This is a highly contrived example, but we use this technique to access test con
 
 ### Testing data plane: REST vs GRPC vs Asyncio
 
-Integration tests for the data plane (i.e. `poetry run pytest tests/integration/data`) are reused for both the REST and GRPC client variants since the interfaces of these different client implementations are nearly identical (other than `async_req=True` responses). To toggle how they are run, set `USE_GRPC='true'` in your `.env` before running.
+Integration tests for the data plane (i.e. `poetry run pytest tests/integration/db/data/sync`) are reused for both the REST and GRPC client variants since the interfaces of these different client implementations are nearly identical (other than `async_req=True` responses). To toggle how they are run, set `USE_GRPC='true'` in your `.env` before running.
 
 There are a relatively small number of tests which are not shared, usually related to futures when using GRPC with `async_req=True`. We use `@pytest.mark.skipif` to control whether these are run or not.
 
@@ -112,7 +115,7 @@ class TestDeleteFuture:
         # ... test implementation
 ```
 
-Asyncio tests of the data plane are unfortunately separate because there are quite a few differences in how you interact with the asyncio client. So those tests are found in a different directory, `tests/integration/data_asyncio`
+Asyncio tests of the data plane are unfortunately separate because there are quite a few differences in how you interact with the asyncio client. So those tests are found in a different directory, `tests/integration/db/data/asyncio`
 
 ## Manual testing
 
