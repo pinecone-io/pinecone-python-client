@@ -1694,20 +1694,6 @@ pytest = ">=7.0.0"
 dev = ["black", "flake8", "isort", "mypy"]
 
 [[package]]
-name = "pytest-split"
-version = "0.10.0"
-description = "Pytest plugin which splits the test suite to equally sized sub suites based on test execution time."
-optional = false
-python-versions = "<4.0,>=3.8.1"
-files = [
-    {file = "pytest_split-0.10.0-py3-none-any.whl", hash = "sha256:466096b086a7147bcd423c6e6c2e57fc62af1c5ea2e256b4ed50fc030fc3dddc"},
-    {file = "pytest_split-0.10.0.tar.gz", hash = "sha256:adf80ba9fef7be89500d571e705b4f963dfa05038edf35e4925817e6b34ea66f"},
-]
-
-[package.dependencies]
-pytest = ">=5,<9"
-
-[[package]]
 name = "pytest-timeout"
 version = "2.2.0"
 description = "pytest plugin to abort hanging tests"
@@ -2416,4 +2402,4 @@ grpc = ["googleapis-common-protos", "grpcio", "grpcio", "grpcio", "lz4", "protob
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "5d226774041ada52d15a152d45880e070bf06dcd6d587ba8a2aed90a1b9fae1f"
+content-hash = "666875215ad37e25bf06d054656386be75ddd77df04848e332f83fb105f99b6a"

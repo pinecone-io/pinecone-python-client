@@ -94,7 +94,6 @@ pytest-timeout = "2.2.0"
 pytest-benchmark = [
   { version = '5.0.0', python = ">=3.9,<4.0" }
 ]
-pytest-split = "^0.10.0"
 urllib3_mock = "0.3.3"
 responses = ">=0.8.1"
 ruff = "^0.9.3"
