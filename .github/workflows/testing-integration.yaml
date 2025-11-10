@@ -21,7 +21,7 @@ permissions: {}
 
 jobs:
   rest_sync:
-    name: rest ${{ matrix.python_version }}
+    name: rest ${{ matrix.python_version }} ${{ matrix.test_suite }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -59,7 +59,7 @@ jobs:
           INDEX_HOST_SPARSE: '${{ inputs.sparse_index_host }}'
 
   rest_asyncio:
-    name: rest_asyncio ${{ matrix.python_version }}
+    name: rest_asyncio ${{ matrix.python_version }} ${{ matrix.test_suite }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -89,7 +89,7 @@ jobs:
           INDEX_HOST_SPARSE: '${{ inputs.sparse_index_host }}'
 
   grpc:
-    name: grpc ${{ matrix.python_version }}
+    name: grpc ${{ matrix.python_version }} ${{ matrix.test_suite }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
