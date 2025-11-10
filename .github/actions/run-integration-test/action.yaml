@@ -54,8 +54,8 @@ runs:
       env:
         PINECONE_API_KEY: ${{ steps.decrypt-api-key.outputs.decrypted_secret }}
         PINECONE_ADDITIONAL_HEADERS: ${{ inputs.PINECONE_ADDITIONAL_HEADERS }}
-        PINECONE_CLIENT_ID: ${{ inputs.client_id }}
-        PINECONE_CLIENT_SECRET: ${{ inputs.client_secret }}
+        PINECONE_CLIENT_ID: ${{ inputs.PINECONE_CLIENT_ID }}
+        PINECONE_CLIENT_SECRET: ${{ inputs.PINECONE_CLIENT_SECRET }}
         USE_GRPC: ${{ inputs.use_grpc }}
         INDEX_HOST_DENSE: ${{ inputs.INDEX_HOST_DENSE }}
         INDEX_HOST_SPARSE: ${{ inputs.INDEX_HOST_SPARSE }}
