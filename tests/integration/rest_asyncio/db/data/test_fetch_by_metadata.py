@@ -61,7 +61,6 @@ async def seed_for_fetch_by_metadata(idx, namespace):
 @pytest_asyncio.fixture(scope="function")
 async def seed_for_fetch_by_metadata_fixture(idx, fetch_by_metadata_namespace):
     await seed_for_fetch_by_metadata(idx, fetch_by_metadata_namespace)
-    await seed_for_fetch_by_metadata(idx, "__default__")
     yield
 
 
@@ -70,20 +69,13 @@ class TestFetchByMetadataAsyncio:
     def setup_method(self):
         self.expected_dimension = 2
 
-    @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
     @pytest.mark.asyncio
-    async def test_fetch_by_metadata_simple_filter(
-        self, idx, fetch_by_metadata_namespace, use_nondefault_namespace
-    ):
-        target_namespace = (
-            fetch_by_metadata_namespace if use_nondefault_namespace else "__default__"
-        )
-
+    async def test_fetch_by_metadata_simple_filter(self, idx, fetch_by_metadata_namespace):
         results = await idx.fetch_by_metadata(
-            filter={"genre": {"$eq": "action"}}, namespace=target_namespace
+            filter={"genre": {"$eq": "action"}}, namespace=fetch_by_metadata_namespace
         )
         assert isinstance(results, FetchByMetadataResponse)
-        assert results.namespace == target_namespace
+        assert results.namespace == fetch_by_metadata_namespace
         # Check that we have at least the vectors we seeded
         assert len(results.vectors) >= 2
         assert "genre-action-1" in results.vectors
@@ -98,84 +90,62 @@ class TestFetchByMetadataAsyncio:
         assert results.usage["read_units"] is not None
         assert results.usage["read_units"] > 0
 
-    @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
     @pytest.mark.asyncio
-    async def test_fetch_by_metadata_with_limit(
-        self, idx, fetch_by_metadata_namespace, use_nondefault_namespace
-    ):
-        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else ""
-
+    async def test_fetch_by_metadata_with_limit(self, idx, fetch_by_metadata_namespace):
         results = await idx.fetch_by_metadata(
-            filter={"genre": {"$eq": "action"}}, namespace=target_namespace, limit=1
+            filter={"genre": {"$eq": "action"}}, namespace=fetch_by_metadata_namespace, limit=1
         )
         assert isinstance(results, FetchByMetadataResponse)
-        assert results.namespace == target_namespace
+        assert results.namespace == fetch_by_metadata_namespace
         assert len(results.vectors) == 1
 
-    @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
     @pytest.mark.asyncio
-    async def test_fetch_by_metadata_with_in_operator(
-        self, idx, fetch_by_metadata_namespace, use_nondefault_namespace
-    ):
-        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else ""
-
+    async def test_fetch_by_metadata_with_in_operator(self, idx, fetch_by_metadata_namespace):
         results = await idx.fetch_by_metadata(
-            filter={"genre": {"$in": ["comedy", "drama"]}}, namespace=target_namespace
+            filter={"genre": {"$in": ["comedy", "drama"]}}, namespace=fetch_by_metadata_namespace
         )
         assert isinstance(results, FetchByMetadataResponse)
-        assert results.namespace == target_namespace
+        assert results.namespace == fetch_by_metadata_namespace
         # Check that we have at least the vectors we seeded
         assert len(results.vectors) >= 3  # comedy-1, comedy-2, drama-1
         assert "genre-comedy-1" in results.vectors
         assert "genre-comedy-2" in results.vectors
         assert "genre-drama-1" in results.vectors
 
-    @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
     @pytest.mark.asyncio
     async def test_fetch_by_metadata_with_multiple_conditions(
-        self, idx, fetch_by_metadata_namespace, use_nondefault_namespace
+        self, idx, fetch_by_metadata_namespace
     ):
-        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else ""
-
         results = await idx.fetch_by_metadata(
-            filter={"genre": {"$eq": "action"}, "year": {"$eq": 2020}}, namespace=target_namespace
+            filter={"genre": {"$eq": "action"}, "year": {"$eq": 2020}},
+            namespace=fetch_by_metadata_namespace,
         )
         assert isinstance(results, FetchByMetadataResponse)
-        assert results.namespace == target_namespace
+        assert results.namespace == fetch_by_metadata_namespace
         assert len(results.vectors) == 1
         assert "genre-action-1" in results.vectors
         assert results.vectors["genre-action-1"].metadata["year"] == 2020
 
-    @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
     @pytest.mark.asyncio
-    async def test_fetch_by_metadata_with_numeric_filter(
-        self, idx, fetch_by_metadata_namespace, use_nondefault_namespace
-    ):
-        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else ""
-
+    async def test_fetch_by_metadata_with_numeric_filter(self, idx, fetch_by_metadata_namespace):
         results = await idx.fetch_by_metadata(
-            filter={"year": {"$gte": 2021}}, namespace=target_namespace
+            filter={"year": {"$gte": 2021}}, namespace=fetch_by_metadata_namespace
         )
         assert isinstance(results, FetchByMetadataResponse)
-        assert results.namespace == target_namespace
+        assert results.namespace == fetch_by_metadata_namespace
         # Should return action-2, comedy-2, romance-1 (all year >= 2021)
         assert len(results.vectors) >= 3
         assert "genre-action-2" in results.vectors
         assert "genre-comedy-2" in results.vectors
         assert "genre-romance-1" in results.vectors
 
-    @pytest.mark.parametrize("use_nondefault_namespace", [True, False])
     @pytest.mark.asyncio
-    async def test_fetch_by_metadata_no_results(
-        self, idx, fetch_by_metadata_namespace, use_nondefault_namespace
-    ):
-        target_namespace = fetch_by_metadata_namespace if use_nondefault_namespace else ""
-
+    async def test_fetch_by_metadata_no_results(self, idx, fetch_by_metadata_namespace):
         results = await idx.fetch_by_metadata(
-            filter={"genre": {"$eq": "horror"}}, namespace=target_namespace
+            filter={"genre": {"$eq": "horror"}}, namespace=fetch_by_metadata_namespace
         )
         assert isinstance(results, FetchByMetadataResponse)
-        assert results.namespace == target_namespace
+        assert results.namespace == fetch_by_metadata_namespace
         assert len(results.vectors) == 0
 
     @pytest.mark.asyncio
@@ -188,17 +158,6 @@ class TestFetchByMetadataAsyncio:
         assert isinstance(results, FetchByMetadataResponse)
         assert results.namespace == target_namespace
         assert len(results.vectors) == 0
-
-    @pytest.mark.asyncio
-    async def test_fetch_by_metadata_unspecified_namespace(self, idx):
-        # Fetch without specifying namespace gives default namespace results
-        results = await idx.fetch_by_metadata(filter={"genre": {"$eq": "action"}})
-        assert isinstance(results, FetchByMetadataResponse)
-        assert results.namespace == ""
-        # Check that we have at least the vectors we seeded
-        assert len(results.vectors) >= 2
-        assert "genre-action-1" in results.vectors
-        assert "genre-action-2" in results.vectors
 
     @pytest.mark.asyncio
     async def test_fetch_by_metadata_pagination(self, idx, fetch_by_metadata_namespace):
