@@ -70,22 +70,64 @@ def spec():
 
 @pytest.fixture(scope="session")
 def index_name():
-    return generate_index_name("dense")
+    if os.getenv("INDEX_HOST_DENSE"):
+        host = os.getenv("INDEX_HOST_DENSE")
+        logger.info(
+            f"Looking up index name from pre-created index host from INDEX_HOST_DENSE: {host}"
+        )
+        pc = build_client()
+        index_name = pc.describe_index(host=host).name
+        logger.info(
+            f"Found index name: {index_name} for pre-created index host from INDEX_HOST_DENSE: {host}"
+        )
+        return index_name
+    else:
+        return generate_index_name("dense")
 
 
 @pytest.fixture(scope="session")
 def sparse_index_name():
-    return generate_index_name("sparse")
+    if os.getenv("INDEX_HOST_SPARSE"):
+        host = os.getenv("INDEX_HOST_SPARSE")
+        pc = build_client()
+        logger.info(
+            f"Looking up index name from pre-created index host from INDEX_HOST_SPARSE: {host}"
+        )
+        index_name = pc.describe_index(host=host).name
+        logger.info(
+            f"Found index name: {index_name} for pre-created index host from INDEX_HOST_SPARSE: {host}"
+        )
+        return index_name
+    else:
+        return generate_index_name("sparse")
 
 
 @pytest.fixture(scope="session")
 def hybrid_index_name():
-    return generate_index_name("hybrid")
+    if os.getenv("INDEX_HOST_HYBRID"):
+        host = os.getenv("INDEX_HOST_HYBRID")
+        pc = build_client()
+        logger.info(
+            f"Looking up index name from pre-created index host from INDEX_HOST_HYBRID: {host}"
+        )
+        index_name = pc.describe_index(host=host).name
+        logger.info(
+            f"Found index name: {index_name} for pre-created index host from INDEX_HOST_HYBRID: {host}"
+        )
+        return index_name
+    else:
+        return generate_index_name("hybrid")
 
 
 @pytest.fixture(scope="session")
 def model_index_name():
-    return generate_index_name("embed")
+    if os.getenv("INDEX_HOST_EMBEDDED_MODEL"):
+        host = os.getenv("INDEX_HOST_EMBEDDED_MODEL")
+        pc = build_client()
+        index_name = pc.describe_index(host=host).name
+        return index_name
+    else:
+        return generate_index_name("embed")
 
 
 def build_index_client(client, index_name, index_host):
