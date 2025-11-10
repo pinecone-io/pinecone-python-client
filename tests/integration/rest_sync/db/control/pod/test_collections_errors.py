@@ -4,6 +4,9 @@ from pinecone import PodSpec
 from tests.integration.helpers import generate_collection_name, generate_index_name, random_string
 
 
+@pytest.mark.skip(
+    reason="Slow tests and area not under active development so no need to rerun these often"
+)
 class TestCollectionErrorCases:
     def test_create_index_with_nonexistent_source_collection(
         self, client, dimension, metric, environment

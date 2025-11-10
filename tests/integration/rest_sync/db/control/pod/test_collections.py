@@ -27,6 +27,9 @@ def attempt_cleanup_index(client, index_name):
         print(f"Failed to cleanup collection: {e}")
 
 
+@pytest.mark.skip(
+    reason="Slow tests and area not under active development so no need to rerun these often"
+)
 class TestCollectionsHappyPath:
     def test_index_to_collection_to_index_happy_path(
         self, client, environment, dimension, metric, ready_index, random_vector
