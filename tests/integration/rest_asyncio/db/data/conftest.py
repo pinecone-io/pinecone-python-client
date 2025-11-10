@@ -37,18 +37,22 @@ def spec():
     return json.loads(spec_json)
 
 
+def find_name_from_host(host):
+    logger.info(f"Looking up index name from pre-created index host {host}")
+    pc = build_sync_client()
+    indexes = pc.list_indexes()
+    for index in indexes:
+        if index.host == host:
+            logger.info(f"Found index name: {index.name} for pre-created index host {host}")
+            return index.name
+    raise Exception(f"Index with host {host} not found")
+
+
 @pytest.fixture(scope="session")
 def index_name():
     if os.getenv("INDEX_HOST_DENSE"):
         host = os.getenv("INDEX_HOST_DENSE")
-        logger.info(
-            f"Looking up index name from pre-created index host from INDEX_HOST_DENSE: {host}"
-        )
-        pc = build_sync_client()
-        index_name = pc.describe_index(host=host).name
-        logger.info(
-            f"Found index name: {index_name} for pre-created index host from INDEX_HOST_DENSE: {host}"
-        )
+        index_name = find_name_from_host(host)
         return index_name
     else:
         return generate_index_name("dense")
@@ -58,14 +62,7 @@ def index_name():
 def sparse_index_name():
     if os.getenv("INDEX_HOST_SPARSE"):
         host = os.getenv("INDEX_HOST_SPARSE")
-        logger.info(
-            f"Looking up index name from pre-created index host from INDEX_HOST_SPARSE: {host}"
-        )
-        pc = build_sync_client()
-        index_name = pc.describe_index(host=host).name
-        logger.info(
-            f"Found index name: {index_name} for pre-created index host from INDEX_HOST_SPARSE: {host}"
-        )
+        index_name = find_name_from_host(host)
         return index_name
     else:
         return generate_index_name("sparse")
@@ -75,14 +72,7 @@ def sparse_index_name():
 def model_index_name():
     if os.getenv("INDEX_HOST_EMBEDDED_MODEL"):
         host = os.getenv("INDEX_HOST_EMBEDDED_MODEL")
-        logger.info(
-            f"Looking up index name from pre-created index host from INDEX_HOST_EMBEDDED_MODEL: {host}"
-        )
-        pc = build_sync_client()
-        index_name = pc.describe_index(host=host).name
-        logger.info(
-            f"Found index name: {index_name} for pre-created index host from INDEX_HOST_EMBEDDED_MODEL: {host}"
-        )
+        index_name = find_name_from_host(host)
         return index_name
     else:
         return generate_index_name("embed")

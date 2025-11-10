@@ -68,19 +68,22 @@ def spec():
     return json.loads(spec_json)
 
 
+def find_name_from_host(host):
+    logger.info(f"Looking up index name from pre-created index host {host}")
+    pc = build_client()
+    indexes = pc.list_indexes()
+    for index in indexes:
+        if index.host == host:
+            logger.info(f"Found index name: {index.name} for pre-created index host {host}")
+            return index.name
+    raise Exception(f"Index with host {host} not found")
+
+
 @pytest.fixture(scope="session")
 def index_name():
     if os.getenv("INDEX_HOST_DENSE"):
         host = os.getenv("INDEX_HOST_DENSE")
-        logger.info(
-            f"Looking up index name from pre-created index host from INDEX_HOST_DENSE: {host}"
-        )
-        pc = build_client()
-        index_name = pc.describe_index(host=host).name
-        logger.info(
-            f"Found index name: {index_name} for pre-created index host from INDEX_HOST_DENSE: {host}"
-        )
-        return index_name
+        return find_name_from_host(host)
     else:
         return generate_index_name("dense")
 
@@ -89,15 +92,7 @@ def index_name():
 def sparse_index_name():
     if os.getenv("INDEX_HOST_SPARSE"):
         host = os.getenv("INDEX_HOST_SPARSE")
-        pc = build_client()
-        logger.info(
-            f"Looking up index name from pre-created index host from INDEX_HOST_SPARSE: {host}"
-        )
-        index_name = pc.describe_index(host=host).name
-        logger.info(
-            f"Found index name: {index_name} for pre-created index host from INDEX_HOST_SPARSE: {host}"
-        )
-        return index_name
+        return find_name_from_host(host)
     else:
         return generate_index_name("sparse")
 
@@ -106,15 +101,7 @@ def sparse_index_name():
 def hybrid_index_name():
     if os.getenv("INDEX_HOST_HYBRID"):
         host = os.getenv("INDEX_HOST_HYBRID")
-        pc = build_client()
-        logger.info(
-            f"Looking up index name from pre-created index host from INDEX_HOST_HYBRID: {host}"
-        )
-        index_name = pc.describe_index(host=host).name
-        logger.info(
-            f"Found index name: {index_name} for pre-created index host from INDEX_HOST_HYBRID: {host}"
-        )
-        return index_name
+        return find_name_from_host(host)
     else:
         return generate_index_name("hybrid")
 
@@ -123,9 +110,7 @@ def hybrid_index_name():
 def model_index_name():
     if os.getenv("INDEX_HOST_EMBEDDED_MODEL"):
         host = os.getenv("INDEX_HOST_EMBEDDED_MODEL")
-        pc = build_client()
-        index_name = pc.describe_index(host=host).name
-        return index_name
+        return find_name_from_host(host)
     else:
         return generate_index_name("embed")
 
