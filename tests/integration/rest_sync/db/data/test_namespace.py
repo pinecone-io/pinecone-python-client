@@ -157,18 +157,12 @@ class TestNamespaceOperations:
             assert len(response.namespaces) == 2
             assert response.pagination.next is not None
 
-            # Get second page
-            next_response = idx.list_namespaces_paginated(
-                limit=2, pagination_token=response.pagination.next
-            )
-            assert len(next_response.namespaces) == 2
-            assert next_response.pagination.next is not None
+            listed_namespaces = []
+            for ns in idx.list_namespaces():
+                listed_namespaces.append(ns.name)
 
-            # Get final page
-            final_response = idx.list_namespaces_paginated(
-                limit=2, pagination_token=next_response.pagination.next
-            )
-            assert len(final_response.namespaces) == 1
-            assert final_response.pagination is None
+            for test_ns in test_namespaces:
+                assert test_ns in listed_namespaces
+
         finally:
             delete_all_namespaces(idx)

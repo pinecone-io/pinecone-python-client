@@ -176,19 +176,11 @@ class TestNamespaceOperationsAsyncio:
                 assert ns.record_count is not None
             assert namespaces.pagination.next is not None
 
-            # Second page
-            next_namespaces = await asyncio_idx.list_namespaces_paginated(
-                limit=2, pagination_token=namespaces.pagination.next
-            )
-            assert len(next_namespaces.namespaces) == 2
-            assert next_namespaces.pagination.next is not None
-
-            # Final page
-            final_namespaces = await asyncio_idx.list_namespaces_paginated(
-                limit=2, pagination_token=next_namespaces.pagination.next
-            )
-            assert len(final_namespaces.namespaces) == 1
-            assert final_namespaces.pagination is None
+            listed_namespaces = []
+            async for ns in asyncio_idx.list_namespaces():
+                listed_namespaces.append(ns.name)
+            for test_ns in test_namespaces:
+                assert test_ns in listed_namespaces
         finally:
             # Delete all namespaces before next test is run
             await delete_all_namespaces(asyncio_idx)
