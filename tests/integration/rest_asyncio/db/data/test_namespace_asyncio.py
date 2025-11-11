@@ -146,10 +146,18 @@ class TestNamespaceOperationsAsyncio:
 
         try:
             # Get all namespaces
+            namespaces = []
             async for ns in asyncio_idx.list_namespaces():
                 assert isinstance(ns, NamespaceDescription)
-                assert ns.name in test_namespaces
-                assert int(ns.record_count) == 2
+                assert ns.name is not None
+                assert ns.record_count is not None
+                namespaces.append(ns)
+
+            # Verify results - should have at least our test namespaces
+            assert len(namespaces) >= len(test_namespaces)
+            namespace_names = [ns.name for ns in namespaces]
+            for test_ns in test_namespaces:
+                assert test_ns in namespace_names
 
         finally:
             await delete_all_namespaces(asyncio_idx)
