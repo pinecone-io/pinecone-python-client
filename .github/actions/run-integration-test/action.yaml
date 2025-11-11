@@ -61,7 +61,7 @@ runs:
           --retries 2 \
           --retry-delay 35 \
           --log-cli-level=DEBUG \
-          --durations \
+          --durations=25 \
           -s -vv
       env:
         PINECONE_API_KEY: ${{ steps.decrypt-api-key.outputs.decrypted_secret }}
