@@ -14,7 +14,7 @@ inputs:
   PINECONE_ADDITIONAL_HEADERS:
     description: 'Additional headers to send with the request'
     required: false
-    default: '{"sdk-test-suite": "pinecone-python-client"}'
+    default: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
   use_grpc:
     description: 'Whether to use gRPC or REST'
     required: false
@@ -31,6 +31,12 @@ inputs:
   INDEX_HOST_SPARSE:
     description: 'The host of the sparse index for db data tests'
     required: false
+  pytest_splits:
+    description: 'Number of shards to split tests into (for test sharding)'
+    required: false
+  pytest_group:
+    description: 'Which shard to run (1-indexed, for test sharding)'
+    required: false
 
 runs:
   using: 'composite'
@@ -46,7 +52,12 @@ runs:
       id: run-tests
       shell: bash
       run: |
+        PYTEST_ARGS=""
+        if [ -n "${{ inputs.pytest_splits }}" ] && [ -n "${{ inputs.pytest_group }}" ]; then
+          PYTEST_ARGS="--splits=${{ inputs.pytest_splits }} --group=${{ inputs.pytest_group }}"
+        fi
         poetry run pytest ${{ inputs.test_suite }} \
+          $PYTEST_ARGS \
           --retries 2 \
           --retry-delay 35 \
           --log-cli-level=DEBUG \

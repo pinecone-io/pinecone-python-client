@@ -21,25 +21,14 @@ permissions: {}
 
 jobs:
   rest_sync:
-    name: rest ${{ matrix.python_version }} ${{ matrix.test_suite }}
+    name: rest ${{ matrix.python_version }} shard ${{ matrix.shard }}/${{ matrix.total_shards }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite: [
-          # Quick tests we can run together
-          'tests/integration/rest_sync/admin tests/integration/rest_sync/inference tests/integration/rest_sync/plugins',
-
-          # Control plane tests
-          'tests/integration/rest_sync/db/control/pod',
-          'tests/integration/rest_sync/db/control/serverless',
-          'tests/integration/rest_sync/db/control/resources/index',
-          # 'tests/integration/rest_sync/db/control/resources/collections', # These tests are slow, so disable for now
-
-          # Data plane tests
-          'tests/integration/rest_sync/db/data',
-        ]
+        shard: [1, 2, 3, 4, 5]
+        total_shards: [5]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
@@ -52,24 +41,23 @@ jobs:
         with:
           encrypted_project_api_key: '${{ inputs.encrypted_project_api_key }}'
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
-          test_suite: '${{ matrix.test_suite }}'
+          test_suite: 'tests/integration/rest_sync'
+          pytest_splits: '${{ matrix.total_shards }}'
+          pytest_group: '${{ matrix.shard }}'
           PINECONE_CLIENT_ID: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
           PINECONE_CLIENT_SECRET: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}
           INDEX_HOST_DENSE: '${{ inputs.dense_index_host }}'
           INDEX_HOST_SPARSE: '${{ inputs.sparse_index_host }}'
 
   rest_asyncio:
-    name: rest_asyncio ${{ matrix.python_version }} ${{ matrix.test_suite }}
+    name: rest_asyncio ${{ matrix.python_version }} shard ${{ matrix.shard }}/${{ matrix.total_shards }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite: [
-          'tests/integration/rest_asyncio/inference',
-          'tests/integration/rest_asyncio/db/data',
-          'tests/integration/rest_asyncio/db/control',
-        ]
+        shard: [1, 2, 3, 4, 5]
+        total_shards: [5]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
@@ -82,20 +70,21 @@ jobs:
         with:
           encrypted_project_api_key: '${{ inputs.encrypted_project_api_key }}'
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
-          test_suite: '${{ matrix.test_suite }}'
+          test_suite: 'tests/integration/rest_asyncio'
+          pytest_splits: '${{ matrix.total_shards }}'
+          pytest_group: '${{ matrix.shard }}'
           PINECONE_CLIENT_ID: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
           PINECONE_CLIENT_SECRET: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}
           INDEX_HOST_DENSE: '${{ inputs.dense_index_host }}'
           INDEX_HOST_SPARSE: '${{ inputs.sparse_index_host }}'
 
   grpc:
-    name: grpc ${{ matrix.python_version }} ${{ matrix.test_suite }}
+    name: grpc ${{ matrix.python_version }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite: ['tests/integration/grpc']
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
@@ -108,7 +97,8 @@ jobs:
         with:
           encrypted_project_api_key: '${{ inputs.encrypted_project_api_key }}'
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
-          test_suite: '${{ matrix.test_suite }}'
+          test_suite: 'tests/integration/grpc tests/integration/rest_sync/db/data'
+          use_grpc: 'true'
           PINECONE_CLIENT_ID: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
           PINECONE_CLIENT_SECRET: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}
           INDEX_HOST_DENSE: '${{ inputs.dense_index_host }}'
