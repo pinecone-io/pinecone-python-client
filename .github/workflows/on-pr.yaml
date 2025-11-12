@@ -43,15 +43,12 @@ jobs:
   create-project:
     uses: './.github/workflows/project-setup.yaml'
     secrets: inherit
-    needs:
-      - unit-tests
 
   integration-tests:
     if: always() && (needs.unit-tests.result == 'success' && needs.create-project.result == 'success')
     uses: './.github/workflows/testing-integration.yaml'
     secrets: inherit
     needs:
-      - unit-tests
       - create-project
     with:
       encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
