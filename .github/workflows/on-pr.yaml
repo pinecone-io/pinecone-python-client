@@ -45,7 +45,7 @@ jobs:
     secrets: inherit
 
   integration-tests:
-    if: always() && (needs.unit-tests.result == 'success' && needs.create-project.result == 'success')
+    if: always() && (needs.create-project.result == 'success')
     uses: './.github/workflows/testing-integration.yaml'
     secrets: inherit
     needs:
