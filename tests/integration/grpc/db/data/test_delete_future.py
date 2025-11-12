@@ -1,7 +1,6 @@
 from pinecone import Vector
 from tests.integration.helpers import poll_until_lsn_reconciled, random_string
 import logging
-import time
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +32,6 @@ class TestDeleteFuture:
         for future in as_completed([delete_one, delete_two], timeout=10):
             resp = future.result()
             assert resp["_response_info"] is not None
-
-        time.sleep(10)
 
         # Verify that the vectors are deleted
         from concurrent.futures import wait, ALL_COMPLETED

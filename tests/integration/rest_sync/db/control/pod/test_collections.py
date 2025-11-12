@@ -81,10 +81,22 @@ class TestCollectionsHappyPath:
             spec=PodSpec(environment=environment, source_collection=collection_name),
         )
         print(
-            f"Created index {index_name} from collection {collection_name}. Waiting a little more to make sure it's ready..."
+            f"Created index {index_name} from collection {collection_name}. Waiting for it to be ready..."
         )
-        time.sleep(30)
-        desc = client.describe_index(index_name)
+        time_waited = 0
+        desc = None
+        while time_waited < 60:
+            desc = client.describe_index(index_name)
+            if desc["status"]["ready"]:
+                break
+            print(f"Waiting for index {index_name} to be ready. Waited {time_waited} seconds...")
+            time.sleep(5)
+            time_waited += 5
+
+        if time_waited >= 60:
+            raise Exception(f"Index {index_name} is not ready after 60 seconds")
+
+        assert desc is not None
         assert desc["name"] == index_name
         assert desc["status"]["ready"] == True
 

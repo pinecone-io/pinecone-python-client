@@ -1,7 +1,7 @@
 import pytest
 import time
 from pinecone import NamespaceDescription
-from tests.integration.helpers import generate_name
+from tests.integration.helpers import random_string
 
 
 def verify_namespace_exists(idx, namespace: str) -> bool:
@@ -16,14 +16,9 @@ def verify_namespace_exists(idx, namespace: str) -> bool:
 class TestCreateNamespaceFuture:
     def test_create_namespace_future(self, idx):
         """Test creating a namespace with async_req=True"""
-        test_namespace = generate_name("TestCreateNamespaceFuture", "test-create-namespace-future")
+        test_namespace = random_string(20)
 
         try:
-            # Ensure namespace doesn't exist first
-            if verify_namespace_exists(idx, test_namespace):
-                idx.delete_namespace(namespace=test_namespace)
-                time.sleep(10)
-
             # Create namespace asynchronously
             future = idx.create_namespace(name=test_namespace, async_req=True)
 
@@ -57,16 +52,9 @@ class TestCreateNamespaceFuture:
 
     def test_create_namespace_future_duplicate(self, idx):
         """Test creating a duplicate namespace raises an error with async_req=True"""
-        test_namespace = generate_name(
-            "TestCreateNamespaceFutureDuplicate", "test-create-duplicate-future"
-        )
+        test_namespace = random_string(20)
 
         try:
-            # Ensure namespace doesn't exist first
-            if verify_namespace_exists(idx, test_namespace):
-                idx.delete_namespace(namespace=test_namespace)
-                time.sleep(10)
-
             # Create namespace first time
             future1 = idx.create_namespace(name=test_namespace, async_req=True)
             description1 = future1.result(timeout=30)
@@ -85,21 +73,12 @@ class TestCreateNamespaceFuture:
             # Cleanup
             if verify_namespace_exists(idx, test_namespace):
                 idx.delete_namespace(namespace=test_namespace)
-                time.sleep(10)
 
     def test_create_namespace_future_multiple(self, idx):
         """Test creating multiple namespaces asynchronously"""
-        test_namespaces = [
-            generate_name("TestCreateNamespaceFutureMultiple", f"test-ns-{i}") for i in range(3)
-        ]
+        test_namespaces = [random_string(20) for i in range(3)]
 
         try:
-            # Clean up any existing namespaces
-            for ns in test_namespaces:
-                if verify_namespace_exists(idx, ns):
-                    idx.delete_namespace(namespace=ns)
-                    time.sleep(5)
-
             # Create all namespaces asynchronously
             futures = [idx.create_namespace(name=ns, async_req=True) for ns in test_namespaces]
 
@@ -127,4 +106,3 @@ class TestCreateNamespaceFuture:
             for ns in test_namespaces:
                 if verify_namespace_exists(idx, ns):
                     idx.delete_namespace(namespace=ns)
-                    time.sleep(5)
