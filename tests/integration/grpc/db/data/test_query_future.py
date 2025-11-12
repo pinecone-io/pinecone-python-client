@@ -16,7 +16,11 @@ def find_by_id(matches, id):
 
 
 def poll_until_query_has_results(
-    idx, query_params: dict, expected_count: int, max_wait_time: int = 60
+    idx,
+    query_params: dict,
+    expected_count: int,
+    max_wait_time: int = 60,
+    metadata_field: str = "genre",
 ):
     """Poll until query returns the expected number of results.
 
@@ -25,6 +29,7 @@ def poll_until_query_has_results(
         query_params: Dictionary of query parameters (id, namespace, filter, etc.)
         expected_count: The expected number of results
         max_wait_time: Maximum time to wait in seconds
+        metadata_field: The metadata field to check for (default: "genre")
 
     Raises:
         TimeoutError: If the expected count is not reached within max_wait_time seconds
@@ -34,18 +39,23 @@ def poll_until_query_has_results(
 
     while time_waited < max_wait_time:
         query_result = idx.query(**query_params, async_req=True).result()
-        matches_with_metadata = [
-            match
-            for match in query_result.matches
-            if match.metadata is not None and match.metadata.get("genre") is not None
-        ]
+        # If metadata_field is specified, filter by that field; otherwise count all matches
+        if metadata_field:
+            matches_with_metadata = [
+                match
+                for match in query_result.matches
+                if match.metadata is not None and match.metadata.get(metadata_field) is not None
+            ]
+            count = len(matches_with_metadata)
+        else:
+            count = len(query_result.matches)
 
-        if len(matches_with_metadata) >= expected_count:
-            logger.debug(f"Query returned {len(matches_with_metadata)} results with genre metadata")
+        if count >= expected_count:
+            logger.debug(f"Query returned {count} results (expected {expected_count})")
             return
 
         logger.debug(
-            f"Polling for query results. Current count: {len(matches_with_metadata)}, "
+            f"Polling for query results. Current count: {count}, "
             f"expected: {expected_count}, waited: {time_waited}s"
         )
 
@@ -267,9 +277,16 @@ class TestQueryWithFilterAsync:
     def test_query_by_id_with_filter(self, idx, query_namespace, use_nondefault_namespace):
         target_namespace = query_namespace if use_nondefault_namespace else ""
 
-        query_result = idx.query(
-            id="1", namespace=target_namespace, filter={"genre": "action"}, top_k=10, async_req=True
-        ).result()
+        # Poll to ensure vectors are available for querying
+        query_params = {
+            "id": "1",
+            "namespace": target_namespace,
+            "filter": {"genre": "action"},
+            "top_k": 10,
+        }
+        poll_until_query_has_results(idx, query_params, expected_count=1, metadata_field="genre")
+
+        query_result = idx.query(**query_params, async_req=True).result()
         assert isinstance(query_result, QueryResponse) == True
         assert query_result.namespace == target_namespace
         # Check that we have at least the vector we seeded
@@ -282,13 +299,17 @@ class TestQueryWithFilterAsync:
         # Vector(id='4', values=embedding_values(2), metadata={'genre': 'action', 'runtime': 120 }),
         # Vector(id='5', values=embedding_values(2), metadata={'genre': 'comedy', 'runtime': 90 }),
         # Vector(id='6', values=embedding_values(2), metadata={'genre': 'romance', 'runtime': 240 })
-        query_result = idx.query(
-            id="1",
-            namespace=target_namespace,
-            filter={"runtime": {"$gt": 100}},
-            top_k=10,
-            async_req=True,
-        ).result()
+
+        # Poll to ensure vectors are available for querying
+        query_params = {
+            "id": "1",
+            "namespace": target_namespace,
+            "filter": {"runtime": {"$gt": 100}},
+            "top_k": 10,
+        }
+        poll_until_query_has_results(idx, query_params, expected_count=2, metadata_field="runtime")
+
+        query_result = idx.query(**query_params, async_req=True).result()
         assert isinstance(query_result, QueryResponse) == True
         assert query_result.namespace == target_namespace
         assert len(query_result.matches) == 2
@@ -301,13 +322,17 @@ class TestQueryWithFilterAsync:
         # Vector(id='4', values=embedding_values(2), metadata={'genre': 'action', 'runtime': 120 }),
         # Vector(id='5', values=embedding_values(2), metadata={'genre': 'comedy', 'runtime': 90 }),
         # Vector(id='6', values=embedding_values(2), metadata={'genre': 'romance', 'runtime': 240 })
-        query_result = idx.query(
-            id="1",
-            namespace=target_namespace,
-            filter={"runtime": {"$gte": 90}},
-            top_k=10,
-            async_req=True,
-        ).result()
+
+        # Poll to ensure vectors are available for querying
+        query_params = {
+            "id": "1",
+            "namespace": target_namespace,
+            "filter": {"runtime": {"$gte": 90}},
+            "top_k": 10,
+        }
+        poll_until_query_has_results(idx, query_params, expected_count=3, metadata_field="runtime")
+
+        query_result = idx.query(**query_params, async_req=True).result()
         assert isinstance(query_result, QueryResponse) == True
         assert query_result.namespace == target_namespace
         assert len(query_result.matches) == 3
@@ -321,13 +346,17 @@ class TestQueryWithFilterAsync:
         # Vector(id='4', values=embedding_values(2), metadata={'genre': 'action', 'runtime': 120 }),
         # Vector(id='5', values=embedding_values(2), metadata={'genre': 'comedy', 'runtime': 90 }),
         # Vector(id='6', values=embedding_values(2), metadata={'genre': 'romance', 'runtime': 240 })
-        query_result = idx.query(
-            id="1",
-            namespace=target_namespace,
-            filter={"runtime": {"$lt": 100}},
-            top_k=10,
-            async_req=True,
-        ).result()
+
+        # Poll to ensure vectors are available for querying
+        query_params = {
+            "id": "1",
+            "namespace": target_namespace,
+            "filter": {"runtime": {"$lt": 100}},
+            "top_k": 10,
+        }
+        poll_until_query_has_results(idx, query_params, expected_count=1, metadata_field="runtime")
+
+        query_result = idx.query(**query_params, async_req=True).result()
         assert isinstance(query_result, QueryResponse) == True
         assert query_result.namespace == target_namespace
         assert len(query_result.matches) == 1
@@ -339,13 +368,17 @@ class TestQueryWithFilterAsync:
         # Vector(id='4', values=embedding_values(2), metadata={'genre': 'action', 'runtime': 120 }),
         # Vector(id='5', values=embedding_values(2), metadata={'genre': 'comedy', 'runtime': 90 }),
         # Vector(id='6', values=embedding_values(2), metadata={'genre': 'romance', 'runtime': 240 })
-        query_result = idx.query(
-            id="1",
-            namespace=target_namespace,
-            filter={"runtime": {"$lte": 120}},
-            top_k=10,
-            async_req=True,
-        ).result()
+
+        # Poll to ensure vectors are available for querying
+        query_params = {
+            "id": "1",
+            "namespace": target_namespace,
+            "filter": {"runtime": {"$lte": 120}},
+            "top_k": 10,
+        }
+        poll_until_query_has_results(idx, query_params, expected_count=2, metadata_field="runtime")
+
+        query_result = idx.query(**query_params, async_req=True).result()
         assert isinstance(query_result, QueryResponse) == True
         assert query_result.namespace == target_namespace
         assert len(query_result.matches) == 2
@@ -358,13 +391,17 @@ class TestQueryWithFilterAsync:
         # Vector(id='4', values=embedding_values(2), metadata={'genre': 'action', 'runtime': 120 }),
         # Vector(id='5', values=embedding_values(2), metadata={'genre': 'comedy', 'runtime': 90 }),
         # Vector(id='6', values=embedding_values(2), metadata={'genre': 'romance', 'runtime': 240 })
-        query_result = idx.query(
-            id="1",
-            namespace=target_namespace,
-            filter={"genre": {"$in": ["romance"]}},
-            top_k=10,
-            async_req=True,
-        ).result()
+
+        # Poll to ensure vectors are available for querying
+        query_params = {
+            "id": "1",
+            "namespace": target_namespace,
+            "filter": {"genre": {"$in": ["romance"]}},
+            "top_k": 10,
+        }
+        poll_until_query_has_results(idx, query_params, expected_count=1, metadata_field="genre")
+
+        query_result = idx.query(**query_params, async_req=True).result()
         assert isinstance(query_result, QueryResponse) == True
         assert query_result.namespace == target_namespace
         assert len(query_result.matches) == 1
@@ -408,14 +445,18 @@ class TestQueryWithFilterAsync:
         # Vector(id='4', values=embedding_values(2), metadata={'genre': 'action', 'runtime': 120 }),
         # Vector(id='5', values=embedding_values(2), metadata={'genre': 'comedy', 'runtime': 90 }),
         # Vector(id='6', values=embedding_values(2), metadata={'genre': 'romance', 'runtime': 240 })
-        query_result = idx.query(
-            id="1",
-            namespace=target_namespace,
-            filter={"genre": {"$eq": "action"}},
-            include_metadata=True,
-            top_k=10,
-            async_req=True,
-        ).result()
+
+        # Poll to ensure vectors are available for querying
+        query_params = {
+            "id": "1",
+            "namespace": target_namespace,
+            "filter": {"genre": {"$eq": "action"}},
+            "include_metadata": True,
+            "top_k": 10,
+        }
+        poll_until_query_has_results(idx, query_params, expected_count=1)
+
+        query_result = idx.query(**query_params, async_req=True).result()
 
         assert isinstance(query_result, QueryResponse) == True
         assert query_result.namespace == target_namespace
@@ -439,14 +480,18 @@ class TestQueryWithFilterAsync:
         # Vector(id='4', values=embedding_values(2), metadata={'genre': 'action', 'runtime': 120 }),
         # Vector(id='5', values=embedding_values(2), metadata={'genre': 'comedy', 'runtime': 90 }),
         # Vector(id='6', values=embedding_values(2), metadata={'genre': 'romance', 'runtime': 240 })
-        query_result = idx.query(
-            id="1",
-            namespace=target_namespace,
-            filter={"genre": {"$ne": "action"}},
-            include_metadata=True,
-            top_k=10,
-            async_req=True,
-        ).result()
+
+        # Poll to ensure vectors are available for querying
+        query_params = {
+            "id": "1",
+            "namespace": target_namespace,
+            "filter": {"genre": {"$ne": "action"}},
+            "include_metadata": True,
+            "top_k": 10,
+        }
+        poll_until_query_has_results(idx, query_params, expected_count=2)
+
+        query_result = idx.query(**query_params, async_req=True).result()
         for match in query_result.matches:
             logger.info(f"Match: id: {match.id} metadata: {match.metadata}")
         assert isinstance(query_result, QueryResponse) == True
