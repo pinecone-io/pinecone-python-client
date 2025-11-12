@@ -23,11 +23,18 @@ def poll_until_list_has_results(
     """
     time_waited = 0
     wait_per_iteration = 2
+    last_count = None
 
     while time_waited < max_wait_time:
         # Try to list vectors with the prefix
-        results = list(idx.list(prefix=prefix, namespace=namespace))
-        total_count = sum(len(page) for page in results)
+        try:
+            results = list(idx.list(prefix=prefix, namespace=namespace))
+            total_count = sum(len(page) for page in results)
+        except Exception as e:
+            logger.warning(
+                f"Error listing vectors with prefix '{prefix}' in namespace '{namespace}': {e}"
+            )
+            total_count = 0
 
         if total_count >= expected_count:
             logger.debug(
@@ -35,23 +42,96 @@ def poll_until_list_has_results(
             )
             return
 
-        logger.debug(
-            f"Polling for list results. Prefix: '{prefix}', namespace: '{namespace}', "
-            f"current count: {total_count}, expected: {expected_count}, waited: {time_waited}s"
-        )
+        # Log progress, including namespace stats if available
+        if total_count != last_count:
+            try:
+                namespace_desc = idx.describe_namespace(namespace=namespace)
+                logger.debug(
+                    f"Polling for list results. Prefix: '{prefix}', namespace: '{namespace}', "
+                    f"current count: {total_count}, expected: {expected_count}, "
+                    f"namespace record_count: {namespace_desc.record_count}, waited: {time_waited}s"
+                )
+            except Exception:
+                logger.debug(
+                    f"Polling for list results. Prefix: '{prefix}', namespace: '{namespace}', "
+                    f"current count: {total_count}, expected: {expected_count}, waited: {time_waited}s"
+                )
+            last_count = total_count
 
         time.sleep(wait_per_iteration)
         time_waited += wait_per_iteration
 
-    raise TimeoutError(
-        f"Timeout waiting for list to return {expected_count} results for prefix '{prefix}' "
-        f"in namespace '{namespace}' after {time_waited} seconds"
-    )
+    # On timeout, provide more diagnostic information
+    try:
+        namespace_desc = idx.describe_namespace(namespace=namespace)
+        final_results = list(idx.list(prefix=prefix, namespace=namespace))
+        final_count = sum(len(page) for page in final_results)
+        raise TimeoutError(
+            f"Timeout waiting for list to return {expected_count} results for prefix '{prefix}' "
+            f"in namespace '{namespace}' after {time_waited} seconds. "
+            f"Final count: {final_count}, namespace record_count: {namespace_desc.record_count}"
+        )
+    except Exception as e:
+        if isinstance(e, TimeoutError):
+            raise
+        raise TimeoutError(
+            f"Timeout waiting for list to return {expected_count} results for prefix '{prefix}' "
+            f"in namespace '{namespace}' after {time_waited} seconds. "
+            f"Error getting diagnostics: {e}"
+        )
 
 
 @pytest.fixture(scope="session")
 def list_namespace():
     return random_string(10)
+
+
+def poll_namespace_until_ready(idx, namespace: str, expected_count: int, max_wait_time: int = 60):
+    """Poll describe_namespace until it has the expected record count.
+
+    Args:
+        idx: The index client
+        namespace: The namespace to check
+        expected_count: The expected record count
+        max_wait_time: Maximum time to wait in seconds
+
+    Raises:
+        TimeoutError: If the expected count is not reached within max_wait_time seconds
+    """
+    time_waited = 0
+    wait_per_iteration = 2
+
+    while time_waited < max_wait_time:
+        try:
+            description = idx.describe_namespace(namespace=namespace)
+            if description.record_count >= expected_count:
+                logger.debug(
+                    f"Namespace '{namespace}' has {description.record_count} records (expected {expected_count})"
+                )
+                return
+            logger.debug(
+                f"Polling namespace '{namespace}'. Current record_count: {description.record_count}, "
+                f"expected: {expected_count}, waited: {time_waited}s"
+            )
+        except Exception as e:
+            logger.debug(f"Error describing namespace '{namespace}': {e}")
+
+        time.sleep(wait_per_iteration)
+        time_waited += wait_per_iteration
+
+    try:
+        description = idx.describe_namespace(namespace=namespace)
+        raise TimeoutError(
+            f"Timeout waiting for namespace '{namespace}' to have {expected_count} records "
+            f"after {time_waited} seconds. Current record_count: {description.record_count}"
+        )
+    except Exception as e:
+        if isinstance(e, TimeoutError):
+            raise
+        raise TimeoutError(
+            f"Timeout waiting for namespace '{namespace}' to have {expected_count} records "
+            f"after {time_waited} seconds. Error getting final count: {e}"
+        )
 
 
 @pytest.fixture(scope="session")
@@ -65,6 +145,9 @@ def seed_for_list(idx, list_namespace, wait=True):
 
     if wait:
         poll_until_lsn_reconciled(idx, last_response_info, namespace=list_namespace)
+        # Also wait for namespace to have the expected total count
+        # This ensures all vectors are indexed, not just the last batch
+        poll_namespace_until_ready(idx, list_namespace, expected_count=1000, max_wait_time=120)
 
     yield
 

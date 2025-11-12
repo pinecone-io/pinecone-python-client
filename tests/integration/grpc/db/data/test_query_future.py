@@ -1,4 +1,5 @@
 import pytest
+import time
 from pinecone import QueryResponse, Vector, FilterBuilder
 from tests.integration.helpers import embedding_values, poll_until_lsn_reconciled, generate_name
 import logging
@@ -12,6 +13,49 @@ logger = logging.getLogger(__name__)
 def find_by_id(matches, id):
     with_id = [match for match in matches if match.id == id]
     return with_id[0] if len(with_id) > 0 else None
+
+
+def poll_until_query_has_results(
+    idx, query_params: dict, expected_count: int, max_wait_time: int = 60
+):
+    """Poll until query returns the expected number of results.
+
+    Args:
+        idx: The index client
+        query_params: Dictionary of query parameters (id, namespace, filter, etc.)
+        expected_count: The expected number of results
+        max_wait_time: Maximum time to wait in seconds
+
+    Raises:
+        TimeoutError: If the expected count is not reached within max_wait_time seconds
+    """
+    time_waited = 0
+    wait_per_iteration = 2
+
+    while time_waited < max_wait_time:
+        query_result = idx.query(**query_params, async_req=True).result()
+        matches_with_metadata = [
+            match
+            for match in query_result.matches
+            if match.metadata is not None and match.metadata.get("genre") is not None
+        ]
+
+        if len(matches_with_metadata) >= expected_count:
+            logger.debug(f"Query returned {len(matches_with_metadata)} results with genre metadata")
+            return
+
+        logger.debug(
+            f"Polling for query results. Current count: {len(matches_with_metadata)}, "
+            f"expected: {expected_count}, waited: {time_waited}s"
+        )
+
+        time.sleep(wait_per_iteration)
+        time_waited += wait_per_iteration
+
+    raise TimeoutError(
+        f"Timeout waiting for query to return {expected_count} results "
+        f"after {time_waited} seconds"
+    )
 
 
 @pytest.fixture(scope="session")
@@ -332,14 +376,18 @@ class TestQueryWithFilterAsync:
         # Vector(id='4', values=embedding_values(2), metadata={'genre': 'action', 'runtime': 120 }),
         # Vector(id='5', values=embedding_values(2), metadata={'genre': 'comedy', 'runtime': 90 }),
         # Vector(id='6', values=embedding_values(2), metadata={'genre': 'romance', 'runtime': 240 })
-        query_result = idx.query(
-            id="1",
-            namespace=target_namespace,
-            filter=FilterBuilder().nin("genre", ["romance"]).build(),
-            include_metadata=True,
-            top_k=10,
-            async_req=True,
-        ).result()
+
+        # Poll to ensure vectors are available for querying
+        query_params = {
+            "id": "1",
+            "namespace": target_namespace,
+            "filter": FilterBuilder().nin("genre", ["romance"]).build(),
+            "include_metadata": True,
+            "top_k": 10,
+        }
+        poll_until_query_has_results(idx, query_params, expected_count=2)
+
+        query_result = idx.query(**query_params, async_req=True).result()
 
         assert isinstance(query_result, QueryResponse) == True
         assert query_result.namespace == target_namespace
