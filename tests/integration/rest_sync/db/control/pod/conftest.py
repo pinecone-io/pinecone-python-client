@@ -2,6 +2,7 @@ import pytest
 import random
 import time
 from pinecone import Pinecone, PodSpec, PodIndexEnvironment
+from pinecone.exceptions import NotFoundException
 from tests.integration.helpers import generate_index_name, generate_collection_name
 
 
@@ -137,8 +138,13 @@ def attempt_delete_collection(client, collection_name):
 def attempt_delete_index(client, index_name):
     time_waited = 0
     while client.has_index(index_name) and time_waited < 120:
-        if client.describe_index(index_name).delete_protection == "enabled":
-            client.configure_index(index_name, deletion_protection="disabled")
+        try:
+            if client.describe_index(index_name).delete_protection == "enabled":
+                client.configure_index(index_name, deletion_protection="disabled")
+        except NotFoundException:
+            # Index was deleted between has_index check and describe_index call
+            # Exit the loop since the index no longer exists
+            break
 
         print(
             f"Waiting for index {index_name} to be ready to delete. Waited {time_waited} seconds.."
