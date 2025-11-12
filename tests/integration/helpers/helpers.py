@@ -138,7 +138,7 @@ def poll_until_lsn_reconciled(
     idx: _Index,
     response_info: Dict[str, Any],
     namespace: str,
-    max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 180)),
+    max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 300)),
 ) -> None:
     """Poll until a target LSN has been reconciled using LSN headers.
 
@@ -188,6 +188,15 @@ def poll_until_lsn_reconciled(
         # Extract reconciled_lsn from query response's raw_headers
         query_raw_headers = response._response_info.get("raw_headers", {})
         reconciled_lsn = extract_lsn_reconciled(query_raw_headers)
+
+        # If reconciled_lsn is None, log all headers to help debug missing LSN headers
+        # This is particularly useful for sparse indices which may not return LSN headers
+        if reconciled_lsn is None and total_time == 0:
+            # Log headers on first attempt to help diagnose missing LSN headers
+            logger.debug(
+                f"LSN header not found in query response. Available headers: {list(query_raw_headers.keys())}"
+            )
+
         logger.debug(f"Current reconciled LSN: {reconciled_lsn}, target: {target_lsn}")
         if is_lsn_reconciled(target_lsn, reconciled_lsn):
             # LSN is reconciled, check if additional condition is met

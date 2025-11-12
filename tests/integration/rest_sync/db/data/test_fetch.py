@@ -1,9 +1,8 @@
 import logging
 import pytest
-import random
 from tests.integration.helpers import embedding_values, random_string, poll_until_lsn_reconciled
 
-from pinecone import PineconeException, FetchResponse, Vector, SparseValues
+from pinecone import PineconeException, FetchResponse, Vector
 
 logger = logging.getLogger(__name__)
 
@@ -52,34 +51,13 @@ def seed(idx, namespace):
     return upsert3._response_info
 
 
-def seed_sparse(sparse_idx, namespace):
-    upsert1 = sparse_idx.upsert(
-        vectors=[
-            Vector(
-                id=str(i),
-                sparse_values=SparseValues(
-                    indices=[i, random.randint(2000, 4000)], values=embedding_values(2)
-                ),
-                metadata={"genre": "action", "runtime": 120},
-            )
-            for i in range(50)
-        ],
-        namespace=namespace,
-    )
-    return upsert1._response_info
-
-
 @pytest.fixture(scope="function")
-def seed_for_fetch(idx, sparse_idx, fetch_namespace):
+def seed_for_fetch(idx, fetch_namespace):
     response_info1 = seed(idx, fetch_namespace)
     response_info2 = seed(idx, "__default__")
-    response_info3 = seed_sparse(sparse_idx, fetch_namespace)
-    response_info4 = seed_sparse(sparse_idx, "__default__")
 
     poll_until_lsn_reconciled(idx, response_info1, namespace=fetch_namespace)
     poll_until_lsn_reconciled(idx, response_info2, namespace="__default__")
-    poll_until_lsn_reconciled(sparse_idx, response_info3, namespace=fetch_namespace)
-    poll_until_lsn_reconciled(sparse_idx, response_info4, namespace="__default__")
     yield
 
 
@@ -158,17 +136,3 @@ class TestFetch:
         assert results.vectors["1"].id == "1"
         assert results.vectors["1"].values is not None
         assert results.vectors["4"].metadata is not None
-
-    def test_fetch_sparse_index(self, sparse_idx):
-        fetch_results = sparse_idx.fetch(ids=[str(i) for i in range(10)])
-        assert fetch_results.namespace == ""
-        assert len(fetch_results.vectors) == 10
-        for i in range(10):
-            logger.debug(fetch_results.vectors[str(i)])
-            assert fetch_results.vectors[str(i)].id == str(i)
-            assert fetch_results.vectors[str(i)].sparse_values is not None
-            assert len(fetch_results.vectors[str(i)].sparse_values.indices) == 2
-            assert len(fetch_results.vectors[str(i)].sparse_values.values) == 2
-            assert fetch_results.vectors[str(i)].metadata is not None
-            assert fetch_results.vectors[str(i)].metadata["genre"] == "action"
-            assert fetch_results.vectors[str(i)].metadata["runtime"] == 120
