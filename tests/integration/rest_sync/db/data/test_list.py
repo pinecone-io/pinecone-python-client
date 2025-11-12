@@ -1,8 +1,52 @@
 import logging
+import time
 import pytest
 from tests.integration.helpers import embedding_values, random_string, poll_until_lsn_reconciled
 
 logger = logging.getLogger(__name__)
+
+
+def poll_until_list_has_results(
+    idx, prefix: str, namespace: str, expected_count: int, max_wait_time: int = 60
+):
+    """Poll until list returns the expected number of results for a given prefix.
+
+    Args:
+        idx: The index client
+        prefix: The prefix to search for
+        namespace: The namespace to search in
+        expected_count: The expected number of results
+        max_wait_time: Maximum time to wait in seconds
+
+    Raises:
+        TimeoutError: If the expected count is not reached within max_wait_time seconds
+    """
+    time_waited = 0
+    wait_per_iteration = 2
+
+    while time_waited < max_wait_time:
+        # Try to list vectors with the prefix
+        results = list(idx.list(prefix=prefix, namespace=namespace))
+        total_count = sum(len(page) for page in results)
+
+        if total_count >= expected_count:
+            logger.debug(
+                f"List returned {total_count} results for prefix '{prefix}' in namespace '{namespace}'"
+            )
+            return
+
+        logger.debug(
+            f"Polling for list results. Prefix: '{prefix}', namespace: '{namespace}', "
+            f"current count: {total_count}, expected: {expected_count}, waited: {time_waited}s"
+        )
+
+        time.sleep(wait_per_iteration)
+        time_waited += wait_per_iteration
+
+    raise TimeoutError(
+        f"Timeout waiting for list to return {expected_count} results for prefix '{prefix}' "
+        f"in namespace '{namespace}' after {time_waited} seconds"
+    )
 
 
 @pytest.fixture(scope="session")
@@ -54,6 +98,9 @@ class TestListPaginated:
         assert results.pagination.next != ""
 
     def test_list_when_using_pagination(self, idx, list_namespace):
+        # Poll to ensure vectors are available for listing
+        poll_until_list_has_results(idx, prefix="99", namespace=list_namespace, expected_count=11)
+
         results = idx.list_paginated(prefix="99", limit=5, namespace=list_namespace)
         next_results = idx.list_paginated(
             prefix="99", limit=5, namespace=list_namespace, pagination_token=results.pagination.next
@@ -78,6 +125,9 @@ class TestListPaginated:
 @pytest.mark.usefixtures("seed_for_list")
 class TestList:
     def test_list(self, idx, list_namespace):
+        # Poll to ensure vectors are available for listing
+        poll_until_list_has_results(idx, prefix="99", namespace=list_namespace, expected_count=11)
+
         results = idx.list(prefix="99", limit=20, namespace=list_namespace)
 
         page_count = 0
@@ -113,6 +163,9 @@ class TestList:
         assert page_count == 0
 
     def test_list_when_multiple_pages(self, idx, list_namespace):
+        # Poll to ensure vectors are available for listing
+        poll_until_list_has_results(idx, prefix="99", namespace=list_namespace, expected_count=11)
+
         pages = []
         page_sizes = []
         page_count = 0
@@ -130,6 +183,9 @@ class TestList:
         assert pages[2] == ["999"]
 
     def test_list_then_fetch(self, idx, list_namespace):
+        # Poll to ensure vectors are available for listing
+        poll_until_list_has_results(idx, prefix="99", namespace=list_namespace, expected_count=11)
+
         vectors = []
 
         for ids in idx.list(prefix="99", limit=5, namespace=list_namespace):
