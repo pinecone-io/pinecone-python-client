@@ -96,6 +96,7 @@ class ListNamespacesResponse(ModelNormal):
         return {
             "namespaces": ([NamespaceDescription],),  # noqa: E501
             "pagination": (Pagination,),  # noqa: E501
+            "total_count": (int,),  # noqa: E501
         }
 
     @cached_class_property
@@ -105,6 +106,7 @@ class ListNamespacesResponse(ModelNormal):
     attribute_map: Dict[str, str] = {
         "namespaces": "namespaces",  # noqa: E501
         "pagination": "pagination",  # noqa: E501
+        "total_count": "total_count",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -149,6 +151,7 @@ class ListNamespacesResponse(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             namespaces ([NamespaceDescription]): The list of namespaces belonging to this index. [optional]  # noqa: E501
             pagination (Pagination): [optional]  # noqa: E501
+            total_count (int): The total number of namespaces in the index matching the prefix [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -240,6 +243,7 @@ class ListNamespacesResponse(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             namespaces ([NamespaceDescription]): The list of namespaces belonging to this index. [optional]  # noqa: E501
             pagination (Pagination): [optional]  # noqa: E501
+            total_count (int): The total number of namespaces in the index matching the prefix [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

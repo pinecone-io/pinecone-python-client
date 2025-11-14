@@ -27,25 +27,13 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
-def lazy_import():
-    from pinecone.core.openapi.db_data.model.create_namespace_request_schema import (
-        CreateNamespaceRequestSchema,
-    )
-    from pinecone.core.openapi.db_data.model.namespace_description_indexed_fields import (
-        NamespaceDescriptionIndexedFields,
-    )
-
-    globals()["CreateNamespaceRequestSchema"] = CreateNamespaceRequestSchema
-    globals()["NamespaceDescriptionIndexedFields"] = NamespaceDescriptionIndexedFields
-
-
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="NamespaceDescription")
+T = TypeVar("T", bound="NamespaceDescriptionIndexedFields")
 
 
-class NamespaceDescription(ModelNormal):
+class NamespaceDescriptionIndexedFields(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -81,7 +69,6 @@ class NamespaceDescription(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -96,12 +83,8 @@ class NamespaceDescription(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
-            "name": (str,),  # noqa: E501
-            "record_count": (int,),  # noqa: E501
-            "schema": (CreateNamespaceRequestSchema,),  # noqa: E501
-            "indexed_fields": (NamespaceDescriptionIndexedFields,),  # noqa: E501
+            "fields": ([str],)  # noqa: E501
         }
 
     @cached_class_property
@@ -109,10 +92,7 @@ class NamespaceDescription(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "name": "name",  # noqa: E501
-        "record_count": "record_count",  # noqa: E501
-        "schema": "schema",  # noqa: E501
-        "indexed_fields": "indexed_fields",  # noqa: E501
+        "fields": "fields"  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -122,7 +102,7 @@ class NamespaceDescription(ModelNormal):
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """NamespaceDescription - a model defined in OpenAPI
+        """NamespaceDescriptionIndexedFields - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -155,10 +135,7 @@ class NamespaceDescription(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            name (str): The name of the namespace. [optional]  # noqa: E501
-            record_count (int): The total amount of records within the namespace. [optional]  # noqa: E501
-            schema (CreateNamespaceRequestSchema): [optional]  # noqa: E501
-            indexed_fields (NamespaceDescriptionIndexedFields): [optional]  # noqa: E501
+            fields ([str]): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -215,7 +192,7 @@ class NamespaceDescription(ModelNormal):
 
     @convert_js_args_to_python_args
     def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """NamespaceDescription - a model defined in OpenAPI
+        """NamespaceDescriptionIndexedFields - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -248,10 +225,7 @@ class NamespaceDescription(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            name (str): The name of the namespace. [optional]  # noqa: E501
-            record_count (int): The total amount of records within the namespace. [optional]  # noqa: E501
-            schema (CreateNamespaceRequestSchema): [optional]  # noqa: E501
-            indexed_fields (NamespaceDescriptionIndexedFields): [optional]  # noqa: E501
+            fields ([str]): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
