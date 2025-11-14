@@ -31,8 +31,12 @@ def lazy_import():
     from pinecone.core.openapi.db_data.model.create_namespace_request_schema import (
         CreateNamespaceRequestSchema,
     )
+    from pinecone.core.openapi.db_data.model.namespace_description_indexed_fields import (
+        NamespaceDescriptionIndexedFields,
+    )
 
     globals()["CreateNamespaceRequestSchema"] = CreateNamespaceRequestSchema
+    globals()["NamespaceDescriptionIndexedFields"] = NamespaceDescriptionIndexedFields
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -97,7 +101,7 @@ class NamespaceDescription(ModelNormal):
             "name": (str,),  # noqa: E501
             "record_count": (int,),  # noqa: E501
             "schema": (CreateNamespaceRequestSchema,),  # noqa: E501
-            "total_count": (int,),  # noqa: E501
+            "indexed_fields": (NamespaceDescriptionIndexedFields,),  # noqa: E501
         }
 
     @cached_class_property
@@ -108,7 +112,7 @@ class NamespaceDescription(ModelNormal):
         "name": "name",  # noqa: E501
         "record_count": "record_count",  # noqa: E501
         "schema": "schema",  # noqa: E501
-        "total_count": "total_count",  # noqa: E501
+        "indexed_fields": "indexed_fields",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -154,7 +158,7 @@ class NamespaceDescription(ModelNormal):
             name (str): The name of the namespace. [optional]  # noqa: E501
             record_count (int): The total amount of records within the namespace. [optional]  # noqa: E501
             schema (CreateNamespaceRequestSchema): [optional]  # noqa: E501
-            total_count (int): The total number of namespaces in the index matching the prefix [optional]  # noqa: E501
+            indexed_fields (NamespaceDescriptionIndexedFields): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -247,7 +251,7 @@ class NamespaceDescription(ModelNormal):
             name (str): The name of the namespace. [optional]  # noqa: E501
             record_count (int): The total amount of records within the namespace. [optional]  # noqa: E501
             schema (CreateNamespaceRequestSchema): [optional]  # noqa: E501
-            total_count (int): The total number of namespaces in the index matching the prefix [optional]  # noqa: E501
+            indexed_fields (NamespaceDescriptionIndexedFields): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

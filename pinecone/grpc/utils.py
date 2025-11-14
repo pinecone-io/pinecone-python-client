@@ -12,6 +12,7 @@ from pinecone.core.openapi.db_data.models import (
     IndexDescription as DescribeIndexStatsResponse,
     NamespaceSummary,
     NamespaceDescription,
+    NamespaceDescriptionIndexedFields,
     ListNamespacesResponse,
     Pagination as OpenApiPagination,
 )
@@ -240,9 +241,20 @@ def parse_namespace_description(
     from pinecone.utils.response_info import extract_response_info
 
     json_response = json_format.MessageToDict(response)
+
+    # Extract indexed_fields if present
+    indexed_fields = None
+    if "indexedFields" in json_response and json_response["indexedFields"]:
+        indexed_fields_data = json_response["indexedFields"]
+        if "fields" in indexed_fields_data:
+            indexed_fields = NamespaceDescriptionIndexedFields(
+                fields=indexed_fields_data.get("fields", []), _check_type=False
+            )
+
     namespace_desc = NamespaceDescription(
         name=json_response.get("name", ""),
         record_count=json_response.get("recordCount", 0),
+        indexed_fields=indexed_fields,
         _check_type=False,
     )
 
@@ -259,9 +271,21 @@ def parse_list_namespaces_response(response: Message) -> ListNamespacesResponse:
 
     namespaces = []
     for ns in json_response.get("namespaces", []):
+        # Extract indexed_fields if present
+        indexed_fields = None
+        if "indexedFields" in ns and ns["indexedFields"]:
+            indexed_fields_data = ns["indexedFields"]
+            if "fields" in indexed_fields_data:
+                indexed_fields = NamespaceDescriptionIndexedFields(
+                    fields=indexed_fields_data.get("fields", []), _check_type=False
+                )
+
         namespaces.append(
             NamespaceDescription(
-                name=ns.get("name", ""), record_count=ns.get("recordCount", 0), _check_type=False
+                name=ns.get("name", ""),
+                record_count=ns.get("recordCount", 0),
+                indexed_fields=indexed_fields,
+                _check_type=False,
             )
         )
 
@@ -271,4 +295,7 @@ def parse_list_namespaces_response(response: Message) -> ListNamespacesResponse:
             next=json_response["pagination"].get("next", ""), _check_type=False
         )
 
-    return ListNamespacesResponse(namespaces=namespaces, pagination=pagination, _check_type=False)
+    total_count = json_response.get("totalCount")
+    return ListNamespacesResponse(
+        namespaces=namespaces, pagination=pagination, total_count=total_count, _check_type=False
+    )
