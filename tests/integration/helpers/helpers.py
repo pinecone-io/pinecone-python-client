@@ -191,11 +191,15 @@ def poll_until_lsn_reconciled(
 
         # If reconciled_lsn is None, log all headers to help debug missing LSN headers
         # This is particularly useful for sparse indices which may not return LSN headers
-        if reconciled_lsn is None and total_time == 0:
+        if reconciled_lsn is None:
+            hard_sleep_seconds = 30
             # Log headers on first attempt to help diagnose missing LSN headers
-            logger.debug(
-                f"LSN header not found in query response. Available headers: {list(query_raw_headers.keys())}"
+            logger.warning(
+                f"LSN header not found in query response. Available headers: {list(query_raw_headers.keys())}. Falling back to hard-coded sleep for {hard_sleep_seconds} seconds."
             )
+            time.sleep(hard_sleep_seconds)
+            done = True
+            continue
 
         logger.debug(f"Current reconciled LSN: {reconciled_lsn}, target: {target_lsn}")
         if is_lsn_reconciled(target_lsn, reconciled_lsn):
