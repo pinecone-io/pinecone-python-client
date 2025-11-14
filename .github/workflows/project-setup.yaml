@@ -13,10 +13,10 @@ on:
       # Shared fixtures
       index_host_dense:
         description: 'The host of the dense index'
-        value: ${{ jobs.create-fixtures.outputs.index_host_dense }}
+        value: ${{ jobs.create-project-job.outputs.index_host_dense }}
       index_host_sparse:
         description: 'The host of the sparse index'
-        value: ${{ jobs.create-fixtures.outputs.index_host_sparse }}
+        value: ${{ jobs.create-project-job.outputs.index_host_sparse }}
 
 permissions: {}
 
@@ -26,6 +26,8 @@ jobs:
     outputs:
       encrypted_project_api_key: ${{ steps.create-project-step.outputs.encrypted_project_api_key }}
       project_id: ${{ steps.create-project-step.outputs.project_id }}
+      index_host_dense: ${{ steps.create-index-dense.outputs.index_host }}
+      index_host_sparse: ${{ steps.create-index-sparse.outputs.index_host }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-poetry
@@ -41,25 +43,11 @@ jobs:
           name_prefix: 'python'
           max_pods: 10
 
-  create-fixtures:
-    needs:
-      - create-project-job
-    runs-on: ubuntu-latest
-    outputs:
-        index_host_dense: ${{ steps.create-index-dense.outputs.index_host }}
-        index_host_sparse: ${{ steps.create-index-sparse.outputs.index_host }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
-        with:
-          python_version: '3.10'
-
       - name: Decrypt Pinecone API key
         id: decrypt-api-key
         uses: ./.github/actions/secret-decrypt
         with:
-          encrypted_secret: ${{ needs.create-project-job.outputs.encrypted_project_api_key }}
+          encrypted_secret: ${{ steps.create-project-step.outputs.encrypted_project_api_key }}
           encryption_key: ${{ secrets.FERNET_ENCRYPTION_KEY }}
 
       - name: Create dense index
