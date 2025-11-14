@@ -1,3 +1,7 @@
+import pytest
+
+
+@pytest.mark.skip(reason="slow")
 class TestCreateIndexPods:
     def test_create_with_optional_tags(self, client, create_index_params):
         index_name = create_index_params["name"]

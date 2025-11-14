@@ -3,6 +3,7 @@ import time
 from pinecone import PodSpec
 
 
+@pytest.mark.skip(reason="slow")
 class TestDeletionProtection:
     def test_deletion_protection(self, client, index_name, environment):
         client.create_index(

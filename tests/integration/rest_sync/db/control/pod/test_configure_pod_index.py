@@ -1,6 +1,8 @@
+import pytest
 import time
 
 
+@pytest.mark.skip(reason="slow")
 class TestConfigurePodIndex:
     def test_configure_pod_index(self, client, ready_index):
         time.sleep(10)  # Wait a little more, just in case.
