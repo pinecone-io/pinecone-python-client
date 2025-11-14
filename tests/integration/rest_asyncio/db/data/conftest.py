@@ -3,7 +3,7 @@ import pytest_asyncio
 import json
 import os
 import asyncio
-from tests.integration.helpers import get_environment_var, generate_index_name
+from tests.integration.helpers import get_environment_var, generate_index_name, safe_delete_index
 from pinecone.db_data import _IndexAsyncio
 import logging
 from typing import Optional, Dict, Any
@@ -124,8 +124,7 @@ def index_host(index_name, metric, spec, dimension):
     description = pc.describe_index(name=index_name)
     yield description.host
 
-    logger.info("Deleting index with name: " + index_name)
-    pc.delete_index(index_name, -1)
+    safe_delete_index(pc, index_name)
 
 
 @pytest.fixture(scope="session")
@@ -154,8 +153,7 @@ def sparse_index_host(sparse_index_name, spec):
     description = pc.describe_index(name=sparse_index_name)
     yield description.host
 
-    logger.info(f"Deleting index with name {sparse_index_name}")
-    pc.delete_index(sparse_index_name, -1)
+    safe_delete_index(pc, sparse_index_name)
 
 
 @pytest.fixture(scope="session")
@@ -191,8 +189,7 @@ def model_index_host(model_index_name):
     description = pc.describe_index(name=model_index_name)
     yield description.host
 
-    logger.info(f"Deleting index {model_index_name}")
-    pc.delete_index(model_index_name, -1)
+    safe_delete_index(pc, model_index_name)
 
 
 async def get_query_response(asyncio_idx, namespace: str, dimension: Optional[int] = None):

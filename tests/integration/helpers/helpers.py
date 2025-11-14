@@ -273,6 +273,26 @@ def delete_indexes_from_run(pc: Pinecone, run_id: str):
         delete_index_with_retry(client=pc, index_name=index_name, retries=3, sleep_interval=10)
 
 
+def safe_delete_index(client: Pinecone, index_name: str, timeout: int = -1) -> None:
+    """Safely delete an index, handling NotFoundException and other errors gracefully.
+
+    This is intended for use in test teardown/fixtures where failures should not
+    cause test failures. It logs warnings for errors but does not raise exceptions.
+
+    Args:
+        client: The Pinecone client instance
+        index_name: Name of the index to delete
+        timeout: Timeout for the delete operation (default: -1 for no timeout)
+    """
+    try:
+        logger.info(f"Deleting index {index_name}")
+        client.delete_index(index_name, timeout)
+    except NotFoundException:
+        logger.debug(f"Index {index_name} already deleted")
+    except Exception as e:
+        logger.warning(f"Failed to delete index {index_name}: {e}")
+
+
 def delete_index_with_retry(
     client: Pinecone, index_name: str, retries: int = 0, sleep_interval: int = 5
 ):

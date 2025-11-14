@@ -11,6 +11,7 @@ from .helpers import (
     index_tags,
     delete_backups_from_run,
     delete_indexes_from_run,
+    safe_delete_index,
     default_create_index_params,
 )
 from .names import generate_name
@@ -28,6 +29,7 @@ __all__ = [
     "index_tags",
     "delete_backups_from_run",
     "delete_indexes_from_run",
+    "safe_delete_index",
     "default_create_index_params",
     "generate_name",
 ]

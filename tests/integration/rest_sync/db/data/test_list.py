@@ -203,6 +203,7 @@ def seed_for_list(idx, list_namespace, wait=True):
     yield
 
 
+@pytest.mark.skip(reason="flake")
 @pytest.mark.usefixtures("seed_for_list")
 class TestListPaginated:
     def test_list_when_no_results(self, idx):

@@ -7,6 +7,7 @@ from tests.integration.helpers import (
     get_environment_var,
     generate_index_name,
     index_tags as index_tags_helper,
+    safe_delete_index,
 )
 import logging
 from pinecone import EmbedModel, CloudProvider, AwsRegion, IndexEmbed
@@ -174,8 +175,7 @@ def model_index_host(model_index_name, index_tags):
     description = pc.describe_index(name=model_index_name)
     yield description.host
 
-    logger.info(f"Deleting index {model_index_name}")
-    pc.delete_index(model_index_name, -1)
+    safe_delete_index(pc, model_index_name)
 
 
 @pytest.fixture(scope="session")
@@ -200,8 +200,7 @@ def index_host(index_name, metric, spec, index_tags):
     description = pc.describe_index(name=index_name)
     yield description.host
 
-    logger.info(f"Deleting index {index_name}")
-    pc.delete_index(index_name, -1)
+    safe_delete_index(pc, index_name)
 
 
 @pytest.fixture(scope="session")
@@ -232,8 +231,7 @@ def sparse_index_host(sparse_index_name, spec, index_tags):
     description = pc.describe_index(name=sparse_index_name)
     yield description.host
 
-    logger.info(f"Deleting index {sparse_index_name}")
-    pc.delete_index(sparse_index_name, -1)
+    safe_delete_index(pc, sparse_index_name)
 
 
 @pytest.fixture(scope="session")
@@ -260,5 +258,4 @@ def hybrid_index_host(hybrid_index_name, spec, index_tags):
     description = pc.describe_index(name=hybrid_index_name)
     yield description.host
 
-    logger.info(f"Deleting index {hybrid_index_name}")
-    pc.delete_index(hybrid_index_name, -1)
+    safe_delete_index(pc, hybrid_index_name)
