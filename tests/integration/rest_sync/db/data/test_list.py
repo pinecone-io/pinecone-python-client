@@ -203,7 +203,7 @@ def seed_for_list(idx, list_namespace, wait=True):
     yield
 
 
-@pytest.mark.skip(reason="flake")
+@pytest.mark.skip(reason="Replaced with unit tests - see tests/unit/db_data/test_list.py")
 @pytest.mark.usefixtures("seed_for_list")
 class TestListPaginated:
     def test_list_when_no_results(self, idx):
@@ -257,6 +257,7 @@ class TestListPaginated:
         # assert next_next_results.pagination == None
 
 
+@pytest.mark.skip(reason="Replaced with unit tests - see tests/unit/db_data/test_list.py")
 @pytest.mark.usefixtures("seed_for_list")
 class TestList:
     def test_list(self, idx, list_namespace):
