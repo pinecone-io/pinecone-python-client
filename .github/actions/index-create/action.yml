@@ -17,11 +17,15 @@ inputs:
   dimension:
     description: 'The dimension of the index'
     required: false
-    default: '3'
+    default: ''
   metric:
     description: 'The metric of the index'
     required: false
     default: 'cosine'
+  vector_type:
+    description: 'The type of the index'
+    required: false
+    default: 'dense'
   PINECONE_API_KEY:
     description: 'The Pinecone API key'
     required: true
@@ -35,6 +39,10 @@ outputs:
   index_name:
     description: 'The name of the index, including randomized suffix'
     value: ${{ steps.create-index.outputs.index_name }}
+
+  index_host:
+    description: 'The host of the index'
+    value: ${{ steps.create-index.outputs.index_host }}
 
 runs:
   using: 'composite'
@@ -52,5 +60,6 @@ runs:
         NAME_PREFIX: ${{ inputs.name_prefix }}
         REGION: ${{ inputs.region }}
         CLOUD: ${{ inputs.cloud }}
+        VECTOR_TYPE: ${{ inputs.vector_type }}
         DIMENSION: ${{ inputs.dimension }}
         METRIC: ${{ inputs.metric }}

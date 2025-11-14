@@ -5,11 +5,13 @@ from .helpers import (
     generate_index_name,
     generate_collection_name,
     poll_until_lsn_reconciled,
+    poll_stats_for_namespace,
     embedding_values,
     jsonprint,
     index_tags,
     delete_backups_from_run,
     delete_indexes_from_run,
+    safe_delete_index,
     default_create_index_params,
 )
 from .names import generate_name
@@ -21,11 +23,13 @@ __all__ = [
     "generate_index_name",
     "generate_collection_name",
     "poll_until_lsn_reconciled",
+    "poll_stats_for_namespace",
     "embedding_values",
     "jsonprint",
     "index_tags",
     "delete_backups_from_run",
     "delete_indexes_from_run",
+    "safe_delete_index",
     "default_create_index_params",
     "generate_name",
 ]

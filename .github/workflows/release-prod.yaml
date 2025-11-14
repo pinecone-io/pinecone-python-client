@@ -43,6 +43,8 @@ jobs:
     with:
       encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
       python_versions_json: '["3.10", "3.13"]'
+      dense_index_host: ${{ needs.create-project.outputs.index_host_dense }}
+      sparse_index_host: ${{ needs.create-project.outputs.index_host_sparse }}
 
   dependency-tests:
     uses: './.github/workflows/testing-dependency.yaml'

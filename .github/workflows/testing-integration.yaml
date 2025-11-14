@@ -8,35 +8,27 @@ on:
       python_versions_json:
         required: true
         type: string
-      rest_sync_suites_json:
-        required: false
+      dense_index_host:
+        required: true
         type: string
-        description: 'JSON array of REST sync test suites to run (if not provided, runs all)'
-      rest_asyncio_suites_json:
-        required: false
+        description: 'The host of a dense index for db data tests'
+      sparse_index_host:
+        required: true
         type: string
-        description: 'JSON array of REST asyncio test suites to run (if not provided, runs all)'
-      grpc_sync_suites_json:
-        required: false
-        type: string
-        description: 'JSON array of gRPC sync test suites to run (if not provided, runs all)'
-      admin_suites_json:
-        required: false
-        type: string
-        description: 'JSON array of admin test suites to run (if not provided, runs all)'
+        description: 'The host of the sparse index for db data tests'
 
 permissions: {}
 
 jobs:
-  rest-sync:
-    name: rest ${{ matrix.python_version }} ${{ matrix.test_suite }}
+  rest_sync:
+    name: rest ${{ matrix.python_version }} shard ${{ matrix.shard }}/${{ matrix.total_shards }}
     runs-on: ubuntu-latest
-    if: ${{ inputs.rest_sync_suites_json == '' || (inputs.rest_sync_suites_json != '' && fromJson(inputs.rest_sync_suites_json)[0] != null) }}
     strategy:
       fail-fast: false
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite: ${{ inputs.rest_sync_suites_json != '' && fromJson(inputs.rest_sync_suites_json) || fromJson('["control/serverless", "control/resources/index", "control/resources/collections", "inference/sync", "plugins", "data"]') }}
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        total_shards: [10]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
@@ -49,18 +41,23 @@ jobs:
         with:
           encrypted_project_api_key: '${{ inputs.encrypted_project_api_key }}'
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
-          test_suite: '${{ matrix.test_suite }}'
+          test_suite: 'tests/integration/rest_sync'
+          pytest_splits: '${{ matrix.total_shards }}'
+          pytest_group: '${{ matrix.shard }}'
+          PINECONE_CLIENT_ID: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
+          PINECONE_CLIENT_SECRET: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}
+          INDEX_HOST_DENSE: '${{ inputs.dense_index_host }}'
+          INDEX_HOST_SPARSE: '${{ inputs.sparse_index_host }}'
 
-
-  rest-asyncio:
-    name: asyncio ${{ matrix.python_version }} ${{ matrix.test_suite }}
+  rest_asyncio:
+    name: rest_asyncio ${{ matrix.python_version }} shard ${{ matrix.shard }}/${{ matrix.total_shards }}
     runs-on: ubuntu-latest
-    if: ${{ inputs.rest_asyncio_suites_json == '' || (inputs.rest_asyncio_suites_json != '' && fromJson(inputs.rest_asyncio_suites_json)[0] != null) }}
     strategy:
       fail-fast: false
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite: ${{ inputs.rest_asyncio_suites_json != '' && fromJson(inputs.rest_asyncio_suites_json) || fromJson('["control_asyncio/resources/index", "control_asyncio/*.py", "inference/asyncio", "data_asyncio"]') }}
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+        total_shards: [8]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
@@ -73,50 +70,36 @@ jobs:
         with:
           encrypted_project_api_key: '${{ inputs.encrypted_project_api_key }}'
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
-          test_suite: '${{ matrix.test_suite }}'
+          test_suite: 'tests/integration/rest_asyncio'
+          pytest_splits: '${{ matrix.total_shards }}'
+          pytest_group: '${{ matrix.shard }}'
+          PINECONE_CLIENT_ID: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
+          PINECONE_CLIENT_SECRET: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}
+          INDEX_HOST_DENSE: '${{ inputs.dense_index_host }}'
+          INDEX_HOST_SPARSE: '${{ inputs.sparse_index_host }}'
 
-  grpc-sync:
-    name: grpc sync ${{ matrix.python_version }} ${{ matrix.test_suite }}
+  grpc:
+    name: grpc ${{ matrix.python_version }}
     runs-on: ubuntu-latest
-    if: ${{ inputs.grpc_sync_suites_json == '' || (inputs.grpc_sync_suites_json != '' && fromJson(inputs.grpc_sync_suites_json)[0] != null) }}
     strategy:
       fail-fast: false
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite: ${{ inputs.grpc_sync_suites_json != '' && fromJson(inputs.grpc_sync_suites_json) || fromJson('["data", "data_grpc_futures"]') }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Poetry
         uses: ./.github/actions/setup-poetry
         with:
-          include_grpc: true
           include_asyncio: false
+          include_grpc: true
           python_version: '${{ matrix.python_version }}'
       - uses: ./.github/actions/run-integration-test
         with:
           encrypted_project_api_key: '${{ inputs.encrypted_project_api_key }}'
           encryption_key: '${{ secrets.FERNET_ENCRYPTION_KEY }}'
-          test_suite: '${{ matrix.test_suite }}'
+          test_suite: 'tests/integration/grpc tests/integration/rest_sync/db/data'
           use_grpc: 'true'
-
-  admin:
-    name: admin ${{ matrix.python_version }}
-    runs-on: ubuntu-latest
-    if: ${{ inputs.admin_suites_json == '' || (inputs.admin_suites_json != '' && fromJson(inputs.admin_suites_json)[0] != null) }}
-    strategy:
-      fail-fast: false
-      matrix:
-        python_version: ${{ fromJson(inputs.python_versions_json) }}
-        test_suite: ${{ inputs.admin_suites_json != '' && fromJson(inputs.admin_suites_json) || fromJson('["admin"]') }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
-        with:
-          include_grpc: false
-          include_asyncio: false
-          python_version: '${{ matrix.python_version }}'
-      - run: poetry run pytest tests/integration/${{ matrix.test_suite }} --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
-        env:
           PINECONE_CLIENT_ID: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}
           PINECONE_CLIENT_SECRET: ${{ secrets.PINECONE_SERVICE_ACCOUNT_CLIENT_SECRET }}
+          INDEX_HOST_DENSE: '${{ inputs.dense_index_host }}'
+          INDEX_HOST_SPARSE: '${{ inputs.sparse_index_host }}'

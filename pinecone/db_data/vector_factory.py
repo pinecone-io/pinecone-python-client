@@ -12,7 +12,7 @@ from pinecone.core.openapi.db_data.models import (
     Vector as OpenApiVector,
     SparseValues as OpenApiSparseValues,
 )
-from .dataclasses import Vector
+from .dataclasses import Vector, SparseValues
 
 from .errors import (
     VectorDictionaryMissingKeysError,
@@ -56,7 +56,7 @@ class VectorFactory:
         if len(item) < 2 or len(item) > 3:
             raise VectorTupleLengthError(item)
         id, values, metadata = fix_tuple_length(item, 3)
-        if isinstance(values, OpenApiSparseValues):
+        if isinstance(values, (OpenApiSparseValues, SparseValues)):
             raise ValueError(
                 "Sparse values are not supported in tuples. Please use either dicts or OpenApiVector objects as inputs."
             )

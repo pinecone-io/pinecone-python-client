@@ -1,5 +1,13 @@
 import pytest
-from pinecone import ByocSpec, ServerlessSpec
+from pinecone import (
+    ByocSpec,
+    ServerlessSpec,
+    PodSpec,
+    CloudProvider,
+    AwsRegion,
+    PodType,
+    PodIndexEnvironment,
+)  # type: ignore[attr-defined]
 from pinecone.db_control.request_factory import PineconeDBControlRequestFactory
 
 
@@ -48,6 +56,22 @@ class TestIndexRequestFactory:
         assert req.vector_type == "dense"
         assert req.deletion_protection == "disabled"
 
+    def test_create_index_request_with_spec_serverless_dict_enums(self):
+        """Test that dict format with enum values is correctly converted to request body."""
+        req = PineconeDBControlRequestFactory.create_index_request(
+            name="test-index",
+            metric="cosine",
+            dimension=1024,
+            spec={"serverless": {"cloud": CloudProvider.AWS, "region": AwsRegion.US_EAST_1}},
+        )
+        assert req.name == "test-index"
+        assert req.metric == "cosine"
+        assert req.dimension == 1024
+        assert req.spec.serverless.cloud == "aws"
+        assert req.spec.serverless.region == "us-east-1"
+        assert req.vector_type == "dense"
+        assert req.deletion_protection == "disabled"
+
     def test_create_index_request_with_spec_byoc_dict(self):
         req = PineconeDBControlRequestFactory.create_index_request(
             name="test-index",
@@ -59,6 +83,106 @@ class TestIndexRequestFactory:
         assert req.metric == "cosine"
         assert req.dimension == 1024
         assert req.spec.byoc.environment == "test-byoc-spec-id"
+        assert req.vector_type == "dense"
+        assert req.deletion_protection == "disabled"
+
+    def test_create_index_request_with_spec_pod(self):
+        """Test creating index request with PodSpec object."""
+        req = PineconeDBControlRequestFactory.create_index_request(
+            name="test-index",
+            metric="cosine",
+            dimension=1024,
+            spec=PodSpec(environment="us-west1-gcp", pod_type="p1.x1"),
+        )
+        assert req.name == "test-index"
+        assert req.metric == "cosine"
+        assert req.dimension == 1024
+        assert req.spec.pod.environment == "us-west1-gcp"
+        assert req.spec.pod.pod_type == "p1.x1"
+        assert req.vector_type == "dense"
+        assert req.deletion_protection == "disabled"
+
+    def test_create_index_request_with_spec_pod_all_fields(self):
+        """Test creating index request with PodSpec object including all optional fields."""
+        req = PineconeDBControlRequestFactory.create_index_request(
+            name="test-index",
+            metric="cosine",
+            dimension=1024,
+            spec=PodSpec(
+                environment="us-west1-gcp",
+                pod_type="p1.x1",
+                pods=2,
+                replicas=1,
+                shards=1,
+                metadata_config={"indexed": ["field1", "field2"]},
+                source_collection="my-collection",
+            ),
+        )
+        assert req.name == "test-index"
+        assert req.metric == "cosine"
+        assert req.dimension == 1024
+        assert req.spec.pod.environment == "us-west1-gcp"
+        assert req.spec.pod.pod_type == "p1.x1"
+        assert req.spec.pod.pods == 2
+        assert req.spec.pod.replicas == 1
+        assert req.spec.pod.shards == 1
+        assert req.spec.pod.metadata_config.indexed == ["field1", "field2"]
+        assert req.spec.pod.source_collection == "my-collection"
+        assert req.vector_type == "dense"
+        assert req.deletion_protection == "disabled"
+
+    def test_create_index_request_with_spec_pod_dict(self):
+        """Test creating index request with PodSpec as dictionary."""
+        req = PineconeDBControlRequestFactory.create_index_request(
+            name="test-index",
+            metric="cosine",
+            dimension=1024,
+            spec={"pod": {"environment": "us-west1-gcp", "pod_type": "p1.x1"}},
+        )
+        assert req.name == "test-index"
+        assert req.metric == "cosine"
+        assert req.dimension == 1024
+        assert req.spec.pod.environment == "us-west1-gcp"
+        assert req.spec.pod.pod_type == "p1.x1"
+        assert req.vector_type == "dense"
+        assert req.deletion_protection == "disabled"
+
+    def test_create_index_request_with_spec_pod_dict_enums(self):
+        """Test that dict format with enum values is correctly converted to request body."""
+        req = PineconeDBControlRequestFactory.create_index_request(
+            name="test-index",
+            metric="cosine",
+            dimension=1024,
+            spec={
+                "pod": {"environment": PodIndexEnvironment.US_WEST1_GCP, "pod_type": PodType.P1_X1}
+            },
+        )
+        assert req.name == "test-index"
+        assert req.metric == "cosine"
+        assert req.dimension == 1024
+        assert req.spec.pod.environment == "us-west1-gcp"
+        assert req.spec.pod.pod_type == "p1.x1"
+        assert req.vector_type == "dense"
+        assert req.deletion_protection == "disabled"
+
+    def test_create_index_request_with_spec_pod_with_metadata_config(self):
+        """Test creating index request with PodSpec including metadata_config."""
+        req = PineconeDBControlRequestFactory.create_index_request(
+            name="test-index",
+            metric="cosine",
+            dimension=1024,
+            spec=PodSpec(
+                environment="us-west1-gcp",
+                pod_type="p1.x1",
+                metadata_config={"indexed": ["genre", "year"]},
+            ),
+        )
+        assert req.name == "test-index"
+        assert req.metric == "cosine"
+        assert req.dimension == 1024
+        assert req.spec.pod.environment == "us-west1-gcp"
+        assert req.spec.pod.pod_type == "p1.x1"
+        assert req.spec.pod.metadata_config.indexed == ["genre", "year"]
         assert req.vector_type == "dense"
         assert req.deletion_protection == "disabled"
 

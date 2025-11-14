@@ -10,6 +10,14 @@ on:
         description: 'The project id'
         value: ${{ jobs.create-project-job.outputs.project_id }}
 
+      # Shared fixtures
+      index_host_dense:
+        description: 'The host of the dense index'
+        value: ${{ jobs.create-project-job.outputs.index_host_dense }}
+      index_host_sparse:
+        description: 'The host of the sparse index'
+        value: ${{ jobs.create-project-job.outputs.index_host_sparse }}
+
 permissions: {}
 
 jobs:
@@ -18,6 +26,8 @@ jobs:
     outputs:
       encrypted_project_api_key: ${{ steps.create-project-step.outputs.encrypted_project_api_key }}
       project_id: ${{ steps.create-project-step.outputs.project_id }}
+      index_host_dense: ${{ steps.create-index-dense.outputs.index_host }}
+      index_host_sparse: ${{ steps.create-index-sparse.outputs.index_host }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-poetry
@@ -32,3 +42,35 @@ jobs:
           api_version: '2025-04'
           name_prefix: 'python'
           max_pods: 10
+
+      - name: Decrypt Pinecone API key
+        id: decrypt-api-key
+        uses: ./.github/actions/secret-decrypt
+        with:
+          encrypted_secret: ${{ steps.create-project-step.outputs.encrypted_project_api_key }}
+          encryption_key: ${{ secrets.FERNET_ENCRYPTION_KEY }}
+
+      - name: Create dense index
+        id: create-index-dense
+        uses: ./.github/actions/index-create
+        with:
+          PINECONE_API_KEY: ${{ steps.decrypt-api-key.outputs.decrypted_secret }}
+          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
+          name_prefix: 'shared'
+          region: 'us-central1'
+          cloud: 'gcp'
+          dimension: '2'
+          metric: 'cosine'
+          vector_type: 'dense'
+
+      - name: Create sparse index
+        id: create-index-sparse
+        uses: ./.github/actions/index-create
+        with:
+          PINECONE_API_KEY: ${{ steps.decrypt-api-key.outputs.decrypted_secret }}
+          PINECONE_ADDITIONAL_HEADERS: '{"sdk-test-suite": "pinecone-python-client"}'
+          name_prefix: 'shared'
+          region: 'us-central1'
+          cloud: 'gcp'
+          vector_type: 'sparse'
+          metric: 'dotproduct'

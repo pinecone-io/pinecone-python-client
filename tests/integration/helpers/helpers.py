@@ -84,11 +84,61 @@ def get_query_response(idx, namespace: str, dimension: Optional[int] = None):
         return response
 
 
+def poll_stats_for_namespace(
+    idx: _Index, namespace: str, expected_count: int, max_wait_time: int = 60 * 3
+):
+    """
+    Polls until a namespace has the expected vector count.
+
+    Args:
+        idx: The index to poll
+        namespace: The namespace to check
+        expected_count: The expected vector count
+        max_wait_time: Maximum time to wait in seconds
+
+    Returns:
+        The index stats when the expected count is reached
+
+    Raises:
+        TimeoutError: If the expected count is not reached within max_wait_time seconds
+    """
+    time_waited = 0
+    wait_per_iteration = 5
+    while True:
+        stats = idx.describe_index_stats()
+        if namespace == "":
+            namespace_key = "__default__" if "__default__" in stats.namespaces else ""
+        else:
+            namespace_key = namespace
+
+        current_count = 0
+        if namespace_key in stats.namespaces:
+            current_count = stats.namespaces[namespace_key].vector_count
+
+        logger.debug(
+            "Polling for namespace %s. Current vector count: %s. Waiting for: %s",
+            namespace,
+            current_count,
+            expected_count,
+        )
+
+        if namespace_key in stats.namespaces and current_count >= expected_count:
+            break
+
+        time_waited += wait_per_iteration
+        if time_waited >= max_wait_time:
+            raise TimeoutError(
+                f"Timeout waiting for namespace {namespace} to have expected vector count of {expected_count}"
+            )
+        time.sleep(wait_per_iteration)
+    return stats
+
+
 def poll_until_lsn_reconciled(
     idx: _Index,
     response_info: Dict[str, Any],
     namespace: str,
-    max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 180)),
+    max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 300)),
 ) -> None:
     """Poll until a target LSN has been reconciled using LSN headers.
 
@@ -138,6 +188,19 @@ def poll_until_lsn_reconciled(
         # Extract reconciled_lsn from query response's raw_headers
         query_raw_headers = response._response_info.get("raw_headers", {})
         reconciled_lsn = extract_lsn_reconciled(query_raw_headers)
+
+        # If reconciled_lsn is None, log all headers to help debug missing LSN headers
+        # This is particularly useful for sparse indices which may not return LSN headers
+        if reconciled_lsn is None:
+            hard_sleep_seconds = 30
+            # Log headers on first attempt to help diagnose missing LSN headers
+            logger.warning(
+                f"LSN header not found in query response. Available headers: {list(query_raw_headers.keys())}. Falling back to hard-coded sleep for {hard_sleep_seconds} seconds."
+            )
+            time.sleep(hard_sleep_seconds)
+            done = True
+            continue
+
         logger.debug(f"Current reconciled LSN: {reconciled_lsn}, target: {target_lsn}")
         if is_lsn_reconciled(target_lsn, reconciled_lsn):
             # LSN is reconciled, check if additional condition is met
@@ -212,6 +275,26 @@ def delete_indexes_from_run(pc: Pinecone, run_id: str):
 
     for index_name in indexes_to_delete:
         delete_index_with_retry(client=pc, index_name=index_name, retries=3, sleep_interval=10)
+
+
+def safe_delete_index(client: Pinecone, index_name: str, timeout: int = -1) -> None:
+    """Safely delete an index, handling NotFoundException and other errors gracefully.
+
+    This is intended for use in test teardown/fixtures where failures should not
+    cause test failures. It logs warnings for errors but does not raise exceptions.
+
+    Args:
+        client: The Pinecone client instance
+        index_name: Name of the index to delete
+        timeout: Timeout for the delete operation (default: -1 for no timeout)
+    """
+    try:
+        logger.info(f"Deleting index {index_name}")
+        client.delete_index(index_name, timeout)
+    except NotFoundException:
+        logger.debug(f"Index {index_name} already deleted")
+    except Exception as e:
+        logger.warning(f"Failed to delete index {index_name}: {e}")
 
 
 def delete_index_with_retry(
