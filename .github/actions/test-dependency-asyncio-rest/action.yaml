@@ -30,6 +30,7 @@ runs:
         include_types: false
         include_asyncio: true
         python_version: ${{ inputs.python_version }}
+        enable_cache: 'false'
 
     - name: 'Install aiohttp ${{ inputs.aiohttp_version }}'
       run: 'poetry add aiohttp==${{ inputs.aiohttp_version }}'

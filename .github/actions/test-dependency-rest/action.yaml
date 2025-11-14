@@ -29,6 +29,7 @@ runs:
         include_grpc: false
         include_types: false
         python_version: ${{ inputs.python_version }}
+        enable_cache: 'false'
 
     - name: 'Install urllib3 ${{ matrix.urllib3-version }}'
       run: 'poetry add urllib3==${{ matrix.urllib3-version }}'

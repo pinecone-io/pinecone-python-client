@@ -38,6 +38,7 @@ runs:
         include_grpc: true
         include_types: false
         python_version: ${{ inputs.python_version }}
+        enable_cache: 'false'
 
     - name: Install grpcio ${{ inputs.grpcio_version }}
       run: poetry add grpcio==${{ inputs.grpcio_version }}
