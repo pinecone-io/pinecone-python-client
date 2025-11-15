@@ -135,27 +135,30 @@ class IndexRequestFactory:
 
     @staticmethod
     def update_request(
-        id: str,
+        id: Optional[str] = None,
         values: Optional[List[float]] = None,
         set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        filter: Optional[FilterTypedDict] = None,
+        dry_run: Optional[bool] = None,
         **kwargs,
     ) -> UpdateRequest:
         _check_type = kwargs.pop("_check_type", False)
         sparse_values_normalized = SparseValuesFactory.build(sparse_values)
         args_dict = parse_non_empty_args(
             [
+                ("id", id),
                 ("values", values),
                 ("set_metadata", set_metadata),
                 ("namespace", namespace),
                 ("sparse_values", sparse_values_normalized),
+                ("filter", filter),
+                ("dry_run", dry_run),
             ]
         )
 
-        return UpdateRequest(
-            id=id, **args_dict, _check_type=_check_type, **non_openapi_kwargs(kwargs)
-        )
+        return UpdateRequest(**args_dict, _check_type=_check_type, **non_openapi_kwargs(kwargs))
 
     @staticmethod
     def describe_index_stats_request(

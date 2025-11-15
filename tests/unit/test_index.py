@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from pinecone.db_data import _Index
+from pinecone.db_data import _Index, _IndexAsyncio
 import pinecone.core.openapi.db_data.models as oai
 from pinecone import QueryResponse, UpsertResponse, Vector
 
@@ -511,6 +511,210 @@ class TestRestIndex:
         self.index.update("vec1", values=self.vals1, metadata=self.md1)
         self.index._vector_api.update_vector.assert_called_once_with(
             oai.UpdateRequest(id="vec1", values=self.vals1, metadata=self.md1)
+        )
+
+    def test_update_withFilter_updateWithFilter(self, mocker):
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(filter=self.filter1, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(filter=self.filter1, namespace="ns")
+        )
+
+    def test_update_withFilterAndSetMetadata_updateWithFilterAndSetMetadata(self, mocker):
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(set_metadata=self.md1, filter=self.filter1, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(set_metadata=self.md1, filter=self.filter1, namespace="ns")
+        )
+
+    def test_update_withFilterAndValues_updateWithFilterAndValues(self, mocker):
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(values=self.vals1, filter=self.filter1, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(values=self.vals1, filter=self.filter1, namespace="ns")
+        )
+
+    def test_update_withFilterAndAllParams_updateWithFilterAndAllParams(self, mocker):
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(
+            values=self.vals1,
+            set_metadata=self.md1,
+            sparse_values=self.sv1,
+            filter=self.filter1,
+            namespace="ns",
+        )
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(
+                values=self.vals1,
+                set_metadata=self.md1,
+                sparse_values=oai.SparseValues(indices=self.svi1, values=self.svv1),
+                filter=self.filter1,
+                namespace="ns",
+            )
+        )
+
+    def test_update_withoutFilter_backwardCompatibility(self, mocker):
+        """Test that update without filter still works (backward compatibility)."""
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(id="vec1", values=self.vals1, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(id="vec1", values=self.vals1, namespace="ns")
+        )
+
+    def test_update_withFilterOnly_noId(self, mocker):
+        """Test update with filter only (no id) for bulk updates."""
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(set_metadata=self.md1, filter=self.filter1, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(set_metadata=self.md1, filter=self.filter1, namespace="ns")
+        )
+
+    def test_update_withNeitherIdNorFilter_raisesError(self, mocker):
+        """Test that update raises error when neither id nor filter is provided."""
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        with pytest.raises(ValueError, match="Either 'id' or 'filter' must be provided"):
+            self.index.update(values=self.vals1, namespace="ns")
+
+    def test_update_withBothIdAndFilter_raisesError(self, mocker):
+        """Test that update raises error when both id and filter are provided."""
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        with pytest.raises(ValueError, match="Cannot provide both 'id' and 'filter'"):
+            self.index.update(id="vec1", filter=self.filter1, values=self.vals1, namespace="ns")
+
+    def test_update_withDryRun_updateWithDryRun(self, mocker):
+        """Test update with dry_run parameter."""
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(filter=self.filter1, dry_run=True, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(filter=self.filter1, dry_run=True, namespace="ns")
+        )
+
+    def test_update_withDryRunAndSetMetadata_updateWithDryRunAndSetMetadata(self, mocker):
+        """Test update with dry_run and set_metadata."""
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(set_metadata=self.md1, filter=self.filter1, dry_run=True, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(
+                set_metadata=self.md1, filter=self.filter1, dry_run=True, namespace="ns"
+            )
+        )
+
+    def test_update_withDryRunFalse_updateWithDryRunFalse(self, mocker):
+        """Test update with dry_run=False."""
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(filter=self.filter1, dry_run=False, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(filter=self.filter1, dry_run=False, namespace="ns")
+        )
+
+    def test_update_withDryRunAndAllParams_updateWithDryRunAndAllParams(self, mocker):
+        """Test update with dry_run and all parameters."""
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(
+            values=self.vals1,
+            set_metadata=self.md1,
+            sparse_values=self.sv1,
+            filter=self.filter1,
+            dry_run=True,
+            namespace="ns",
+        )
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(
+                values=self.vals1,
+                set_metadata=self.md1,
+                sparse_values=oai.SparseValues(indices=self.svi1, values=self.svv1),
+                filter=self.filter1,
+                dry_run=True,
+                namespace="ns",
+            )
+        )
+
+    # endregion
+
+    # region: asyncio update tests
+
+    @pytest.mark.asyncio
+    async def test_asyncio_update_withDryRun_updateWithDryRun(self, mocker):
+        """Test asyncio update with dry_run parameter."""
+        asyncio_index = _IndexAsyncio(api_key="asdf", host="https://test.pinecone.io")
+        mock_response = oai.UpdateResponse(matched_records=5, _check_type=False)
+        mocker.patch.object(
+            asyncio_index._vector_api,
+            "update_vector",
+            return_value=mock_response,
+            new_callable=mocker.AsyncMock,
+        )
+        await asyncio_index.update(filter=self.filter1, dry_run=True, namespace="ns")
+        asyncio_index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(filter=self.filter1, dry_run=True, namespace="ns")
+        )
+
+    @pytest.mark.asyncio
+    async def test_asyncio_update_withDryRunAndSetMetadata_updateWithDryRunAndSetMetadata(
+        self, mocker
+    ):
+        """Test asyncio update with dry_run and set_metadata."""
+        asyncio_index = _IndexAsyncio(api_key="asdf", host="https://test.pinecone.io")
+        mock_response = oai.UpdateResponse(matched_records=5, _check_type=False)
+        mocker.patch.object(
+            asyncio_index._vector_api,
+            "update_vector",
+            return_value=mock_response,
+            new_callable=mocker.AsyncMock,
+        )
+        await asyncio_index.update(
+            set_metadata=self.md1, filter=self.filter1, dry_run=True, namespace="ns"
+        )
+        asyncio_index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(
+                set_metadata=self.md1, filter=self.filter1, dry_run=True, namespace="ns"
+            )
+        )
+
+    @pytest.mark.asyncio
+    async def test_asyncio_update_withDryRunFalse_updateWithDryRunFalse(self, mocker):
+        """Test asyncio update with dry_run=False."""
+        asyncio_index = _IndexAsyncio(api_key="asdf", host="https://test.pinecone.io")
+        mock_response = oai.UpdateResponse(matched_records=5, _check_type=False)
+        mocker.patch.object(
+            asyncio_index._vector_api,
+            "update_vector",
+            return_value=mock_response,
+            new_callable=mocker.AsyncMock,
+        )
+        await asyncio_index.update(filter=self.filter1, dry_run=False, namespace="ns")
+        asyncio_index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(filter=self.filter1, dry_run=False, namespace="ns")
+        )
+
+    @pytest.mark.asyncio
+    async def test_asyncio_update_withDryRunAndAllParams_updateWithDryRunAndAllParams(self, mocker):
+        """Test asyncio update with dry_run and all parameters."""
+        asyncio_index = _IndexAsyncio(api_key="asdf", host="https://test.pinecone.io")
+        mock_response = oai.UpdateResponse(matched_records=5, _check_type=False)
+        mocker.patch.object(
+            asyncio_index._vector_api,
+            "update_vector",
+            return_value=mock_response,
+            new_callable=mocker.AsyncMock,
+        )
+        await asyncio_index.update(
+            values=self.vals1,
+            set_metadata=self.md1,
+            sparse_values=self.sv1,
+            filter=self.filter1,
+            dry_run=True,
+            namespace="ns",
+        )
+        asyncio_index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(
+                values=self.vals1,
+                set_metadata=self.md1,
+                sparse_values=oai.SparseValues(indices=self.svi1, values=self.svv1),
+                filter=self.filter1,
+                dry_run=True,
+                namespace="ns",
+            )
         )
 
     # endregion

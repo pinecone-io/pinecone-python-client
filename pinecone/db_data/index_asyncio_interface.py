@@ -525,32 +525,40 @@ class IndexAsyncioInterface(ABC):
     @abstractmethod
     async def update(
         self,
-        id: str,
+        id: Optional[str] = None,
         values: Optional[List[float]] = None,
         set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        filter: Optional[FilterTypedDict] = None,
+        dry_run: Optional[bool] = None,
         **kwargs,
     ) -> UpdateResponse:
         """
-        The Update operation updates vector in a namespace.
+        The Update operation updates vectors in a namespace.
 
-        Args:
-            id (str): Vector's unique id.
-            values (List[float]): vector values to set. [optional]
-            set_metadata (Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]]):
-                metadata to set for vector. [optional]
-            namespace (str): Namespace name where to update the vector.. [optional]
-            sparse_values: (Dict[str, Union[List[float], List[int]]]): sparse values to update for the vector.
-                           Expected to be either a SparseValues object or a dict of the form:
-                           {'indices': List[int], 'values': List[float]} where the lists each have the same length.
+        This method supports two update modes:
 
-        If a value is included, it will overwrite the previous value.
-        If a set_metadata is included,
-        the values of the fields specified in it will be added or overwrite the previous value.
+        1. **Single vector update by ID**: Provide `id` to update a specific vector.
+           - Updates the vector with the given ID
+           - If `values` is included, it will overwrite the previous vector values
+           - If `set_metadata` is included, the metadata will be merged with existing metadata on the vector.
+             Fields specified in `set_metadata` will overwrite existing fields with the same key, while
+             fields not in `set_metadata` will remain unchanged.
 
+        2. **Bulk update by metadata filter**: Provide `filter` to update all vectors matching the filter criteria.
+           - Updates all vectors in the namespace that match the filter expression
+           - Useful for updating metadata across multiple vectors at once
+           - If `set_metadata` is included, the metadata will be merged with existing metadata on each vector.
+             Fields specified in `set_metadata` will overwrite existing fields with the same key, while
+             fields not in `set_metadata` will remain unchanged.
+           - The response includes `matched_records` indicating how many vectors were updated
+
+        Either `id` or `filter` must be provided (but not both in the same call).
 
         Examples:
+
+        **Single vector update by ID:**
 
         .. code-block:: python
 
@@ -588,8 +596,50 @@ class IndexAsyncioInterface(ABC):
                         namespace='my_namespace'
                     )
 
+        **Bulk update by metadata filter:**
+
+        .. code-block:: python
+
+                    # Update metadata for all vectors matching the filter
+                    response = await idx.update(
+                        set_metadata={'status': 'active'},
+                        filter={'genre': {'$eq': 'drama'}},
+                        namespace='my_namespace'
+                    )
+                    print(f"Updated {response.matched_records} vectors")
+                    # Preview how many vectors would be updated (dry run)
+                    response = await idx.update(
+                        set_metadata={'status': 'active'},
+                        filter={'genre': {'$eq': 'drama'}},
+                        namespace='my_namespace',
+                        dry_run=True
+                    )
+                    print(f"Would update {response.matched_records} vectors")
+
             asyncio.run(main())
 
+        Args:
+            id (str): Vector's unique id. Required for single vector updates. Must not be provided when using filter. [optional]
+            values (List[float]): Vector values to set. [optional]
+            set_metadata (Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]]):
+                Metadata to merge with existing metadata on the vector(s). Fields specified will overwrite
+                existing fields with the same key, while fields not specified will remain unchanged. [optional]
+            namespace (str): Namespace name where to update the vector(s). [optional]
+            sparse_values: (Dict[str, Union[List[float], List[int]]]): Sparse values to update for the vector.
+                           Expected to be either a SparseValues object or a dict of the form:
+                           {'indices': List[int], 'values': List[float]} where the lists each have the same length. [optional]
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]): A metadata filter expression.
+                    When provided, updates all vectors in the namespace that match the filter criteria.
+                    See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`.
+                    Must not be provided when using id. Either `id` or `filter` must be provided. [optional]
+            dry_run (bool): If `True`, return the number of records that match the `filter` without executing
+                    the update. Only meaningful when using `filter` (not with `id`). Useful for previewing
+                    the impact of a bulk update before applying changes. Defaults to `False`. [optional]
+
+        Returns:
+            UpdateResponse: An UpdateResponse object. When using filter-based updates, the response includes
+            `matched_records` indicating the number of vectors that were updated (or would be updated if
+            `dry_run=True`).
         """
         pass
 

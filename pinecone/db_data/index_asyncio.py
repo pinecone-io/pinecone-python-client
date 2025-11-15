@@ -623,13 +623,22 @@ class _IndexAsyncio(IndexAsyncioInterface):
     @validate_and_convert_errors
     async def update(
         self,
-        id: str,
+        id: Optional[str] = None,
         values: Optional[List[float]] = None,
         set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        filter: Optional[FilterTypedDict] = None,
+        dry_run: Optional[bool] = None,
         **kwargs,
     ) -> UpdateResponse:
+        # Validate that exactly one of id or filter is provided
+        if id is None and filter is None:
+            raise ValueError("Either 'id' or 'filter' must be provided to update vectors.")
+        if id is not None and filter is not None:
+            raise ValueError(
+                "Cannot provide both 'id' and 'filter' in the same update call. Use 'id' for single vector updates or 'filter' for bulk updates."
+            )
         result = await self._vector_api.update_vector(
             IndexRequestFactory.update_request(
                 id=id,
@@ -637,12 +646,15 @@ class _IndexAsyncio(IndexAsyncioInterface):
                 set_metadata=set_metadata,
                 namespace=namespace,
                 sparse_values=sparse_values,
+                filter=filter,
+                dry_run=dry_run,
                 **kwargs,
             ),
             **self._openapi_kwargs(kwargs),
         )
         # Extract response info from result if it's an OpenAPI model with _response_info
         response_info = None
+        matched_records = None
         if hasattr(result, "_response_info"):
             response_info = result._response_info
         else:
@@ -651,7 +663,17 @@ class _IndexAsyncio(IndexAsyncioInterface):
 
             response_info = extract_response_info({})
 
-        return UpdateResponse(_response_info=response_info)
+        # Extract matched_records from OpenAPI model
+        if hasattr(result, "matched_records"):
+            matched_records = result.matched_records
+        # Check _data_store for fields not in the OpenAPI spec
+        if hasattr(result, "_data_store"):
+            if matched_records is None:
+                matched_records = result._data_store.get(
+                    "matchedRecords"
+                ) or result._data_store.get("matched_records")
+
+        return UpdateResponse(matched_records=matched_records, _response_info=response_info)
 
     @validate_and_convert_errors
     async def describe_index_stats(
