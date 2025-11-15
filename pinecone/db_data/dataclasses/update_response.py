@@ -11,12 +11,10 @@ class UpdateResponse(DictLike):
 
     Attributes:
         matched_records: The number of records that matched the filter (if a filter was provided).
-        updated_records: The number of records that were actually updated.
         _response_info: Response metadata including LSN headers.
     """
 
     matched_records: Optional[int] = None
-    updated_records: Optional[int] = None
     _response_info: ResponseInfo = field(
         default_factory=lambda: cast(ResponseInfo, {"raw_headers": {}}), repr=True, compare=False
     )

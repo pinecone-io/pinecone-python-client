@@ -684,7 +684,6 @@ class Index(PluginAware, IndexInterface):
         # Extract response info from result if it's an OpenAPI model with _response_info
         response_info = None
         matched_records = None
-        updated_records = None
         if hasattr(result, "_response_info"):
             response_info = result._response_info
         else:
@@ -693,30 +692,17 @@ class Index(PluginAware, IndexInterface):
 
             response_info = extract_response_info({})
 
-        # Extract matched_records and updated_records from OpenAPI model
+        # Extract matched_records from OpenAPI model
         if hasattr(result, "matched_records"):
             matched_records = result.matched_records
-        if hasattr(result, "updated_records"):
-            updated_records = result.updated_records
-        # Also check for camelCase in case it's in the raw response
-        if updated_records is None and hasattr(result, "updatedRecords"):
-            updated_records = result.updatedRecords
         # Check _data_store for fields not in the OpenAPI spec
         if hasattr(result, "_data_store"):
-            if updated_records is None:
-                updated_records = result._data_store.get(
-                    "updatedRecords"
-                ) or result._data_store.get("updated_records")
             if matched_records is None:
                 matched_records = result._data_store.get(
                     "matchedRecords"
                 ) or result._data_store.get("matched_records")
 
-        return UpdateResponse(
-            matched_records=matched_records,
-            updated_records=updated_records,
-            _response_info=response_info,
-        )
+        return UpdateResponse(matched_records=matched_records, _response_info=response_info)
 
     @validate_and_convert_errors
     def describe_index_stats(

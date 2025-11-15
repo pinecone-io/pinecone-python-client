@@ -158,28 +158,19 @@ def parse_update_response(
     metadata = initial_metadata or {}
     response_info = extract_response_info(metadata)
 
-    # Extract matched_records and updated_records from response
+    # Extract matched_records from response
     matched_records = None
-    updated_records = None
     if isinstance(response, Message):
-        # GRPC response - convert to dict to extract matched_records and updated_records
+        # GRPC response - convert to dict to extract matched_records
         json_response = json_format.MessageToDict(response)
         matched_records = json_response.get("matchedRecords") or json_response.get(
             "matched_records"
         )
-        updated_records = json_response.get("updatedRecords") or json_response.get(
-            "updated_records"
-        )
     elif isinstance(response, dict):
         # Dict response - extract directly
         matched_records = response.get("matchedRecords") or response.get("matched_records")
-        updated_records = response.get("updatedRecords") or response.get("updated_records")
 
-    return UpdateResponse(
-        matched_records=matched_records,
-        updated_records=updated_records,
-        _response_info=response_info,
-    )
+    return UpdateResponse(matched_records=matched_records, _response_info=response_info)
 
 
 def parse_delete_response(

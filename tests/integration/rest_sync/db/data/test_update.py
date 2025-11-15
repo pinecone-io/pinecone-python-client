@@ -10,7 +10,7 @@ def update_namespace():
 
 class TestUpdate:
     def test_update_with_filter_and_dry_run(self, idx, update_namespace):
-        """Test update with filter and dry_run=True to verify matched_records and updated_records are returned."""
+        """Test update with filter and dry_run=True to verify matched_records is returned."""
         target_namespace = update_namespace
 
         # Upsert vectors with different genres
@@ -39,8 +39,6 @@ class TestUpdate:
         # Verify matched_records is returned and correct (5 comedy vectors)
         assert dry_run_response.matched_records is not None
         assert dry_run_response.matched_records == 5
-        # In dry run, updated_records should be 0 or None since no records are actually updated
-        assert dry_run_response.updated_records is None or dry_run_response.updated_records == 0
 
         # Verify the vectors were NOT actually updated (dry run)
         fetched_before = idx.fetch(ids=["0", "2", "4", "6", "8"], namespace=target_namespace)
@@ -54,12 +52,9 @@ class TestUpdate:
             namespace=target_namespace,
         )
 
-        # Verify matched_records and updated_records are returned
+        # Verify matched_records is returned
         assert update_response.matched_records is not None
         assert update_response.matched_records == 5
-        # updated_records should match the number of records actually updated (if returned by API)
-        if update_response.updated_records is not None:
-            assert update_response.updated_records == 5
 
         poll_until_lsn_reconciled(idx, update_response._response_info, namespace=target_namespace)
 

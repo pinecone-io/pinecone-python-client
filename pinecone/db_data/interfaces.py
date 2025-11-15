@@ -727,11 +727,16 @@ class IndexInterface(ABC):
         1. **Single vector update by ID**: Provide `id` to update a specific vector.
            - Updates the vector with the given ID
            - If `values` is included, it will overwrite the previous vector values
-           - If `set_metadata` is included, the values of the fields specified will be added or overwrite the previous metadata
+           - If `set_metadata` is included, the metadata will be merged with existing metadata on the vector.
+             Fields specified in `set_metadata` will overwrite existing fields with the same key, while
+             fields not in `set_metadata` will remain unchanged.
 
         2. **Bulk update by metadata filter**: Provide `filter` to update all vectors matching the filter criteria.
            - Updates all vectors in the namespace that match the filter expression
            - Useful for updating metadata across multiple vectors at once
+           - If `set_metadata` is included, the metadata will be merged with existing metadata on each vector.
+             Fields specified in `set_metadata` will overwrite existing fields with the same key, while
+             fields not in `set_metadata` will remain unchanged.
            - The response includes `matched_records` indicating how many vectors were updated
 
         Either `id` or `filter` must be provided (but not both in the same call).
@@ -769,7 +774,8 @@ class IndexInterface(ABC):
             id (str): Vector's unique id. Required for single vector updates. Must not be provided when using filter. [optional]
             values (List[float]): Vector values to set. [optional]
             set_metadata (Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]]):
-                Metadata to set for the vector(s). [optional]
+                Metadata to merge with existing metadata on the vector(s). Fields specified will overwrite
+                existing fields with the same key, while fields not specified will remain unchanged. [optional]
             namespace (str): Namespace name where to update the vector(s). [optional]
             sparse_values: (Dict[str, Union[List[float], List[int]]]): Sparse values to update for the vector.
                            Expected to be either a SparseValues object or a dict of the form:
