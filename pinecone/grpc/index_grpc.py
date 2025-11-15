@@ -687,6 +687,7 @@ class GRPCIndex(GRPCIndexBase):
         set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
+        filter: Optional[FilterTypedDict] = None,
         **kwargs,
     ) -> Union[UpdateResponse, PineconeGrpcFuture]:
         """
@@ -705,6 +706,8 @@ class GRPCIndex(GRPCIndexBase):
             >>>              namespace='my_namespace')
             >>> index.update(id='id1', values=[1, 2, 3], sparse_values=GRPCSparseValues(indices=[1, 2], values=[0.2, 0.4]),
             >>>              namespace='my_namespace')
+            >>> index.update(id='id1', set_metadata={'status': 'active'}, filter={'genre': {'$eq': 'drama'}},
+            >>>              namespace='my_namespace')
 
         Args:
             id (str): Vector's unique id.
@@ -717,6 +720,10 @@ class GRPCIndex(GRPCIndexBase):
             sparse_values: (Dict[str, Union[List[float], List[int]]]): sparse values to update for the vector.
                            Expected to be either a GRPCSparseValues object or a dict of the form:
                            {'indices': List[int], 'values': List[float]} where the lists each have the same length.
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]): A metadata filter expression.
+                    When updating metadata across records in a namespace, the update is applied to all records
+                    that match the filter. See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`.
+                    [optional]
 
 
         Returns: UpdateResponse (contains no data) or a PineconeGrpcFuture object if async_req is True.
@@ -726,6 +733,11 @@ class GRPCIndex(GRPCIndexBase):
         else:
             set_metadata_struct = None
 
+        if filter is not None:
+            filter_struct = dict_to_proto_struct(filter)
+        else:
+            filter_struct = None
+
         timeout = kwargs.pop("timeout", None)
         sparse_values = SparseValuesFactory.build(sparse_values)
         args_dict = self._parse_non_empty_args(
@@ -734,6 +746,7 @@ class GRPCIndex(GRPCIndexBase):
                 ("set_metadata", set_metadata_struct),
                 ("namespace", namespace),
                 ("sparse_values", sparse_values),
+                ("filter", filter_struct),
             ]
         )
 

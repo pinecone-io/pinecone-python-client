@@ -530,6 +530,7 @@ class IndexAsyncioInterface(ABC):
         set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        filter: Optional[FilterTypedDict] = None,
         **kwargs,
     ) -> UpdateResponse:
         """
@@ -544,6 +545,10 @@ class IndexAsyncioInterface(ABC):
             sparse_values: (Dict[str, Union[List[float], List[int]]]): sparse values to update for the vector.
                            Expected to be either a SparseValues object or a dict of the form:
                            {'indices': List[int], 'values': List[float]} where the lists each have the same length.
+            filter (Dict[str, Union[str, float, int, bool, List, dict]]): A metadata filter expression.
+                    When updating metadata across records in a namespace, the update is applied to all records
+                    that match the filter. See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`.
+                    [optional]
 
         If a value is included, it will overwrite the previous value.
         If a set_metadata is included,
@@ -585,6 +590,14 @@ class IndexAsyncioInterface(ABC):
                     await idx.update(
                         id='id1',
                         sparse_values=SparseValues(indices=[234781, 5432], values=[0.2, 0.4]),
+                        namespace='my_namespace'
+                    )
+
+                    # Update by metadata filter
+                    await idx.update(
+                        id='id1',
+                        set_metadata={'status': 'active'},
+                        filter={'genre': {'$eq': 'drama'}},
                         namespace='my_namespace'
                     )
 

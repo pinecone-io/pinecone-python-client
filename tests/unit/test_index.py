@@ -513,6 +513,56 @@ class TestRestIndex:
             oai.UpdateRequest(id="vec1", values=self.vals1, metadata=self.md1)
         )
 
+    def test_update_withFilter_updateWithFilter(self, mocker):
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(id="vec1", filter=self.filter1, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(id="vec1", filter=self.filter1, namespace="ns")
+        )
+
+    def test_update_withFilterAndSetMetadata_updateWithFilterAndSetMetadata(self, mocker):
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(id="vec1", set_metadata=self.md1, filter=self.filter1, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(id="vec1", set_metadata=self.md1, filter=self.filter1, namespace="ns")
+        )
+
+    def test_update_withFilterAndValues_updateWithFilterAndValues(self, mocker):
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(id="vec1", values=self.vals1, filter=self.filter1, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(id="vec1", values=self.vals1, filter=self.filter1, namespace="ns")
+        )
+
+    def test_update_withFilterAndAllParams_updateWithFilterAndAllParams(self, mocker):
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(
+            id="vec1",
+            values=self.vals1,
+            set_metadata=self.md1,
+            sparse_values=self.sv1,
+            filter=self.filter1,
+            namespace="ns",
+        )
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(
+                id="vec1",
+                values=self.vals1,
+                set_metadata=self.md1,
+                sparse_values=oai.SparseValues(indices=self.svi1, values=self.svv1),
+                filter=self.filter1,
+                namespace="ns",
+            )
+        )
+
+    def test_update_withoutFilter_backwardCompatibility(self, mocker):
+        """Test that update without filter still works (backward compatibility)."""
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(id="vec1", values=self.vals1, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(id="vec1", values=self.vals1, namespace="ns")
+        )
+
     # endregion
 
     # region: describe index tests

@@ -41,3 +41,52 @@ class TestGrpcIndexUpdate:
             UpdateRequest(id="vec1", values=vals1, set_metadata=dict_to_proto_struct(md1)),
             timeout=None,
         )
+
+    def test_update_withFilter_updateWithFilter(self, mocker, filter1):
+        mock_response = UpdateResponse()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
+        self.index.update(id="vec1", filter=filter1, namespace="ns")
+        self.index.runner.run.assert_called_once_with(
+            self.index.stub.Update,
+            UpdateRequest(id="vec1", filter=dict_to_proto_struct(filter1), namespace="ns"),
+            timeout=None,
+        )
+
+    def test_update_withFilterAndSetMetadata_updateWithFilterAndSetMetadata(
+        self, mocker, vals1, md1, filter1
+    ):
+        mock_response = UpdateResponse()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
+        self.index.update(id="vec1", values=vals1, set_metadata=md1, filter=filter1, namespace="ns")
+        self.index.runner.run.assert_called_once_with(
+            self.index.stub.Update,
+            UpdateRequest(
+                id="vec1",
+                values=vals1,
+                set_metadata=dict_to_proto_struct(md1),
+                filter=dict_to_proto_struct(filter1),
+                namespace="ns",
+            ),
+            timeout=None,
+        )
+
+    def test_update_withFilterAndValues_updateWithFilterAndValues(self, mocker, vals1, filter1):
+        mock_response = UpdateResponse()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
+        self.index.update(id="vec1", values=vals1, filter=filter1, namespace="ns")
+        self.index.runner.run.assert_called_once_with(
+            self.index.stub.Update,
+            UpdateRequest(
+                id="vec1", values=vals1, filter=dict_to_proto_struct(filter1), namespace="ns"
+            ),
+            timeout=None,
+        )
+
+    def test_update_withFilter_asyncReq_updateWithFilterAsyncReq(self, mocker, filter1):
+        mocker.patch.object(self.index.runner, "run", autospec=True)
+        self.index.update(id="vec1", filter=filter1, namespace="ns", async_req=True)
+        self.index.runner.run.assert_called_once_with(
+            self.index.stub.Update.future,
+            UpdateRequest(id="vec1", filter=dict_to_proto_struct(filter1), namespace="ns"),
+            timeout=None,
+        )

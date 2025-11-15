@@ -657,6 +657,7 @@ class Index(PluginAware, IndexInterface):
         set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        filter: Optional[FilterTypedDict] = None,
         **kwargs,
     ) -> UpdateResponse:
         result = self._vector_api.update_vector(
@@ -666,6 +667,7 @@ class Index(PluginAware, IndexInterface):
                 set_metadata=set_metadata,
                 namespace=namespace,
                 sparse_values=sparse_values,
+                filter=filter,
                 **kwargs,
             ),
             **self._openapi_kwargs(kwargs),
