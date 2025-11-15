@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from pinecone.db_data import _Index
+from pinecone.db_data import _Index, _IndexAsyncio
 import pinecone.core.openapi.db_data.models as oai
 from pinecone import QueryResponse, UpsertResponse, Vector
 
@@ -619,6 +619,70 @@ class TestRestIndex:
             namespace="ns",
         )
         self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(
+                values=self.vals1,
+                set_metadata=self.md1,
+                sparse_values=oai.SparseValues(indices=self.svi1, values=self.svv1),
+                filter=self.filter1,
+                dry_run=True,
+                namespace="ns",
+            )
+        )
+
+    # endregion
+
+    # region: asyncio update tests
+
+    @pytest.mark.asyncio
+    async def test_asyncio_update_withDryRun_updateWithDryRun(self, mocker):
+        """Test asyncio update with dry_run parameter."""
+        asyncio_index = _IndexAsyncio(api_key="asdf", host="https://test.pinecone.io")
+        mocker.patch.object(asyncio_index._vector_api, "update_vector", autospec=True)
+        await asyncio_index.update(filter=self.filter1, dry_run=True, namespace="ns")
+        asyncio_index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(filter=self.filter1, dry_run=True, namespace="ns")
+        )
+
+    @pytest.mark.asyncio
+    async def test_asyncio_update_withDryRunAndSetMetadata_updateWithDryRunAndSetMetadata(
+        self, mocker
+    ):
+        """Test asyncio update with dry_run and set_metadata."""
+        asyncio_index = _IndexAsyncio(api_key="asdf", host="https://test.pinecone.io")
+        mocker.patch.object(asyncio_index._vector_api, "update_vector", autospec=True)
+        await asyncio_index.update(
+            set_metadata=self.md1, filter=self.filter1, dry_run=True, namespace="ns"
+        )
+        asyncio_index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(
+                set_metadata=self.md1, filter=self.filter1, dry_run=True, namespace="ns"
+            )
+        )
+
+    @pytest.mark.asyncio
+    async def test_asyncio_update_withDryRunFalse_updateWithDryRunFalse(self, mocker):
+        """Test asyncio update with dry_run=False."""
+        asyncio_index = _IndexAsyncio(api_key="asdf", host="https://test.pinecone.io")
+        mocker.patch.object(asyncio_index._vector_api, "update_vector", autospec=True)
+        await asyncio_index.update(filter=self.filter1, dry_run=False, namespace="ns")
+        asyncio_index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(filter=self.filter1, dry_run=False, namespace="ns")
+        )
+
+    @pytest.mark.asyncio
+    async def test_asyncio_update_withDryRunAndAllParams_updateWithDryRunAndAllParams(self, mocker):
+        """Test asyncio update with dry_run and all parameters."""
+        asyncio_index = _IndexAsyncio(api_key="asdf", host="https://test.pinecone.io")
+        mocker.patch.object(asyncio_index._vector_api, "update_vector", autospec=True)
+        await asyncio_index.update(
+            values=self.vals1,
+            set_metadata=self.md1,
+            sparse_values=self.sv1,
+            filter=self.filter1,
+            dry_run=True,
+            namespace="ns",
+        )
+        asyncio_index._vector_api.update_vector.assert_called_once_with(
             oai.UpdateRequest(
                 values=self.vals1,
                 set_metadata=self.md1,
