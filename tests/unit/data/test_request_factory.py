@@ -631,7 +631,8 @@ class TestIndexRequestFactory:
         )
         assert request.filter == {"genre": {"$eq": "action"}}
         assert request.set_metadata == {"status": "active"}
-        # dry_run should not be set when not provided (defaults to False in OpenAPI)
-        assert not hasattr(request, "dry_run") or request.dry_run is False
+        # dry_run should not be set when not provided
+        # Since parse_non_empty_args filters out None values, dry_run won't be in _data_store
+        assert "dry_run" not in request._data_store
 
     # endregion

@@ -637,7 +637,13 @@ class TestRestIndex:
     async def test_asyncio_update_withDryRun_updateWithDryRun(self, mocker):
         """Test asyncio update with dry_run parameter."""
         asyncio_index = _IndexAsyncio(api_key="asdf", host="https://test.pinecone.io")
-        mocker.patch.object(asyncio_index._vector_api, "update_vector", autospec=True)
+        mock_response = oai.UpdateResponse(matched_records=5, _check_type=False)
+        mocker.patch.object(
+            asyncio_index._vector_api,
+            "update_vector",
+            return_value=mock_response,
+            new_callable=mocker.AsyncMock,
+        )
         await asyncio_index.update(filter=self.filter1, dry_run=True, namespace="ns")
         asyncio_index._vector_api.update_vector.assert_called_once_with(
             oai.UpdateRequest(filter=self.filter1, dry_run=True, namespace="ns")
@@ -649,7 +655,13 @@ class TestRestIndex:
     ):
         """Test asyncio update with dry_run and set_metadata."""
         asyncio_index = _IndexAsyncio(api_key="asdf", host="https://test.pinecone.io")
-        mocker.patch.object(asyncio_index._vector_api, "update_vector", autospec=True)
+        mock_response = oai.UpdateResponse(matched_records=5, _check_type=False)
+        mocker.patch.object(
+            asyncio_index._vector_api,
+            "update_vector",
+            return_value=mock_response,
+            new_callable=mocker.AsyncMock,
+        )
         await asyncio_index.update(
             set_metadata=self.md1, filter=self.filter1, dry_run=True, namespace="ns"
         )
@@ -663,7 +675,13 @@ class TestRestIndex:
     async def test_asyncio_update_withDryRunFalse_updateWithDryRunFalse(self, mocker):
         """Test asyncio update with dry_run=False."""
         asyncio_index = _IndexAsyncio(api_key="asdf", host="https://test.pinecone.io")
-        mocker.patch.object(asyncio_index._vector_api, "update_vector", autospec=True)
+        mock_response = oai.UpdateResponse(matched_records=5, _check_type=False)
+        mocker.patch.object(
+            asyncio_index._vector_api,
+            "update_vector",
+            return_value=mock_response,
+            new_callable=mocker.AsyncMock,
+        )
         await asyncio_index.update(filter=self.filter1, dry_run=False, namespace="ns")
         asyncio_index._vector_api.update_vector.assert_called_once_with(
             oai.UpdateRequest(filter=self.filter1, dry_run=False, namespace="ns")
@@ -673,7 +691,13 @@ class TestRestIndex:
     async def test_asyncio_update_withDryRunAndAllParams_updateWithDryRunAndAllParams(self, mocker):
         """Test asyncio update with dry_run and all parameters."""
         asyncio_index = _IndexAsyncio(api_key="asdf", host="https://test.pinecone.io")
-        mocker.patch.object(asyncio_index._vector_api, "update_vector", autospec=True)
+        mock_response = oai.UpdateResponse(matched_records=5, _check_type=False)
+        mocker.patch.object(
+            asyncio_index._vector_api,
+            "update_vector",
+            return_value=mock_response,
+            new_callable=mocker.AsyncMock,
+        )
         await asyncio_index.update(
             values=self.vals1,
             set_metadata=self.md1,
