@@ -32,7 +32,7 @@ runs:
         enable_cache: 'false'
 
     - name: 'Install urllib3 ${{ inputs.urllib3_version }}'
-      run: 'uv add urllib3==${{ inputs.urllib3_version }}'
+      run: 'uv pip install --reinstall-package urllib3 urllib3==${{ inputs.urllib3_version }}'
       shell: bash
 
     - uses: nick-fields/retry@v3

@@ -33,7 +33,7 @@ runs:
         enable_cache: 'false'
 
     - name: 'Install aiohttp ${{ inputs.aiohttp_version }}'
-      run: 'uv add aiohttp==${{ inputs.aiohttp_version }}'
+      run: 'uv pip install --reinstall-package aiohttp aiohttp==${{ inputs.aiohttp_version }}'
       shell: bash
 
     - uses: nick-fields/retry@v3
