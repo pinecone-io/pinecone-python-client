@@ -141,6 +141,7 @@ class IndexRequestFactory:
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         filter: Optional[FilterTypedDict] = None,
+        dry_run: Optional[bool] = None,
         **kwargs,
     ) -> UpdateRequest:
         _check_type = kwargs.pop("_check_type", False)
@@ -153,6 +154,7 @@ class IndexRequestFactory:
                 ("namespace", namespace),
                 ("sparse_values", sparse_values_normalized),
                 ("filter", filter),
+                ("dry_run", dry_run),
             ]
         )
 

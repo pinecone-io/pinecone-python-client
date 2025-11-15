@@ -581,6 +581,54 @@ class TestRestIndex:
         with pytest.raises(ValueError, match="Cannot provide both 'id' and 'filter'"):
             self.index.update(id="vec1", filter=self.filter1, values=self.vals1, namespace="ns")
 
+    def test_update_withDryRun_updateWithDryRun(self, mocker):
+        """Test update with dry_run parameter."""
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(filter=self.filter1, dry_run=True, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(filter=self.filter1, dry_run=True, namespace="ns")
+        )
+
+    def test_update_withDryRunAndSetMetadata_updateWithDryRunAndSetMetadata(self, mocker):
+        """Test update with dry_run and set_metadata."""
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(set_metadata=self.md1, filter=self.filter1, dry_run=True, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(
+                set_metadata=self.md1, filter=self.filter1, dry_run=True, namespace="ns"
+            )
+        )
+
+    def test_update_withDryRunFalse_updateWithDryRunFalse(self, mocker):
+        """Test update with dry_run=False."""
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(filter=self.filter1, dry_run=False, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(filter=self.filter1, dry_run=False, namespace="ns")
+        )
+
+    def test_update_withDryRunAndAllParams_updateWithDryRunAndAllParams(self, mocker):
+        """Test update with dry_run and all parameters."""
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(
+            values=self.vals1,
+            set_metadata=self.md1,
+            sparse_values=self.sv1,
+            filter=self.filter1,
+            dry_run=True,
+            namespace="ns",
+        )
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(
+                values=self.vals1,
+                set_metadata=self.md1,
+                sparse_values=oai.SparseValues(indices=self.svi1, values=self.svv1),
+                filter=self.filter1,
+                dry_run=True,
+                namespace="ns",
+            )
+        )
+
     # endregion
 
     # region: describe index tests

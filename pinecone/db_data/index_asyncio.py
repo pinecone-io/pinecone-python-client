@@ -629,6 +629,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         filter: Optional[FilterTypedDict] = None,
+        dry_run: Optional[bool] = None,
         **kwargs,
     ) -> UpdateResponse:
         # Validate that exactly one of id or filter is provided
@@ -646,6 +647,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
                 namespace=namespace,
                 sparse_values=sparse_values,
                 filter=filter,
+                dry_run=dry_run,
                 **kwargs,
             ),
             **self._openapi_kwargs(kwargs),

@@ -114,3 +114,53 @@ class TestGrpcIndexUpdate:
         mocker.patch.object(self.index.runner, "run", autospec=True)
         with pytest.raises(ValueError, match="Cannot provide both 'id' and 'filter'"):
             self.index.update(id="vec1", filter=filter1, values=vals1, namespace="ns")
+
+    def test_update_withDryRun_updateWithDryRun(self, mocker, filter1):
+        """Test update with dry_run parameter."""
+        mock_response = UpdateResponse()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
+        self.index.update(filter=filter1, dry_run=True, namespace="ns")
+        self.index.runner.run.assert_called_once_with(
+            self.index.stub.Update,
+            UpdateRequest(filter=dict_to_proto_struct(filter1), dry_run=True, namespace="ns"),
+            timeout=None,
+        )
+
+    def test_update_withDryRunAndSetMetadata_updateWithDryRunAndSetMetadata(
+        self, mocker, md1, filter1
+    ):
+        """Test update with dry_run and set_metadata."""
+        mock_response = UpdateResponse()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
+        self.index.update(set_metadata=md1, filter=filter1, dry_run=True, namespace="ns")
+        self.index.runner.run.assert_called_once_with(
+            self.index.stub.Update,
+            UpdateRequest(
+                set_metadata=dict_to_proto_struct(md1),
+                filter=dict_to_proto_struct(filter1),
+                dry_run=True,
+                namespace="ns",
+            ),
+            timeout=None,
+        )
+
+    def test_update_withDryRunFalse_updateWithDryRunFalse(self, mocker, filter1):
+        """Test update with dry_run=False."""
+        mock_response = UpdateResponse()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
+        self.index.update(filter=filter1, dry_run=False, namespace="ns")
+        self.index.runner.run.assert_called_once_with(
+            self.index.stub.Update,
+            UpdateRequest(filter=dict_to_proto_struct(filter1), dry_run=False, namespace="ns"),
+            timeout=None,
+        )
+
+    def test_update_withDryRun_asyncReq_updateWithDryRunAsyncReq(self, mocker, filter1):
+        """Test update with dry_run and async_req=True."""
+        mocker.patch.object(self.index.runner, "run", autospec=True)
+        self.index.update(filter=filter1, dry_run=True, namespace="ns", async_req=True)
+        self.index.runner.run.assert_called_once_with(
+            self.index.stub.Update.future,
+            UpdateRequest(filter=dict_to_proto_struct(filter1), dry_run=True, namespace="ns"),
+            timeout=None,
+        )

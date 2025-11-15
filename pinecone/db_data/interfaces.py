@@ -716,6 +716,7 @@ class IndexInterface(ABC):
         namespace: Optional[str] = None,
         sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
         filter: Optional[FilterTypedDict] = None,
+        dry_run: Optional[bool] = None,
         **kwargs,
     ) -> UpdateResponse:
         """
@@ -759,6 +760,10 @@ class IndexInterface(ABC):
             >>> response = index.update(set_metadata={'status': 'active'}, filter={'genre': {'$eq': 'drama'}},
             >>>                        namespace='my_namespace')
             >>> print(f"Updated {response.matched_records} vectors")
+            >>> # Preview how many vectors would be updated (dry run)
+            >>> response = index.update(set_metadata={'status': 'active'}, filter={'genre': {'$eq': 'drama'}},
+            >>>                        namespace='my_namespace', dry_run=True)
+            >>> print(f"Would update {response.matched_records} vectors")
 
         Args:
             id (str): Vector's unique id. Required for single vector updates. Must not be provided when using filter. [optional]
@@ -773,10 +778,14 @@ class IndexInterface(ABC):
                     When provided, updates all vectors in the namespace that match the filter criteria.
                     See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`.
                     Must not be provided when using id. Either `id` or `filter` must be provided. [optional]
+            dry_run (bool): If `True`, return the number of records that match the `filter` without executing
+                    the update. Only meaningful when using `filter` (not with `id`). Useful for previewing
+                    the impact of a bulk update before applying changes. Defaults to `False`. [optional]
 
         Returns:
             UpdateResponse: An UpdateResponse object. When using filter-based updates, the response includes
-            `matched_records` indicating the number of vectors that were updated.
+            `matched_records` indicating the number of vectors that were updated (or would be updated if
+            `dry_run=True`).
         """
         pass
 

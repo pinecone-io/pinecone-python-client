@@ -578,4 +578,60 @@ class TestIndexRequestFactory:
         assert request.id == "vec1"
         assert request.filter == complex_filter
 
+    def test_update_request_with_dry_run(self):
+        """Test update_request with dry_run parameter."""
+        request = IndexRequestFactory.update_request(
+            filter={"genre": {"$eq": "action"}}, dry_run=True
+        )
+        assert request.filter == {"genre": {"$eq": "action"}}
+        assert request.dry_run is True
+
+    def test_update_request_with_dry_run_false(self):
+        """Test update_request with dry_run=False."""
+        request = IndexRequestFactory.update_request(
+            filter={"genre": {"$eq": "action"}}, dry_run=False
+        )
+        assert request.filter == {"genre": {"$eq": "action"}}
+        assert request.dry_run is False
+
+    def test_update_request_with_dry_run_and_set_metadata(self):
+        """Test update_request with dry_run and set_metadata."""
+        request = IndexRequestFactory.update_request(
+            filter={"genre": {"$eq": "drama"}}, set_metadata={"status": "active"}, dry_run=True
+        )
+        assert request.filter == {"genre": {"$eq": "drama"}}
+        assert request.set_metadata == {"status": "active"}
+        assert request.dry_run is True
+
+    def test_update_request_with_dry_run_and_all_params(self):
+        """Test update_request with dry_run and all parameters."""
+        values = [0.1, 0.2, 0.3]
+        set_metadata = {"status": "active"}
+        sparse_values = {"indices": [1, 2], "values": [0.4, 0.5]}
+        filter_dict = {"genre": {"$eq": "action"}}
+        request = IndexRequestFactory.update_request(
+            values=values,
+            set_metadata=set_metadata,
+            namespace="my_namespace",
+            sparse_values=sparse_values,
+            filter=filter_dict,
+            dry_run=True,
+        )
+        assert request.values == values
+        assert request.set_metadata == set_metadata
+        assert request.namespace == "my_namespace"
+        assert request.sparse_values is not None
+        assert request.filter == filter_dict
+        assert request.dry_run is True
+
+    def test_update_request_without_dry_run_not_included(self):
+        """Test that dry_run is not included in request when not provided."""
+        request = IndexRequestFactory.update_request(
+            filter={"genre": {"$eq": "action"}}, set_metadata={"status": "active"}
+        )
+        assert request.filter == {"genre": {"$eq": "action"}}
+        assert request.set_metadata == {"status": "active"}
+        # dry_run should not be set when not provided (defaults to False in OpenAPI)
+        assert not hasattr(request, "dry_run") or request.dry_run is False
+
     # endregion
