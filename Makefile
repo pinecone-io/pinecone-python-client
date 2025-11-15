@@ -7,31 +7,31 @@ image:
 	MODULE=pinecone ../scripts/build.sh ./
 
 develop:
-	poetry install -E grpc
+	uv sync --extra grpc
 
 test-unit:
 	@echo "Running tests..."
-	poetry run pytest --cov=pinecone --timeout=120 tests/unit -s -vv
+	uv run pytest --cov=pinecone --timeout=120 tests/unit -s -vv
 
 test-integration:
 	@echo "Running integration tests..."
-	PINECONE_ENVIRONMENT="us-east4-gcp" SPEC='{"serverless": {"cloud": "aws", "region": "us-east-1" }}' DIMENSION=2 METRIC='cosine' GITHUB_BUILD_NUMBER='local' poetry run pytest tests/integration
+	PINECONE_ENVIRONMENT="us-east4-gcp" SPEC='{"serverless": {"cloud": "aws", "region": "us-east-1" }}' DIMENSION=2 METRIC='cosine' GITHUB_BUILD_NUMBER='local' uv run pytest tests/integration
 
 test-grpc-unit:
 	@echo "Running tests..."
-	poetry run pytest --cov=pinecone --timeout=120 tests/unit_grpc
+	uv run pytest --cov=pinecone --timeout=120 tests/unit_grpc
 
-make type-check:
-	poetry run mypy pinecone --exclude pinecone/core
+type-check:
+	uv run mypy pinecone --exclude pinecone/core
 
-make generate-oas:
+generate-oas:
 	./codegen/build-oas.sh "2024-07"
 
 version:
-	poetry version
+	@python -c "import re; print(re.search(r'version = \"([^\"]+)\"', open('pyproject.toml').read()).group(1))"
 
 package:
-	poetry build
+	uv build
 
 upload:
-	poetry publish --verbose --username ${PYPI_USERNAME} --password ${PYPI_PASSWORD}
+	uv publish --username ${PYPI_USERNAME} --password ${PYPI_PASSWORD}

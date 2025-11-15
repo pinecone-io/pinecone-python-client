@@ -10,23 +10,23 @@ This guide is aimed primarily at Pinecone employees working on maintaining and d
 git clone git@github.com:pinecone-io/pinecone-python-client.git
 ```
 
-### 2. Install Poetry
+### 2. Install uv
 
-Visit [the Poetry site](https://python-poetry.org/docs/#installation) for installation instructions.
+Visit [the uv site](https://docs.astral.sh/uv/) for installation instructions.
 
 ### 3. Install dependencies
 
 Run this from the root of the project.
 
 ```sh
-poetry install -E grpc -E asyncio
+uv sync --extra grpc --extra asyncio
 ```
 
 These extra groups for `grpc` and `asyncio` are optional but required to do development on those optional parts of the SDK.
 
 ### 4. Enable pre-commit hooks
 
-Run `poetry run pre-commit install` to enable checks to run when you commit so you don't have to find out during your CI run that minor lint issues need to be addressed.
+Run `uv run pre-commit install` to enable checks to run when you commit so you don't have to find out during your CI run that minor lint issues need to be addressed.
 
 ### 5. Setup environment variables
 
@@ -87,7 +87,7 @@ For grpc updates, it's a similar story:
 
 Commit the generated files which should be mainly placed under `pinecone/core`. Commit the sha changes in the git submodule at `codegen/apis`.
 
-Run the type check with `poetry run mypy pinecone`. This will usually surface breaking changes as a result of things being renamed or modified.
+Run the type check with `uv run mypy pinecone`. This will usually surface breaking changes as a result of things being renamed or modified.
 
 Push your branch (`git push origin jhamon/regen-2025-04` in this example) and open a PR **against the RC branch** (in this example `release-candidate/2025-04`). This will allow the full PR test suite to kick off and help you discover what other changes you need to make.
 

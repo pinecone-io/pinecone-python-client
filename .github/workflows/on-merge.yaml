@@ -88,12 +88,12 @@ jobs:
         python-version: ['3.10', '3.13']
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
+      - name: Setup uv
+        uses: ./.github/actions/setup-uv
         with:
           python_version: ${{ matrix.python-version }}
       - name: Package
-        run: poetry build
+        run: uv build
 
   build-docs:
     name: Build docs with pdoc

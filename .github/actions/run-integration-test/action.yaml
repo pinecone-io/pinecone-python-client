@@ -56,7 +56,7 @@ runs:
         if [ -n "${{ inputs.pytest_splits }}" ] && [ -n "${{ inputs.pytest_group }}" ]; then
           PYTEST_ARGS="--splits=${{ inputs.pytest_splits }} --group=${{ inputs.pytest_group }}"
         fi
-        poetry run pytest ${{ inputs.test_suite }} \
+        uv run pytest ${{ inputs.test_suite }} \
           $PYTEST_ARGS \
           --retries 2 \
           --retry-delay 35 \

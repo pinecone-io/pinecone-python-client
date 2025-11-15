@@ -32,8 +32,8 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Setup Poetry
-      uses: ./.github/actions/setup-poetry
+    - name: Setup uv
+      uses: ./.github/actions/setup-uv
       with:
         include_grpc: true
         include_types: false
@@ -41,19 +41,19 @@ runs:
         enable_cache: 'false'
 
     - name: Install grpcio ${{ inputs.grpcio_version }}
-      run: poetry add grpcio==${{ inputs.grpcio_version }}
+      run: uv add grpcio==${{ inputs.grpcio_version }}
       shell: bash
 
     - name: Install lz4 ${{ inputs.lz4_version }}
-      run: poetry add lz4==${{ inputs.lz4_version }}
+      run: uv add lz4==${{ inputs.lz4_version }}
       shell: bash
 
     - name: Install protobuf ${{ inputs.protobuf_version }}
-      run: poetry add protobuf==${{ inputs.protobuf_version }}
+      run: uv add protobuf==${{ inputs.protobuf_version }}
       shell: bash
 
     - name: Install googleapis-common-protos ${{ inputs.googleapis_common_protos_version }}
-      run: poetry add googleapis-common-protos==${{ inputs.googleapis_common_protos_version }}
+      run: uv add googleapis-common-protos==${{ inputs.googleapis_common_protos_version }}
       shell: bash
 
     - uses: nick-fields/retry@v3
@@ -61,7 +61,7 @@ runs:
         timeout_minutes: 5
         max_attempts: 3
         retry_on: error
-        command: poetry run pytest tests/dependency/grpc -s -v
+        command: uv run pytest tests/dependency/grpc -s -v
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         PINECONE_ADDITIONAL_HEADERS: ${{ inputs.PINECONE_ADDITIONAL_HEADERS }}

@@ -26,7 +26,7 @@ pc._openapi_config.debug = True
 pc.describe_index('jen')
 ```
 
-Running it with `poetry run python3 scripts/repro.py` would give output like
+Running it with `uv run python3 scripts/repro.py` would give output like
 
 ```
 DEBUG    | pinecone.openapi_support.rest_urllib3:125 | Calling urllib3 request()
@@ -82,7 +82,7 @@ Once you're in the pdb session, you can inspect variables, advance line by line 
 A useful spot to insert the `breakpoint()` invocation is inside the `request` method of the `Urllib3RestClient` or `AiohttpRestClient` classes. After making an edit to insert a `breakpoint()` invocation in my request method, I can inspect the request params like this:
 
 ```sh
-poetry run repl
+uv run repl
 
     Welcome to the custom Python REPL!
     Your initialization steps have been completed.

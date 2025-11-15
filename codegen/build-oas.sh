@@ -182,6 +182,6 @@ echo "APIS_REPO_SHA = '$(git rev-parse :codegen/apis)'" >> $version_file
 remove_shared_classes
 
 # Format generated files
-poetry run ruff format "${destination}"
+uv run ruff format "${destination}"
 
 rm -rf "$build_dir"
