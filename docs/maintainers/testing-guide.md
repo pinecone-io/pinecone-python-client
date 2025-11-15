@@ -6,7 +6,7 @@ We have a lot of different types of tests in this repository. At a high level, t
 tests
 ├── dependency
 ├── integration
-├── integration-manual
+├── integration_manual
 ├── perf
 ├── unit
 ├── unit_grpc
@@ -17,7 +17,7 @@ tests
 
 - `integration`: These are a large suite of end-to-end integration tests exercising most of the core functions of the product. They are slow and expensive to run, but they give the greatest confidence the SDK actually works end-to-end. See notes below on how to setup the required configuration and run individual tests if you are iterating on a bug or feature and want to get more rapid feedback than running the entire suite in CI will give you. In CI, these are run using [`.github/workflows/testing-integration.yaml`](https://github.com/pinecone-io/pinecone-python-client/blob/main/.github/workflows/testing-integration.yaml).
 
-- `integration-manual`: These are integration tests that are not run automatically in CI but can be run manually when needed. These typically include tests for features that are expensive to run (like backups and restores), tests that require special setup (like proxy configuration), or tests that exercise edge cases that don't need to be validated on every PR. To run these manually, use: `uv run pytest tests/integration-manual`
+- `integration_manual`: These are integration tests that are not run automatically in CI but can be run manually when needed. These typically include tests for features that are expensive to run (like backups and restores), tests that require special setup (like proxy configuration), or tests that exercise edge cases that don't need to be validated on every PR. To run these manually, use: `uv run pytest tests/integration_manual`
 
 - `perf`: These tests are still being developed. But eventually, they will play an important roll in making sure we don't regress on client performance when building new features.
 
