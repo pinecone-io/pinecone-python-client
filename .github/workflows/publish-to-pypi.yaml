@@ -71,8 +71,8 @@ jobs:
             exit 1
           fi
 
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
+      - name: Setup uv
+        uses: ./.github/actions/setup-uv
         with:
           python_version: 3.12
 
@@ -81,9 +81,9 @@ jobs:
           git config --global user.name "Pinecone CI"
           git config --global user.email "clients@pinecone.io"
 
-      - name: Poetry bump pyproject toml version
+      - name: Bump pyproject.toml version
         run: |
-          poetry version ${{ steps.bump.outputs.version }}
+          python -c "import re; content = open('pyproject.toml').read(); content = re.sub(r'version = \"[^\"]+\"', 'version = \"${{ steps.bump.outputs.version }}\"', content); open('pyproject.toml', 'w').write(content)"
 
       - name: Build Python client
         run: make package
@@ -105,13 +105,13 @@ jobs:
         if: ${{ inputs.isPrerelease == false }}
         run: |
           # Add the original pinecone client version file to git
-          # Even though Poetry is now the preferred means of working
+          # Even though uv is now the preferred means of working
           # with this project, since this __version__ file has been the
           # one source of truth for our release process. We need to maintain
           # both files for the time being, and they should always contain the
           # identical package version
           git add pinecone/__version__
-          # Add also the pyproject.toml, which is Poetry's source of truth, so
+          # Add also the pyproject.toml, which is uv's source of truth, so
           # that we maintain the exact same version across the two files
           git add pyproject.toml
           git commit -m "[skip ci] Bump version to ${{ steps.bump.outputs.VERSION_TAG }}"

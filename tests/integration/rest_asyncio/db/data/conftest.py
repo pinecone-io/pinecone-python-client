@@ -268,9 +268,13 @@ async def poll_until_lsn_reconciled_async(
                 done = True
                 logger.debug(f"LSN {target_lsn} is reconciled after {total_time}s")
             else:
-                logger.debug(
-                    f"LSN not yet reconciled. Reconciled: {reconciled_lsn}, target: {target_lsn}"
+                hard_sleep_seconds = 30
+                logger.warning(
+                    f"LSN header not found in query response. Available headers: {list(query_raw_headers.keys())}. Falling back to hard-coded sleep for {hard_sleep_seconds} seconds."
                 )
+                await asyncio.sleep(hard_sleep_seconds)
+                done = True
+                continue
         except Exception as e:
             logger.debug(f"Error checking LSN: {e}")
 

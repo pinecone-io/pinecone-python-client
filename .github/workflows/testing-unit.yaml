@@ -21,15 +21,15 @@ jobs:
           - false
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
+      - name: Setup uv
+        uses: ./.github/actions/setup-uv
         with:
           include_grpc: '${{ matrix.use_grpc }}'
           include_types: true
           include_asyncio: true
           python_version: '${{ matrix.python-version }}'
       - name: mypy check
-        run: poetry run mypy pinecone
+        run: uv run mypy pinecone
 
   unit-tests:
     name: Unit (${{ matrix.python-version }})
@@ -40,15 +40,15 @@ jobs:
         python-version: ${{ fromJson(inputs.python_versions_json) }}
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
+      - name: Setup uv
+        uses: ./.github/actions/setup-uv
         with:
           include_grpc: false
           include_types: false
           include_asyncio: true
           python_version: '${{ matrix.python-version }}'
       - name: Run unit tests (REST)
-        run: poetry run pytest --cov=pinecone --timeout=120 tests/unit --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
+        run: uv run pytest --cov=pinecone --timeout=120 tests/unit --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
 
   grpc-unit-tests:
     name: Unit grpc (${{ matrix.python-version }})
@@ -59,12 +59,12 @@ jobs:
         python-version: ${{ fromJson(inputs.python_versions_json) }}
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
+      - name: Setup uv
+        uses: ./.github/actions/setup-uv
         with:
           include_grpc: true
           include_types: false
           include_asyncio: true
           python_version: '${{ matrix.python-version }}'
       - name: Run unit tests (GRPC)
-        run: poetry run pytest --cov=pinecone/grpc --timeout=120 tests/unit_grpc --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
+        run: uv run pytest --cov=pinecone/grpc --timeout=120 tests/unit_grpc --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG

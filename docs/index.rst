@@ -104,10 +104,10 @@ Installing with uv
 .. code-block:: shell
 
    # Install the latest version
-   uv install pinecone
+   uv add pinecone
 
    # Install the latest version, optional dependencies
-   uv install "pinecone[asyncio,grpc]"
+   uv add "pinecone[asyncio,grpc]"
 
 
 Installing with `poetry <https://python-poetry.org/>`_

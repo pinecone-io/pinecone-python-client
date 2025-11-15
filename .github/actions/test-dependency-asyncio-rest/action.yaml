@@ -23,8 +23,8 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Setup Poetry
-      uses: ./.github/actions/setup-poetry
+    - name: Setup uv
+      uses: ./.github/actions/setup-uv
       with:
         include_grpc: false
         include_types: false
@@ -33,7 +33,7 @@ runs:
         enable_cache: 'false'
 
     - name: 'Install aiohttp ${{ inputs.aiohttp_version }}'
-      run: 'poetry add aiohttp==${{ inputs.aiohttp_version }}'
+      run: 'uv pip install --reinstall-package aiohttp aiohttp==${{ inputs.aiohttp_version }}'
       shell: bash
 
     - uses: nick-fields/retry@v3
@@ -41,7 +41,7 @@ runs:
         timeout_minutes: 5
         max_attempts: 3
         retry_on: error
-        command: poetry run pytest tests/dependency/asyncio-rest -s -v
+        command: uv run pytest tests/dependency/asyncio-rest -s -v
       env:
         PINECONE_API_KEY: '${{ inputs.PINECONE_API_KEY }}'
         PINECONE_ADDITIONAL_HEADERS: '${{ inputs.PINECONE_ADDITIONAL_HEADERS }}'

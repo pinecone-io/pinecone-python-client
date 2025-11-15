@@ -8,8 +8,8 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Setup Poetry
-      uses: ./.github/actions/setup-poetry
+    - name: Setup uv
+      uses: ./.github/actions/setup-uv
       with:
         include_grpc: 'true'
         include_dev: 'true'
@@ -19,4 +19,4 @@ runs:
     - name: Build html documentation
       shell: bash
       run: |
-        poetry run sphinx-build -b html docs docsbuild
+        uv run sphinx-build -b html docs docsbuild

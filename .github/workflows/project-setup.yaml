@@ -30,7 +30,7 @@ jobs:
       index_host_sparse: ${{ steps.create-index-sparse.outputs.index_host }}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-poetry
+      - uses: ./.github/actions/setup-uv
         with:
           python_version: '3.10'
       - uses: ./.github/actions/project-create
