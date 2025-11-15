@@ -7,7 +7,7 @@ from pinecone.core.openapi.admin.models import UpdateOrganizationRequest
 
 class OrganizationResource:
     """
-    This class is used to list, fetch, and update organizations.
+    This class is used to list, fetch, update, and delete organizations.
 
     .. note::
         The class should not be instantiated directly. Instead, access this classes
@@ -191,3 +191,40 @@ class OrganizationResource:
         return self._organizations_api.update_organization(
             organization_id=organization_id, update_organization_request=update_request
         )
+
+    @require_kwargs
+    def delete(self, organization_id: str):
+        """
+        Delete an organization by organization_id.
+
+        .. warning::
+            Deleting an organization is a permanent and irreversible operation.
+            Please be very sure you want to delete the organization and everything
+            associated with it before calling this function.
+
+        Before deleting an organization, you must delete all projects (including indexes,
+        assistants, backups, and collections) associated with the organization.
+
+        :param organization_id: The organization_id of the organization to delete.
+        :type organization_id: str
+        :return: ``None``
+
+        Examples
+        --------
+
+        .. code-block:: python
+            :caption: Delete an organization by organization_id
+            :emphasize-lines: 7-9
+
+            from pinecone import Admin
+
+            # Credentials read from PINECONE_CLIENT_ID and
+            # PINECONE_CLIENT_SECRET environment variables
+            admin = Admin()
+
+            admin.organization.delete(
+                organization_id="42ca341d-43bf-47cb-9f27-e645dbfabea6"
+            )
+
+        """
+        return self._organizations_api.delete_organization(organization_id=organization_id)
