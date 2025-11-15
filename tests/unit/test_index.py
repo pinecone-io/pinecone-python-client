@@ -515,29 +515,28 @@ class TestRestIndex:
 
     def test_update_withFilter_updateWithFilter(self, mocker):
         mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
-        self.index.update(id="vec1", filter=self.filter1, namespace="ns")
+        self.index.update(filter=self.filter1, namespace="ns")
         self.index._vector_api.update_vector.assert_called_once_with(
-            oai.UpdateRequest(id="vec1", filter=self.filter1, namespace="ns")
+            oai.UpdateRequest(filter=self.filter1, namespace="ns")
         )
 
     def test_update_withFilterAndSetMetadata_updateWithFilterAndSetMetadata(self, mocker):
         mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
-        self.index.update(id="vec1", set_metadata=self.md1, filter=self.filter1, namespace="ns")
+        self.index.update(set_metadata=self.md1, filter=self.filter1, namespace="ns")
         self.index._vector_api.update_vector.assert_called_once_with(
-            oai.UpdateRequest(id="vec1", set_metadata=self.md1, filter=self.filter1, namespace="ns")
+            oai.UpdateRequest(set_metadata=self.md1, filter=self.filter1, namespace="ns")
         )
 
     def test_update_withFilterAndValues_updateWithFilterAndValues(self, mocker):
         mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
-        self.index.update(id="vec1", values=self.vals1, filter=self.filter1, namespace="ns")
+        self.index.update(values=self.vals1, filter=self.filter1, namespace="ns")
         self.index._vector_api.update_vector.assert_called_once_with(
-            oai.UpdateRequest(id="vec1", values=self.vals1, filter=self.filter1, namespace="ns")
+            oai.UpdateRequest(values=self.vals1, filter=self.filter1, namespace="ns")
         )
 
     def test_update_withFilterAndAllParams_updateWithFilterAndAllParams(self, mocker):
         mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
         self.index.update(
-            id="vec1",
             values=self.vals1,
             set_metadata=self.md1,
             sparse_values=self.sv1,
@@ -546,7 +545,6 @@ class TestRestIndex:
         )
         self.index._vector_api.update_vector.assert_called_once_with(
             oai.UpdateRequest(
-                id="vec1",
                 values=self.vals1,
                 set_metadata=self.md1,
                 sparse_values=oai.SparseValues(indices=self.svi1, values=self.svv1),
@@ -562,6 +560,26 @@ class TestRestIndex:
         self.index._vector_api.update_vector.assert_called_once_with(
             oai.UpdateRequest(id="vec1", values=self.vals1, namespace="ns")
         )
+
+    def test_update_withFilterOnly_noId(self, mocker):
+        """Test update with filter only (no id) for bulk updates."""
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        self.index.update(set_metadata=self.md1, filter=self.filter1, namespace="ns")
+        self.index._vector_api.update_vector.assert_called_once_with(
+            oai.UpdateRequest(set_metadata=self.md1, filter=self.filter1, namespace="ns")
+        )
+
+    def test_update_withNeitherIdNorFilter_raisesError(self, mocker):
+        """Test that update raises error when neither id nor filter is provided."""
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        with pytest.raises(ValueError, match="Either 'id' or 'filter' must be provided"):
+            self.index.update(values=self.vals1, namespace="ns")
+
+    def test_update_withBothIdAndFilter_raisesError(self, mocker):
+        """Test that update raises error when both id and filter are provided."""
+        mocker.patch.object(self.index._vector_api, "update_vector", autospec=True)
+        with pytest.raises(ValueError, match="Cannot provide both 'id' and 'filter'"):
+            self.index.update(id="vec1", filter=self.filter1, values=self.vals1, namespace="ns")
 
     # endregion
 

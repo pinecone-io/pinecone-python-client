@@ -623,7 +623,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
     @validate_and_convert_errors
     async def update(
         self,
-        id: str,
+        id: Optional[str] = None,
         values: Optional[List[float]] = None,
         set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
@@ -631,6 +631,13 @@ class _IndexAsyncio(IndexAsyncioInterface):
         filter: Optional[FilterTypedDict] = None,
         **kwargs,
     ) -> UpdateResponse:
+        # Validate that exactly one of id or filter is provided
+        if id is None and filter is None:
+            raise ValueError("Either 'id' or 'filter' must be provided to update vectors.")
+        if id is not None and filter is not None:
+            raise ValueError(
+                "Cannot provide both 'id' and 'filter' in the same update call. Use 'id' for single vector updates or 'filter' for bulk updates."
+            )
         result = await self._vector_api.update_vector(
             IndexRequestFactory.update_request(
                 id=id,

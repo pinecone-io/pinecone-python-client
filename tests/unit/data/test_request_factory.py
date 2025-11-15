@@ -520,6 +520,24 @@ class TestIndexRequestFactory:
         # Filter should not be set when not provided
         assert not hasattr(request, "filter") or request.filter is None
 
+    def test_update_request_with_filter_only_no_id(self):
+        """Test update_request with filter only (no id) for bulk updates."""
+        request = IndexRequestFactory.update_request(
+            filter={"genre": {"$eq": "action"}}, set_metadata={"status": "active"}
+        )
+        assert request.filter == {"genre": {"$eq": "action"}}
+        assert request.set_metadata == {"status": "active"}
+        # id should not be set when not provided
+        assert not hasattr(request, "id") or request.id is None
+
+    def test_update_request_with_id_only_no_filter(self):
+        """Test update_request with id only (no filter) - backward compatibility."""
+        request = IndexRequestFactory.update_request(id="vec1", values=[0.1, 0.2, 0.3])
+        assert request.id == "vec1"
+        assert request.values == [0.1, 0.2, 0.3]
+        # Filter should not be set when not provided
+        assert not hasattr(request, "filter") or request.filter is None
+
     def test_update_request_with_simple_equality_filter(self):
         """Test update_request with simple equality filter."""
         request = IndexRequestFactory.update_request(id="vec1", filter={"genre": "action"})

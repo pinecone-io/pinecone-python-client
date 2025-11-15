@@ -681,7 +681,7 @@ class GRPCIndex(GRPCIndexBase):
 
     def update(
         self,
-        id: str,
+        id: Optional[str] = None,
         async_req: bool = False,
         values: Optional[List[float]] = None,
         set_metadata: Optional[VectorMetadataTypedDict] = None,
@@ -691,43 +691,76 @@ class GRPCIndex(GRPCIndexBase):
         **kwargs,
     ) -> Union[UpdateResponse, PineconeGrpcFuture]:
         """
-        The Update operation updates vector in a namespace.
-        If a value is included, it will overwrite the previous value.
-        If a set_metadata is included,
-        the values of the fields specified in it will be added or overwrite the previous value.
+        The Update operation updates vectors in a namespace.
+
+        This method supports two update modes:
+
+        1. **Single vector update by ID**: Provide `id` to update a specific vector.
+           - Updates the vector with the given ID
+           - If `values` is included, it will overwrite the previous vector values
+           - If `set_metadata` is included, the values of the fields specified will be added or overwrite the previous metadata
+
+        2. **Bulk update by metadata filter**: Provide `filter` to update all vectors matching the filter criteria.
+           - Updates all vectors in the namespace that match the filter expression
+           - Useful for updating metadata across multiple vectors at once
+           - The response includes `matched_records` indicating how many vectors were updated
+
+        Either `id` or `filter` must be provided (but not both in the same call).
 
         Examples:
 
+        **Single vector update by ID:**
+
         .. code-block:: python
 
+            >>> # Update vector values
             >>> index.update(id='id1', values=[1, 2, 3], namespace='my_namespace')
+            >>> # Update vector metadata
             >>> index.update(id='id1', set_metadata={'key': 'value'}, namespace='my_namespace', async_req=True)
+            >>> # Update vector values and sparse values
             >>> index.update(id='id1', values=[1, 2, 3], sparse_values={'indices': [1, 2], 'values': [0.2, 0.4]},
             >>>              namespace='my_namespace')
             >>> index.update(id='id1', values=[1, 2, 3], sparse_values=GRPCSparseValues(indices=[1, 2], values=[0.2, 0.4]),
             >>>              namespace='my_namespace')
-            >>> index.update(id='id1', set_metadata={'status': 'active'}, filter={'genre': {'$eq': 'drama'}},
-            >>>              namespace='my_namespace')
+
+        **Bulk update by metadata filter:**
+
+        .. code-block:: python
+
+            >>> # Update metadata for all vectors matching the filter
+            >>> response = index.update(set_metadata={'status': 'active'}, filter={'genre': {'$eq': 'drama'}},
+            >>>                        namespace='my_namespace')
+            >>> print(f"Updated {response.matched_records} vectors")
 
         Args:
-            id (str): Vector's unique id.
+            id (str): Vector's unique id. Required for single vector updates. Must not be provided when using filter. [optional]
             async_req (bool): If True, the update operation will be performed asynchronously.
                               Defaults to False. [optional]
-            values (List[float]): vector values to set. [optional]
+            values (List[float]): Vector values to set. [optional]
             set_metadata (Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]]):
-                metadata to set for vector. [optional]
-            namespace (str): Namespace name where to update the vector.. [optional]
-            sparse_values: (Dict[str, Union[List[float], List[int]]]): sparse values to update for the vector.
+                Metadata to set for the vector(s). [optional]
+            namespace (str): Namespace name where to update the vector(s). [optional]
+            sparse_values: (Dict[str, Union[List[float], List[int]]]): Sparse values to update for the vector.
                            Expected to be either a GRPCSparseValues object or a dict of the form:
-                           {'indices': List[int], 'values': List[float]} where the lists each have the same length.
+                           {'indices': List[int], 'values': List[float]} where the lists each have the same length. [optional]
             filter (Dict[str, Union[str, float, int, bool, List, dict]]): A metadata filter expression.
-                    When updating metadata across records in a namespace, the update is applied to all records
-                    that match the filter. See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`.
-                    [optional]
+                    When provided, updates all vectors in the namespace that match the filter criteria.
+                    See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`.
+                    Must not be provided when using id. Either `id` or `filter` must be provided. [optional]
 
-
-        Returns: UpdateResponse (contains no data) or a PineconeGrpcFuture object if async_req is True.
+        Returns:
+            UpdateResponse or PineconeGrpcFuture: When using filter-based updates, the UpdateResponse includes
+            `matched_records` indicating the number of vectors that were updated. If `async_req=True`, returns
+            a PineconeGrpcFuture object instead.
         """
+        # Validate that exactly one of id or filter is provided
+        if id is None and filter is None:
+            raise ValueError("Either 'id' or 'filter' must be provided to update vectors.")
+        if id is not None and filter is not None:
+            raise ValueError(
+                "Cannot provide both 'id' and 'filter' in the same update call. Use 'id' for single vector updates or 'filter' for bulk updates."
+            )
+
         if set_metadata is not None:
             set_metadata_struct = dict_to_proto_struct(set_metadata)
         else:
@@ -742,6 +775,7 @@ class GRPCIndex(GRPCIndexBase):
         sparse_values = SparseValuesFactory.build(sparse_values)
         args_dict = self._parse_non_empty_args(
             [
+                ("id", id),
                 ("values", values),
                 ("set_metadata", set_metadata_struct),
                 ("namespace", namespace),
@@ -750,7 +784,7 @@ class GRPCIndex(GRPCIndexBase):
             ]
         )
 
-        request = UpdateRequest(id=id, **args_dict)
+        request = UpdateRequest(**args_dict)
         if async_req:
             future_result = self.runner.run(self.stub.Update.future, request, timeout=timeout)
             # For .future calls, runner returns (future, None, None) since .future doesn't support with_call
