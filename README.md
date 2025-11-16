@@ -19,7 +19,7 @@ For notes on changes between major versions, see [Upgrading](./docs/upgrading.md
 
 ## Prerequisites
 
-- The Pinecone Python SDK is compatible with Python 3.9 and greater. It has been tested with CPython versions from 3.9 to 3.13.
+- The Pinecone Python SDK is compatible with Python 3.10 and greater. It has been tested with CPython versions from 3.10 to 3.13.
 - Before you can use the Pinecone SDK, you must sign up for an account and find your API key in the Pinecone console dashboard at [https://app.pinecone.io](https://app.pinecone.io).
 
 ## Installation
