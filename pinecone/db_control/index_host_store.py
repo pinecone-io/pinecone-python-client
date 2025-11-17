@@ -1,4 +1,4 @@
-from typing import Dict, Any, Type
+from typing import Any, Type
 from pinecone.config import Config
 from pinecone.core.openapi.db_control.api.manage_indexes_api import (
     ManageIndexesApi as IndexOperationsApi,
@@ -8,7 +8,7 @@ from pinecone.utils import normalize_host
 
 
 class SingletonMeta(type):
-    _instances: Dict[Type[Any], Any] = {}
+    _instances: dict[Type[Any], Any] = {}
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
@@ -18,7 +18,7 @@ class SingletonMeta(type):
 
 
 class IndexHostStore(metaclass=SingletonMeta):
-    _indexHosts: Dict[str, str]
+    _indexHosts: dict[str, str]
 
     def __init__(self) -> None:
         self._indexHosts = {}

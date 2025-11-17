@@ -4,7 +4,7 @@ from pinecone.utils.tqdm import tqdm
 import warnings
 import logging
 import json
-from typing import List, Dict, Any, Literal, Iterator, TYPE_CHECKING
+from typing import Any, Literal, Iterator, TYPE_CHECKING
 
 from pinecone.config import ConfigBuilder
 
@@ -145,7 +145,7 @@ class Index(PluginAware, IndexInterface):
         api_key: str,
         host: str,
         pool_threads: int | None = None,
-        additional_headers: Dict[str, str] | None = {},
+        additional_headers: dict[str, str] | None = {},
         openapi_config=None,
         **kwargs,
     ):
@@ -235,7 +235,7 @@ class Index(PluginAware, IndexInterface):
             )
         return self._namespace_resource
 
-    def _openapi_kwargs(self, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    def _openapi_kwargs(self, kwargs: dict[str, Any]) -> dict[str, Any]:
         return filter_dict(kwargs, OPENAPI_ENDPOINT_PARAMS)
 
     def __enter__(self):
@@ -251,7 +251,7 @@ class Index(PluginAware, IndexInterface):
     def upsert(
         self,
         vectors: (
-            List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
+            list[Vector] | list[VectorTuple] | list[VectorTupleWithMetadata] | list[VectorTypedDict]
         ),
         namespace: str | None = None,
         batch_size: int | None = None,
@@ -311,7 +311,7 @@ class Index(PluginAware, IndexInterface):
     def _upsert_batch(
         self,
         vectors: (
-            List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
+            list[Vector] | list[VectorTuple] | list[VectorTupleWithMetadata] | list[VectorTypedDict]
         ),
         namespace: str | None,
         _check_type: bool,
@@ -388,7 +388,7 @@ class Index(PluginAware, IndexInterface):
 
         return UpsertResponse(upserted_count=upserted_count, _response_info=response_info)
 
-    def upsert_records(self, namespace: str, records: List[Dict]) -> UpsertResponse:
+    def upsert_records(self, namespace: str, records: list[dict]) -> UpsertResponse:
         args = IndexRequestFactory.upsert_records_args(namespace=namespace, records=records)
         # Use _return_http_data_only=False to get headers for LSN extraction
         result = self._vector_api.upsert_records_namespace(_return_http_data_only=False, **args)
@@ -418,7 +418,7 @@ class Index(PluginAware, IndexInterface):
         namespace: str,
         query: SearchQueryTypedDict | SearchQuery,
         rerank: SearchRerankTypedDict | SearchRerank | None = None,
-        fields: List[str] | None = ["*"],  # Default to returning all fields
+        fields: list[str] | None = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         if namespace is None:
             raise Exception("Namespace is required when searching records")
@@ -436,19 +436,19 @@ class Index(PluginAware, IndexInterface):
         namespace: str,
         query: SearchQueryTypedDict | SearchQuery,
         rerank: SearchRerankTypedDict | SearchRerank | None = None,
-        fields: List[str] | None = ["*"],  # Default to returning all fields
+        fields: list[str] | None = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         return self.search(namespace, query=query, rerank=rerank, fields=fields)
 
     @validate_and_convert_errors
     def delete(
         self,
-        ids: List[str] | None = None,
+        ids: list[str] | None = None,
         delete_all: bool | None = None,
         namespace: str | None = None,
         filter: FilterTypedDict | None = None,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         from typing import cast
 
         result = self._vector_api.delete_vectors(
@@ -457,10 +457,10 @@ class Index(PluginAware, IndexInterface):
             ),
             **self._openapi_kwargs(kwargs),
         )
-        return cast(Dict[str, Any], result)
+        return cast(dict[str, Any], result)
 
     @validate_and_convert_errors
-    def fetch(self, ids: List[str], namespace: str | None = None, **kwargs) -> FetchResponse:
+    def fetch(self, ids: list[str], namespace: str | None = None, **kwargs) -> FetchResponse:
         args_dict = parse_non_empty_args([("namespace", namespace)])
         result = self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
         # Copy response info from OpenAPI response if present
@@ -509,7 +509,7 @@ class Index(PluginAware, IndexInterface):
             ... )
 
         Args:
-            filter (Dict[str, str | float | int | bool | List | dict]):
+            filter (dict[str, str | float | int | bool | List | dict]):
                 Metadata filter expression to select vectors.
                 See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`
             namespace (str): The namespace to fetch vectors from.
@@ -556,7 +556,7 @@ class Index(PluginAware, IndexInterface):
         self,
         *args,
         top_k: int,
-        vector: List[float] | None = None,
+        vector: list[float] | None = None,
         id: str | None = None,
         namespace: str | None = None,
         filter: FilterTypedDict | None = None,
@@ -589,7 +589,7 @@ class Index(PluginAware, IndexInterface):
         self,
         *args,
         top_k: int,
-        vector: List[float] | None = None,
+        vector: list[float] | None = None,
         id: str | None = None,
         namespace: str | None = None,
         filter: FilterTypedDict | None = None,
@@ -626,8 +626,8 @@ class Index(PluginAware, IndexInterface):
     @validate_and_convert_errors
     def query_namespaces(
         self,
-        vector: List[float] | None,
-        namespaces: List[str],
+        vector: list[float] | None,
+        namespaces: list[str],
         metric: Literal["cosine", "euclidean", "dotproduct"],
         top_k: int | None = None,
         filter: FilterTypedDict | None = None,
@@ -666,7 +666,7 @@ class Index(PluginAware, IndexInterface):
         from concurrent.futures import Future
 
         # async_futures is a list of ApplyResult, but as_completed expects Future
-        futures: List[Future[Any]] = cast(List[Future[Any]], async_futures)
+        futures: list[Future[Any]] = cast(list[Future[Any]], async_futures)
         for result in as_completed(futures):
             raw_result = result.result()
             response = json.loads(raw_result.data.decode("utf-8"))
@@ -679,7 +679,7 @@ class Index(PluginAware, IndexInterface):
     def update(
         self,
         id: str | None = None,
-        values: List[float] | None = None,
+        values: list[float] | None = None,
         set_metadata: VectorMetadataTypedDict | None = None,
         namespace: str | None = None,
         sparse_values: SparseValues | SparseVectorTypedDict | None = None,
@@ -904,7 +904,7 @@ class Index(PluginAware, IndexInterface):
     @validate_and_convert_errors
     @require_kwargs
     def create_namespace(
-        self, name: str, schema: Dict[str, Any] | None = None, **kwargs
+        self, name: str, schema: dict[str, Any] | None = None, **kwargs
     ) -> "NamespaceDescription":
         return self.namespace.create(name=name, schema=schema, **kwargs)
 
@@ -915,11 +915,11 @@ class Index(PluginAware, IndexInterface):
 
     @validate_and_convert_errors
     @require_kwargs
-    def delete_namespace(self, namespace: str, **kwargs) -> Dict[str, Any]:
+    def delete_namespace(self, namespace: str, **kwargs) -> dict[str, Any]:
         from typing import cast
 
         result = self.namespace.delete(namespace=namespace, **kwargs)
-        return cast(Dict[str, Any], result)
+        return cast(dict[str, Any], result)
 
     @validate_and_convert_errors
     @require_kwargs

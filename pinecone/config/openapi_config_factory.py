@@ -1,5 +1,4 @@
 import sys
-from typing import List, Optional, Tuple
 
 import certifi
 import socket
@@ -14,7 +13,7 @@ TCP_KEEPCNT = 4
 
 class OpenApiConfigFactory:
     @classmethod
-    def build(cls, api_key: str, host: Optional[str] = None, **kwargs):
+    def build(cls, api_key: str, host: str | None = None, **kwargs):
         openapi_config = OpenApiConfiguration()
         openapi_config.api_key = {"ApiKeyAuth": api_key}
         openapi_config.host = host
@@ -56,7 +55,7 @@ class OpenApiConfigFactory:
         keep_alive_idle_sec: int = TCP_KEEPIDLE,
         keep_alive_interval_sec: int = TCP_KEEPINTVL,
         keep_alive_tries: int = TCP_KEEPCNT,
-    ) -> List[Tuple[int, int, int]]:
+    ) -> list[tuple[int, int, int]]:
         """
         Returns the socket options to pass to OpenAPI's Rest client
         Args:

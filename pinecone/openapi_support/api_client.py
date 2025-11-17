@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import atexit
 import io
 
-from typing import Optional, List, Tuple, Dict, Any, Union, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from multiprocessing.pool import ThreadPool
@@ -30,11 +32,11 @@ class ApiClient(object):
         to the API. More threads means more concurrent API requests.
     """
 
-    _pool: Optional["ThreadPool"] = None
-    _threadpool_executor: Optional["ThreadPoolExecutor"] = None
+    _pool: "ThreadPool" | None = None
+    _threadpool_executor: "ThreadPoolExecutor" | None = None
 
     def __init__(
-        self, configuration: Optional[Configuration] = None, pool_threads: Optional[int] = 1
+        self, configuration: Configuration | None = None, pool_threads: int | None = 1
     ) -> None:
         if configuration is None:
             configuration = Configuration.get_default_copy()
@@ -43,7 +45,7 @@ class ApiClient(object):
 
         self.rest_client = Urllib3RestClient(configuration)
 
-        self.default_headers: Dict[str, str] = {}
+        self.default_headers: dict[str, str] = {}
         self.user_agent = "OpenAPI-Generator/1.0.0/python"
 
     def __enter__(self):
@@ -99,20 +101,20 @@ class ApiClient(object):
         self,
         resource_path: str,
         method: str,
-        path_params: Optional[Dict[str, Any]] = None,
-        query_params: Optional[List[Tuple[str, Any]]] = None,
-        header_params: Optional[Dict[str, Any]] = None,
-        body: Optional[Any] = None,
-        post_params: Optional[List[Tuple[str, Any]]] = None,
-        files: Optional[Dict[str, List[io.IOBase]]] = None,
-        response_type: Optional[Tuple[Any]] = None,
-        auth_settings: Optional[List[str]] = None,
-        _return_http_data_only: Optional[bool] = True,
-        collection_formats: Optional[Dict[str, str]] = None,
+        path_params: dict[str, Any] | None = None,
+        query_params: list[tuple[str, Any]] | None = None,
+        header_params: dict[str, Any] | None = None,
+        body: Any | None = None,
+        post_params: list[tuple[str, Any]] | None = None,
+        files: dict[str, list[io.IOBase]] | None = None,
+        response_type: tuple[Any] | None = None,
+        auth_settings: list[str] | None = None,
+        _return_http_data_only: bool | None = True,
+        collection_formats: dict[str, str] | None = None,
         _preload_content: bool = True,
-        _request_timeout: Optional[Union[int, float, Tuple]] = None,
-        _host: Optional[str] = None,
-        _check_type: Optional[bool] = None,
+        _request_timeout: (int | float | tuple) | None = None,
+        _host: str | None = None,
+        _check_type: bool | None = None,
     ):
         config = self.configuration
 
@@ -226,22 +228,22 @@ class ApiClient(object):
         self,
         resource_path: str,
         method: str,
-        path_params: Optional[Dict[str, Any]] = None,
-        query_params: Optional[List[Tuple[str, Any]]] = None,
-        header_params: Optional[Dict[str, Any]] = None,
-        body: Optional[Any] = None,
-        post_params: Optional[List[Tuple[str, Any]]] = None,
-        files: Optional[Dict[str, List[io.IOBase]]] = None,
-        response_type: Optional[Tuple[Any]] = None,
-        auth_settings: Optional[List[str]] = None,
-        async_req: Optional[bool] = None,
-        async_threadpool_executor: Optional[bool] = None,
-        _return_http_data_only: Optional[bool] = None,
-        collection_formats: Optional[Dict[str, str]] = None,
+        path_params: dict[str, Any] | None = None,
+        query_params: list[tuple[str, Any]] | None = None,
+        header_params: dict[str, Any] | None = None,
+        body: Any | None = None,
+        post_params: list[tuple[str, Any]] | None = None,
+        files: dict[str, list[io.IOBase]] | None = None,
+        response_type: tuple[Any] | None = None,
+        auth_settings: list[str] | None = None,
+        async_req: bool | None = None,
+        async_threadpool_executor: bool | None = None,
+        _return_http_data_only: bool | None = None,
+        collection_formats: dict[str, str] | None = None,
         _preload_content: bool = True,
-        _request_timeout: Optional[Union[int, float, Tuple]] = None,
-        _host: Optional[str] = None,
-        _check_type: Optional[bool] = None,
+        _request_timeout: (int | float | tuple) | None = None,
+        _host: str | None = None,
+        _check_type: bool | None = None,
     ):
         """Makes the HTTP request (synchronous) and returns deserialized data.
 

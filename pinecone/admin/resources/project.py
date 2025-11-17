@@ -1,4 +1,3 @@
-from typing import Optional
 from pinecone.exceptions import NotFoundException, PineconeException
 from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.admin.apis import ProjectsApi
@@ -79,7 +78,7 @@ class ProjectResource:
         return self._projects_api.list_projects()
 
     @require_kwargs
-    def fetch(self, project_id: Optional[str] = None, name: Optional[str] = None):
+    def fetch(self, project_id: str | None = None, name: str | None = None):
         """
         Fetch a project by project_id or name.
 
@@ -152,7 +151,7 @@ class ProjectResource:
                 return projects[0]
 
     @require_kwargs
-    def get(self, project_id: Optional[str] = None, name: Optional[str] = None):
+    def get(self, project_id: str | None = None, name: str | None = None):
         """Alias for :func:`fetch`
 
         Examples
@@ -179,7 +178,7 @@ class ProjectResource:
         return self.fetch(project_id=project_id, name=name)
 
     @require_kwargs
-    def describe(self, project_id: Optional[str] = None, name: Optional[str] = None):
+    def describe(self, project_id: str | None = None, name: str | None = None):
         """Alias for :func:`fetch`
 
         Examples
@@ -206,7 +205,7 @@ class ProjectResource:
         return self.fetch(project_id=project_id, name=name)
 
     @require_kwargs
-    def exists(self, project_id: Optional[str] = None, name: Optional[str] = None):
+    def exists(self, project_id: str | None = None, name: str | None = None):
         """
         Check if a project exists by project_id or name.
 
@@ -272,10 +271,7 @@ class ProjectResource:
 
     @require_kwargs
     def create(
-        self,
-        name: str,
-        max_pods: Optional[int] = None,
-        force_encryption_with_cmek: Optional[bool] = None,
+        self, name: str, max_pods: int | None = None, force_encryption_with_cmek: bool | None = None
     ):
         """
         Create a project.
@@ -328,9 +324,9 @@ class ProjectResource:
     def update(
         self,
         project_id: str,
-        name: Optional[str] = None,
-        max_pods: Optional[int] = None,
-        force_encryption_with_cmek: Optional[bool] = None,
+        name: str | None = None,
+        max_pods: int | None = None,
+        force_encryption_with_cmek: bool | None = None,
     ):
         """
         Update a project.

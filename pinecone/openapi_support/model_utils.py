@@ -1133,7 +1133,7 @@ def get_required_type_classes(required_types_mixed, spec_property_naming):
             valid_classes.append(dict)
             child_req_types_by_current_type[dict] = required_type[str]
         else:
-            # Handle typing generics like Dict[str, Any], List[str], etc.
+            # Handle typing generics like dict[str, Any], list[str], etc.
             # by converting them to their built-in equivalents
             # Check if it's a typing generic by looking for __origin__ or __args__
             if hasattr(required_type, "__origin__") or (
@@ -1143,7 +1143,7 @@ def get_required_type_classes(required_types_mixed, spec_property_naming):
                     origin = get_origin(required_type)
                     if origin is dict:
                         valid_classes.append(dict)
-                        # Extract value type from Dict[K, V] - value type is args[1]
+                        # Extract value type from dict[K, V] - value type is args[1]
                         from typing import get_args
 
                         args = get_args(required_type)
@@ -1154,7 +1154,7 @@ def get_required_type_classes(required_types_mixed, spec_property_naming):
                             child_req_types_by_current_type[dict] = required_type
                     elif origin is list:
                         valid_classes.append(list)
-                        # Extract element type from List[T] - element type is args[0]
+                        # Extract element type from list[T] - element type is args[0]
                         from typing import get_args
 
                         args = get_args(required_type)

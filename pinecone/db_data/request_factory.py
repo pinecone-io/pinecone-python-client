@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import List, Dict, Any
+from typing import Any
 
 from pinecone.core.openapi.db_data.models import (
     QueryRequest,
@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 """ :meta private: """
 
 
-def non_openapi_kwargs(kwargs: Dict[str, Any]) -> Dict[str, Any]:
+def non_openapi_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in kwargs.items() if k not in OPENAPI_ENDPOINT_PARAMS}
 
 
@@ -49,7 +49,7 @@ class IndexRequestFactory:
     @staticmethod
     def query_request(
         top_k: int,
-        vector: List[float] | None = None,
+        vector: list[float] | None = None,
         id: str | None = None,
         namespace: str | None = None,
         filter: FilterTypedDict | None = None,
@@ -84,7 +84,7 @@ class IndexRequestFactory:
     @staticmethod
     def upsert_request(
         vectors: (
-            List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
+            list[Vector] | list[VectorTuple] | list[VectorTupleWithMetadata] | list[VectorTypedDict]
         ),
         namespace: str | None,
         _check_type: bool,
@@ -107,7 +107,7 @@ class IndexRequestFactory:
 
     @staticmethod
     def delete_request(
-        ids: List[str] | None = None,
+        ids: list[str] | None = None,
         delete_all: bool | None = None,
         namespace: str | None = None,
         filter: FilterTypedDict | None = None,
@@ -147,7 +147,7 @@ class IndexRequestFactory:
     @staticmethod
     def update_request(
         id: str | None = None,
-        values: List[float] | None = None,
+        values: list[float] | None = None,
         set_metadata: VectorMetadataTypedDict | None = None,
         namespace: str | None = None,
         sparse_values: SparseValues | SparseVectorTypedDict | None = None,
@@ -193,7 +193,7 @@ class IndexRequestFactory:
         pagination_token: str | None = None,
         namespace: str | None = None,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         return parse_non_empty_args(
             [
                 ("prefix", prefix),
@@ -207,7 +207,7 @@ class IndexRequestFactory:
     def search_request(
         query: SearchQueryTypedDict | SearchQuery,
         rerank: SearchRerankTypedDict | SearchRerank | None = None,
-        fields: List[str] | None = ["*"],  # Default to returning all fields
+        fields: list[str] | None = ["*"],  # Default to returning all fields
     ) -> SearchRecordsRequest:
         request_args = parse_non_empty_args(
             [
@@ -306,7 +306,7 @@ class IndexRequestFactory:
         return result
 
     @staticmethod
-    def upsert_records_args(namespace: str, records: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def upsert_records_args(namespace: str, records: list[dict[str, Any]]) -> dict[str, Any]:
         if namespace is None:
             raise ValueError("namespace is required when upserting records")
         if not records or len(records) == 0:

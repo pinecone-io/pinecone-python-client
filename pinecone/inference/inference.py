@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import logging
 import warnings
-from typing import Optional, Dict, List, Union, Any, TYPE_CHECKING
+from typing import Dict, Any, TYPE_CHECKING
 
 from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.inference.apis import InferenceApi
@@ -76,7 +78,7 @@ class Inference(PluginAware):
             api_version=API_VERSION,
         )
 
-        self._model: Optional["ModelResource"] = None  # Lazy initialization
+        self._model: "ModelResource" | None = None  # Lazy initialization
         """ :meta private: """
 
         super().__init__()  # Initialize PluginAware
@@ -152,9 +154,9 @@ class Inference(PluginAware):
 
     def embed(
         self,
-        model: Union[EmbedModelEnum, str],
-        inputs: Union[str, List[Dict], List[str]],
-        parameters: Optional[Dict[str, Any]] = None,
+        model: EmbedModelEnum | str,
+        inputs: str | list[Dict] | list[str],
+        parameters: dict[str, Any] | None = None,
     ) -> EmbeddingsList:
         """
         Generates embeddings for the provided inputs using the specified model and (optional) parameters.
@@ -202,13 +204,13 @@ class Inference(PluginAware):
 
     def rerank(
         self,
-        model: Union[RerankModelEnum, str],
+        model: RerankModelEnum | str,
         query: str,
-        documents: Union[List[str], List[Dict[str, Any]]],
-        rank_fields: List[str] = ["text"],
+        documents: list[str] | list[dict[str, Any]],
+        rank_fields: list[str] = ["text"],
         return_documents: bool = True,
-        top_n: Optional[int] = None,
-        parameters: Optional[Dict[str, Any]] = None,
+        top_n: int | None = None,
+        parameters: dict[str, Any] | None = None,
     ) -> RerankResult:
         """
         Rerank documents with associated relevance scores that represent the relevance of each document
@@ -289,7 +291,7 @@ class Inference(PluginAware):
 
     @require_kwargs
     def list_models(
-        self, *, type: Optional[str] = None, vector_type: Optional[str] = None
+        self, *, type: str | None = None, vector_type: str | None = None
     ) -> "ModelInfoList":
         """
         List all available models.

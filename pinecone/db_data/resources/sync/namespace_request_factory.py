@@ -1,4 +1,4 @@
-from typing import Optional, TypedDict, Any, cast, Dict, Union
+from typing import TypedDict, Any, cast
 
 from pinecone.utils import parse_non_empty_args
 from pinecone.core.openapi.db_data.model.create_namespace_request import CreateNamespaceRequest
@@ -36,16 +36,14 @@ class NamespaceRequestFactory:
 
     @staticmethod
     def create_namespace_args(
-        name: str,
-        schema: Optional[Union[CreateNamespaceRequestSchema, Dict[str, Any]]] = None,
-        **kwargs,
+        name: str, schema: (CreateNamespaceRequestSchema | dict[str, Any]) | None = None, **kwargs
     ) -> CreateNamespaceArgs:
         if not isinstance(name, str):
             raise ValueError("name must be string")
         if name.strip() == "":
             raise ValueError("name must not be empty")
 
-        request_kwargs: Dict[str, Any] = {"name": name}
+        request_kwargs: dict[str, Any] = {"name": name}
         if schema is not None:
             if isinstance(schema, dict):
                 schema_obj = CreateNamespaceRequestSchema(**schema)
@@ -60,7 +58,7 @@ class NamespaceRequestFactory:
 
     @staticmethod
     def list_namespaces_args(
-        limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+        limit: int | None = None, pagination_token: str | None = None, **kwargs
     ) -> dict[str, Any]:
         base_args = parse_non_empty_args([("limit", limit), ("pagination_token", pagination_token)])
         return {**base_args, **kwargs}

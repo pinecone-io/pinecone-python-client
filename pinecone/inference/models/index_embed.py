@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Dict, Any, Union
+from typing import Any
 
 from pinecone.db_control.enums import Metric
 from pinecone.inference.inference_request_builder import EmbedModel
@@ -17,31 +17,31 @@ class IndexEmbed:
     Required.
     """
 
-    field_map: Dict[str, Any]
+    field_map: dict[str, Any]
     """
     A mapping of field names to their types.
     Required.
     """
 
-    metric: Optional[str] = None
+    metric: str | None = None
     """
     The metric to use for the index. If not provided, the default metric for the model is used.
     Optional.
     """
 
-    read_parameters: Optional[Dict[str, Any]] = None
+    read_parameters: dict[str, Any] | None = None
     """
     The parameters to use when reading from the index.
     Optional.
     """
 
-    write_parameters: Optional[Dict[str, Any]] = None
+    write_parameters: dict[str, Any] | None = None
     """
     The parameters to use when writing to the index.
     Optional.
     """
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         """
         Returns the IndexEmbed as a dictionary.
         """
@@ -49,11 +49,11 @@ class IndexEmbed:
 
     def __init__(
         self,
-        model: Union[EmbedModel, str],
-        field_map: Dict[str, Any],
-        metric: Optional[Union[Metric, str]] = None,
-        read_parameters: Optional[Dict[str, Any]] = None,
-        write_parameters: Optional[Dict[str, Any]] = None,
+        model: EmbedModel | str,
+        field_map: dict[str, Any],
+        metric: (Metric | str) | None = None,
+        read_parameters: dict[str, Any] | None = None,
+        write_parameters: dict[str, Any] | None = None,
     ):
         object.__setattr__(
             self, "model", model.value if isinstance(model, EmbedModel) else str(model)

@@ -1,7 +1,4 @@
-from typing import Optional
-
-
-def normalize_host(host: Optional[str]) -> str:
+def normalize_host(host: str | None) -> str:
     if host is None:
         return ""
     if host.startswith("https://"):

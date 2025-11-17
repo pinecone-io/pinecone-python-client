@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
 from pinecone.core.openapi.db_control.model.create_backup_request import CreateBackupRequest
@@ -35,9 +35,9 @@ class BackupResource(PluginAware):
     def list(
         self,
         *,
-        index_name: Optional[str] = None,
-        limit: Optional[int] = 10,
-        pagination_token: Optional[str] = None,
+        index_name: str | None = None,
+        limit: int | None = 10,
+        pagination_token: str | None = None,
     ) -> BackupList:
         """
         List backups for an index or for the project.

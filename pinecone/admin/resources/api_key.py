@@ -1,4 +1,6 @@
-from typing import Optional, List
+from __future__ import annotations
+
+from typing import List
 from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.admin.apis import APIKeysApi
 from pinecone.utils import require_kwargs, parse_non_empty_args
@@ -151,8 +153,8 @@ class ApiKeyResource:
         self,
         project_id: str,
         name: str,
-        description: Optional[str] = None,
-        roles: Optional[List[str]] = None,
+        description: str | None = None,
+        roles: List[str] | None = None,
     ):
         """
         Create an API key for a project.
@@ -169,7 +171,7 @@ class ApiKeyResource:
         :param roles: The roles of the API key. Available roles include:
             ``ProjectEditor``, ``ProjectViewer``, ``ControlPlaneEditor``,
             ``ControlPlaneViewer``, ``DataPlaneEditor``, ``DataPlaneViewer``
-        :type roles: Optional[List[str]]
+        :type roles: Optional[list[str]]
         :return: The created API key object and value.
         :rtype: {"key": APIKey, "value": str}
 
@@ -210,9 +212,7 @@ class ApiKeyResource:
         )
 
     @require_kwargs
-    def update(
-        self, api_key_id: str, name: Optional[str] = None, roles: Optional[List[str]] = None
-    ):
+    def update(self, api_key_id: str, name: str | None = None, roles: List[str] | None = None):
         """
         Update an API key.
 
@@ -226,7 +226,7 @@ class ApiKeyResource:
             ``ControlPlaneViewer``, ``DataPlaneEditor``, ``DataPlaneViewer``.
             Existing roles will be removed if not included. If this field is omitted,
             the roles will not be updated.
-        :type roles: Optional[List[str]]
+        :type roles: Optional[list[str]]
         :return: The updated API key.
         :rtype: APIKey
 

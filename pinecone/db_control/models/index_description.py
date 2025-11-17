@@ -1,4 +1,4 @@
-from typing import NamedTuple, Dict, Optional, Literal
+from typing import NamedTuple, Literal
 
 
 class PodSpecDefinition(NamedTuple):
@@ -7,7 +7,7 @@ class PodSpecDefinition(NamedTuple):
     pods: int
     pod_type: str
     environment: str
-    metadata_config: Optional[Dict]
+    metadata_config: dict | None
 
 
 class ServerlessSpecDefinition(NamedTuple):
@@ -16,7 +16,7 @@ class ServerlessSpecDefinition(NamedTuple):
 
 
 PodKey = Literal["pod"]
-PodSpec = Dict[PodKey, PodSpecDefinition]
+PodSpec = dict[PodKey, PodSpecDefinition]
 
 ServerlessKey = Literal["serverless"]
-ServerlessSpec = Dict[ServerlessKey, ServerlessSpecDefinition]
+ServerlessSpec = dict[ServerlessKey, ServerlessSpecDefinition]

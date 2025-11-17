@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 
-from typing import Optional, Dict, Union, TYPE_CHECKING, Any
+from typing import Dict, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from pinecone.db_control.models import (
@@ -45,14 +47,14 @@ class LegacyPineconeDBControlInterface(ABC):
     @abstractmethod
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        host: Optional[str] = None,
-        proxy_url: Optional[str] = None,
-        proxy_headers: Optional[Dict[str, str]] = None,
-        ssl_ca_certs: Optional[str] = None,
-        ssl_verify: Optional[bool] = None,
-        additional_headers: Optional[Dict[str, str]] = {},
-        pool_threads: Optional[int] = 1,
+        api_key: str | None = None,
+        host: str | None = None,
+        proxy_url: str | None = None,
+        proxy_headers: dict[str, str] | None = None,
+        ssl_ca_certs: str | None = None,
+        ssl_verify: bool | None = None,
+        additional_headers: dict[str, str] | None = {},
+        pool_threads: int | None = 1,
         **kwargs,
     ):
         pass
@@ -61,15 +63,13 @@ class LegacyPineconeDBControlInterface(ABC):
     def create_index(
         self,
         name: str,
-        spec: Union[Dict, "ServerlessSpec", "PodSpec", "ByocSpec"],
-        dimension: Optional[int],
-        metric: Optional[Union["Metric", str]] = "Metric.COSINE",
-        timeout: Optional[int] = None,
-        deletion_protection: Optional[
-            Union["DeletionProtection", str]
-        ] = "DeletionProtection.DISABLED",
-        vector_type: Optional[Union["VectorType", str]] = "VectorType.DENSE",
-        tags: Optional[Dict[str, str]] = None,
+        spec: Dict | "ServerlessSpec" | "PodSpec" | "ByocSpec",
+        dimension: int | None,
+        metric: ("Metric" | str) | None = "Metric.COSINE",
+        timeout: int | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "DeletionProtection.DISABLED",
+        vector_type: ("VectorType" | str) | None = "VectorType.DENSE",
+        tags: dict[str, str] | None = None,
     ) -> "IndexModel":
         """Creates a Pinecone index.
 
@@ -98,7 +98,7 @@ class LegacyPineconeDBControlInterface(ABC):
         :param vector_type: The type of vectors to be stored in the index. One of ``{"dense", "sparse"}``.
         :type vector_type: str, optional
         :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
-        :type tags: Optional[Dict[str, str]]
+        :type tags: Optional[dict[str, str]]
         :return: A ``IndexModel`` instance containing a description of the index that was created.
 
         Examples:
@@ -189,9 +189,9 @@ class LegacyPineconeDBControlInterface(ABC):
         *,
         name: str,
         backup_id: str,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        tags: Optional[Dict[str, str]] = None,
-        timeout: Optional[int] = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        tags: dict[str, str] | None = None,
+        timeout: int | None = None,
     ) -> "IndexModel":
         """
         Create an index from a backup.
@@ -205,7 +205,7 @@ class LegacyPineconeDBControlInterface(ABC):
         :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. This setting can be changed with ``configure_index``.
         :type deletion_protection: Optional[Literal["enabled", "disabled"]]
         :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
-        :type tags: Optional[Dict[str, str]]
+        :type tags: Optional[dict[str, str]]
         :param timeout: Specify the number of seconds to wait until index is ready to receive data. If None, wait indefinitely; if >=0, time out after this many seconds;
             if -1, return immediately and do not wait.
         :return: A description of the index that was created.
@@ -218,33 +218,29 @@ class LegacyPineconeDBControlInterface(ABC):
         self,
         *,
         name: str,
-        cloud: Union["CloudProvider", str],
-        region: Union["AwsRegion", "GcpRegion", "AzureRegion", str],
-        embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
-        tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[
-            Union["DeletionProtection", str]
-        ] = "DeletionProtection.DISABLED",
-        read_capacity: Optional[
-            Union[
-                "ReadCapacityDict",
-                "ReadCapacity",
-                "ReadCapacityOnDemandSpec",
-                "ReadCapacityDedicatedSpec",
-            ]
-        ] = None,
-        schema: Optional[
-            Union[
-                Dict[
-                    str, "MetadataSchemaFieldConfig"
-                ],  # Direct field mapping: {field_name: {filterable: bool}}
-                Dict[
-                    str, Dict[str, Any]
-                ],  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-                "BackupModelSchema",  # OpenAPI model instance
-            ]
-        ] = None,
-        timeout: Optional[int] = None,
+        cloud: "CloudProvider" | str,
+        region: "AwsRegion" | "GcpRegion" | "AzureRegion" | str,
+        embed: "IndexEmbed" | "CreateIndexForModelEmbedTypedDict",
+        tags: dict[str, str] | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "DeletionProtection.DISABLED",
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        )
+        | None = None,
+        schema: (
+            dict[
+                str, "MetadataSchemaFieldConfig"
+            ]  # Direct field mapping: {field_name: {filterable: bool}}
+            | dict[
+                str, dict[str, Any]
+            ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
+            | "BackupModelSchema"  # OpenAPI model instance
+        )
+        | None = None,
+        timeout: int | None = None,
     ) -> "IndexModel":
         """
         :param name: The name of the index to create. Must be unique within your project and
@@ -258,7 +254,7 @@ class LegacyPineconeDBControlInterface(ABC):
         :param embed: The embedding configuration for the index. This param accepts a dictionary or an instance of the ``IndexEmbed`` object.
         :type embed: Union[Dict, IndexEmbed]
         :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
-        :type tags: Optional[Dict[str, str]]
+        :type tags: Optional[dict[str, str]]
         :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. This setting can be changed with ``configure_index``.
         :type deletion_protection: Optional[Literal["enabled", "disabled"]]
         :param read_capacity: Optional read capacity configuration. You can specify ``read_capacity`` to configure dedicated read capacity mode
@@ -267,7 +263,7 @@ class LegacyPineconeDBControlInterface(ABC):
         :param schema: Optional metadata schema configuration. You can specify ``schema`` to configure which metadata fields are filterable.
             The schema can be provided as a dictionary mapping field names to their configurations (e.g., ``{"genre": {"filterable": True}}``)
             or as a dictionary with a ``fields`` key (e.g., ``{"fields": {"genre": {"filterable": True}}}``).
-        :type schema: Optional[Union[Dict[str, MetadataSchemaFieldConfig], Dict[str, Dict[str, Any]], BackupModelSchema]]
+        :type schema: Optional[Union[dict[str, MetadataSchemaFieldConfig], dict[str, dict[str, Any]], BackupModelSchema]]
         :type timeout: Optional[int]
         :param timeout: Specify the number of seconds to wait until index is ready to receive data. If None, wait indefinitely; if >=0, time out after this many seconds;
             if -1, return immediately and do not wait.
@@ -358,7 +354,7 @@ class LegacyPineconeDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def delete_index(self, name: str, timeout: Optional[int] = None):
+    def delete_index(self, name: str, timeout: int | None = None):
         """
         :param name: the name of the index.
         :type name: str
@@ -527,19 +523,18 @@ class LegacyPineconeDBControlInterface(ABC):
     def configure_index(
         self,
         name: str,
-        replicas: Optional[int] = None,
-        pod_type: Optional[Union["PodType", str]] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = None,
-        tags: Optional[Dict[str, str]] = None,
-        embed: Optional[Union["ConfigureIndexEmbed", Dict]] = None,
-        read_capacity: Optional[
-            Union[
-                "ReadCapacityDict",
-                "ReadCapacity",
-                "ReadCapacityOnDemandSpec",
-                "ReadCapacityDedicatedSpec",
-            ]
-        ] = None,
+        replicas: int | None = None,
+        pod_type: ("PodType" | str) | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = None,
+        tags: dict[str, str] | None = None,
+        embed: ("ConfigureIndexEmbed" | Dict) | None = None,
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        )
+        | None = None,
     ):
         """
         :param name: the name of the Index
@@ -553,7 +548,7 @@ class LegacyPineconeDBControlInterface(ABC):
         :param deletion_protection: If set to ``'enabled'``, the index cannot be deleted. If ``'disabled'``, the index can be deleted.
         :type deletion_protection: str or DeletionProtection, optional
         :param tags: A dictionary of tags to apply to the index. Tags are key-value pairs that can be used to organize and manage indexes. To remove a tag, set the value to "". Tags passed to configure_index will be merged with existing tags and any with the value empty string will be removed.
-        :type tags: Dict[str, str], optional
+        :type tags: dict[str, str], optional
         :param embed: configures the integrated inference embedding settings for the index. You can convert an existing index to an integrated index by specifying the embedding model and field_map.
             The index vector type and dimension must match the model vector type and dimension, and the index similarity metric must be supported by the model.
             You can later change the embedding configuration to update the field_map, read_parameters, or write_parameters. Once set, the model cannot be changed.
@@ -774,9 +769,9 @@ class LegacyPineconeDBControlInterface(ABC):
     def list_backups(
         self,
         *,
-        index_name: Optional[str] = None,
-        limit: Optional[int] = 10,
-        pagination_token: Optional[str] = None,
+        index_name: str | None = None,
+        limit: int | None = 10,
+        pagination_token: str | None = None,
     ) -> "BackupList":
         """List backups.
 
@@ -809,7 +804,7 @@ class LegacyPineconeDBControlInterface(ABC):
 
     @abstractmethod
     def list_restore_jobs(
-        self, *, limit: Optional[int] = 10, pagination_token: Optional[str] = None
+        self, *, limit: int | None = 10, pagination_token: str | None = None
     ) -> "RestoreJobList":
         """List restore jobs.
 

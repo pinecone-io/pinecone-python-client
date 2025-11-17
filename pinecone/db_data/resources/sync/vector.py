@@ -3,7 +3,7 @@ from __future__ import annotations
 from pinecone.utils.tqdm import tqdm
 import logging
 import json
-from typing import List, Optional, Dict, Any, Literal
+from typing import Any, Literal
 from multiprocessing.pool import ApplyResult
 from concurrent.futures import as_completed
 
@@ -111,17 +111,17 @@ class VectorResource(PluginAware):
         """ :meta private: """
         super().__init__()
 
-    def _openapi_kwargs(self, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    def _openapi_kwargs(self, kwargs: dict[str, Any]) -> dict[str, Any]:
         return filter_dict(kwargs, OPENAPI_ENDPOINT_PARAMS)
 
     @validate_and_convert_errors
     def upsert(
         self,
         vectors: (
-            List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
+            list[Vector] | list[VectorTuple] | list[VectorTupleWithMetadata] | list[VectorTypedDict]
         ),
-        namespace: Optional[str] = None,
-        batch_size: Optional[int] = None,
+        namespace: str | None = None,
+        batch_size: int | None = None,
         show_progress: bool = True,
         **kwargs,
     ) -> UpsertResponse | ApplyResult:
@@ -209,9 +209,9 @@ class VectorResource(PluginAware):
     def _upsert_batch(
         self,
         vectors: (
-            List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
+            list[Vector] | list[VectorTuple] | list[VectorTupleWithMetadata] | list[VectorTypedDict]
         ),
-        namespace: Optional[str],
+        namespace: str | None,
         _check_type: bool,
         **kwargs,
     ) -> UpsertResponse | ApplyResult:
@@ -248,7 +248,7 @@ class VectorResource(PluginAware):
 
     @validate_and_convert_errors
     def upsert_from_dataframe(
-        self, df, namespace: Optional[str] = None, batch_size: int = 500, show_progress: bool = True
+        self, df, namespace: str | None = None, batch_size: int = 500, show_progress: bool = True
     ) -> UpsertResponse:
         """Upsert vectors from a pandas DataFrame.
 
@@ -308,12 +308,12 @@ class VectorResource(PluginAware):
     @validate_and_convert_errors
     def delete(
         self,
-        ids: Optional[List[str]] = None,
-        delete_all: Optional[bool] = None,
-        namespace: Optional[str] = None,
-        filter: Optional[FilterTypedDict] = None,
+        ids: list[str] | None = None,
+        delete_all: bool | None = None,
+        namespace: str | None = None,
+        filter: FilterTypedDict | None = None,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Delete vectors from the index.
 
         The Delete operation deletes vectors from the index, from a single namespace.
@@ -345,10 +345,10 @@ class VectorResource(PluginAware):
             ),
             **self._openapi_kwargs(kwargs),
         )
-        return cast(Dict[str, Any], result)
+        return cast(dict[str, Any], result)
 
     @validate_and_convert_errors
-    def fetch(self, ids: List[str], namespace: Optional[str] = None, **kwargs) -> FetchResponse:
+    def fetch(self, ids: list[str], namespace: str | None = None, **kwargs) -> FetchResponse:
         """Fetch vectors by ID.
 
         The fetch operation looks up and returns vectors, by ID, from a single namespace.
@@ -390,9 +390,9 @@ class VectorResource(PluginAware):
     def fetch_by_metadata(
         self,
         filter: FilterTypedDict,
-        namespace: Optional[str] = None,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
+        namespace: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
         **kwargs,
     ) -> FetchByMetadataResponse:
         """Fetch vectors by metadata filter.
@@ -461,13 +461,13 @@ class VectorResource(PluginAware):
         self,
         *args,
         top_k: int,
-        vector: Optional[List[float]] = None,
-        id: Optional[str] = None,
-        namespace: Optional[str] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
+        vector: list[float] | None = None,
+        id: str | None = None,
+        namespace: str | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
     ) -> QueryResponse | ApplyResult:
         """Query the index.
@@ -494,8 +494,8 @@ class VectorResource(PluginAware):
                 as the ids. If omitted the server will use the default value of False.
                 [optional]
             sparse_vector: Sparse values of the query vector. Expected to be either a
-                SparseValues object or a dict of the form {'indices': List[int],
-                'values': List[float]}, where the lists each have the same length.
+                SparseValues object or a dict of the form {'indices': list[int],
+                'values': list[float]}, where the lists each have the same length.
                 [optional]
             **kwargs: Additional keyword arguments.
 
@@ -534,13 +534,13 @@ class VectorResource(PluginAware):
         self,
         *args,
         top_k: int,
-        vector: Optional[List[float]] = None,
-        id: Optional[str] = None,
-        namespace: Optional[str] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
+        vector: list[float] | None = None,
+        id: str | None = None,
+        namespace: str | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
     ) -> OpenAPIQueryResponse:
         if len(args) > 0:
@@ -570,14 +570,14 @@ class VectorResource(PluginAware):
     @validate_and_convert_errors
     def query_namespaces(
         self,
-        vector: Optional[List[float]],
-        namespaces: List[str],
+        vector: list[float] | None,
+        namespaces: list[str],
         metric: Literal["cosine", "euclidean", "dotproduct"],
-        top_k: Optional[int] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
+        top_k: int | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         """Query across multiple namespaces.
@@ -643,10 +643,10 @@ class VectorResource(PluginAware):
         from typing import cast
         from concurrent.futures import Future
 
-        # async_futures is List[QueryResponse | ApplyResult]
+        # async_futures is list[QueryResponse | ApplyResult]
         # When async_threadpool_executor=True, query returns ApplyResult
         # as_completed expects Iterable[Future], so we need to cast
-        futures: List[Future[Any]] = cast(List[Future[Any]], async_futures)
+        futures: list[Future[Any]] = cast(list[Future[Any]], async_futures)
         for result in as_completed(futures):
             raw_result = result.result()
             response = json.loads(raw_result.data.decode("utf-8"))
@@ -659,10 +659,10 @@ class VectorResource(PluginAware):
     def update(
         self,
         id: str,
-        values: Optional[List[float]] = None,
-        set_metadata: Optional[VectorMetadataTypedDict] = None,
-        namespace: Optional[str] = None,
-        sparse_values: Optional[SparseValues | SparseVectorTypedDict] = None,
+        values: list[float] | None = None,
+        set_metadata: VectorMetadataTypedDict | None = None,
+        namespace: str | None = None,
+        sparse_values: (SparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
     ) -> UpdateResponse:
         """Update a vector in the index.
@@ -678,8 +678,8 @@ class VectorResource(PluginAware):
             namespace: Namespace name where to update the vector. If not specified, the
                 default namespace is used. [optional]
             sparse_values: Sparse values to update for the vector. Expected to be either
-                a SparseValues object or a dict of the form {'indices': List[int],
-                'values': List[float]} where the lists each have the same length.
+                a SparseValues object or a dict of the form {'indices': list[int],
+                'values': list[float]} where the lists each have the same length.
                 [optional]
             **kwargs: Additional keyword arguments.
 
@@ -716,7 +716,7 @@ class VectorResource(PluginAware):
 
     @validate_and_convert_errors
     def describe_index_stats(
-        self, filter: Optional[FilterTypedDict] = None, **kwargs
+        self, filter: FilterTypedDict | None = None, **kwargs
     ) -> DescribeIndexStatsResponse:
         """Describe index statistics.
 
@@ -747,10 +747,10 @@ class VectorResource(PluginAware):
     @validate_and_convert_errors
     def list_paginated(
         self,
-        prefix: Optional[str] = None,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
-        namespace: Optional[str] = None,
+        prefix: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        namespace: str | None = None,
         **kwargs,
     ) -> ListResponse:
         """List vectors with pagination.

@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Any
+from typing import Any
 
 from pinecone.db_control.models import CollectionList
 
@@ -29,8 +29,8 @@ class CollectionResourceAsyncio:
         await self.index_api.delete_collection(name)
 
     @require_kwargs
-    async def describe(self, *, name: str) -> Dict[str, Any]:
+    async def describe(self, *, name: str) -> dict[str, Any]:
         from typing import cast
 
         result = await self.index_api.describe_collection(name)
-        return cast(Dict[str, Any], result.to_dict())
+        return cast(dict[str, Any], result.to_dict())

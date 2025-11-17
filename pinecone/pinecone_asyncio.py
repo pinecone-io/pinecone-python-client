@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import logging
 import warnings
-from typing import Optional, Dict, Union, TYPE_CHECKING, Any
+from typing import Dict, TYPE_CHECKING, Any
 from typing_extensions import Self
 
 from pinecone.config import PineconeConfig, ConfigBuilder
@@ -82,13 +84,13 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        host: Optional[str] = None,
-        proxy_url: Optional[str] = None,
-        # proxy_headers: Optional[Dict[str, str]] = None,
-        ssl_ca_certs: Optional[str] = None,
-        ssl_verify: Optional[bool] = None,
-        additional_headers: Optional[Dict[str, str]] = {},
+        api_key: str | None = None,
+        host: str | None = None,
+        proxy_url: str | None = None,
+        # proxy_headers: dict[str, str] | None = None,
+        ssl_ca_certs: str | None = None,
+        ssl_verify: bool | None = None,
+        additional_headers: dict[str, str] | None = {},
         **kwargs,
     ) -> None:
         """
@@ -105,7 +107,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         :param ssl_verify: SSL verification is performed by default, but can be disabled using the boolean flag when testing with Pinecone Local or troubleshooting a proxy setup. You should never run with SSL verification disabled in production.
         :type ssl_verify: bool, optional
         :param additional_headers: Additional headers to pass to the API. This is mainly to support internal testing at Pinecone. End users should not need to use this unless following specific instructions to do so.
-        :type additional_headers: Dict[str, str], optional
+        :type additional_headers: dict[str, str], optional
 
         .. note::
 
@@ -139,18 +141,18 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         self._openapi_config = ConfigBuilder.build_openapi_config(self._config, **kwargs)
         """ :meta private: """
 
-        self._inference: Optional["AsyncioInference"] = None  # Lazy initialization
+        self._inference: "AsyncioInference" | None = None  # Lazy initialization
         """ :meta private: """
 
-        self._db_control: Optional["DBControlAsyncio"] = None  # Lazy initialization
+        self._db_control: "DBControlAsyncio" | None = None  # Lazy initialization
         """ :meta private: """
 
     async def __aenter__(self) -> Self:
         return self
 
     async def __aexit__(
-        self, exc_type: Optional[type], exc_value: Optional[BaseException], traceback: Optional[Any]
-    ) -> Optional[bool]:
+        self, exc_type: type | None, exc_value: BaseException | None, traceback: Any | None
+    ) -> bool | None:
         await self.close()
         return None
 
@@ -242,13 +244,13 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     async def create_index(
         self,
         name: str,
-        spec: Union[Dict, "ServerlessSpec", "PodSpec", "ByocSpec"],
-        dimension: Optional[int] = None,
-        metric: Optional[Union["Metric", str]] = "cosine",
-        timeout: Optional[int] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        vector_type: Optional[Union["VectorType", str]] = "dense",
-        tags: Optional[Dict[str, str]] = None,
+        spec: Dict | "ServerlessSpec" | "PodSpec" | "ByocSpec",
+        dimension: int | None = None,
+        metric: ("Metric" | str) | None = "cosine",
+        timeout: int | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        vector_type: ("VectorType" | str) | None = "dense",
+        tags: dict[str, str] | None = None,
     ) -> "IndexModel":
         resp = await self.db.index.create(
             name=name,
@@ -265,31 +267,29 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     async def create_index_for_model(
         self,
         name: str,
-        cloud: Union["CloudProvider", str],
-        region: Union["AwsRegion", "GcpRegion", "AzureRegion", str],
-        embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
-        tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        read_capacity: Optional[
-            Union[
-                "ReadCapacityDict",
-                "ReadCapacity",
-                "ReadCapacityOnDemandSpec",
-                "ReadCapacityDedicatedSpec",
-            ]
-        ] = None,
-        schema: Optional[
-            Union[
-                Dict[
-                    str, "MetadataSchemaFieldConfig"
-                ],  # Direct field mapping: {field_name: {filterable: bool}}
-                Dict[
-                    str, Dict[str, Any]
-                ],  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-                "BackupModelSchema",  # OpenAPI model instance
-            ]
-        ] = None,
-        timeout: Optional[int] = None,
+        cloud: "CloudProvider" | str,
+        region: "AwsRegion" | "GcpRegion" | "AzureRegion" | str,
+        embed: "IndexEmbed" | "CreateIndexForModelEmbedTypedDict",
+        tags: dict[str, str] | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        )
+        | None = None,
+        schema: (
+            dict[
+                str, "MetadataSchemaFieldConfig"
+            ]  # Direct field mapping: {field_name: {filterable: bool}}
+            | dict[
+                str, dict[str, Any]
+            ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
+            | "BackupModelSchema"  # OpenAPI model instance
+        )
+        | None = None,
+        timeout: int | None = None,
     ) -> "IndexModel":
         return await self.db.index.create_for_model(
             name=name,
@@ -309,9 +309,9 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         *,
         name: str,
         backup_id: str,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        tags: Optional[Dict[str, str]] = None,
-        timeout: Optional[int] = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        tags: dict[str, str] | None = None,
+        timeout: int | None = None,
     ) -> "IndexModel":
         return await self.db.index.create_from_backup(
             name=name,
@@ -321,7 +321,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
             timeout=timeout,
         )
 
-    async def delete_index(self, name: str, timeout: Optional[int] = None) -> None:
+    async def delete_index(self, name: str, timeout: int | None = None) -> None:
         return await self.db.index.delete(name=name, timeout=timeout)
 
     async def list_indexes(self) -> "IndexList":
@@ -336,19 +336,18 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     async def configure_index(
         self,
         name: str,
-        replicas: Optional[int] = None,
-        pod_type: Optional[Union["PodType", str]] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = None,
-        tags: Optional[Dict[str, str]] = None,
-        embed: Optional[Union["ConfigureIndexEmbed", Dict]] = None,
-        read_capacity: Optional[
-            Union[
-                "ReadCapacityDict",
-                "ReadCapacity",
-                "ReadCapacityOnDemandSpec",
-                "ReadCapacityDedicatedSpec",
-            ]
-        ] = None,
+        replicas: int | None = None,
+        pod_type: ("PodType" | str) | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = None,
+        tags: dict[str, str] | None = None,
+        embed: ("ConfigureIndexEmbed" | Dict) | None = None,
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        )
+        | None = None,
     ) -> None:
         return await self.db.index.configure(
             name=name,
@@ -369,7 +368,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     async def delete_collection(self, name: str) -> None:
         return await self.db.collection.delete(name=name)
 
-    async def describe_collection(self, name: str) -> Dict[str, Any]:
+    async def describe_collection(self, name: str) -> dict[str, Any]:
         return await self.db.collection.describe(name=name)
 
     @require_kwargs
@@ -384,9 +383,9 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     async def list_backups(
         self,
         *,
-        index_name: Optional[str] = None,
-        limit: Optional[int] = 10,
-        pagination_token: Optional[str] = None,
+        index_name: str | None = None,
+        limit: int | None = 10,
+        pagination_token: str | None = None,
     ) -> "BackupList":
         return await self.db.backup.list(
             index_name=index_name, limit=limit, pagination_token=pagination_token
@@ -402,7 +401,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
 
     @require_kwargs
     async def list_restore_jobs(
-        self, *, limit: Optional[int] = 10, pagination_token: Optional[str] = None
+        self, *, limit: int | None = 10, pagination_token: str | None = None
     ) -> "RestoreJobList":
         return await self.db.restore_job.list(limit=limit, pagination_token=pagination_token)
 

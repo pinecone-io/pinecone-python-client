@@ -5,14 +5,14 @@ import os
 from urllib3.fields import RequestField
 from urllib.parse import quote
 
-from typing import Optional, List, Tuple, Dict, Any, Union
+from typing import Any
 from .serializer import Serializer
 from .exceptions import PineconeApiValueError
 
 
 class HeaderUtil:
     @staticmethod
-    def select_header_content_type(content_types: List[str]) -> str:
+    def select_header_content_type(content_types: list[str]) -> str:
         """Returns `Content-Type` based on an array of content_types provided.
 
         :param content_types: List of content-types.
@@ -29,7 +29,7 @@ class HeaderUtil:
             return content_types[0]
 
     @staticmethod
-    def select_header_accept(accepts: List[str]) -> str:
+    def select_header_accept(accepts: list[str]) -> str:
         """Returns `Accept` based on an array of accepts provided.
 
         :param accepts: List of headers.
@@ -47,20 +47,20 @@ class HeaderUtil:
 
     @staticmethod
     def process_header_params(
-        default_headers: Dict[str, str], header_params: Dict[str, str], collection_formats
-    ) -> Dict[str, Any]:
+        default_headers: dict[str, str], header_params: dict[str, str], collection_formats
+    ) -> dict[str, Any]:
         header_params.update(default_headers)
         if header_params:
-            sanitized_header_params: Dict[str, Any] = Serializer.sanitize_for_serialization(
+            sanitized_header_params: dict[str, Any] = Serializer.sanitize_for_serialization(
                 header_params
             )
-            processed_header_params: Dict[str, Any] = dict(
+            processed_header_params: dict[str, Any] = dict(
                 parameters_to_tuples(sanitized_header_params, collection_formats)
             )
         return processed_header_params
 
     @staticmethod
-    def prepare_headers(headers_map: Dict[str, List[str]], params) -> None:
+    def prepare_headers(headers_map: dict[str, list[str]], params) -> None:
         """Mutates the params to set Accept and Content-Type headers."""
         accept_headers_list = headers_map["accept"]
         if accept_headers_list:
@@ -83,10 +83,10 @@ def process_query_params(query_params, collection_formats):
 
 
 def process_params(
-    default_headers: Dict[str, str],
-    header_params: Dict[str, Any],
-    path_params: Dict[str, Any],
-    collection_formats: Dict[str, str],
+    default_headers: dict[str, str],
+    header_params: dict[str, Any],
+    path_params: dict[str, Any],
+    collection_formats: dict[str, str],
 ):
     # header parameters
     headers_tuple = HeaderUtil.process_header_params(
@@ -94,8 +94,8 @@ def process_params(
     )
 
     # path parameters
-    sanitized_path_params: Dict[str, Any] = Serializer.sanitize_for_serialization(path_params or {})
-    path_parm: List[Tuple[str, Any]] = parameters_to_tuples(
+    sanitized_path_params: dict[str, Any] = Serializer.sanitize_for_serialization(path_params or {})
+    path_parm: list[tuple[str, Any]] = parameters_to_tuples(
         sanitized_path_params, collection_formats
     )
 
@@ -109,9 +109,7 @@ def parameters_to_multipart(params, collection_types):
     :param dict collection_types: Parameter collection types
     :return: Parameters as list of tuple or urllib3.fields.RequestField
     """
-    from typing import Union
-
-    new_params: list[Union[RequestField, tuple[Any, Any]]] = []
+    new_params: list[RequestField | tuple[Any, Any]] = []
     if collection_types is None:
         collection_types = dict
     for k, v in params.items() if isinstance(params, dict) else params:  # noqa: E501
@@ -127,7 +125,7 @@ def parameters_to_multipart(params, collection_types):
     return new_params
 
 
-def files_parameters(files: Optional[Dict[str, List[io.IOBase]]] = None):
+def files_parameters(files: dict[str, list[io.IOBase]] | None = None):
     """Builds form parameters.
 
     :param files: None or a dict with key=param_name and
@@ -160,16 +158,15 @@ def files_parameters(files: Optional[Dict[str, List[io.IOBase]]] = None):
 
 
 def parameters_to_tuples(
-    params: Union[Dict[str, Any], List[Tuple[str, Any]]],
-    collection_formats: Optional[Dict[str, str]],
-) -> List[Tuple[str, str]]:
+    params: dict[str, Any] | list[tuple[str, Any]], collection_formats: dict[str, str] | None
+) -> list[tuple[str, str]]:
     """Get parameters as list of tuples, formatting collections.
 
     :param params: Parameters as dict or list of two-tuples
     :param dict collection_formats: Parameter collection formats
     :return: Parameters as list of tuples, collections formatted
     """
-    new_params: List[Tuple[str, Any]] = []
+    new_params: list[tuple[str, Any]] = []
     if collection_formats is None:
         collection_formats = {}
     for k, v in params.items() if isinstance(params, dict) else params:  # noqa: E501

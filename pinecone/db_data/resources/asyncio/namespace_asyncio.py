@@ -1,4 +1,4 @@
-from typing import Optional, AsyncIterator, Any
+from typing import AsyncIterator, Any
 
 from pinecone.core.openapi.db_data.api.namespace_operations_api import AsyncioNamespaceOperationsApi
 from pinecone.core.openapi.db_data.models import ListNamespacesResponse, NamespaceDescription
@@ -16,9 +16,7 @@ class NamespaceResourceAsyncio:
         self.__namespace_operations_api = AsyncioNamespaceOperationsApi(api_client)
 
     @require_kwargs
-    async def create(
-        self, name: str, schema: Optional[Any] = None, **kwargs
-    ) -> NamespaceDescription:
+    async def create(self, name: str, schema: Any | None = None, **kwargs) -> NamespaceDescription:
         """
         Args:
             name (str): The name of the namespace to create
@@ -68,7 +66,7 @@ class NamespaceResourceAsyncio:
 
     @require_kwargs
     async def list(
-        self, limit: Optional[int] = None, **kwargs
+        self, limit: int | None = None, **kwargs
     ) -> AsyncIterator[ListNamespacesResponse]:
         """
         Args:
@@ -106,7 +104,7 @@ class NamespaceResourceAsyncio:
 
     @require_kwargs
     async def list_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+        self, limit: int | None = None, pagination_token: str | None = None, **kwargs
     ) -> ListNamespacesResponse:
         """
         Args:

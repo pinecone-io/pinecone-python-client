@@ -1,26 +1,20 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Union, Optional, Dict, Any, TypedDict, TYPE_CHECKING, Literal
+from typing import Any, TypedDict, TYPE_CHECKING, Literal
 from enum import Enum
 
 try:
-    from typing_extensions import NotRequired
+    from typing_extensions import NotRequired, TypeAlias
 except ImportError:
     try:
-        from typing import NotRequired  # type: ignore
+        from typing import NotRequired, TypeAlias  # type: ignore
     except ImportError:
         # Fallback for older Python versions - NotRequired not available
         NotRequired = None  # type: ignore
+        TypeAlias = type  # type: ignore
 
 from ..enums import CloudProvider, AwsRegion, GcpRegion, AzureRegion
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
-    from pinecone.core.openapi.db_control.model.read_capacity_on_demand_spec import (
-        ReadCapacityOnDemandSpec,
-    )
-    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
-        ReadCapacityDedicatedSpec,
-    )
 
 
 class ScalingConfigManualDict(TypedDict, total=False):
@@ -70,14 +64,22 @@ class ReadCapacityDedicatedDict(TypedDict):
     dedicated: ReadCapacityDedicatedConfigDict
 
 
-ReadCapacityDict = Union[ReadCapacityOnDemandDict, ReadCapacityDedicatedDict]
+ReadCapacityDict = ReadCapacityOnDemandDict | ReadCapacityDedicatedDict
 
 if TYPE_CHECKING:
-    ReadCapacityType = Union[
-        ReadCapacityDict, "ReadCapacity", "ReadCapacityOnDemandSpec", "ReadCapacityDedicatedSpec"
-    ]
+    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
+    from pinecone.core.openapi.db_control.model.read_capacity_on_demand_spec import (
+        ReadCapacityOnDemandSpec,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
+        ReadCapacityDedicatedSpec,
+    )
+
+    ReadCapacityType: TypeAlias = (
+        ReadCapacityDict | ReadCapacity | ReadCapacityOnDemandSpec | ReadCapacityDedicatedSpec
+    )
 else:
-    ReadCapacityType = Union[ReadCapacityDict, Any]
+    ReadCapacityType: TypeAlias = ReadCapacityDict | Any
 
 
 class MetadataSchemaFieldConfig(TypedDict):
@@ -90,15 +92,15 @@ class MetadataSchemaFieldConfig(TypedDict):
 class ServerlessSpec:
     cloud: str
     region: str
-    read_capacity: Optional[ReadCapacityType] = None
-    schema: Optional[Dict[str, MetadataSchemaFieldConfig]] = None
+    read_capacity: ReadCapacityType | None = None
+    schema: dict[str, MetadataSchemaFieldConfig] | None = None
 
     def __init__(
         self,
-        cloud: Union[CloudProvider, str],
-        region: Union[AwsRegion, GcpRegion, AzureRegion, str],
-        read_capacity: Optional[ReadCapacityType] = None,
-        schema: Optional[Dict[str, MetadataSchemaFieldConfig]] = None,
+        cloud: CloudProvider | str,
+        region: AwsRegion | GcpRegion | AzureRegion | str,
+        read_capacity: ReadCapacityType | None = None,
+        schema: dict[str, MetadataSchemaFieldConfig] | None = None,
     ):
         # Convert Enums to their string values if necessary
         object.__setattr__(self, "cloud", cloud.value if isinstance(cloud, Enum) else str(cloud))
@@ -108,10 +110,8 @@ class ServerlessSpec:
         object.__setattr__(self, "read_capacity", read_capacity)
         object.__setattr__(self, "schema", schema)
 
-    def asdict(self) -> Dict[str, Any]:
-        from typing import Dict, Any
-
-        result: Dict[str, Any] = {"serverless": {"cloud": self.cloud, "region": self.region}}
+    def asdict(self) -> dict[str, Any]:
+        result: dict[str, Any] = {"serverless": {"cloud": self.cloud, "region": self.region}}
         if self.read_capacity is not None:
             result["serverless"]["read_capacity"] = self.read_capacity
         if self.schema is not None:

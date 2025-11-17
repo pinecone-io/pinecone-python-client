@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional, cast
+from typing import cast
 
 from .utils import DictLike
 from pinecone.utils.response_info import ResponseInfo
@@ -17,9 +17,9 @@ class QueryResponse(DictLike):
         _response_info: Response metadata including LSN headers.
     """
 
-    matches: List[ScoredVector]
+    matches: list[ScoredVector]
     namespace: str
-    usage: Optional[Usage] = None
+    usage: Usage | None = None
     _response_info: ResponseInfo = field(
         default_factory=lambda: cast(ResponseInfo, {"raw_headers": {}}), repr=True, compare=False
     )

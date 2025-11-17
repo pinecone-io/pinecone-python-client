@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from pinecone.core.openapi.db_control.model.backup_model import BackupModel as OpenAPIBackupModel
 from pinecone.utils.repr_overrides import custom_serializer
 
@@ -19,7 +21,7 @@ class BackupModel:
         self._backup = backup
 
     @property
-    def schema(self) -> Optional["BackupModelSchema"]:
+    def schema(self) -> "BackupModelSchema" | None:
         """Schema for the behavior of Pinecone's internal metadata index.
 
         This property defines which metadata fields are indexed and filterable

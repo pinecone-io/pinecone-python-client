@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import logging
-from typing import Optional, Dict, Any, Union, TYPE_CHECKING
+from typing import Dict, Any, TYPE_CHECKING
 from enum import Enum
 
 from pinecone.utils import parse_non_empty_args, convert_enum_to_string
@@ -74,7 +76,7 @@ class PineconeDBControlRequestFactory:
     """
 
     @staticmethod
-    def __parse_tags(tags: Optional[Dict[str, str]]) -> IndexTags:
+    def __parse_tags(tags: dict[str, str] | None) -> IndexTags:
         from typing import cast
 
         if tags is None:
@@ -85,7 +87,7 @@ class PineconeDBControlRequestFactory:
             return cast(IndexTags, result)
 
     @staticmethod
-    def __parse_deletion_protection(deletion_protection: Union[DeletionProtection, str]) -> str:
+    def __parse_deletion_protection(deletion_protection: DeletionProtection | str) -> str:
         deletion_protection = convert_enum_to_string(deletion_protection)
         if deletion_protection in ["enabled", "disabled"]:
             return deletion_protection
@@ -94,10 +96,13 @@ class PineconeDBControlRequestFactory:
 
     @staticmethod
     def __parse_read_capacity(
-        read_capacity: Union[
-            "ReadCapacityDict", "ReadCapacity", ReadCapacityOnDemandSpec, ReadCapacityDedicatedSpec
-        ],
-    ) -> Union[ReadCapacityOnDemandSpec, ReadCapacityDedicatedSpec, "ReadCapacity"]:
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        ),
+    ) -> ReadCapacityOnDemandSpec | ReadCapacityDedicatedSpec | "ReadCapacity":
         """Parse read_capacity dict into appropriate ReadCapacity model instance.
 
         :param read_capacity: Dict with read capacity configuration or existing ReadCapacity model instance
@@ -111,7 +116,7 @@ class PineconeDBControlRequestFactory:
                 result = ReadCapacityOnDemandSpec(mode="OnDemand")
                 return cast(ReadCapacityOnDemandSpec, result)
             elif mode == "Dedicated":
-                dedicated_dict: Dict[str, Any] = read_capacity.get("dedicated", {})  # type: ignore
+                dedicated_dict: dict[str, Any] = read_capacity.get("dedicated", {})  # type: ignore
                 # Construct ReadCapacityDedicatedConfig
                 # node_type and scaling are required fields
                 if "node_type" not in dedicated_dict or dedicated_dict.get("node_type") is None:
@@ -166,7 +171,7 @@ class PineconeDBControlRequestFactory:
                 from typing import cast
 
                 return cast(
-                    Union[ReadCapacityOnDemandSpec, ReadCapacityDedicatedSpec, "ReadCapacity"],
+                    ReadCapacityOnDemandSpec | ReadCapacityDedicatedSpec | "ReadCapacity",
                     read_capacity,
                 )
         else:
@@ -175,15 +180,15 @@ class PineconeDBControlRequestFactory:
 
     @staticmethod
     def __parse_schema(
-        schema: Union[
-            Dict[
+        schema: (
+            dict[
                 str, "MetadataSchemaFieldConfig"
-            ],  # Direct field mapping: {field_name: {filterable: bool}}
-            Dict[
-                str, Dict[str, Any]
-            ],  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-            BackupModelSchema,  # OpenAPI model instance
-        ],
+            ]  # Direct field mapping: {field_name: {filterable: bool}}
+            | dict[
+                str, dict[str, Any]
+            ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
+            | BackupModelSchema  # OpenAPI model instance
+        ),
     ) -> BackupModelSchema:
         """Parse schema dict into BackupModelSchema instance.
 
@@ -192,7 +197,7 @@ class PineconeDBControlRequestFactory:
         :return: BackupModelSchema instance
         """
         if isinstance(schema, dict):
-            schema_kwargs: Dict[str, Any] = {}
+            schema_kwargs: dict[str, Any] = {}
             # Handle two formats:
             # 1. {field_name: {filterable: bool, ...}} - direct field mapping
             # 2. {"fields": {field_name: {filterable: bool, ...}}, ...} - with fields wrapper
@@ -243,7 +248,7 @@ class PineconeDBControlRequestFactory:
             return schema
 
     @staticmethod
-    def __parse_index_spec(spec: Union[Dict, ServerlessSpec, PodSpec, ByocSpec]) -> IndexSpec:
+    def __parse_index_spec(spec: Dict | ServerlessSpec | PodSpec | ByocSpec) -> IndexSpec:
         if isinstance(spec, dict):
             if "serverless" in spec:
                 spec["serverless"]["cloud"] = convert_enum_to_string(spec["serverless"]["cloud"])
@@ -305,7 +310,7 @@ class PineconeDBControlRequestFactory:
                 raise ValueError("spec must contain either 'serverless', 'pod', or 'byoc' key")
         elif isinstance(spec, ServerlessSpec):
             # Build args dict for ServerlessSpecModel
-            serverless_args: Dict[str, Any] = {"cloud": spec.cloud, "region": spec.region}
+            serverless_args: dict[str, Any] = {"cloud": spec.cloud, "region": spec.region}
 
             # Handle read_capacity
             if spec.read_capacity is not None:
@@ -359,12 +364,12 @@ class PineconeDBControlRequestFactory:
     @staticmethod
     def create_index_request(
         name: str,
-        spec: Union[Dict, ServerlessSpec, PodSpec, ByocSpec],
-        dimension: Optional[int] = None,
-        metric: Optional[Union[Metric, str]] = Metric.COSINE,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
-        vector_type: Optional[Union[VectorType, str]] = VectorType.DENSE,
-        tags: Optional[Dict[str, str]] = None,
+        spec: Dict | ServerlessSpec | PodSpec | ByocSpec,
+        dimension: int | None = None,
+        metric: (Metric | str) | None = Metric.COSINE,
+        deletion_protection: (DeletionProtection | str) | None = DeletionProtection.DISABLED,
+        vector_type: (VectorType | str) | None = VectorType.DENSE,
+        tags: dict[str, str] | None = None,
     ) -> CreateIndexRequest:
         if metric is not None:
             metric = convert_enum_to_string(metric)
@@ -401,30 +406,28 @@ class PineconeDBControlRequestFactory:
     @staticmethod
     def create_index_for_model_request(
         name: str,
-        cloud: Union[CloudProvider, str],
-        region: Union[AwsRegion, GcpRegion, AzureRegion, str],
-        embed: Union[IndexEmbed, CreateIndexForModelEmbedTypedDict],
-        tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
-        read_capacity: Optional[
-            Union[
-                "ReadCapacityDict",
-                "ReadCapacity",
-                ReadCapacityOnDemandSpec,
-                ReadCapacityDedicatedSpec,
-            ]
-        ] = None,
-        schema: Optional[
-            Union[
-                Dict[
-                    str, "MetadataSchemaFieldConfig"
-                ],  # Direct field mapping: {field_name: {filterable: bool}}
-                Dict[
-                    str, Dict[str, Any]
-                ],  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-                BackupModelSchema,  # OpenAPI model instance
-            ]
-        ] = None,
+        cloud: CloudProvider | str,
+        region: AwsRegion | GcpRegion | AzureRegion | str,
+        embed: IndexEmbed | CreateIndexForModelEmbedTypedDict,
+        tags: dict[str, str] | None = None,
+        deletion_protection: (DeletionProtection | str) | None = DeletionProtection.DISABLED,
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | ReadCapacityOnDemandSpec
+            | ReadCapacityDedicatedSpec
+        )
+        | None = None,
+        schema: (
+            dict[
+                str, "MetadataSchemaFieldConfig"
+            ]  # Direct field mapping: {field_name: {filterable: bool}}
+            | dict[
+                str, dict[str, Any]
+            ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
+            | BackupModelSchema  # OpenAPI model instance
+        )
+        | None = None,
     ) -> CreateIndexForModelRequest:
         cloud = convert_enum_to_string(cloud)
         region = convert_enum_to_string(region)
@@ -483,8 +486,8 @@ class PineconeDBControlRequestFactory:
     @staticmethod
     def create_index_from_backup_request(
         name: str,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
-        tags: Optional[Dict[str, str]] = None,
+        deletion_protection: (DeletionProtection | str) | None = DeletionProtection.DISABLED,
+        tags: dict[str, str] | None = None,
     ) -> CreateIndexFromBackupRequest:
         if deletion_protection is not None:
             dp = PineconeDBControlRequestFactory.__parse_deletion_protection(deletion_protection)
@@ -501,19 +504,18 @@ class PineconeDBControlRequestFactory:
     @staticmethod
     def configure_index_request(
         description: IndexModel,
-        replicas: Optional[int] = None,
-        pod_type: Optional[Union[PodType, str]] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = None,
-        tags: Optional[Dict[str, str]] = None,
-        embed: Optional[Union[ConfigureIndexEmbed, Dict]] = None,
-        read_capacity: Optional[
-            Union[
-                "ReadCapacityDict",
-                "ReadCapacity",
-                ReadCapacityOnDemandSpec,
-                ReadCapacityDedicatedSpec,
-            ]
-        ] = None,
+        replicas: int | None = None,
+        pod_type: (PodType | str) | None = None,
+        deletion_protection: (DeletionProtection | str) | None = None,
+        tags: dict[str, str] | None = None,
+        embed: (ConfigureIndexEmbed | Dict) | None = None,
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | ReadCapacityOnDemandSpec
+            | ReadCapacityDedicatedSpec
+        )
+        | None = None,
     ):
         if deletion_protection is None:
             dp = description.deletion_protection
@@ -537,7 +539,7 @@ class PineconeDBControlRequestFactory:
             # Merge existing tags with new tags
             tags = {**starting_tags, **tags}
 
-        pod_config_args: Dict[str, Any] = {}
+        pod_config_args: dict[str, Any] = {}
         if pod_type:
             new_pod_type = convert_enum_to_string(pod_type)
             pod_config_args.update(pod_type=new_pod_type)

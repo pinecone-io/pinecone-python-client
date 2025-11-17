@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Dict, Tuple, Optional, Any
+from typing import Any
 
 from grpc._channel import _InactiveRpcError
 
@@ -31,12 +31,12 @@ class GrpcRunner:
         self,
         func,
         request: Message,
-        timeout: Optional[int] = None,
-        metadata: Optional[Dict[str, str]] = None,
-        credentials: Optional[CallCredentials] = None,
-        wait_for_ready: Optional[bool] = None,
-        compression: Optional[Compression] = None,
-    ) -> Tuple[Any, Optional[Dict[str, str]]]:
+        timeout: int | None = None,
+        metadata: dict[str, str] | None = None,
+        credentials: CallCredentials | None = None,
+        wait_for_ready: bool | None = None,
+        compression: Compression | None = None,
+    ) -> tuple[Any, dict[str, str] | None]:
         """Run a GRPC call and return response with initial metadata.
 
         Returns:
@@ -44,7 +44,7 @@ class GrpcRunner:
         """
 
         @wraps(func)
-        def wrapped() -> Tuple[Any, Optional[Dict[str, str]]]:
+        def wrapped() -> tuple[Any, dict[str, str] | None]:
             user_provided_metadata = metadata or {}
             _metadata = self._prepare_metadata(user_provided_metadata)
             try:
@@ -94,12 +94,12 @@ class GrpcRunner:
         self,
         func,
         request: Message,
-        timeout: Optional[int] = None,
-        metadata: Optional[Dict[str, str]] = None,
-        credentials: Optional[CallCredentials] = None,
-        wait_for_ready: Optional[bool] = None,
-        compression: Optional[Compression] = None,
-    ) -> Tuple[Any, Optional[Dict[str, str]]]:
+        timeout: int | None = None,
+        metadata: dict[str, str] | None = None,
+        credentials: CallCredentials | None = None,
+        wait_for_ready: bool | None = None,
+        compression: Compression | None = None,
+    ) -> tuple[Any, dict[str, str] | None]:
         """Run an async GRPC call and return response with initial metadata.
 
         Returns:
@@ -107,7 +107,7 @@ class GrpcRunner:
         """
 
         @wraps(func)
-        async def wrapped() -> Tuple[Any, Optional[Dict[str, str]]]:
+        async def wrapped() -> tuple[Any, dict[str, str] | None]:
             user_provided_metadata = metadata or {}
             _metadata = self._prepare_metadata(user_provided_metadata)
             try:
@@ -153,8 +153,8 @@ class GrpcRunner:
         return await wrapped()
 
     def _prepare_metadata(
-        self, user_provided_metadata: Dict[str, str]
-    ) -> Tuple[Tuple[str, str], ...]:
+        self, user_provided_metadata: dict[str, str]
+    ) -> tuple[tuple[str, str], ...]:
         return tuple(
             (k, v)
             for k, v in {
@@ -164,5 +164,5 @@ class GrpcRunner:
             }.items()
         )
 
-    def _request_metadata(self) -> Dict[str, str]:
+    def _request_metadata(self) -> dict[str, str]:
         return {REQUEST_ID: _generate_request_id()}

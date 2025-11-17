@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 
-from typing import Optional, Dict, Union, TYPE_CHECKING, Any
+from typing import Dict, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from pinecone.config import Config
@@ -49,16 +51,16 @@ class PineconeAsyncioDBControlInterface(ABC):
     @abstractmethod
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        host: Optional[str] = None,
-        proxy_url: Optional[str] = None,
-        proxy_headers: Optional[Dict[str, str]] = None,
-        ssl_ca_certs: Optional[str] = None,
-        ssl_verify: Optional[bool] = None,
-        config: Optional["Config"] = None,
-        additional_headers: Optional[Dict[str, str]] = {},
-        pool_threads: Optional[int] = 1,
-        index_api: Optional["ManageIndexesApi"] = None,
+        api_key: str | None = None,
+        host: str | None = None,
+        proxy_url: str | None = None,
+        proxy_headers: dict[str, str] | None = None,
+        ssl_ca_certs: str | None = None,
+        ssl_verify: bool | None = None,
+        config: "Config" | None = None,
+        additional_headers: dict[str, str] | None = {},
+        pool_threads: int | None = 1,
+        index_api: "ManageIndexesApi" | None = None,
         **kwargs,
     ):
         """
@@ -74,7 +76,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         :param proxy_url: The URL of the proxy to use for the connection. Default: ``None``
         :type proxy_url: str, optional
         :param proxy_headers: Additional headers to pass to the proxy. Use this if your proxy setup requires authentication. Default: ``{}``
-        :type proxy_headers: Dict[str, str], optional
+        :type proxy_headers: dict[str, str], optional
         :param ssl_ca_certs: The path to the SSL CA certificate bundle to use for the connection. This path should point to a file in PEM format. Default: ``None``
         :type ssl_ca_certs: str, optional
         :param ssl_verify: SSL verification is performed by default, but can be disabled using the boolean flag. Default: ``True``
@@ -82,7 +84,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         :param config: A ``pinecone.config.Config`` object. If passed, the ``api_key`` and ``host`` parameters will be ignored.
         :type config: pinecone.config.Config, optional
         :param additional_headers: Additional headers to pass to the API. Default: ``{}``
-        :type additional_headers: Dict[str, str], optional
+        :type additional_headers: dict[str, str], optional
 
 
         **Managing the async context**
@@ -269,13 +271,13 @@ class PineconeAsyncioDBControlInterface(ABC):
     async def create_index(
         self,
         name: str,
-        spec: Union[Dict, "ServerlessSpec", "PodSpec", "ByocSpec"],
-        dimension: Optional[int],
-        metric: Optional[Union["Metric", str]] = "cosine",
-        timeout: Optional[int] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        vector_type: Optional[Union["VectorType", str]] = "dense",
-        tags: Optional[Dict[str, str]] = None,
+        spec: Dict | "ServerlessSpec" | "PodSpec" | "ByocSpec",
+        dimension: int | None,
+        metric: ("Metric" | str) | None = "cosine",
+        timeout: int | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        vector_type: ("VectorType" | str) | None = "dense",
+        tags: dict[str, str] | None = None,
     ):
         """Creates a Pinecone index.
 
@@ -304,7 +306,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         :param vector_type: The type of vectors to be stored in the index. One of ``{"dense", "sparse"}``.
         :type vector_type: str, optional
         :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
-        :type tags: Optional[Dict[str, str]]
+        :type tags: Optional[dict[str, str]]
         :return: A ``IndexModel`` instance containing a description of the index that was created.
 
         **Creating a serverless index**
@@ -402,31 +404,29 @@ class PineconeAsyncioDBControlInterface(ABC):
     async def create_index_for_model(
         self,
         name: str,
-        cloud: Union["CloudProvider", str],
-        region: Union["AwsRegion", "GcpRegion", "AzureRegion", str],
-        embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
-        tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        read_capacity: Optional[
-            Union[
-                "ReadCapacityDict",
-                "ReadCapacity",
-                "ReadCapacityOnDemandSpec",
-                "ReadCapacityDedicatedSpec",
-            ]
-        ] = None,
-        schema: Optional[
-            Union[
-                Dict[
-                    str, "MetadataSchemaFieldConfig"
-                ],  # Direct field mapping: {field_name: {filterable: bool}}
-                Dict[
-                    str, Dict[str, Any]
-                ],  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-                "BackupModelSchema",  # OpenAPI model instance
-            ]
-        ] = None,
-        timeout: Optional[int] = None,
+        cloud: "CloudProvider" | str,
+        region: "AwsRegion" | "GcpRegion" | "AzureRegion" | str,
+        embed: "IndexEmbed" | "CreateIndexForModelEmbedTypedDict",
+        tags: dict[str, str] | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        )
+        | None = None,
+        schema: (
+            dict[
+                str, "MetadataSchemaFieldConfig"
+            ]  # Direct field mapping: {field_name: {filterable: bool}}
+            | dict[
+                str, dict[str, Any]
+            ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
+            | "BackupModelSchema"  # OpenAPI model instance
+        )
+        | None = None,
+        timeout: int | None = None,
     ) -> "IndexModel":
         """
         :param name: The name of the index to create. Must be unique within your project and
@@ -440,7 +440,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         :param embed: The embedding configuration for the index. This param accepts a dictionary or an instance of the ``IndexEmbed`` object.
         :type embed: Union[Dict, IndexEmbed]
         :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
-        :type tags: Optional[Dict[str, str]]
+        :type tags: Optional[dict[str, str]]
         :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. This setting can be changed with ``configure_index``.
         :type deletion_protection: Optional[Literal["enabled", "disabled"]]
         :param read_capacity: Optional read capacity configuration. You can specify ``read_capacity`` to configure dedicated read capacity mode
@@ -449,7 +449,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         :param schema: Optional metadata schema configuration. You can specify ``schema`` to configure which metadata fields are filterable.
             The schema can be provided as a dictionary mapping field names to their configurations (e.g., ``{"genre": {"filterable": True}}``)
             or as a dictionary with a ``fields`` key (e.g., ``{"fields": {"genre": {"filterable": True}}}``).
-        :type schema: Optional[Union[Dict[str, MetadataSchemaFieldConfig], Dict[str, Dict[str, Any]], BackupModelSchema]]
+        :type schema: Optional[Union[dict[str, MetadataSchemaFieldConfig], dict[str, dict[str, Any]], BackupModelSchema]]
         :type timeout: Optional[int]
         :param timeout: Specify the number of seconds to wait until index is ready to receive data. If None, wait indefinitely; if >=0, time out after this many seconds;
             if -1, return immediately and do not wait.
@@ -553,9 +553,9 @@ class PineconeAsyncioDBControlInterface(ABC):
         *,
         name: str,
         backup_id: str,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        tags: Optional[Dict[str, str]] = None,
-        timeout: Optional[int] = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        tags: dict[str, str] | None = None,
+        timeout: int | None = None,
     ) -> "IndexModel":
         """
         Create an index from a backup.
@@ -569,7 +569,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. This setting can be changed with ``configure_index``.
         :type deletion_protection: Optional[Literal["enabled", "disabled"]]
         :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
-        :type tags: Optional[Dict[str, str]]
+        :type tags: Optional[dict[str, str]]
         :param timeout: Specify the number of seconds to wait until index is ready to receive data. If None, wait indefinitely; if >=0, time out after this many seconds;
             if -1, return immediately and do not wait.
         :return: A description of the index that was created.
@@ -578,7 +578,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    async def delete_index(self, name: str, timeout: Optional[int] = None):
+    async def delete_index(self, name: str, timeout: int | None = None):
         """
         :param name: the name of the index.
         :type name: str
@@ -769,19 +769,18 @@ class PineconeAsyncioDBControlInterface(ABC):
     async def configure_index(
         self,
         name: str,
-        replicas: Optional[int] = None,
-        pod_type: Optional[Union["PodType", str]] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = None,
-        tags: Optional[Dict[str, str]] = None,
-        embed: Optional[Union["ConfigureIndexEmbed", Dict]] = None,
-        read_capacity: Optional[
-            Union[
-                "ReadCapacityDict",
-                "ReadCapacity",
-                "ReadCapacityOnDemandSpec",
-                "ReadCapacityDedicatedSpec",
-            ]
-        ] = None,
+        replicas: int | None = None,
+        pod_type: ("PodType" | str) | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = None,
+        tags: dict[str, str] | None = None,
+        embed: ("ConfigureIndexEmbed" | Dict) | None = None,
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        )
+        | None = None,
     ):
         """
         :param: name: the name of the Index
@@ -945,9 +944,9 @@ class PineconeAsyncioDBControlInterface(ABC):
     async def list_backups(
         self,
         *,
-        index_name: Optional[str] = None,
-        limit: Optional[int] = 10,
-        pagination_token: Optional[str] = None,
+        index_name: str | None = None,
+        limit: int | None = 10,
+        pagination_token: str | None = None,
     ) -> "BackupList":
         """List backups.
 
@@ -980,7 +979,7 @@ class PineconeAsyncioDBControlInterface(ABC):
 
     @abstractmethod
     async def list_restore_jobs(
-        self, *, limit: Optional[int] = 10, pagination_token: Optional[str] = None
+        self, *, limit: int | None = 10, pagination_token: str | None = None
     ) -> "RestoreJobList":
         """List restore jobs.
 

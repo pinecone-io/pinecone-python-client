@@ -1,5 +1,5 @@
 from .model_utils import none_type
-from typing import Dict, List, Callable
+from typing import Callable
 from .api_client import ApiClient
 from .api_client_utils import HeaderUtil
 from .endpoint_utils import (
@@ -17,7 +17,7 @@ class Endpoint:
         settings: EndpointSettingsDict,
         params_map: EndpointParamsMapDict,
         root_map: EndpointRootMapDict,
-        headers_map: Dict[str, List[str]],
+        headers_map: dict[str, list[str]],
         api_client: ApiClient,
         callable: Callable,
     ):

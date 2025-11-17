@@ -17,7 +17,6 @@ Environment variables:
 
 import hashlib
 import os
-from typing import List
 
 import pytest
 
@@ -36,7 +35,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
 
 
-def pytest_collection_modifyitems(config: pytest.Config, items: List[pytest.Item]) -> None:
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
     """Filter test items based on shard assignment."""
     splits = config.getoption("--splits") or int(os.environ.get("PYTEST_SPLITS", "0"))
     group = config.getoption("--group") or int(os.environ.get("PYTEST_GROUP", "0"))
@@ -59,7 +58,7 @@ def pytest_collection_modifyitems(config: pytest.Config, items: List[pytest.Item
 
     # Assign tests to shards using hash-based distribution
     # This ensures deterministic assignment across runs
-    shard_items: List[pytest.Item] = []
+    shard_items: list[pytest.Item] = []
     for item in items:
         # Use the test node ID as the basis for hashing
         # nodeid format: "path/to/test_file.py::TestClass::test_method"

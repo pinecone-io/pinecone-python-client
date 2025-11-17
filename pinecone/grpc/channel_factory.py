@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 import certifi
 import grpc
@@ -16,10 +15,7 @@ _logger = logging.getLogger(__name__)
 
 class GrpcChannelFactory:
     def __init__(
-        self,
-        config: Config,
-        grpc_client_config: GRPCClientConfig,
-        use_asyncio: Optional[bool] = False,
+        self, config: Config, grpc_client_config: GRPCClientConfig, use_asyncio: bool | None = False
     ):
         self.config = config
         self.grpc_client_config = grpc_client_config

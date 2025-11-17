@@ -6,7 +6,7 @@ import asyncio
 from tests.integration.helpers import get_environment_var, generate_index_name, safe_delete_index
 from pinecone.db_data import _IndexAsyncio
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Any
 
 from pinecone import CloudProvider, AwsRegion, IndexEmbed, EmbedModel
 
@@ -205,7 +205,7 @@ async def get_query_response(asyncio_idx, namespace: str, dimension: Optional[in
 
 
 async def poll_until_lsn_reconciled_async(
-    asyncio_idx, response_info: Dict[str, Any], namespace: str, max_wait_time: int = 60 * 3
+    asyncio_idx, response_info: dict[str, Any], namespace: str, max_wait_time: int = 60 * 3
 ) -> None:
     """Poll until a target LSN has been reconciled using LSN headers (async).
 
