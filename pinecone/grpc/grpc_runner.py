@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Tuple, Any
+from typing import Any
 
 from grpc._channel import _InactiveRpcError
 
@@ -36,7 +36,7 @@ class GrpcRunner:
         credentials: CallCredentials | None = None,
         wait_for_ready: bool | None = None,
         compression: Compression | None = None,
-    ) -> Tuple[Any, dict[str, str] | None]:
+    ) -> tuple[Any, dict[str, str] | None]:
         """Run a GRPC call and return response with initial metadata.
 
         Returns:
@@ -44,7 +44,7 @@ class GrpcRunner:
         """
 
         @wraps(func)
-        def wrapped() -> Tuple[Any, dict[str, str] | None]:
+        def wrapped() -> tuple[Any, dict[str, str] | None]:
             user_provided_metadata = metadata or {}
             _metadata = self._prepare_metadata(user_provided_metadata)
             try:
@@ -99,7 +99,7 @@ class GrpcRunner:
         credentials: CallCredentials | None = None,
         wait_for_ready: bool | None = None,
         compression: Compression | None = None,
-    ) -> Tuple[Any, dict[str, str] | None]:
+    ) -> tuple[Any, dict[str, str] | None]:
         """Run an async GRPC call and return response with initial metadata.
 
         Returns:
@@ -107,7 +107,7 @@ class GrpcRunner:
         """
 
         @wraps(func)
-        async def wrapped() -> Tuple[Any, dict[str, str] | None]:
+        async def wrapped() -> tuple[Any, dict[str, str] | None]:
             user_provided_metadata = metadata or {}
             _metadata = self._prepare_metadata(user_provided_metadata)
             try:
@@ -154,7 +154,7 @@ class GrpcRunner:
 
     def _prepare_metadata(
         self, user_provided_metadata: dict[str, str]
-    ) -> Tuple[Tuple[str, str], ...]:
+    ) -> tuple[tuple[str, str], ...]:
         return tuple(
             (k, v)
             for k, v in {

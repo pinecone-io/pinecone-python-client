@@ -1,6 +1,6 @@
 import json
 import re
-from typing import TypeVar, Type, Any, Tuple
+from typing import TypeVar, Type, Any
 
 from .model_utils import deserialize_file, file_type, validate_and_convert_types
 
@@ -22,7 +22,7 @@ class Deserializer:
     @staticmethod
     def deserialize(
         response: Any,
-        response_type: Tuple[Type[T], ...] | Tuple[Type[Any], ...],
+        response_type: tuple[Type[T], ...] | tuple[Type[Any], ...],
         config: Any,
         _check_type: bool,
     ) -> T | Any:

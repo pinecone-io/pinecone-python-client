@@ -41,7 +41,7 @@ class EndpointParamsMapDict(TypedDict):
     validation: list[str]
 
 
-AllowedValuesDict = dict[Tuple[str], Dict]
+AllowedValuesDict = dict[tuple[str], Dict]
 
 AttributeMapDictType = dict[str, str]
 LocationMapDictType = dict[str, str]
@@ -49,8 +49,8 @@ OpenapiTypesDictType = dict[str, Tuple]
 
 
 class EndpointRootMapDict(TypedDict):
-    validations: dict[Tuple[str], PropertyValidationTypedDict]
-    allowed_values: dict[Tuple[str], Dict]
+    validations: dict[tuple[str], PropertyValidationTypedDict]
+    allowed_values: dict[tuple[str], Dict]
     openapi_types: OpenapiTypesDictType
     attribute_map: AttributeMapDictType
     location_map: LocationMapDictType
@@ -61,10 +61,10 @@ class CombinedParamsMapDict(TypedDict):
     body: Any
     collection_format: dict[str, str]
     file: dict[str, list[file_type]]
-    form: list[Tuple[str, Any]]
+    form: list[tuple[str, Any]]
     header: dict[str, list[str]]
     path: dict[str, Any]
-    query: list[Tuple[str, Any]]
+    query: list[tuple[str, Any]]
 
 
 class EndpointUtils:
@@ -158,7 +158,7 @@ class EndpointUtils:
         config: Configuration,
         params_map: EndpointParamsMapDict,
         allowed_values: AllowedValuesDict,
-        validations: dict[Tuple[str], PropertyValidationTypedDict],
+        validations: dict[tuple[str], PropertyValidationTypedDict],
         openapi_types: OpenapiTypesDictType,
         kwargs: dict[str, Any],
     ) -> None:

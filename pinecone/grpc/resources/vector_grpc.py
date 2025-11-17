@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Tuple, Any, Iterable, cast, Literal
+from typing import Any, Iterable, cast, Literal
 
 from google.protobuf import json_format
 
@@ -71,7 +71,7 @@ class VectorResourceGRPC(PluginAware):
         super().__init__()
 
     @staticmethod
-    def _parse_non_empty_args(args: list[Tuple[str, Any]]) -> dict[str, Any]:
+    def _parse_non_empty_args(args: list[tuple[str, Any]]) -> dict[str, Any]:
         return {arg_name: val for arg_name, val in args if val is not None}
 
     def upsert(
@@ -444,7 +444,7 @@ class VectorResourceGRPC(PluginAware):
         include_metadata: bool | None = None,
         sparse_vector: (SparseValues | GRPCSparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
-    ) -> Tuple[dict[str, Any], dict[str, str] | None]:
+    ) -> tuple[dict[str, Any], dict[str, str] | None]:
         """
         Low-level query method that returns raw JSON dict and initial metadata without parsing.
         Used internally by query() and query_namespaces() for performance.

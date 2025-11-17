@@ -1,5 +1,4 @@
 import sys
-from typing import Tuple
 
 import certifi
 import socket
@@ -56,7 +55,7 @@ class OpenApiConfigFactory:
         keep_alive_idle_sec: int = TCP_KEEPIDLE,
         keep_alive_interval_sec: int = TCP_KEEPINTVL,
         keep_alive_tries: int = TCP_KEEPCNT,
-    ) -> list[Tuple[int, int, int]]:
+    ) -> list[tuple[int, int, int]]:
         """
         Returns the socket options to pass to OpenAPI's Rest client
         Args:

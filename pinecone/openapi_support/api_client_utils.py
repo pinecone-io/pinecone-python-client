@@ -5,7 +5,7 @@ import os
 from urllib3.fields import RequestField
 from urllib.parse import quote
 
-from typing import Tuple, Any
+from typing import Any
 from .serializer import Serializer
 from .exceptions import PineconeApiValueError
 
@@ -95,7 +95,7 @@ def process_params(
 
     # path parameters
     sanitized_path_params: dict[str, Any] = Serializer.sanitize_for_serialization(path_params or {})
-    path_parm: list[Tuple[str, Any]] = parameters_to_tuples(
+    path_parm: list[tuple[str, Any]] = parameters_to_tuples(
         sanitized_path_params, collection_formats
     )
 
@@ -158,15 +158,15 @@ def files_parameters(files: dict[str, list[io.IOBase]] | None = None):
 
 
 def parameters_to_tuples(
-    params: dict[str, Any] | list[Tuple[str, Any]], collection_formats: dict[str, str] | None
-) -> list[Tuple[str, str]]:
+    params: dict[str, Any] | list[tuple[str, Any]], collection_formats: dict[str, str] | None
+) -> list[tuple[str, str]]:
     """Get parameters as list of tuples, formatting collections.
 
     :param params: Parameters as dict or list of two-tuples
     :param dict collection_formats: Parameter collection formats
     :return: Parameters as list of tuples, collections formatted
     """
-    new_params: list[Tuple[str, Any]] = []
+    new_params: list[tuple[str, Any]] = []
     if collection_formats is None:
         collection_formats = {}
     for k, v in params.items() if isinstance(params, dict) else params:  # noqa: E501

@@ -7,7 +7,7 @@ them defensively with fallbacks.
 This is a test utility and not part of the public API.
 """
 
-from typing import Any, Optional, Tuple
+from typing import Any, Optional
 
 
 # Possible header names for LSN values (case-insensitive matching)
@@ -88,7 +88,7 @@ def extract_lsn_committed(headers: dict[str, Any]) -> Optional[int]:
     return _get_header_value(headers, LSN_COMMITTED_HEADERS)
 
 
-def extract_lsn_values(headers: dict[str, Any]) -> Tuple[Optional[int], Optional[int]]:
+def extract_lsn_values(headers: dict[str, Any]) -> tuple[Optional[int], Optional[int]]:
     """Extract both reconciled and committed LSN values from headers.
 
     Args:

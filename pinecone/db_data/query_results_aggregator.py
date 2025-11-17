@@ -1,4 +1,4 @@
-from typing import Tuple, Any, Literal
+from typing import Any, Literal
 import json
 import heapq
 from pinecone.core.openapi.db_data.models import Usage
@@ -16,7 +16,7 @@ class ScoredVectorWithNamespace:
     sparse_values: dict
     metadata: dict
 
-    def __init__(self, aggregate_results_heap_tuple: Tuple[float, int, object, str]) -> None:
+    def __init__(self, aggregate_results_heap_tuple: tuple[float, int, object, str]) -> None:
         json_vector = aggregate_results_heap_tuple[2]
         self.namespace = aggregate_results_heap_tuple[3]
         self.id = json_vector.get("id")  # type: ignore
@@ -109,7 +109,7 @@ class QueryResultsAggregator:
 
         self.top_k = top_k
         self.usage_read_units = 0
-        self.heap: list[Tuple[float, int, object, str]] = []
+        self.heap: list[tuple[float, int, object, str]] = []
         self.insertion_counter = 0
         self.read = False
         self.final_results: QueryNamespacesResults | None = None

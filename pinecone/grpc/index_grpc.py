@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import List, Tuple, Any, Iterable, cast, Literal, Iterator, TYPE_CHECKING
+from typing import List, Any, Iterable, cast, Literal, Iterator, TYPE_CHECKING
 
 from google.protobuf import json_format
 
@@ -501,7 +501,7 @@ class GRPCIndex(GRPCIndexBase):
         include_metadata: bool | None = None,
         sparse_vector: (SparseValues | GRPCSparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
-    ) -> Tuple[dict[str, Any], dict[str, str] | None]:
+    ) -> tuple[dict[str, Any], dict[str, str] | None]:
         """
         Low-level query method that returns raw JSON dict and initial metadata without parsing.
         Used internally by query() and query_namespaces() for performance.
@@ -1145,5 +1145,5 @@ class GRPCIndex(GRPCIndexBase):
                 done = True
 
     @staticmethod
-    def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> dict[str, Any]:
+    def _parse_non_empty_args(args: List[tuple[str, Any]]) -> dict[str, Any]:
         return {arg_name: val for arg_name, val in args if val is not None}
