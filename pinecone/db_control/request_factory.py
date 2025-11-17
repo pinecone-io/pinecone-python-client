@@ -99,8 +99,8 @@ class PineconeDBControlRequestFactory:
         read_capacity: (
             "ReadCapacityDict"
             | "ReadCapacity"
-            | ReadCapacityOnDemandSpec
-            | ReadCapacityDedicatedSpec
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
         ),
     ) -> ReadCapacityOnDemandSpec | ReadCapacityDedicatedSpec | "ReadCapacity":
         """Parse read_capacity dict into appropriate ReadCapacity model instance.

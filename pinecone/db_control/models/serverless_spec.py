@@ -67,12 +67,19 @@ class ReadCapacityDedicatedDict(TypedDict):
 ReadCapacityDict = ReadCapacityOnDemandDict | ReadCapacityDedicatedDict
 
 if TYPE_CHECKING:
-    pass
+    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
+    from pinecone.core.openapi.db_control.model.read_capacity_on_demand_spec import (
+        ReadCapacityOnDemandSpec,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
+        ReadCapacityDedicatedSpec,
+    )
 
-# Define type alias using string literals for forward references
-ReadCapacityType: TypeAlias = (
-    ReadCapacityDict | "ReadCapacity" | "ReadCapacityOnDemandSpec" | "ReadCapacityDedicatedSpec"
-)
+    ReadCapacityType: TypeAlias = (
+        ReadCapacityDict | ReadCapacity | ReadCapacityOnDemandSpec | ReadCapacityDedicatedSpec
+    )
+else:
+    ReadCapacityType: TypeAlias = ReadCapacityDict | Any
 
 
 class MetadataSchemaFieldConfig(TypedDict):
