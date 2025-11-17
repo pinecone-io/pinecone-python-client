@@ -25,6 +25,9 @@ class PluginAware:
     can't be changed without breaking compatibility with plugins in the wild.
     """
 
+    _plugins_loaded: bool
+    """ :meta private: """
+
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """
         Initialize the PluginAware class.

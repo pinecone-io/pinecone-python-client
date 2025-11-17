@@ -97,6 +97,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["pinecone"]
+include = ["pinecone/py.typed"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "strict"

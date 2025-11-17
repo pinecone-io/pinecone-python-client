@@ -65,6 +65,7 @@ from .vector_factory import VectorFactory
 from .query_results_aggregator import QueryNamespacesResults
 
 if TYPE_CHECKING:
+    from pinecone.config import Config, OpenApiConfiguration
     from .resources.asyncio.bulk_import_asyncio import BulkImportResourceAsyncio
     from .resources.asyncio.namespace_asyncio import NamespaceResourceAsyncio
 
@@ -167,6 +168,18 @@ class _IndexAsyncio(IndexAsyncioInterface):
 
     Failing to do this may result in error messages appearing from the underlyling aiohttp library.
     """
+
+    config: "Config"
+    """ :meta private: """
+
+    _openapi_config: "OpenApiConfiguration"
+    """ :meta private: """
+
+    _vector_api: AsyncioVectorOperationsApi
+    """ :meta private: """
+
+    _api_client: AsyncioApiClient
+    """ :meta private: """
 
     _bulk_import_resource: "BulkImportResourceAsyncio" | None
     """ :meta private: """

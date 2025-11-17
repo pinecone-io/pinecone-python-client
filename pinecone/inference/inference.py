@@ -172,8 +172,7 @@ class Inference(PluginAware):
           ``n`` embeddings, where ``n`` = len(inputs). Precision of returned embeddings is either
           float16 or float32, with float32 being the default. ``model`` key is the model used to generate the embeddings.
           ``usage`` key contains the total number of tokens used at request-time.
-
-        Example:
+        :rtype: EmbeddingsList
 
         .. code-block:: python
 

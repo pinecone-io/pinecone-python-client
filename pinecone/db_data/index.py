@@ -107,10 +107,13 @@ class UpsertResponseTransformer:
     while delegating other methods to the underlying ApplyResult.
     """
 
-    def __init__(self, apply_result: ApplyResult):
+    _apply_result: ApplyResult
+    """ :meta private: """
+
+    def __init__(self, apply_result: ApplyResult) -> None:
         self._apply_result = apply_result
 
-    def get(self, timeout=None):
+    def get(self, timeout: float | None = None) -> UpsertResponse:
         openapi_response = self._apply_result.get(timeout)
         from pinecone.utils.response_info import extract_response_info
 
@@ -123,7 +126,7 @@ class UpsertResponseTransformer:
             upserted_count=openapi_response.upserted_count, _response_info=response_info
         )
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         # Delegate other methods to the underlying ApplyResult
         return getattr(self._apply_result, name)
 
@@ -133,6 +136,21 @@ class Index(PluginAware, IndexInterface):
     A client for interacting with a Pinecone index via REST API.
     For improved performance, use the Pinecone GRPC index client.
     """
+
+    _config: "Config"
+    """ :meta private: """
+
+    _openapi_config: "OpenApiConfiguration"
+    """ :meta private: """
+
+    _pool_threads: int
+    """ :meta private: """
+
+    _vector_api: VectorOperationsApi
+    """ :meta private: """
+
+    _api_client: ApiClient
+    """ :meta private: """
 
     _bulk_import_resource: "BulkImportResource" | None
     """ :meta private: """
