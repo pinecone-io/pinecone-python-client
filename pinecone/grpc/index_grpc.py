@@ -236,7 +236,7 @@ class GRPCIndex(GRPCIndexBase):
     def upsert_from_dataframe(
         self,
         df: Any,
-        namespace: str = "",
+        namespace: str | None = None,
         batch_size: int = 500,
         use_async_requests: bool = True,
         show_progress: bool = True,
