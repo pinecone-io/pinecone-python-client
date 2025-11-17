@@ -1,17 +1,7 @@
+from __future__ import annotations
+
 import logging
-from typing import (
-    Optional,
-    Dict,
-    Union,
-    List,
-    Tuple,
-    Any,
-    Iterable,
-    cast,
-    Literal,
-    Iterator,
-    TYPE_CHECKING,
-)
+from typing import Dict, List, Tuple, Any, Iterable, cast, Literal, Iterator, TYPE_CHECKING
 
 from google.protobuf import json_format
 
@@ -107,13 +97,13 @@ class GRPCIndex(GRPCIndexBase):
 
     def upsert(
         self,
-        vectors: Union[List[Vector], List[GRPCVector], List[VectorTuple], List[VectorTypedDict]],
+        vectors: List[Vector] | List[GRPCVector] | List[VectorTuple] | List[VectorTypedDict],
         async_req: bool = False,
-        namespace: Optional[str] = None,
-        batch_size: Optional[int] = None,
+        namespace: str | None = None,
+        batch_size: int | None = None,
         show_progress: bool = True,
         **kwargs,
-    ) -> Union[UpsertResponse, PineconeGrpcFuture]:
+    ) -> UpsertResponse | PineconeGrpcFuture:
         """
         The upsert operation writes vectors into a namespace.
         If a new value is upserted for an existing vector id, it will overwrite the previous value.
@@ -224,7 +214,7 @@ class GRPCIndex(GRPCIndexBase):
         return UpsertResponse(upserted_count=total_upserted, _response_info=response_info)
 
     def _upsert_batch(
-        self, vectors: List[GRPCVector], namespace: Optional[str], timeout: Optional[int], **kwargs
+        self, vectors: List[GRPCVector], namespace: str | None, timeout: int | None, **kwargs
     ) -> UpsertResponse:
         args_dict = self._parse_non_empty_args([("namespace", namespace)])
         request = UpsertRequest(vectors=vectors, **args_dict)
@@ -309,13 +299,13 @@ class GRPCIndex(GRPCIndexBase):
 
     def delete(
         self,
-        ids: Optional[List[str]] = None,
-        delete_all: Optional[bool] = None,
-        namespace: Optional[str] = None,
-        filter: Optional[FilterTypedDict] = None,
+        ids: List[str] | None = None,
+        delete_all: bool | None = None,
+        namespace: str | None = None,
+        filter: FilterTypedDict | None = None,
         async_req: bool = False,
         **kwargs,
-    ) -> Union[Dict[str, Any], PineconeGrpcFuture]:
+    ) -> Dict[str, Any] | PineconeGrpcFuture:
         """
         The Delete operation deletes vectors from the index, from a single namespace.
         No error raised if the vector id does not exist.
@@ -384,11 +374,11 @@ class GRPCIndex(GRPCIndexBase):
 
     def fetch(
         self,
-        ids: Optional[List[str]],
-        namespace: Optional[str] = None,
-        async_req: Optional[bool] = False,
+        ids: List[str] | None,
+        namespace: str | None = None,
+        async_req: bool | None = False,
         **kwargs,
-    ) -> Union[FetchResponse, PineconeGrpcFuture]:
+    ) -> FetchResponse | PineconeGrpcFuture:
         """
         The fetch operation looks up and returns vectors, by ID, from a single namespace.
         The returned vectors include the vector data and/or metadata.
@@ -427,12 +417,12 @@ class GRPCIndex(GRPCIndexBase):
     def fetch_by_metadata(
         self,
         filter: FilterTypedDict,
-        namespace: Optional[str] = None,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
-        async_req: Optional[bool] = False,
+        namespace: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        async_req: bool | None = False,
         **kwargs,
-    ) -> Union[FetchByMetadataResponse, PineconeGrpcFuture]:
+    ) -> FetchByMetadataResponse | PineconeGrpcFuture:
         """
         Fetch vectors by metadata filter.
 
@@ -502,18 +492,16 @@ class GRPCIndex(GRPCIndexBase):
 
     def _query(
         self,
-        vector: Optional[List[float]] = None,
-        id: Optional[str] = None,
-        namespace: Optional[str] = None,
-        top_k: Optional[int] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, GRPCSparseValues, SparseVectorTypedDict]
-        ] = None,
+        vector: List[float] | None = None,
+        id: str | None = None,
+        namespace: str | None = None,
+        top_k: int | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: (SparseValues | GRPCSparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
-    ) -> Tuple[Dict[str, Any], Optional[Dict[str, str]]]:
+    ) -> Tuple[Dict[str, Any], Dict[str, str] | None]:
         """
         Low-level query method that returns raw JSON dict and initial metadata without parsing.
         Used internally by query() and query_namespaces() for performance.
@@ -551,19 +539,17 @@ class GRPCIndex(GRPCIndexBase):
 
     def query(
         self,
-        vector: Optional[List[float]] = None,
-        id: Optional[str] = None,
-        namespace: Optional[str] = None,
-        top_k: Optional[int] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, GRPCSparseValues, SparseVectorTypedDict]
-        ] = None,
-        async_req: Optional[bool] = False,
+        vector: List[float] | None = None,
+        id: str | None = None,
+        namespace: str | None = None,
+        top_k: int | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: (SparseValues | GRPCSparseValues | SparseVectorTypedDict) | None = None,
+        async_req: bool | None = False,
         **kwargs,
-    ) -> Union["QueryResponse", PineconeGrpcFuture]:
+    ) -> "QueryResponse" | PineconeGrpcFuture:
         """
         The Query operation searches a namespace, using a query vector.
         It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
@@ -662,11 +648,11 @@ class GRPCIndex(GRPCIndexBase):
         vector: List[float],
         namespaces: List[str],
         metric: Literal["cosine", "euclidean", "dotproduct"],
-        top_k: Optional[int] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
+        top_k: int | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: (GRPCSparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         if namespaces is None or len(namespaces) == 0:
@@ -704,16 +690,16 @@ class GRPCIndex(GRPCIndexBase):
 
     def update(
         self,
-        id: Optional[str] = None,
+        id: str | None = None,
         async_req: bool = False,
-        values: Optional[List[float]] = None,
-        set_metadata: Optional[VectorMetadataTypedDict] = None,
-        namespace: Optional[str] = None,
-        sparse_values: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
-        filter: Optional[FilterTypedDict] = None,
-        dry_run: Optional[bool] = None,
+        values: List[float] | None = None,
+        set_metadata: VectorMetadataTypedDict | None = None,
+        namespace: str | None = None,
+        sparse_values: (GRPCSparseValues | SparseVectorTypedDict) | None = None,
+        filter: FilterTypedDict | None = None,
+        dry_run: bool | None = None,
         **kwargs,
-    ) -> Union[UpdateResponse, PineconeGrpcFuture]:
+    ) -> UpdateResponse | PineconeGrpcFuture:
         """
         The Update operation updates vectors in a namespace.
 
@@ -836,10 +822,10 @@ class GRPCIndex(GRPCIndexBase):
 
     def list_paginated(
         self,
-        prefix: Optional[str] = None,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
-        namespace: Optional[str] = None,
+        prefix: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        namespace: str | None = None,
         **kwargs,
     ) -> SimpleListResponse:
         """
@@ -931,7 +917,7 @@ class GRPCIndex(GRPCIndexBase):
                 done = True
 
     def describe_index_stats(
-        self, filter: Optional[FilterTypedDict] = None, **kwargs
+        self, filter: FilterTypedDict | None = None, **kwargs
     ) -> DescribeIndexStatsResponse:
         """
         The DescribeIndexStats operation returns statistics about the index's contents.
@@ -965,8 +951,8 @@ class GRPCIndex(GRPCIndexBase):
 
     @require_kwargs
     def create_namespace(
-        self, name: str, schema: Optional[Dict[str, Any]] = None, async_req: bool = False, **kwargs
-    ) -> Union[NamespaceDescription, PineconeGrpcFuture]:
+        self, name: str, schema: Dict[str, Any] | None = None, async_req: bool = False, **kwargs
+    ) -> NamespaceDescription | PineconeGrpcFuture:
         """
         The create_namespace operation creates a namespace in a serverless index.
 
@@ -1078,7 +1064,7 @@ class GRPCIndex(GRPCIndexBase):
 
     @require_kwargs
     def list_namespaces_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+        self, limit: int | None = None, pagination_token: str | None = None, **kwargs
     ) -> ListNamespacesResponse:
         """
         The list_namespaces_paginated operation returns a list of all namespaces in a serverless index.
@@ -1111,7 +1097,7 @@ class GRPCIndex(GRPCIndexBase):
         return parse_list_namespaces_response(response)
 
     @require_kwargs
-    def list_namespaces(self, limit: Optional[int] = None, **kwargs):
+    def list_namespaces(self, limit: int | None = None, **kwargs):
         """
         The list_namespaces operation accepts all of the same arguments as list_namespaces_paginated, and returns a generator that yields
         each namespace. It automatically handles pagination tokens on your behalf.

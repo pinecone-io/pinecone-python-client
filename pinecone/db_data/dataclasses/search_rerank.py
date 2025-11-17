@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Dict, Any, List
+from typing import Dict, Any, List
 from pinecone.inference import RerankModel
 from .utils import DictLike
 
@@ -22,20 +22,20 @@ class SearchRerank(DictLike):
     Required.
     """
 
-    top_n: Optional[int] = None
+    top_n: int | None = None
     """
     The number of top results to return after reranking. Defaults to top_k.
     Optional.
     """
 
-    parameters: Optional[Dict[str, Any]] = None
+    parameters: Dict[str, Any] | None = None
     """
     Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/inference/understanding-inference#models)
     for available model parameters.
     Optional.
     """
 
-    query: Optional[str] = None
+    query: str | None = None
     """
     The query to rerank documents against. If a specific rerank query is specified, it overwrites
     the query input that was provided at the top level.

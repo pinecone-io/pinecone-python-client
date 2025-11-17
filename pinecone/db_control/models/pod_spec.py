@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Union
+from typing import Dict
 
 from ..enums import PodIndexEnvironment, PodType
 
@@ -17,27 +17,27 @@ class PodSpec:
     The environment where the pod index will be deployed. Example: 'us-east1-gcp'
     """
 
-    replicas: Optional[int] = None
+    replicas: int | None = None
     """
     The number of replicas to deploy for the pod index. Default: 1
     """
 
-    shards: Optional[int] = None
+    shards: int | None = None
     """
     The number of shards to use. Shards are used to expand the amount of vectors you can store beyond the capacity of a single pod. Default: 1
     """
 
-    pods: Optional[int] = None
+    pods: int | None = None
     """
     Number of pods to deploy. Default: 1
     """
 
-    pod_type: Optional[str] = "p1.x1"
+    pod_type: str | None = "p1.x1"
     """
     This value combines pod type and pod size into a single string. This configuration is your main lever for vertical scaling.
     """
 
-    metadata_config: Optional[Dict] = field(default_factory=dict)
+    metadata_config: Dict | None = field(default_factory=dict)
     """
     If you are storing a lot of metadata, you can use this configuration to limit the fields which are indexed for search.
 
@@ -49,20 +49,20 @@ class PodSpec:
     ```
     """
 
-    source_collection: Optional[str] = None
+    source_collection: str | None = None
     """
     The name of the collection to use as the source for the pod index. This configuration is only used when creating a pod index from an existing collection.
     """
 
     def __init__(
         self,
-        environment: Union[PodIndexEnvironment, str],
-        pod_type: Union[PodType, str] = "p1.x1",
-        replicas: Optional[int] = None,
-        shards: Optional[int] = None,
-        pods: Optional[int] = None,
-        metadata_config: Optional[Dict] = None,
-        source_collection: Optional[str] = None,
+        environment: PodIndexEnvironment | str,
+        pod_type: PodType | str = "p1.x1",
+        replicas: int | None = None,
+        shards: int | None = None,
+        pods: int | None = None,
+        metadata_config: Dict | None = None,
+        source_collection: str | None = None,
     ):
         object.__setattr__(
             self,

@@ -5,7 +5,7 @@ import os
 from urllib3.fields import RequestField
 from urllib.parse import quote
 
-from typing import Optional, List, Tuple, Dict, Any, Union
+from typing import List, Tuple, Dict, Any
 from .serializer import Serializer
 from .exceptions import PineconeApiValueError
 
@@ -109,9 +109,7 @@ def parameters_to_multipart(params, collection_types):
     :param dict collection_types: Parameter collection types
     :return: Parameters as list of tuple or urllib3.fields.RequestField
     """
-    from typing import Union
-
-    new_params: list[Union[RequestField, tuple[Any, Any]]] = []
+    new_params: list[RequestField | tuple[Any, Any]] = []
     if collection_types is None:
         collection_types = dict
     for k, v in params.items() if isinstance(params, dict) else params:  # noqa: E501
@@ -127,7 +125,7 @@ def parameters_to_multipart(params, collection_types):
     return new_params
 
 
-def files_parameters(files: Optional[Dict[str, List[io.IOBase]]] = None):
+def files_parameters(files: Dict[str, List[io.IOBase]] | None = None):
     """Builds form parameters.
 
     :param files: None or a dict with key=param_name and
@@ -160,8 +158,7 @@ def files_parameters(files: Optional[Dict[str, List[io.IOBase]]] = None):
 
 
 def parameters_to_tuples(
-    params: Union[Dict[str, Any], List[Tuple[str, Any]]],
-    collection_formats: Optional[Dict[str, str]],
+    params: Dict[str, Any] | List[Tuple[str, Any]], collection_formats: Dict[str, str] | None
 ) -> List[Tuple[str, str]]:
     """Get parameters as list of tuples, formatting collections.
 

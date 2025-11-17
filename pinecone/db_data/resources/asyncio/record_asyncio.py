@@ -1,4 +1,4 @@
-from typing import Union, List, Optional, Dict
+from typing import List, Dict
 import logging
 
 from pinecone.core.openapi.db_data.api.vector_operations_api import AsyncioVectorOperationsApi
@@ -92,9 +92,9 @@ class RecordResourceAsyncio(PluginAware):
     async def search(
         self,
         namespace: str,
-        query: Union[SearchQueryTypedDict, SearchQuery],
-        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
-        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+        query: SearchQueryTypedDict | SearchQuery,
+        rerank: (SearchRerankTypedDict | SearchRerank) | None = None,
+        fields: List[str] | None = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         """Search for records.
 
@@ -153,9 +153,9 @@ class RecordResourceAsyncio(PluginAware):
     async def search_records(
         self,
         namespace: str,
-        query: Union[SearchQueryTypedDict, SearchQuery],
-        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
-        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+        query: SearchQueryTypedDict | SearchQuery,
+        rerank: (SearchRerankTypedDict | SearchRerank) | None = None,
+        fields: List[str] | None = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         """Search for records (alias for search method).
 

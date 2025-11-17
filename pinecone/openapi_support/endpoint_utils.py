@@ -1,18 +1,18 @@
 from .model_utils import file_type
 from .exceptions import PineconeApiTypeError, PineconeApiValueError
-from typing import Optional, Dict, Tuple, TypedDict, List, Literal, Any
+from typing import Dict, Tuple, TypedDict, List, Literal, Any
 from .types import PropertyValidationTypedDict
 from ..config.openapi_configuration import Configuration
 from .model_utils import validate_and_convert_types, check_allowed_values, check_validations
 
 
 class ExtraOpenApiKwargsTypedDict(TypedDict, total=False):
-    _return_http_data_only: Optional[bool]
-    _preload_content: Optional[bool]
-    _request_timeout: Optional[int]
-    _check_input_type: Optional[bool]
-    _check_return_type: Optional[bool]
-    async_req: Optional[bool]
+    _return_http_data_only: bool | None
+    _preload_content: bool | None
+    _request_timeout: int | None
+    _check_input_type: bool | None
+    _check_return_type: bool | None
+    async_req: bool | None
 
 
 class KwargsWithOpenApiKwargDefaultsTypedDict(TypedDict, total=False):
@@ -25,12 +25,12 @@ class KwargsWithOpenApiKwargDefaultsTypedDict(TypedDict, total=False):
 
 
 class EndpointSettingsDict(TypedDict):
-    response_type: Optional[Tuple]
+    response_type: Tuple | None
     auth: List[str]
     endpoint_path: str
     operation_id: str
     http_method: Literal["POST", "PUT", "PATCH", "GET", "DELETE"]
-    servers: Optional[List[str]]
+    servers: List[str] | None
 
 
 class EndpointParamsMapDict(TypedDict):

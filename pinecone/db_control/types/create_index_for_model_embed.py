@@ -1,11 +1,11 @@
-from typing import TypedDict, Dict, Union
+from typing import TypedDict, Dict
 from pinecone.db_control.enums import Metric
 from pinecone.inference import EmbedModel
 
 
 class CreateIndexForModelEmbedTypedDict(TypedDict):
-    model: Union[EmbedModel, str]
+    model: EmbedModel | str
     field_map: Dict
-    metric: Union[Metric, str]
+    metric: Metric | str
     read_parameters: Dict
     write_parameters: Dict

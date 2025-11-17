@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Optional
 
 import grpc
 from grpc._channel import Channel
@@ -23,10 +22,10 @@ class GRPCIndexBase(ABC):
         self,
         index_name: str,
         config: Config,
-        channel: Optional[Channel] = None,
-        grpc_config: Optional[GRPCClientConfig] = None,
-        pool_threads: Optional[int] = None,
-        _endpoint_override: Optional[str] = None,
+        channel: Channel | None = None,
+        grpc_config: GRPCClientConfig | None = None,
+        pool_threads: int | None = None,
+        _endpoint_override: str | None = None,
     ):
         self.config = config
         # If grpc_config is passed, use it. Otherwise, build a new one with

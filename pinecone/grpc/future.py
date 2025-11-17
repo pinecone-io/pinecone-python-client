@@ -1,12 +1,11 @@
 from concurrent.futures import Future as ConcurrentFuture
-from typing import Optional
 from grpc import Future as GrpcFuture, RpcError
 from pinecone.exceptions.exceptions import PineconeException
 
 
 class PineconeGrpcFuture(ConcurrentFuture):
     def __init__(
-        self, grpc_future: GrpcFuture, timeout: Optional[int] = None, result_transformer=None
+        self, grpc_future: GrpcFuture, timeout: int | None = None, result_transformer=None
     ):
         super().__init__()
         self._grpc_future = grpc_future
@@ -83,7 +82,7 @@ class PineconeGrpcFuture(ConcurrentFuture):
         except RpcError as e:
             raise self._wrap_rpc_exception(e) from e
 
-    def _timeout(self, timeout: Optional[int] = None) -> int:
+    def _timeout(self, timeout: int | None = None) -> int:
         if timeout is not None:
             return timeout
         else:

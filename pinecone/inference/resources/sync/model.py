@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from pinecone.utils import PluginAware, require_kwargs, parse_non_empty_args
 from ...models import ModelInfoList, ModelInfo
 
@@ -39,9 +39,7 @@ class Model(PluginAware):
         return self._config
 
     @require_kwargs
-    def list(
-        self, *, type: Optional[str] = None, vector_type: Optional[str] = None
-    ) -> ModelInfoList:
+    def list(self, *, type: str | None = None, vector_type: str | None = None) -> ModelInfoList:
         """
         List all available models.
 

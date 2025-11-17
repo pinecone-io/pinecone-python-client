@@ -9,7 +9,7 @@ import json
 
 from .index_asyncio_interface import IndexAsyncioInterface
 from .query_results_aggregator import QueryResultsAggregator
-from typing import List, Optional, Dict, Any, Literal, AsyncIterator, TYPE_CHECKING
+from typing import List, Dict, Any, Literal, AsyncIterator, TYPE_CHECKING
 from typing_extensions import Self
 
 from pinecone.config import ConfigBuilder
@@ -168,17 +168,17 @@ class _IndexAsyncio(IndexAsyncioInterface):
     Failing to do this may result in error messages appearing from the underlyling aiohttp library.
     """
 
-    _bulk_import_resource: Optional["BulkImportResourceAsyncio"]
+    _bulk_import_resource: "BulkImportResourceAsyncio" | None
     """ :meta private: """
 
-    _namespace_resource: Optional["NamespaceResourceAsyncio"]
+    _namespace_resource: "NamespaceResourceAsyncio" | None
     """ :meta private: """
 
     def __init__(
         self,
         api_key: str,
         host: str,
-        additional_headers: Optional[Dict[str, str]] = {},
+        additional_headers: Dict[str, str] | None = {},
         openapi_config=None,
         **kwargs,
     ) -> None:
@@ -215,8 +215,8 @@ class _IndexAsyncio(IndexAsyncioInterface):
         return self
 
     async def __aexit__(
-        self, exc_type: Optional[type], exc_value: Optional[Exception], traceback: Optional[Any]
-    ) -> Optional[bool]:
+        self, exc_type: type | None, exc_value: Exception | None, traceback: Any | None
+    ) -> bool | None:
         await self._api_client.close()
         return None
 
@@ -297,8 +297,8 @@ class _IndexAsyncio(IndexAsyncioInterface):
         vectors: (
             List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
         ),
-        namespace: Optional[str] = None,
-        batch_size: Optional[int] = None,
+        namespace: str | None = None,
+        batch_size: int | None = None,
         show_progress: bool = True,
         **kwargs,
     ) -> UpsertResponse:
@@ -342,7 +342,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
         vectors: (
             List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
         ),
-        namespace: Optional[str],
+        namespace: str | None,
         _check_type: bool,
         **kwargs,
     ) -> UpsertResponse:
@@ -374,17 +374,17 @@ class _IndexAsyncio(IndexAsyncioInterface):
 
     @validate_and_convert_errors
     async def upsert_from_dataframe(
-        self, df, namespace: Optional[str] = None, batch_size: int = 500, show_progress: bool = True
+        self, df, namespace: str | None = None, batch_size: int = 500, show_progress: bool = True
     ):
         raise NotImplementedError("upsert_from_dataframe is not implemented for asyncio")
 
     @validate_and_convert_errors
     async def delete(
         self,
-        ids: Optional[List[str]] = None,
-        delete_all: Optional[bool] = None,
-        namespace: Optional[str] = None,
-        filter: Optional[FilterTypedDict] = None,
+        ids: List[str] | None = None,
+        delete_all: bool | None = None,
+        namespace: str | None = None,
+        filter: FilterTypedDict | None = None,
         **kwargs,
     ) -> Dict[str, Any]:
         _check_type = kwargs.pop("_check_type", False)
@@ -409,9 +409,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
         return cast(Dict[str, Any], result)
 
     @validate_and_convert_errors
-    async def fetch(
-        self, ids: List[str], namespace: Optional[str] = None, **kwargs
-    ) -> FetchResponse:
+    async def fetch(self, ids: List[str], namespace: str | None = None, **kwargs) -> FetchResponse:
         args_dict = parse_non_empty_args([("namespace", namespace)])
         result = await self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
         # Copy response info from OpenAPI response if present
@@ -435,9 +433,9 @@ class _IndexAsyncio(IndexAsyncioInterface):
     async def fetch_by_metadata(
         self,
         filter: FilterTypedDict,
-        namespace: Optional[str] = None,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
+        namespace: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
         **kwargs,
     ) -> FetchByMetadataResponse:
         """Fetch vectors by metadata filter.
@@ -517,13 +515,13 @@ class _IndexAsyncio(IndexAsyncioInterface):
         self,
         *args,
         top_k: int,
-        vector: Optional[List[float]] = None,
-        id: Optional[str] = None,
-        namespace: Optional[str] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
+        vector: List[float] | None = None,
+        id: str | None = None,
+        namespace: str | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
     ) -> QueryResponse:
         response = await self._query(
@@ -544,13 +542,13 @@ class _IndexAsyncio(IndexAsyncioInterface):
         self,
         *args,
         top_k: int,
-        vector: Optional[List[float]] = None,
-        id: Optional[str] = None,
-        namespace: Optional[str] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
+        vector: List[float] | None = None,
+        id: str | None = None,
+        namespace: str | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
     ) -> OpenAPIQueryResponse:
         if len(args) > 0:
@@ -581,12 +579,12 @@ class _IndexAsyncio(IndexAsyncioInterface):
         self,
         namespaces: List[str],
         metric: Literal["cosine", "euclidean", "dotproduct"],
-        top_k: Optional[int] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        vector: Optional[List[float]] = None,
-        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
+        top_k: int | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        vector: List[float] | None = None,
+        sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         if namespaces is None or len(namespaces) == 0:
@@ -634,13 +632,13 @@ class _IndexAsyncio(IndexAsyncioInterface):
     @validate_and_convert_errors
     async def update(
         self,
-        id: Optional[str] = None,
-        values: Optional[List[float]] = None,
-        set_metadata: Optional[VectorMetadataTypedDict] = None,
-        namespace: Optional[str] = None,
-        sparse_values: Optional[SparseValues | SparseVectorTypedDict] = None,
-        filter: Optional[FilterTypedDict] = None,
-        dry_run: Optional[bool] = None,
+        id: str | None = None,
+        values: List[float] | None = None,
+        set_metadata: VectorMetadataTypedDict | None = None,
+        namespace: str | None = None,
+        sparse_values: (SparseValues | SparseVectorTypedDict) | None = None,
+        filter: FilterTypedDict | None = None,
+        dry_run: bool | None = None,
         **kwargs,
     ) -> UpdateResponse:
         # Validate that exactly one of id or filter is provided
@@ -688,7 +686,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
 
     @validate_and_convert_errors
     async def describe_index_stats(
-        self, filter: Optional[FilterTypedDict] = None, **kwargs
+        self, filter: FilterTypedDict | None = None, **kwargs
     ) -> DescribeIndexStatsResponse:
         from typing import cast
 
@@ -701,10 +699,10 @@ class _IndexAsyncio(IndexAsyncioInterface):
     @validate_and_convert_errors
     async def list_paginated(
         self,
-        prefix: Optional[str] = None,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
-        namespace: Optional[str] = None,
+        prefix: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        namespace: str | None = None,
         **kwargs,
     ) -> ListResponse:
         args_dict = IndexRequestFactory.list_paginated_args(
@@ -762,8 +760,8 @@ class _IndexAsyncio(IndexAsyncioInterface):
         self,
         namespace: str,
         query: SearchQueryTypedDict | SearchQuery,
-        rerank: Optional[SearchRerankTypedDict | SearchRerank] = None,
-        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+        rerank: (SearchRerankTypedDict | SearchRerank) | None = None,
+        fields: List[str] | None = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         if namespace is None:
             raise Exception("Namespace is required when searching records")
@@ -779,8 +777,8 @@ class _IndexAsyncio(IndexAsyncioInterface):
         self,
         namespace: str,
         query: SearchQueryTypedDict | SearchQuery,
-        rerank: Optional[SearchRerankTypedDict | SearchRerank] = None,
-        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+        rerank: (SearchRerankTypedDict | SearchRerank) | None = None,
+        fields: List[str] | None = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         return await self.search(namespace, query=query, rerank=rerank, fields=fields)
 
@@ -790,8 +788,8 @@ class _IndexAsyncio(IndexAsyncioInterface):
     async def start_import(
         self,
         uri: str,
-        integration_id: Optional[str] = None,
-        error_mode: Optional[Literal["CONTINUE", "ABORT"]] = "CONTINUE",
+        integration_id: str | None = None,
+        error_mode: Literal["CONTINUE", "ABORT"] | None = "CONTINUE",
     ) -> "StartImportResponse":
         """
         Args:
@@ -837,7 +835,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
             yield op
 
     async def list_imports_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+        self, limit: int | None = None, pagination_token: str | None = None, **kwargs
     ) -> "ListImportsResponse":
         """
         Args:
@@ -899,7 +897,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
     @validate_and_convert_errors
     @require_kwargs
     async def create_namespace(
-        self, name: str, schema: Optional[Dict[str, Any]] = None, **kwargs
+        self, name: str, schema: Dict[str, Any] | None = None, **kwargs
     ) -> "NamespaceDescription":
         return await self.namespace.create(name=name, schema=schema, **kwargs)
 
@@ -919,7 +917,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
     @validate_and_convert_errors
     @require_kwargs
     async def list_namespaces(  # type: ignore[override, misc]  # mypy limitation: async generators in abstract methods
-        self, limit: Optional[int] = None, **kwargs
+        self, limit: int | None = None, **kwargs
     ) -> AsyncIterator[ListNamespacesResponse]:
         async for namespace in self.namespace.list(limit=limit, **kwargs):
             yield namespace
@@ -927,7 +925,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
     @validate_and_convert_errors
     @require_kwargs
     async def list_namespaces_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+        self, limit: int | None = None, pagination_token: str | None = None, **kwargs
     ) -> ListNamespacesResponse:
         return await self.namespace.list_paginated(
             limit=limit, pagination_token=pagination_token, **kwargs

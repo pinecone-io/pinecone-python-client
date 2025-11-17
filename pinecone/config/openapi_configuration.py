@@ -3,7 +3,7 @@ import logging
 import multiprocessing
 
 from pinecone.exceptions import PineconeApiValueError
-from typing import TypedDict, Optional
+from typing import TypedDict
 
 
 class HostSetting(TypedDict):
@@ -297,7 +297,7 @@ class Configuration:
         :param value: The debug status, True or False.
         :type: bool
         """
-        previous_debug: Optional[bool] = getattr(self, "_debug", None)
+        previous_debug: bool | None = getattr(self, "_debug", None)
         self._debug = value
 
         def enable_http_logging():

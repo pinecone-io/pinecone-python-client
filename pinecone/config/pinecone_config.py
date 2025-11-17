@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Dict
 import logging
 import json
 import os
@@ -13,9 +13,9 @@ DEFAULT_CONTROLLER_HOST = "https://api.pinecone.io"
 class PineconeConfig:
     @staticmethod
     def build(
-        api_key: Optional[str] = None,
-        host: Optional[str] = None,
-        additional_headers: Optional[Dict[str, str]] = {},
+        api_key: str | None = None,
+        host: str | None = None,
+        additional_headers: Dict[str, str] | None = {},
         **kwargs,
     ) -> Config:
         host = (

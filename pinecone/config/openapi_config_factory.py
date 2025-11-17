@@ -1,5 +1,5 @@
 import sys
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import certifi
 import socket
@@ -14,7 +14,7 @@ TCP_KEEPCNT = 4
 
 class OpenApiConfigFactory:
     @classmethod
-    def build(cls, api_key: str, host: Optional[str] = None, **kwargs):
+    def build(cls, api_key: str, host: str | None = None, **kwargs):
         openapi_config = OpenApiConfiguration()
         openapi_config.api_key = {"ApiKeyAuth": api_key}
         openapi_config.host = host

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import logging
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
 from pinecone.openapi_support.api_client import ApiClient
@@ -42,16 +44,16 @@ class DBControl(PluginAware):
         )
         """ :meta private: """
 
-        self._index_resource: Optional["IndexResource"] = None
+        self._index_resource: "IndexResource" | None = None
         """ :meta private: """
 
-        self._collection_resource: Optional["CollectionResource"] = None
+        self._collection_resource: "CollectionResource" | None = None
         """ :meta private: """
 
-        self._restore_job_resource: Optional["RestoreJobResource"] = None
+        self._restore_job_resource: "RestoreJobResource" | None = None
         """ :meta private: """
 
-        self._backup_resource: Optional["BackupResource"] = None
+        self._backup_resource: "BackupResource" | None = None
         """ :meta private: """
 
         super().__init__()  # Initialize PluginAware

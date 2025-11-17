@@ -1,5 +1,5 @@
 from .retry import RetryConfig
-from typing import NamedTuple, Optional, Dict
+from typing import NamedTuple, Dict
 
 
 class GRPCClientConfig(NamedTuple):
@@ -28,9 +28,9 @@ class GRPCClientConfig(NamedTuple):
     timeout: int = 20
     conn_timeout: int = 1
     reuse_channel: bool = True
-    retry_config: Optional[RetryConfig] = None
-    grpc_channel_options: Optional[Dict[str, str]] = None
-    additional_metadata: Optional[Dict[str, str]] = None
+    retry_config: RetryConfig | None = None
+    grpc_channel_options: Dict[str, str] | None = None
+    additional_metadata: Dict[str, str] | None = None
 
     @classmethod
     def _from_dict(cls, kwargs: dict):

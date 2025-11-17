@@ -3,7 +3,7 @@ from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.oauth import API_VERSION
 from pinecone.core.openapi.oauth.apis import OAuthApi
 from pinecone.core.openapi.oauth.models import TokenRequest
-from typing import Optional, Dict
+from typing import Dict
 from pinecone.utils import get_user_agent
 import os
 from copy import deepcopy
@@ -39,9 +39,9 @@ class Admin:
 
     def __init__(
         self,
-        client_id: Optional[str] = None,
-        client_secret: Optional[str] = None,
-        additional_headers: Optional[Dict[str, str]] = None,
+        client_id: str | None = None,
+        client_secret: str | None = None,
+        additional_headers: Dict[str, str] | None = None,
     ):
         """
         Initialize the ``Admin`` class.
@@ -112,7 +112,7 @@ class Admin:
         self._child_api_client.user_agent = get_user_agent(Config())
 
         # Lazily initialize resources
-        from typing import TYPE_CHECKING, Optional
+        from typing import TYPE_CHECKING
 
         if TYPE_CHECKING:
             from pinecone.admin.resources import (
@@ -121,9 +121,9 @@ class Admin:
                 OrganizationResource,
             )
 
-            self._project: Optional[ProjectResource] = None
-            self._api_key: Optional[ApiKeyResource] = None
-            self._organization: Optional[OrganizationResource] = None
+            self._project: ProjectResource | None = None
+            self._api_key: ApiKeyResource | None = None
+            self._organization: OrganizationResource | None = None
         else:
             self._project = None  # type: ignore[assignment]
             self._api_key = None  # type: ignore[assignment]

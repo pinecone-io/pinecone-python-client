@@ -8,7 +8,7 @@ available via star imports but are no longer imported at the top level.
 import importlib
 import sys
 from types import ModuleType
-from typing import Dict, Optional, Tuple, cast
+from typing import Dict, Tuple, cast
 
 # Dictionary mapping import names to their actual module paths
 # Format: 'name': ('module_path', 'actual_name')
@@ -65,7 +65,7 @@ class LazyModule:
         raise AttributeError(f"module '{self._original_module.__name__}' has no attribute '{name}'")
 
 
-def setup_lazy_imports(lazy_imports: Optional[Dict[str, Tuple[str, str]]] = None) -> None:
+def setup_lazy_imports(lazy_imports: Dict[str, Tuple[str, str]] | None = None) -> None:
     """
     Set up the lazy import handler.
 

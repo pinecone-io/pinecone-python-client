@@ -1,5 +1,4 @@
 from collections.abc import Mapping
-from typing import Union, Optional
 
 from ..utils import convert_to_list
 
@@ -14,10 +13,9 @@ from pinecone import SparseValues
 class SparseValuesFactory:
     @staticmethod
     def build(
-        input: Optional[
-            Union[SparseVectorTypedDict, SparseValues, GRPCSparseValues, OpenApiSparseValues]
-        ],
-    ) -> Optional[GRPCSparseValues]:
+        input: (SparseVectorTypedDict | SparseValues | GRPCSparseValues | OpenApiSparseValues)
+        | None,
+    ) -> GRPCSparseValues | None:
         if input is None:
             return input
         if isinstance(input, GRPCSparseValues):

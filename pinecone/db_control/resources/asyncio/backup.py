@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pinecone.core.openapi.db_control.api.manage_indexes_api import AsyncioManageIndexesApi
 from pinecone.core.openapi.db_control.model.create_backup_request import CreateBackupRequest
 from pinecone.db_control.models import BackupModel, BackupList
@@ -15,9 +13,9 @@ class BackupResourceAsyncio:
     async def list(
         self,
         *,
-        index_name: Optional[str] = None,
-        limit: Optional[int] = 10,
-        pagination_token: Optional[str] = None,
+        index_name: str | None = None,
+        limit: int | None = 10,
+        pagination_token: str | None = None,
     ) -> BackupList:
         """
         List backups for an index or for the project.

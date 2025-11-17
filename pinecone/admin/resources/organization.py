@@ -1,4 +1,3 @@
-from typing import Optional
 from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.admin.apis import OrganizationsApi
 from pinecone.utils import require_kwargs, parse_non_empty_args
@@ -155,7 +154,7 @@ class OrganizationResource:
         return self.fetch(organization_id=organization_id)
 
     @require_kwargs
-    def update(self, organization_id: str, name: Optional[str] = None):
+    def update(self, organization_id: str, name: str | None = None):
         """
         Update an organization.
 

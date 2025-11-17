@@ -3,7 +3,7 @@ import io
 from urllib3.fields import RequestField
 import logging
 
-from typing import Optional, List, Tuple, Dict, Any, Union
+from typing import List, Tuple, Dict, Any
 
 
 from .rest_aiohttp import AiohttpRestClient
@@ -68,20 +68,20 @@ class AsyncioApiClient(object):
         self,
         resource_path: str,
         method: str,
-        path_params: Optional[Dict[str, Any]] = None,
-        query_params: Optional[List[Tuple[str, Any]]] = None,
-        header_params: Optional[Dict[str, Any]] = None,
-        body: Optional[Any] = None,
-        post_params: Optional[List[Tuple[str, Any]]] = None,
-        files: Optional[Dict[str, List[io.IOBase]]] = None,
-        response_type: Optional[Tuple[Any]] = None,
-        auth_settings: Optional[List[str]] = None,
-        _return_http_data_only: Optional[bool] = None,
-        collection_formats: Optional[Dict[str, str]] = None,
+        path_params: Dict[str, Any] | None = None,
+        query_params: List[Tuple[str, Any]] | None = None,
+        header_params: Dict[str, Any] | None = None,
+        body: Any | None = None,
+        post_params: List[Tuple[str, Any]] | None = None,
+        files: Dict[str, List[io.IOBase]] | None = None,
+        response_type: Tuple[Any] | None = None,
+        auth_settings: List[str] | None = None,
+        _return_http_data_only: bool | None = None,
+        collection_formats: Dict[str, str] | None = None,
         _preload_content: bool = True,
-        _request_timeout: Optional[Union[int, float, Tuple]] = None,
-        _host: Optional[str] = None,
-        _check_type: Optional[bool] = None,
+        _request_timeout: (int | float | Tuple) | None = None,
+        _host: str | None = None,
+        _check_type: bool | None = None,
     ):
         config = self.configuration
 
@@ -196,9 +196,7 @@ class AsyncioApiClient(object):
         :param dict collection_types: Parameter collection types
         :return: Parameters as list of tuple or urllib3.fields.RequestField
         """
-        from typing import Union
-
-        new_params: list[Union[RequestField, tuple[Any, Any]]] = []
+        new_params: list[RequestField | tuple[Any, Any]] = []
         if collection_types is None:
             collection_types = dict
         for k, v in params.items() if isinstance(params, dict) else params:  # noqa: E501
@@ -217,20 +215,20 @@ class AsyncioApiClient(object):
         self,
         resource_path: str,
         method: str,
-        path_params: Optional[Dict[str, Any]] = None,
-        query_params: Optional[List[Tuple[str, Any]]] = None,
-        header_params: Optional[Dict[str, Any]] = None,
-        body: Optional[Any] = None,
-        post_params: Optional[List[Tuple[str, Any]]] = None,
-        files: Optional[Dict[str, List[io.IOBase]]] = None,
-        response_type: Optional[Tuple[Any]] = None,
-        auth_settings: Optional[List[str]] = None,
-        _return_http_data_only: Optional[bool] = None,
-        collection_formats: Optional[Dict[str, str]] = None,
+        path_params: Dict[str, Any] | None = None,
+        query_params: List[Tuple[str, Any]] | None = None,
+        header_params: Dict[str, Any] | None = None,
+        body: Any | None = None,
+        post_params: List[Tuple[str, Any]] | None = None,
+        files: Dict[str, List[io.IOBase]] | None = None,
+        response_type: Tuple[Any] | None = None,
+        auth_settings: List[str] | None = None,
+        _return_http_data_only: bool | None = None,
+        collection_formats: Dict[str, str] | None = None,
         _preload_content: bool = True,
-        _request_timeout: Optional[Union[int, float, Tuple]] = None,
-        _host: Optional[str] = None,
-        _check_type: Optional[bool] = None,
+        _request_timeout: (int | float | Tuple) | None = None,
+        _host: str | None = None,
+        _check_type: bool | None = None,
     ):
         """Makes the HTTP request (synchronous) and returns deserialized data.
 

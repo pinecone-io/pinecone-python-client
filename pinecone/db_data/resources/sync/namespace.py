@@ -1,4 +1,4 @@
-from typing import Optional, Iterator, Any
+from typing import Iterator, Any
 
 from pinecone.core.openapi.db_data.api.namespace_operations_api import NamespaceOperationsApi
 from pinecone.core.openapi.db_data.models import ListNamespacesResponse, NamespaceDescription
@@ -26,7 +26,7 @@ class NamespaceResource(PluginAware):
         super().__init__()
 
     @require_kwargs
-    def create(self, name: str, schema: Optional[Any] = None, **kwargs) -> NamespaceDescription:
+    def create(self, name: str, schema: Any | None = None, **kwargs) -> NamespaceDescription:
         """
         Args:
             name (str): The name of the namespace to create
@@ -75,7 +75,7 @@ class NamespaceResource(PluginAware):
         return self.__namespace_operations_api.delete_namespace(**args)
 
     @require_kwargs
-    def list(self, limit: Optional[int] = None, **kwargs) -> Iterator[ListNamespacesResponse]:
+    def list(self, limit: int | None = None, **kwargs) -> Iterator[ListNamespacesResponse]:
         """
         Args:
             limit (Optional[int]): The maximum number of namespaces to fetch in each network call. If unspecified, the server will use a default value. [optional]
@@ -112,7 +112,7 @@ class NamespaceResource(PluginAware):
 
     @require_kwargs
     def list_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+        self, limit: int | None = None, pagination_token: str | None = None, **kwargs
     ) -> ListNamespacesResponse:
         """
         Args:

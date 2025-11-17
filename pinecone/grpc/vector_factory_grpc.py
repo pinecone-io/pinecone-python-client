@@ -1,7 +1,6 @@
 import numbers
 
 from collections.abc import Iterable, Mapping
-from typing import Union
 
 from google.protobuf.struct_pb2 import Struct
 
@@ -32,7 +31,7 @@ class VectorFactoryGRPC:
     """This class is responsible for building GRPCVector objects from various input types."""
 
     @staticmethod
-    def build(item: Union[Vector, GRPCVector, Vector, VectorTuple, VectorTypedDict]) -> GRPCVector:
+    def build(item: Vector | GRPCVector | Vector | VectorTuple | VectorTypedDict) -> GRPCVector:
         if isinstance(item, GRPCVector):
             return item
         elif isinstance(item, Vector) or isinstance(item, OpenApiVector):

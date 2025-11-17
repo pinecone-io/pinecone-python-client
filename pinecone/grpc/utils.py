@@ -1,4 +1,4 @@
-from typing import Optional, Union, Dict, Any
+from typing import Dict, Any
 from google.protobuf import json_format
 from google.protobuf.message import Message
 
@@ -33,7 +33,7 @@ def _generate_request_id() -> str:
     return str(uuid.uuid4())
 
 
-def dict_to_proto_struct(d: Optional[dict]) -> "Struct":
+def dict_to_proto_struct(d: dict | None) -> "Struct":
     if not d:
         d = {}
     s = Struct()
@@ -41,7 +41,7 @@ def dict_to_proto_struct(d: Optional[dict]) -> "Struct":
     return s
 
 
-def parse_sparse_values(sparse_values: Optional[dict]) -> SparseValues:
+def parse_sparse_values(sparse_values: dict | None) -> SparseValues:
     from typing import cast
 
     result = (
@@ -53,7 +53,7 @@ def parse_sparse_values(sparse_values: Optional[dict]) -> SparseValues:
 
 
 def parse_fetch_response(
-    response: Message, initial_metadata: Optional[Dict[str, str]] = None
+    response: Message, initial_metadata: Dict[str, str] | None = None
 ) -> FetchResponse:
     json_response = json_format.MessageToDict(response)
 
@@ -94,7 +94,7 @@ def parse_fetch_response(
 
 
 def parse_fetch_by_metadata_response(
-    response: Message, initial_metadata: Optional[Dict[str, str]] = None
+    response: Message, initial_metadata: Dict[str, str] | None = None
 ) -> FetchByMetadataResponse:
     json_response = json_format.MessageToDict(response)
 
@@ -142,7 +142,7 @@ def parse_usage(usage: dict) -> Usage:
 
 
 def parse_upsert_response(
-    response: Message, _check_type: bool = False, initial_metadata: Optional[Dict[str, str]] = None
+    response: Message, _check_type: bool = False, initial_metadata: Dict[str, str] | None = None
 ) -> UpsertResponse:
     from pinecone.utils.response_info import extract_response_info
 
@@ -158,9 +158,9 @@ def parse_upsert_response(
 
 
 def parse_update_response(
-    response: Union[dict, Message],
+    response: dict | Message,
     _check_type: bool = False,
-    initial_metadata: Optional[Dict[str, str]] = None,
+    initial_metadata: Dict[str, str] | None = None,
 ) -> UpdateResponse:
     from pinecone.utils.response_info import extract_response_info
     from google.protobuf import json_format
@@ -185,9 +185,9 @@ def parse_update_response(
 
 
 def parse_delete_response(
-    response: Union[dict, Message],
+    response: dict | Message,
     _check_type: bool = False,
-    initial_metadata: Optional[Dict[str, str]] = None,
+    initial_metadata: Dict[str, str] | None = None,
 ) -> Dict[str, Any]:
     from pinecone.utils.response_info import extract_response_info
 
@@ -200,9 +200,9 @@ def parse_delete_response(
 
 
 def parse_query_response(
-    response: Union[dict, Message],
+    response: dict | Message,
     _check_type: bool = False,
-    initial_metadata: Optional[Dict[str, str]] = None,
+    initial_metadata: Dict[str, str] | None = None,
 ) -> QueryResponse:
     if isinstance(response, Message):
         json_response = json_format.MessageToDict(response)
@@ -263,7 +263,7 @@ def parse_stats_response(response: dict) -> "DescribeIndexStatsResponse":
 
 
 def parse_namespace_description(
-    response: Message, initial_metadata: Optional[Dict[str, str]] = None
+    response: Message, initial_metadata: Dict[str, str] | None = None
 ) -> NamespaceDescription:
     from pinecone.utils.response_info import extract_response_info
 

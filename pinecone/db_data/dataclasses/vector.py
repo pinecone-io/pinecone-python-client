@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 from .sparse_values import SparseValues
 from .utils import DictLike
 from ..types import VectorTypedDict, VectorMetadataTypedDict
@@ -10,8 +10,8 @@ from dataclasses import dataclass, field
 class Vector(DictLike):
     id: str
     values: List[float] = field(default_factory=list)
-    metadata: Optional[VectorMetadataTypedDict] = None
-    sparse_values: Optional[SparseValues] = None
+    metadata: VectorMetadataTypedDict | None = None
+    sparse_values: SparseValues | None = None
 
     def __post_init__(self):
         if self.sparse_values is None and len(self.values) == 0:

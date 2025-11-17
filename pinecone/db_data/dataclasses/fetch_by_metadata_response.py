@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Optional, cast
+from typing import Dict, cast
 
 from .vector import Vector
 from .utils import DictLike
@@ -16,8 +16,8 @@ class Pagination(DictLike):
 class FetchByMetadataResponse(DictLike):
     namespace: str
     vectors: Dict[str, Vector]
-    usage: Optional[Usage] = None
-    pagination: Optional[Pagination] = None
+    usage: Usage | None = None
+    pagination: Pagination | None = None
     _response_info: ResponseInfo = field(
         default_factory=lambda: cast(ResponseInfo, {"raw_headers": {}}), repr=True, compare=False
     )

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import logging
-from typing import Optional, Dict, Union, TYPE_CHECKING, Any, NoReturn
+from typing import Dict, TYPE_CHECKING, Any, NoReturn
 from multiprocessing import cpu_count
 import warnings
 
@@ -65,14 +67,14 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        host: Optional[str] = None,
-        proxy_url: Optional[str] = None,
-        proxy_headers: Optional[Dict[str, str]] = None,
-        ssl_ca_certs: Optional[str] = None,
-        ssl_verify: Optional[bool] = None,
-        additional_headers: Optional[Dict[str, str]] = {},
-        pool_threads: Optional[int] = None,
+        api_key: str | None = None,
+        host: str | None = None,
+        proxy_url: str | None = None,
+        proxy_headers: Dict[str, str] | None = None,
+        ssl_ca_certs: str | None = None,
+        ssl_verify: bool | None = None,
+        additional_headers: Dict[str, str] | None = {},
+        pool_threads: int | None = None,
         **kwargs,
     ) -> None:
         """
@@ -249,10 +251,10 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
             self._pool_threads = pool_threads
             """ :meta private: """
 
-        self._inference: Optional["Inference"] = None  # Lazy initialization
+        self._inference: "Inference" | None = None  # Lazy initialization
         """ :meta private: """
 
-        self._db_control: Optional["DBControl"] = None  # Lazy initialization
+        self._db_control: "DBControl" | None = None  # Lazy initialization
         """ :meta private: """
 
         super().__init__()  # Initialize PluginAware
@@ -337,13 +339,13 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
     def create_index(
         self,
         name: str,
-        spec: Union[Dict, "ServerlessSpec", "PodSpec", "ByocSpec"],
-        dimension: Optional[int] = None,
-        metric: Optional[Union["Metric", str]] = "cosine",
-        timeout: Optional[int] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        vector_type: Optional[Union["VectorType", str]] = "dense",
-        tags: Optional[Dict[str, str]] = None,
+        spec: Dict | "ServerlessSpec" | "PodSpec" | "ByocSpec",
+        dimension: int | None = None,
+        metric: ("Metric" | str) | None = "cosine",
+        timeout: int | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        vector_type: ("VectorType" | str) | None = "dense",
+        tags: Dict[str, str] | None = None,
     ) -> "IndexModel":
         return self.db.index.create(
             name=name,
@@ -359,31 +361,29 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
     def create_index_for_model(
         self,
         name: str,
-        cloud: Union["CloudProvider", str],
-        region: Union["AwsRegion", "GcpRegion", "AzureRegion", str],
-        embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
-        tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        read_capacity: Optional[
-            Union[
-                "ReadCapacityDict",
-                "ReadCapacity",
-                "ReadCapacityOnDemandSpec",
-                "ReadCapacityDedicatedSpec",
-            ]
-        ] = None,
-        schema: Optional[
-            Union[
-                Dict[
-                    str, "MetadataSchemaFieldConfig"
-                ],  # Direct field mapping: {field_name: {filterable: bool}}
-                Dict[
-                    str, Dict[str, Any]
-                ],  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-                "BackupModelSchema",  # OpenAPI model instance
-            ]
-        ] = None,
-        timeout: Optional[int] = None,
+        cloud: "CloudProvider" | str,
+        region: "AwsRegion" | "GcpRegion" | "AzureRegion" | str,
+        embed: "IndexEmbed" | "CreateIndexForModelEmbedTypedDict",
+        tags: Dict[str, str] | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        )
+        | None = None,
+        schema: (
+            Dict[
+                str, "MetadataSchemaFieldConfig"
+            ]  # Direct field mapping: {field_name: {filterable: bool}}
+            | Dict[
+                str, Dict[str, Any]
+            ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
+            | "BackupModelSchema"  # OpenAPI model instance
+        )
+        | None = None,
+        timeout: int | None = None,
     ) -> "IndexModel":
         return self.db.index.create_for_model(
             name=name,
@@ -403,9 +403,9 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         *,
         name: str,
         backup_id: str,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        tags: Optional[Dict[str, str]] = None,
-        timeout: Optional[int] = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        tags: Dict[str, str] | None = None,
+        timeout: int | None = None,
     ) -> "IndexModel":
         return self.db.index.create_from_backup(
             name=name,
@@ -415,7 +415,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
             timeout=timeout,
         )
 
-    def delete_index(self, name: str, timeout: Optional[int] = None) -> None:
+    def delete_index(self, name: str, timeout: int | None = None) -> None:
         return self.db.index.delete(name=name, timeout=timeout)
 
     def list_indexes(self) -> "IndexList":
@@ -430,19 +430,18 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
     def configure_index(
         self,
         name: str,
-        replicas: Optional[int] = None,
-        pod_type: Optional[Union["PodType", str]] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = None,
-        tags: Optional[Dict[str, str]] = None,
-        embed: Optional[Union["ConfigureIndexEmbed", Dict]] = None,
-        read_capacity: Optional[
-            Union[
-                "ReadCapacityDict",
-                "ReadCapacity",
-                "ReadCapacityOnDemandSpec",
-                "ReadCapacityDedicatedSpec",
-            ]
-        ] = None,
+        replicas: int | None = None,
+        pod_type: ("PodType" | str) | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = None,
+        tags: Dict[str, str] | None = None,
+        embed: ("ConfigureIndexEmbed" | Dict) | None = None,
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        )
+        | None = None,
     ) -> None:
         return self.db.index.configure(
             name=name,
@@ -481,9 +480,9 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
     def list_backups(
         self,
         *,
-        index_name: Optional[str] = None,
-        limit: Optional[int] = 10,
-        pagination_token: Optional[str] = None,
+        index_name: str | None = None,
+        limit: int | None = 10,
+        pagination_token: str | None = None,
     ) -> "BackupList":
         return self.db.backup.list(
             index_name=index_name, limit=limit, pagination_token=pagination_token
@@ -499,7 +498,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
 
     @require_kwargs
     def list_restore_jobs(
-        self, *, limit: Optional[int] = 10, pagination_token: Optional[str] = None
+        self, *, limit: int | None = 10, pagination_token: str | None = None
     ) -> "RestoreJobList":
         return self.db.restore_job.list(limit=limit, pagination_token=pagination_token)
 

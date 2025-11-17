@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from pinecone.db_control.models import RestoreJobModel, RestoreJobList
 from pinecone.utils import parse_non_empty_args, require_kwargs, PluginAware
@@ -57,7 +57,7 @@ class RestoreJobResource(PluginAware):
 
     @require_kwargs
     def list(
-        self, *, limit: Optional[int] = 10, pagination_token: Optional[str] = None
+        self, *, limit: int | None = 10, pagination_token: str | None = None
     ) -> RestoreJobList:
         """
         List all restore jobs.

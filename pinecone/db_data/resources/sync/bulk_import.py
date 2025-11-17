@@ -1,4 +1,4 @@
-from typing import Optional, Literal, Iterator, Union
+from typing import Literal, Iterator
 
 from pinecone.core.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
 
@@ -23,10 +23,8 @@ class BulkImportResource:
     def start(
         self,
         uri: str,
-        integration_id: Optional[str] = None,
-        error_mode: Optional[
-            Union[ImportErrorMode, Literal["CONTINUE", "ABORT"], str]
-        ] = "CONTINUE",
+        integration_id: str | None = None,
+        error_mode: (ImportErrorMode | Literal["CONTINUE", "ABORT"] | str) | None = "CONTINUE",
     ) -> StartImportResponse:
         """
         Args:
@@ -94,7 +92,7 @@ class BulkImportResource:
                 done = True
 
     def list_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+        self, limit: int | None = None, pagination_token: str | None = None, **kwargs
     ) -> ListImportsResponse:
         """
         Args:

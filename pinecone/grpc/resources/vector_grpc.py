@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import logging
-from typing import Optional, Dict, Union, List, Tuple, Any, Iterable, cast, Literal
+from typing import Dict, List, Tuple, Any, Iterable, cast, Literal
 
 from google.protobuf import json_format
 
@@ -74,13 +76,13 @@ class VectorResourceGRPC(PluginAware):
 
     def upsert(
         self,
-        vectors: Union[List[Vector], List[GRPCVector], List[VectorTuple], List[VectorTypedDict]],
+        vectors: List[Vector] | List[GRPCVector] | List[VectorTuple] | List[VectorTypedDict],
         async_req: bool = False,
-        namespace: Optional[str] = None,
-        batch_size: Optional[int] = None,
+        namespace: str | None = None,
+        batch_size: int | None = None,
         show_progress: bool = True,
         **kwargs,
-    ) -> Union[UpsertResponse, PineconeGrpcFuture]:
+    ) -> UpsertResponse | PineconeGrpcFuture:
         """Upsert vectors into the index.
 
         The upsert operation writes vectors into a namespace. If a new value is upserted
@@ -162,7 +164,7 @@ class VectorResourceGRPC(PluginAware):
         return UpsertResponse(upserted_count=total_upserted, _response_info=response_info)
 
     def _upsert_batch(
-        self, vectors: List[GRPCVector], namespace: Optional[str], timeout: Optional[int], **kwargs
+        self, vectors: List[GRPCVector], namespace: str | None, timeout: int | None, **kwargs
     ) -> UpsertResponse:
         args_dict = self._parse_non_empty_args([("namespace", namespace)])
         request = UpsertRequest(vectors=vectors, **args_dict)
@@ -249,13 +251,13 @@ class VectorResourceGRPC(PluginAware):
 
     def delete(
         self,
-        ids: Optional[List[str]] = None,
-        delete_all: Optional[bool] = None,
-        namespace: Optional[str] = None,
-        filter: Optional[FilterTypedDict] = None,
+        ids: List[str] | None = None,
+        delete_all: bool | None = None,
+        namespace: str | None = None,
+        filter: FilterTypedDict | None = None,
         async_req: bool = False,
         **kwargs,
-    ) -> Union[Dict[str, Any], PineconeGrpcFuture]:
+    ) -> Dict[str, Any] | PineconeGrpcFuture:
         """Delete vectors from the index.
 
         The Delete operation deletes vectors from the index, from a single namespace.
@@ -313,11 +315,11 @@ class VectorResourceGRPC(PluginAware):
 
     def fetch(
         self,
-        ids: Optional[List[str]],
-        namespace: Optional[str] = None,
-        async_req: Optional[bool] = False,
+        ids: List[str] | None,
+        namespace: str | None = None,
+        async_req: bool | None = False,
         **kwargs,
-    ) -> Union[FetchResponse, PineconeGrpcFuture]:
+    ) -> FetchResponse | PineconeGrpcFuture:
         """Fetch vectors by ID.
 
         The fetch operation looks up and returns vectors, by ID, from a single namespace.
@@ -360,12 +362,12 @@ class VectorResourceGRPC(PluginAware):
     def fetch_by_metadata(
         self,
         filter: FilterTypedDict,
-        namespace: Optional[str] = None,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
-        async_req: Optional[bool] = False,
+        namespace: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        async_req: bool | None = False,
         **kwargs,
-    ) -> Union[FetchByMetadataResponse, PineconeGrpcFuture]:
+    ) -> FetchByMetadataResponse | PineconeGrpcFuture:
         """Fetch vectors by metadata filter.
 
         Look up and return vectors by metadata filter from a single namespace.
@@ -433,18 +435,16 @@ class VectorResourceGRPC(PluginAware):
 
     def _query(
         self,
-        vector: Optional[List[float]] = None,
-        id: Optional[str] = None,
-        namespace: Optional[str] = None,
-        top_k: Optional[int] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, GRPCSparseValues, SparseVectorTypedDict]
-        ] = None,
+        vector: List[float] | None = None,
+        id: str | None = None,
+        namespace: str | None = None,
+        top_k: int | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: (SparseValues | GRPCSparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
-    ) -> Tuple[Dict[str, Any], Optional[Dict[str, str]]]:
+    ) -> Tuple[Dict[str, Any], Dict[str, str] | None]:
         """
         Low-level query method that returns raw JSON dict and initial metadata without parsing.
         Used internally by query() and query_namespaces() for performance.
@@ -482,19 +482,17 @@ class VectorResourceGRPC(PluginAware):
 
     def query(
         self,
-        vector: Optional[List[float]] = None,
-        id: Optional[str] = None,
-        namespace: Optional[str] = None,
-        top_k: Optional[int] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, GRPCSparseValues, SparseVectorTypedDict]
-        ] = None,
-        async_req: Optional[bool] = False,
+        vector: List[float] | None = None,
+        id: str | None = None,
+        namespace: str | None = None,
+        top_k: int | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: (SparseValues | GRPCSparseValues | SparseVectorTypedDict) | None = None,
+        async_req: bool | None = False,
         **kwargs,
-    ) -> Union["QueryResponse", PineconeGrpcFuture]:
+    ) -> "QueryResponse" | PineconeGrpcFuture:
         """Query the index.
 
         The Query operation searches a namespace, using a query vector. It retrieves the
@@ -593,11 +591,11 @@ class VectorResourceGRPC(PluginAware):
         vector: List[float],
         namespaces: List[str],
         metric: Literal["cosine", "euclidean", "dotproduct"],
-        top_k: Optional[int] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
+        top_k: int | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: (GRPCSparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         """Query across multiple namespaces.
@@ -671,12 +669,12 @@ class VectorResourceGRPC(PluginAware):
         self,
         id: str,
         async_req: bool = False,
-        values: Optional[List[float]] = None,
-        set_metadata: Optional[VectorMetadataTypedDict] = None,
-        namespace: Optional[str] = None,
-        sparse_values: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
+        values: List[float] | None = None,
+        set_metadata: VectorMetadataTypedDict | None = None,
+        namespace: str | None = None,
+        sparse_values: (GRPCSparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
-    ) -> Union[UpdateResponse, PineconeGrpcFuture]:
+    ) -> UpdateResponse | PineconeGrpcFuture:
         """Update a vector in the index.
 
         The Update operation updates vector in a namespace. If a value is included, it
@@ -735,10 +733,10 @@ class VectorResourceGRPC(PluginAware):
 
     def list_paginated(
         self,
-        prefix: Optional[str] = None,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
-        namespace: Optional[str] = None,
+        prefix: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        namespace: str | None = None,
         **kwargs,
     ) -> SimpleListResponse:
         """List vectors with pagination.
@@ -826,7 +824,7 @@ class VectorResourceGRPC(PluginAware):
                 done = True
 
     def describe_index_stats(
-        self, filter: Optional[FilterTypedDict] = None, **kwargs
+        self, filter: FilterTypedDict | None = None, **kwargs
     ) -> DescribeIndexStatsResponse:
         """Describe index statistics.
 

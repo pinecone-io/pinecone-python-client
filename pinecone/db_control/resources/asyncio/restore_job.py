@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pinecone.core.openapi.db_control.api.manage_indexes_api import AsyncioManageIndexesApi
 from pinecone.db_control.models import RestoreJobModel, RestoreJobList
 from pinecone.utils import parse_non_empty_args, require_kwargs
@@ -37,7 +35,7 @@ class RestoreJobResourceAsyncio:
 
     @require_kwargs
     async def list(
-        self, *, limit: Optional[int] = 10, pagination_token: Optional[str] = None
+        self, *, limit: int | None = 10, pagination_token: str | None = None
     ) -> RestoreJobList:
         """
         List all restore jobs.

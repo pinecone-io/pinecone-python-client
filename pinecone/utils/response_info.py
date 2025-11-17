@@ -1,6 +1,6 @@
 """Response information utilities for extracting LSN headers from API responses."""
 
-from typing import Dict, Any, Optional, TypedDict
+from typing import Dict, Any, TypedDict
 
 
 class ResponseInfo(TypedDict):
@@ -13,7 +13,7 @@ class ResponseInfo(TypedDict):
     raw_headers: Dict[str, str]
 
 
-def extract_response_info(headers: Optional[Dict[str, Any]]) -> ResponseInfo:
+def extract_response_info(headers: Dict[str, Any] | None) -> ResponseInfo:
     """Extract raw headers from response headers.
 
     Extracts and normalizes response headers from API responses.

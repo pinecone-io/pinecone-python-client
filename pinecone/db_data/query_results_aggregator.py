@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional, Any, Dict, Literal
+from typing import List, Tuple, Any, Dict, Literal
 import json
 import heapq
 from pinecone.core.openapi.db_data.models import Usage
@@ -112,7 +112,7 @@ class QueryResultsAggregator:
         self.heap: List[Tuple[float, int, object, str]] = []
         self.insertion_counter = 0
         self.read = False
-        self.final_results: Optional[QueryNamespacesResults] = None
+        self.final_results: QueryNamespacesResults | None = None
 
     def _bigger_better_heap_item(self, match, ns):
         # This 4-tuple is used to ensure that the heap is sorted by score followed by

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 
-from typing import Optional, Dict, Union, TYPE_CHECKING, Any
+from typing import Dict, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from pinecone.db_control.models import (
@@ -45,14 +47,14 @@ class LegacyPineconeDBControlInterface(ABC):
     @abstractmethod
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        host: Optional[str] = None,
-        proxy_url: Optional[str] = None,
-        proxy_headers: Optional[Dict[str, str]] = None,
-        ssl_ca_certs: Optional[str] = None,
-        ssl_verify: Optional[bool] = None,
-        additional_headers: Optional[Dict[str, str]] = {},
-        pool_threads: Optional[int] = 1,
+        api_key: str | None = None,
+        host: str | None = None,
+        proxy_url: str | None = None,
+        proxy_headers: Dict[str, str] | None = None,
+        ssl_ca_certs: str | None = None,
+        ssl_verify: bool | None = None,
+        additional_headers: Dict[str, str] | None = {},
+        pool_threads: int | None = 1,
         **kwargs,
     ):
         pass
@@ -61,15 +63,13 @@ class LegacyPineconeDBControlInterface(ABC):
     def create_index(
         self,
         name: str,
-        spec: Union[Dict, "ServerlessSpec", "PodSpec", "ByocSpec"],
-        dimension: Optional[int],
-        metric: Optional[Union["Metric", str]] = "Metric.COSINE",
-        timeout: Optional[int] = None,
-        deletion_protection: Optional[
-            Union["DeletionProtection", str]
-        ] = "DeletionProtection.DISABLED",
-        vector_type: Optional[Union["VectorType", str]] = "VectorType.DENSE",
-        tags: Optional[Dict[str, str]] = None,
+        spec: Dict | "ServerlessSpec" | "PodSpec" | "ByocSpec",
+        dimension: int | None,
+        metric: ("Metric" | str) | None = "Metric.COSINE",
+        timeout: int | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "DeletionProtection.DISABLED",
+        vector_type: ("VectorType" | str) | None = "VectorType.DENSE",
+        tags: Dict[str, str] | None = None,
     ) -> "IndexModel":
         """Creates a Pinecone index.
 
@@ -189,9 +189,9 @@ class LegacyPineconeDBControlInterface(ABC):
         *,
         name: str,
         backup_id: str,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        tags: Optional[Dict[str, str]] = None,
-        timeout: Optional[int] = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        tags: Dict[str, str] | None = None,
+        timeout: int | None = None,
     ) -> "IndexModel":
         """
         Create an index from a backup.
@@ -218,33 +218,29 @@ class LegacyPineconeDBControlInterface(ABC):
         self,
         *,
         name: str,
-        cloud: Union["CloudProvider", str],
-        region: Union["AwsRegion", "GcpRegion", "AzureRegion", str],
-        embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
-        tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[
-            Union["DeletionProtection", str]
-        ] = "DeletionProtection.DISABLED",
-        read_capacity: Optional[
-            Union[
-                "ReadCapacityDict",
-                "ReadCapacity",
-                "ReadCapacityOnDemandSpec",
-                "ReadCapacityDedicatedSpec",
-            ]
-        ] = None,
-        schema: Optional[
-            Union[
-                Dict[
-                    str, "MetadataSchemaFieldConfig"
-                ],  # Direct field mapping: {field_name: {filterable: bool}}
-                Dict[
-                    str, Dict[str, Any]
-                ],  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-                "BackupModelSchema",  # OpenAPI model instance
-            ]
-        ] = None,
-        timeout: Optional[int] = None,
+        cloud: "CloudProvider" | str,
+        region: "AwsRegion" | "GcpRegion" | "AzureRegion" | str,
+        embed: "IndexEmbed" | "CreateIndexForModelEmbedTypedDict",
+        tags: Dict[str, str] | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "DeletionProtection.DISABLED",
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        )
+        | None = None,
+        schema: (
+            Dict[
+                str, "MetadataSchemaFieldConfig"
+            ]  # Direct field mapping: {field_name: {filterable: bool}}
+            | Dict[
+                str, Dict[str, Any]
+            ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
+            | "BackupModelSchema"  # OpenAPI model instance
+        )
+        | None = None,
+        timeout: int | None = None,
     ) -> "IndexModel":
         """
         :param name: The name of the index to create. Must be unique within your project and
@@ -358,7 +354,7 @@ class LegacyPineconeDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def delete_index(self, name: str, timeout: Optional[int] = None):
+    def delete_index(self, name: str, timeout: int | None = None):
         """
         :param name: the name of the index.
         :type name: str
@@ -527,19 +523,18 @@ class LegacyPineconeDBControlInterface(ABC):
     def configure_index(
         self,
         name: str,
-        replicas: Optional[int] = None,
-        pod_type: Optional[Union["PodType", str]] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = None,
-        tags: Optional[Dict[str, str]] = None,
-        embed: Optional[Union["ConfigureIndexEmbed", Dict]] = None,
-        read_capacity: Optional[
-            Union[
-                "ReadCapacityDict",
-                "ReadCapacity",
-                "ReadCapacityOnDemandSpec",
-                "ReadCapacityDedicatedSpec",
-            ]
-        ] = None,
+        replicas: int | None = None,
+        pod_type: ("PodType" | str) | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = None,
+        tags: Dict[str, str] | None = None,
+        embed: ("ConfigureIndexEmbed" | Dict) | None = None,
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        )
+        | None = None,
     ):
         """
         :param name: the name of the Index
@@ -774,9 +769,9 @@ class LegacyPineconeDBControlInterface(ABC):
     def list_backups(
         self,
         *,
-        index_name: Optional[str] = None,
-        limit: Optional[int] = 10,
-        pagination_token: Optional[str] = None,
+        index_name: str | None = None,
+        limit: int | None = 10,
+        pagination_token: str | None = None,
     ) -> "BackupList":
         """List backups.
 
@@ -809,7 +804,7 @@ class LegacyPineconeDBControlInterface(ABC):
 
     @abstractmethod
     def list_restore_jobs(
-        self, *, limit: Optional[int] = 10, pagination_token: Optional[str] = None
+        self, *, limit: int | None = 10, pagination_token: str | None = None
     ) -> "RestoreJobList":
         """List restore jobs.
 

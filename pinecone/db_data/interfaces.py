@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import List, Optional, Dict, Any, Iterator, Literal
+from typing import List, Dict, Any, Iterator, Literal
 
 from pinecone.core.openapi.db_data.models import (
     IndexDescription as DescribeIndexStatsResponse,
@@ -43,8 +43,8 @@ class IndexInterface(ABC):
         vectors: (
             List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
         ),
-        namespace: Optional[str] = None,
-        batch_size: Optional[int] = None,
+        namespace: str | None = None,
+        batch_size: int | None = None,
         show_progress: bool = True,
         **kwargs,
     ) -> UpsertResponse | ApplyResult:
@@ -240,7 +240,7 @@ class IndexInterface(ABC):
 
     @abstractmethod
     def upsert_from_dataframe(
-        self, df, namespace: Optional[str] = None, batch_size: int = 500, show_progress: bool = True
+        self, df, namespace: str | None = None, batch_size: int = 500, show_progress: bool = True
     ):
         """Upserts a dataframe into the index.
 
@@ -353,8 +353,8 @@ class IndexInterface(ABC):
         self,
         namespace: str,
         query: SearchQueryTypedDict | SearchQuery,
-        rerank: Optional[SearchRerankTypedDict | SearchRerank] = None,
-        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+        rerank: (SearchRerankTypedDict | SearchRerank) | None = None,
+        fields: List[str] | None = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         """
         :param namespace: The namespace in the index to search.
@@ -459,8 +459,8 @@ class IndexInterface(ABC):
         self,
         namespace: str,
         query: SearchQueryTypedDict | SearchQuery,
-        rerank: Optional[SearchRerankTypedDict | SearchRerank] = None,
-        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+        rerank: (SearchRerankTypedDict | SearchRerank) | None = None,
+        fields: List[str] | None = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         """Alias of the search() method."""
         pass
@@ -468,10 +468,10 @@ class IndexInterface(ABC):
     @abstractmethod
     def delete(
         self,
-        ids: Optional[List[str]] = None,
-        delete_all: Optional[bool] = None,
-        namespace: Optional[str] = None,
-        filter: Optional[FilterTypedDict] = None,
+        ids: List[str] | None = None,
+        delete_all: bool | None = None,
+        namespace: str | None = None,
+        filter: FilterTypedDict | None = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """
@@ -516,7 +516,7 @@ class IndexInterface(ABC):
         pass
 
     @abstractmethod
-    def fetch(self, ids: List[str], namespace: Optional[str] = None, **kwargs) -> FetchResponse:
+    def fetch(self, ids: List[str], namespace: str | None = None, **kwargs) -> FetchResponse:
         """
         The fetch operation looks up and returns vectors, by ID, from a single namespace.
         The returned vectors include the vector data and/or metadata.
@@ -541,9 +541,9 @@ class IndexInterface(ABC):
     def fetch_by_metadata(
         self,
         filter: FilterTypedDict,
-        namespace: Optional[str] = None,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
+        namespace: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
         **kwargs,
     ) -> FetchByMetadataResponse:
         """
@@ -585,13 +585,13 @@ class IndexInterface(ABC):
         self,
         *args,
         top_k: int,
-        vector: Optional[List[float]] = None,
-        id: Optional[str] = None,
-        namespace: Optional[str] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
+        vector: List[float] | None = None,
+        id: str | None = None,
+        namespace: str | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
     ) -> QueryResponse | ApplyResult:
         """
@@ -640,14 +640,14 @@ class IndexInterface(ABC):
     @abstractmethod
     def query_namespaces(
         self,
-        vector: Optional[List[float]],
+        vector: List[float] | None,
         namespaces: List[str],
         metric: Literal["cosine", "euclidean", "dotproduct"],
-        top_k: Optional[int] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
+        top_k: int | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         """The ``query_namespaces()`` method is used to make a query to multiple namespaces in parallel and combine the results into one result set.
@@ -713,13 +713,13 @@ class IndexInterface(ABC):
     @abstractmethod
     def update(
         self,
-        id: Optional[str] = None,
-        values: Optional[List[float]] = None,
-        set_metadata: Optional[VectorMetadataTypedDict] = None,
-        namespace: Optional[str] = None,
-        sparse_values: Optional[SparseValues | SparseVectorTypedDict] = None,
-        filter: Optional[FilterTypedDict] = None,
-        dry_run: Optional[bool] = None,
+        id: str | None = None,
+        values: List[float] | None = None,
+        set_metadata: VectorMetadataTypedDict | None = None,
+        namespace: str | None = None,
+        sparse_values: (SparseValues | SparseVectorTypedDict) | None = None,
+        filter: FilterTypedDict | None = None,
+        dry_run: bool | None = None,
         **kwargs,
     ) -> UpdateResponse:
         """
@@ -800,7 +800,7 @@ class IndexInterface(ABC):
 
     @abstractmethod
     def describe_index_stats(
-        self, filter: Optional[FilterTypedDict] = None, **kwargs
+        self, filter: FilterTypedDict | None = None, **kwargs
     ) -> DescribeIndexStatsResponse:
         """
         The DescribeIndexStats operation returns statistics about the index's contents.
@@ -837,10 +837,10 @@ class IndexInterface(ABC):
     @abstractmethod
     def list_paginated(
         self,
-        prefix: Optional[str] = None,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
-        namespace: Optional[str] = None,
+        prefix: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        namespace: str | None = None,
         **kwargs,
     ) -> ListResponse:
         """
@@ -900,7 +900,7 @@ class IndexInterface(ABC):
     @abstractmethod
     @require_kwargs
     def create_namespace(
-        self, name: str, schema: Optional[Dict[str, Any]] = None, **kwargs
+        self, name: str, schema: Dict[str, Any] | None = None, **kwargs
     ) -> NamespaceDescription:
         """Create a namespace in a serverless index.
 
@@ -960,7 +960,7 @@ class IndexInterface(ABC):
     @abstractmethod
     @require_kwargs
     def list_namespaces(
-        self, limit: Optional[int] = None, **kwargs
+        self, limit: int | None = None, **kwargs
     ) -> Iterator[ListNamespacesResponse]:
         """List all namespaces in an index. This method automatically handles pagination to return all results.
 
@@ -983,7 +983,7 @@ class IndexInterface(ABC):
     @abstractmethod
     @require_kwargs
     def list_namespaces_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+        self, limit: int | None = None, pagination_token: str | None = None, **kwargs
     ) -> ListNamespacesResponse:
         """List all namespaces in an index with pagination support. The response includes pagination information if there are more results available.
 

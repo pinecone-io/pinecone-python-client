@@ -2,7 +2,7 @@ import abc
 import logging
 import random
 import time
-from typing import Optional, Tuple, NamedTuple
+from typing import Tuple, NamedTuple
 
 import grpc
 
@@ -89,4 +89,4 @@ class RetryConfig(NamedTuple):
     sleep_policy: SleepPolicy = ExponentialBackoff(
         init_backoff_ms=100, max_backoff_ms=1600, multiplier=2
     )
-    retryable_status: Optional[Tuple[grpc.StatusCode, ...]] = (grpc.StatusCode.UNAVAILABLE,)
+    retryable_status: Tuple[grpc.StatusCode, ...] | None = (grpc.StatusCode.UNAVAILABLE,)

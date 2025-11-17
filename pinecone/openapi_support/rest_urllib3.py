@@ -2,7 +2,6 @@ import json
 import logging
 import ssl
 import os
-from typing import Optional
 from urllib.parse import urlencode, quote
 from ..config.openapi_configuration import Configuration
 from .rest_utils import raise_exceptions_or_return, RESTResponse, RestClientInterface
@@ -32,7 +31,7 @@ class Urllib3RestClient(RestClientInterface):
     pool_manager: urllib3.PoolManager
 
     def __init__(
-        self, configuration: Configuration, pools_size: int = 4, maxsize: Optional[int] = None
+        self, configuration: Configuration, pools_size: int = 4, maxsize: int | None = None
     ) -> None:
         # urllib3.PoolManager will pass all kw parameters to connectionpool
         # https://github.com/shazow/urllib3/blob/f9409436f83aeb79fbaf090181cd81b784f1b8ce/urllib3/poolmanager.py#L75  # noqa: E501

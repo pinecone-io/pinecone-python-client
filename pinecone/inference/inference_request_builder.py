@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Union, List, Dict, Any
+from typing import List, Dict, Any
 
 from pinecone.core.openapi.inference.models import (
     EmbedRequest,
@@ -24,9 +24,9 @@ class RerankModel(Enum):
 class InferenceRequestBuilder:
     @staticmethod
     def embed_request(
-        model: Union[EmbedModel, str],
-        inputs: Union[str, List[Dict], List[str]],
-        parameters: Optional[Dict[str, Any]] = None,
+        model: EmbedModel | str,
+        inputs: str | List[Dict] | List[str],
+        parameters: Dict[str, Any] | None = None,
     ) -> EmbedRequest:
         model = convert_enum_to_string(model)
         embeddings_inputs: List[EmbedRequestInputs] = []
@@ -53,13 +53,13 @@ class InferenceRequestBuilder:
 
     @staticmethod
     def rerank(
-        model: Union[RerankModel, str],
+        model: RerankModel | str,
         query: str,
-        documents: Union[List[str], List[Dict[str, Any]]],
+        documents: List[str] | List[Dict[str, Any]],
         rank_fields: List[str] = ["text"],
         return_documents: bool = True,
-        top_n: Optional[int] = None,
-        parameters: Optional[Dict[str, Any]] = None,
+        top_n: int | None = None,
+        parameters: Dict[str, Any] | None = None,
     ) -> RerankRequest:
         if isinstance(model, RerankModel):
             model = model.value

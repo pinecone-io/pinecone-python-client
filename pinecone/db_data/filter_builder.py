@@ -1,4 +1,4 @@
-from typing import Dict, List, Union, Any, cast
+from typing import Dict, List, Any, cast
 from .types.query_filter import FilterTypedDict, FieldValue, NumericFieldValue, SimpleFilter
 
 
@@ -41,7 +41,7 @@ class FilterBuilder:
 
     """
 
-    def __init__(self, filter_dict: Union[SimpleFilter, Dict[str, Any], None] = None) -> None:
+    def __init__(self, filter_dict: (SimpleFilter | Dict[str, Any]) | None = None) -> None:
         """
         Initialize a FilterBuilder.
 
@@ -49,7 +49,7 @@ class FilterBuilder:
             filter_dict: Optional initial filter dictionary. Used internally
                         for combining filters with operators.
         """
-        self._filter: Union[SimpleFilter, Dict[str, Any], None] = filter_dict
+        self._filter: (SimpleFilter | Dict[str, Any]) | None = filter_dict
 
     def eq(self, field: str, value: FieldValue) -> "FilterBuilder":
         """
@@ -348,7 +348,7 @@ class FilterBuilder:
             return FilterBuilder({"$or": conditions})
         return FilterBuilder({"$or": [left_condition, right_condition]})
 
-    def _get_filter_condition(self) -> Union[SimpleFilter, Dict[str, Any]]:
+    def _get_filter_condition(self) -> SimpleFilter | Dict[str, Any]:
         """
         Get the filter condition representation of this builder.
 

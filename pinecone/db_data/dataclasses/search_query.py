@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Any, Dict, Union
+from typing import Any, Dict
 from .search_query_vector import SearchQueryVector
 from .utils import DictLike
 from ..types.search_query_vector_typed_dict import SearchQueryVectorTypedDict
@@ -23,23 +23,23 @@ class SearchQuery(DictLike):
     Required.
     """
 
-    filter: Optional[Dict[str, Any]] = None
+    filter: Dict[str, Any] | None = None
     """
     The filter to apply to the search.
     Optional.
     """
 
-    vector: Optional[Union[SearchQueryVectorTypedDict, SearchQueryVector]] = None
+    vector: (SearchQueryVectorTypedDict | SearchQueryVector) | None = None
     """
     The vector values to search with. If provided, it overwrites the inputs.
     """
 
-    id: Optional[str] = None
+    id: str | None = None
     """
     The unique ID of the vector to be used as a query vector.
     """
 
-    match_terms: Optional[Dict[str, Any]] = None
+    match_terms: Dict[str, Any] | None = None
     """
     Specifies which terms must be present in the text of each search hit based on the specified strategy.
     The match is performed against the text field specified in the integrated index field_map configuration.

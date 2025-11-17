@@ -8,7 +8,7 @@ available via star imports but are no longer imported at the top level.
 import importlib
 import sys
 from types import ModuleType
-from typing import Dict, Optional, Set, Any, Tuple, cast
+from typing import Dict, Set, Any, Tuple, cast
 
 # Dictionary mapping legacy import names to their actual module paths
 # Format: 'name': ('module_path', 'actual_name')
@@ -88,7 +88,7 @@ class LegacyImportProxy:
         raise AttributeError(f"module 'pinecone' has no attribute '{name}'")
 
 
-def setup_legacy_imports(legacy_imports: Optional[Dict[str, Tuple[str, str]]] = None) -> None:
+def setup_legacy_imports(legacy_imports: Dict[str, Tuple[str, str]] | None = None) -> None:
     """
     Set up the legacy import handler.
 

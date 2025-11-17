@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Dict, List
 
-VectorDictMetadataValue = Union[str, int, float, List[str], List[int], List[float]]
+VectorDictMetadataValue = str | int | float | List[str] | List[int] | List[float]
 VectorMetadataTypedDict = Dict[str, VectorDictMetadataValue]

@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import List
 from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.admin.apis import APIKeysApi
 from pinecone.utils import require_kwargs, parse_non_empty_args
@@ -151,8 +151,8 @@ class ApiKeyResource:
         self,
         project_id: str,
         name: str,
-        description: Optional[str] = None,
-        roles: Optional[List[str]] = None,
+        description: str | None = None,
+        roles: List[str] | None = None,
     ):
         """
         Create an API key for a project.
@@ -210,9 +210,7 @@ class ApiKeyResource:
         )
 
     @require_kwargs
-    def update(
-        self, api_key_id: str, name: Optional[str] = None, roles: Optional[List[str]] = None
-    ):
+    def update(self, api_key_id: str, name: str | None = None, roles: List[str] | None = None):
         """
         Update an API key.
 

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from pinecone.utils import require_kwargs, parse_non_empty_args
 from ...models import ModelInfoList, ModelInfo
 
@@ -14,7 +14,7 @@ class ModelAsyncio:
 
     @require_kwargs
     async def list(
-        self, *, type: Optional[str] = None, vector_type: Optional[str] = None
+        self, *, type: str | None = None, vector_type: str | None = None
     ) -> ModelInfoList:
         """
         List all available models.
