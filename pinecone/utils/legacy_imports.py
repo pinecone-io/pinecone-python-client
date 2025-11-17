@@ -8,11 +8,11 @@ available via star imports but are no longer imported at the top level.
 import importlib
 import sys
 from types import ModuleType
-from typing import Dict, Set, Any, Tuple, cast
+from typing import Set, Any, Tuple, cast
 
 # Dictionary mapping legacy import names to their actual module paths
 # Format: 'name': ('module_path', 'actual_name')
-LEGACY_IMPORTS: Dict[str, Tuple[str, str]] = {
+LEGACY_IMPORTS: dict[str, Tuple[str, str]] = {
     # Example: 'Vector': ('pinecone.db_data.models', 'Vector')
     # Add all your legacy imports here
 }
@@ -26,7 +26,7 @@ class LegacyImportProxy:
     to handle legacy imports that were previously available via star imports.
     """
 
-    def __init__(self, original_module: Any, legacy_imports: Dict[str, Tuple[str, str]]):
+    def __init__(self, original_module: Any, legacy_imports: dict[str, Tuple[str, str]]):
         """
         Initialize the proxy module.
 
@@ -37,7 +37,7 @@ class LegacyImportProxy:
         self._original_module = original_module
         self._legacy_imports = legacy_imports
         self._warned_imports: Set[str] = set()
-        self._loaded_modules: Dict[str, Any] = {}
+        self._loaded_modules: dict[str, Any] = {}
 
     def __getattr__(self, name: str) -> Any:
         """
@@ -88,7 +88,7 @@ class LegacyImportProxy:
         raise AttributeError(f"module 'pinecone' has no attribute '{name}'")
 
 
-def setup_legacy_imports(legacy_imports: Dict[str, Tuple[str, str]] | None = None) -> None:
+def setup_legacy_imports(legacy_imports: dict[str, Tuple[str, str]] | None = None) -> None:
     """
     Set up the legacy import handler.
 

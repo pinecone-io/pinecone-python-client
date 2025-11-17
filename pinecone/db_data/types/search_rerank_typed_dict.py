@@ -1,4 +1,4 @@
-from typing import TypedDict, Dict, Any
+from typing import TypedDict, Any
 from pinecone.inference import RerankModel
 
 
@@ -15,7 +15,7 @@ class SearchRerankTypedDict(TypedDict):
     # """
 
     rank_fields: list[str]
-    # rank_fields: List[str]
+    # rank_fields: list[str]
     # """
     # The fields to use for reranking.
     # Required.
@@ -27,7 +27,7 @@ class SearchRerankTypedDict(TypedDict):
     # Optional.
     # """
 
-    parameters: Dict[str, Any] | None
+    parameters: dict[str, Any] | None
     # """
     # Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/inference/understanding-inference#models)
     # for available model parameters.

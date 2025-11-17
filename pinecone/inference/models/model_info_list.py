@@ -1,5 +1,4 @@
 import json
-from typing import List
 from pinecone.core.openapi.inference.model.model_info_list import (
     ModelInfoList as OpenAPIModelInfoList,
 )
@@ -16,7 +15,7 @@ class ModelInfoList:
         self._model_info_list = model_info_list
         self._models = [ModelInfo(model_info) for model_info in model_info_list.models]
 
-    def names(self) -> List[str]:
+    def names(self) -> list[str]:
         return [i.name for i in self._models]
 
     def __getitem__(self, key):

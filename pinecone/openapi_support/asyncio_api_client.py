@@ -3,7 +3,7 @@ import io
 from urllib3.fields import RequestField
 import logging
 
-from typing import List, Tuple, Dict, Any
+from typing import Tuple, Any
 
 
 from .rest_aiohttp import AiohttpRestClient
@@ -38,7 +38,7 @@ class AsyncioApiClient(object):
 
         self.rest_client = AiohttpRestClient(configuration)
 
-        self.default_headers: Dict[str, str] = {}
+        self.default_headers: dict[str, str] = {}
         # Set default User-Agent.
         self.user_agent = "OpenAPI-Generator/1.0.0/python"
 
@@ -68,16 +68,16 @@ class AsyncioApiClient(object):
         self,
         resource_path: str,
         method: str,
-        path_params: Dict[str, Any] | None = None,
-        query_params: List[Tuple[str, Any]] | None = None,
-        header_params: Dict[str, Any] | None = None,
+        path_params: dict[str, Any] | None = None,
+        query_params: list[Tuple[str, Any]] | None = None,
+        header_params: dict[str, Any] | None = None,
         body: Any | None = None,
-        post_params: List[Tuple[str, Any]] | None = None,
-        files: Dict[str, List[io.IOBase]] | None = None,
+        post_params: list[Tuple[str, Any]] | None = None,
+        files: dict[str, list[io.IOBase]] | None = None,
         response_type: Tuple[Any] | None = None,
-        auth_settings: List[str] | None = None,
+        auth_settings: list[str] | None = None,
         _return_http_data_only: bool | None = None,
-        collection_formats: Dict[str, str] | None = None,
+        collection_formats: dict[str, str] | None = None,
         _preload_content: bool = True,
         _request_timeout: (int | float | Tuple) | None = None,
         _host: str | None = None,
@@ -215,16 +215,16 @@ class AsyncioApiClient(object):
         self,
         resource_path: str,
         method: str,
-        path_params: Dict[str, Any] | None = None,
-        query_params: List[Tuple[str, Any]] | None = None,
-        header_params: Dict[str, Any] | None = None,
+        path_params: dict[str, Any] | None = None,
+        query_params: list[Tuple[str, Any]] | None = None,
+        header_params: dict[str, Any] | None = None,
         body: Any | None = None,
-        post_params: List[Tuple[str, Any]] | None = None,
-        files: Dict[str, List[io.IOBase]] | None = None,
+        post_params: list[Tuple[str, Any]] | None = None,
+        files: dict[str, list[io.IOBase]] | None = None,
         response_type: Tuple[Any] | None = None,
-        auth_settings: List[str] | None = None,
+        auth_settings: list[str] | None = None,
         _return_http_data_only: bool | None = None,
-        collection_formats: Dict[str, str] | None = None,
+        collection_formats: dict[str, str] | None = None,
         _preload_content: bool = True,
         _request_timeout: (int | float | Tuple) | None = None,
         _host: str | None = None,

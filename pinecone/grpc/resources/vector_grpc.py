@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, List, Tuple, Any, Iterable, cast, Literal
+from typing import Tuple, Any, Iterable, cast, Literal
 
 from google.protobuf import json_format
 
@@ -71,12 +71,12 @@ class VectorResourceGRPC(PluginAware):
         super().__init__()
 
     @staticmethod
-    def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
+    def _parse_non_empty_args(args: list[Tuple[str, Any]]) -> dict[str, Any]:
         return {arg_name: val for arg_name, val in args if val is not None}
 
     def upsert(
         self,
-        vectors: List[Vector] | List[GRPCVector] | List[VectorTuple] | List[VectorTypedDict],
+        vectors: list[Vector] | list[GRPCVector] | list[VectorTuple] | list[VectorTypedDict],
         async_req: bool = False,
         namespace: str | None = None,
         batch_size: int | None = None,
@@ -164,7 +164,7 @@ class VectorResourceGRPC(PluginAware):
         return UpsertResponse(upserted_count=total_upserted, _response_info=response_info)
 
     def _upsert_batch(
-        self, vectors: List[GRPCVector], namespace: str | None, timeout: int | None, **kwargs
+        self, vectors: list[GRPCVector], namespace: str | None, timeout: int | None, **kwargs
     ) -> UpsertResponse:
         args_dict = self._parse_non_empty_args([("namespace", namespace)])
         request = UpsertRequest(vectors=vectors, **args_dict)
@@ -216,7 +216,7 @@ class VectorResourceGRPC(PluginAware):
             results.append(res)
 
         if use_async_requests:
-            cast_results = cast(List[PineconeGrpcFuture], results)
+            cast_results = cast(list[PineconeGrpcFuture], results)
             results = [
                 async_result.result()
                 for async_result in tqdm(
@@ -251,13 +251,13 @@ class VectorResourceGRPC(PluginAware):
 
     def delete(
         self,
-        ids: List[str] | None = None,
+        ids: list[str] | None = None,
         delete_all: bool | None = None,
         namespace: str | None = None,
         filter: FilterTypedDict | None = None,
         async_req: bool = False,
         **kwargs,
-    ) -> Dict[str, Any] | PineconeGrpcFuture:
+    ) -> dict[str, Any] | PineconeGrpcFuture:
         """Delete vectors from the index.
 
         The Delete operation deletes vectors from the index, from a single namespace.
@@ -315,7 +315,7 @@ class VectorResourceGRPC(PluginAware):
 
     def fetch(
         self,
-        ids: List[str] | None,
+        ids: list[str] | None,
         namespace: str | None = None,
         async_req: bool | None = False,
         **kwargs,
@@ -435,7 +435,7 @@ class VectorResourceGRPC(PluginAware):
 
     def _query(
         self,
-        vector: List[float] | None = None,
+        vector: list[float] | None = None,
         id: str | None = None,
         namespace: str | None = None,
         top_k: int | None = None,
@@ -444,7 +444,7 @@ class VectorResourceGRPC(PluginAware):
         include_metadata: bool | None = None,
         sparse_vector: (SparseValues | GRPCSparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
-    ) -> Tuple[Dict[str, Any], Dict[str, str] | None]:
+    ) -> Tuple[dict[str, Any], dict[str, str] | None]:
         """
         Low-level query method that returns raw JSON dict and initial metadata without parsing.
         Used internally by query() and query_namespaces() for performance.
@@ -482,7 +482,7 @@ class VectorResourceGRPC(PluginAware):
 
     def query(
         self,
-        vector: List[float] | None = None,
+        vector: list[float] | None = None,
         id: str | None = None,
         namespace: str | None = None,
         top_k: int | None = None,
@@ -517,8 +517,8 @@ class VectorResourceGRPC(PluginAware):
                 as the ids. If omitted the server will use the default value of False.
                 [optional]
             sparse_vector: Sparse values of the query vector. Expected to be either a
-                SparseValues object or a dict of the form {'indices': List[int],
-                'values': List[float]}, where the lists each have the same length.
+                SparseValues object or a dict of the form {'indices': list[int],
+                'values': list[float]}, where the lists each have the same length.
                 [optional]
             async_req: If True, the query operation will be performed asynchronously.
                 Defaults to False. [optional]
@@ -588,8 +588,8 @@ class VectorResourceGRPC(PluginAware):
 
     def query_namespaces(
         self,
-        vector: List[float],
-        namespaces: List[str],
+        vector: list[float],
+        namespaces: list[str],
         metric: Literal["cosine", "euclidean", "dotproduct"],
         top_k: int | None = None,
         filter: FilterTypedDict | None = None,
@@ -669,7 +669,7 @@ class VectorResourceGRPC(PluginAware):
         self,
         id: str,
         async_req: bool = False,
-        values: List[float] | None = None,
+        values: list[float] | None = None,
         set_metadata: VectorMetadataTypedDict | None = None,
         namespace: str | None = None,
         sparse_values: (GRPCSparseValues | SparseVectorTypedDict) | None = None,
@@ -690,8 +690,8 @@ class VectorResourceGRPC(PluginAware):
             namespace: Namespace name where to update the vector. If not specified, the
                 default namespace is used. [optional]
             sparse_values: Sparse values to update for the vector. Expected to be either
-                a GRPCSparseValues object or a dict of the form {'indices': List[int],
-                'values': List[float]} where the lists each have the same length.
+                a GRPCSparseValues object or a dict of the form {'indices': list[int],
+                'values': list[float]} where the lists each have the same length.
                 [optional]
             **kwargs: Additional keyword arguments.
 

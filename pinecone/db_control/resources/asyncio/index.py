@@ -65,7 +65,7 @@ class IndexResourceAsyncio:
         timeout: int | None = None,
         deletion_protection: (DeletionProtection | str) | None = DeletionProtection.DISABLED,
         vector_type: (VectorType | str) | None = VectorType.DENSE,
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
     ) -> IndexModel:
         req = PineconeDBControlRequestFactory.create_index_request(
             name=name,
@@ -92,7 +92,7 @@ class IndexResourceAsyncio:
         cloud: CloudProvider | str,
         region: AwsRegion | GcpRegion | AzureRegion | str,
         embed: IndexEmbed | CreateIndexForModelEmbedTypedDict,
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
         deletion_protection: (DeletionProtection | str) | None = DeletionProtection.DISABLED,
         read_capacity: (
             "ReadCapacityDict"
@@ -102,11 +102,11 @@ class IndexResourceAsyncio:
         )
         | None = None,
         schema: (
-            Dict[
+            dict[
                 str, "MetadataSchemaFieldConfig"
             ]  # Direct field mapping: {field_name: {filterable: bool}}
-            | Dict[
-                str, Dict[str, Any]
+            | dict[
+                str, dict[str, Any]
             ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
             | "BackupModelSchema"  # OpenAPI model instance
         )
@@ -138,7 +138,7 @@ class IndexResourceAsyncio:
         name: str,
         backup_id: str,
         deletion_protection: (DeletionProtection | str) | None = DeletionProtection.DISABLED,
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
         timeout: int | None = None,
     ) -> IndexModel:
         req = PineconeDBControlRequestFactory.create_index_from_backup_request(
@@ -224,7 +224,7 @@ class IndexResourceAsyncio:
         replicas: int | None = None,
         pod_type: (PodType | str) | None = None,
         deletion_protection: (DeletionProtection | str) | None = None,
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
         embed: (ConfigureIndexEmbed | Dict) | None = None,
         read_capacity: (
             "ReadCapacityDict"

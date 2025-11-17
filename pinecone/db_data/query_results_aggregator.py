@@ -1,4 +1,4 @@
-from typing import List, Tuple, Any, Dict, Literal
+from typing import Tuple, Any, Literal
 import json
 import heapq
 from pinecone.core.openapi.db_data.models import Usage
@@ -12,7 +12,7 @@ class ScoredVectorWithNamespace:
     namespace: str
     score: float
     id: str
-    values: List[float]
+    values: list[float]
     sparse_values: dict
     metadata: dict
 
@@ -67,7 +67,7 @@ class ScoredVectorWithNamespace:
 @dataclass
 class QueryNamespacesResults:
     usage: Usage
-    matches: List[ScoredVectorWithNamespace]
+    matches: list[ScoredVectorWithNamespace]
 
     def __getitem__(self, key):
         if hasattr(self, key):
@@ -109,7 +109,7 @@ class QueryResultsAggregator:
 
         self.top_k = top_k
         self.usage_read_units = 0
-        self.heap: List[Tuple[float, int, object, str]] = []
+        self.heap: list[Tuple[float, int, object, str]] = []
         self.insertion_counter = 0
         self.read = False
         self.final_results: QueryNamespacesResults | None = None
@@ -137,7 +137,7 @@ class QueryResultsAggregator:
                     break
                 heapq.heappushpop(self.heap, heap_item_fn(match, ns))
 
-    def add_results(self, results: Dict[str, Any]):
+    def add_results(self, results: dict[str, Any]):
         if self.read:
             # This is mainly just to sanity check in test cases which get quite confusing
             # if you read results twice due to the heap being emptied when constructing

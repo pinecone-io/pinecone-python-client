@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, cast
+from typing import cast
 
 from .vector import Vector
 from .utils import DictLike
@@ -15,7 +15,7 @@ class Pagination(DictLike):
 @dataclass
 class FetchByMetadataResponse(DictLike):
     namespace: str
-    vectors: Dict[str, Vector]
+    vectors: dict[str, Vector]
     usage: Usage | None = None
     pagination: Pagination | None = None
     _response_info: ResponseInfo = field(

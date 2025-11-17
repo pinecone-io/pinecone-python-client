@@ -2,7 +2,6 @@ import pytest
 import json
 import os
 import uuid
-from typing import List
 from tests.integration.helpers import (
     get_environment_var,
     index_tags as index_tags_helper,
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 RUN_ID = str(uuid.uuid4())
 
-created_indexes: List[str] = []
+created_indexes: list[str] = []
 
 
 @pytest.fixture(scope="session")

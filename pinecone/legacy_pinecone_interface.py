@@ -50,10 +50,10 @@ class LegacyPineconeDBControlInterface(ABC):
         api_key: str | None = None,
         host: str | None = None,
         proxy_url: str | None = None,
-        proxy_headers: Dict[str, str] | None = None,
+        proxy_headers: dict[str, str] | None = None,
         ssl_ca_certs: str | None = None,
         ssl_verify: bool | None = None,
-        additional_headers: Dict[str, str] | None = {},
+        additional_headers: dict[str, str] | None = {},
         pool_threads: int | None = 1,
         **kwargs,
     ):
@@ -69,7 +69,7 @@ class LegacyPineconeDBControlInterface(ABC):
         timeout: int | None = None,
         deletion_protection: ("DeletionProtection" | str) | None = "DeletionProtection.DISABLED",
         vector_type: ("VectorType" | str) | None = "VectorType.DENSE",
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
     ) -> "IndexModel":
         """Creates a Pinecone index.
 
@@ -98,7 +98,7 @@ class LegacyPineconeDBControlInterface(ABC):
         :param vector_type: The type of vectors to be stored in the index. One of ``{"dense", "sparse"}``.
         :type vector_type: str, optional
         :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
-        :type tags: Optional[Dict[str, str]]
+        :type tags: Optional[dict[str, str]]
         :return: A ``IndexModel`` instance containing a description of the index that was created.
 
         Examples:
@@ -190,7 +190,7 @@ class LegacyPineconeDBControlInterface(ABC):
         name: str,
         backup_id: str,
         deletion_protection: ("DeletionProtection" | str) | None = "disabled",
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
         timeout: int | None = None,
     ) -> "IndexModel":
         """
@@ -205,7 +205,7 @@ class LegacyPineconeDBControlInterface(ABC):
         :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. This setting can be changed with ``configure_index``.
         :type deletion_protection: Optional[Literal["enabled", "disabled"]]
         :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
-        :type tags: Optional[Dict[str, str]]
+        :type tags: Optional[dict[str, str]]
         :param timeout: Specify the number of seconds to wait until index is ready to receive data. If None, wait indefinitely; if >=0, time out after this many seconds;
             if -1, return immediately and do not wait.
         :return: A description of the index that was created.
@@ -221,7 +221,7 @@ class LegacyPineconeDBControlInterface(ABC):
         cloud: "CloudProvider" | str,
         region: "AwsRegion" | "GcpRegion" | "AzureRegion" | str,
         embed: "IndexEmbed" | "CreateIndexForModelEmbedTypedDict",
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
         deletion_protection: ("DeletionProtection" | str) | None = "DeletionProtection.DISABLED",
         read_capacity: (
             "ReadCapacityDict"
@@ -231,11 +231,11 @@ class LegacyPineconeDBControlInterface(ABC):
         )
         | None = None,
         schema: (
-            Dict[
+            dict[
                 str, "MetadataSchemaFieldConfig"
             ]  # Direct field mapping: {field_name: {filterable: bool}}
-            | Dict[
-                str, Dict[str, Any]
+            | dict[
+                str, dict[str, Any]
             ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
             | "BackupModelSchema"  # OpenAPI model instance
         )
@@ -254,7 +254,7 @@ class LegacyPineconeDBControlInterface(ABC):
         :param embed: The embedding configuration for the index. This param accepts a dictionary or an instance of the ``IndexEmbed`` object.
         :type embed: Union[Dict, IndexEmbed]
         :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
-        :type tags: Optional[Dict[str, str]]
+        :type tags: Optional[dict[str, str]]
         :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. This setting can be changed with ``configure_index``.
         :type deletion_protection: Optional[Literal["enabled", "disabled"]]
         :param read_capacity: Optional read capacity configuration. You can specify ``read_capacity`` to configure dedicated read capacity mode
@@ -263,7 +263,7 @@ class LegacyPineconeDBControlInterface(ABC):
         :param schema: Optional metadata schema configuration. You can specify ``schema`` to configure which metadata fields are filterable.
             The schema can be provided as a dictionary mapping field names to their configurations (e.g., ``{"genre": {"filterable": True}}``)
             or as a dictionary with a ``fields`` key (e.g., ``{"fields": {"genre": {"filterable": True}}}``).
-        :type schema: Optional[Union[Dict[str, MetadataSchemaFieldConfig], Dict[str, Dict[str, Any]], BackupModelSchema]]
+        :type schema: Optional[Union[dict[str, MetadataSchemaFieldConfig], dict[str, dict[str, Any]], BackupModelSchema]]
         :type timeout: Optional[int]
         :param timeout: Specify the number of seconds to wait until index is ready to receive data. If None, wait indefinitely; if >=0, time out after this many seconds;
             if -1, return immediately and do not wait.
@@ -526,7 +526,7 @@ class LegacyPineconeDBControlInterface(ABC):
         replicas: int | None = None,
         pod_type: ("PodType" | str) | None = None,
         deletion_protection: ("DeletionProtection" | str) | None = None,
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
         embed: ("ConfigureIndexEmbed" | Dict) | None = None,
         read_capacity: (
             "ReadCapacityDict"
@@ -548,7 +548,7 @@ class LegacyPineconeDBControlInterface(ABC):
         :param deletion_protection: If set to ``'enabled'``, the index cannot be deleted. If ``'disabled'``, the index can be deleted.
         :type deletion_protection: str or DeletionProtection, optional
         :param tags: A dictionary of tags to apply to the index. Tags are key-value pairs that can be used to organize and manage indexes. To remove a tag, set the value to "". Tags passed to configure_index will be merged with existing tags and any with the value empty string will be removed.
-        :type tags: Dict[str, str], optional
+        :type tags: dict[str, str], optional
         :param embed: configures the integrated inference embedding settings for the index. You can convert an existing index to an integrated index by specifying the embedding model and field_map.
             The index vector type and dimension must match the model vector type and dimension, and the index similarity metric must be supported by the model.
             You can later change the embedding configuration to update the field_map, read_parameters, or write_parameters. Once set, the model cannot be changed.

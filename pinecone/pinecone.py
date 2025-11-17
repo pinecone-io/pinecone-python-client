@@ -70,10 +70,10 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         api_key: str | None = None,
         host: str | None = None,
         proxy_url: str | None = None,
-        proxy_headers: Dict[str, str] | None = None,
+        proxy_headers: dict[str, str] | None = None,
         ssl_ca_certs: str | None = None,
         ssl_verify: bool | None = None,
-        additional_headers: Dict[str, str] | None = {},
+        additional_headers: dict[str, str] | None = {},
         pool_threads: int | None = None,
         **kwargs,
     ) -> None:
@@ -96,13 +96,13 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         :param proxy_url: The URL of the proxy to use for the connection.
         :type proxy_url: str, optional
         :param proxy_headers: Additional headers to pass to the proxy. Use this if your proxy setup requires authentication.
-        :type proxy_headers: Dict[str, str], optional
+        :type proxy_headers: dict[str, str], optional
         :param ssl_ca_certs: The path to the SSL CA certificate bundle to use for the connection. This path should point to a file in PEM format. When not passed, the SDK will use the certificate bundle returned from ``certifi.where()``.
         :type ssl_ca_certs: str, optional
         :param ssl_verify: SSL verification is performed by default, but can be disabled using the boolean flag when testing with Pinecone Local or troubleshooting a proxy setup. You should never run with SSL verification disabled in production.
         :type ssl_verify: bool, optional
         :param additional_headers: Additional headers to pass to the API. This is mainly to support internal testing at Pinecone. End users should not need to use this unless following specific instructions to do so.
-        :type additional_headers: Dict[str, str], optional
+        :type additional_headers: dict[str, str], optional
         :param pool_threads: The number of threads to use for the ThreadPool when using methods that support the ``async_req`` keyword argument. The default number of threads is 5 * the number of CPUs in your execution environment.
         :type pool_threads: int, optional
 
@@ -345,7 +345,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         timeout: int | None = None,
         deletion_protection: ("DeletionProtection" | str) | None = "disabled",
         vector_type: ("VectorType" | str) | None = "dense",
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
     ) -> "IndexModel":
         return self.db.index.create(
             name=name,
@@ -364,7 +364,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         cloud: "CloudProvider" | str,
         region: "AwsRegion" | "GcpRegion" | "AzureRegion" | str,
         embed: "IndexEmbed" | "CreateIndexForModelEmbedTypedDict",
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
         deletion_protection: ("DeletionProtection" | str) | None = "disabled",
         read_capacity: (
             "ReadCapacityDict"
@@ -374,11 +374,11 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         )
         | None = None,
         schema: (
-            Dict[
+            dict[
                 str, "MetadataSchemaFieldConfig"
             ]  # Direct field mapping: {field_name: {filterable: bool}}
-            | Dict[
-                str, Dict[str, Any]
+            | dict[
+                str, dict[str, Any]
             ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
             | "BackupModelSchema"  # OpenAPI model instance
         )
@@ -404,7 +404,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         name: str,
         backup_id: str,
         deletion_protection: ("DeletionProtection" | str) | None = "disabled",
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
         timeout: int | None = None,
     ) -> "IndexModel":
         return self.db.index.create_from_backup(
@@ -433,7 +433,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         replicas: int | None = None,
         pod_type: ("PodType" | str) | None = None,
         deletion_protection: ("DeletionProtection" | str) | None = None,
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
         embed: ("ConfigureIndexEmbed" | Dict) | None = None,
         read_capacity: (
             "ReadCapacityDict"
@@ -462,11 +462,11 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
     def delete_collection(self, name: str) -> None:
         return self.db.collection.delete(name=name)
 
-    def describe_collection(self, name: str) -> Dict[str, Any]:
+    def describe_collection(self, name: str) -> dict[str, Any]:
         from typing import cast
 
         result = self.db.collection.describe(name=name)
-        return cast(Dict[str, Any], result)
+        return cast(dict[str, Any], result)
 
     @require_kwargs
     def create_backup(

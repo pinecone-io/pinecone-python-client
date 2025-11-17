@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 from .search_query_vector import SearchQueryVector
 from .utils import DictLike
 from ..types.search_query_vector_typed_dict import SearchQueryVectorTypedDict
@@ -11,7 +11,7 @@ class SearchQuery(DictLike):
     SearchQuery represents the query when searching within a specific namespace.
     """
 
-    inputs: Dict[str, Any]
+    inputs: dict[str, Any]
     """
     The input data to search with.
     Required.
@@ -23,7 +23,7 @@ class SearchQuery(DictLike):
     Required.
     """
 
-    filter: Dict[str, Any] | None = None
+    filter: dict[str, Any] | None = None
     """
     The filter to apply to the search.
     Optional.
@@ -39,7 +39,7 @@ class SearchQuery(DictLike):
     The unique ID of the vector to be used as a query vector.
     """
 
-    match_terms: Dict[str, Any] | None = None
+    match_terms: dict[str, Any] | None = None
     """
     Specifies which terms must be present in the text of each search hit based on the specified strategy.
     The match is performed against the text field specified in the integrated index field_map configuration.
@@ -59,7 +59,7 @@ class SearchQuery(DictLike):
         if isinstance(self.vector, SearchQueryVector):
             self.vector = self.vector.as_dict()  # type: ignore[assignment]
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         """
         Returns the SearchQuery as a dictionary.
         """

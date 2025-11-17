@@ -7,7 +7,7 @@ them defensively with fallbacks.
 This is a test utility and not part of the public API.
 """
 
-from typing import Dict, Any, Optional, Tuple
+from typing import Any, Optional, Tuple
 
 
 # Possible header names for LSN values (case-insensitive matching)
@@ -26,7 +26,7 @@ LSN_COMMITTED_HEADERS = [
 ]
 
 
-def _get_header_value(headers: Dict[str, Any], possible_names: list[str]) -> Optional[int]:
+def _get_header_value(headers: dict[str, Any], possible_names: list[str]) -> Optional[int]:
     """Extract a header value by trying multiple possible header names.
 
     Args:
@@ -58,7 +58,7 @@ def _get_header_value(headers: Dict[str, Any], possible_names: list[str]) -> Opt
     return None
 
 
-def extract_lsn_reconciled(headers: Dict[str, Any]) -> Optional[int]:
+def extract_lsn_reconciled(headers: dict[str, Any]) -> Optional[int]:
     """Extract the reconciled LSN value from response headers.
 
     The reconciled LSN represents the latest log sequence number that has been
@@ -73,7 +73,7 @@ def extract_lsn_reconciled(headers: Dict[str, Any]) -> Optional[int]:
     return _get_header_value(headers, LSN_RECONCILED_HEADERS)
 
 
-def extract_lsn_committed(headers: Dict[str, Any]) -> Optional[int]:
+def extract_lsn_committed(headers: dict[str, Any]) -> Optional[int]:
     """Extract the committed LSN value from response headers.
 
     The committed LSN represents the log sequence number that was committed
@@ -88,7 +88,7 @@ def extract_lsn_committed(headers: Dict[str, Any]) -> Optional[int]:
     return _get_header_value(headers, LSN_COMMITTED_HEADERS)
 
 
-def extract_lsn_values(headers: Dict[str, Any]) -> Tuple[Optional[int], Optional[int]]:
+def extract_lsn_values(headers: dict[str, Any]) -> Tuple[Optional[int], Optional[int]]:
     """Extract both reconciled and committed LSN values from headers.
 
     Args:
@@ -118,7 +118,7 @@ def is_lsn_reconciled(target_lsn: int, current_reconciled_lsn: Optional[int]) ->
     return target_lsn <= current_reconciled_lsn
 
 
-def get_headers_from_response(response: Any) -> Optional[Dict[str, Any]]:
+def get_headers_from_response(response: Any) -> Optional[dict[str, Any]]:
     """Extract headers from various response types.
 
     This function handles different response formats:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Any, TypedDict, TYPE_CHECKING, Literal
+from typing import Any, TypedDict, TYPE_CHECKING, Literal
 from enum import Enum
 
 try:
@@ -93,14 +93,14 @@ class ServerlessSpec:
     cloud: str
     region: str
     read_capacity: ReadCapacityType | None = None
-    schema: Dict[str, MetadataSchemaFieldConfig] | None = None
+    schema: dict[str, MetadataSchemaFieldConfig] | None = None
 
     def __init__(
         self,
         cloud: CloudProvider | str,
         region: AwsRegion | GcpRegion | AzureRegion | str,
         read_capacity: ReadCapacityType | None = None,
-        schema: Dict[str, MetadataSchemaFieldConfig] | None = None,
+        schema: dict[str, MetadataSchemaFieldConfig] | None = None,
     ):
         # Convert Enums to their string values if necessary
         object.__setattr__(self, "cloud", cloud.value if isinstance(cloud, Enum) else str(cloud))
@@ -110,8 +110,8 @@ class ServerlessSpec:
         object.__setattr__(self, "read_capacity", read_capacity)
         object.__setattr__(self, "schema", schema)
 
-    def asdict(self) -> Dict[str, Any]:
-        result: Dict[str, Any] = {"serverless": {"cloud": self.cloud, "region": self.region}}
+    def asdict(self) -> dict[str, Any]:
+        result: dict[str, Any] = {"serverless": {"cloud": self.cloud, "region": self.region}}
         if self.read_capacity is not None:
             result["serverless"]["read_capacity"] = self.read_capacity
         if self.schema is not None:

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 from pinecone.core.openapi.inference.models import (
     EmbedRequest,
@@ -25,11 +25,11 @@ class InferenceRequestBuilder:
     @staticmethod
     def embed_request(
         model: EmbedModel | str,
-        inputs: str | List[Dict] | List[str],
-        parameters: Dict[str, Any] | None = None,
+        inputs: str | list[Dict] | list[str],
+        parameters: dict[str, Any] | None = None,
     ) -> EmbedRequest:
         model = convert_enum_to_string(model)
-        embeddings_inputs: List[EmbedRequestInputs] = []
+        embeddings_inputs: list[EmbedRequestInputs] = []
         if isinstance(inputs, str):
             embeddings_inputs = [EmbedRequestInputs(text=inputs)]
         elif isinstance(inputs, list) and len(inputs) > 0:
@@ -55,11 +55,11 @@ class InferenceRequestBuilder:
     def rerank(
         model: RerankModel | str,
         query: str,
-        documents: List[str] | List[Dict[str, Any]],
-        rank_fields: List[str] = ["text"],
+        documents: list[str] | list[dict[str, Any]],
+        rank_fields: list[str] = ["text"],
         return_documents: bool = True,
         top_n: int | None = None,
-        parameters: Dict[str, Any] | None = None,
+        parameters: dict[str, Any] | None = None,
     ) -> RerankRequest:
         if isinstance(model, RerankModel):
             model = model.value
@@ -76,7 +76,7 @@ class InferenceRequestBuilder:
         else:
             raise Exception("Invalid type or value for variable 'documents'")
 
-        args: Dict[str, Any] = {
+        args: dict[str, Any] = {
             "model": model,
             "query": query,
             "documents": documents,

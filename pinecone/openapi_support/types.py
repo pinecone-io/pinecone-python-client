@@ -1,4 +1,4 @@
-from typing import TypedDict, Dict
+from typing import TypedDict
 
 
 class PropertyValidationTypedDict(TypedDict, total=False):
@@ -10,5 +10,5 @@ class PropertyValidationTypedDict(TypedDict, total=False):
     inclusive_maximum: int | float
     exclusive_minimum: int | float
     inclusive_minimum: int | float
-    regex: Dict[str, str]
+    regex: dict[str, str]
     multiple_of: int

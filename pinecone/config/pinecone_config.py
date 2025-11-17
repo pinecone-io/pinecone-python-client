@@ -1,4 +1,3 @@
-from typing import Dict
 import logging
 import json
 import os
@@ -15,7 +14,7 @@ class PineconeConfig:
     def build(
         api_key: str | None = None,
         host: str | None = None,
-        additional_headers: Dict[str, str] | None = {},
+        additional_headers: dict[str, str] | None = {},
         **kwargs,
     ) -> Config:
         host = (

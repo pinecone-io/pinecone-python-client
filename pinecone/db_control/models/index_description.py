@@ -16,7 +16,7 @@ class ServerlessSpecDefinition(NamedTuple):
 
 
 PodKey = Literal["pod"]
-PodSpec = Dict[PodKey, PodSpecDefinition]
+PodSpec = dict[PodKey, PodSpecDefinition]
 
 ServerlessKey = Literal["serverless"]
-ServerlessSpec = Dict[ServerlessKey, ServerlessSpecDefinition]
+ServerlessSpec = dict[ServerlessKey, ServerlessSpecDefinition]

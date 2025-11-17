@@ -81,7 +81,7 @@ class IndexResource(PluginAware):
         timeout: int | None = None,
         deletion_protection: ("DeletionProtection" | str) | None = "disabled",
         vector_type: ("VectorType" | str) | None = "dense",
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
     ) -> IndexModel:
         req = PineconeDBControlRequestFactory.create_index_request(
             name=name,
@@ -108,7 +108,7 @@ class IndexResource(PluginAware):
         cloud: "CloudProvider" | str,
         region: "AwsRegion" | "GcpRegion" | "AzureRegion" | str,
         embed: "IndexEmbed" | "CreateIndexForModelEmbedTypedDict",
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
         deletion_protection: ("DeletionProtection" | str) | None = "disabled",
         read_capacity: (
             "ReadCapacityDict"
@@ -118,11 +118,11 @@ class IndexResource(PluginAware):
         )
         | None = None,
         schema: (
-            Dict[
+            dict[
                 str, "MetadataSchemaFieldConfig"
             ]  # Direct field mapping: {field_name: {filterable: bool}}
-            | Dict[
-                str, Dict[str, Any]
+            | dict[
+                str, dict[str, Any]
             ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
             | "BackupModelSchema"  # OpenAPI model instance
         )
@@ -154,7 +154,7 @@ class IndexResource(PluginAware):
         name: str,
         backup_id: str,
         deletion_protection: ("DeletionProtection" | str) | None = "disabled",
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
         timeout: int | None = None,
     ) -> IndexModel:
         """
@@ -164,7 +164,7 @@ class IndexResource(PluginAware):
             name (str): The name of the index to create.
             backup_id (str): The ID of the backup to create the index from.
             deletion_protection (DeletionProtection): The deletion protection to use for the index.
-            tags (Dict[str, str]): The tags to use for the index.
+            tags (dict[str, str]): The tags to use for the index.
             timeout (int): The number of seconds to wait for the index to be ready. If -1, the function will return without polling for the index status to be ready. If None, the function will poll indefinitely for the index to be ready.
 
         Returns:
@@ -263,7 +263,7 @@ class IndexResource(PluginAware):
         replicas: int | None = None,
         pod_type: ("PodType" | str) | None = None,
         deletion_protection: ("DeletionProtection" | str) | None = None,
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
         embed: ("ConfigureIndexEmbed" | Dict) | None = None,
         read_capacity: (
             "ReadCapacityDict"

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Any, List
+from typing import Any
 from pinecone.inference import RerankModel
 from .utils import DictLike
 
@@ -16,7 +16,7 @@ class SearchRerank(DictLike):
     Required.
     """
 
-    rank_fields: List[str]
+    rank_fields: list[str]
     """
     The fields to use for reranking.
     Required.
@@ -28,7 +28,7 @@ class SearchRerank(DictLike):
     Optional.
     """
 
-    parameters: Dict[str, Any] | None = None
+    parameters: dict[str, Any] | None = None
     """
     Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/inference/understanding-inference#models)
     for available model parameters.
@@ -48,7 +48,7 @@ class SearchRerank(DictLike):
         if isinstance(self.model, RerankModel):
             self.model = self.model.value  # Convert Enum to string
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         """
         Returns the SearchRerank as a dictionary.
         """

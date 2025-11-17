@@ -3,7 +3,7 @@ from __future__ import annotations
 import atexit
 import io
 
-from typing import List, Tuple, Dict, Any, TYPE_CHECKING
+from typing import Tuple, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from multiprocessing.pool import ThreadPool
@@ -45,7 +45,7 @@ class ApiClient(object):
 
         self.rest_client = Urllib3RestClient(configuration)
 
-        self.default_headers: Dict[str, str] = {}
+        self.default_headers: dict[str, str] = {}
         self.user_agent = "OpenAPI-Generator/1.0.0/python"
 
     def __enter__(self):
@@ -101,16 +101,16 @@ class ApiClient(object):
         self,
         resource_path: str,
         method: str,
-        path_params: Dict[str, Any] | None = None,
-        query_params: List[Tuple[str, Any]] | None = None,
-        header_params: Dict[str, Any] | None = None,
+        path_params: dict[str, Any] | None = None,
+        query_params: list[Tuple[str, Any]] | None = None,
+        header_params: dict[str, Any] | None = None,
         body: Any | None = None,
-        post_params: List[Tuple[str, Any]] | None = None,
-        files: Dict[str, List[io.IOBase]] | None = None,
+        post_params: list[Tuple[str, Any]] | None = None,
+        files: dict[str, list[io.IOBase]] | None = None,
         response_type: Tuple[Any] | None = None,
-        auth_settings: List[str] | None = None,
+        auth_settings: list[str] | None = None,
         _return_http_data_only: bool | None = True,
-        collection_formats: Dict[str, str] | None = None,
+        collection_formats: dict[str, str] | None = None,
         _preload_content: bool = True,
         _request_timeout: (int | float | Tuple) | None = None,
         _host: str | None = None,
@@ -228,18 +228,18 @@ class ApiClient(object):
         self,
         resource_path: str,
         method: str,
-        path_params: Dict[str, Any] | None = None,
-        query_params: List[Tuple[str, Any]] | None = None,
-        header_params: Dict[str, Any] | None = None,
+        path_params: dict[str, Any] | None = None,
+        query_params: list[Tuple[str, Any]] | None = None,
+        header_params: dict[str, Any] | None = None,
         body: Any | None = None,
-        post_params: List[Tuple[str, Any]] | None = None,
-        files: Dict[str, List[io.IOBase]] | None = None,
+        post_params: list[Tuple[str, Any]] | None = None,
+        files: dict[str, list[io.IOBase]] | None = None,
         response_type: Tuple[Any] | None = None,
-        auth_settings: List[str] | None = None,
+        auth_settings: list[str] | None = None,
         async_req: bool | None = None,
         async_threadpool_executor: bool | None = None,
         _return_http_data_only: bool | None = None,
-        collection_formats: Dict[str, str] | None = None,
+        collection_formats: dict[str, str] | None = None,
         _preload_content: bool = True,
         _request_timeout: (int | float | Tuple) | None = None,
         _host: str | None = None,

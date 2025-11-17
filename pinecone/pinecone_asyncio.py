@@ -87,10 +87,10 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         api_key: str | None = None,
         host: str | None = None,
         proxy_url: str | None = None,
-        # proxy_headers: Dict[str, str] | None = None,
+        # proxy_headers: dict[str, str] | None = None,
         ssl_ca_certs: str | None = None,
         ssl_verify: bool | None = None,
-        additional_headers: Dict[str, str] | None = {},
+        additional_headers: dict[str, str] | None = {},
         **kwargs,
     ) -> None:
         """
@@ -107,7 +107,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         :param ssl_verify: SSL verification is performed by default, but can be disabled using the boolean flag when testing with Pinecone Local or troubleshooting a proxy setup. You should never run with SSL verification disabled in production.
         :type ssl_verify: bool, optional
         :param additional_headers: Additional headers to pass to the API. This is mainly to support internal testing at Pinecone. End users should not need to use this unless following specific instructions to do so.
-        :type additional_headers: Dict[str, str], optional
+        :type additional_headers: dict[str, str], optional
 
         .. note::
 
@@ -250,7 +250,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         timeout: int | None = None,
         deletion_protection: ("DeletionProtection" | str) | None = "disabled",
         vector_type: ("VectorType" | str) | None = "dense",
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
     ) -> "IndexModel":
         resp = await self.db.index.create(
             name=name,
@@ -270,7 +270,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         cloud: "CloudProvider" | str,
         region: "AwsRegion" | "GcpRegion" | "AzureRegion" | str,
         embed: "IndexEmbed" | "CreateIndexForModelEmbedTypedDict",
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
         deletion_protection: ("DeletionProtection" | str) | None = "disabled",
         read_capacity: (
             "ReadCapacityDict"
@@ -280,11 +280,11 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         )
         | None = None,
         schema: (
-            Dict[
+            dict[
                 str, "MetadataSchemaFieldConfig"
             ]  # Direct field mapping: {field_name: {filterable: bool}}
-            | Dict[
-                str, Dict[str, Any]
+            | dict[
+                str, dict[str, Any]
             ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
             | "BackupModelSchema"  # OpenAPI model instance
         )
@@ -310,7 +310,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         name: str,
         backup_id: str,
         deletion_protection: ("DeletionProtection" | str) | None = "disabled",
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
         timeout: int | None = None,
     ) -> "IndexModel":
         return await self.db.index.create_from_backup(
@@ -339,7 +339,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         replicas: int | None = None,
         pod_type: ("PodType" | str) | None = None,
         deletion_protection: ("DeletionProtection" | str) | None = None,
-        tags: Dict[str, str] | None = None,
+        tags: dict[str, str] | None = None,
         embed: ("ConfigureIndexEmbed" | Dict) | None = None,
         read_capacity: (
             "ReadCapacityDict"
@@ -368,7 +368,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     async def delete_collection(self, name: str) -> None:
         return await self.db.collection.delete(name=name)
 
-    async def describe_collection(self, name: str) -> Dict[str, Any]:
+    async def describe_collection(self, name: str) -> dict[str, Any]:
         return await self.db.collection.describe(name=name)
 
     @require_kwargs

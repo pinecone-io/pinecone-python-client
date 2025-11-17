@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Dict, Tuple, Any
+from typing import Tuple, Any
 
 from grpc._channel import _InactiveRpcError
 
@@ -32,11 +32,11 @@ class GrpcRunner:
         func,
         request: Message,
         timeout: int | None = None,
-        metadata: Dict[str, str] | None = None,
+        metadata: dict[str, str] | None = None,
         credentials: CallCredentials | None = None,
         wait_for_ready: bool | None = None,
         compression: Compression | None = None,
-    ) -> Tuple[Any, Dict[str, str] | None]:
+    ) -> Tuple[Any, dict[str, str] | None]:
         """Run a GRPC call and return response with initial metadata.
 
         Returns:
@@ -44,7 +44,7 @@ class GrpcRunner:
         """
 
         @wraps(func)
-        def wrapped() -> Tuple[Any, Dict[str, str] | None]:
+        def wrapped() -> Tuple[Any, dict[str, str] | None]:
             user_provided_metadata = metadata or {}
             _metadata = self._prepare_metadata(user_provided_metadata)
             try:
@@ -95,11 +95,11 @@ class GrpcRunner:
         func,
         request: Message,
         timeout: int | None = None,
-        metadata: Dict[str, str] | None = None,
+        metadata: dict[str, str] | None = None,
         credentials: CallCredentials | None = None,
         wait_for_ready: bool | None = None,
         compression: Compression | None = None,
-    ) -> Tuple[Any, Dict[str, str] | None]:
+    ) -> Tuple[Any, dict[str, str] | None]:
         """Run an async GRPC call and return response with initial metadata.
 
         Returns:
@@ -107,7 +107,7 @@ class GrpcRunner:
         """
 
         @wraps(func)
-        async def wrapped() -> Tuple[Any, Dict[str, str] | None]:
+        async def wrapped() -> Tuple[Any, dict[str, str] | None]:
             user_provided_metadata = metadata or {}
             _metadata = self._prepare_metadata(user_provided_metadata)
             try:
@@ -153,7 +153,7 @@ class GrpcRunner:
         return await wrapped()
 
     def _prepare_metadata(
-        self, user_provided_metadata: Dict[str, str]
+        self, user_provided_metadata: dict[str, str]
     ) -> Tuple[Tuple[str, str], ...]:
         return tuple(
             (k, v)
@@ -164,5 +164,5 @@ class GrpcRunner:
             }.items()
         )
 
-    def _request_metadata(self) -> Dict[str, str]:
+    def _request_metadata(self) -> dict[str, str]:
         return {REQUEST_ID: _generate_request_id()}

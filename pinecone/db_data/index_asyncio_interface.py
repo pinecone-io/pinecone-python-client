@@ -195,7 +195,7 @@ class IndexAsyncioInterface(ABC):
         namespace: str | None = None,
         filter: FilterTypedDict | None = None,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Args:
             ids (list[str]): Vector ids to delete [optional]
@@ -203,7 +203,7 @@ class IndexAsyncioInterface(ABC):
                                 Default is False.
             namespace (str): The namespace to delete vectors from [optional]
                             If not specified, the default namespace is used.
-            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+            filter (dict[str, Union[str, float, int, bool, List, dict]]):
                     If specified, the metadata filter here will be used to select the vectors to delete.
                     This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True.
                     See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
@@ -328,7 +328,7 @@ class IndexAsyncioInterface(ABC):
             asyncio.run(main())
 
         Args:
-            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+            filter (dict[str, Union[str, float, int, bool, List, dict]]):
                 Metadata filter expression to select vectors.
                 See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`
             namespace (str): The namespace to fetch vectors from.
@@ -447,14 +447,14 @@ class IndexAsyncioInterface(ABC):
             top_k (int): The number of results to return for each query. Must be an integer greater than 1.
             namespace (str): The namespace to fetch vectors from.
                              If not specified, the default namespace is used. [optional]
-            filter (Dict[str, Union[str, float, int, bool, List, dict]):
+            filter (dict[str, Union[str, float, int, bool, List, dict]):
                     The filter to apply. You can use vector metadata to limit your search.
                     See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
             include_values (bool): Indicates whether vector values are included in the response.
                                    If omitted the server will use the default value of False [optional]
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.
                                      If omitted the server will use the default value of False  [optional]
-            sparse_vector: (Union[SparseValues, Dict[str, Union[list[float], list[int]]]]): sparse values of the query vector.
+            sparse_vector: (Union[SparseValues, dict[str, Union[list[float], list[int]]]]): sparse values of the query vector.
                             Expected to be either a SparseValues object or a dict of the form:
                              {'indices': list[int], 'values': list[float]}, where the lists each have the same length.
 
@@ -482,10 +482,10 @@ class IndexAsyncioInterface(ABC):
             vector (list[float]): The query vector, must be the same length as the dimension of the index being queried.
             namespaces (list[str]): The list of namespaces to query.
             top_k (Optional[int], optional): The number of results you would like to request from each namespace. Defaults to 10.
-            filter (Optional[Dict[str, Union[str, float, int, bool, List, dict]]], optional): Pass an optional filter to filter results based on metadata. Defaults to None.
+            filter (Optional[dict[str, Union[str, float, int, bool, List, dict]]], optional): Pass an optional filter to filter results based on metadata. Defaults to None.
             include_values (Optional[bool], optional): Boolean field indicating whether vector values should be included with results. Defaults to None.
             include_metadata (Optional[bool], optional): Boolean field indicating whether vector metadata should be included with results. Defaults to None.
-            sparse_vector (Optional[ Union[SparseValues, Dict[str, Union[list[float], list[int]]]] ], optional): If you are working with a dotproduct index, you can pass a sparse vector as part of your hybrid search. Defaults to None.
+            sparse_vector (Optional[ Union[SparseValues, dict[str, Union[list[float], list[int]]]] ], optional): If you are working with a dotproduct index, you can pass a sparse vector as part of your hybrid search. Defaults to None.
 
         Returns:
             QueryNamespacesResults: A QueryNamespacesResults object containing the combined results from all namespaces, as well as the combined usage cost in read units.
@@ -622,14 +622,14 @@ class IndexAsyncioInterface(ABC):
         Args:
             id (str): Vector's unique id. Required for single vector updates. Must not be provided when using filter. [optional]
             values (list[float]): Vector values to set. [optional]
-            set_metadata (Dict[str, Union[str, float, int, bool, list[int], list[float], list[str]]]]):
+            set_metadata (dict[str, Union[str, float, int, bool, list[int], list[float], list[str]]]]):
                 Metadata to merge with existing metadata on the vector(s). Fields specified will overwrite
                 existing fields with the same key, while fields not specified will remain unchanged. [optional]
             namespace (str): Namespace name where to update the vector(s). [optional]
-            sparse_values: (Dict[str, Union[list[float], list[int]]]): Sparse values to update for the vector.
+            sparse_values: (dict[str, Union[list[float], list[int]]]): Sparse values to update for the vector.
                            Expected to be either a SparseValues object or a dict of the form:
                            {'indices': list[int], 'values': list[float]} where the lists each have the same length. [optional]
-            filter (Dict[str, Union[str, float, int, bool, List, dict]]): A metadata filter expression.
+            filter (dict[str, Union[str, float, int, bool, List, dict]]): A metadata filter expression.
                     When provided, updates all vectors in the namespace that match the filter criteria.
                     See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`.
                     Must not be provided when using id. Either `id` or `filter` must be provided. [optional]
@@ -653,7 +653,7 @@ class IndexAsyncioInterface(ABC):
         For example: The vector count per namespace and the number of dimensions.
 
         Args:
-            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+            filter (dict[str, Union[str, float, int, bool, List, dict]]):
             If this parameter is present, the operation only returns statistics for vectors that satisfy the filter.
             See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
 
@@ -928,13 +928,13 @@ class IndexAsyncioInterface(ABC):
     @abstractmethod
     @require_kwargs
     async def create_namespace(
-        self, name: str, schema: Dict[str, Any] | None = None, **kwargs
+        self, name: str, schema: dict[str, Any] | None = None, **kwargs
     ) -> NamespaceDescription:
         """Create a namespace in a serverless index.
 
         Args:
             name (str): The name of the namespace to create
-            schema (Optional[Dict[str, Any]]): Optional schema configuration for the namespace as a dictionary. [optional]
+            schema (Optional[dict[str, Any]]): Optional schema configuration for the namespace as a dictionary. [optional]
 
         Returns:
             NamespaceDescription: Information about the created namespace including vector count
@@ -983,14 +983,14 @@ class IndexAsyncioInterface(ABC):
 
     @abstractmethod
     @require_kwargs
-    async def delete_namespace(self, namespace: str, **kwargs) -> Dict[str, Any]:
+    async def delete_namespace(self, namespace: str, **kwargs) -> dict[str, Any]:
         """Delete a namespace from an index.
 
         Args:
             namespace (str): The namespace to delete
 
         Returns:
-            Dict[str, Any]: Response from the delete operation
+            dict[str, Any]: Response from the delete operation
         """
         pass
 

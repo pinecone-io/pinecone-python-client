@@ -1,5 +1,4 @@
 import json
-from typing import List
 from pinecone.utils.repr_overrides import custom_serializer, install_json_repr_override
 from pinecone.core.openapi.inference.model.model_info import ModelInfo as OpenAPIModelInfo
 from pinecone.core.openapi.inference.model.model_info_supported_parameter import (
@@ -18,7 +17,7 @@ for klass in [
 class ModelInfo:
     def __init__(self, model_info: OpenAPIModelInfo):
         self._model_info = model_info
-        self.supported_metrics: List[str] = []
+        self.supported_metrics: list[str] = []
         if self._model_info.supported_metrics is not None:
             # Handle both cases: list of strings (Python 3.13+) or list of enum-like objects
             metrics_value = self._model_info.supported_metrics.value

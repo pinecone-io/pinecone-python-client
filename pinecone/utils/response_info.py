@@ -1,6 +1,6 @@
 """Response information utilities for extracting LSN headers from API responses."""
 
-from typing import Dict, Any, TypedDict
+from typing import Any, TypedDict
 
 
 class ResponseInfo(TypedDict):
@@ -10,10 +10,10 @@ class ResponseInfo(TypedDict):
         raw_headers: Dictionary of all response headers (normalized to lowercase).
     """
 
-    raw_headers: Dict[str, str]
+    raw_headers: dict[str, str]
 
 
-def extract_response_info(headers: Dict[str, Any] | None) -> ResponseInfo:
+def extract_response_info(headers: dict[str, Any] | None) -> ResponseInfo:
     """Extract raw headers from response headers.
 
     Extracts and normalizes response headers from API responses.
@@ -44,7 +44,7 @@ def extract_response_info(headers: Dict[str, Any] | None) -> ResponseInfo:
         "date",
         "x-request-id",  # Request IDs are unique per request
     }
-    raw_headers: Dict[str, str] = {}
+    raw_headers: dict[str, str] = {}
     for key, value in headers.items():
         key_lower = key.lower()
         if key_lower not in timing_headers:

@@ -1,4 +1,3 @@
-from typing import List
 from .sparse_values import SparseValues
 from .utils import DictLike
 from ..types import VectorTypedDict, VectorMetadataTypedDict
@@ -9,7 +8,7 @@ from dataclasses import dataclass, field
 @dataclass
 class Vector(DictLike):
     id: str
-    values: List[float] = field(default_factory=list)
+    values: list[float] = field(default_factory=list)
     metadata: VectorMetadataTypedDict | None = None
     sparse_values: SparseValues | None = None
 

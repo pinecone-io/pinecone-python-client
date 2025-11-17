@@ -3,7 +3,6 @@ from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.oauth import API_VERSION
 from pinecone.core.openapi.oauth.apis import OAuthApi
 from pinecone.core.openapi.oauth.models import TokenRequest
-from typing import Dict
 from pinecone.utils import get_user_agent
 import os
 from copy import deepcopy
@@ -34,14 +33,14 @@ class Admin:
     :param additional_headers: Additional headers to use for the Pinecone API. This is a
         dictionary of key-value pairs. This is primarily used for internal testing
         purposes.
-    :type additional_headers: Optional[Dict[str, str]]
+    :type additional_headers: Optional[dict[str, str]]
     """
 
     def __init__(
         self,
         client_id: str | None = None,
         client_secret: str | None = None,
-        additional_headers: Dict[str, str] | None = None,
+        additional_headers: dict[str, str] | None = None,
     ):
         """
         Initialize the ``Admin`` class.
@@ -58,7 +57,7 @@ class Admin:
         :param additional_headers: Additional headers to use for the Pinecone API. This is a
           dictionary of key-value pairs. This is primarily used for internal testing
           purposes.
-        :type additional_headers: Optional[Dict[str, str]]
+        :type additional_headers: Optional[dict[str, str]]
         """
 
         if client_id is not None:

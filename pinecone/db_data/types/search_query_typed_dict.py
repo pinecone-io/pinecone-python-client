@@ -1,4 +1,4 @@
-from typing import TypedDict, Dict, Any
+from typing import TypedDict, Any
 from .search_query_vector_typed_dict import SearchQueryVectorTypedDict
 
 
@@ -7,7 +7,7 @@ class SearchQueryTypedDict(TypedDict):
     SearchQuery represents the query when searching within a specific namespace.
     """
 
-    inputs: Dict[str, Any]
+    inputs: dict[str, Any]
     """
     The input data to search with.
     Required.
@@ -19,7 +19,7 @@ class SearchQueryTypedDict(TypedDict):
     Required.
     """
 
-    filter: Dict[str, Any] | None
+    filter: dict[str, Any] | None
     """
     The filter to apply to the search.
     Optional.
@@ -35,7 +35,7 @@ class SearchQueryTypedDict(TypedDict):
     The unique ID of the vector to be used as a query vector.
     """
 
-    match_terms: Dict[str, Any] | None
+    match_terms: dict[str, Any] | None
     """
     Specifies which terms must be present in the text of each search hit based on the specified strategy.
     The match is performed against the text field specified in the integrated index field_map configuration.

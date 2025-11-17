@@ -1,14 +1,13 @@
 from dataclasses import dataclass
 
-from typing import List
 from .utils import DictLike
 from ..types import SparseVectorTypedDict
 
 
 @dataclass
 class SparseValues(DictLike):
-    indices: List[int]
-    values: List[float]
+    indices: list[int]
+    values: list[float]
 
     def to_dict(self) -> SparseVectorTypedDict:
         return {"indices": self.indices, "values": self.values}

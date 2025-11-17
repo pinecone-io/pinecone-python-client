@@ -1,6 +1,6 @@
 from .model_utils import file_type
 from .exceptions import PineconeApiTypeError, PineconeApiValueError
-from typing import Dict, Tuple, TypedDict, List, Literal, Any
+from typing import Dict, Tuple, TypedDict, Literal, Any
 from .types import PropertyValidationTypedDict
 from ..config.openapi_configuration import Configuration
 from .model_utils import validate_and_convert_types, check_allowed_values, check_validations
@@ -26,45 +26,45 @@ class KwargsWithOpenApiKwargDefaultsTypedDict(TypedDict, total=False):
 
 class EndpointSettingsDict(TypedDict):
     response_type: Tuple | None
-    auth: List[str]
+    auth: list[str]
     endpoint_path: str
     operation_id: str
     http_method: Literal["POST", "PUT", "PATCH", "GET", "DELETE"]
-    servers: List[str] | None
+    servers: list[str] | None
 
 
 class EndpointParamsMapDict(TypedDict):
-    all: List[str]
-    required: List[str]
-    nullable: List[str]
-    enum: List[str]
-    validation: List[str]
+    all: list[str]
+    required: list[str]
+    nullable: list[str]
+    enum: list[str]
+    validation: list[str]
 
 
-AllowedValuesDict = Dict[Tuple[str], Dict]
+AllowedValuesDict = dict[Tuple[str], Dict]
 
-AttributeMapDictType = Dict[str, str]
-LocationMapDictType = Dict[str, str]
-OpenapiTypesDictType = Dict[str, Tuple]
+AttributeMapDictType = dict[str, str]
+LocationMapDictType = dict[str, str]
+OpenapiTypesDictType = dict[str, Tuple]
 
 
 class EndpointRootMapDict(TypedDict):
-    validations: Dict[Tuple[str], PropertyValidationTypedDict]
-    allowed_values: Dict[Tuple[str], Dict]
+    validations: dict[Tuple[str], PropertyValidationTypedDict]
+    allowed_values: dict[Tuple[str], Dict]
     openapi_types: OpenapiTypesDictType
     attribute_map: AttributeMapDictType
     location_map: LocationMapDictType
-    collection_format_map: Dict[str, str]
+    collection_format_map: dict[str, str]
 
 
 class CombinedParamsMapDict(TypedDict):
     body: Any
-    collection_format: Dict[str, str]
-    file: Dict[str, List[file_type]]
-    form: List[Tuple[str, Any]]
-    header: Dict[str, List[str]]
-    path: Dict[str, Any]
-    query: List[Tuple[str, Any]]
+    collection_format: dict[str, str]
+    file: dict[str, list[file_type]]
+    form: list[Tuple[str, Any]]
+    header: dict[str, list[str]]
+    path: dict[str, Any]
+    query: list[Tuple[str, Any]]
 
 
 class EndpointUtils:
@@ -73,8 +73,8 @@ class EndpointUtils:
         attribute_map: AttributeMapDictType,
         location_map: LocationMapDictType,
         openapi_types: OpenapiTypesDictType,
-        collection_format_map: Dict[str, str],
-        kwargs: Dict[str, Any],
+        collection_format_map: dict[str, str],
+        kwargs: dict[str, Any],
     ) -> CombinedParamsMapDict:
         params: CombinedParamsMapDict = {
             "body": None,
@@ -121,7 +121,7 @@ class EndpointUtils:
 
     @staticmethod
     def raise_if_missing_required_params(
-        params_map: EndpointParamsMapDict, settings: EndpointSettingsDict, kwargs: Dict[str, Any]
+        params_map: EndpointParamsMapDict, settings: EndpointSettingsDict, kwargs: dict[str, Any]
     ) -> None:
         for key in params_map["required"]:
             if key not in kwargs.keys():
@@ -132,7 +132,7 @@ class EndpointUtils:
 
     @staticmethod
     def raise_if_unexpected_param(
-        params_map: EndpointParamsMapDict, settings: EndpointSettingsDict, kwargs: Dict[str, Any]
+        params_map: EndpointParamsMapDict, settings: EndpointSettingsDict, kwargs: dict[str, Any]
     ) -> None:
         for key, value in kwargs.items():
             if key not in params_map["all"]:
@@ -158,9 +158,9 @@ class EndpointUtils:
         config: Configuration,
         params_map: EndpointParamsMapDict,
         allowed_values: AllowedValuesDict,
-        validations: Dict[Tuple[str], PropertyValidationTypedDict],
+        validations: dict[Tuple[str], PropertyValidationTypedDict],
         openapi_types: OpenapiTypesDictType,
-        kwargs: Dict[str, Any],
+        kwargs: dict[str, Any],
     ) -> None:
         for param in params_map["enum"]:
             if param in kwargs:

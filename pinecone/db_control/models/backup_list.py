@@ -1,7 +1,6 @@
 import json
 from pinecone.core.openapi.db_control.model.backup_list import BackupList as OpenAPIBackupList
 from .backup_model import BackupModel
-from typing import List
 
 
 class BackupList:
@@ -9,7 +8,7 @@ class BackupList:
         self._backup_list = backup_list
         self._backups = [BackupModel(b) for b in self._backup_list.data]
 
-    def names(self) -> List[str]:
+    def names(self) -> list[str]:
         return [i.name for i in self._backups]
 
     def __getitem__(self, key):

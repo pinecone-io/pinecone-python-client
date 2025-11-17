@@ -178,7 +178,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
         self,
         api_key: str,
         host: str,
-        additional_headers: Dict[str, str] | None = {},
+        additional_headers: dict[str, str] | None = {},
         openapi_config=None,
         **kwargs,
     ) -> None:
@@ -386,7 +386,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
         namespace: str | None = None,
         filter: FilterTypedDict | None = None,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         _check_type = kwargs.pop("_check_type", False)
         args_dict = parse_non_empty_args(
             [("ids", ids), ("delete_all", delete_all), ("namespace", namespace), ("filter", filter)]
@@ -406,7 +406,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
         )
-        return cast(Dict[str, Any], result)
+        return cast(dict[str, Any], result)
 
     @validate_and_convert_errors
     async def fetch(self, ids: list[str], namespace: str | None = None, **kwargs) -> FetchResponse:
@@ -466,7 +466,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
             asyncio.run(main())
 
         Args:
-            filter (Dict[str, str | float | int | bool | List | dict]):
+            filter (dict[str, str | float | int | bool | List | dict]):
                 Metadata filter expression to select vectors.
                 See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`
             namespace (str): The namespace to fetch vectors from.
@@ -782,7 +782,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
     ) -> SearchRecordsResponse:
         return await self.search(namespace, query=query, rerank=rerank, fields=fields)
 
-    def _openapi_kwargs(self, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    def _openapi_kwargs(self, kwargs: dict[str, Any]) -> dict[str, Any]:
         return filter_dict(kwargs, OPENAPI_ENDPOINT_PARAMS)
 
     async def start_import(
@@ -897,7 +897,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
     @validate_and_convert_errors
     @require_kwargs
     async def create_namespace(
-        self, name: str, schema: Dict[str, Any] | None = None, **kwargs
+        self, name: str, schema: dict[str, Any] | None = None, **kwargs
     ) -> "NamespaceDescription":
         return await self.namespace.create(name=name, schema=schema, **kwargs)
 
@@ -908,11 +908,11 @@ class _IndexAsyncio(IndexAsyncioInterface):
 
     @validate_and_convert_errors
     @require_kwargs
-    async def delete_namespace(self, namespace: str, **kwargs) -> Dict[str, Any]:
+    async def delete_namespace(self, namespace: str, **kwargs) -> dict[str, Any]:
         from typing import cast
 
         result = await self.namespace.delete(namespace=namespace, **kwargs)
-        return cast(Dict[str, Any], result)
+        return cast(dict[str, Any], result)
 
     @validate_and_convert_errors
     @require_kwargs

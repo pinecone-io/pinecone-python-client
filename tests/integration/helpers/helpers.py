@@ -12,7 +12,7 @@ import json
 from pinecone.db_data import _Index
 from pinecone import Pinecone, NotFoundException, PineconeApiException
 from tests.integration.helpers.lsn_utils import is_lsn_reconciled
-from typing import Callable, Awaitable, Optional, Union, Dict
+from typing import Callable, Awaitable, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -136,7 +136,7 @@ def poll_stats_for_namespace(
 
 def poll_until_lsn_reconciled(
     idx: _Index,
-    response_info: Dict[str, Any],
+    response_info: dict[str, Any],
     namespace: str,
     max_sleep: int = int(os.environ.get("FRESHNESS_TIMEOUT_SECONDS", 300)),
 ) -> None:

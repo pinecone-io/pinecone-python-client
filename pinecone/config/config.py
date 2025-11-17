@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import NamedTuple, Dict, TYPE_CHECKING
+from typing import NamedTuple, TYPE_CHECKING
 import os
 
 from pinecone.exceptions import PineconeConfigurationError
@@ -25,10 +25,10 @@ class Config(NamedTuple):
     api_key: str = ""
     host: str = ""
     proxy_url: str | None = None
-    proxy_headers: Dict[str, str] | None = None
+    proxy_headers: dict[str, str] | None = None
     ssl_ca_certs: str | None = None
     ssl_verify: bool | None = None
-    additional_headers: Dict[str, str] | None = {}
+    additional_headers: dict[str, str] | None = {}
     source_tag: str | None = None
 
 
@@ -54,10 +54,10 @@ class ConfigBuilder:
         api_key: str | None = None,
         host: str | None = None,
         proxy_url: str | None = None,
-        proxy_headers: Dict[str, str] | None = None,
+        proxy_headers: dict[str, str] | None = None,
         ssl_ca_certs: str | None = None,
         ssl_verify: bool | None = None,
-        additional_headers: Dict[str, str] | None = {},
+        additional_headers: dict[str, str] | None = {},
         **kwargs,
     ) -> Config:
         api_key = api_key or kwargs.pop("api_key", None) or os.getenv("PINECONE_API_KEY")

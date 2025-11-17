@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Any
 from google.protobuf import json_format
 from google.protobuf.message import Message
 
@@ -53,7 +53,7 @@ def parse_sparse_values(sparse_values: dict | None) -> SparseValues:
 
 
 def parse_fetch_response(
-    response: Message, initial_metadata: Dict[str, str] | None = None
+    response: Message, initial_metadata: dict[str, str] | None = None
 ) -> FetchResponse:
     json_response = json_format.MessageToDict(response)
 
@@ -94,7 +94,7 @@ def parse_fetch_response(
 
 
 def parse_fetch_by_metadata_response(
-    response: Message, initial_metadata: Dict[str, str] | None = None
+    response: Message, initial_metadata: dict[str, str] | None = None
 ) -> FetchByMetadataResponse:
     json_response = json_format.MessageToDict(response)
 
@@ -142,7 +142,7 @@ def parse_usage(usage: dict) -> Usage:
 
 
 def parse_upsert_response(
-    response: Message, _check_type: bool = False, initial_metadata: Dict[str, str] | None = None
+    response: Message, _check_type: bool = False, initial_metadata: dict[str, str] | None = None
 ) -> UpsertResponse:
     from pinecone.utils.response_info import extract_response_info
 
@@ -160,7 +160,7 @@ def parse_upsert_response(
 def parse_update_response(
     response: dict | Message,
     _check_type: bool = False,
-    initial_metadata: Dict[str, str] | None = None,
+    initial_metadata: dict[str, str] | None = None,
 ) -> UpdateResponse:
     from pinecone.utils.response_info import extract_response_info
     from google.protobuf import json_format
@@ -187,22 +187,22 @@ def parse_update_response(
 def parse_delete_response(
     response: dict | Message,
     _check_type: bool = False,
-    initial_metadata: Dict[str, str] | None = None,
-) -> Dict[str, Any]:
+    initial_metadata: dict[str, str] | None = None,
+) -> dict[str, Any]:
     from pinecone.utils.response_info import extract_response_info
 
     # Extract response info from initial metadata
     metadata = initial_metadata or {}
     response_info = extract_response_info(metadata)
 
-    result: Dict[str, Any] = {"_response_info": response_info}
+    result: dict[str, Any] = {"_response_info": response_info}
     return result
 
 
 def parse_query_response(
     response: dict | Message,
     _check_type: bool = False,
-    initial_metadata: Dict[str, str] | None = None,
+    initial_metadata: dict[str, str] | None = None,
 ) -> QueryResponse:
     if isinstance(response, Message):
         json_response = json_format.MessageToDict(response)
@@ -263,7 +263,7 @@ def parse_stats_response(response: dict) -> "DescribeIndexStatsResponse":
 
 
 def parse_namespace_description(
-    response: Message, initial_metadata: Dict[str, str] | None = None
+    response: Message, initial_metadata: dict[str, str] | None = None
 ) -> NamespaceDescription:
     from pinecone.utils.response_info import extract_response_info
 

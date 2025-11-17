@@ -1,6 +1,6 @@
-from typing import TypedDict, List
+from typing import TypedDict
 
 
 class SparseVectorTypedDict(TypedDict):
-    indices: List[int]
-    values: List[float]
+    indices: list[int]
+    values: list[float]

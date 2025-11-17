@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Any, TYPE_CHECKING
+from typing import Dict, Any, TYPE_CHECKING
 
 from pinecone.core.openapi.inference.api.inference_api import AsyncioInferenceApi
 from .models import EmbeddingsList, RerankResult, ModelInfoList, ModelInfo
@@ -55,8 +55,8 @@ class AsyncioInference:
     async def embed(
         self,
         model: str,
-        inputs: str | List[Dict] | List[str],
-        parameters: Dict[str, Any] | None = None,
+        inputs: str | list[Dict] | list[str],
+        parameters: dict[str, Any] | None = None,
     ) -> EmbeddingsList:
         """
         Generates embeddings for the provided inputs using the specified model and (optional) parameters.
@@ -151,11 +151,11 @@ class AsyncioInference:
         self,
         model: str,
         query: str,
-        documents: List[str] | List[Dict[str, Any]],
-        rank_fields: List[str] = ["text"],
+        documents: list[str] | list[dict[str, Any]],
+        rank_fields: list[str] = ["text"],
         return_documents: bool = True,
         top_n: int | None = None,
-        parameters: Dict[str, Any] | None = None,
+        parameters: dict[str, Any] | None = None,
     ) -> RerankResult:
         """
         Rerank documents with associated relevance scores that represent the relevance of each document

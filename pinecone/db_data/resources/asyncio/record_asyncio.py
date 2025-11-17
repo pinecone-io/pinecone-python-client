@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict
 import logging
 
 from pinecone.core.openapi.db_data.api.vector_operations_api import AsyncioVectorOperationsApi
@@ -25,7 +25,7 @@ class RecordResourceAsyncio(PluginAware):
         super().__init__()
 
     @validate_and_convert_errors
-    async def upsert_records(self, namespace: str, records: List[Dict]) -> UpsertResponse:
+    async def upsert_records(self, namespace: str, records: list[Dict]) -> UpsertResponse:
         """Upsert records to a namespace.
 
         A record is a dictionary that contains either an `id` or `_id` field along with
@@ -94,7 +94,7 @@ class RecordResourceAsyncio(PluginAware):
         namespace: str,
         query: SearchQueryTypedDict | SearchQuery,
         rerank: (SearchRerankTypedDict | SearchRerank) | None = None,
-        fields: List[str] | None = ["*"],  # Default to returning all fields
+        fields: list[str] | None = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         """Search for records.
 
@@ -106,7 +106,7 @@ class RecordResourceAsyncio(PluginAware):
             query: The SearchQuery to use for the search. The query can include a
                 ``match_terms`` field to specify which terms must be present in the text
                 of each search hit. The match_terms should be a dict with ``strategy``
-                (str) and ``terms`` (List[str]) keys, e.g.
+                (str) and ``terms`` (list[str]) keys, e.g.
                 ``{"strategy": "all", "terms": ["term1", "term2"]}``. Currently only
                 "all" strategy is supported, which means all specified terms must be
                 present. **Note:** match_terms is only supported for sparse indexes with
@@ -155,7 +155,7 @@ class RecordResourceAsyncio(PluginAware):
         namespace: str,
         query: SearchQueryTypedDict | SearchQuery,
         rerank: (SearchRerankTypedDict | SearchRerank) | None = None,
-        fields: List[str] | None = ["*"],  # Default to returning all fields
+        fields: list[str] | None = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         """Search for records (alias for search method).
 
