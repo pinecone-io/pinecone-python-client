@@ -1,5 +1,17 @@
 import logging
-from typing import Optional, Dict, Union, List, Tuple, Any, Iterable, cast, Literal
+from typing import (
+    Optional,
+    Dict,
+    Union,
+    List,
+    Tuple,
+    Any,
+    Iterable,
+    cast,
+    Literal,
+    Iterator,
+    TYPE_CHECKING,
+)
 
 from google.protobuf import json_format
 
@@ -24,13 +36,17 @@ from .vector_factory_grpc import VectorFactoryGRPC
 from .sparse_values_factory import SparseValuesFactory
 
 from pinecone.core.openapi.db_data.models import (
-    FetchResponse,
-    QueryResponse,
     IndexDescription as DescribeIndexStatsResponse,
     NamespaceDescription,
     ListNamespacesResponse,
 )
-from pinecone.db_data.dataclasses import FetchByMetadataResponse, UpdateResponse, UpsertResponse
+from pinecone.db_data.dataclasses import (
+    FetchByMetadataResponse,
+    UpdateResponse,
+    UpsertResponse,
+    FetchResponse,
+    QueryResponse,
+)
 from pinecone.db_control.models.list_response import ListResponse as SimpleListResponse, Pagination
 from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
     Vector as GRPCVector,
@@ -43,7 +59,6 @@ from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
     UpdateRequest,
     ListRequest,
     DescribeIndexStatsRequest,
-    DeleteResponse,
     SparseValues as GRPCSparseValues,
     DescribeNamespaceRequest,
     DeleteNamespaceRequest,
@@ -57,6 +72,9 @@ from pinecone import Vector, SparseValues
 from pinecone.db_data.query_results_aggregator import QueryNamespacesResults, QueryResultsAggregator
 from .base import GRPCIndexBase
 from .future import PineconeGrpcFuture
+
+if TYPE_CHECKING:
+    from typing import Type
 from ..db_data.types import (
     SparseVectorTypedDict,
     VectorTypedDict,
@@ -83,7 +101,7 @@ class GRPCIndex(GRPCIndexBase):
     """A client for interacting with a Pinecone index via GRPC API."""
 
     @property
-    def stub_class(self):
+    def stub_class(self) -> "Type[VectorServiceStub]":
         """:meta private:"""
         return VectorServiceStub
 
@@ -217,7 +235,7 @@ class GRPCIndex(GRPCIndexBase):
 
     def upsert_from_dataframe(
         self,
-        df,
+        df: Any,
         namespace: str = "",
         batch_size: int = 500,
         use_async_requests: bool = True,
@@ -246,7 +264,12 @@ class GRPCIndex(GRPCIndexBase):
         pbar = tqdm(total=len(df), disable=not show_progress, desc="sending upsert requests")
         results = []
         for chunk in self._iter_dataframe(df, batch_size=batch_size):
-            res = self.upsert(vectors=chunk, namespace=namespace, async_req=use_async_requests)
+            # Type cast: dataframe dicts match VectorTypedDict structure
+            res = self.upsert(
+                vectors=cast(List[VectorTypedDict], chunk),
+                namespace=namespace,
+                async_req=use_async_requests,
+            )
             pbar.update(len(chunk))
             results.append(res)
 
@@ -279,7 +302,7 @@ class GRPCIndex(GRPCIndexBase):
         return UpsertResponse(upserted_count=upserted_count, _response_info=response_info)
 
     @staticmethod
-    def _iter_dataframe(df, batch_size):
+    def _iter_dataframe(df: Any, batch_size: int) -> Iterator[List[Dict[str, Any]]]:
         for i in range(0, len(df), batch_size):
             batch = df.iloc[i : i + batch_size].to_dict(orient="records")
             yield batch
@@ -292,7 +315,7 @@ class GRPCIndex(GRPCIndexBase):
         filter: Optional[FilterTypedDict] = None,
         async_req: bool = False,
         **kwargs,
-    ) -> Union[DeleteResponse, PineconeGrpcFuture]:
+    ) -> Union[Dict[str, Any], PineconeGrpcFuture]:
         """
         The Delete operation deletes vectors from the index, from a single namespace.
         No error raised if the vector id does not exist.
@@ -540,7 +563,7 @@ class GRPCIndex(GRPCIndexBase):
         ] = None,
         async_req: Optional[bool] = False,
         **kwargs,
-    ) -> Union[QueryResponse, PineconeGrpcFuture]:
+    ) -> Union["QueryResponse", PineconeGrpcFuture]:
         """
         The Query operation searches a namespace, using a query vector.
         It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
@@ -868,7 +891,7 @@ class GRPCIndex(GRPCIndexBase):
             namespace=response.namespace, vectors=response.vectors, pagination=pagination
         )
 
-    def list(self, **kwargs):
+    def list(self, **kwargs) -> Iterator[List[str]]:
         """
         The list operation accepts all of the same arguments as list_paginated, and returns a generator that yields
         a list of the matching vector ids in each page of results. It automatically handles pagination tokens on your

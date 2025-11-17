@@ -32,7 +32,7 @@ class DBControl(PluginAware):
         self._pool_threads = pool_threads
         """ :meta private: """
 
-        self._index_api = setup_openapi_client(
+        self._index_api: ManageIndexesApi = setup_openapi_client(
             api_client_klass=ApiClient,
             api_klass=ManageIndexesApi,
             config=self.config,

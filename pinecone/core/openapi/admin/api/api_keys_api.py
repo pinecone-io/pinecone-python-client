@@ -9,6 +9,13 @@ The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from multiprocessing.pool import ApplyResult
+
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
 from pinecone.openapi_support.endpoint_utils import (
     ExtraOpenApiKwargsTypedDict,
@@ -48,7 +55,7 @@ class APIKeysApi:
             create_api_key_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> APIKeyWithSecret | ApplyResult[APIKeyWithSecret]:
             """Create an API key  # noqa: E501
 
             Create a new API key for a project. Developers can use the API key to authenticate requests to Pinecone's Data Plane and Control Plane APIs.   # noqa: E501
@@ -137,7 +144,7 @@ class APIKeysApi:
             api_key_id,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> None:
             """Delete an API key  # noqa: E501
 
             Delete an API key from a project.  # noqa: E501
@@ -216,7 +223,7 @@ class APIKeysApi:
             api_key_id,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> APIKey | ApplyResult[APIKey]:
             """Get API key details  # noqa: E501
 
             Get the details of an API key, excluding the API key secret.  # noqa: E501
@@ -295,7 +302,7 @@ class APIKeysApi:
             project_id,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> ListApiKeysResponse | ApplyResult[ListApiKeysResponse]:
             """List API keys  # noqa: E501
 
             List all API keys in a project.  # noqa: E501
@@ -375,7 +382,7 @@ class APIKeysApi:
             update_api_key_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> APIKey | ApplyResult[APIKey]:
             """Update an API key  # noqa: E501
 
             Update the name and roles of an API key.   # noqa: E501
@@ -473,7 +480,7 @@ class AsyncioAPIKeysApi:
 
         async def __create_api_key(
             self, project_id, create_api_key_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> APIKeyWithSecret:
             """Create an API key  # noqa: E501
 
             Create a new API key for a project. Developers can use the API key to authenticate requests to Pinecone's Data Plane and Control Plane APIs.   # noqa: E501
@@ -550,7 +557,9 @@ class AsyncioAPIKeysApi:
             callable=__create_api_key,
         )
 
-        async def __delete_api_key(self, api_key_id, x_pinecone_api_version="2025-10", **kwargs):
+        async def __delete_api_key(
+            self, api_key_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> None:
             """Delete an API key  # noqa: E501
 
             Delete an API key from a project.  # noqa: E501
@@ -617,7 +626,9 @@ class AsyncioAPIKeysApi:
             callable=__delete_api_key,
         )
 
-        async def __fetch_api_key(self, api_key_id, x_pinecone_api_version="2025-10", **kwargs):
+        async def __fetch_api_key(
+            self, api_key_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> APIKey:
             """Get API key details  # noqa: E501
 
             Get the details of an API key, excluding the API key secret.  # noqa: E501
@@ -686,7 +697,7 @@ class AsyncioAPIKeysApi:
 
         async def __list_project_api_keys(
             self, project_id, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> ListApiKeysResponse:
             """List API keys  # noqa: E501
 
             List all API keys in a project.  # noqa: E501
@@ -755,7 +766,7 @@ class AsyncioAPIKeysApi:
 
         async def __update_api_key(
             self, api_key_id, update_api_key_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> APIKey:
             """Update an API key  # noqa: E501
 
             Update the name and roles of an API key.   # noqa: E501

@@ -1,10 +1,22 @@
 import functools
 import inspect
+from typing import TypeVar, Callable
+from typing_extensions import ParamSpec
+
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
-def require_kwargs(func):
+def require_kwargs(func: Callable[P, R]) -> Callable[P, R]:
+    """
+    Decorator that requires all arguments (except self) to be passed as keyword arguments.
+
+    :param func: The function to wrap
+    :return: The wrapped function with the same signature
+    """
+
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         if len(args) > 1:  # First arg is self
             param_names = list(inspect.signature(func).parameters.keys())[1:]  # Skip self
             raise TypeError(

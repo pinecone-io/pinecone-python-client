@@ -41,4 +41,4 @@ class JitterRetry(RetryOptionsBase):
         """Return timeout with exponential backoff."""
         jitter = random.uniform(0, 0.1)
         timeout = self._start_timeout * (2 ** (attempt - 1))
-        return min(timeout + jitter, self._max_timeout)
+        return float(min(timeout + jitter, self._max_timeout))

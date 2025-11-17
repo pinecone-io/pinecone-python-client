@@ -108,8 +108,10 @@ class ServerlessSpec:
         object.__setattr__(self, "read_capacity", read_capacity)
         object.__setattr__(self, "schema", schema)
 
-    def asdict(self):
-        result = {"serverless": {"cloud": self.cloud, "region": self.region}}
+    def asdict(self) -> Dict[str, Any]:
+        from typing import Dict, Any
+
+        result: Dict[str, Any] = {"serverless": {"cloud": self.cloud, "region": self.region}}
         if self.read_capacity is not None:
             result["serverless"]["read_capacity"] = self.read_capacity
         if self.schema is not None:

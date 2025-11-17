@@ -9,6 +9,13 @@ The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from multiprocessing.pool import ApplyResult
+
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
 from pinecone.openapi_support.endpoint_utils import (
     ExtraOpenApiKwargsTypedDict,
@@ -45,7 +52,7 @@ class OrganizationsApi:
             organization_id,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> None:
             """Delete an organization  # noqa: E501
 
             Delete an organization and all its associated configuration. Before deleting an organization, you must delete all projects (including indexes, assistants, backups, and collections) associated with the organization.   # noqa: E501
@@ -124,7 +131,7 @@ class OrganizationsApi:
             organization_id,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> Organization | ApplyResult[Organization]:
             """Get organization details  # noqa: E501
 
             Get details about an organization.  # noqa: E501
@@ -200,7 +207,7 @@ class OrganizationsApi:
 
         def __list_organizations(
             self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> OrganizationList | ApplyResult[OrganizationList]:
             """List organizations  # noqa: E501
 
             List all organizations associated with an account.  # noqa: E501
@@ -275,7 +282,7 @@ class OrganizationsApi:
             update_organization_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> Organization | ApplyResult[Organization]:
             """Update an organization  # noqa: E501
 
             Update an organization's name.   # noqa: E501
@@ -377,7 +384,7 @@ class AsyncioOrganizationsApi:
 
         async def __delete_organization(
             self, organization_id, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> None:
             """Delete an organization  # noqa: E501
 
             Delete an organization and all its associated configuration. Before deleting an organization, you must delete all projects (including indexes, assistants, backups, and collections) associated with the organization.   # noqa: E501
@@ -446,7 +453,7 @@ class AsyncioOrganizationsApi:
 
         async def __fetch_organization(
             self, organization_id, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> Organization:
             """Get organization details  # noqa: E501
 
             Get details about an organization.  # noqa: E501
@@ -513,7 +520,9 @@ class AsyncioOrganizationsApi:
             callable=__fetch_organization,
         )
 
-        async def __list_organizations(self, x_pinecone_api_version="2025-10", **kwargs):
+        async def __list_organizations(
+            self, x_pinecone_api_version="2025-10", **kwargs
+        ) -> OrganizationList:
             """List organizations  # noqa: E501
 
             List all organizations associated with an account.  # noqa: E501
@@ -581,7 +590,7 @@ class AsyncioOrganizationsApi:
             update_organization_request,
             x_pinecone_api_version="2025-10",
             **kwargs,
-        ):
+        ) -> Organization:
             """Update an organization  # noqa: E501
 
             Update an organization's name.   # noqa: E501

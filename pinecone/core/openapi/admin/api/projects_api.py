@@ -9,6 +9,13 @@ The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from multiprocessing.pool import ApplyResult
+
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
 from pinecone.openapi_support.endpoint_utils import (
     ExtraOpenApiKwargsTypedDict,
@@ -46,7 +53,7 @@ class ProjectsApi:
             create_project_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> Project | ApplyResult[Project]:
             """Create a new project  # noqa: E501
 
             Creates a new project.  # noqa: E501
@@ -128,7 +135,7 @@ class ProjectsApi:
             project_id,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> None:
             """Delete a project  # noqa: E501
 
             Delete a project and all its associated configuration. Before deleting a project, you must delete all indexes, assistants, backups, and collections associated with the project. Other project resources, such as API keys, are automatically deleted when the project is deleted.   # noqa: E501
@@ -207,7 +214,7 @@ class ProjectsApi:
             project_id,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> Project | ApplyResult[Project]:
             """Get project details  # noqa: E501
 
             Get details about a project.  # noqa: E501
@@ -283,7 +290,7 @@ class ProjectsApi:
 
         def __list_projects(
             self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> ProjectList | ApplyResult[ProjectList]:
             """List projects  # noqa: E501
 
             List all projects in an organization.  # noqa: E501
@@ -358,7 +365,7 @@ class ProjectsApi:
             update_project_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> Project | ApplyResult[Project]:
             """Update a project  # noqa: E501
 
             Update a project's configuration details. You can update the project's name, maximum number of Pods, or enable encryption with a customer-managed encryption key (CMEK).   # noqa: E501
@@ -456,7 +463,7 @@ class AsyncioProjectsApi:
 
         async def __create_project(
             self, create_project_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> Project:
             """Create a new project  # noqa: E501
 
             Creates a new project.  # noqa: E501
@@ -526,7 +533,9 @@ class AsyncioProjectsApi:
             callable=__create_project,
         )
 
-        async def __delete_project(self, project_id, x_pinecone_api_version="2025-10", **kwargs):
+        async def __delete_project(
+            self, project_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> None:
             """Delete a project  # noqa: E501
 
             Delete a project and all its associated configuration. Before deleting a project, you must delete all indexes, assistants, backups, and collections associated with the project. Other project resources, such as API keys, are automatically deleted when the project is deleted.   # noqa: E501
@@ -593,7 +602,9 @@ class AsyncioProjectsApi:
             callable=__delete_project,
         )
 
-        async def __fetch_project(self, project_id, x_pinecone_api_version="2025-10", **kwargs):
+        async def __fetch_project(
+            self, project_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> Project:
             """Get project details  # noqa: E501
 
             Get details about a project.  # noqa: E501
@@ -660,7 +671,7 @@ class AsyncioProjectsApi:
             callable=__fetch_project,
         )
 
-        async def __list_projects(self, x_pinecone_api_version="2025-10", **kwargs):
+        async def __list_projects(self, x_pinecone_api_version="2025-10", **kwargs) -> ProjectList:
             """List projects  # noqa: E501
 
             List all projects in an organization.  # noqa: E501
@@ -724,7 +735,7 @@ class AsyncioProjectsApi:
 
         async def __update_project(
             self, project_id, update_project_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> Project:
             """Update a project  # noqa: E501
 
             Update a project's configuration details. You can update the project's name, maximum number of Pods, or enable encryption with a customer-managed encryption key (CMEK).   # noqa: E501

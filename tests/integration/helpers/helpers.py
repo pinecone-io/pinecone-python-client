@@ -178,8 +178,7 @@ def poll_until_lsn_reconciled(
 
     while not done:
         logger.debug(
-            f"Polling for LSN reconciliation. Target LSN: {target_lsn}, "
-            f"total time: {total_time}s"
+            f"Polling for LSN reconciliation. Target LSN: {target_lsn}, total time: {total_time}s"
         )
 
         # Try query as a lightweight operation to check LSN

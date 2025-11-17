@@ -186,12 +186,13 @@ class OpenApiModel(object):
                 return None
 
             if issubclass(cls, ModelComposed) and allows_single_value_input(cls):
-                model_kwargs = {}
+                model_kwargs: dict = {}
                 oneof_instance = get_oneof_instance(cls, model_kwargs, kwargs, model_arg=arg)
                 return oneof_instance
 
         visited_composed_classes = kwargs.get("_visited_composed_classes", ())
-        if cls.discriminator is None or cls in visited_composed_classes:
+        discriminator = getattr(cls, "discriminator", None)  # type: ignore[attr-defined]
+        if discriminator is None or cls in visited_composed_classes:
             # Use case 1: this openapi schema (cls) does not have a discriminator
             # Use case 2: we have already visited this class before and are sure that we
             # want to instantiate it this time. We have visited this class deserializing
@@ -213,8 +214,9 @@ class OpenApiModel(object):
         # Get the name and value of the discriminator property.
         # The discriminator name is obtained from the discriminator meta-data
         # and the discriminator value is obtained from the input data.
-        discr_propertyname_py = list(cls.discriminator.keys())[0]
-        discr_propertyname_js = cls.attribute_map[discr_propertyname_py]
+        discr_propertyname_py = list(discriminator.keys())[0]
+        attribute_map = getattr(cls, "attribute_map", {})  # type: ignore[attr-defined]
+        discr_propertyname_js = attribute_map[discr_propertyname_py]
         if discr_propertyname_js in kwargs:
             discr_value = kwargs[discr_propertyname_js]
         elif discr_propertyname_py in kwargs:
@@ -263,19 +265,20 @@ class OpenApiModel(object):
             return super(OpenApiModel, cls).__new__(cls)
 
         # Build a list containing all oneOf and anyOf descendants.
-        oneof_anyof_classes = None
-        if cls._composed_schemas is not None:
-            oneof_anyof_classes = cls._composed_schemas.get(
-                "oneOf", ()
-            ) + cls._composed_schemas.get("anyOf", ())
+        oneof_anyof_classes: tuple = ()
+        composed_schemas = getattr(cls, "_composed_schemas", None)  # type: ignore[attr-defined]
+        if composed_schemas is not None:
+            oneof_anyof_classes = composed_schemas.get("oneOf", ()) + composed_schemas.get(
+                "anyOf", ()
+            )
         oneof_anyof_child = new_cls in oneof_anyof_classes
         kwargs["_visited_composed_classes"] = visited_composed_classes + (cls,)
 
-        if cls._composed_schemas.get("allOf") and oneof_anyof_child:
+        if composed_schemas and composed_schemas.get("allOf") and oneof_anyof_child:
             # Validate that we can make self because when we make the
             # new_cls it will not include the allOf validations in self
             self_inst = super(OpenApiModel, cls).__new__(cls)
-            self_inst.__init__(*args, **kwargs)
+            self_inst.__init__(*args, **kwargs)  # type: ignore[misc]
 
         new_inst = new_cls.__new__(new_cls, *args, **kwargs)
         new_inst.__init__(*args, **kwargs)
@@ -295,12 +298,13 @@ class OpenApiModel(object):
                 return None
 
             if issubclass(cls, ModelComposed) and allows_single_value_input(cls):
-                model_kwargs = {}
+                model_kwargs: dict = {}
                 oneof_instance = get_oneof_instance(cls, model_kwargs, kwargs, model_arg=arg)
                 return oneof_instance
 
         visited_composed_classes = kwargs.get("_visited_composed_classes", ())
-        if cls.discriminator is None or cls in visited_composed_classes:
+        discriminator = getattr(cls, "discriminator", None)  # type: ignore[attr-defined]
+        if discriminator is None or cls in visited_composed_classes:
             # Use case 1: this openapi schema (cls) does not have a discriminator
             # Use case 2: we have already visited this class before and are sure that we
             # want to instantiate it this time. We have visited this class deserializing
@@ -317,13 +321,14 @@ class OpenApiModel(object):
             # through Animal's discriminator because we passed in
             # _visited_composed_classes = (Animal,)
 
-            return cls._from_openapi_data(*args, **kwargs)
+            return cls._from_openapi_data(*args, **kwargs)  # type: ignore[attr-defined]
 
         # Get the name and value of the discriminator property.
         # The discriminator name is obtained from the discriminator meta-data
         # and the discriminator value is obtained from the input data.
-        discr_propertyname_py = list(cls.discriminator.keys())[0]
-        discr_propertyname_js = cls.attribute_map[discr_propertyname_py]
+        discr_propertyname_py = list(discriminator.keys())[0]
+        attribute_map = getattr(cls, "attribute_map", {})  # type: ignore[attr-defined]
+        discr_propertyname_js = attribute_map[discr_propertyname_py]
         if discr_propertyname_js in kwargs:
             discr_value = kwargs[discr_propertyname_js]
         elif discr_propertyname_py in kwargs:
@@ -369,23 +374,24 @@ class OpenApiModel(object):
             # but we know we know that we already have Dog
             # because it is in visited_composed_classes
             # so make Animal here
-            return cls._from_openapi_data(*args, **kwargs)
+            return cls._from_openapi_data(*args, **kwargs)  # type: ignore[attr-defined]
 
         # Build a list containing all oneOf and anyOf descendants.
-        oneof_anyof_classes = None
-        if cls._composed_schemas is not None:
-            oneof_anyof_classes = cls._composed_schemas.get(
-                "oneOf", ()
-            ) + cls._composed_schemas.get("anyOf", ())
+        oneof_anyof_classes: tuple = ()
+        composed_schemas = getattr(cls, "_composed_schemas", None)  # type: ignore[attr-defined]
+        if composed_schemas is not None:
+            oneof_anyof_classes = composed_schemas.get("oneOf", ()) + composed_schemas.get(
+                "anyOf", ()
+            )
         oneof_anyof_child = new_cls in oneof_anyof_classes
         kwargs["_visited_composed_classes"] = visited_composed_classes + (cls,)
 
-        if cls._composed_schemas.get("allOf") and oneof_anyof_child:
+        if composed_schemas and composed_schemas.get("allOf") and oneof_anyof_child:
             # Validate that we can make self because when we make the
             # new_cls it will not include the allOf validations in self
             self_inst = cls._from_openapi_data(*args, **kwargs)  # noqa: F841
 
-        new_inst = new_cls._new_from_openapi_data(*args, **kwargs)
+        new_inst = new_cls._new_from_openapi_data(*args, **kwargs)  # type: ignore[attr-defined]
         return new_inst
 
 
@@ -1097,13 +1103,13 @@ def get_required_type_classes(required_types_mixed, spec_property_naming):
     for required_type in required_types_mixed:
         if isinstance(required_type, list):
             valid_classes.append(list)
-            child_req_types_by_current_type[list] = required_type
+            child_req_types_by_current_type[list] = required_type  # type: ignore[index]
         elif isinstance(required_type, tuple):
             valid_classes.append(tuple)
-            child_req_types_by_current_type[tuple] = required_type
+            child_req_types_by_current_type[tuple] = required_type  # type: ignore[index]
         elif isinstance(required_type, dict):
             valid_classes.append(dict)
-            child_req_types_by_current_type[dict] = required_type[str]
+            child_req_types_by_current_type[dict] = required_type[str]  # type: ignore[index,assignment]
         else:
             valid_classes.extend(get_possible_classes(required_type, spec_property_naming))
     return tuple(valid_classes), child_req_types_by_current_type
@@ -1316,7 +1322,10 @@ def deserialize_file(response_data, configuration, content_disposition=None):
     os.remove(path)
 
     if content_disposition:
-        filename = re.search(r'filename=[\'"]?([^\'"\s]+)[\'"]?', content_disposition).group(1)
+        match = re.search(r'filename=[\'"]?([^\'"\s]+)[\'"]?', content_disposition)
+        if match is None:
+            raise ValueError("Could not extract filename from content_disposition")
+        filename = match.group(1)
         path = os.path.join(os.path.dirname(path), filename)
 
     with open(path, "wb") as f:

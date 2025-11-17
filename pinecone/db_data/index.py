@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from pinecone.utils.tqdm import tqdm
 import warnings
 import logging
 import json
-from typing import Union, List, Optional, Dict, Any, Literal, Iterator, TYPE_CHECKING
+from typing import List, Dict, Any, Literal, Iterator, TYPE_CHECKING
 
 from pinecone.config import ConfigBuilder
 
@@ -74,7 +76,7 @@ logger = logging.getLogger(__name__)
 """ :meta private: """
 
 
-def parse_query_response(response: OpenAPIQueryResponse):
+def parse_query_response(response: OpenAPIQueryResponse) -> QueryResponse:
     """:meta private:"""
     # Convert OpenAPI QueryResponse to dataclass QueryResponse
     from pinecone.utils.response_info import extract_response_info
@@ -104,18 +106,18 @@ class Index(PluginAware, IndexInterface):
     For improved performance, use the Pinecone GRPC index client.
     """
 
-    _bulk_import_resource: Optional["BulkImportResource"]
+    _bulk_import_resource: "BulkImportResource" | None
     """ :meta private: """
 
-    _namespace_resource: Optional["NamespaceResource"]
+    _namespace_resource: "NamespaceResource" | None
     """ :meta private: """
 
     def __init__(
         self,
         api_key: str,
         host: str,
-        pool_threads: Optional[int] = None,
-        additional_headers: Optional[Dict[str, str]] = {},
+        pool_threads: int | None = None,
+        additional_headers: Dict[str, str] | None = {},
         openapi_config=None,
         **kwargs,
     ):
@@ -133,8 +135,9 @@ class Index(PluginAware, IndexInterface):
             self._pool_threads = pool_threads
             """ :meta private: """
 
-        if kwargs.get("connection_pool_maxsize", None):
-            self._openapi_config.connection_pool_maxsize = kwargs.get("connection_pool_maxsize")
+        connection_pool_maxsize = kwargs.get("connection_pool_maxsize", None)
+        if connection_pool_maxsize is not None:
+            self._openapi_config.connection_pool_maxsize = connection_pool_maxsize
 
         self._vector_api = setup_openapi_client(
             api_client_klass=ApiClient,
@@ -219,14 +222,14 @@ class Index(PluginAware, IndexInterface):
     @validate_and_convert_errors
     def upsert(
         self,
-        vectors: Union[
-            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
-        ],
-        namespace: Optional[str] = None,
-        batch_size: Optional[int] = None,
+        vectors: (
+            List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
+        ),
+        namespace: str | None = None,
+        batch_size: int | None = None,
         show_progress: bool = True,
         **kwargs,
-    ) -> Union[UpsertResponse, ApplyResult]:
+    ) -> UpsertResponse | ApplyResult:
         _check_type = kwargs.pop("_check_type", True)
 
         if kwargs.get("async_req", False) and batch_size is not None:
@@ -267,7 +270,8 @@ class Index(PluginAware, IndexInterface):
                 # result is ApplyResult when async_req=True
                 return UpsertResponseTransformer(result)  # type: ignore[arg-type, return-value]
             # result is UpsertResponse when async_req=False
-            return result  # type: ignore[return-value]
+            # _upsert_batch already returns UpsertResponse when async_req=False
+            return result
 
         if not isinstance(batch_size, int) or batch_size <= 0:
             raise ValueError("batch_size must be a positive integer")
@@ -301,13 +305,13 @@ class Index(PluginAware, IndexInterface):
 
     def _upsert_batch(
         self,
-        vectors: Union[
-            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
-        ],
-        namespace: Optional[str],
+        vectors: (
+            List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
+        ),
+        namespace: str | None,
         _check_type: bool,
         **kwargs,
-    ) -> Union[UpsertResponse, ApplyResult]:
+    ) -> UpsertResponse | ApplyResult:
         # Convert OpenAPI UpsertResponse to dataclass UpsertResponse
         result = self._vector_api.upsert_vectors(
             IndexRequestFactory.upsert_request(vectors, namespace, _check_type, **kwargs),
@@ -319,7 +323,7 @@ class Index(PluginAware, IndexInterface):
         if kwargs.get("async_req", False):
             # Return ApplyResult - it will be unwrapped by the caller
             # The ApplyResult contains OpenAPIUpsertResponse which will be converted when .get() is called
-            return result  # type: ignore[return-value]  # ApplyResult is not tracked through OpenAPI layers
+            return result  # type: ignore[no-any-return]  # ApplyResult is not tracked through OpenAPI layers
 
         from pinecone.utils.response_info import extract_response_info
 
@@ -339,7 +343,7 @@ class Index(PluginAware, IndexInterface):
 
     @validate_and_convert_errors
     def upsert_from_dataframe(
-        self, df, namespace: Optional[str] = None, batch_size: int = 500, show_progress: bool = True
+        self, df, namespace: str | None = None, batch_size: int = 500, show_progress: bool = True
     ) -> UpsertResponse:
         try:
             import pandas as pd
@@ -361,6 +365,10 @@ class Index(PluginAware, IndexInterface):
         upserted_count = 0
         last_result = None
         for res in results:
+            # upsert_from_dataframe doesn't use async_req, so res is always UpsertResponse
+            assert isinstance(
+                res, UpsertResponse
+            ), "Expected UpsertResponse when not using async_req"
             upserted_count += res.upserted_count
             last_result = res
 
@@ -403,45 +411,51 @@ class Index(PluginAware, IndexInterface):
     def search(
         self,
         namespace: str,
-        query: Union[SearchQueryTypedDict, SearchQuery],
-        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
-        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+        query: SearchQueryTypedDict | SearchQuery,
+        rerank: SearchRerankTypedDict | SearchRerank | None = None,
+        fields: List[str] | None = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         if namespace is None:
             raise Exception("Namespace is required when searching records")
 
         request = IndexRequestFactory.search_request(query=query, rerank=rerank, fields=fields)
 
-        return self._vector_api.search_records_namespace(namespace, request)
+        from typing import cast
+
+        result = self._vector_api.search_records_namespace(namespace, request)
+        return cast(SearchRecordsResponse, result)
 
     @validate_and_convert_errors
     def search_records(
         self,
         namespace: str,
-        query: Union[SearchQueryTypedDict, SearchQuery],
-        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
-        fields: Optional[List[str]] = ["*"],  # Default to returning all fields
+        query: SearchQueryTypedDict | SearchQuery,
+        rerank: SearchRerankTypedDict | SearchRerank | None = None,
+        fields: List[str] | None = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         return self.search(namespace, query=query, rerank=rerank, fields=fields)
 
     @validate_and_convert_errors
     def delete(
         self,
-        ids: Optional[List[str]] = None,
-        delete_all: Optional[bool] = None,
-        namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        ids: List[str] | None = None,
+        delete_all: bool | None = None,
+        namespace: str | None = None,
+        filter: FilterTypedDict | None = None,
         **kwargs,
     ) -> Dict[str, Any]:
-        return self._vector_api.delete_vectors(
+        from typing import cast
+
+        result = self._vector_api.delete_vectors(
             IndexRequestFactory.delete_request(
                 ids=ids, delete_all=delete_all, namespace=namespace, filter=filter, **kwargs
             ),
             **self._openapi_kwargs(kwargs),
         )
+        return cast(Dict[str, Any], result)
 
     @validate_and_convert_errors
-    def fetch(self, ids: List[str], namespace: Optional[str] = None, **kwargs) -> FetchResponse:
+    def fetch(self, ids: List[str], namespace: str | None = None, **kwargs) -> FetchResponse:
         args_dict = parse_non_empty_args([("namespace", namespace)])
         result = self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
         # Copy response info from OpenAPI response if present
@@ -465,9 +479,9 @@ class Index(PluginAware, IndexInterface):
     def fetch_by_metadata(
         self,
         filter: FilterTypedDict,
-        namespace: Optional[str] = None,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
+        namespace: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
         **kwargs,
     ) -> FetchByMetadataResponse:
         """Fetch vectors by metadata filter.
@@ -490,7 +504,7 @@ class Index(PluginAware, IndexInterface):
             ... )
 
         Args:
-            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+            filter (Dict[str, str | float | int | bool | List | dict]):
                 Metadata filter expression to select vectors.
                 See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`
             namespace (str): The namespace to fetch vectors from.
@@ -537,15 +551,15 @@ class Index(PluginAware, IndexInterface):
         self,
         *args,
         top_k: int,
-        vector: Optional[List[float]] = None,
-        id: Optional[str] = None,
-        namespace: Optional[str] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        vector: List[float] | None = None,
+        id: str | None = None,
+        namespace: str | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: SparseValues | SparseVectorTypedDict | None = None,
         **kwargs,
-    ) -> Union[QueryResponse, ApplyResult]:
+    ) -> QueryResponse | ApplyResult:
         response = self._query(
             *args,
             top_k=top_k,
@@ -570,13 +584,13 @@ class Index(PluginAware, IndexInterface):
         self,
         *args,
         top_k: int,
-        vector: Optional[List[float]] = None,
-        id: Optional[str] = None,
-        namespace: Optional[str] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        vector: List[float] | None = None,
+        id: str | None = None,
+        namespace: str | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: SparseValues | SparseVectorTypedDict | None = None,
         **kwargs,
     ) -> OpenAPIQueryResponse:
         if len(args) > 0:
@@ -598,21 +612,23 @@ class Index(PluginAware, IndexInterface):
             sparse_vector=sparse_vector,
             **kwargs,
         )
-        return self._vector_api.query_vectors(request, **self._openapi_kwargs(kwargs))
+        from typing import cast
+
+        result = self._vector_api.query_vectors(request, **self._openapi_kwargs(kwargs))
+        # When async_req=False, result is QueryResponse, not ApplyResult
+        return cast(OpenAPIQueryResponse, result)
 
     @validate_and_convert_errors
     def query_namespaces(
         self,
-        vector: Optional[List[float]],
+        vector: List[float] | None,
         namespaces: List[str],
         metric: Literal["cosine", "euclidean", "dotproduct"],
-        top_k: Optional[int] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        top_k: int | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: SparseValues | SparseVectorTypedDict | None = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         if namespaces is None or len(namespaces) == 0:
@@ -641,7 +657,12 @@ class Index(PluginAware, IndexInterface):
             for ns in target_namespaces
         ]
 
-        for result in as_completed(async_futures):
+        from typing import cast
+        from concurrent.futures import Future
+
+        # async_futures is a list of ApplyResult, but as_completed expects Future
+        futures: List[Future[Any]] = cast(List[Future[Any]], async_futures)
+        for result in as_completed(futures):
             raw_result = result.result()
             response = json.loads(raw_result.data.decode("utf-8"))
             aggregator.add_results(response)
@@ -652,13 +673,13 @@ class Index(PluginAware, IndexInterface):
     @validate_and_convert_errors
     def update(
         self,
-        id: Optional[str] = None,
-        values: Optional[List[float]] = None,
-        set_metadata: Optional[VectorMetadataTypedDict] = None,
-        namespace: Optional[str] = None,
-        sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
-        filter: Optional[FilterTypedDict] = None,
-        dry_run: Optional[bool] = None,
+        id: str | None = None,
+        values: List[float] | None = None,
+        set_metadata: VectorMetadataTypedDict | None = None,
+        namespace: str | None = None,
+        sparse_values: SparseValues | SparseVectorTypedDict | None = None,
+        filter: FilterTypedDict | None = None,
+        dry_run: bool | None = None,
         **kwargs,
     ) -> UpdateResponse:
         # Validate that exactly one of id or filter is provided
@@ -706,20 +727,24 @@ class Index(PluginAware, IndexInterface):
 
     @validate_and_convert_errors
     def describe_index_stats(
-        self, filter: Optional[FilterTypedDict] = None, **kwargs
+        self, filter: FilterTypedDict | None = None, **kwargs
     ) -> DescribeIndexStatsResponse:
-        return self._vector_api.describe_index_stats(
+        from typing import cast
+
+        result = self._vector_api.describe_index_stats(
             IndexRequestFactory.describe_index_stats_request(filter, **kwargs),
             **self._openapi_kwargs(kwargs),
         )
+        # When async_req=False, result is IndexDescription, not ApplyResult
+        return cast(DescribeIndexStatsResponse, result)
 
     @validate_and_convert_errors
     def list_paginated(
         self,
-        prefix: Optional[str] = None,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
-        namespace: Optional[str] = None,
+        prefix: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        namespace: str | None = None,
         **kwargs,
     ) -> ListResponse:
         args_dict = IndexRequestFactory.list_paginated_args(
@@ -729,7 +754,11 @@ class Index(PluginAware, IndexInterface):
             namespace=namespace,
             **kwargs,
         )
-        return self._vector_api.list_vectors(**args_dict, **kwargs)
+        from typing import cast
+
+        result = self._vector_api.list_vectors(**args_dict, **kwargs)
+        # When async_req=False, result is ListResponse, not ApplyResult
+        return cast(ListResponse, result)
 
     @validate_and_convert_errors
     def list(self, **kwargs):
@@ -748,15 +777,13 @@ class Index(PluginAware, IndexInterface):
     def start_import(
         self,
         uri: str,
-        integration_id: Optional[str] = None,
-        error_mode: Optional[
-            Union["ImportErrorMode", Literal["CONTINUE", "ABORT"], str]
-        ] = "CONTINUE",
+        integration_id: str | None = None,
+        error_mode: ("ImportErrorMode" | Literal["CONTINUE", "ABORT"] | str) | None = "CONTINUE",
     ) -> "StartImportResponse":
         """
         Args:
             uri (str): The URI of the data to import. The URI must start with the scheme of a supported storage provider.
-            integration_id (Optional[str], optional): If your bucket requires authentication to access, you need to pass the id of your storage integration using this property. Defaults to None.
+            integration_id (str | None, optional): If your bucket requires authentication to access, you need to pass the id of your storage integration using this property. Defaults to None.
             error_mode: Defaults to "CONTINUE". If set to "CONTINUE", the import operation will continue even if some
                 records fail to import. Pass "ABORT" to stop the import operation if any records fail to import.
 
@@ -779,8 +806,8 @@ class Index(PluginAware, IndexInterface):
     def list_imports(self, **kwargs) -> Iterator["ImportModel"]:
         """
         Args:
-            limit (Optional[int]): The maximum number of operations to fetch in each network call. If unspecified, the server will use a default value. [optional]
-            pagination_token (Optional[str]): When there are multiple pages of results, a pagination token is returned in the response. The token can be used
+            limit (int | None): The maximum number of operations to fetch in each network call. If unspecified, the server will use a default value. [optional]
+            pagination_token (str | None): When there are multiple pages of results, a pagination token is returned in the response. The token can be used
                 to fetch the next page of results. [optional]
 
         Returns:
@@ -807,12 +834,12 @@ class Index(PluginAware, IndexInterface):
 
     @validate_and_convert_errors
     def list_imports_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+        self, limit: int | None = None, pagination_token: str | None = None, **kwargs
     ) -> "ListImportsResponse":
         """
         Args:
-            limit (Optional[int]): The maximum number of ids to return. If unspecified, the server will use a default value. [optional]
-            pagination_token (Optional[str]): A token needed to fetch the next page of results. This token is returned
+            limit (int | None): The maximum number of ids to return. If unspecified, the server will use a default value. [optional]
+            pagination_token (str | None): A token needed to fetch the next page of results. This token is returned
                 in the response if additional results are available. [optional]
 
         Returns: ListImportsResponse object which contains the list of operations as ImportModel objects, pagination information,
@@ -872,7 +899,7 @@ class Index(PluginAware, IndexInterface):
     @validate_and_convert_errors
     @require_kwargs
     def create_namespace(
-        self, name: str, schema: Optional[Dict[str, Any]] = None, **kwargs
+        self, name: str, schema: Dict[str, Any] | None = None, **kwargs
     ) -> "NamespaceDescription":
         return self.namespace.create(name=name, schema=schema, **kwargs)
 
@@ -884,19 +911,22 @@ class Index(PluginAware, IndexInterface):
     @validate_and_convert_errors
     @require_kwargs
     def delete_namespace(self, namespace: str, **kwargs) -> Dict[str, Any]:
-        return self.namespace.delete(namespace=namespace, **kwargs)
+        from typing import cast
+
+        result = self.namespace.delete(namespace=namespace, **kwargs)
+        return cast(Dict[str, Any], result)
 
     @validate_and_convert_errors
     @require_kwargs
     def list_namespaces(
-        self, limit: Optional[int] = None, **kwargs
+        self, limit: int | None = None, **kwargs
     ) -> Iterator[ListNamespacesResponse]:
         return self.namespace.list(limit=limit, **kwargs)
 
     @validate_and_convert_errors
     @require_kwargs
     def list_namespaces_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+        self, limit: int | None = None, pagination_token: str | None = None, **kwargs
     ) -> ListNamespacesResponse:
         return self.namespace.list_paginated(
             limit=limit, pagination_token=pagination_token, **kwargs

@@ -1,7 +1,10 @@
 import json
 import re
+from typing import TypeVar, Type, Any, Union, Tuple
 
 from .model_utils import deserialize_file, file_type, validate_and_convert_types
+
+T = TypeVar("T")
 
 
 class Deserializer:
@@ -17,7 +20,12 @@ class Deserializer:
             response.data = response.data.decode(encoding)
 
     @staticmethod
-    def deserialize(response, response_type, config, _check_type):
+    def deserialize(
+        response: Any,
+        response_type: Union[Tuple[Type[T], ...], Tuple[Type[Any], ...]],
+        config: Any,
+        _check_type: bool,
+    ) -> Union[T, Any]:
         """Deserializes response into an object.
 
         :param response: RESTResponse object to be deserialized.

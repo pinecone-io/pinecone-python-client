@@ -1,4 +1,4 @@
-from typing import Optional, Union, Dict
+from typing import Optional, Union, Dict, Any
 from google.protobuf import json_format
 from google.protobuf.message import Message
 
@@ -23,6 +23,7 @@ from pinecone.db_data.dataclasses import (
     Pagination,
     QueryResponse,
     UpsertResponse,
+    UpdateResponse,
 )
 
 from google.protobuf.struct_pb2 import Struct
@@ -40,15 +41,20 @@ def dict_to_proto_struct(d: Optional[dict]) -> "Struct":
     return s
 
 
-def parse_sparse_values(sparse_values: dict):
-    return (
+def parse_sparse_values(sparse_values: Optional[dict]) -> SparseValues:
+    from typing import cast
+
+    result = (
         SparseValues(indices=sparse_values["indices"], values=sparse_values["values"])
         if sparse_values
         else SparseValues(indices=[], values=[])
     )
+    return cast(SparseValues, result)
 
 
-def parse_fetch_response(response: Message, initial_metadata: Optional[Dict[str, str]] = None):
+def parse_fetch_response(
+    response: Message, initial_metadata: Optional[Dict[str, str]] = None
+) -> FetchResponse:
     json_response = json_format.MessageToDict(response)
 
     vd = {}
@@ -78,18 +84,17 @@ def parse_fetch_response(response: Message, initial_metadata: Optional[Dict[str,
     metadata = initial_metadata or {}
     response_info = extract_response_info(metadata)
 
+    usage_obj = parse_usage(json_response.get("usage", {}))
+    usage_dict: Dict[str, int] = {"read_units": usage_obj.read_units}
     fetch_response = FetchResponse(
-        vectors=vd,
-        namespace=namespace,
-        usage=parse_usage(json_response.get("usage", {})),
-        _response_info=response_info,
+        vectors=vd, namespace=namespace, usage=usage_dict, _response_info=response_info
     )
     return fetch_response
 
 
 def parse_fetch_by_metadata_response(
     response: Message, initial_metadata: Optional[Dict[str, str]] = None
-):
+) -> FetchByMetadataResponse:
     json_response = json_format.MessageToDict(response)
 
     vd = {}
@@ -115,23 +120,28 @@ def parse_fetch_by_metadata_response(
     metadata = initial_metadata or {}
     response_info = extract_response_info(metadata)
 
+    usage_obj = parse_usage(json_response.get("usage", {}))
+    usage_dict: Dict[str, int] = {"read_units": usage_obj.read_units}
     fetch_by_metadata_response = FetchByMetadataResponse(
         vectors=vd,
         namespace=namespace,
-        usage=parse_usage(json_response.get("usage", {})),
+        usage=usage_dict,
         pagination=pagination,
         _response_info=response_info,
     )
     return fetch_by_metadata_response
 
 
-def parse_usage(usage: dict):
-    return Usage(read_units=int(usage.get("readUnits", 0)))
+def parse_usage(usage: dict) -> Usage:
+    from typing import cast
+
+    result = Usage(read_units=int(usage.get("readUnits", 0)))
+    return cast(Usage, result)
 
 
 def parse_upsert_response(
     response: Message, _check_type: bool = False, initial_metadata: Optional[Dict[str, str]] = None
-):
+) -> UpsertResponse:
     from pinecone.utils.response_info import extract_response_info
 
     json_response = json_format.MessageToDict(response)
@@ -149,8 +159,7 @@ def parse_update_response(
     response: Union[dict, Message],
     _check_type: bool = False,
     initial_metadata: Optional[Dict[str, str]] = None,
-):
-    from pinecone.db_data.dataclasses import UpdateResponse
+) -> UpdateResponse:
     from pinecone.utils.response_info import extract_response_info
     from google.protobuf import json_format
 
@@ -177,14 +186,14 @@ def parse_delete_response(
     response: Union[dict, Message],
     _check_type: bool = False,
     initial_metadata: Optional[Dict[str, str]] = None,
-):
+) -> Dict[str, Any]:
     from pinecone.utils.response_info import extract_response_info
 
     # Extract response info from initial metadata
     metadata = initial_metadata or {}
     response_info = extract_response_info(metadata)
 
-    result = {"_response_info": response_info}
+    result: Dict[str, Any] = {"_response_info": response_info}
     return result
 
 
@@ -192,7 +201,7 @@ def parse_query_response(
     response: Union[dict, Message],
     _check_type: bool = False,
     initial_metadata: Optional[Dict[str, str]] = None,
-):
+) -> QueryResponse:
     if isinstance(response, Message):
         json_response = json_format.MessageToDict(response)
     else:
@@ -229,7 +238,7 @@ def parse_query_response(
     return query_response
 
 
-def parse_stats_response(response: dict):
+def parse_stats_response(response: dict) -> "DescribeIndexStatsResponse":
     fullness = response.get("indexFullness", 0.0)
     total_vector_count = response.get("totalVectorCount", 0)
     # For sparse indexes, dimension is not present, so use None instead of 0
@@ -239,13 +248,16 @@ def parse_stats_response(response: dict):
     for key in summaries:
         vc = summaries[key].get("vectorCount", 0)
         namespace_summaries[key] = NamespaceSummary(vector_count=vc)
-    return DescribeIndexStatsResponse(
+    from typing import cast
+
+    result = DescribeIndexStatsResponse(
         namespaces=namespace_summaries,
         dimension=dimension,
         index_fullness=fullness,
         total_vector_count=total_vector_count,
         _check_type=False,
     )
+    return cast(DescribeIndexStatsResponse, result)
 
 
 def parse_namespace_description(
@@ -276,7 +288,9 @@ def parse_namespace_description(
     response_info = extract_response_info(metadata)
     namespace_desc._response_info = response_info
 
-    return namespace_desc
+    from typing import cast
+
+    return cast(NamespaceDescription, namespace_desc)
 
 
 def parse_list_namespaces_response(response: Message) -> ListNamespacesResponse:
@@ -309,6 +323,9 @@ def parse_list_namespaces_response(response: Message) -> ListNamespacesResponse:
         )
 
     total_count = json_response.get("totalCount")
-    return ListNamespacesResponse(
+    from typing import cast
+
+    result = ListNamespacesResponse(
         namespaces=namespaces, pagination=pagination, total_count=total_count, _check_type=False
     )
+    return cast(ListNamespacesResponse, result)

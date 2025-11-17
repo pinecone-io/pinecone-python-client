@@ -27,7 +27,7 @@ class DBControlAsyncio:
         self._openapi_config = openapi_config
         """ :meta private: """
 
-        self._index_api = setup_async_openapi_client(
+        self._index_api: AsyncioManageIndexesApi = setup_async_openapi_client(
             api_client_klass=AsyncioApiClient,
             api_klass=AsyncioManageIndexesApi,
             config=self._config,

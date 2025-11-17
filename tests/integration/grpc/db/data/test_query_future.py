@@ -65,8 +65,7 @@ def poll_until_query_has_results(
         time_waited += wait_per_iteration
 
     raise TimeoutError(
-        f"Timeout waiting for query to return {expected_count} results "
-        f"after {time_waited} seconds"
+        f"Timeout waiting for query to return {expected_count} results after {time_waited} seconds"
     )
 
 

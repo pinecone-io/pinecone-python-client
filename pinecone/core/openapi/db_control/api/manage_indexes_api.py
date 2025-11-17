@@ -9,6 +9,13 @@ The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from multiprocessing.pool import ApplyResult
+
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
 from pinecone.openapi_support.endpoint_utils import (
     ExtraOpenApiKwargsTypedDict,
@@ -64,7 +71,7 @@ class ManageIndexesApi:
             configure_index_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> IndexModel | ApplyResult[IndexModel]:
             """Configure an index  # noqa: E501
 
             Configure an existing index. For serverless indexes, you can configure index deletion protection, tags, and integrated inference embedding settings for the index. For pod-based indexes, you can configure the pod size, number of replicas, tags, and index deletion protection.  It is not possible to change the pod type of a pod-based index. However, you can create a collection from a pod-based index and then [create a new pod-based index with a different pod type](http://docs.pinecone.io/guides/indexes/pods/create-a-pod-based-index#create-a-pod-index-from-a-collection) from the collection. For guidance and examples, see [Configure an index](http://docs.pinecone.io/guides/indexes/pods/manage-pod-based-indexes).  # noqa: E501
@@ -154,7 +161,7 @@ class ManageIndexesApi:
             create_backup_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> BackupModel | ApplyResult[BackupModel]:
             """Create a backup of an index  # noqa: E501
 
             Create a backup of an index.   # noqa: E501
@@ -243,7 +250,7 @@ class ManageIndexesApi:
             create_collection_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> CollectionModel | ApplyResult[CollectionModel]:
             """Create a collection  # noqa: E501
 
             Create a Pinecone collection.    Serverless indexes do not support collections.   # noqa: E501
@@ -325,7 +332,7 @@ class ManageIndexesApi:
             create_index_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> IndexModel | ApplyResult[IndexModel]:
             """Create an index  # noqa: E501
 
             Create a Pinecone index. This is where you specify the measure of similarity, the dimension of vectors to be stored in the index, which cloud provider you would like to deploy with, and more.    For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index).   # noqa: E501
@@ -407,7 +414,7 @@ class ManageIndexesApi:
             create_index_for_model_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> IndexModel | ApplyResult[IndexModel]:
             """Create an index with integrated embedding  # noqa: E501
 
             Create an index with integrated embedding. With this type of index, you provide source text, and  Pinecone uses a [hosted embedding model](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models)  to convert the text automatically during [upsert](https://docs.pinecone.io/reference/api/2025-10/data-plane/upsert_records)  and [search](https://docs.pinecone.io/reference/api/2025-10/data-plane/search_records).   For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index#integrated-embedding).  # noqa: E501
@@ -490,7 +497,7 @@ class ManageIndexesApi:
             create_index_from_backup_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> CreateIndexFromBackupResponse | ApplyResult[CreateIndexFromBackupResponse]:
             """Create an index from a backup  # noqa: E501
 
             Create an index from a backup.  # noqa: E501
@@ -580,7 +587,7 @@ class ManageIndexesApi:
 
         def __delete_backup(
             self, backup_id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> None:
             """Delete a backup  # noqa: E501
 
             Delete a backup.  # noqa: E501
@@ -659,7 +666,7 @@ class ManageIndexesApi:
             collection_name,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> None:
             """Delete a collection  # noqa: E501
 
             Delete an existing collection. Serverless indexes do not support collections.   # noqa: E501
@@ -738,7 +745,7 @@ class ManageIndexesApi:
             index_name,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> None:
             """Delete an index  # noqa: E501
 
             Delete an existing index.  # noqa: E501
@@ -814,7 +821,7 @@ class ManageIndexesApi:
 
         def __describe_backup(
             self, backup_id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> BackupModel | ApplyResult[BackupModel]:
             """Describe a backup  # noqa: E501
 
             Get a description of a backup.  # noqa: E501
@@ -893,7 +900,7 @@ class ManageIndexesApi:
             collection_name,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> CollectionModel | ApplyResult[CollectionModel]:
             """Describe a collection  # noqa: E501
 
             Get a description of a collection. Serverless indexes do not support collections.   # noqa: E501
@@ -972,7 +979,7 @@ class ManageIndexesApi:
             index_name,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> IndexModel | ApplyResult[IndexModel]:
             """Describe an index  # noqa: E501
 
             Get a description of an index.  # noqa: E501
@@ -1048,7 +1055,7 @@ class ManageIndexesApi:
 
         def __describe_restore_job(
             self, job_id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> RestoreJobModel | ApplyResult[RestoreJobModel]:
             """Describe a restore job  # noqa: E501
 
             Get a description of a restore job.  # noqa: E501
@@ -1124,7 +1131,7 @@ class ManageIndexesApi:
 
         def __list_collections(
             self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> CollectionList | ApplyResult[CollectionList]:
             """List collections  # noqa: E501
 
             List all collections in a project. Serverless indexes do not support collections.   # noqa: E501
@@ -1198,7 +1205,7 @@ class ManageIndexesApi:
             index_name,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> BackupList | ApplyResult[BackupList]:
             """List backups for an index  # noqa: E501
 
             List all backups for an index.  # noqa: E501
@@ -1288,7 +1295,7 @@ class ManageIndexesApi:
 
         def __list_indexes(
             self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> IndexList | ApplyResult[IndexList]:
             """List indexes  # noqa: E501
 
             List all indexes in a project.  # noqa: E501
@@ -1359,7 +1366,7 @@ class ManageIndexesApi:
 
         def __list_project_backups(
             self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> BackupList | ApplyResult[BackupList]:
             """List backups for all indexes in a project  # noqa: E501
 
             List all backups for a project.  # noqa: E501
@@ -1444,7 +1451,7 @@ class ManageIndexesApi:
 
         def __list_restore_jobs(
             self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> RestoreJobList | ApplyResult[RestoreJobList]:
             """List restore jobs  # noqa: E501
 
             List all restore jobs for a project.  # noqa: E501
@@ -1541,7 +1548,7 @@ class AsyncioManageIndexesApi:
 
         async def __configure_index(
             self, index_name, configure_index_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> IndexModel:
             """Configure an index  # noqa: E501
 
             Configure an existing index. For serverless indexes, you can configure index deletion protection, tags, and integrated inference embedding settings for the index. For pod-based indexes, you can configure the pod size, number of replicas, tags, and index deletion protection.  It is not possible to change the pod type of a pod-based index. However, you can create a collection from a pod-based index and then [create a new pod-based index with a different pod type](http://docs.pinecone.io/guides/indexes/pods/create-a-pod-based-index#create-a-pod-index-from-a-collection) from the collection. For guidance and examples, see [Configure an index](http://docs.pinecone.io/guides/indexes/pods/manage-pod-based-indexes).  # noqa: E501
@@ -1620,7 +1627,7 @@ class AsyncioManageIndexesApi:
 
         async def __create_backup(
             self, index_name, create_backup_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> BackupModel:
             """Create a backup of an index  # noqa: E501
 
             Create a backup of an index.   # noqa: E501
@@ -1699,7 +1706,7 @@ class AsyncioManageIndexesApi:
 
         async def __create_collection(
             self, create_collection_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> CollectionModel:
             """Create a collection  # noqa: E501
 
             Create a Pinecone collection.    Serverless indexes do not support collections.   # noqa: E501
@@ -1771,7 +1778,7 @@ class AsyncioManageIndexesApi:
 
         async def __create_index(
             self, create_index_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> IndexModel:
             """Create an index  # noqa: E501
 
             Create a Pinecone index. This is where you specify the measure of similarity, the dimension of vectors to be stored in the index, which cloud provider you would like to deploy with, and more.    For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index).   # noqa: E501
@@ -1843,7 +1850,7 @@ class AsyncioManageIndexesApi:
 
         async def __create_index_for_model(
             self, create_index_for_model_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> IndexModel:
             """Create an index with integrated embedding  # noqa: E501
 
             Create an index with integrated embedding. With this type of index, you provide source text, and  Pinecone uses a [hosted embedding model](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models)  to convert the text automatically during [upsert](https://docs.pinecone.io/reference/api/2025-10/data-plane/upsert_records)  and [search](https://docs.pinecone.io/reference/api/2025-10/data-plane/search_records).   For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index#integrated-embedding).  # noqa: E501
@@ -1919,7 +1926,7 @@ class AsyncioManageIndexesApi:
             create_index_from_backup_request,
             x_pinecone_api_version="2025-10",
             **kwargs,
-        ):
+        ) -> CreateIndexFromBackupResponse:
             """Create an index from a backup  # noqa: E501
 
             Create an index from a backup.  # noqa: E501
@@ -2000,7 +2007,9 @@ class AsyncioManageIndexesApi:
             callable=__create_index_from_backup_operation,
         )
 
-        async def __delete_backup(self, backup_id, x_pinecone_api_version="2025-10", **kwargs):
+        async def __delete_backup(
+            self, backup_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> None:
             """Delete a backup  # noqa: E501
 
             Delete a backup.  # noqa: E501
@@ -2069,7 +2078,7 @@ class AsyncioManageIndexesApi:
 
         async def __delete_collection(
             self, collection_name, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> None:
             """Delete a collection  # noqa: E501
 
             Delete an existing collection. Serverless indexes do not support collections.   # noqa: E501
@@ -2136,7 +2145,9 @@ class AsyncioManageIndexesApi:
             callable=__delete_collection,
         )
 
-        async def __delete_index(self, index_name, x_pinecone_api_version="2025-10", **kwargs):
+        async def __delete_index(
+            self, index_name, x_pinecone_api_version="2025-10", **kwargs
+        ) -> None:
             """Delete an index  # noqa: E501
 
             Delete an existing index.  # noqa: E501
@@ -2203,7 +2214,9 @@ class AsyncioManageIndexesApi:
             callable=__delete_index,
         )
 
-        async def __describe_backup(self, backup_id, x_pinecone_api_version="2025-10", **kwargs):
+        async def __describe_backup(
+            self, backup_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> BackupModel:
             """Describe a backup  # noqa: E501
 
             Get a description of a backup.  # noqa: E501
@@ -2272,7 +2285,7 @@ class AsyncioManageIndexesApi:
 
         async def __describe_collection(
             self, collection_name, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> CollectionModel:
             """Describe a collection  # noqa: E501
 
             Get a description of a collection. Serverless indexes do not support collections.   # noqa: E501
@@ -2339,7 +2352,9 @@ class AsyncioManageIndexesApi:
             callable=__describe_collection,
         )
 
-        async def __describe_index(self, index_name, x_pinecone_api_version="2025-10", **kwargs):
+        async def __describe_index(
+            self, index_name, x_pinecone_api_version="2025-10", **kwargs
+        ) -> IndexModel:
             """Describe an index  # noqa: E501
 
             Get a description of an index.  # noqa: E501
@@ -2406,7 +2421,9 @@ class AsyncioManageIndexesApi:
             callable=__describe_index,
         )
 
-        async def __describe_restore_job(self, job_id, x_pinecone_api_version="2025-10", **kwargs):
+        async def __describe_restore_job(
+            self, job_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> RestoreJobModel:
             """Describe a restore job  # noqa: E501
 
             Get a description of a restore job.  # noqa: E501
@@ -2473,7 +2490,9 @@ class AsyncioManageIndexesApi:
             callable=__describe_restore_job,
         )
 
-        async def __list_collections(self, x_pinecone_api_version="2025-10", **kwargs):
+        async def __list_collections(
+            self, x_pinecone_api_version="2025-10", **kwargs
+        ) -> CollectionList:
             """List collections  # noqa: E501
 
             List all collections in a project. Serverless indexes do not support collections.   # noqa: E501
@@ -2537,7 +2556,7 @@ class AsyncioManageIndexesApi:
 
         async def __list_index_backups(
             self, index_name, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> BackupList:
             """List backups for an index  # noqa: E501
 
             List all backups for an index.  # noqa: E501
@@ -2618,7 +2637,7 @@ class AsyncioManageIndexesApi:
             callable=__list_index_backups,
         )
 
-        async def __list_indexes(self, x_pinecone_api_version="2025-10", **kwargs):
+        async def __list_indexes(self, x_pinecone_api_version="2025-10", **kwargs) -> IndexList:
             """List indexes  # noqa: E501
 
             List all indexes in a project.  # noqa: E501
@@ -2680,7 +2699,9 @@ class AsyncioManageIndexesApi:
             callable=__list_indexes,
         )
 
-        async def __list_project_backups(self, x_pinecone_api_version="2025-10", **kwargs):
+        async def __list_project_backups(
+            self, x_pinecone_api_version="2025-10", **kwargs
+        ) -> BackupList:
             """List backups for all indexes in a project  # noqa: E501
 
             List all backups for a project.  # noqa: E501
@@ -2756,7 +2777,9 @@ class AsyncioManageIndexesApi:
             callable=__list_project_backups,
         )
 
-        async def __list_restore_jobs(self, x_pinecone_api_version="2025-10", **kwargs):
+        async def __list_restore_jobs(
+            self, x_pinecone_api_version="2025-10", **kwargs
+        ) -> RestoreJobList:
             """List restore jobs  # noqa: E501
 
             List all restore jobs for a project.  # noqa: E501

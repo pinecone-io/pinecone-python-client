@@ -93,7 +93,9 @@ class IndexResource(PluginAware):
         resp = self._index_api.create_index(create_index_request=req)
 
         if timeout == -1:
-            return IndexModel(resp)
+            from typing import cast
+
+            return IndexModel(cast(Any, resp))
         return self.__poll_describe_index_until_ready(name, timeout)
 
     @require_kwargs
@@ -140,7 +142,9 @@ class IndexResource(PluginAware):
         resp = self._index_api.create_index_for_model(req)
 
         if timeout == -1:
-            return IndexModel(resp)
+            from typing import cast
+
+            return IndexModel(cast(Any, resp))
         return self.__poll_describe_index_until_ready(name, timeout)
 
     @require_kwargs
@@ -178,7 +182,9 @@ class IndexResource(PluginAware):
             return self.describe(name=name)
         return self.__poll_describe_index_until_ready(name, timeout)
 
-    def __poll_describe_index_until_ready(self, name: str, timeout: Optional[int] = None):
+    def __poll_describe_index_until_ready(
+        self, name: str, timeout: Optional[int] = None
+    ) -> IndexModel:
         total_wait_time = 0
         while True:
             description = self.describe(name=name)

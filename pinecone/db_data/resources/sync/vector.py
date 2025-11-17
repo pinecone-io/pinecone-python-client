@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from pinecone.utils.tqdm import tqdm
 import logging
 import json
-from typing import Union, List, Optional, Dict, Any, Literal
+from typing import List, Optional, Dict, Any, Literal
 from multiprocessing.pool import ApplyResult
 from concurrent.futures import as_completed
 
@@ -43,7 +45,7 @@ logger = logging.getLogger(__name__)
 """ :meta private: """
 
 
-def parse_query_response(response: OpenAPIQueryResponse):
+def parse_query_response(response: OpenAPIQueryResponse) -> QueryResponse:
     """:meta private:"""
     # Convert OpenAPI QueryResponse to dataclass QueryResponse
     from pinecone.utils.response_info import extract_response_info
@@ -87,14 +89,14 @@ class VectorResource(PluginAware):
     @validate_and_convert_errors
     def upsert(
         self,
-        vectors: Union[
-            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
-        ],
+        vectors: (
+            List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
+        ),
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,
         show_progress: bool = True,
         **kwargs,
-    ) -> Union[UpsertResponse, ApplyResult]:
+    ) -> UpsertResponse | ApplyResult:
         """Upsert vectors into the index.
 
         The upsert operation writes vectors into a namespace. If a new value is upserted
@@ -162,9 +164,12 @@ class VectorResource(PluginAware):
                         return getattr(self._apply_result, name)
 
                 # result is ApplyResult when async_req=True
-                return UpsertResponseTransformer(result)  # type: ignore[arg-type, return-value]
+                from typing import cast
+
+                return cast(UpsertResponse, UpsertResponseTransformer(result))  # type: ignore[arg-type]
             # result is UpsertResponse when async_req=False
-            return result  # type: ignore[return-value]
+            # _upsert_batch already returns UpsertResponse when async_req=False
+            return result
 
         if not isinstance(batch_size, int) or batch_size <= 0:
             raise ValueError("batch_size must be a positive integer")
@@ -198,13 +203,13 @@ class VectorResource(PluginAware):
 
     def _upsert_batch(
         self,
-        vectors: Union[
-            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
-        ],
+        vectors: (
+            List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
+        ),
         namespace: Optional[str],
         _check_type: bool,
         **kwargs,
-    ) -> Union[UpsertResponse, ApplyResult]:
+    ) -> UpsertResponse | ApplyResult:
         # Convert OpenAPI UpsertResponse to dataclass UpsertResponse
         result = self._vector_api.upsert_vectors(
             IndexRequestFactory.upsert_request(vectors, namespace, _check_type, **kwargs),
@@ -216,7 +221,9 @@ class VectorResource(PluginAware):
         if kwargs.get("async_req", False):
             # Return ApplyResult - it will be unwrapped by the caller
             # The ApplyResult contains OpenAPIUpsertResponse which will be converted when .get() is called
-            return result  # type: ignore[return-value]  # ApplyResult is not tracked through OpenAPI layers
+            from typing import cast
+
+            return cast(UpsertResponse, result)  # ApplyResult is not tracked through OpenAPI layers
 
         from pinecone.utils.response_info import extract_response_info
 
@@ -274,6 +281,11 @@ class VectorResource(PluginAware):
         upserted_count = 0
         last_result = None
         for res in results:
+            # res is always UpsertResponse when not using async_req
+            # upsert() doesn't use async_req, so res is always UpsertResponse
+            assert isinstance(
+                res, UpsertResponse
+            ), "Expected UpsertResponse when not using async_req"
             upserted_count += res.upserted_count
             last_result = res
 
@@ -294,7 +306,7 @@ class VectorResource(PluginAware):
         ids: Optional[List[str]] = None,
         delete_all: Optional[bool] = None,
         namespace: Optional[str] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """Delete vectors from the index.
@@ -320,12 +332,15 @@ class VectorResource(PluginAware):
             >>> index.vector.delete(delete_all=True, namespace='my_namespace')
             >>> index.vector.delete(filter={'key': 'value'}, namespace='my_namespace')
         """
-        return self._vector_api.delete_vectors(
+        from typing import cast
+
+        result = self._vector_api.delete_vectors(
             IndexRequestFactory.delete_request(
                 ids=ids, delete_all=delete_all, namespace=namespace, filter=filter, **kwargs
             ),
             **self._openapi_kwargs(kwargs),
         )
+        return cast(Dict[str, Any], result)
 
     @validate_and_convert_errors
     def fetch(self, ids: List[str], namespace: Optional[str] = None, **kwargs) -> FetchResponse:
@@ -447,9 +462,9 @@ class VectorResource(PluginAware):
         filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
         **kwargs,
-    ) -> Union[QueryResponse, ApplyResult]:
+    ) -> QueryResponse | ApplyResult:
         """Query the index.
 
         The Query operation searches a namespace, using a query vector. It retrieves the
@@ -507,6 +522,7 @@ class VectorResource(PluginAware):
             # The response is already an ApplyResult[OpenAPIQueryResponse]
             return response  # type: ignore[return-value]  # ApplyResult is not tracked through OpenAPI layers
         else:
+            # parse_query_response already returns QueryResponse
             return parse_query_response(response)
 
     def _query(
@@ -519,7 +535,7 @@ class VectorResource(PluginAware):
         filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
         **kwargs,
     ) -> OpenAPIQueryResponse:
         if len(args) > 0:
@@ -541,7 +557,10 @@ class VectorResource(PluginAware):
             sparse_vector=sparse_vector,
             **kwargs,
         )
-        return self._vector_api.query_vectors(request, **self._openapi_kwargs(kwargs))
+        from typing import cast
+
+        result = self._vector_api.query_vectors(request, **self._openapi_kwargs(kwargs))
+        return cast(OpenAPIQueryResponse, result)
 
     @validate_and_convert_errors
     def query_namespaces(
@@ -550,12 +569,10 @@ class VectorResource(PluginAware):
         namespaces: List[str],
         metric: Literal["cosine", "euclidean", "dotproduct"],
         top_k: Optional[int] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         """Query across multiple namespaces.
@@ -618,7 +635,14 @@ class VectorResource(PluginAware):
             for ns in target_namespaces
         ]
 
-        for result in as_completed(async_futures):
+        from typing import cast
+        from concurrent.futures import Future
+
+        # async_futures is List[QueryResponse | ApplyResult]
+        # When async_threadpool_executor=True, query returns ApplyResult
+        # as_completed expects Iterable[Future], so we need to cast
+        futures: List[Future[Any]] = cast(List[Future[Any]], async_futures)
+        for result in as_completed(futures):
             raw_result = result.result()
             response = json.loads(raw_result.data.decode("utf-8"))
             aggregator.add_results(response)
@@ -633,7 +657,7 @@ class VectorResource(PluginAware):
         values: Optional[List[float]] = None,
         set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
-        sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        sparse_values: Optional[SparseValues | SparseVectorTypedDict] = None,
         **kwargs,
     ) -> UpdateResponse:
         """Update a vector in the index.
@@ -707,10 +731,13 @@ class VectorResource(PluginAware):
             >>> index.vector.describe_index_stats()
             >>> index.vector.describe_index_stats(filter={'key': 'value'})
         """
-        return self._vector_api.describe_index_stats(
+        from typing import cast
+
+        result = self._vector_api.describe_index_stats(
             IndexRequestFactory.describe_index_stats_request(filter, **kwargs),
             **self._openapi_kwargs(kwargs),
         )
+        return cast(DescribeIndexStatsResponse, result)
 
     @validate_and_convert_errors
     def list_paginated(
@@ -755,7 +782,10 @@ class VectorResource(PluginAware):
             namespace=namespace,
             **kwargs,
         )
-        return self._vector_api.list_vectors(**args_dict, **kwargs)
+        from typing import cast
+
+        result = self._vector_api.list_vectors(**args_dict, **kwargs)
+        return cast(ListResponse, result)
 
     @validate_and_convert_errors
     def list(self, **kwargs):
