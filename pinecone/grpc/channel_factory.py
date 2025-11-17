@@ -90,13 +90,13 @@ class GrpcChannelFactory:
 
         if not self.grpc_client_config.secure:
             create_channel_fn = (
-                grpc.aio.insecure_channel if self.use_asyncio else grpc.insecure_channel  # type: ignore[attr-defined]
+                grpc.aio.insecure_channel if self.use_asyncio else grpc.insecure_channel
             )
             channel = create_channel_fn(endpoint, options=options_tuple)
         else:
             channel_creds = self._build_channel_credentials()
             if self.use_asyncio:
-                channel = grpc.aio.secure_channel(  # type: ignore[attr-defined]
+                channel = grpc.aio.secure_channel(
                     endpoint, credentials=channel_creds, options=options_tuple
                 )
             else:
