@@ -295,7 +295,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
     async def upsert(
         self,
         vectors: (
-            List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
+            list[Vector] | list[VectorTuple] | list[VectorTupleWithMetadata] | list[VectorTypedDict]
         ),
         namespace: str | None = None,
         batch_size: int | None = None,
@@ -340,7 +340,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
     async def _upsert_batch(
         self,
         vectors: (
-            List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
+            list[Vector] | list[VectorTuple] | list[VectorTupleWithMetadata] | list[VectorTypedDict]
         ),
         namespace: str | None,
         _check_type: bool,
@@ -381,7 +381,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
     @validate_and_convert_errors
     async def delete(
         self,
-        ids: List[str] | None = None,
+        ids: list[str] | None = None,
         delete_all: bool | None = None,
         namespace: str | None = None,
         filter: FilterTypedDict | None = None,
@@ -409,7 +409,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
         return cast(Dict[str, Any], result)
 
     @validate_and_convert_errors
-    async def fetch(self, ids: List[str], namespace: str | None = None, **kwargs) -> FetchResponse:
+    async def fetch(self, ids: list[str], namespace: str | None = None, **kwargs) -> FetchResponse:
         args_dict = parse_non_empty_args([("namespace", namespace)])
         result = await self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
         # Copy response info from OpenAPI response if present
@@ -515,7 +515,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
         self,
         *args,
         top_k: int,
-        vector: List[float] | None = None,
+        vector: list[float] | None = None,
         id: str | None = None,
         namespace: str | None = None,
         filter: FilterTypedDict | None = None,
@@ -542,7 +542,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
         self,
         *args,
         top_k: int,
-        vector: List[float] | None = None,
+        vector: list[float] | None = None,
         id: str | None = None,
         namespace: str | None = None,
         filter: FilterTypedDict | None = None,
@@ -577,13 +577,13 @@ class _IndexAsyncio(IndexAsyncioInterface):
     @validate_and_convert_errors
     async def query_namespaces(
         self,
-        namespaces: List[str],
+        namespaces: list[str],
         metric: Literal["cosine", "euclidean", "dotproduct"],
         top_k: int | None = None,
         filter: FilterTypedDict | None = None,
         include_values: bool | None = None,
         include_metadata: bool | None = None,
-        vector: List[float] | None = None,
+        vector: list[float] | None = None,
         sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
     ) -> QueryNamespacesResults:
@@ -633,7 +633,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
     async def update(
         self,
         id: str | None = None,
-        values: List[float] | None = None,
+        values: list[float] | None = None,
         set_metadata: VectorMetadataTypedDict | None = None,
         namespace: str | None = None,
         sparse_values: (SparseValues | SparseVectorTypedDict) | None = None,
@@ -718,7 +718,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
         return cast(ListResponse, result)
 
     @validate_and_convert_errors
-    async def list(self, **kwargs) -> AsyncIterator[List[str]]:
+    async def list(self, **kwargs) -> AsyncIterator[list[str]]:
         done = False
         while not done:
             results = await self.list_paginated(**kwargs)

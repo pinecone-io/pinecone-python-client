@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import List
 from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.admin.apis import APIKeysApi
@@ -169,7 +171,7 @@ class ApiKeyResource:
         :param roles: The roles of the API key. Available roles include:
             ``ProjectEditor``, ``ProjectViewer``, ``ControlPlaneEditor``,
             ``ControlPlaneViewer``, ``DataPlaneEditor``, ``DataPlaneViewer``
-        :type roles: Optional[List[str]]
+        :type roles: Optional[list[str]]
         :return: The created API key object and value.
         :rtype: {"key": APIKey, "value": str}
 
@@ -224,7 +226,7 @@ class ApiKeyResource:
             ``ControlPlaneViewer``, ``DataPlaneEditor``, ``DataPlaneViewer``.
             Existing roles will be removed if not included. If this field is omitted,
             the roles will not be updated.
-        :type roles: Optional[List[str]]
+        :type roles: Optional[list[str]]
         :return: The updated API key.
         :rtype: APIKey
 

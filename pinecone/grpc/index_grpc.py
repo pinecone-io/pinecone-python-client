@@ -97,7 +97,7 @@ class GRPCIndex(GRPCIndexBase):
 
     def upsert(
         self,
-        vectors: List[Vector] | List[GRPCVector] | List[VectorTuple] | List[VectorTypedDict],
+        vectors: list[Vector] | list[GRPCVector] | list[VectorTuple] | list[VectorTypedDict],
         async_req: bool = False,
         namespace: str | None = None,
         batch_size: int | None = None,
@@ -128,7 +128,7 @@ class GRPCIndex(GRPCIndexBase):
                                          sparse_values=GRPCSparseValues(indices=[1, 2], values=[0.2, 0.4]))])
 
         Args:
-            vectors (Union[List[Vector], List[Tuple]]): A list of vectors to upsert.
+            vectors (Union[list[Vector], list[Tuple]]): A list of vectors to upsert.
 
                      A vector can be represented by a 1) GRPCVector object, a 2) tuple or 3) a dictionary
                      1) if a tuple is used, it must be of the form (id, values, metadata) or (id, values).
@@ -137,7 +137,7 @@ class GRPCIndex(GRPCIndexBase):
 
                     2) if a GRPCVector object is used, a GRPCVector object must be of the form
                         GRPCVector(id, values, metadata), where metadata is an optional argument of type
-                        Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]
+                        Dict[str, Union[str, float, int, bool, list[int], list[float], list[str]]]
                        Examples: GRPCVector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
                                  GRPCVector(id='id2', values=[1.0, 2.0, 3.0]),
                                  GRPCVector(id='id3',
@@ -145,7 +145,7 @@ class GRPCIndex(GRPCIndexBase):
                                             sparse_values=GRPCSparseValues(indices=[1, 2], values=[0.2, 0.4]))
 
                     3) if a dictionary is used, it must be in the form
-                       {'id': str, 'values': List[float], 'sparse_values': {'indices': List[int], 'values': List[float]},
+                       {'id': str, 'values': list[float], 'sparse_values': {'indices': list[int], 'values': list[float]},
                         'metadata': dict}
 
                     Note: the dimension of each vector must match the dimension of the index.
@@ -214,7 +214,7 @@ class GRPCIndex(GRPCIndexBase):
         return UpsertResponse(upserted_count=total_upserted, _response_info=response_info)
 
     def _upsert_batch(
-        self, vectors: List[GRPCVector], namespace: str | None, timeout: int | None, **kwargs
+        self, vectors: list[GRPCVector], namespace: str | None, timeout: int | None, **kwargs
     ) -> UpsertResponse:
         args_dict = self._parse_non_empty_args([("namespace", namespace)])
         request = UpsertRequest(vectors=vectors, **args_dict)
@@ -256,7 +256,7 @@ class GRPCIndex(GRPCIndexBase):
         for chunk in self._iter_dataframe(df, batch_size=batch_size):
             # Type cast: dataframe dicts match VectorTypedDict structure
             res = self.upsert(
-                vectors=cast(List[VectorTypedDict], chunk),
+                vectors=cast(list[VectorTypedDict], chunk),
                 namespace=namespace,
                 async_req=use_async_requests,
             )
@@ -264,7 +264,7 @@ class GRPCIndex(GRPCIndexBase):
             results.append(res)
 
         if use_async_requests:
-            cast_results = cast(List[PineconeGrpcFuture], results)
+            cast_results = cast(list[PineconeGrpcFuture], results)
             results = [
                 async_result.result()
                 for async_result in tqdm(
@@ -292,14 +292,14 @@ class GRPCIndex(GRPCIndexBase):
         return UpsertResponse(upserted_count=upserted_count, _response_info=response_info)
 
     @staticmethod
-    def _iter_dataframe(df: Any, batch_size: int) -> Iterator[List[Dict[str, Any]]]:
+    def _iter_dataframe(df: Any, batch_size: int) -> Iterator[list[Dict[str, Any]]]:
         for i in range(0, len(df), batch_size):
             batch = df.iloc[i : i + batch_size].to_dict(orient="records")
             yield batch
 
     def delete(
         self,
-        ids: List[str] | None = None,
+        ids: list[str] | None = None,
         delete_all: bool | None = None,
         namespace: str | None = None,
         filter: FilterTypedDict | None = None,
@@ -311,7 +311,7 @@ class GRPCIndex(GRPCIndexBase):
         No error raised if the vector id does not exist.
 
         Args:
-            ids (List[str]): Vector ids to delete [optional]
+            ids (list[str]): Vector ids to delete [optional]
             delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional]
                                Default is False.
             namespace (str): The namespace to delete vectors from [optional]
@@ -374,7 +374,7 @@ class GRPCIndex(GRPCIndexBase):
 
     def fetch(
         self,
-        ids: List[str] | None,
+        ids: list[str] | None,
         namespace: str | None = None,
         async_req: bool | None = False,
         **kwargs,
@@ -391,7 +391,7 @@ class GRPCIndex(GRPCIndexBase):
             >>> index.fetch(ids=['id1', 'id2'])
 
         Args:
-            ids (List[str]): The vector IDs to fetch.
+            ids (list[str]): The vector IDs to fetch.
             namespace (str): The namespace to fetch vectors from.
                              If not specified, the default namespace is used. [optional]
 
@@ -492,7 +492,7 @@ class GRPCIndex(GRPCIndexBase):
 
     def _query(
         self,
-        vector: List[float] | None = None,
+        vector: list[float] | None = None,
         id: str | None = None,
         namespace: str | None = None,
         top_k: int | None = None,
@@ -539,7 +539,7 @@ class GRPCIndex(GRPCIndexBase):
 
     def query(
         self,
-        vector: List[float] | None = None,
+        vector: list[float] | None = None,
         id: str | None = None,
         namespace: str | None = None,
         top_k: int | None = None,
@@ -568,7 +568,7 @@ class GRPCIndex(GRPCIndexBase):
             >>>             top_k=10, namespace='my_namespace')
 
         Args:
-            vector (List[float]): The query vector. This should be the same length as the dimension of the index
+            vector (list[float]): The query vector. This should be the same length as the dimension of the index
                                   being queried. Each ``query()`` request can contain only one of the parameters
                                   ``id`` or ``vector``.. [optional]
             id (str): The unique ID of the vector to be used as a query vector.
@@ -584,9 +584,9 @@ class GRPCIndex(GRPCIndexBase):
                                    If omitted the server will use the default value of False [optional]
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.
                                      If omitted the server will use the default value of False  [optional]
-            sparse_vector: (Union[SparseValues, Dict[str, Union[List[float], List[int]]]]): sparse values of the query vector.
+            sparse_vector: (Union[SparseValues, Dict[str, Union[list[float], list[int]]]]): sparse values of the query vector.
                             Expected to be either a SparseValues object or a dict of the form:
-                             {'indices': List[int], 'values': List[float]}, where the lists each have the same length.
+                             {'indices': list[int], 'values': list[float]}, where the lists each have the same length.
 
         Returns: QueryResponse object which contains the list of the closest vectors as ScoredVector objects,
                  and namespace name.
@@ -645,8 +645,8 @@ class GRPCIndex(GRPCIndexBase):
 
     def query_namespaces(
         self,
-        vector: List[float],
-        namespaces: List[str],
+        vector: list[float],
+        namespaces: list[str],
         metric: Literal["cosine", "euclidean", "dotproduct"],
         top_k: int | None = None,
         filter: FilterTypedDict | None = None,
@@ -692,7 +692,7 @@ class GRPCIndex(GRPCIndexBase):
         self,
         id: str | None = None,
         async_req: bool = False,
-        values: List[float] | None = None,
+        values: list[float] | None = None,
         set_metadata: VectorMetadataTypedDict | None = None,
         namespace: str | None = None,
         sparse_values: (GRPCSparseValues | SparseVectorTypedDict) | None = None,
@@ -755,14 +755,14 @@ class GRPCIndex(GRPCIndexBase):
             id (str): Vector's unique id. Required for single vector updates. Must not be provided when using filter. [optional]
             async_req (bool): If True, the update operation will be performed asynchronously.
                               Defaults to False. [optional]
-            values (List[float]): Vector values to set. [optional]
-            set_metadata (Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]]):
+            values (list[float]): Vector values to set. [optional]
+            set_metadata (Dict[str, Union[str, float, int, bool, list[int], list[float], list[str]]]]):
                 Metadata to merge with existing metadata on the vector(s). Fields specified will overwrite
                 existing fields with the same key, while fields not specified will remain unchanged. [optional]
             namespace (str): Namespace name where to update the vector(s). [optional]
-            sparse_values: (Dict[str, Union[List[float], List[int]]]): Sparse values to update for the vector.
+            sparse_values: (Dict[str, Union[list[float], list[int]]]): Sparse values to update for the vector.
                            Expected to be either a GRPCSparseValues object or a dict of the form:
-                           {'indices': List[int], 'values': List[float]} where the lists each have the same length. [optional]
+                           {'indices': list[int], 'values': list[float]} where the lists each have the same length. [optional]
             filter (Dict[str, Union[str, float, int, bool, List, dict]]): A metadata filter expression.
                     When provided, updates all vectors in the namespace that match the filter criteria.
                     See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`.
@@ -877,7 +877,7 @@ class GRPCIndex(GRPCIndexBase):
             namespace=response.namespace, vectors=response.vectors, pagination=pagination
         )
 
-    def list(self, **kwargs) -> Iterator[List[str]]:
+    def list(self, **kwargs) -> Iterator[list[str]]:
         """
         The list operation accepts all of the same arguments as list_paginated, and returns a generator that yields
         a list of the matching vector ids in each page of results. It automatically handles pagination tokens on your
