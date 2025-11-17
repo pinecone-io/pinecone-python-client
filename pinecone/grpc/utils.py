@@ -84,10 +84,11 @@ def parse_fetch_response(
     metadata = initial_metadata or {}
     response_info = extract_response_info(metadata)
 
-    usage_obj = parse_usage(json_response.get("usage", {}))
-    usage_dict: Dict[str, int] = {"read_units": usage_obj.read_units}
+    usage = None
+    if json_response.get("usage"):
+        usage = parse_usage(json_response.get("usage", {}))
     fetch_response = FetchResponse(
-        vectors=vd, namespace=namespace, usage=usage_dict, _response_info=response_info
+        vectors=vd, namespace=namespace, usage=usage, _response_info=response_info
     )
     return fetch_response
 
@@ -120,12 +121,13 @@ def parse_fetch_by_metadata_response(
     metadata = initial_metadata or {}
     response_info = extract_response_info(metadata)
 
-    usage_obj = parse_usage(json_response.get("usage", {}))
-    usage_dict: Dict[str, int] = {"read_units": usage_obj.read_units}
+    usage = None
+    if json_response.get("usage"):
+        usage = parse_usage(json_response.get("usage", {}))
     fetch_by_metadata_response = FetchByMetadataResponse(
         vectors=vd,
         namespace=namespace,
-        usage=usage_dict,
+        usage=usage,
         pagination=pagination,
         _response_info=response_info,
     )
