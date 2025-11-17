@@ -3,7 +3,7 @@ from __future__ import annotations
 import atexit
 import io
 
-from typing import Tuple, Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from multiprocessing.pool import ThreadPool
@@ -112,7 +112,7 @@ class ApiClient(object):
         _return_http_data_only: bool | None = True,
         collection_formats: dict[str, str] | None = None,
         _preload_content: bool = True,
-        _request_timeout: (int | float | Tuple) | None = None,
+        _request_timeout: (int | float | tuple) | None = None,
         _host: str | None = None,
         _check_type: bool | None = None,
     ):
@@ -241,7 +241,7 @@ class ApiClient(object):
         _return_http_data_only: bool | None = None,
         collection_formats: dict[str, str] | None = None,
         _preload_content: bool = True,
-        _request_timeout: (int | float | Tuple) | None = None,
+        _request_timeout: (int | float | tuple) | None = None,
         _host: str | None = None,
         _check_type: bool | None = None,
     ):

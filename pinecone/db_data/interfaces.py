@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Iterator, Literal
+from typing import Any, Iterator, Literal
 
 from pinecone.core.openapi.db_data.models import (
     IndexDescription as DescribeIndexStatsResponse,
@@ -253,12 +253,12 @@ class IndexInterface(ABC):
         pass
 
     @abstractmethod
-    def upsert_records(self, namespace: str, records: list[Dict]) -> UpsertResponse:
+    def upsert_records(self, namespace: str, records: list[dict]) -> UpsertResponse:
         """
         :param namespace: The namespace of the index to upsert records to.
         :type namespace: str, required
         :param records: The records to upsert into the index.
-        :type records: list[Dict], required
+        :type records: list[dict], required
         :return: UpsertResponse object which contains the number of records upserted.
 
         Upsert records to a namespace. A record is a dictionary that contains eitiher an `id` or `_id`
@@ -366,9 +366,9 @@ class IndexInterface(ABC):
                       is supported, which means all specified terms must be present.
                       **Note:** match_terms is only supported for sparse indexes with integrated embedding
                       configured to use the pinecone-sparse-english-v0 model.
-        :type query: Union[Dict, SearchQuery], required
+        :type query: Union[dict, SearchQuery], required
         :param rerank: The SearchRerank to use with the search request.
-        :type rerank: Union[Dict, SearchRerank], optional
+        :type rerank: Union[dict, SearchRerank], optional
         :return: The records that match the search.
 
         Search for records.

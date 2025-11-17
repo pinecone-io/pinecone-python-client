@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, Any
+from typing import Any
 
 from pinecone.core.openapi.inference.models import (
     EmbedRequest,
@@ -25,7 +25,7 @@ class InferenceRequestBuilder:
     @staticmethod
     def embed_request(
         model: EmbedModel | str,
-        inputs: str | list[Dict] | list[str],
+        inputs: str | list[dict] | list[str],
         parameters: dict[str, Any] | None = None,
     ) -> EmbedRequest:
         model = convert_enum_to_string(model)

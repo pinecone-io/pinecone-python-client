@@ -3,7 +3,7 @@ import io
 from urllib3.fields import RequestField
 import logging
 
-from typing import Tuple, Any
+from typing import Any
 
 
 from .rest_aiohttp import AiohttpRestClient
@@ -79,7 +79,7 @@ class AsyncioApiClient(object):
         _return_http_data_only: bool | None = None,
         collection_formats: dict[str, str] | None = None,
         _preload_content: bool = True,
-        _request_timeout: (int | float | Tuple) | None = None,
+        _request_timeout: (int | float | tuple) | None = None,
         _host: str | None = None,
         _check_type: bool | None = None,
     ):
@@ -226,7 +226,7 @@ class AsyncioApiClient(object):
         _return_http_data_only: bool | None = None,
         collection_formats: dict[str, str] | None = None,
         _preload_content: bool = True,
-        _request_timeout: (int | float | Tuple) | None = None,
+        _request_timeout: (int | float | tuple) | None = None,
         _host: str | None = None,
         _check_type: bool | None = None,
     ):

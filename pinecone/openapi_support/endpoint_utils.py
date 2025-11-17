@@ -1,6 +1,6 @@
 from .model_utils import file_type
 from .exceptions import PineconeApiTypeError, PineconeApiValueError
-from typing import Dict, Tuple, TypedDict, Literal, Any
+from typing import TypedDict, Literal, Any
 from .types import PropertyValidationTypedDict
 from ..config.openapi_configuration import Configuration
 from .model_utils import validate_and_convert_types, check_allowed_values, check_validations
@@ -25,7 +25,7 @@ class KwargsWithOpenApiKwargDefaultsTypedDict(TypedDict, total=False):
 
 
 class EndpointSettingsDict(TypedDict):
-    response_type: Tuple | None
+    response_type: tuple | None
     auth: list[str]
     endpoint_path: str
     operation_id: str
@@ -41,16 +41,16 @@ class EndpointParamsMapDict(TypedDict):
     validation: list[str]
 
 
-AllowedValuesDict = dict[tuple[str], Dict]
+AllowedValuesDict = dict[tuple[str], dict]
 
 AttributeMapDictType = dict[str, str]
 LocationMapDictType = dict[str, str]
-OpenapiTypesDictType = dict[str, Tuple]
+OpenapiTypesDictType = dict[str, tuple]
 
 
 class EndpointRootMapDict(TypedDict):
     validations: dict[tuple[str], PropertyValidationTypedDict]
-    allowed_values: dict[tuple[str], Dict]
+    allowed_values: dict[tuple[str], dict]
     openapi_types: OpenapiTypesDictType
     attribute_map: AttributeMapDictType
     location_map: LocationMapDictType

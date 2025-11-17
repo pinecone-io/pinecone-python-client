@@ -1,4 +1,3 @@
-from typing import Dict
 import logging
 
 from pinecone.core.openapi.db_data.api.vector_operations_api import AsyncioVectorOperationsApi
@@ -25,7 +24,7 @@ class RecordResourceAsyncio(PluginAware):
         super().__init__()
 
     @validate_and_convert_errors
-    async def upsert_records(self, namespace: str, records: list[Dict]) -> UpsertResponse:
+    async def upsert_records(self, namespace: str, records: list[dict]) -> UpsertResponse:
         """Upsert records to a namespace.
 
         A record is a dictionary that contains either an `id` or `_id` field along with

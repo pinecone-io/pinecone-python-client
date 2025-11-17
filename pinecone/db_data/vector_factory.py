@@ -3,7 +3,6 @@ from __future__ import annotations
 import numbers
 
 from collections.abc import Iterable, Mapping
-from typing import Tuple
 
 from ..utils import fix_tuple_length, convert_to_list, parse_non_empty_args
 from ..utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
@@ -57,7 +56,7 @@ class VectorFactory:
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
     @staticmethod
-    def _tuple_to_vector(item: Tuple, check_type: bool) -> OpenApiVector:
+    def _tuple_to_vector(item: tuple, check_type: bool) -> OpenApiVector:
         if len(item) < 2 or len(item) > 3:
             raise VectorTupleLengthError(item)
         id, values, metadata = fix_tuple_length(item, 3)

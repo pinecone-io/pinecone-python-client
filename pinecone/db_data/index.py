@@ -4,7 +4,7 @@ from pinecone.utils.tqdm import tqdm
 import warnings
 import logging
 import json
-from typing import Dict, Any, Literal, Iterator, TYPE_CHECKING
+from typing import Any, Literal, Iterator, TYPE_CHECKING
 
 from pinecone.config import ConfigBuilder
 
@@ -388,7 +388,7 @@ class Index(PluginAware, IndexInterface):
 
         return UpsertResponse(upserted_count=upserted_count, _response_info=response_info)
 
-    def upsert_records(self, namespace: str, records: list[Dict]) -> UpsertResponse:
+    def upsert_records(self, namespace: str, records: list[dict]) -> UpsertResponse:
         args = IndexRequestFactory.upsert_records_args(namespace=namespace, records=records)
         # Use _return_http_data_only=False to get headers for LSN extraction
         result = self._vector_api.upsert_records_namespace(_return_http_data_only=False, **args)
