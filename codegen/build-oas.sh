@@ -86,6 +86,60 @@ generate_client() {
 		sed -i '' "s/bool, date, datetime, dict, float, int, list, str, none_type/bool, dict, float, int, list, str, none_type/g" "$file"
 	done
 
+	# Fix invalid dict type annotations in return types and casts
+	# Replace {str: (bool, dict, float, int, list, str, none_type)} with Dict[str, Any]
+	find "${build_dir}" -name "*.py" | while IFS= read -r file; do
+		# Need to escape the braces and parentheses for sed
+		sed -i '' 's/{str: (bool, dict, float, int, list, str, none_type)}/Dict[str, Any]/g' "$file"
+	done
+
+	# Remove globals() assignments from TYPE_CHECKING blocks
+	# These should only be in lazy_import() functions, not in TYPE_CHECKING blocks
+	find "${build_dir}" -name "*.py" | while IFS= read -r file; do
+		python3 <<PYTHON_SCRIPT
+import sys
+
+with open('$file', 'r') as f:
+    lines = f.readlines()
+
+in_type_checking = False
+output_lines = []
+i = 0
+while i < len(lines):
+    line = lines[i]
+    if 'if TYPE_CHECKING:' in line:
+        in_type_checking = True
+        output_lines.append(line)
+        i += 1
+        # Skip blank line after 'if TYPE_CHECKING:' if present
+        if i < len(lines) and lines[i].strip() == '':
+            i += 1
+        # Process lines until we hit a blank line or 'def lazy_import'
+        while i < len(lines):
+            next_line = lines[i]
+            stripped = next_line.strip()
+            if stripped == '' or stripped.startswith('def lazy_import'):
+                in_type_checking = False
+                break
+            # Only include lines that are imports, not globals() assignments
+            if not stripped.startswith('globals('):
+                output_lines.append(next_line)
+            i += 1
+        continue
+    output_lines.append(line)
+    i += 1
+
+with open('$file', 'w') as f:
+    f.writelines(output_lines)
+PYTHON_SCRIPT
+	done
+
+	# Remove unused type: ignore[misc] comments from __new__ methods
+	# The explicit type annotation is sufficient for mypy
+	find "${build_dir}" -name "*.py" | while IFS= read -r file; do
+		sed -i '' 's/instance: T = super().__new__(cls, \*args, \*\*kwargs)  # type: ignore\[misc\]/instance: T = super().__new__(cls, *args, **kwargs)/g' "$file"
+	done
+
 	# Copy the generated module to the correct location
 	rm -rf "${destination}/${module_name}"
 	mkdir -p "${destination}"

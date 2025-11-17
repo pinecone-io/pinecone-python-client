@@ -1,13 +1,14 @@
 """
-Pinecone Data Plane API
+    Pinecone Data Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+    Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
-This file is @generated using OpenAPI.
+    This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
-Contact: support@pinecone.io
+    The version of the OpenAPI document: 2025-10
+    Contact: support@pinecone.io
 """
+
 
 from pinecone.openapi_support.model_utils import (  # noqa: F401
     PineconeApiTypeError,
@@ -26,11 +27,14 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.core.openapi.db_data.model.sparse_values import SparseValues
 
 def lazy_import():
     from pinecone.core.openapi.db_data.model.sparse_values import SparseValues
-
-    globals()["SparseValues"] = SparseValues
+    globals()['SparseValues'] = SparseValues
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -65,10 +69,14 @@ class ScoredVector(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
+    }
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-        ("id",): {"max_length": 512, "min_length": 1}
+        ('id',): {
+            'max_length': 512,
+            'min_length': 1,
+        },
     }
 
     @cached_class_property
@@ -78,7 +86,7 @@ class ScoredVector(ModelNormal):
         of type self, this must run after the class is loaded
         """
         lazy_import()
-        return (bool, dict, float, int, list, str, none_type)  # noqa: E501
+        return (bool, dict, float, int, list, str, none_type,)  # noqa: E501
 
     _nullable = False
 
@@ -94,28 +102,30 @@ class ScoredVector(ModelNormal):
         """
         lazy_import()
         return {
-            "id": (str,),  # noqa: E501
-            "score": (float,),  # noqa: E501
-            "values": ([float],),  # noqa: E501
-            "sparse_values": (SparseValues,),  # noqa: E501
-            "metadata": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
+            'id': (str,),  # noqa: E501
+            'score': (float,),  # noqa: E501
+            'values': ([float],),  # noqa: E501
+            'sparse_values': (SparseValues,),  # noqa: E501
+            'metadata': (Dict[str, Any],),  # noqa: E501
         }
 
     @cached_class_property
     def discriminator(cls):
         return None
 
+
     attribute_map: Dict[str, str] = {
-        "id": "id",  # noqa: E501
-        "score": "score",  # noqa: E501
-        "values": "values",  # noqa: E501
-        "sparse_values": "sparseValues",  # noqa: E501
-        "metadata": "metadata",  # noqa: E501
+        'id': 'id',  # noqa: E501
+        'score': 'score',  # noqa: E501
+        'values': 'values',  # noqa: E501
+        'sparse_values': 'sparseValues',  # noqa: E501
+        'metadata': 'metadata',  # noqa: E501
     }
 
-    read_only_vars: Set[str] = set([])
+    read_only_vars: Set[str] = set([
+    ])
 
-    _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+    _composed_schemas: Dict[Literal['allOf', 'oneOf', 'anyOf'], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
         """Create a new instance of ScoredVector.
@@ -125,7 +135,10 @@ class ScoredVector(ModelNormal):
         is handled by the parent class's __new__ method.
         """
         # Call parent's __new__ with all arguments to preserve discriminator logic
-        return super().__new__(cls, *args, **kwargs)  # type: ignore[misc]
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
+
+
 
     @classmethod
     @convert_js_args_to_python_args
@@ -169,23 +182,25 @@ class ScoredVector(ModelNormal):
             score (float): This is a measure of similarity between this vector and the query vector.  The higher the score, the more they are similar. [optional]  # noqa: E501
             values ([float]): This is the vector data, if it is requested. [optional]  # noqa: E501
             sparse_values (SparseValues): [optional]  # noqa: E501
-            metadata ({str: (bool, dict, float, int, list, str, none_type)}): This is the metadata, if it is requested. [optional]  # noqa: E501
+            metadata (Dict[str, Any]): This is the metadata, if it is requested. [optional]  # noqa: E501
         """
 
-        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
-        _enforce_validations = kwargs.pop("_enforce_validations", False)
-        _check_type = kwargs.pop("_check_type", True)
-        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
-        _path_to_item = kwargs.pop("_path_to_item", ())
-        _configuration = kwargs.pop("_configuration", None)
-        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
+        _enforce_allowed_values = kwargs.pop('_enforce_allowed_values', False)
+        _enforce_validations = kwargs.pop('_enforce_validations', False)
+        _check_type = kwargs.pop('_check_type', True)
+        _spec_property_naming = kwargs.pop('_spec_property_naming', False)
+        _path_to_item = kwargs.pop('_path_to_item', ())
+        _configuration = kwargs.pop('_configuration', None)
+        _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
 
         self = super(OpenApiModel, cls).__new__(cls)
 
         if args:
             raise PineconeApiTypeError(
-                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
-                % (args, self.__class__.__name__),
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
+                    args,
+                    self.__class__.__name__,
+                ),
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
             )
@@ -201,29 +216,25 @@ class ScoredVector(ModelNormal):
 
         self.id = id
         for var_name, var_value in kwargs.items():
-            if (
-                var_name not in self.attribute_map
-                and self._configuration is not None
-                and self._configuration.discard_unknown_keys
-                and self.additional_properties_type is None
-            ):
+            if var_name not in self.attribute_map and \
+                        self._configuration is not None and \
+                        self._configuration.discard_unknown_keys and \
+                        self.additional_properties_type is None:
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
         return self
 
-    required_properties = set(
-        [
-            "_enforce_allowed_values",
-            "_enforce_validations",
-            "_data_store",
-            "_check_type",
-            "_spec_property_naming",
-            "_path_to_item",
-            "_configuration",
-            "_visited_composed_classes",
-        ]
-    )
+    required_properties = set([
+        '_enforce_allowed_values',
+        '_enforce_validations',
+        '_data_store',
+        '_check_type',
+        '_spec_property_naming',
+        '_path_to_item',
+        '_configuration',
+        '_visited_composed_classes',
+    ])
 
     @convert_js_args_to_python_args
     def __init__(self, id, *args, **kwargs) -> None:  # noqa: E501
@@ -266,21 +277,23 @@ class ScoredVector(ModelNormal):
             score (float): This is a measure of similarity between this vector and the query vector.  The higher the score, the more they are similar. [optional]  # noqa: E501
             values ([float]): This is the vector data, if it is requested. [optional]  # noqa: E501
             sparse_values (SparseValues): [optional]  # noqa: E501
-            metadata ({str: (bool, dict, float, int, list, str, none_type)}): This is the metadata, if it is requested. [optional]  # noqa: E501
+            metadata (Dict[str, Any]): This is the metadata, if it is requested. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
-        _enforce_validations = kwargs.pop("_enforce_validations", True)
-        _check_type = kwargs.pop("_check_type", True)
-        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
-        _path_to_item = kwargs.pop("_path_to_item", ())
-        _configuration = kwargs.pop("_configuration", None)
-        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
+        _enforce_validations = kwargs.pop('_enforce_validations', True)
+        _check_type = kwargs.pop('_check_type', True)
+        _spec_property_naming = kwargs.pop('_spec_property_naming', False)
+        _path_to_item = kwargs.pop('_path_to_item', ())
+        _configuration = kwargs.pop('_configuration', None)
+        _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
 
         if args:
             raise PineconeApiTypeError(
-                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
-                % (args, self.__class__.__name__),
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
+                    args,
+                    self.__class__.__name__,
+                ),
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
             )
@@ -296,17 +309,13 @@ class ScoredVector(ModelNormal):
 
         self.id = id
         for var_name, var_value in kwargs.items():
-            if (
-                var_name not in self.attribute_map
-                and self._configuration is not None
-                and self._configuration.discard_unknown_keys
-                and self.additional_properties_type is None
-            ):
+            if var_name not in self.attribute_map and \
+                        self._configuration is not None and \
+                        self._configuration.discard_unknown_keys and \
+                        self.additional_properties_type is None:
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
             if var_name in self.read_only_vars:
-                raise PineconeApiAttributeError(
-                    f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
-                    f"class with read only attributes."
-                )
+                raise PineconeApiAttributeError(f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
+                                     f"class with read only attributes.")

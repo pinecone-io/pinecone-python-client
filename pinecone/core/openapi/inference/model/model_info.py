@@ -1,13 +1,14 @@
 """
-Pinecone Inference API
+    Pinecone Inference API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+    Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
-This file is @generated using OpenAPI.
+    This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
-Contact: support@pinecone.io
+    The version of the OpenAPI document: 2025-10
+    Contact: support@pinecone.io
 """
+
 
 from pinecone.openapi_support.model_utils import (  # noqa: F401
     PineconeApiTypeError,
@@ -26,17 +27,17 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.core.openapi.inference.model.model_info_supported_metrics import ModelInfoSupportedMetrics
+    from pinecone.core.openapi.inference.model.model_info_supported_parameter import ModelInfoSupportedParameter
 
 def lazy_import():
-    from pinecone.core.openapi.inference.model.model_info_supported_metrics import (
-        ModelInfoSupportedMetrics,
-    )
-    from pinecone.core.openapi.inference.model.model_info_supported_parameter import (
-        ModelInfoSupportedParameter,
-    )
-
-    globals()["ModelInfoSupportedMetrics"] = ModelInfoSupportedMetrics
-    globals()["ModelInfoSupportedParameter"] = ModelInfoSupportedParameter
+    from pinecone.core.openapi.inference.model.model_info_supported_metrics import ModelInfoSupportedMetrics
+    from pinecone.core.openapi.inference.model.model_info_supported_parameter import ModelInfoSupportedParameter
+    globals()['ModelInfoSupportedMetrics'] = ModelInfoSupportedMetrics
+    globals()['ModelInfoSupportedParameter'] = ModelInfoSupportedParameter
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -71,12 +72,20 @@ class ModelInfo(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
+    }
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-        ("default_dimension",): {"inclusive_maximum": 20000, "inclusive_minimum": 1},
-        ("max_sequence_length",): {"inclusive_minimum": 1},
-        ("max_batch_size",): {"inclusive_minimum": 1},
+        ('default_dimension',): {
+            'inclusive_maximum': 20000,
+            'inclusive_minimum': 1,
+        },
+        ('max_sequence_length',): {
+            'inclusive_minimum': 1,
+        },
+        ('max_batch_size',): {
+            'inclusive_minimum': 1,
+        },
     }
 
     @cached_class_property
@@ -86,7 +95,7 @@ class ModelInfo(ModelNormal):
         of type self, this must run after the class is loaded
         """
         lazy_import()
-        return (bool, dict, float, int, list, str, none_type)  # noqa: E501
+        return (bool, dict, float, int, list, str, none_type,)  # noqa: E501
 
     _nullable = False
 
@@ -102,42 +111,44 @@ class ModelInfo(ModelNormal):
         """
         lazy_import()
         return {
-            "model": (str,),  # noqa: E501
-            "short_description": (str,),  # noqa: E501
-            "type": (str,),  # noqa: E501
-            "supported_parameters": ([ModelInfoSupportedParameter],),  # noqa: E501
-            "vector_type": (str,),  # noqa: E501
-            "default_dimension": (int,),  # noqa: E501
-            "modality": (str,),  # noqa: E501
-            "max_sequence_length": (int,),  # noqa: E501
-            "max_batch_size": (int,),  # noqa: E501
-            "provider_name": (str,),  # noqa: E501
-            "supported_dimensions": ([int],),  # noqa: E501
-            "supported_metrics": (ModelInfoSupportedMetrics,),  # noqa: E501
+            'model': (str,),  # noqa: E501
+            'short_description': (str,),  # noqa: E501
+            'type': (str,),  # noqa: E501
+            'supported_parameters': ([ModelInfoSupportedParameter],),  # noqa: E501
+            'vector_type': (str,),  # noqa: E501
+            'default_dimension': (int,),  # noqa: E501
+            'modality': (str,),  # noqa: E501
+            'max_sequence_length': (int,),  # noqa: E501
+            'max_batch_size': (int,),  # noqa: E501
+            'provider_name': (str,),  # noqa: E501
+            'supported_dimensions': ([int],),  # noqa: E501
+            'supported_metrics': (ModelInfoSupportedMetrics,),  # noqa: E501
         }
 
     @cached_class_property
     def discriminator(cls):
         return None
 
+
     attribute_map: Dict[str, str] = {
-        "model": "model",  # noqa: E501
-        "short_description": "short_description",  # noqa: E501
-        "type": "type",  # noqa: E501
-        "supported_parameters": "supported_parameters",  # noqa: E501
-        "vector_type": "vector_type",  # noqa: E501
-        "default_dimension": "default_dimension",  # noqa: E501
-        "modality": "modality",  # noqa: E501
-        "max_sequence_length": "max_sequence_length",  # noqa: E501
-        "max_batch_size": "max_batch_size",  # noqa: E501
-        "provider_name": "provider_name",  # noqa: E501
-        "supported_dimensions": "supported_dimensions",  # noqa: E501
-        "supported_metrics": "supported_metrics",  # noqa: E501
+        'model': 'model',  # noqa: E501
+        'short_description': 'short_description',  # noqa: E501
+        'type': 'type',  # noqa: E501
+        'supported_parameters': 'supported_parameters',  # noqa: E501
+        'vector_type': 'vector_type',  # noqa: E501
+        'default_dimension': 'default_dimension',  # noqa: E501
+        'modality': 'modality',  # noqa: E501
+        'max_sequence_length': 'max_sequence_length',  # noqa: E501
+        'max_batch_size': 'max_batch_size',  # noqa: E501
+        'provider_name': 'provider_name',  # noqa: E501
+        'supported_dimensions': 'supported_dimensions',  # noqa: E501
+        'supported_metrics': 'supported_metrics',  # noqa: E501
     }
 
-    read_only_vars: Set[str] = set([])
+    read_only_vars: Set[str] = set([
+    ])
 
-    _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+    _composed_schemas: Dict[Literal['allOf', 'oneOf', 'anyOf'], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
         """Create a new instance of ModelInfo.
@@ -147,13 +158,14 @@ class ModelInfo(ModelNormal):
         is handled by the parent class's __new__ method.
         """
         # Call parent's __new__ with all arguments to preserve discriminator logic
-        return super().__new__(cls, *args, **kwargs)  # type: ignore[misc]
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
+
+
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(
-        cls: Type[T], model, short_description, type, supported_parameters, *args, **kwargs
-    ) -> T:  # noqa: E501
+    def _from_openapi_data(cls: Type[T], model, short_description, type, supported_parameters, *args, **kwargs) -> T:  # noqa: E501
         """ModelInfo - a model defined in OpenAPI
 
         Args:
@@ -203,20 +215,22 @@ class ModelInfo(ModelNormal):
             supported_metrics (ModelInfoSupportedMetrics): [optional]  # noqa: E501
         """
 
-        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
-        _enforce_validations = kwargs.pop("_enforce_validations", False)
-        _check_type = kwargs.pop("_check_type", True)
-        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
-        _path_to_item = kwargs.pop("_path_to_item", ())
-        _configuration = kwargs.pop("_configuration", None)
-        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
+        _enforce_allowed_values = kwargs.pop('_enforce_allowed_values', False)
+        _enforce_validations = kwargs.pop('_enforce_validations', False)
+        _check_type = kwargs.pop('_check_type', True)
+        _spec_property_naming = kwargs.pop('_spec_property_naming', False)
+        _path_to_item = kwargs.pop('_path_to_item', ())
+        _configuration = kwargs.pop('_configuration', None)
+        _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
 
         self = super(OpenApiModel, cls).__new__(cls)
 
         if args:
             raise PineconeApiTypeError(
-                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
-                % (args, self.__class__.__name__),
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
+                    args,
+                    self.__class__.__name__,
+                ),
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
             )
@@ -235,34 +249,28 @@ class ModelInfo(ModelNormal):
         self.type = type
         self.supported_parameters = supported_parameters
         for var_name, var_value in kwargs.items():
-            if (
-                var_name not in self.attribute_map
-                and self._configuration is not None
-                and self._configuration.discard_unknown_keys
-                and self.additional_properties_type is None
-            ):
+            if var_name not in self.attribute_map and \
+                        self._configuration is not None and \
+                        self._configuration.discard_unknown_keys and \
+                        self.additional_properties_type is None:
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
         return self
 
-    required_properties = set(
-        [
-            "_enforce_allowed_values",
-            "_enforce_validations",
-            "_data_store",
-            "_check_type",
-            "_spec_property_naming",
-            "_path_to_item",
-            "_configuration",
-            "_visited_composed_classes",
-        ]
-    )
+    required_properties = set([
+        '_enforce_allowed_values',
+        '_enforce_validations',
+        '_data_store',
+        '_check_type',
+        '_spec_property_naming',
+        '_path_to_item',
+        '_configuration',
+        '_visited_composed_classes',
+    ])
 
     @convert_js_args_to_python_args
-    def __init__(
-        self, model, short_description, type, supported_parameters, *args, **kwargs
-    ) -> None:  # noqa: E501
+    def __init__(self, model, short_description, type, supported_parameters, *args, **kwargs) -> None:  # noqa: E501
         """ModelInfo - a model defined in OpenAPI
 
         Args:
@@ -313,17 +321,19 @@ class ModelInfo(ModelNormal):
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
-        _enforce_validations = kwargs.pop("_enforce_validations", True)
-        _check_type = kwargs.pop("_check_type", True)
-        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
-        _path_to_item = kwargs.pop("_path_to_item", ())
-        _configuration = kwargs.pop("_configuration", None)
-        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
+        _enforce_validations = kwargs.pop('_enforce_validations', True)
+        _check_type = kwargs.pop('_check_type', True)
+        _spec_property_naming = kwargs.pop('_spec_property_naming', False)
+        _path_to_item = kwargs.pop('_path_to_item', ())
+        _configuration = kwargs.pop('_configuration', None)
+        _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
 
         if args:
             raise PineconeApiTypeError(
-                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
-                % (args, self.__class__.__name__),
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
+                    args,
+                    self.__class__.__name__,
+                ),
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
             )
@@ -342,17 +352,13 @@ class ModelInfo(ModelNormal):
         self.type = type
         self.supported_parameters = supported_parameters
         for var_name, var_value in kwargs.items():
-            if (
-                var_name not in self.attribute_map
-                and self._configuration is not None
-                and self._configuration.discard_unknown_keys
-                and self.additional_properties_type is None
-            ):
+            if var_name not in self.attribute_map and \
+                        self._configuration is not None and \
+                        self._configuration.discard_unknown_keys and \
+                        self.additional_properties_type is None:
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
             if var_name in self.read_only_vars:
-                raise PineconeApiAttributeError(
-                    f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
-                    f"class with read only attributes."
-                )
+                raise PineconeApiAttributeError(f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
+                                     f"class with read only attributes.")

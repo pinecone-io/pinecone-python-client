@@ -1,13 +1,14 @@
 """
-Pinecone Inference API
+    Pinecone Inference API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+    Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
-This file is @generated using OpenAPI.
+    This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
-Contact: support@pinecone.io
+    The version of the OpenAPI document: 2025-10
+    Contact: support@pinecone.io
 """
+
 
 from pinecone.openapi_support.model_utils import (  # noqa: F401
     PineconeApiTypeError,
@@ -26,13 +27,17 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.core.openapi.inference.model.ranked_document import RankedDocument
+    from pinecone.core.openapi.inference.model.rerank_result_usage import RerankResultUsage
 
 def lazy_import():
     from pinecone.core.openapi.inference.model.ranked_document import RankedDocument
     from pinecone.core.openapi.inference.model.rerank_result_usage import RerankResultUsage
-
-    globals()["RankedDocument"] = RankedDocument
-    globals()["RerankResultUsage"] = RerankResultUsage
+    globals()['RankedDocument'] = RankedDocument
+    globals()['RerankResultUsage'] = RerankResultUsage
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -67,9 +72,11 @@ class RerankResult(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
+    }
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
+    }
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -78,7 +85,7 @@ class RerankResult(ModelNormal):
         of type self, this must run after the class is loaded
         """
         lazy_import()
-        return (bool, dict, float, int, list, str, none_type)  # noqa: E501
+        return (bool, dict, float, int, list, str, none_type,)  # noqa: E501
 
     _nullable = False
 
@@ -94,24 +101,26 @@ class RerankResult(ModelNormal):
         """
         lazy_import()
         return {
-            "model": (str,),  # noqa: E501
-            "data": ([RankedDocument],),  # noqa: E501
-            "usage": (RerankResultUsage,),  # noqa: E501
+            'model': (str,),  # noqa: E501
+            'data': ([RankedDocument],),  # noqa: E501
+            'usage': (RerankResultUsage,),  # noqa: E501
         }
 
     @cached_class_property
     def discriminator(cls):
         return None
 
+
     attribute_map: Dict[str, str] = {
-        "model": "model",  # noqa: E501
-        "data": "data",  # noqa: E501
-        "usage": "usage",  # noqa: E501
+        'model': 'model',  # noqa: E501
+        'data': 'data',  # noqa: E501
+        'usage': 'usage',  # noqa: E501
     }
 
-    read_only_vars: Set[str] = set([])
+    read_only_vars: Set[str] = set([
+    ])
 
-    _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+    _composed_schemas: Dict[Literal['allOf', 'oneOf', 'anyOf'], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
         """Create a new instance of RerankResult.
@@ -121,7 +130,10 @@ class RerankResult(ModelNormal):
         is handled by the parent class's __new__ method.
         """
         # Call parent's __new__ with all arguments to preserve discriminator logic
-        return super().__new__(cls, *args, **kwargs)  # type: ignore[misc]
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
+
+
 
     @classmethod
     @convert_js_args_to_python_args
@@ -166,20 +178,22 @@ class RerankResult(ModelNormal):
                                 _visited_composed_classes = (Animal,)
         """
 
-        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
-        _enforce_validations = kwargs.pop("_enforce_validations", False)
-        _check_type = kwargs.pop("_check_type", True)
-        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
-        _path_to_item = kwargs.pop("_path_to_item", ())
-        _configuration = kwargs.pop("_configuration", None)
-        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
+        _enforce_allowed_values = kwargs.pop('_enforce_allowed_values', False)
+        _enforce_validations = kwargs.pop('_enforce_validations', False)
+        _check_type = kwargs.pop('_check_type', True)
+        _spec_property_naming = kwargs.pop('_spec_property_naming', False)
+        _path_to_item = kwargs.pop('_path_to_item', ())
+        _configuration = kwargs.pop('_configuration', None)
+        _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
 
         self = super(OpenApiModel, cls).__new__(cls)
 
         if args:
             raise PineconeApiTypeError(
-                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
-                % (args, self.__class__.__name__),
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
+                    args,
+                    self.__class__.__name__,
+                ),
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
             )
@@ -197,29 +211,25 @@ class RerankResult(ModelNormal):
         self.data = data
         self.usage = usage
         for var_name, var_value in kwargs.items():
-            if (
-                var_name not in self.attribute_map
-                and self._configuration is not None
-                and self._configuration.discard_unknown_keys
-                and self.additional_properties_type is None
-            ):
+            if var_name not in self.attribute_map and \
+                        self._configuration is not None and \
+                        self._configuration.discard_unknown_keys and \
+                        self.additional_properties_type is None:
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
         return self
 
-    required_properties = set(
-        [
-            "_enforce_allowed_values",
-            "_enforce_validations",
-            "_data_store",
-            "_check_type",
-            "_spec_property_naming",
-            "_path_to_item",
-            "_configuration",
-            "_visited_composed_classes",
-        ]
-    )
+    required_properties = set([
+        '_enforce_allowed_values',
+        '_enforce_validations',
+        '_data_store',
+        '_check_type',
+        '_spec_property_naming',
+        '_path_to_item',
+        '_configuration',
+        '_visited_composed_classes',
+    ])
 
     @convert_js_args_to_python_args
     def __init__(self, model, data, usage, *args, **kwargs) -> None:  # noqa: E501
@@ -264,17 +274,19 @@ class RerankResult(ModelNormal):
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
-        _enforce_validations = kwargs.pop("_enforce_validations", True)
-        _check_type = kwargs.pop("_check_type", True)
-        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
-        _path_to_item = kwargs.pop("_path_to_item", ())
-        _configuration = kwargs.pop("_configuration", None)
-        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
+        _enforce_validations = kwargs.pop('_enforce_validations', True)
+        _check_type = kwargs.pop('_check_type', True)
+        _spec_property_naming = kwargs.pop('_spec_property_naming', False)
+        _path_to_item = kwargs.pop('_path_to_item', ())
+        _configuration = kwargs.pop('_configuration', None)
+        _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
 
         if args:
             raise PineconeApiTypeError(
-                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
-                % (args, self.__class__.__name__),
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
+                    args,
+                    self.__class__.__name__,
+                ),
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
             )
@@ -292,17 +304,13 @@ class RerankResult(ModelNormal):
         self.data = data
         self.usage = usage
         for var_name, var_value in kwargs.items():
-            if (
-                var_name not in self.attribute_map
-                and self._configuration is not None
-                and self._configuration.discard_unknown_keys
-                and self.additional_properties_type is None
-            ):
+            if var_name not in self.attribute_map and \
+                        self._configuration is not None and \
+                        self._configuration.discard_unknown_keys and \
+                        self.additional_properties_type is None:
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
             if var_name in self.read_only_vars:
-                raise PineconeApiAttributeError(
-                    f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
-                    f"class with read only attributes."
-                )
+                raise PineconeApiAttributeError(f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
+                                     f"class with read only attributes.")

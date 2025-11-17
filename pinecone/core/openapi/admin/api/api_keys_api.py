@@ -1,26 +1,24 @@
 """
-Pinecone Admin API
+    Pinecone Admin API
 
-Provides an API for managing a Pinecone organization and its resources.   # noqa: E501
+    Provides an API for managing a Pinecone organization and its resources.   # noqa: E501
 
-This file is @generated using OpenAPI.
+    This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
-Contact: support@pinecone.io
+    The version of the OpenAPI document: 2025-10
+    Contact: support@pinecone.io
 """
+
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, cast
 
 if TYPE_CHECKING:
     from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
-from pinecone.openapi_support.endpoint_utils import (
-    ExtraOpenApiKwargsTypedDict,
-    KwargsWithOpenApiKwargDefaultsTypedDict,
-)
+from pinecone.openapi_support.endpoint_utils import ExtraOpenApiKwargsTypedDict, KwargsWithOpenApiKwargDefaultsTypedDict
 from pinecone.openapi_support.endpoint import Endpoint as _Endpoint, ExtraOpenApiKwargsTypedDict
 from pinecone.openapi_support.asyncio_endpoint import AsyncioEndpoint as _AsyncioEndpoint
 from pinecone.openapi_support.model_utils import (  # noqa: F401
@@ -28,7 +26,7 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     datetime,
     file_type,
     none_type,
-    validate_and_convert_types,
+    validate_and_convert_types
 )
 from pinecone.core.openapi.admin.model.api_key import APIKey
 from pinecone.core.openapi.admin.model.api_key_with_secret import APIKeyWithSecret
@@ -54,7 +52,7 @@ class APIKeysApi:
             project_id,
             create_api_key_request,
             x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict,
+            **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> APIKeyWithSecret | ApplyResult[APIKeyWithSecret]:
             """Create an API key  # noqa: E501
 
@@ -94,56 +92,85 @@ class APIKeysApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            kwargs["project_id"] = project_id
-            kwargs["create_api_key_request"] = create_api_key_request
-            return self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            kwargs['project_id'] = \
+                project_id
+            kwargs['create_api_key_request'] = \
+                create_api_key_request
+            return cast(APIKeyWithSecret | ApplyResult[APIKeyWithSecret], self.call_with_http_info(**kwargs))
 
         self.create_api_key = _Endpoint(
             settings={
-                "response_type": (APIKeyWithSecret,),
-                "auth": ["BearerAuth"],
-                "endpoint_path": "/admin/projects/{project_id}/api-keys",
-                "operation_id": "create_api_key",
-                "http_method": "POST",
-                "servers": None,
+                'response_type': (APIKeyWithSecret,),
+                'auth': [
+                    'BearerAuth'
+                ],
+                'endpoint_path': '/admin/projects/{project_id}/api-keys',
+                'operation_id': 'create_api_key',
+                'http_method': 'POST',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "project_id", "create_api_key_request"],
-                "required": ["x_pinecone_api_version", "project_id", "create_api_key_request"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
+                'all': [
+                    'x_pinecone_api_version',
+                    'project_id',
+                    'create_api_key_request',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                    'project_id',
+                    'create_api_key_request',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                ]
             },
             root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {
-                    "x_pinecone_api_version": (str,),
-                    "project_id": (str,),
-                    "create_api_key_request": (CreateAPIKeyRequest,),
+                'validations': {
                 },
-                "attribute_map": {
-                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
-                    "project_id": "project_id",
+                'allowed_values': {
                 },
-                "location_map": {
-                    "x_pinecone_api_version": "header",
-                    "project_id": "path",
-                    "create_api_key_request": "body",
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'project_id':
+                        (str,),
+                    'create_api_key_request':
+                        (CreateAPIKeyRequest,),
                 },
-                "collection_format_map": {},
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                    'project_id': 'project_id',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'project_id': 'path',
+                    'create_api_key_request': 'body',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [
+                    'application/json'
+                ]
+            },
             api_client=api_client,
-            callable=__create_api_key,
+            callable=__create_api_key
         )
 
         def __delete_api_key(
             self,
             api_key_id,
             x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict,
+            **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> None:
             """Delete an API key  # noqa: E501
 
@@ -182,47 +209,76 @@ class APIKeysApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            kwargs["api_key_id"] = api_key_id
-            return self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            kwargs['api_key_id'] = \
+                api_key_id
+            return cast(None, self.call_with_http_info(**kwargs))
 
         self.delete_api_key = _Endpoint(
             settings={
-                "response_type": None,
-                "auth": ["BearerAuth"],
-                "endpoint_path": "/admin/api-keys/{api_key_id}",
-                "operation_id": "delete_api_key",
-                "http_method": "DELETE",
-                "servers": None,
+                'response_type': None,
+                'auth': [
+                    'BearerAuth'
+                ],
+                'endpoint_path': '/admin/api-keys/{api_key_id}',
+                'operation_id': 'delete_api_key',
+                'http_method': 'DELETE',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "api_key_id"],
-                "required": ["x_pinecone_api_version", "api_key_id"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
+                'all': [
+                    'x_pinecone_api_version',
+                    'api_key_id',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                    'api_key_id',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                ]
             },
             root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"x_pinecone_api_version": (str,), "api_key_id": (str,)},
-                "attribute_map": {
-                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
-                    "api_key_id": "api_key_id",
+                'validations': {
                 },
-                "location_map": {"x_pinecone_api_version": "header", "api_key_id": "path"},
-                "collection_format_map": {},
+                'allowed_values': {
+                },
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'api_key_id':
+                        (str,),
+                },
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                    'api_key_id': 'api_key_id',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'api_key_id': 'path',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": []},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [],
+            },
             api_client=api_client,
-            callable=__delete_api_key,
+            callable=__delete_api_key
         )
 
         def __fetch_api_key(
             self,
             api_key_id,
             x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict,
+            **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> APIKey | ApplyResult[APIKey]:
             """Get API key details  # noqa: E501
 
@@ -261,47 +317,76 @@ class APIKeysApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            kwargs["api_key_id"] = api_key_id
-            return self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            kwargs['api_key_id'] = \
+                api_key_id
+            return cast(APIKey | ApplyResult[APIKey], self.call_with_http_info(**kwargs))
 
         self.fetch_api_key = _Endpoint(
             settings={
-                "response_type": (APIKey,),
-                "auth": ["BearerAuth"],
-                "endpoint_path": "/admin/api-keys/{api_key_id}",
-                "operation_id": "fetch_api_key",
-                "http_method": "GET",
-                "servers": None,
+                'response_type': (APIKey,),
+                'auth': [
+                    'BearerAuth'
+                ],
+                'endpoint_path': '/admin/api-keys/{api_key_id}',
+                'operation_id': 'fetch_api_key',
+                'http_method': 'GET',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "api_key_id"],
-                "required": ["x_pinecone_api_version", "api_key_id"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
+                'all': [
+                    'x_pinecone_api_version',
+                    'api_key_id',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                    'api_key_id',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                ]
             },
             root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"x_pinecone_api_version": (str,), "api_key_id": (str,)},
-                "attribute_map": {
-                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
-                    "api_key_id": "api_key_id",
+                'validations': {
                 },
-                "location_map": {"x_pinecone_api_version": "header", "api_key_id": "path"},
-                "collection_format_map": {},
+                'allowed_values': {
+                },
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'api_key_id':
+                        (str,),
+                },
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                    'api_key_id': 'api_key_id',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'api_key_id': 'path',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": []},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [],
+            },
             api_client=api_client,
-            callable=__fetch_api_key,
+            callable=__fetch_api_key
         )
 
         def __list_project_api_keys(
             self,
             project_id,
             x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict,
+            **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> ListApiKeysResponse | ApplyResult[ListApiKeysResponse]:
             """List API keys  # noqa: E501
 
@@ -340,40 +425,69 @@ class APIKeysApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            kwargs["project_id"] = project_id
-            return self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            kwargs['project_id'] = \
+                project_id
+            return cast(ListApiKeysResponse | ApplyResult[ListApiKeysResponse], self.call_with_http_info(**kwargs))
 
         self.list_project_api_keys = _Endpoint(
             settings={
-                "response_type": (ListApiKeysResponse,),
-                "auth": ["BearerAuth"],
-                "endpoint_path": "/admin/projects/{project_id}/api-keys",
-                "operation_id": "list_project_api_keys",
-                "http_method": "GET",
-                "servers": None,
+                'response_type': (ListApiKeysResponse,),
+                'auth': [
+                    'BearerAuth'
+                ],
+                'endpoint_path': '/admin/projects/{project_id}/api-keys',
+                'operation_id': 'list_project_api_keys',
+                'http_method': 'GET',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "project_id"],
-                "required": ["x_pinecone_api_version", "project_id"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
+                'all': [
+                    'x_pinecone_api_version',
+                    'project_id',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                    'project_id',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                ]
             },
             root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"x_pinecone_api_version": (str,), "project_id": (str,)},
-                "attribute_map": {
-                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
-                    "project_id": "project_id",
+                'validations': {
                 },
-                "location_map": {"x_pinecone_api_version": "header", "project_id": "path"},
-                "collection_format_map": {},
+                'allowed_values': {
+                },
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'project_id':
+                        (str,),
+                },
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                    'project_id': 'project_id',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'project_id': 'path',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": []},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [],
+            },
             api_client=api_client,
-            callable=__list_project_api_keys,
+            callable=__list_project_api_keys
         )
 
         def __update_api_key(
@@ -381,7 +495,7 @@ class APIKeysApi:
             api_key_id,
             update_api_key_request,
             x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict,
+            **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> APIKey | ApplyResult[APIKey]:
             """Update an API key  # noqa: E501
 
@@ -421,50 +535,80 @@ class APIKeysApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            kwargs["api_key_id"] = api_key_id
-            kwargs["update_api_key_request"] = update_api_key_request
-            return self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            kwargs['api_key_id'] = \
+                api_key_id
+            kwargs['update_api_key_request'] = \
+                update_api_key_request
+            return cast(APIKey | ApplyResult[APIKey], self.call_with_http_info(**kwargs))
 
         self.update_api_key = _Endpoint(
             settings={
-                "response_type": (APIKey,),
-                "auth": ["BearerAuth"],
-                "endpoint_path": "/admin/api-keys/{api_key_id}",
-                "operation_id": "update_api_key",
-                "http_method": "PATCH",
-                "servers": None,
+                'response_type': (APIKey,),
+                'auth': [
+                    'BearerAuth'
+                ],
+                'endpoint_path': '/admin/api-keys/{api_key_id}',
+                'operation_id': 'update_api_key',
+                'http_method': 'PATCH',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "api_key_id", "update_api_key_request"],
-                "required": ["x_pinecone_api_version", "api_key_id", "update_api_key_request"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
+                'all': [
+                    'x_pinecone_api_version',
+                    'api_key_id',
+                    'update_api_key_request',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                    'api_key_id',
+                    'update_api_key_request',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                ]
             },
             root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {
-                    "x_pinecone_api_version": (str,),
-                    "api_key_id": (str,),
-                    "update_api_key_request": (UpdateAPIKeyRequest,),
+                'validations': {
                 },
-                "attribute_map": {
-                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
-                    "api_key_id": "api_key_id",
+                'allowed_values': {
                 },
-                "location_map": {
-                    "x_pinecone_api_version": "header",
-                    "api_key_id": "path",
-                    "update_api_key_request": "body",
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'api_key_id':
+                        (str,),
+                    'update_api_key_request':
+                        (UpdateAPIKeyRequest,),
                 },
-                "collection_format_map": {},
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                    'api_key_id': 'api_key_id',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'api_key_id': 'path',
+                    'update_api_key_request': 'body',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [
+                    'application/json'
+                ]
+            },
             api_client=api_client,
-            callable=__update_api_key,
+            callable=__update_api_key
         )
+
 
 
 class AsyncioAPIKeysApi:
@@ -479,7 +623,11 @@ class AsyncioAPIKeysApi:
         self.api_client = api_client
 
         async def __create_api_key(
-            self, project_id, create_api_key_request, x_pinecone_api_version="2025-10", **kwargs
+            self,
+            project_id,
+            create_api_key_request,
+            x_pinecone_api_version="2025-10",
+            **kwargs
         ) -> APIKeyWithSecret:
             """Create an API key  # noqa: E501
 
@@ -512,53 +660,85 @@ class AsyncioAPIKeysApi:
                 APIKeyWithSecret
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            kwargs["project_id"] = project_id
-            kwargs["create_api_key_request"] = create_api_key_request
-            return await self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            kwargs['project_id'] = \
+                project_id
+            kwargs['create_api_key_request'] = \
+                create_api_key_request
+            return cast(APIKeyWithSecret, await self.call_with_http_info(**kwargs))
 
         self.create_api_key = _AsyncioEndpoint(
             settings={
-                "response_type": (APIKeyWithSecret,),
-                "auth": ["BearerAuth"],
-                "endpoint_path": "/admin/projects/{project_id}/api-keys",
-                "operation_id": "create_api_key",
-                "http_method": "POST",
-                "servers": None,
+                'response_type': (APIKeyWithSecret,),
+                'auth': [
+                    'BearerAuth'
+                ],
+                'endpoint_path': '/admin/projects/{project_id}/api-keys',
+                'operation_id': 'create_api_key',
+                'http_method': 'POST',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "project_id", "create_api_key_request"],
-                "required": ["x_pinecone_api_version", "project_id", "create_api_key_request"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
+                'all': [
+                    'x_pinecone_api_version',
+                    'project_id',
+                    'create_api_key_request',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                    'project_id',
+                    'create_api_key_request',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                ]
             },
             root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {
-                    "x_pinecone_api_version": (str,),
-                    "project_id": (str,),
-                    "create_api_key_request": (CreateAPIKeyRequest,),
+                'validations': {
                 },
-                "attribute_map": {
-                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
-                    "project_id": "project_id",
+                'allowed_values': {
                 },
-                "location_map": {
-                    "x_pinecone_api_version": "header",
-                    "project_id": "path",
-                    "create_api_key_request": "body",
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'project_id':
+                        (str,),
+                    'create_api_key_request':
+                        (CreateAPIKeyRequest,),
                 },
-                "collection_format_map": {},
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                    'project_id': 'project_id',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'project_id': 'path',
+                    'create_api_key_request': 'body',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [
+                    'application/json'
+                ]
+            },
             api_client=api_client,
-            callable=__create_api_key,
+            callable=__create_api_key
         )
 
         async def __delete_api_key(
-            self, api_key_id, x_pinecone_api_version="2025-10", **kwargs
+            self,
+            api_key_id,
+            x_pinecone_api_version="2025-10",
+            **kwargs
         ) -> None:
             """Delete an API key  # noqa: E501
 
@@ -590,44 +770,76 @@ class AsyncioAPIKeysApi:
                 None
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            kwargs["api_key_id"] = api_key_id
-            return await self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            kwargs['api_key_id'] = \
+                api_key_id
+            return cast(None, await self.call_with_http_info(**kwargs))
 
         self.delete_api_key = _AsyncioEndpoint(
             settings={
-                "response_type": None,
-                "auth": ["BearerAuth"],
-                "endpoint_path": "/admin/api-keys/{api_key_id}",
-                "operation_id": "delete_api_key",
-                "http_method": "DELETE",
-                "servers": None,
+                'response_type': None,
+                'auth': [
+                    'BearerAuth'
+                ],
+                'endpoint_path': '/admin/api-keys/{api_key_id}',
+                'operation_id': 'delete_api_key',
+                'http_method': 'DELETE',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "api_key_id"],
-                "required": ["x_pinecone_api_version", "api_key_id"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
+                'all': [
+                    'x_pinecone_api_version',
+                    'api_key_id',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                    'api_key_id',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                ]
             },
             root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"x_pinecone_api_version": (str,), "api_key_id": (str,)},
-                "attribute_map": {
-                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
-                    "api_key_id": "api_key_id",
+                'validations': {
                 },
-                "location_map": {"x_pinecone_api_version": "header", "api_key_id": "path"},
-                "collection_format_map": {},
+                'allowed_values': {
+                },
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'api_key_id':
+                        (str,),
+                },
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                    'api_key_id': 'api_key_id',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'api_key_id': 'path',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": []},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [],
+            },
             api_client=api_client,
-            callable=__delete_api_key,
+            callable=__delete_api_key
         )
 
         async def __fetch_api_key(
-            self, api_key_id, x_pinecone_api_version="2025-10", **kwargs
+            self,
+            api_key_id,
+            x_pinecone_api_version="2025-10",
+            **kwargs
         ) -> APIKey:
             """Get API key details  # noqa: E501
 
@@ -659,44 +871,76 @@ class AsyncioAPIKeysApi:
                 APIKey
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            kwargs["api_key_id"] = api_key_id
-            return await self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            kwargs['api_key_id'] = \
+                api_key_id
+            return cast(APIKey, await self.call_with_http_info(**kwargs))
 
         self.fetch_api_key = _AsyncioEndpoint(
             settings={
-                "response_type": (APIKey,),
-                "auth": ["BearerAuth"],
-                "endpoint_path": "/admin/api-keys/{api_key_id}",
-                "operation_id": "fetch_api_key",
-                "http_method": "GET",
-                "servers": None,
+                'response_type': (APIKey,),
+                'auth': [
+                    'BearerAuth'
+                ],
+                'endpoint_path': '/admin/api-keys/{api_key_id}',
+                'operation_id': 'fetch_api_key',
+                'http_method': 'GET',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "api_key_id"],
-                "required": ["x_pinecone_api_version", "api_key_id"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
+                'all': [
+                    'x_pinecone_api_version',
+                    'api_key_id',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                    'api_key_id',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                ]
             },
             root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"x_pinecone_api_version": (str,), "api_key_id": (str,)},
-                "attribute_map": {
-                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
-                    "api_key_id": "api_key_id",
+                'validations': {
                 },
-                "location_map": {"x_pinecone_api_version": "header", "api_key_id": "path"},
-                "collection_format_map": {},
+                'allowed_values': {
+                },
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'api_key_id':
+                        (str,),
+                },
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                    'api_key_id': 'api_key_id',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'api_key_id': 'path',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": []},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [],
+            },
             api_client=api_client,
-            callable=__fetch_api_key,
+            callable=__fetch_api_key
         )
 
         async def __list_project_api_keys(
-            self, project_id, x_pinecone_api_version="2025-10", **kwargs
+            self,
+            project_id,
+            x_pinecone_api_version="2025-10",
+            **kwargs
         ) -> ListApiKeysResponse:
             """List API keys  # noqa: E501
 
@@ -728,44 +972,77 @@ class AsyncioAPIKeysApi:
                 ListApiKeysResponse
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            kwargs["project_id"] = project_id
-            return await self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            kwargs['project_id'] = \
+                project_id
+            return cast(ListApiKeysResponse, await self.call_with_http_info(**kwargs))
 
         self.list_project_api_keys = _AsyncioEndpoint(
             settings={
-                "response_type": (ListApiKeysResponse,),
-                "auth": ["BearerAuth"],
-                "endpoint_path": "/admin/projects/{project_id}/api-keys",
-                "operation_id": "list_project_api_keys",
-                "http_method": "GET",
-                "servers": None,
+                'response_type': (ListApiKeysResponse,),
+                'auth': [
+                    'BearerAuth'
+                ],
+                'endpoint_path': '/admin/projects/{project_id}/api-keys',
+                'operation_id': 'list_project_api_keys',
+                'http_method': 'GET',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "project_id"],
-                "required": ["x_pinecone_api_version", "project_id"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
+                'all': [
+                    'x_pinecone_api_version',
+                    'project_id',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                    'project_id',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                ]
             },
             root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {"x_pinecone_api_version": (str,), "project_id": (str,)},
-                "attribute_map": {
-                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
-                    "project_id": "project_id",
+                'validations': {
                 },
-                "location_map": {"x_pinecone_api_version": "header", "project_id": "path"},
-                "collection_format_map": {},
+                'allowed_values': {
+                },
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'project_id':
+                        (str,),
+                },
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                    'project_id': 'project_id',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'project_id': 'path',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": []},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [],
+            },
             api_client=api_client,
-            callable=__list_project_api_keys,
+            callable=__list_project_api_keys
         )
 
         async def __update_api_key(
-            self, api_key_id, update_api_key_request, x_pinecone_api_version="2025-10", **kwargs
+            self,
+            api_key_id,
+            update_api_key_request,
+            x_pinecone_api_version="2025-10",
+            **kwargs
         ) -> APIKey:
             """Update an API key  # noqa: E501
 
@@ -798,47 +1075,76 @@ class AsyncioAPIKeysApi:
                 APIKey
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            kwargs["api_key_id"] = api_key_id
-            kwargs["update_api_key_request"] = update_api_key_request
-            return await self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            kwargs['api_key_id'] = \
+                api_key_id
+            kwargs['update_api_key_request'] = \
+                update_api_key_request
+            return cast(APIKey, await self.call_with_http_info(**kwargs))
 
         self.update_api_key = _AsyncioEndpoint(
             settings={
-                "response_type": (APIKey,),
-                "auth": ["BearerAuth"],
-                "endpoint_path": "/admin/api-keys/{api_key_id}",
-                "operation_id": "update_api_key",
-                "http_method": "PATCH",
-                "servers": None,
+                'response_type': (APIKey,),
+                'auth': [
+                    'BearerAuth'
+                ],
+                'endpoint_path': '/admin/api-keys/{api_key_id}',
+                'operation_id': 'update_api_key',
+                'http_method': 'PATCH',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "api_key_id", "update_api_key_request"],
-                "required": ["x_pinecone_api_version", "api_key_id", "update_api_key_request"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
+                'all': [
+                    'x_pinecone_api_version',
+                    'api_key_id',
+                    'update_api_key_request',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                    'api_key_id',
+                    'update_api_key_request',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                ]
             },
             root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {
-                    "x_pinecone_api_version": (str,),
-                    "api_key_id": (str,),
-                    "update_api_key_request": (UpdateAPIKeyRequest,),
+                'validations': {
                 },
-                "attribute_map": {
-                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
-                    "api_key_id": "api_key_id",
+                'allowed_values': {
                 },
-                "location_map": {
-                    "x_pinecone_api_version": "header",
-                    "api_key_id": "path",
-                    "update_api_key_request": "body",
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'api_key_id':
+                        (str,),
+                    'update_api_key_request':
+                        (UpdateAPIKeyRequest,),
                 },
-                "collection_format_map": {},
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                    'api_key_id': 'api_key_id',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'api_key_id': 'path',
+                    'update_api_key_request': 'body',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [
+                    'application/json'
+                ]
+            },
             api_client=api_client,
-            callable=__update_api_key,
+            callable=__update_api_key
         )

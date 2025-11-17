@@ -1,26 +1,24 @@
 """
-Pinecone Data Plane API
+    Pinecone Data Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+    Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
-This file is @generated using OpenAPI.
+    This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
-Contact: support@pinecone.io
+    The version of the OpenAPI document: 2025-10
+    Contact: support@pinecone.io
 """
+
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, cast
 
 if TYPE_CHECKING:
     from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
-from pinecone.openapi_support.endpoint_utils import (
-    ExtraOpenApiKwargsTypedDict,
-    KwargsWithOpenApiKwargDefaultsTypedDict,
-)
+from pinecone.openapi_support.endpoint_utils import ExtraOpenApiKwargsTypedDict, KwargsWithOpenApiKwargDefaultsTypedDict
 from pinecone.openapi_support.endpoint import Endpoint as _Endpoint, ExtraOpenApiKwargsTypedDict
 from pinecone.openapi_support.asyncio_endpoint import AsyncioEndpoint as _AsyncioEndpoint
 from pinecone.openapi_support.model_utils import (  # noqa: F401
@@ -28,7 +26,7 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     datetime,
     file_type,
     none_type,
-    validate_and_convert_types,
+    validate_and_convert_types
 )
 from pinecone.core.openapi.db_data.model.import_model import ImportModel
 from pinecone.core.openapi.db_data.model.list_imports_response import ListImportsResponse
@@ -49,10 +47,11 @@ class BulkOperationsApi:
         self.api_client = api_client
 
         def __cancel_bulk_import(
-            self, id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ) -> {str: (bool, dict, float, int, list, str, none_type)} | ApplyResult[
-            {str: (bool, dict, float, int, list, str, none_type)}
-        ]:
+            self,
+            id,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> Dict[str, Any] | ApplyResult[Dict[str, Any]]:
             """Cancel an import  # noqa: E501
 
             Cancel an import operation if it is not yet finished. It has no effect if the operation is already finished.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/index-data/import-data).  # noqa: E501
@@ -85,46 +84,86 @@ class BulkOperationsApi:
                 async_req (bool): execute request asynchronously
 
             Returns:
-                {str: (bool, dict, float, int, list, str, none_type)}
+                Dict[str, Any]
                     If the method is called asynchronously, returns the request
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            kwargs["id"] = id
-            return self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            kwargs['id'] = \
+                id
+            return cast(Dict[str, Any] | ApplyResult[Dict[str, Any]], self.call_with_http_info(**kwargs))
 
         self.cancel_bulk_import = _Endpoint(
             settings={
-                "response_type": ({str: (bool, dict, float, int, list, str, none_type)},),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/bulk/imports/{id}",
-                "operation_id": "cancel_bulk_import",
-                "http_method": "DELETE",
-                "servers": None,
+                'response_type': (Dict[str, Any],),
+                'auth': [
+                    'ApiKeyAuth'
+                ],
+                'endpoint_path': '/bulk/imports/{id}',
+                'operation_id': 'cancel_bulk_import',
+                'http_method': 'DELETE',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "id"],
-                "required": ["x_pinecone_api_version", "id"],
-                "nullable": [],
-                "enum": [],
-                "validation": ["id"],
+                'all': [
+                    'x_pinecone_api_version',
+                    'id',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                    'id',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                    'id',
+                ]
             },
             root_map={
-                "validations": {("id",): {"max_length": 1000, "min_length": 1}},
-                "allowed_values": {},
-                "openapi_types": {"x_pinecone_api_version": (str,), "id": (str,)},
-                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version", "id": "id"},
-                "location_map": {"x_pinecone_api_version": "header", "id": "path"},
-                "collection_format_map": {},
+                'validations': {
+                    ('id',): {
+                        'max_length': 1000,
+                        'min_length': 1,
+                    },
+                },
+                'allowed_values': {
+                },
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'id':
+                        (str,),
+                },
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                    'id': 'id',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'id': 'path',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": []},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [],
+            },
             api_client=api_client,
-            callable=__cancel_bulk_import,
+            callable=__cancel_bulk_import
         )
 
         def __describe_bulk_import(
-            self, id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self,
+            id,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> ImportModel | ApplyResult[ImportModel]:
             """Describe an import  # noqa: E501
 
@@ -163,41 +202,80 @@ class BulkOperationsApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            kwargs["id"] = id
-            return self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            kwargs['id'] = \
+                id
+            return cast(ImportModel | ApplyResult[ImportModel], self.call_with_http_info(**kwargs))
 
         self.describe_bulk_import = _Endpoint(
             settings={
-                "response_type": (ImportModel,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/bulk/imports/{id}",
-                "operation_id": "describe_bulk_import",
-                "http_method": "GET",
-                "servers": None,
+                'response_type': (ImportModel,),
+                'auth': [
+                    'ApiKeyAuth'
+                ],
+                'endpoint_path': '/bulk/imports/{id}',
+                'operation_id': 'describe_bulk_import',
+                'http_method': 'GET',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "id"],
-                "required": ["x_pinecone_api_version", "id"],
-                "nullable": [],
-                "enum": [],
-                "validation": ["id"],
+                'all': [
+                    'x_pinecone_api_version',
+                    'id',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                    'id',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                    'id',
+                ]
             },
             root_map={
-                "validations": {("id",): {"max_length": 1000, "min_length": 1}},
-                "allowed_values": {},
-                "openapi_types": {"x_pinecone_api_version": (str,), "id": (str,)},
-                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version", "id": "id"},
-                "location_map": {"x_pinecone_api_version": "header", "id": "path"},
-                "collection_format_map": {},
+                'validations': {
+                    ('id',): {
+                        'max_length': 1000,
+                        'min_length': 1,
+                    },
+                },
+                'allowed_values': {
+                },
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'id':
+                        (str,),
+                },
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                    'id': 'id',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'id': 'path',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": []},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [],
+            },
             api_client=api_client,
-            callable=__describe_bulk_import,
+            callable=__describe_bulk_import
         )
 
         def __list_bulk_imports(
-            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> ListImportsResponse | ApplyResult[ListImportsResponse]:
             """List imports  # noqa: E501
 
@@ -237,55 +315,84 @@ class BulkOperationsApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            return cast(ListImportsResponse | ApplyResult[ListImportsResponse], self.call_with_http_info(**kwargs))
 
         self.list_bulk_imports = _Endpoint(
             settings={
-                "response_type": (ListImportsResponse,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/bulk/imports",
-                "operation_id": "list_bulk_imports",
-                "http_method": "GET",
-                "servers": None,
+                'response_type': (ListImportsResponse,),
+                'auth': [
+                    'ApiKeyAuth'
+                ],
+                'endpoint_path': '/bulk/imports',
+                'operation_id': 'list_bulk_imports',
+                'http_method': 'GET',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "limit", "pagination_token"],
-                "required": ["x_pinecone_api_version"],
-                "nullable": [],
-                "enum": [],
-                "validation": ["limit"],
+                'all': [
+                    'x_pinecone_api_version',
+                    'limit',
+                    'pagination_token',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                    'limit',
+                ]
             },
             root_map={
-                "validations": {("limit",): {"inclusive_maximum": 100, "inclusive_minimum": 1}},
-                "allowed_values": {},
-                "openapi_types": {
-                    "x_pinecone_api_version": (str,),
-                    "limit": (int,),
-                    "pagination_token": (str,),
+                'validations': {
+                    ('limit',): {
+
+                        'inclusive_maximum': 100,
+                        'inclusive_minimum': 1,
+                    },
                 },
-                "attribute_map": {
-                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
-                    "limit": "limit",
-                    "pagination_token": "paginationToken",
+                'allowed_values': {
                 },
-                "location_map": {
-                    "x_pinecone_api_version": "header",
-                    "limit": "query",
-                    "pagination_token": "query",
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'limit':
+                        (int,),
+                    'pagination_token':
+                        (str,),
                 },
-                "collection_format_map": {},
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                    'limit': 'limit',
+                    'pagination_token': 'paginationToken',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'limit': 'query',
+                    'pagination_token': 'query',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": []},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [],
+            },
             api_client=api_client,
-            callable=__list_bulk_imports,
+            callable=__list_bulk_imports
         )
 
         def __start_bulk_import(
             self,
             start_import_request,
             x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict,
+            **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> StartImportResponse | ApplyResult[StartImportResponse]:
             """Start import  # noqa: E501
 
@@ -324,44 +431,72 @@ class BulkOperationsApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            kwargs["start_import_request"] = start_import_request
-            return self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            kwargs['start_import_request'] = \
+                start_import_request
+            return cast(StartImportResponse | ApplyResult[StartImportResponse], self.call_with_http_info(**kwargs))
 
         self.start_bulk_import = _Endpoint(
             settings={
-                "response_type": (StartImportResponse,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/bulk/imports",
-                "operation_id": "start_bulk_import",
-                "http_method": "POST",
-                "servers": None,
+                'response_type': (StartImportResponse,),
+                'auth': [
+                    'ApiKeyAuth'
+                ],
+                'endpoint_path': '/bulk/imports',
+                'operation_id': 'start_bulk_import',
+                'http_method': 'POST',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "start_import_request"],
-                "required": ["x_pinecone_api_version", "start_import_request"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
+                'all': [
+                    'x_pinecone_api_version',
+                    'start_import_request',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                    'start_import_request',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                ]
             },
             root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {
-                    "x_pinecone_api_version": (str,),
-                    "start_import_request": (StartImportRequest,),
+                'validations': {
                 },
-                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
-                "location_map": {
-                    "x_pinecone_api_version": "header",
-                    "start_import_request": "body",
+                'allowed_values': {
                 },
-                "collection_format_map": {},
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'start_import_request':
+                        (StartImportRequest,),
+                },
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'start_import_request': 'body',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [
+                    'application/json'
+                ]
+            },
             api_client=api_client,
-            callable=__start_bulk_import,
+            callable=__start_bulk_import
         )
+
 
 
 class AsyncioBulkOperationsApi:
@@ -376,8 +511,11 @@ class AsyncioBulkOperationsApi:
         self.api_client = api_client
 
         async def __cancel_bulk_import(
-            self, id, x_pinecone_api_version="2025-10", **kwargs
-        ) -> {str: (bool, dict, float, int, list, str, none_type)}:
+            self,
+            id,
+            x_pinecone_api_version="2025-10",
+            **kwargs
+        ) -> Dict[str, Any]:
             """Cancel an import  # noqa: E501
 
             Cancel an import operation if it is not yet finished. It has no effect if the operation is already finished.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/index-data/import-data).  # noqa: E501
@@ -405,44 +543,84 @@ class AsyncioBulkOperationsApi:
                     Default is True.
 
             Returns:
-                {str: (bool, dict, float, int, list, str, none_type)}
+                Dict[str, Any]
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            kwargs["id"] = id
-            return await self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            kwargs['id'] = \
+                id
+            return cast(Dict[str, Any], await self.call_with_http_info(**kwargs))
 
         self.cancel_bulk_import = _AsyncioEndpoint(
             settings={
-                "response_type": ({str: (bool, dict, float, int, list, str, none_type)},),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/bulk/imports/{id}",
-                "operation_id": "cancel_bulk_import",
-                "http_method": "DELETE",
-                "servers": None,
+                'response_type': (Dict[str, Any],),
+                'auth': [
+                    'ApiKeyAuth'
+                ],
+                'endpoint_path': '/bulk/imports/{id}',
+                'operation_id': 'cancel_bulk_import',
+                'http_method': 'DELETE',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "id"],
-                "required": ["x_pinecone_api_version", "id"],
-                "nullable": [],
-                "enum": [],
-                "validation": ["id"],
+                'all': [
+                    'x_pinecone_api_version',
+                    'id',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                    'id',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                    'id',
+                ]
             },
             root_map={
-                "validations": {("id",): {"max_length": 1000, "min_length": 1}},
-                "allowed_values": {},
-                "openapi_types": {"x_pinecone_api_version": (str,), "id": (str,)},
-                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version", "id": "id"},
-                "location_map": {"x_pinecone_api_version": "header", "id": "path"},
-                "collection_format_map": {},
+                'validations': {
+                    ('id',): {
+                        'max_length': 1000,
+                        'min_length': 1,
+                    },
+                },
+                'allowed_values': {
+                },
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'id':
+                        (str,),
+                },
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                    'id': 'id',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'id': 'path',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": []},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [],
+            },
             api_client=api_client,
-            callable=__cancel_bulk_import,
+            callable=__cancel_bulk_import
         )
 
         async def __describe_bulk_import(
-            self, id, x_pinecone_api_version="2025-10", **kwargs
+            self,
+            id,
+            x_pinecone_api_version="2025-10",
+            **kwargs
         ) -> ImportModel:
             """Describe an import  # noqa: E501
 
@@ -474,41 +652,80 @@ class AsyncioBulkOperationsApi:
                 ImportModel
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            kwargs["id"] = id
-            return await self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            kwargs['id'] = \
+                id
+            return cast(ImportModel, await self.call_with_http_info(**kwargs))
 
         self.describe_bulk_import = _AsyncioEndpoint(
             settings={
-                "response_type": (ImportModel,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/bulk/imports/{id}",
-                "operation_id": "describe_bulk_import",
-                "http_method": "GET",
-                "servers": None,
+                'response_type': (ImportModel,),
+                'auth': [
+                    'ApiKeyAuth'
+                ],
+                'endpoint_path': '/bulk/imports/{id}',
+                'operation_id': 'describe_bulk_import',
+                'http_method': 'GET',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "id"],
-                "required": ["x_pinecone_api_version", "id"],
-                "nullable": [],
-                "enum": [],
-                "validation": ["id"],
+                'all': [
+                    'x_pinecone_api_version',
+                    'id',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                    'id',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                    'id',
+                ]
             },
             root_map={
-                "validations": {("id",): {"max_length": 1000, "min_length": 1}},
-                "allowed_values": {},
-                "openapi_types": {"x_pinecone_api_version": (str,), "id": (str,)},
-                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version", "id": "id"},
-                "location_map": {"x_pinecone_api_version": "header", "id": "path"},
-                "collection_format_map": {},
+                'validations': {
+                    ('id',): {
+                        'max_length': 1000,
+                        'min_length': 1,
+                    },
+                },
+                'allowed_values': {
+                },
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'id':
+                        (str,),
+                },
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                    'id': 'id',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'id': 'path',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": []},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [],
+            },
             api_client=api_client,
-            callable=__describe_bulk_import,
+            callable=__describe_bulk_import
         )
 
         async def __list_bulk_imports(
-            self, x_pinecone_api_version="2025-10", **kwargs
+            self,
+            x_pinecone_api_version="2025-10",
+            **kwargs
         ) -> ListImportsResponse:
             """List imports  # noqa: E501
 
@@ -541,52 +758,84 @@ class AsyncioBulkOperationsApi:
                 ListImportsResponse
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            return cast(ListImportsResponse, await self.call_with_http_info(**kwargs))
 
         self.list_bulk_imports = _AsyncioEndpoint(
             settings={
-                "response_type": (ListImportsResponse,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/bulk/imports",
-                "operation_id": "list_bulk_imports",
-                "http_method": "GET",
-                "servers": None,
+                'response_type': (ListImportsResponse,),
+                'auth': [
+                    'ApiKeyAuth'
+                ],
+                'endpoint_path': '/bulk/imports',
+                'operation_id': 'list_bulk_imports',
+                'http_method': 'GET',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "limit", "pagination_token"],
-                "required": ["x_pinecone_api_version"],
-                "nullable": [],
-                "enum": [],
-                "validation": ["limit"],
+                'all': [
+                    'x_pinecone_api_version',
+                    'limit',
+                    'pagination_token',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                    'limit',
+                ]
             },
             root_map={
-                "validations": {("limit",): {"inclusive_maximum": 100, "inclusive_minimum": 1}},
-                "allowed_values": {},
-                "openapi_types": {
-                    "x_pinecone_api_version": (str,),
-                    "limit": (int,),
-                    "pagination_token": (str,),
+                'validations': {
+                    ('limit',): {
+
+                        'inclusive_maximum': 100,
+                        'inclusive_minimum': 1,
+                    },
                 },
-                "attribute_map": {
-                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
-                    "limit": "limit",
-                    "pagination_token": "paginationToken",
+                'allowed_values': {
                 },
-                "location_map": {
-                    "x_pinecone_api_version": "header",
-                    "limit": "query",
-                    "pagination_token": "query",
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'limit':
+                        (int,),
+                    'pagination_token':
+                        (str,),
                 },
-                "collection_format_map": {},
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                    'limit': 'limit',
+                    'pagination_token': 'paginationToken',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'limit': 'query',
+                    'pagination_token': 'query',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": []},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [],
+            },
             api_client=api_client,
-            callable=__list_bulk_imports,
+            callable=__list_bulk_imports
         )
 
         async def __start_bulk_import(
-            self, start_import_request, x_pinecone_api_version="2025-10", **kwargs
+            self,
+            start_import_request,
+            x_pinecone_api_version="2025-10",
+            **kwargs
         ) -> StartImportResponse:
             """Start import  # noqa: E501
 
@@ -618,41 +867,68 @@ class AsyncioBulkOperationsApi:
                 StartImportResponse
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            kwargs["start_import_request"] = start_import_request
-            return await self.call_with_http_info(**kwargs)
+            kwargs['x_pinecone_api_version'] = \
+                x_pinecone_api_version
+            kwargs['start_import_request'] = \
+                start_import_request
+            return cast(StartImportResponse, await self.call_with_http_info(**kwargs))
 
         self.start_bulk_import = _AsyncioEndpoint(
             settings={
-                "response_type": (StartImportResponse,),
-                "auth": ["ApiKeyAuth"],
-                "endpoint_path": "/bulk/imports",
-                "operation_id": "start_bulk_import",
-                "http_method": "POST",
-                "servers": None,
+                'response_type': (StartImportResponse,),
+                'auth': [
+                    'ApiKeyAuth'
+                ],
+                'endpoint_path': '/bulk/imports',
+                'operation_id': 'start_bulk_import',
+                'http_method': 'POST',
+                'servers': None,
             },
             params_map={
-                "all": ["x_pinecone_api_version", "start_import_request"],
-                "required": ["x_pinecone_api_version", "start_import_request"],
-                "nullable": [],
-                "enum": [],
-                "validation": [],
+                'all': [
+                    'x_pinecone_api_version',
+                    'start_import_request',
+                ],
+                'required': [
+                    'x_pinecone_api_version',
+                    'start_import_request',
+                ],
+                'nullable': [
+                ],
+                'enum': [
+                ],
+                'validation': [
+                ]
             },
             root_map={
-                "validations": {},
-                "allowed_values": {},
-                "openapi_types": {
-                    "x_pinecone_api_version": (str,),
-                    "start_import_request": (StartImportRequest,),
+                'validations': {
                 },
-                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
-                "location_map": {
-                    "x_pinecone_api_version": "header",
-                    "start_import_request": "body",
+                'allowed_values': {
                 },
-                "collection_format_map": {},
+                'openapi_types': {
+                    'x_pinecone_api_version':
+                        (str,),
+                    'start_import_request':
+                        (StartImportRequest,),
+                },
+                'attribute_map': {
+                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
+                },
+                'location_map': {
+                    'x_pinecone_api_version': 'header',
+                    'start_import_request': 'body',
+                },
+                'collection_format_map': {
+                }
             },
-            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
+            headers_map={
+                'accept': [
+                    'application/json'
+                ],
+                'content_type': [
+                    'application/json'
+                ]
+            },
             api_client=api_client,
-            callable=__start_bulk_import,
+            callable=__start_bulk_import
         )

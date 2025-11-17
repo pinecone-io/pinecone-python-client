@@ -1,15 +1,16 @@
 # flake8: noqa
 
 """
-Pinecone Admin API
+    Pinecone Admin API
 
-Provides an API for managing a Pinecone organization and its resources.   # noqa: E501
+    Provides an API for managing a Pinecone organization and its resources.   # noqa: E501
 
-This file is @generated using OpenAPI.
+    This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
-Contact: support@pinecone.io
+    The version of the OpenAPI document: 2025-10
+    Contact: support@pinecone.io
 """
+
 
 __version__ = "1.0.0"
 
@@ -26,5 +27,4 @@ from pinecone.openapi_support.exceptions import PineconeApiTypeError
 from pinecone.openapi_support.exceptions import PineconeApiValueError
 from pinecone.openapi_support.exceptions import PineconeApiKeyError
 from pinecone.openapi_support.exceptions import PineconeApiException
-
-API_VERSION = "2025-10"
+API_VERSION = '2025-10'
