@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Any, Type
 from pinecone.config import Config
 from pinecone.core.openapi.db_control.api.manage_indexes_api import (
     ManageIndexesApi as IndexOperationsApi,
@@ -8,7 +8,7 @@ from pinecone.utils import normalize_host
 
 
 class SingletonMeta(type):
-    _instances: Dict[str, str] = {}
+    _instances: Dict[Type[Any], Any] = {}
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:

@@ -26,6 +26,11 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.core.openapi.db_data.model.vector_values import VectorValues
+
 
 def lazy_import():
     from pinecone.core.openapi.db_data.model.vector_values import VectorValues
@@ -110,6 +115,17 @@ class SearchRecordsVector(ModelNormal):
     read_only_vars: Set[str] = set([])
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of SearchRecordsVector.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
 
     @classmethod
     @convert_js_args_to_python_args

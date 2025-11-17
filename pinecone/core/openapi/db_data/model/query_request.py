@@ -26,6 +26,12 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.core.openapi.db_data.model.query_vector import QueryVector
+    from pinecone.core.openapi.db_data.model.sparse_values import SparseValues
+
 
 def lazy_import():
     from pinecone.core.openapi.db_data.model.query_vector import QueryVector
@@ -101,7 +107,7 @@ class QueryRequest(ModelNormal):
         return {
             "top_k": (int,),  # noqa: E501
             "namespace": (str,),  # noqa: E501
-            "filter": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "filter": (Dict[str, Any],),  # noqa: E501
             "include_values": (bool,),  # noqa: E501
             "include_metadata": (bool,),  # noqa: E501
             "queries": ([QueryVector],),  # noqa: E501
@@ -129,6 +135,17 @@ class QueryRequest(ModelNormal):
     read_only_vars: Set[str] = set([])
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of QueryRequest.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
 
     @classmethod
     @convert_js_args_to_python_args
@@ -170,7 +187,7 @@ class QueryRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             namespace (str): The namespace to query. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
+            filter (Dict[str, Any]): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
             include_values (bool): Indicates whether vector values are included in the response. [optional] if omitted the server will use the default value of False.  # noqa: E501
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids. [optional] if omitted the server will use the default value of False.  # noqa: E501
             queries ([QueryVector]): DEPRECATED. Use `vector` or `id` instead. [optional]  # noqa: E501
@@ -271,7 +288,7 @@ class QueryRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             namespace (str): The namespace to query. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
+            filter (Dict[str, Any]): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
             include_values (bool): Indicates whether vector values are included in the response. [optional] if omitted the server will use the default value of False.  # noqa: E501
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids. [optional] if omitted the server will use the default value of False.  # noqa: E501
             queries ([QueryVector]): DEPRECATED. Use `vector` or `id` instead. [optional]  # noqa: E501

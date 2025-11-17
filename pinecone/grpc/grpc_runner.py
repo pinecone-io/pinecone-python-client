@@ -44,7 +44,7 @@ class GrpcRunner:
         """
 
         @wraps(func)
-        def wrapped():
+        def wrapped() -> Tuple[Any, Optional[Dict[str, str]]]:
             user_provided_metadata = metadata or {}
             _metadata = self._prepare_metadata(user_provided_metadata)
             try:
@@ -107,7 +107,7 @@ class GrpcRunner:
         """
 
         @wraps(func)
-        async def wrapped():
+        async def wrapped() -> Tuple[Any, Optional[Dict[str, str]]]:
             user_provided_metadata = metadata or {}
             _metadata = self._prepare_metadata(user_provided_metadata)
             try:

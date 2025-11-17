@@ -112,9 +112,22 @@ class Admin:
         self._child_api_client.user_agent = get_user_agent(Config())
 
         # Lazily initialize resources
-        self._project = None
-        self._api_key = None
-        self._organization = None
+        from typing import TYPE_CHECKING, Optional
+
+        if TYPE_CHECKING:
+            from pinecone.admin.resources import (
+                ProjectResource,
+                ApiKeyResource,
+                OrganizationResource,
+            )
+
+            self._project: Optional[ProjectResource] = None
+            self._api_key: Optional[ApiKeyResource] = None
+            self._organization: Optional[OrganizationResource] = None
+        else:
+            self._project = None  # type: ignore[assignment]
+            self._api_key = None  # type: ignore[assignment]
+            self._organization = None  # type: ignore[assignment]
 
     @property
     def project(self):

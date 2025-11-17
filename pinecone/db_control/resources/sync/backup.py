@@ -108,4 +108,5 @@ class BackupResource(PluginAware):
         :param backup_id: The ID of the backup to delete.
         :type backup_id: str
         """
-        return self._index_api.delete_backup(backup_id=backup_id)
+        self._index_api.delete_backup(backup_id=backup_id)
+        return None

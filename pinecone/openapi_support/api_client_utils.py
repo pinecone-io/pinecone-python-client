@@ -109,7 +109,9 @@ def parameters_to_multipart(params, collection_types):
     :param dict collection_types: Parameter collection types
     :return: Parameters as list of tuple or urllib3.fields.RequestField
     """
-    new_params = []
+    from typing import Union
+
+    new_params: list[Union[RequestField, tuple[Any, Any]]] = []
     if collection_types is None:
         collection_types = dict
     for k, v in params.items() if isinstance(params, dict) else params:  # noqa: E501

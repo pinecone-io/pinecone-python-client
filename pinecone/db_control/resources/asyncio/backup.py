@@ -94,4 +94,5 @@ class BackupResourceAsyncio:
         :param backup_id: The ID of the backup to delete.
         :type backup_id: str
         """
-        return await self._index_api.delete_backup(backup_id=backup_id)
+        await self._index_api.delete_backup(backup_id=backup_id)
+        return None

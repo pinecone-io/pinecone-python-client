@@ -3,7 +3,7 @@ import logging
 import multiprocessing
 
 from pinecone.exceptions import PineconeApiValueError
-from typing import TypedDict
+from typing import TypedDict, Optional
 
 
 class HostSetting(TypedDict):
@@ -219,7 +219,7 @@ class Configuration:
     def __setattr__(self, name, value):
         object.__setattr__(self, name, value)
         if name == "disabled_client_side_validations":
-            s = set(filter(None, value.split(",")))
+            s: set[str] = set(filter(None, value.split(",")))
             for v in s:
                 if v not in JSON_SCHEMA_VALIDATION_KEYWORDS:
                     raise PineconeApiValueError("Invalid keyword: '{0}''".format(v))
@@ -291,16 +291,13 @@ class Configuration:
         return self._debug
 
     @debug.setter
-    def debug(self, value):
+    def debug(self, value: bool) -> None:
         """Debug status
 
         :param value: The debug status, True or False.
         :type: bool
         """
-        if hasattr(self, "_debug"):
-            previous_debug = self._debug
-        else:
-            previous_debug = None
+        previous_debug: Optional[bool] = getattr(self, "_debug", None)
         self._debug = value
 
         def enable_http_logging():

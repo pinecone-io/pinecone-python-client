@@ -9,6 +9,11 @@ The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Dict, cast
+from multiprocessing.pool import ApplyResult
+
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
 from pinecone.openapi_support.endpoint_utils import (
     ExtraOpenApiKwargsTypedDict,
@@ -44,7 +49,7 @@ class OAuthApi:
             token_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> TokenResponse | ApplyResult[TokenResponse]:
             """Create an access token  # noqa: E501
 
             Obtain an access token for a service account using the OAuth2 client credentials flow. An access token is needed to authorize requests to the Pinecone Admin API. The host domain for OAuth endpoints is `login.pinecone.io`.   # noqa: E501
@@ -84,7 +89,9 @@ class OAuthApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["token_request"] = token_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                TokenResponse | ApplyResult[TokenResponse], self.call_with_http_info(**kwargs)
+            )
 
         self.get_token = _Endpoint(
             settings={
@@ -133,7 +140,9 @@ class AsyncioOAuthApi:
             api_client = AsyncioApiClient()
         self.api_client = api_client
 
-        async def __get_token(self, token_request, x_pinecone_api_version="2025-10", **kwargs):
+        async def __get_token(
+            self, token_request, x_pinecone_api_version="2025-10", **kwargs
+        ) -> TokenResponse:
             """Create an access token  # noqa: E501
 
             Obtain an access token for a service account using the OAuth2 client credentials flow. An access token is needed to authorize requests to the Pinecone Admin API. The host domain for OAuth endpoints is `login.pinecone.io`.   # noqa: E501
@@ -166,7 +175,7 @@ class AsyncioOAuthApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["token_request"] = token_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(TokenResponse, await self.call_with_http_info(**kwargs))
 
         self.get_token = _AsyncioEndpoint(
             settings={

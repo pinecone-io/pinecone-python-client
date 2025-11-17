@@ -42,10 +42,14 @@ class InferenceRequestBuilder:
         else:
             raise Exception("Invalid type for variable 'inputs'")
 
+        from typing import cast
+
         if parameters:
-            return EmbedRequest(model=model, inputs=embeddings_inputs, parameters=parameters)
+            result = EmbedRequest(model=model, inputs=embeddings_inputs, parameters=parameters)
+            return cast(EmbedRequest, result)
         else:
-            return EmbedRequest(model=model, inputs=embeddings_inputs)
+            result = EmbedRequest(model=model, inputs=embeddings_inputs)
+            return cast(EmbedRequest, result)
 
     @staticmethod
     def rerank(
@@ -84,4 +88,7 @@ class InferenceRequestBuilder:
         if parameters is not None:
             args["parameters"] = parameters
 
-        return RerankRequest(**args)
+        from typing import cast
+
+        result = RerankRequest(**args)
+        return cast(RerankRequest, result)

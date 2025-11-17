@@ -50,7 +50,10 @@ class BulkImportResourceAsyncio:
         req = BulkImportRequestFactory.start_import_request(
             uri=uri, integration_id=integration_id, error_mode=error_mode
         )
-        return await self.__import_operations_api.start_bulk_import(req)
+        from typing import cast
+
+        result = await self.__import_operations_api.start_bulk_import(req)
+        return cast(StartImportResponse, result)
 
     async def list(self, **kwargs) -> AsyncIterator["ImportModel"]:
         """
@@ -117,7 +120,10 @@ class BulkImportResourceAsyncio:
         args_dict = BulkImportRequestFactory.list_imports_paginated_args(
             limit=limit, pagination_token=pagination_token, **kwargs
         )
-        return await self.__import_operations_api.list_bulk_imports(**args_dict)
+        from typing import cast
+
+        result = await self.__import_operations_api.list_bulk_imports(**args_dict)
+        return cast(ListImportsResponse, result)
 
     async def describe(self, id: str) -> ImportModel:
         """
@@ -131,7 +137,10 @@ class BulkImportResourceAsyncio:
         `describe_import` is used to get detailed information about a specific import operation.
         """
         args = BulkImportRequestFactory.describe_import_args(id=id)
-        return await self.__import_operations_api.describe_bulk_import(**args)
+        from typing import cast
+
+        result = await self.__import_operations_api.describe_bulk_import(**args)
+        return cast(ImportModel, result)
 
     async def cancel(self, id: str):
         """Cancel an import operation.

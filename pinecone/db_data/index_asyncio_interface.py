@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Union, List, Optional, Dict, Any, AsyncIterator
+from typing import List, Optional, Dict, Any, AsyncIterator, Literal
 
 from pinecone.core.openapi.db_data.models import (
     IndexDescription as DescribeIndexStatsResponse,
-    Vector,
     ListResponse,
-    SparseValues,
     SearchRecordsResponse,
     NamespaceDescription,
     ListNamespacesResponse,
@@ -22,6 +22,8 @@ from .types import (
     SearchRerankTypedDict,
 )
 from .dataclasses import (
+    Vector,
+    SparseValues,
     SearchQuery,
     SearchRerank,
     FetchResponse,
@@ -37,9 +39,9 @@ class IndexAsyncioInterface(ABC):
     @abstractmethod
     async def upsert(
         self,
-        vectors: Union[
-            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
-        ],
+        vectors: (
+            List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
+        ),
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,
         show_progress: bool = True,
@@ -193,7 +195,7 @@ class IndexAsyncioInterface(ABC):
         namespace: Optional[str] = None,
         filter: Optional[FilterTypedDict] = None,
         **kwargs,
-    ) -> UpdateResponse:
+    ) -> Dict[str, Any]:
         """
         Args:
             ids (List[str]): Vector ids to delete [optional]
@@ -352,7 +354,7 @@ class IndexAsyncioInterface(ABC):
         filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
         **kwargs,
     ) -> QueryResponse:
         """
@@ -467,12 +469,13 @@ class IndexAsyncioInterface(ABC):
     async def query_namespaces(
         self,
         namespaces: List[str],
+        metric: Literal["cosine", "euclidean", "dotproduct"],
         top_k: Optional[int] = None,
         filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
         vector: Optional[List[float]] = None,
-        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         """The query_namespaces() method is used to make a query to multiple namespaces in parallel and combine the results into one result set.
@@ -529,7 +532,7 @@ class IndexAsyncioInterface(ABC):
         values: Optional[List[float]] = None,
         set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
-        sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        sparse_values: Optional[SparseValues | SparseVectorTypedDict] = None,
         filter: Optional[FilterTypedDict] = None,
         dry_run: Optional[bool] = None,
         **kwargs,
@@ -821,8 +824,8 @@ class IndexAsyncioInterface(ABC):
     async def search(
         self,
         namespace: str,
-        query: Union[SearchQueryTypedDict, SearchQuery],
-        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        query: SearchQueryTypedDict | SearchQuery,
+        rerank: Optional[SearchRerankTypedDict | SearchRerank] = None,
         fields: Optional[List[str]] = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         """
@@ -917,8 +920,8 @@ class IndexAsyncioInterface(ABC):
     async def search_records(
         self,
         namespace: str,
-        query: Union[SearchQueryTypedDict, SearchQuery],
-        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        query: SearchQueryTypedDict | SearchQuery,
+        rerank: Optional[SearchRerankTypedDict | SearchRerank] = None,
         fields: Optional[List[str]] = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         """Alias of the search() method."""

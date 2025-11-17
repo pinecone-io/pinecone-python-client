@@ -52,7 +52,7 @@ class NamespaceRequestFactory:
                 request_kwargs["schema"] = schema_obj
             else:
                 # schema is already CreateNamespaceRequestSchema
-                request_kwargs["schema"] = cast(CreateNamespaceRequestSchema, schema)
+                request_kwargs["schema"] = schema
 
         create_namespace_request = CreateNamespaceRequest(**request_kwargs)
         base_args = {"create_namespace_request": create_namespace_request}

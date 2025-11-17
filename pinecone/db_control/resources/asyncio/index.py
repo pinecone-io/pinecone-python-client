@@ -77,7 +77,9 @@ class IndexResourceAsyncio:
         resp = await self._index_api.create_index(create_index_request=req)
 
         if timeout == -1:
-            return IndexModel(resp)
+            from typing import cast
+
+            return IndexModel(cast(Any, resp))
         return await self.__poll_describe_index_until_ready(name, timeout)
 
     @require_kwargs
@@ -124,7 +126,9 @@ class IndexResourceAsyncio:
         resp = await self._index_api.create_index_for_model(req)
 
         if timeout == -1:
-            return IndexModel(resp)
+            from typing import cast
+
+            return IndexModel(cast(Any, resp))
         return await self.__poll_describe_index_until_ready(name, timeout)
 
     @require_kwargs
@@ -145,7 +149,9 @@ class IndexResourceAsyncio:
         )
         return await self.__poll_describe_index_until_ready(name, timeout)
 
-    async def __poll_describe_index_until_ready(self, name: str, timeout: Optional[int] = None):
+    async def __poll_describe_index_until_ready(
+        self, name: str, timeout: Optional[int] = None
+    ) -> IndexModel:
         total_wait_time = 0
         while True:
             description = await self.describe(name=name)
@@ -170,7 +176,7 @@ class IndexResourceAsyncio:
             await asyncio.sleep(5)
 
     @require_kwargs
-    async def delete(self, *, name: str, timeout: Optional[int] = None):
+    async def delete(self, *, name: str, timeout: Optional[int] = None) -> None:
         await self._index_api.delete_index(name)
 
         if timeout == -1:
@@ -228,7 +234,7 @@ class IndexResourceAsyncio:
                 "ReadCapacityDedicatedSpec",
             ]
         ] = None,
-    ):
+    ) -> None:
         description = await self.describe(name=name)
 
         req = PineconeDBControlRequestFactory.configure_index_request(

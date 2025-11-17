@@ -84,7 +84,7 @@ class DescribeIndexStatsRequest(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            "filter": ({str: (bool, dict, float, int, list, str, none_type)},)  # noqa: E501
+            "filter": (Dict[str, Any],)  # noqa: E501
         }
 
     @cached_class_property
@@ -98,6 +98,17 @@ class DescribeIndexStatsRequest(ModelNormal):
     read_only_vars: Set[str] = set([])
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of DescribeIndexStatsRequest.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
 
     @classmethod
     @convert_js_args_to_python_args
@@ -135,7 +146,7 @@ class DescribeIndexStatsRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): If this parameter is present, the operation only returns statistics for vectors that satisfy the filter. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata).  Serverless indexes do not support filtering `describe_index_stats` by metadata. [optional]  # noqa: E501
+            filter (Dict[str, Any]): If this parameter is present, the operation only returns statistics for vectors that satisfy the filter. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata).  Serverless indexes do not support filtering `describe_index_stats` by metadata. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -225,7 +236,7 @@ class DescribeIndexStatsRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): If this parameter is present, the operation only returns statistics for vectors that satisfy the filter. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata).  Serverless indexes do not support filtering `describe_index_stats` by metadata. [optional]  # noqa: E501
+            filter (Dict[str, Any]): If this parameter is present, the operation only returns statistics for vectors that satisfy the filter. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata).  Serverless indexes do not support filtering `describe_index_stats` by metadata. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

@@ -9,6 +9,11 @@ The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Dict, cast
+from multiprocessing.pool import ApplyResult
+
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
 from pinecone.openapi_support.endpoint_utils import (
     ExtraOpenApiKwargsTypedDict,
@@ -45,7 +50,7 @@ class OrganizationsApi:
             organization_id,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> None:
             """Delete an organization  # noqa: E501
 
             Delete an organization and all its associated configuration. Before deleting an organization, you must delete all projects (including indexes, assistants, backups, and collections) associated with the organization.   # noqa: E501
@@ -85,7 +90,7 @@ class OrganizationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["organization_id"] = organization_id
-            return self.call_with_http_info(**kwargs)
+            return cast(None, self.call_with_http_info(**kwargs))
 
         self.delete_organization = _Endpoint(
             settings={
@@ -124,7 +129,7 @@ class OrganizationsApi:
             organization_id,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> Organization | ApplyResult[Organization]:
             """Get organization details  # noqa: E501
 
             Get details about an organization.  # noqa: E501
@@ -164,7 +169,9 @@ class OrganizationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["organization_id"] = organization_id
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                Organization | ApplyResult[Organization], self.call_with_http_info(**kwargs)
+            )
 
         self.fetch_organization = _Endpoint(
             settings={
@@ -200,7 +207,7 @@ class OrganizationsApi:
 
         def __list_organizations(
             self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> OrganizationList | ApplyResult[OrganizationList]:
             """List organizations  # noqa: E501
 
             List all organizations associated with an account.  # noqa: E501
@@ -238,7 +245,9 @@ class OrganizationsApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                OrganizationList | ApplyResult[OrganizationList], self.call_with_http_info(**kwargs)
+            )
 
         self.list_organizations = _Endpoint(
             settings={
@@ -275,7 +284,7 @@ class OrganizationsApi:
             update_organization_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> Organization | ApplyResult[Organization]:
             """Update an organization  # noqa: E501
 
             Update an organization's name.   # noqa: E501
@@ -317,7 +326,9 @@ class OrganizationsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["organization_id"] = organization_id
             kwargs["update_organization_request"] = update_organization_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                Organization | ApplyResult[Organization], self.call_with_http_info(**kwargs)
+            )
 
         self.update_organization = _Endpoint(
             settings={
@@ -377,7 +388,7 @@ class AsyncioOrganizationsApi:
 
         async def __delete_organization(
             self, organization_id, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> None:
             """Delete an organization  # noqa: E501
 
             Delete an organization and all its associated configuration. Before deleting an organization, you must delete all projects (including indexes, assistants, backups, and collections) associated with the organization.   # noqa: E501
@@ -410,7 +421,7 @@ class AsyncioOrganizationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["organization_id"] = organization_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(None, await self.call_with_http_info(**kwargs))
 
         self.delete_organization = _AsyncioEndpoint(
             settings={
@@ -446,7 +457,7 @@ class AsyncioOrganizationsApi:
 
         async def __fetch_organization(
             self, organization_id, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> Organization:
             """Get organization details  # noqa: E501
 
             Get details about an organization.  # noqa: E501
@@ -479,7 +490,7 @@ class AsyncioOrganizationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["organization_id"] = organization_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(Organization, await self.call_with_http_info(**kwargs))
 
         self.fetch_organization = _AsyncioEndpoint(
             settings={
@@ -513,7 +524,9 @@ class AsyncioOrganizationsApi:
             callable=__fetch_organization,
         )
 
-        async def __list_organizations(self, x_pinecone_api_version="2025-10", **kwargs):
+        async def __list_organizations(
+            self, x_pinecone_api_version="2025-10", **kwargs
+        ) -> OrganizationList:
             """List organizations  # noqa: E501
 
             List all organizations associated with an account.  # noqa: E501
@@ -544,7 +557,7 @@ class AsyncioOrganizationsApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(OrganizationList, await self.call_with_http_info(**kwargs))
 
         self.list_organizations = _AsyncioEndpoint(
             settings={
@@ -581,7 +594,7 @@ class AsyncioOrganizationsApi:
             update_organization_request,
             x_pinecone_api_version="2025-10",
             **kwargs,
-        ):
+        ) -> Organization:
             """Update an organization  # noqa: E501
 
             Update an organization's name.   # noqa: E501
@@ -616,7 +629,7 @@ class AsyncioOrganizationsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["organization_id"] = organization_id
             kwargs["update_organization_request"] = update_organization_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(Organization, await self.call_with_http_info(**kwargs))
 
         self.update_organization = _AsyncioEndpoint(
             settings={

@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from pinecone.utils.tqdm import tqdm
 import logging
 import asyncio
 import json
-from typing import Union, List, Optional, Dict, Any, Literal, AsyncIterator
+from typing import List, Optional, Dict, Any, Literal, AsyncIterator
 
 from pinecone.core.openapi.db_data.api.vector_operations_api import AsyncioVectorOperationsApi
 from pinecone.core.openapi.db_data.models import (
@@ -53,7 +55,7 @@ _OPENAPI_ENDPOINT_PARAMS = (
 """ :meta private: """
 
 
-def parse_query_response(response: OpenAPIQueryResponse):
+def parse_query_response(response: OpenAPIQueryResponse) -> QueryResponse:
     """:meta private:"""
     # Convert OpenAPI QueryResponse to dataclass QueryResponse
     from pinecone.utils.response_info import extract_response_info
@@ -95,9 +97,9 @@ class VectorResourceAsyncio(PluginAware):
     @validate_and_convert_errors
     async def upsert(
         self,
-        vectors: Union[
-            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
-        ],
+        vectors: (
+            List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
+        ),
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,
         show_progress: bool = True,
@@ -168,9 +170,9 @@ class VectorResourceAsyncio(PluginAware):
     @validate_and_convert_errors
     async def _upsert_batch(
         self,
-        vectors: Union[
-            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
-        ],
+        vectors: (
+            List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
+        ),
         namespace: Optional[str],
         _check_type: bool,
         **kwargs,
@@ -259,7 +261,9 @@ class VectorResourceAsyncio(PluginAware):
             [("ids", ids), ("delete_all", delete_all), ("namespace", namespace), ("filter", filter)]
         )
 
-        return await self._vector_api.delete_vectors(
+        from typing import cast
+
+        result = await self._vector_api.delete_vectors(
             DeleteRequest(
                 **args_dict,
                 **{
@@ -271,6 +275,7 @@ class VectorResourceAsyncio(PluginAware):
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
         )
+        return cast(Dict[str, Any], result)
 
     @validate_and_convert_errors
     async def fetch(
@@ -396,7 +401,7 @@ class VectorResourceAsyncio(PluginAware):
         filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
         **kwargs,
     ) -> QueryResponse:
         """Query the index.
@@ -450,6 +455,7 @@ class VectorResourceAsyncio(PluginAware):
             sparse_vector=sparse_vector,
             **kwargs,
         )
+        # parse_query_response already returns QueryResponse
         return parse_query_response(response)
 
     async def _query(
@@ -462,7 +468,7 @@ class VectorResourceAsyncio(PluginAware):
         filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
         **kwargs,
     ) -> OpenAPIQueryResponse:
         if len(args) > 0:
@@ -481,9 +487,12 @@ class VectorResourceAsyncio(PluginAware):
             sparse_vector=sparse_vector,
             **kwargs,
         )
-        return await self._vector_api.query_vectors(
+        from typing import cast
+
+        result = await self._vector_api.query_vectors(
             request, **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS}
         )
+        return cast(OpenAPIQueryResponse, result)
 
     @validate_and_convert_errors
     async def query_namespaces(
@@ -491,13 +500,11 @@ class VectorResourceAsyncio(PluginAware):
         namespaces: List[str],
         metric: Literal["cosine", "euclidean", "dotproduct"],
         top_k: Optional[int] = None,
-        filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
+        filter: Optional[Dict[str, str | float | int | bool | List | dict]] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
         vector: Optional[List[float]] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, Dict[str, Union[List[float], List[int]]]]
-        ] = None,
+        sparse_vector: Optional[SparseValues | Dict[str, List[float] | List[int]]] = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         """Query across multiple namespaces.
@@ -583,7 +590,7 @@ class VectorResourceAsyncio(PluginAware):
         values: Optional[List[float]] = None,
         set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
-        sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        sparse_values: Optional[SparseValues | SparseVectorTypedDict] = None,
         **kwargs,
     ) -> UpdateResponse:
         """Update a vector in the index.
@@ -657,10 +664,13 @@ class VectorResourceAsyncio(PluginAware):
             >>> await index.vector.describe_index_stats()
             >>> await index.vector.describe_index_stats(filter={'key': 'value'})
         """
-        return await self._vector_api.describe_index_stats(
+        from typing import cast
+
+        result = await self._vector_api.describe_index_stats(
             IndexRequestFactory.describe_index_stats_request(filter, **kwargs),
             **self._openapi_kwargs(kwargs),
         )
+        return cast(DescribeIndexStatsResponse, result)
 
     @validate_and_convert_errors
     async def list_paginated(
@@ -705,7 +715,10 @@ class VectorResourceAsyncio(PluginAware):
             namespace=namespace,
             **kwargs,
         )
-        return await self._vector_api.list_vectors(**args_dict, **kwargs)
+        from typing import cast
+
+        result = await self._vector_api.list_vectors(**args_dict, **kwargs)
+        return cast(ListResponse, result)
 
     @validate_and_convert_errors
     async def list(self, **kwargs) -> AsyncIterator[List[str]]:

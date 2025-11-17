@@ -9,6 +9,11 @@ The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Dict, cast
+from multiprocessing.pool import ApplyResult
+
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
 from pinecone.openapi_support.endpoint_utils import (
     ExtraOpenApiKwargsTypedDict,
@@ -48,7 +53,7 @@ class APIKeysApi:
             create_api_key_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> APIKeyWithSecret | ApplyResult[APIKeyWithSecret]:
             """Create an API key  # noqa: E501
 
             Create a new API key for a project. Developers can use the API key to authenticate requests to Pinecone's Data Plane and Control Plane APIs.   # noqa: E501
@@ -90,7 +95,9 @@ class APIKeysApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
             kwargs["create_api_key_request"] = create_api_key_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                APIKeyWithSecret | ApplyResult[APIKeyWithSecret], self.call_with_http_info(**kwargs)
+            )
 
         self.create_api_key = _Endpoint(
             settings={
@@ -137,7 +144,7 @@ class APIKeysApi:
             api_key_id,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> None:
             """Delete an API key  # noqa: E501
 
             Delete an API key from a project.  # noqa: E501
@@ -177,7 +184,7 @@ class APIKeysApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["api_key_id"] = api_key_id
-            return self.call_with_http_info(**kwargs)
+            return cast(None, self.call_with_http_info(**kwargs))
 
         self.delete_api_key = _Endpoint(
             settings={
@@ -216,7 +223,7 @@ class APIKeysApi:
             api_key_id,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> APIKey | ApplyResult[APIKey]:
             """Get API key details  # noqa: E501
 
             Get the details of an API key, excluding the API key secret.  # noqa: E501
@@ -256,7 +263,7 @@ class APIKeysApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["api_key_id"] = api_key_id
-            return self.call_with_http_info(**kwargs)
+            return cast(APIKey | ApplyResult[APIKey], self.call_with_http_info(**kwargs))
 
         self.fetch_api_key = _Endpoint(
             settings={
@@ -295,7 +302,7 @@ class APIKeysApi:
             project_id,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> ListApiKeysResponse | ApplyResult[ListApiKeysResponse]:
             """List API keys  # noqa: E501
 
             List all API keys in a project.  # noqa: E501
@@ -335,7 +342,10 @@ class APIKeysApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                ListApiKeysResponse | ApplyResult[ListApiKeysResponse],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.list_project_api_keys = _Endpoint(
             settings={
@@ -375,7 +385,7 @@ class APIKeysApi:
             update_api_key_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> APIKey | ApplyResult[APIKey]:
             """Update an API key  # noqa: E501
 
             Update the name and roles of an API key.   # noqa: E501
@@ -417,7 +427,7 @@ class APIKeysApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["api_key_id"] = api_key_id
             kwargs["update_api_key_request"] = update_api_key_request
-            return self.call_with_http_info(**kwargs)
+            return cast(APIKey | ApplyResult[APIKey], self.call_with_http_info(**kwargs))
 
         self.update_api_key = _Endpoint(
             settings={
@@ -473,7 +483,7 @@ class AsyncioAPIKeysApi:
 
         async def __create_api_key(
             self, project_id, create_api_key_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> APIKeyWithSecret:
             """Create an API key  # noqa: E501
 
             Create a new API key for a project. Developers can use the API key to authenticate requests to Pinecone's Data Plane and Control Plane APIs.   # noqa: E501
@@ -508,7 +518,7 @@ class AsyncioAPIKeysApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
             kwargs["create_api_key_request"] = create_api_key_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(APIKeyWithSecret, await self.call_with_http_info(**kwargs))
 
         self.create_api_key = _AsyncioEndpoint(
             settings={
@@ -550,7 +560,9 @@ class AsyncioAPIKeysApi:
             callable=__create_api_key,
         )
 
-        async def __delete_api_key(self, api_key_id, x_pinecone_api_version="2025-10", **kwargs):
+        async def __delete_api_key(
+            self, api_key_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> None:
             """Delete an API key  # noqa: E501
 
             Delete an API key from a project.  # noqa: E501
@@ -583,7 +595,7 @@ class AsyncioAPIKeysApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["api_key_id"] = api_key_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(None, await self.call_with_http_info(**kwargs))
 
         self.delete_api_key = _AsyncioEndpoint(
             settings={
@@ -617,7 +629,9 @@ class AsyncioAPIKeysApi:
             callable=__delete_api_key,
         )
 
-        async def __fetch_api_key(self, api_key_id, x_pinecone_api_version="2025-10", **kwargs):
+        async def __fetch_api_key(
+            self, api_key_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> APIKey:
             """Get API key details  # noqa: E501
 
             Get the details of an API key, excluding the API key secret.  # noqa: E501
@@ -650,7 +664,7 @@ class AsyncioAPIKeysApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["api_key_id"] = api_key_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(APIKey, await self.call_with_http_info(**kwargs))
 
         self.fetch_api_key = _AsyncioEndpoint(
             settings={
@@ -686,7 +700,7 @@ class AsyncioAPIKeysApi:
 
         async def __list_project_api_keys(
             self, project_id, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> ListApiKeysResponse:
             """List API keys  # noqa: E501
 
             List all API keys in a project.  # noqa: E501
@@ -719,7 +733,7 @@ class AsyncioAPIKeysApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(ListApiKeysResponse, await self.call_with_http_info(**kwargs))
 
         self.list_project_api_keys = _AsyncioEndpoint(
             settings={
@@ -755,7 +769,7 @@ class AsyncioAPIKeysApi:
 
         async def __update_api_key(
             self, api_key_id, update_api_key_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> APIKey:
             """Update an API key  # noqa: E501
 
             Update the name and roles of an API key.   # noqa: E501
@@ -790,7 +804,7 @@ class AsyncioAPIKeysApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["api_key_id"] = api_key_id
             kwargs["update_api_key_request"] = update_api_key_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(APIKey, await self.call_with_http_info(**kwargs))
 
         self.update_api_key = _AsyncioEndpoint(
             settings={

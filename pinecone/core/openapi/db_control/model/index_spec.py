@@ -26,6 +26,16 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.core.openapi.db_control.model.byoc import BYOC
+    from pinecone.core.openapi.db_control.model.byoc_spec import ByocSpec
+    from pinecone.core.openapi.db_control.model.pod_based import PodBased
+    from pinecone.core.openapi.db_control.model.pod_spec import PodSpec
+    from pinecone.core.openapi.db_control.model.serverless import Serverless
+    from pinecone.core.openapi.db_control.model.serverless_spec import ServerlessSpec
+
 
 def lazy_import():
     from pinecone.core.openapi.db_control.model.byoc import BYOC
@@ -320,7 +330,7 @@ class IndexSpec(ModelComposed):
                 )
 
     @cached_property
-    def _composed_schemas():  # type: ignore
+    def _composed_schemas():
         # we need this here to make our import statements work
         # we must store _composed_schemas in here so the code is only run
         # when we invoke this method. If we kept this at the class

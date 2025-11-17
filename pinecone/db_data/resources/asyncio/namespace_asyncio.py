@@ -32,8 +32,11 @@ class NamespaceResourceAsyncio:
 
         **Note:** This operation is not supported for pod-based indexes.
         """
+        from typing import cast
+
         args = NamespaceRequestFactory.create_namespace_args(name=name, schema=schema, **kwargs)
-        return await self.__namespace_operations_api.create_namespace(**args)
+        result = await self.__namespace_operations_api.create_namespace(**args)
+        return cast(NamespaceDescription, result)
 
     @require_kwargs
     async def describe(self, namespace: str, **kwargs) -> NamespaceDescription:
@@ -46,8 +49,11 @@ class NamespaceResourceAsyncio:
 
         Describe a namespace within an index, showing the vector count within the namespace.
         """
+        from typing import cast
+
         args = NamespaceRequestFactory.describe_namespace_args(namespace=namespace, **kwargs)
-        return await self.__namespace_operations_api.describe_namespace(**args)
+        result = await self.__namespace_operations_api.describe_namespace(**args)
+        return cast(NamespaceDescription, result)
 
     @require_kwargs
     async def delete(self, namespace: str, **kwargs):
@@ -122,7 +128,10 @@ class NamespaceResourceAsyncio:
                 eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
                 >>> next_results = await index.list_paginated(limit=5, pagination_token=results.pagination.next)
         """
+        from typing import cast
+
         args = NamespaceRequestFactory.list_namespaces_args(
             limit=limit, pagination_token=pagination_token, **kwargs
         )
-        return await self.__namespace_operations_api.list_namespaces_operation(**args)
+        result = await self.__namespace_operations_api.list_namespaces_operation(**args)
+        return cast(ListNamespacesResponse, result)
