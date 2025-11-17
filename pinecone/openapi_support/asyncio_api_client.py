@@ -161,7 +161,10 @@ class AsyncioApiClient(object):
         if response_type:
             Deserializer.decode_response(response_type=response_type, response=response_data)
             return_data = Deserializer.deserialize(
-                response_data, response_type, self.configuration, _check_type
+                response_data,
+                response_type,
+                self.configuration,
+                _check_type if _check_type is not None else True,
             )
         else:
             return_data = None
@@ -178,7 +181,8 @@ class AsyncioApiClient(object):
                     if isinstance(return_data, dict):
                         return_data["_response_info"] = response_info
                     else:
-                        return_data._response_info = response_info  # type: ignore
+                        # Dynamic attribute assignment on OpenAPI models
+                        setattr(return_data, "_response_info", response_info)
 
         if _return_http_data_only:
             return return_data
@@ -192,7 +196,9 @@ class AsyncioApiClient(object):
         :param dict collection_types: Parameter collection types
         :return: Parameters as list of tuple or urllib3.fields.RequestField
         """
-        new_params = []
+        from typing import Union
+
+        new_params: list[Union[RequestField, tuple[Any, Any]]] = []
         if collection_types is None:
             collection_types = dict
         for k, v in params.items() if isinstance(params, dict) else params:  # noqa: E501
@@ -374,4 +380,10 @@ class AsyncioApiClient(object):
     def get_file_data_and_close_file(file_instance: io.IOBase) -> bytes:
         file_data = file_instance.read()
         file_instance.close()
-        return file_data
+        if isinstance(file_data, bytes):
+            return file_data
+        # If read() returns str, encode it
+        if isinstance(file_data, str):
+            return file_data.encode("utf-8")
+        # Fallback: convert to bytes
+        return bytes(file_data) if file_data is not None else b""

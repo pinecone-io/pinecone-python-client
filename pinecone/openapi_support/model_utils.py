@@ -191,7 +191,7 @@ class OpenApiModel(object):
                 return oneof_instance
 
         visited_composed_classes = kwargs.get("_visited_composed_classes", ())
-        discriminator = getattr(cls, "discriminator", None)  # type: ignore[attr-defined]
+        discriminator = getattr(cls, "discriminator", None)
         if discriminator is None or cls in visited_composed_classes:
             # Use case 1: this openapi schema (cls) does not have a discriminator
             # Use case 2: we have already visited this class before and are sure that we
@@ -215,7 +215,7 @@ class OpenApiModel(object):
         # The discriminator name is obtained from the discriminator meta-data
         # and the discriminator value is obtained from the input data.
         discr_propertyname_py = list(discriminator.keys())[0]
-        attribute_map = getattr(cls, "attribute_map", {})  # type: ignore[attr-defined]
+        attribute_map = getattr(cls, "attribute_map", {})
         discr_propertyname_js = attribute_map[discr_propertyname_py]
         if discr_propertyname_js in kwargs:
             discr_value = kwargs[discr_propertyname_js]
@@ -266,7 +266,7 @@ class OpenApiModel(object):
 
         # Build a list containing all oneOf and anyOf descendants.
         oneof_anyof_classes: tuple = ()
-        composed_schemas = getattr(cls, "_composed_schemas", None)  # type: ignore[attr-defined]
+        composed_schemas = getattr(cls, "_composed_schemas", None)
         if composed_schemas is not None:
             oneof_anyof_classes = composed_schemas.get("oneOf", ()) + composed_schemas.get(
                 "anyOf", ()
@@ -303,7 +303,7 @@ class OpenApiModel(object):
                 return oneof_instance
 
         visited_composed_classes = kwargs.get("_visited_composed_classes", ())
-        discriminator = getattr(cls, "discriminator", None)  # type: ignore[attr-defined]
+        discriminator = getattr(cls, "discriminator", None)
         if discriminator is None or cls in visited_composed_classes:
             # Use case 1: this openapi schema (cls) does not have a discriminator
             # Use case 2: we have already visited this class before and are sure that we
@@ -327,7 +327,7 @@ class OpenApiModel(object):
         # The discriminator name is obtained from the discriminator meta-data
         # and the discriminator value is obtained from the input data.
         discr_propertyname_py = list(discriminator.keys())[0]
-        attribute_map = getattr(cls, "attribute_map", {})  # type: ignore[attr-defined]
+        attribute_map = getattr(cls, "attribute_map", {})
         discr_propertyname_js = attribute_map[discr_propertyname_py]
         if discr_propertyname_js in kwargs:
             discr_value = kwargs[discr_propertyname_js]
@@ -378,7 +378,7 @@ class OpenApiModel(object):
 
         # Build a list containing all oneOf and anyOf descendants.
         oneof_anyof_classes: tuple = ()
-        composed_schemas = getattr(cls, "_composed_schemas", None)  # type: ignore[attr-defined]
+        composed_schemas = getattr(cls, "_composed_schemas", None)
         if composed_schemas is not None:
             oneof_anyof_classes = composed_schemas.get("oneOf", ()) + composed_schemas.get(
                 "anyOf", ()
@@ -389,9 +389,9 @@ class OpenApiModel(object):
         if composed_schemas and composed_schemas.get("allOf") and oneof_anyof_child:
             # Validate that we can make self because when we make the
             # new_cls it will not include the allOf validations in self
-            self_inst = cls._from_openapi_data(*args, **kwargs)  # noqa: F841
+            self_inst = cls._from_openapi_data(*args, **kwargs)  # type: ignore[attr-defined]  # noqa: F841
 
-        new_inst = new_cls._new_from_openapi_data(*args, **kwargs)  # type: ignore[attr-defined]
+        new_inst = new_cls._new_from_openapi_data(*args, **kwargs)
         return new_inst
 
 
@@ -793,18 +793,28 @@ def check_allowed_values(allowed_values, input_variable_path, input_values):
     """
     these_allowed_values = list(allowed_values[input_variable_path].values())
     if isinstance(input_values, list) and not set(input_values).issubset(set(these_allowed_values)):
-        invalid_values = (", ".join(map(str, set(input_values) - set(these_allowed_values))),)
+        invalid_values_tuple = (", ".join(map(str, set(input_values) - set(these_allowed_values))),)
         raise PineconeApiValueError(
             "Invalid values for `%s` [%s], must be a subset of [%s]"
-            % (input_variable_path[0], invalid_values, ", ".join(map(str, these_allowed_values)))
+            % (
+                input_variable_path[0],
+                invalid_values_tuple,
+                ", ".join(map(str, these_allowed_values)),
+            )
         )
     elif isinstance(input_values, dict) and not set(input_values.keys()).issubset(
         set(these_allowed_values)
     ):
-        invalid_values = ", ".join(map(str, set(input_values.keys()) - set(these_allowed_values)))
+        invalid_values_str: str = ", ".join(
+            map(str, set(input_values.keys()) - set(these_allowed_values))
+        )
         raise PineconeApiValueError(
             "Invalid keys in `%s` [%s], must be a subset of [%s]"
-            % (input_variable_path[0], invalid_values, ", ".join(map(str, these_allowed_values)))
+            % (
+                input_variable_path[0],
+                invalid_values_str,
+                ", ".join(map(str, these_allowed_values)),
+            )
         )
     elif not isinstance(input_values, (list, dict)) and input_values not in these_allowed_values:
         raise PineconeApiValueError(
@@ -1097,19 +1107,21 @@ def get_required_type_classes(required_types_mixed, spec_property_naming):
                 child_types_mixed (list/dict/tuple): describes the valid child
                     types
     """
-    valid_classes = []
-    child_req_types_by_current_type = {}
+    from typing import Any, Type
+
+    valid_classes: list[Type[Any]] = []
+    child_req_types_by_current_type: dict[Type[Any], Any] = {}
 
     for required_type in required_types_mixed:
         if isinstance(required_type, list):
             valid_classes.append(list)
-            child_req_types_by_current_type[list] = required_type  # type: ignore[index]
+            child_req_types_by_current_type[list] = required_type
         elif isinstance(required_type, tuple):
             valid_classes.append(tuple)
-            child_req_types_by_current_type[tuple] = required_type  # type: ignore[index]
+            child_req_types_by_current_type[tuple] = required_type
         elif isinstance(required_type, dict):
             valid_classes.append(dict)
-            child_req_types_by_current_type[dict] = required_type[str]  # type: ignore[index,assignment]
+            child_req_types_by_current_type[dict] = required_type[str]
         else:
             valid_classes.extend(get_possible_classes(required_type, spec_property_naming))
     return tuple(valid_classes), child_req_types_by_current_type
@@ -1334,8 +1346,8 @@ def deserialize_file(response_data, configuration, content_disposition=None):
             response_data = response_data.encode("utf-8")
         f.write(response_data)
 
-    f = open(path, "rb")
-    return f
+    file_handle: io.BufferedReader = open(path, "rb")
+    return file_handle
 
 
 def attempt_convert_item(
@@ -1593,7 +1605,9 @@ def model_to_dict(model_instance, serialize=True):
         serialize (bool): if True, the keys in the dict will be values from
             attribute_map
     """
-    result = {}
+    from typing import Any
+
+    result: dict[str, Any] = {}
 
     model_instances = [model_instance]
     if hasattr(model_instance, "_composed_schemas") and model_instance._composed_schemas:
@@ -1809,7 +1823,9 @@ def get_anyof_instances(self, model_args, constant_args):
     Returns
         anyof_instances (list)
     """
-    anyof_instances = []
+    from typing import Any
+
+    anyof_instances: list[Any] = []
     if len(self._composed_schemas["anyOf"]) == 0:
         return anyof_instances
 

@@ -197,7 +197,7 @@ class ApiClient(object):
                 response=response_data,
                 response_type=response_type,
                 config=self.configuration,
-                _check_type=_check_type,
+                _check_type=_check_type if _check_type is not None else True,
             )
         else:
             return_data = None
@@ -214,7 +214,8 @@ class ApiClient(object):
                     if isinstance(return_data, dict):
                         return_data["_response_info"] = response_info
                     else:
-                        return_data._response_info = response_info  # type: ignore
+                        # Dynamic attribute assignment on OpenAPI models
+                        setattr(return_data, "_response_info", response_info)
 
         if _return_http_data_only:
             return return_data

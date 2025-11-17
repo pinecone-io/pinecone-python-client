@@ -158,7 +158,7 @@ class EndpointUtils:
         config: Configuration,
         params_map: EndpointParamsMapDict,
         allowed_values: AllowedValuesDict,
-        validations: PropertyValidationTypedDict,
+        validations: Dict[Tuple[str], PropertyValidationTypedDict],
         openapi_types: OpenapiTypesDictType,
         kwargs: Dict[str, Any],
     ) -> None:

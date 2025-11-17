@@ -8,7 +8,7 @@ from ..config.openapi_configuration import Configuration
 class AiohttpRestClient(RestClientInterface):
     def __init__(self, configuration: Configuration) -> None:
         try:
-            import aiohttp
+            import aiohttp  # type: ignore[import-not-found]
             from aiohttp_retry import RetryClient
             from .retry_aiohttp import JitterRetry
         except ImportError:
