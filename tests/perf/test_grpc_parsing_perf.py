@@ -11,12 +11,22 @@ from google.protobuf import struct_pb2
 from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
     FetchResponse,
     QueryResponse,
+    FetchByMetadataResponse,
+    UpsertResponse,
+    UpdateResponse,
     Vector,
     ScoredVector,
     SparseValues,
     Usage,
+    Pagination,
 )
-from pinecone.grpc.utils import parse_fetch_response, parse_query_response
+from pinecone.grpc.utils import (
+    parse_fetch_response,
+    parse_query_response,
+    parse_fetch_by_metadata_response,
+    parse_upsert_response,
+    parse_update_response,
+)
 
 
 def create_vector(id: str, dimension: int, include_sparse: bool = False) -> Vector:
@@ -104,6 +114,35 @@ def create_query_response(
     )
 
 
+def create_fetch_by_metadata_response(
+    num_vectors: int, dimension: int, include_sparse: bool = False
+) -> FetchByMetadataResponse:
+    """Create a FetchByMetadataResponse protobuf message with specified number of vectors."""
+    vectors = {}
+    for i in range(num_vectors):
+        vector = create_vector(f"vec_{i}", dimension, include_sparse)
+        vectors[f"vec_{i}"] = vector
+
+    pagination = Pagination(next="next_token") if num_vectors > 10 else None
+
+    return FetchByMetadataResponse(
+        vectors=vectors,
+        namespace="test_namespace",
+        usage=Usage(read_units=num_vectors),
+        pagination=pagination,
+    )
+
+
+def create_upsert_response(upserted_count: int) -> UpsertResponse:
+    """Create an UpsertResponse protobuf message."""
+    return UpsertResponse(upserted_count=upserted_count)
+
+
+def create_update_response(matched_records: int) -> UpdateResponse:
+    """Create an UpdateResponse protobuf message."""
+    return UpdateResponse(matched_records=matched_records)
+
+
 class TestFetchResponseParsingPerf:
     """Performance benchmarks for parse_fetch_response."""
 
@@ -160,3 +199,31 @@ class TestQueryResponseParsingPerf:
         """Benchmark parse_query_response with sparse vectors."""
         response = create_query_response(num_matches, dimension, include_sparse=True)
         benchmark(parse_query_response, response, False, None)
+
+
+class TestFetchByMetadataResponseParsingPerf:
+    """Performance benchmarks for parse_fetch_by_metadata_response."""
+
+    @pytest.mark.parametrize("num_vectors,dimension", [(10, 128), (100, 128), (1000, 128)])
+    def test_parse_fetch_by_metadata_response_dense(self, benchmark, num_vectors, dimension):
+        """Benchmark parse_fetch_by_metadata_response with dense vectors."""
+        response = create_fetch_by_metadata_response(num_vectors, dimension, include_sparse=False)
+        benchmark(parse_fetch_by_metadata_response, response, None)
+
+
+class TestUpsertResponseParsingPerf:
+    """Performance benchmarks for parse_upsert_response."""
+
+    def test_parse_upsert_response(self, benchmark):
+        """Benchmark parse_upsert_response."""
+        response = create_upsert_response(upserted_count=100)
+        benchmark(parse_upsert_response, response, False, None)
+
+
+class TestUpdateResponseParsingPerf:
+    """Performance benchmarks for parse_update_response."""
+
+    def test_parse_update_response(self, benchmark):
+        """Benchmark parse_update_response."""
+        response = create_update_response(matched_records=50)
+        benchmark(parse_update_response, response, False, None)
