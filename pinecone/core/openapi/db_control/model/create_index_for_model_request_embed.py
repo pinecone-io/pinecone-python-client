@@ -85,11 +85,11 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
         """
         return {
             "model": (str,),  # noqa: E501
-            "field_map": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "field_map": (Dict[str, Any],),  # noqa: E501
             "metric": (str,),  # noqa: E501
             "dimension": (int,),  # noqa: E501
-            "read_parameters": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
-            "write_parameters": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "read_parameters": (Dict[str, Any],),  # noqa: E501
+            "write_parameters": (Dict[str, Any],),  # noqa: E501
         }
 
     @cached_class_property
@@ -109,6 +109,17 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of CreateIndexForModelRequestEmbed.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
+
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], model, field_map, *args, **kwargs) -> T:  # noqa: E501
@@ -116,7 +127,7 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
 
         Args:
             model (str): The name of the embedding model to use for the index.
-            field_map ({str: (bool, dict, float, int, list, str, none_type)}): Identifies the name of the text field from your document model that will be embedded.
+            field_map (Dict[str, Any]): Identifies the name of the text field from your document model that will be embedded.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -151,8 +162,8 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set. Possible values: `cosine`, `euclidean`, or `dotproduct`. [optional]  # noqa: E501
             dimension (int): The dimension of embedding vectors produced for the index. [optional]  # noqa: E501
-            read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model. [optional]  # noqa: E501
-            write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model. [optional]  # noqa: E501
+            read_parameters (Dict[str, Any]): The read parameters for the embedding model. [optional]  # noqa: E501
+            write_parameters (Dict[str, Any]): The write parameters for the embedding model. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -215,7 +226,7 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
 
         Args:
             model (str): The name of the embedding model to use for the index.
-            field_map ({str: (bool, dict, float, int, list, str, none_type)}): Identifies the name of the text field from your document model that will be embedded.
+            field_map (Dict[str, Any]): Identifies the name of the text field from your document model that will be embedded.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -250,8 +261,8 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set. Possible values: `cosine`, `euclidean`, or `dotproduct`. [optional]  # noqa: E501
             dimension (int): The dimension of embedding vectors produced for the index. [optional]  # noqa: E501
-            read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model. [optional]  # noqa: E501
-            write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model. [optional]  # noqa: E501
+            read_parameters (Dict[str, Any]): The read parameters for the embedding model. [optional]  # noqa: E501
+            write_parameters (Dict[str, Any]): The write parameters for the embedding model. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

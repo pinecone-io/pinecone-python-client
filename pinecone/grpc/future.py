@@ -106,4 +106,4 @@ class PineconeGrpcFuture(ConcurrentFuture):
 
     def __del__(self):
         self._grpc_future.cancel()
-        self = None  # release the reference to the grpc future
+        # Note: self = None is not valid Python syntax and has no effect

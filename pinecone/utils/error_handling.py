@@ -1,5 +1,10 @@
 import inspect
 from functools import wraps
+from typing import TypeVar, Callable
+from typing_extensions import ParamSpec
+
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 class ProtocolError(Exception):
@@ -8,9 +13,16 @@ class ProtocolError(Exception):
     pass
 
 
-def validate_and_convert_errors(func):
+def validate_and_convert_errors(func: Callable[P, R]) -> Callable[P, R]:
+    """
+    Decorator that validates and converts urllib3 protocol errors to ProtocolError.
+
+    :param func: The function to wrap
+    :return: The wrapped function with the same signature
+    """
+
     @wraps(func)
-    def inner_func(*args, **kwargs):
+    def inner_func(*args: P.args, **kwargs: P.kwargs) -> R:
         try:
             return func(*args, **kwargs)
         except Exception as e:
@@ -31,5 +43,5 @@ def validate_and_convert_errors(func):
 
     # Override signature
     sig = inspect.signature(func)
-    inner_func.__signature__ = sig
+    inner_func.__signature__ = sig  # type: ignore[attr-defined]
     return inner_func

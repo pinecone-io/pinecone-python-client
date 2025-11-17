@@ -26,6 +26,13 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.core.openapi.db_control.model.index_model_status import IndexModelStatus
+    from pinecone.core.openapi.db_control.model.index_tags import IndexTags
+    from pinecone.core.openapi.db_control.model.model_index_embed import ModelIndexEmbed
+
 
 def lazy_import():
     from pinecone.core.openapi.db_control.model.index_model_status import IndexModelStatus
@@ -102,7 +109,7 @@ class IndexModel(ModelNormal):
             "name": (str,),  # noqa: E501
             "metric": (str,),  # noqa: E501
             "host": (str,),  # noqa: E501
-            "spec": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "spec": (Dict[str, Any],),  # noqa: E501
             "status": (IndexModelStatus,),  # noqa: E501
             "vector_type": (str,),  # noqa: E501
             "dimension": (int,),  # noqa: E501
@@ -134,6 +141,17 @@ class IndexModel(ModelNormal):
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of IndexModel.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
+
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], name, metric, host, spec, status, *args, **kwargs) -> T:  # noqa: E501
@@ -143,7 +161,7 @@ class IndexModel(ModelNormal):
             name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.
             metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'. Possible values: `cosine`, `euclidean`, or `dotproduct`.
             host (str): The URL address where the index is hosted.
-            spec ({str: (bool, dict, float, int, list, str, none_type)}): The spec object defines how the index should be deployed.
+            spec (Dict[str, Any]): The spec object defines how the index should be deployed.
             status (IndexModelStatus):
 
         Keyword Args:
@@ -252,7 +270,7 @@ class IndexModel(ModelNormal):
             name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.
             metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'. Possible values: `cosine`, `euclidean`, or `dotproduct`.
             host (str): The URL address where the index is hosted.
-            spec ({str: (bool, dict, float, int, list, str, none_type)}): The spec object defines how the index should be deployed.
+            spec (Dict[str, Any]): The spec object defines how the index should be deployed.
             status (IndexModelStatus):
 
         Keyword Args:

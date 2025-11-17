@@ -26,6 +26,11 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.core.openapi.inference.model.document import Document
+
 
 def lazy_import():
     from pinecone.core.openapi.inference.model.document import Document
@@ -98,7 +103,7 @@ class RerankRequest(ModelNormal):
             "top_n": (int,),  # noqa: E501
             "return_documents": (bool,),  # noqa: E501
             "rank_fields": ([str],),  # noqa: E501
-            "parameters": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "parameters": (Dict[str, Any],),  # noqa: E501
         }
 
     @cached_class_property
@@ -118,6 +123,17 @@ class RerankRequest(ModelNormal):
     read_only_vars: Set[str] = set([])
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of RerankRequest.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
 
     @classmethod
     @convert_js_args_to_python_args
@@ -163,7 +179,7 @@ class RerankRequest(ModelNormal):
             top_n (int): The number of results to return sorted by relevance. Defaults to the number of inputs. [optional]  # noqa: E501
             return_documents (bool): Whether to return the documents in the response. [optional] if omitted the server will use the default value of True.  # noqa: E501
             rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/search/rerank-results#reranking-models).  [optional] if omitted the server will use the default value of ["text"].  # noqa: E501
-            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) for available model parameters. [optional]  # noqa: E501
+            parameters (Dict[str, Any]): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) for available model parameters. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -264,7 +280,7 @@ class RerankRequest(ModelNormal):
             top_n (int): The number of results to return sorted by relevance. Defaults to the number of inputs. [optional]  # noqa: E501
             return_documents (bool): Whether to return the documents in the response. [optional] if omitted the server will use the default value of True.  # noqa: E501
             rank_fields ([str]): The field(s) to consider for reranking. If not provided, the default is `[\"text\"]`.  The number of fields supported is [model-specific](https://docs.pinecone.io/guides/search/rerank-results#reranking-models).  [optional] if omitted the server will use the default value of ["text"].  # noqa: E501
-            parameters ({str: (bool, dict, float, int, list, str, none_type)}): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) for available model parameters. [optional]  # noqa: E501
+            parameters (Dict[str, Any]): Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/search/rerank-results#reranking-models) for available model parameters. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

@@ -19,12 +19,14 @@ from ..utils import (
 from ..vector_factory_grpc import VectorFactoryGRPC
 from ..sparse_values_factory import SparseValuesFactory
 
-from pinecone.core.openapi.db_data.models import (
+from pinecone.core.openapi.db_data.models import IndexDescription as DescribeIndexStatsResponse
+from pinecone.db_data.dataclasses import (
+    FetchByMetadataResponse,
+    UpdateResponse,
+    UpsertResponse,
     FetchResponse,
     QueryResponse,
-    IndexDescription as DescribeIndexStatsResponse,
 )
-from pinecone.db_data.dataclasses import FetchByMetadataResponse, UpdateResponse, UpsertResponse
 from pinecone.db_control.models.list_response import ListResponse as SimpleListResponse, Pagination
 from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
     Vector as GRPCVector,
@@ -36,7 +38,6 @@ from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
     UpdateRequest,
     ListRequest,
     DescribeIndexStatsRequest,
-    DeleteResponse,
     SparseValues as GRPCSparseValues,
 )
 from pinecone import Vector, SparseValues
@@ -254,7 +255,7 @@ class VectorResourceGRPC(PluginAware):
         filter: Optional[FilterTypedDict] = None,
         async_req: bool = False,
         **kwargs,
-    ) -> Union[DeleteResponse, PineconeGrpcFuture]:
+    ) -> Union[Dict[str, Any], PineconeGrpcFuture]:
         """Delete vectors from the index.
 
         The Delete operation deletes vectors from the index, from a single namespace.
@@ -493,7 +494,7 @@ class VectorResourceGRPC(PluginAware):
         ] = None,
         async_req: Optional[bool] = False,
         **kwargs,
-    ) -> Union[QueryResponse, PineconeGrpcFuture]:
+    ) -> Union["QueryResponse", PineconeGrpcFuture]:
         """Query the index.
 
         The Query operation searches a namespace, using a query vector. It retrieves the

@@ -178,6 +178,7 @@ class Urllib3RestClient(RestClientInterface):
 
                 content_type = headers.get("Content-Type", "").lower()
                 if content_type == "" or ("json" in content_type):
+                    request_body: str | bytes | None = None
                     if body is None:
                         request_body = None
                     else:

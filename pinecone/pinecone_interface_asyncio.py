@@ -548,7 +548,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def create_index_from_backup(
+    async def create_index_from_backup(
         self,
         *,
         name: str,

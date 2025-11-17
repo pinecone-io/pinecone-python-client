@@ -387,4 +387,4 @@ class FilterBuilder:
             raise ValueError("FilterBuilder must have at least one condition")
         # Type cast to FilterTypedDict - the actual structure may support
         # nested $and/$or even though the type system doesn't fully capture it
-        return self._filter  # type: ignore[return-value]
+        return self._filter

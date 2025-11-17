@@ -9,6 +9,11 @@ The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Dict, cast
+from multiprocessing.pool import ApplyResult
+
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
 from pinecone.openapi_support.endpoint_utils import (
     ExtraOpenApiKwargsTypedDict,
@@ -43,7 +48,7 @@ class BulkOperationsApi:
 
         def __cancel_bulk_import(
             self, id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> Dict[str, Any] | ApplyResult[Dict[str, Any]]:
             """Cancel an import  # noqa: E501
 
             Cancel an import operation if it is not yet finished. It has no effect if the operation is already finished.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/index-data/import-data).  # noqa: E501
@@ -76,18 +81,20 @@ class BulkOperationsApi:
                 async_req (bool): execute request asynchronously
 
             Returns:
-                {str: (bool, dict, float, int, list, str, none_type)}
+                Dict[str, Any]
                     If the method is called asynchronously, returns the request
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["id"] = id
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                Dict[str, Any] | ApplyResult[Dict[str, Any]], self.call_with_http_info(**kwargs)
+            )
 
         self.cancel_bulk_import = _Endpoint(
             settings={
-                "response_type": ({str: (bool, dict, float, int, list, str, none_type)},),
+                "response_type": (Dict[str, Any],),
                 "auth": ["ApiKeyAuth"],
                 "endpoint_path": "/bulk/imports/{id}",
                 "operation_id": "cancel_bulk_import",
@@ -116,7 +123,7 @@ class BulkOperationsApi:
 
         def __describe_bulk_import(
             self, id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> ImportModel | ApplyResult[ImportModel]:
             """Describe an import  # noqa: E501
 
             Return details of a specific import operation.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/index-data/import-data).  # noqa: E501
@@ -156,7 +163,7 @@ class BulkOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["id"] = id
-            return self.call_with_http_info(**kwargs)
+            return cast(ImportModel | ApplyResult[ImportModel], self.call_with_http_info(**kwargs))
 
         self.describe_bulk_import = _Endpoint(
             settings={
@@ -189,7 +196,7 @@ class BulkOperationsApi:
 
         def __list_bulk_imports(
             self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> ListImportsResponse | ApplyResult[ListImportsResponse]:
             """List imports  # noqa: E501
 
             List all recent and ongoing import operations.  By default, `list_imports` returns up to 100 imports per page. If the `limit` parameter is set, `list` returns up to that number of imports instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of imports. When the response does not include a `pagination_token`, there are no more imports to return.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/index-data/import-data).  # noqa: E501
@@ -229,7 +236,10 @@ class BulkOperationsApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                ListImportsResponse | ApplyResult[ListImportsResponse],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.list_bulk_imports = _Endpoint(
             settings={
@@ -277,7 +287,7 @@ class BulkOperationsApi:
             start_import_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> StartImportResponse | ApplyResult[StartImportResponse]:
             """Start import  # noqa: E501
 
             Start an asynchronous import of vectors from object storage into an index.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/index-data/import-data).  # noqa: E501
@@ -317,7 +327,10 @@ class BulkOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["start_import_request"] = start_import_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                StartImportResponse | ApplyResult[StartImportResponse],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.start_bulk_import = _Endpoint(
             settings={
@@ -366,7 +379,9 @@ class AsyncioBulkOperationsApi:
             api_client = AsyncioApiClient()
         self.api_client = api_client
 
-        async def __cancel_bulk_import(self, id, x_pinecone_api_version="2025-10", **kwargs):
+        async def __cancel_bulk_import(
+            self, id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> Dict[str, Any]:
             """Cancel an import  # noqa: E501
 
             Cancel an import operation if it is not yet finished. It has no effect if the operation is already finished.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/index-data/import-data).  # noqa: E501
@@ -394,16 +409,16 @@ class AsyncioBulkOperationsApi:
                     Default is True.
 
             Returns:
-                {str: (bool, dict, float, int, list, str, none_type)}
+                Dict[str, Any]
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["id"] = id
-            return await self.call_with_http_info(**kwargs)
+            return cast(Dict[str, Any], await self.call_with_http_info(**kwargs))
 
         self.cancel_bulk_import = _AsyncioEndpoint(
             settings={
-                "response_type": ({str: (bool, dict, float, int, list, str, none_type)},),
+                "response_type": (Dict[str, Any],),
                 "auth": ["ApiKeyAuth"],
                 "endpoint_path": "/bulk/imports/{id}",
                 "operation_id": "cancel_bulk_import",
@@ -430,7 +445,9 @@ class AsyncioBulkOperationsApi:
             callable=__cancel_bulk_import,
         )
 
-        async def __describe_bulk_import(self, id, x_pinecone_api_version="2025-10", **kwargs):
+        async def __describe_bulk_import(
+            self, id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> ImportModel:
             """Describe an import  # noqa: E501
 
             Return details of a specific import operation.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/index-data/import-data).  # noqa: E501
@@ -463,7 +480,7 @@ class AsyncioBulkOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["id"] = id
-            return await self.call_with_http_info(**kwargs)
+            return cast(ImportModel, await self.call_with_http_info(**kwargs))
 
         self.describe_bulk_import = _AsyncioEndpoint(
             settings={
@@ -494,7 +511,9 @@ class AsyncioBulkOperationsApi:
             callable=__describe_bulk_import,
         )
 
-        async def __list_bulk_imports(self, x_pinecone_api_version="2025-10", **kwargs):
+        async def __list_bulk_imports(
+            self, x_pinecone_api_version="2025-10", **kwargs
+        ) -> ListImportsResponse:
             """List imports  # noqa: E501
 
             List all recent and ongoing import operations.  By default, `list_imports` returns up to 100 imports per page. If the `limit` parameter is set, `list` returns up to that number of imports instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of imports. When the response does not include a `pagination_token`, there are no more imports to return.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/index-data/import-data).  # noqa: E501
@@ -527,7 +546,7 @@ class AsyncioBulkOperationsApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(ListImportsResponse, await self.call_with_http_info(**kwargs))
 
         self.list_bulk_imports = _AsyncioEndpoint(
             settings={
@@ -572,7 +591,7 @@ class AsyncioBulkOperationsApi:
 
         async def __start_bulk_import(
             self, start_import_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> StartImportResponse:
             """Start import  # noqa: E501
 
             Start an asynchronous import of vectors from object storage into an index.  For guidance and examples, see [Import data](https://docs.pinecone.io/guides/index-data/import-data).  # noqa: E501
@@ -605,7 +624,7 @@ class AsyncioBulkOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["start_import_request"] = start_import_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(StartImportResponse, await self.call_with_http_info(**kwargs))
 
         self.start_bulk_import = _AsyncioEndpoint(
             settings={

@@ -1,6 +1,7 @@
 import logging
 import warnings
 from typing import Optional, Dict, Union, TYPE_CHECKING, Any
+from typing_extensions import Self
 
 from pinecone.config import PineconeConfig, ConfigBuilder
 
@@ -12,6 +13,8 @@ from .pinecone import check_realistic_host
 if TYPE_CHECKING:
     from pinecone.db_control.types import ConfigureIndexEmbed, CreateIndexForModelEmbedTypedDict
     from pinecone.db_data import _IndexAsyncio
+    from pinecone.inference import AsyncioInference
+    from pinecone.db_control.db_control_asyncio import DBControlAsyncio
     from pinecone.db_control.enums import (
         Metric,
         VectorType,
@@ -87,7 +90,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         ssl_verify: Optional[bool] = None,
         additional_headers: Optional[Dict[str, str]] = {},
         **kwargs,
-    ):
+    ) -> None:
         """
         Initialize the ``PineconeAsyncio`` client.
 
@@ -136,19 +139,22 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         self._openapi_config = ConfigBuilder.build_openapi_config(self._config, **kwargs)
         """ :meta private: """
 
-        self._inference = None  # Lazy initialization
+        self._inference: Optional["AsyncioInference"] = None  # Lazy initialization
         """ :meta private: """
 
-        self._db_control = None  # Lazy initialization
+        self._db_control: Optional["DBControlAsyncio"] = None  # Lazy initialization
         """ :meta private: """
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Self:
         return self
 
-    async def __aexit__(self, exc_type, exc_value, traceback):
+    async def __aexit__(
+        self, exc_type: Optional[type], exc_value: Optional[BaseException], traceback: Optional[Any]
+    ) -> Optional[bool]:
         await self.close()
+        return None
 
-    async def close(self):
+    async def close(self) -> None:
         """Cleanup resources used by the Pinecone client.
 
         This method should be called when the client is no longer needed so that
@@ -189,7 +195,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         await self.db._index_api.api_client.close()
 
     @property
-    def inference(self):
+    def inference(self) -> "AsyncioInference":
         """Dynamically create and cache the AsyncioInference instance."""
         if self._inference is None:
             from pinecone.inference import AsyncioInference
@@ -198,7 +204,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
         return self._inference
 
     @property
-    def db(self):
+    def db(self) -> "DBControlAsyncio":
         """
         db is a namespace where an instance of the ``pinecone.db_control.DBControlAsyncio`` class is lazily created and cached.
         """
@@ -218,7 +224,10 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
             DeprecationWarning,
             stacklevel=2,
         )
-        return self.db.index._index_host_store
+        # IndexResourceAsyncio doesn't have _index_host_store, access the singleton directly
+        from pinecone.db_control.index_host_store import IndexHostStore
+
+        return IndexHostStore()
 
     @property
     def index_api(self) -> "AsyncioManageIndexesApi":
@@ -312,7 +321,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
             timeout=timeout,
         )
 
-    async def delete_index(self, name: str, timeout: Optional[int] = None):
+    async def delete_index(self, name: str, timeout: Optional[int] = None) -> None:
         return await self.db.index.delete(name=name, timeout=timeout)
 
     async def list_indexes(self) -> "IndexList":
@@ -340,7 +349,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
                 "ReadCapacityDedicatedSpec",
             ]
         ] = None,
-    ):
+    ) -> None:
         return await self.db.index.configure(
             name=name,
             replicas=replicas,
@@ -351,16 +360,16 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
             read_capacity=read_capacity,
         )
 
-    async def create_collection(self, name: str, source: str):
+    async def create_collection(self, name: str, source: str) -> None:
         return await self.db.collection.create(name=name, source=source)
 
     async def list_collections(self) -> "CollectionList":
         return await self.db.collection.list()
 
-    async def delete_collection(self, name: str):
+    async def delete_collection(self, name: str) -> None:
         return await self.db.collection.delete(name=name)
 
-    async def describe_collection(self, name: str):
+    async def describe_collection(self, name: str) -> Dict[str, Any]:
         return await self.db.collection.describe(name=name)
 
     @require_kwargs

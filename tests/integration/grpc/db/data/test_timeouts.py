@@ -412,5 +412,5 @@ class TestGrpcAsyncTimeouts_Fetch:
         assert result.vectors["1"].id == "1"
         assert result.vectors["2"].id == "2"
         assert result.vectors["3"].id == "3"
-        assert result.usage.read_units == 1
+        assert result.usage["read_units"] == 1
         assert result.namespace == "testnamespace"

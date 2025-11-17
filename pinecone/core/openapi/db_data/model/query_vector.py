@@ -26,6 +26,11 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.core.openapi.db_data.model.sparse_values import SparseValues
+
 
 def lazy_import():
     from pinecone.core.openapi.db_data.model.sparse_values import SparseValues
@@ -99,7 +104,7 @@ class QueryVector(ModelNormal):
             "sparse_values": (SparseValues,),  # noqa: E501
             "top_k": (int,),  # noqa: E501
             "namespace": (str,),  # noqa: E501
-            "filter": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "filter": (Dict[str, Any],),  # noqa: E501
         }
 
     @cached_class_property
@@ -117,6 +122,17 @@ class QueryVector(ModelNormal):
     read_only_vars: Set[str] = set([])
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of QueryVector.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
 
     @classmethod
     @convert_js_args_to_python_args
@@ -160,7 +176,7 @@ class QueryVector(ModelNormal):
             sparse_values (SparseValues): [optional]  # noqa: E501
             top_k (int): An override for the number of results to return for this query vector. [optional]  # noqa: E501
             namespace (str): An override the namespace to search. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): An override for the metadata filter to apply. This replaces the request-level filter. [optional]  # noqa: E501
+            filter (Dict[str, Any]): An override for the metadata filter to apply. This replaces the request-level filter. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -257,7 +273,7 @@ class QueryVector(ModelNormal):
             sparse_values (SparseValues): [optional]  # noqa: E501
             top_k (int): An override for the number of results to return for this query vector. [optional]  # noqa: E501
             namespace (str): An override the namespace to search. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): An override for the metadata filter to apply. This replaces the request-level filter. [optional]  # noqa: E501
+            filter (Dict[str, Any]): An override for the metadata filter to apply. This replaces the request-level filter. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

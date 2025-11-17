@@ -9,6 +9,11 @@ The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Dict, cast
+from multiprocessing.pool import ApplyResult
+
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
 from pinecone.openapi_support.endpoint_utils import (
     ExtraOpenApiKwargsTypedDict,
@@ -64,7 +69,7 @@ class ManageIndexesApi:
             configure_index_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> IndexModel | ApplyResult[IndexModel]:
             """Configure an index  # noqa: E501
 
             Configure an existing index. For serverless indexes, you can configure index deletion protection, tags, and integrated inference embedding settings for the index. For pod-based indexes, you can configure the pod size, number of replicas, tags, and index deletion protection.  It is not possible to change the pod type of a pod-based index. However, you can create a collection from a pod-based index and then [create a new pod-based index with a different pod type](http://docs.pinecone.io/guides/indexes/pods/create-a-pod-based-index#create-a-pod-index-from-a-collection) from the collection. For guidance and examples, see [Configure an index](http://docs.pinecone.io/guides/indexes/pods/manage-pod-based-indexes).  # noqa: E501
@@ -106,7 +111,7 @@ class ManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
             kwargs["configure_index_request"] = configure_index_request
-            return self.call_with_http_info(**kwargs)
+            return cast(IndexModel | ApplyResult[IndexModel], self.call_with_http_info(**kwargs))
 
         self.configure_index = _Endpoint(
             settings={
@@ -154,7 +159,7 @@ class ManageIndexesApi:
             create_backup_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> BackupModel | ApplyResult[BackupModel]:
             """Create a backup of an index  # noqa: E501
 
             Create a backup of an index.   # noqa: E501
@@ -196,7 +201,7 @@ class ManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
             kwargs["create_backup_request"] = create_backup_request
-            return self.call_with_http_info(**kwargs)
+            return cast(BackupModel | ApplyResult[BackupModel], self.call_with_http_info(**kwargs))
 
         self.create_backup = _Endpoint(
             settings={
@@ -243,7 +248,7 @@ class ManageIndexesApi:
             create_collection_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> CollectionModel | ApplyResult[CollectionModel]:
             """Create a collection  # noqa: E501
 
             Create a Pinecone collection.    Serverless indexes do not support collections.   # noqa: E501
@@ -283,7 +288,9 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_collection_request"] = create_collection_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                CollectionModel | ApplyResult[CollectionModel], self.call_with_http_info(**kwargs)
+            )
 
         self.create_collection = _Endpoint(
             settings={
@@ -325,7 +332,7 @@ class ManageIndexesApi:
             create_index_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> IndexModel | ApplyResult[IndexModel]:
             """Create an index  # noqa: E501
 
             Create a Pinecone index. This is where you specify the measure of similarity, the dimension of vectors to be stored in the index, which cloud provider you would like to deploy with, and more.    For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index).   # noqa: E501
@@ -365,7 +372,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_index_request"] = create_index_request
-            return self.call_with_http_info(**kwargs)
+            return cast(IndexModel | ApplyResult[IndexModel], self.call_with_http_info(**kwargs))
 
         self.create_index = _Endpoint(
             settings={
@@ -407,7 +414,7 @@ class ManageIndexesApi:
             create_index_for_model_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> IndexModel | ApplyResult[IndexModel]:
             """Create an index with integrated embedding  # noqa: E501
 
             Create an index with integrated embedding. With this type of index, you provide source text, and  Pinecone uses a [hosted embedding model](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models)  to convert the text automatically during [upsert](https://docs.pinecone.io/reference/api/2025-10/data-plane/upsert_records)  and [search](https://docs.pinecone.io/reference/api/2025-10/data-plane/search_records).   For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index#integrated-embedding).  # noqa: E501
@@ -447,7 +454,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_index_for_model_request"] = create_index_for_model_request
-            return self.call_with_http_info(**kwargs)
+            return cast(IndexModel | ApplyResult[IndexModel], self.call_with_http_info(**kwargs))
 
         self.create_index_for_model = _Endpoint(
             settings={
@@ -490,7 +497,7 @@ class ManageIndexesApi:
             create_index_from_backup_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> CreateIndexFromBackupResponse | ApplyResult[CreateIndexFromBackupResponse]:
             """Create an index from a backup  # noqa: E501
 
             Create an index from a backup.  # noqa: E501
@@ -532,7 +539,10 @@ class ManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
             kwargs["create_index_from_backup_request"] = create_index_from_backup_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                CreateIndexFromBackupResponse | ApplyResult[CreateIndexFromBackupResponse],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.create_index_from_backup_operation = _Endpoint(
             settings={
@@ -580,7 +590,7 @@ class ManageIndexesApi:
 
         def __delete_backup(
             self, backup_id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> None:
             """Delete a backup  # noqa: E501
 
             Delete a backup.  # noqa: E501
@@ -620,7 +630,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
-            return self.call_with_http_info(**kwargs)
+            return cast(None, self.call_with_http_info(**kwargs))
 
         self.delete_backup = _Endpoint(
             settings={
@@ -659,7 +669,7 @@ class ManageIndexesApi:
             collection_name,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> None:
             """Delete a collection  # noqa: E501
 
             Delete an existing collection. Serverless indexes do not support collections.   # noqa: E501
@@ -699,7 +709,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["collection_name"] = collection_name
-            return self.call_with_http_info(**kwargs)
+            return cast(None, self.call_with_http_info(**kwargs))
 
         self.delete_collection = _Endpoint(
             settings={
@@ -738,7 +748,7 @@ class ManageIndexesApi:
             index_name,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> None:
             """Delete an index  # noqa: E501
 
             Delete an existing index.  # noqa: E501
@@ -778,7 +788,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return self.call_with_http_info(**kwargs)
+            return cast(None, self.call_with_http_info(**kwargs))
 
         self.delete_index = _Endpoint(
             settings={
@@ -814,7 +824,7 @@ class ManageIndexesApi:
 
         def __describe_backup(
             self, backup_id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> BackupModel | ApplyResult[BackupModel]:
             """Describe a backup  # noqa: E501
 
             Get a description of a backup.  # noqa: E501
@@ -854,7 +864,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
-            return self.call_with_http_info(**kwargs)
+            return cast(BackupModel | ApplyResult[BackupModel], self.call_with_http_info(**kwargs))
 
         self.describe_backup = _Endpoint(
             settings={
@@ -893,7 +903,7 @@ class ManageIndexesApi:
             collection_name,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> CollectionModel | ApplyResult[CollectionModel]:
             """Describe a collection  # noqa: E501
 
             Get a description of a collection. Serverless indexes do not support collections.   # noqa: E501
@@ -933,7 +943,9 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["collection_name"] = collection_name
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                CollectionModel | ApplyResult[CollectionModel], self.call_with_http_info(**kwargs)
+            )
 
         self.describe_collection = _Endpoint(
             settings={
@@ -972,7 +984,7 @@ class ManageIndexesApi:
             index_name,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> IndexModel | ApplyResult[IndexModel]:
             """Describe an index  # noqa: E501
 
             Get a description of an index.  # noqa: E501
@@ -1012,7 +1024,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return self.call_with_http_info(**kwargs)
+            return cast(IndexModel | ApplyResult[IndexModel], self.call_with_http_info(**kwargs))
 
         self.describe_index = _Endpoint(
             settings={
@@ -1048,7 +1060,7 @@ class ManageIndexesApi:
 
         def __describe_restore_job(
             self, job_id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> RestoreJobModel | ApplyResult[RestoreJobModel]:
             """Describe a restore job  # noqa: E501
 
             Get a description of a restore job.  # noqa: E501
@@ -1088,7 +1100,9 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["job_id"] = job_id
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                RestoreJobModel | ApplyResult[RestoreJobModel], self.call_with_http_info(**kwargs)
+            )
 
         self.describe_restore_job = _Endpoint(
             settings={
@@ -1124,7 +1138,7 @@ class ManageIndexesApi:
 
         def __list_collections(
             self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> CollectionList | ApplyResult[CollectionList]:
             """List collections  # noqa: E501
 
             List all collections in a project. Serverless indexes do not support collections.   # noqa: E501
@@ -1162,7 +1176,9 @@ class ManageIndexesApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                CollectionList | ApplyResult[CollectionList], self.call_with_http_info(**kwargs)
+            )
 
         self.list_collections = _Endpoint(
             settings={
@@ -1198,7 +1214,7 @@ class ManageIndexesApi:
             index_name,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> BackupList | ApplyResult[BackupList]:
             """List backups for an index  # noqa: E501
 
             List all backups for an index.  # noqa: E501
@@ -1240,7 +1256,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return self.call_with_http_info(**kwargs)
+            return cast(BackupList | ApplyResult[BackupList], self.call_with_http_info(**kwargs))
 
         self.list_index_backups = _Endpoint(
             settings={
@@ -1288,7 +1304,7 @@ class ManageIndexesApi:
 
         def __list_indexes(
             self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> IndexList | ApplyResult[IndexList]:
             """List indexes  # noqa: E501
 
             List all indexes in a project.  # noqa: E501
@@ -1326,7 +1342,7 @@ class ManageIndexesApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(IndexList | ApplyResult[IndexList], self.call_with_http_info(**kwargs))
 
         self.list_indexes = _Endpoint(
             settings={
@@ -1359,7 +1375,7 @@ class ManageIndexesApi:
 
         def __list_project_backups(
             self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> BackupList | ApplyResult[BackupList]:
             """List backups for all indexes in a project  # noqa: E501
 
             List all backups for a project.  # noqa: E501
@@ -1399,7 +1415,7 @@ class ManageIndexesApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(BackupList | ApplyResult[BackupList], self.call_with_http_info(**kwargs))
 
         self.list_project_backups = _Endpoint(
             settings={
@@ -1444,7 +1460,7 @@ class ManageIndexesApi:
 
         def __list_restore_jobs(
             self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> RestoreJobList | ApplyResult[RestoreJobList]:
             """List restore jobs  # noqa: E501
 
             List all restore jobs for a project.  # noqa: E501
@@ -1484,7 +1500,9 @@ class ManageIndexesApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                RestoreJobList | ApplyResult[RestoreJobList], self.call_with_http_info(**kwargs)
+            )
 
         self.list_restore_jobs = _Endpoint(
             settings={
@@ -1541,7 +1559,7 @@ class AsyncioManageIndexesApi:
 
         async def __configure_index(
             self, index_name, configure_index_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> IndexModel:
             """Configure an index  # noqa: E501
 
             Configure an existing index. For serverless indexes, you can configure index deletion protection, tags, and integrated inference embedding settings for the index. For pod-based indexes, you can configure the pod size, number of replicas, tags, and index deletion protection.  It is not possible to change the pod type of a pod-based index. However, you can create a collection from a pod-based index and then [create a new pod-based index with a different pod type](http://docs.pinecone.io/guides/indexes/pods/create-a-pod-based-index#create-a-pod-index-from-a-collection) from the collection. For guidance and examples, see [Configure an index](http://docs.pinecone.io/guides/indexes/pods/manage-pod-based-indexes).  # noqa: E501
@@ -1576,7 +1594,7 @@ class AsyncioManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
             kwargs["configure_index_request"] = configure_index_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(IndexModel, await self.call_with_http_info(**kwargs))
 
         self.configure_index = _AsyncioEndpoint(
             settings={
@@ -1620,7 +1638,7 @@ class AsyncioManageIndexesApi:
 
         async def __create_backup(
             self, index_name, create_backup_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> BackupModel:
             """Create a backup of an index  # noqa: E501
 
             Create a backup of an index.   # noqa: E501
@@ -1655,7 +1673,7 @@ class AsyncioManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
             kwargs["create_backup_request"] = create_backup_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(BackupModel, await self.call_with_http_info(**kwargs))
 
         self.create_backup = _AsyncioEndpoint(
             settings={
@@ -1699,7 +1717,7 @@ class AsyncioManageIndexesApi:
 
         async def __create_collection(
             self, create_collection_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> CollectionModel:
             """Create a collection  # noqa: E501
 
             Create a Pinecone collection.    Serverless indexes do not support collections.   # noqa: E501
@@ -1732,7 +1750,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_collection_request"] = create_collection_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(CollectionModel, await self.call_with_http_info(**kwargs))
 
         self.create_collection = _AsyncioEndpoint(
             settings={
@@ -1771,7 +1789,7 @@ class AsyncioManageIndexesApi:
 
         async def __create_index(
             self, create_index_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> IndexModel:
             """Create an index  # noqa: E501
 
             Create a Pinecone index. This is where you specify the measure of similarity, the dimension of vectors to be stored in the index, which cloud provider you would like to deploy with, and more.    For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index).   # noqa: E501
@@ -1804,7 +1822,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_index_request"] = create_index_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(IndexModel, await self.call_with_http_info(**kwargs))
 
         self.create_index = _AsyncioEndpoint(
             settings={
@@ -1843,7 +1861,7 @@ class AsyncioManageIndexesApi:
 
         async def __create_index_for_model(
             self, create_index_for_model_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> IndexModel:
             """Create an index with integrated embedding  # noqa: E501
 
             Create an index with integrated embedding. With this type of index, you provide source text, and  Pinecone uses a [hosted embedding model](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models)  to convert the text automatically during [upsert](https://docs.pinecone.io/reference/api/2025-10/data-plane/upsert_records)  and [search](https://docs.pinecone.io/reference/api/2025-10/data-plane/search_records).   For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index#integrated-embedding).  # noqa: E501
@@ -1876,7 +1894,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_index_for_model_request"] = create_index_for_model_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(IndexModel, await self.call_with_http_info(**kwargs))
 
         self.create_index_for_model = _AsyncioEndpoint(
             settings={
@@ -1919,7 +1937,7 @@ class AsyncioManageIndexesApi:
             create_index_from_backup_request,
             x_pinecone_api_version="2025-10",
             **kwargs,
-        ):
+        ) -> CreateIndexFromBackupResponse:
             """Create an index from a backup  # noqa: E501
 
             Create an index from a backup.  # noqa: E501
@@ -1954,7 +1972,7 @@ class AsyncioManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
             kwargs["create_index_from_backup_request"] = create_index_from_backup_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(CreateIndexFromBackupResponse, await self.call_with_http_info(**kwargs))
 
         self.create_index_from_backup_operation = _AsyncioEndpoint(
             settings={
@@ -2000,7 +2018,9 @@ class AsyncioManageIndexesApi:
             callable=__create_index_from_backup_operation,
         )
 
-        async def __delete_backup(self, backup_id, x_pinecone_api_version="2025-10", **kwargs):
+        async def __delete_backup(
+            self, backup_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> None:
             """Delete a backup  # noqa: E501
 
             Delete a backup.  # noqa: E501
@@ -2033,7 +2053,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(None, await self.call_with_http_info(**kwargs))
 
         self.delete_backup = _AsyncioEndpoint(
             settings={
@@ -2069,7 +2089,7 @@ class AsyncioManageIndexesApi:
 
         async def __delete_collection(
             self, collection_name, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> None:
             """Delete a collection  # noqa: E501
 
             Delete an existing collection. Serverless indexes do not support collections.   # noqa: E501
@@ -2102,7 +2122,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["collection_name"] = collection_name
-            return await self.call_with_http_info(**kwargs)
+            return cast(None, await self.call_with_http_info(**kwargs))
 
         self.delete_collection = _AsyncioEndpoint(
             settings={
@@ -2136,7 +2156,9 @@ class AsyncioManageIndexesApi:
             callable=__delete_collection,
         )
 
-        async def __delete_index(self, index_name, x_pinecone_api_version="2025-10", **kwargs):
+        async def __delete_index(
+            self, index_name, x_pinecone_api_version="2025-10", **kwargs
+        ) -> None:
             """Delete an index  # noqa: E501
 
             Delete an existing index.  # noqa: E501
@@ -2169,7 +2191,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return await self.call_with_http_info(**kwargs)
+            return cast(None, await self.call_with_http_info(**kwargs))
 
         self.delete_index = _AsyncioEndpoint(
             settings={
@@ -2203,7 +2225,9 @@ class AsyncioManageIndexesApi:
             callable=__delete_index,
         )
 
-        async def __describe_backup(self, backup_id, x_pinecone_api_version="2025-10", **kwargs):
+        async def __describe_backup(
+            self, backup_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> BackupModel:
             """Describe a backup  # noqa: E501
 
             Get a description of a backup.  # noqa: E501
@@ -2236,7 +2260,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(BackupModel, await self.call_with_http_info(**kwargs))
 
         self.describe_backup = _AsyncioEndpoint(
             settings={
@@ -2272,7 +2296,7 @@ class AsyncioManageIndexesApi:
 
         async def __describe_collection(
             self, collection_name, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> CollectionModel:
             """Describe a collection  # noqa: E501
 
             Get a description of a collection. Serverless indexes do not support collections.   # noqa: E501
@@ -2305,7 +2329,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["collection_name"] = collection_name
-            return await self.call_with_http_info(**kwargs)
+            return cast(CollectionModel, await self.call_with_http_info(**kwargs))
 
         self.describe_collection = _AsyncioEndpoint(
             settings={
@@ -2339,7 +2363,9 @@ class AsyncioManageIndexesApi:
             callable=__describe_collection,
         )
 
-        async def __describe_index(self, index_name, x_pinecone_api_version="2025-10", **kwargs):
+        async def __describe_index(
+            self, index_name, x_pinecone_api_version="2025-10", **kwargs
+        ) -> IndexModel:
             """Describe an index  # noqa: E501
 
             Get a description of an index.  # noqa: E501
@@ -2372,7 +2398,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return await self.call_with_http_info(**kwargs)
+            return cast(IndexModel, await self.call_with_http_info(**kwargs))
 
         self.describe_index = _AsyncioEndpoint(
             settings={
@@ -2406,7 +2432,9 @@ class AsyncioManageIndexesApi:
             callable=__describe_index,
         )
 
-        async def __describe_restore_job(self, job_id, x_pinecone_api_version="2025-10", **kwargs):
+        async def __describe_restore_job(
+            self, job_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> RestoreJobModel:
             """Describe a restore job  # noqa: E501
 
             Get a description of a restore job.  # noqa: E501
@@ -2439,7 +2467,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["job_id"] = job_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(RestoreJobModel, await self.call_with_http_info(**kwargs))
 
         self.describe_restore_job = _AsyncioEndpoint(
             settings={
@@ -2473,7 +2501,9 @@ class AsyncioManageIndexesApi:
             callable=__describe_restore_job,
         )
 
-        async def __list_collections(self, x_pinecone_api_version="2025-10", **kwargs):
+        async def __list_collections(
+            self, x_pinecone_api_version="2025-10", **kwargs
+        ) -> CollectionList:
             """List collections  # noqa: E501
 
             List all collections in a project. Serverless indexes do not support collections.   # noqa: E501
@@ -2504,7 +2534,7 @@ class AsyncioManageIndexesApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(CollectionList, await self.call_with_http_info(**kwargs))
 
         self.list_collections = _AsyncioEndpoint(
             settings={
@@ -2537,7 +2567,7 @@ class AsyncioManageIndexesApi:
 
         async def __list_index_backups(
             self, index_name, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> BackupList:
             """List backups for an index  # noqa: E501
 
             List all backups for an index.  # noqa: E501
@@ -2572,7 +2602,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return await self.call_with_http_info(**kwargs)
+            return cast(BackupList, await self.call_with_http_info(**kwargs))
 
         self.list_index_backups = _AsyncioEndpoint(
             settings={
@@ -2618,7 +2648,7 @@ class AsyncioManageIndexesApi:
             callable=__list_index_backups,
         )
 
-        async def __list_indexes(self, x_pinecone_api_version="2025-10", **kwargs):
+        async def __list_indexes(self, x_pinecone_api_version="2025-10", **kwargs) -> IndexList:
             """List indexes  # noqa: E501
 
             List all indexes in a project.  # noqa: E501
@@ -2649,7 +2679,7 @@ class AsyncioManageIndexesApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(IndexList, await self.call_with_http_info(**kwargs))
 
         self.list_indexes = _AsyncioEndpoint(
             settings={
@@ -2680,7 +2710,9 @@ class AsyncioManageIndexesApi:
             callable=__list_indexes,
         )
 
-        async def __list_project_backups(self, x_pinecone_api_version="2025-10", **kwargs):
+        async def __list_project_backups(
+            self, x_pinecone_api_version="2025-10", **kwargs
+        ) -> BackupList:
             """List backups for all indexes in a project  # noqa: E501
 
             List all backups for a project.  # noqa: E501
@@ -2713,7 +2745,7 @@ class AsyncioManageIndexesApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(BackupList, await self.call_with_http_info(**kwargs))
 
         self.list_project_backups = _AsyncioEndpoint(
             settings={
@@ -2756,7 +2788,9 @@ class AsyncioManageIndexesApi:
             callable=__list_project_backups,
         )
 
-        async def __list_restore_jobs(self, x_pinecone_api_version="2025-10", **kwargs):
+        async def __list_restore_jobs(
+            self, x_pinecone_api_version="2025-10", **kwargs
+        ) -> RestoreJobList:
             """List restore jobs  # noqa: E501
 
             List all restore jobs for a project.  # noqa: E501
@@ -2789,7 +2823,7 @@ class AsyncioManageIndexesApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(RestoreJobList, await self.call_with_http_info(**kwargs))
 
         self.list_restore_jobs = _AsyncioEndpoint(
             settings={

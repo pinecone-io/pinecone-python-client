@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Union, List, Optional, Dict, Any, Iterator
+from typing import List, Optional, Dict, Any, Iterator, Literal
 
 from pinecone.core.openapi.db_data.models import (
     IndexDescription as DescribeIndexStatsResponse,
-    Vector,
     ListResponse,
-    SparseValues,
     SearchRecordsResponse,
     NamespaceDescription,
     ListNamespacesResponse,
@@ -30,6 +30,8 @@ from .dataclasses import (
     QueryResponse,
     UpsertResponse,
     UpdateResponse,
+    SparseValues,
+    Vector,
 )
 from pinecone.utils import require_kwargs
 
@@ -38,14 +40,14 @@ class IndexInterface(ABC):
     @abstractmethod
     def upsert(
         self,
-        vectors: Union[
-            List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]
-        ],
+        vectors: (
+            List[Vector] | List[VectorTuple] | List[VectorTupleWithMetadata] | List[VectorTypedDict]
+        ),
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,
         show_progress: bool = True,
         **kwargs,
-    ) -> UpsertResponse:
+    ) -> UpsertResponse | ApplyResult:
         """
         Args:
             vectors (Union[List[Vector], List[VectorTuple], List[VectorTupleWithMetadata], List[VectorTypedDict]]): A list of vectors to upsert.
@@ -350,8 +352,8 @@ class IndexInterface(ABC):
     def search(
         self,
         namespace: str,
-        query: Union[SearchQueryTypedDict, SearchQuery],
-        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        query: SearchQueryTypedDict | SearchQuery,
+        rerank: Optional[SearchRerankTypedDict | SearchRerank] = None,
         fields: Optional[List[str]] = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         """
@@ -456,8 +458,8 @@ class IndexInterface(ABC):
     def search_records(
         self,
         namespace: str,
-        query: Union[SearchQueryTypedDict, SearchQuery],
-        rerank: Optional[Union[SearchRerankTypedDict, SearchRerank]] = None,
+        query: SearchQueryTypedDict | SearchQuery,
+        rerank: Optional[SearchRerankTypedDict | SearchRerank] = None,
         fields: Optional[List[str]] = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         """Alias of the search() method."""
@@ -471,7 +473,7 @@ class IndexInterface(ABC):
         namespace: Optional[str] = None,
         filter: Optional[FilterTypedDict] = None,
         **kwargs,
-    ) -> UpdateResponse:
+    ) -> Dict[str, Any]:
         """
         Args:
             ids (List[str]): Vector ids to delete [optional]
@@ -589,9 +591,9 @@ class IndexInterface(ABC):
         filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
         **kwargs,
-    ) -> Union[QueryResponse, ApplyResult]:
+    ) -> QueryResponse | ApplyResult:
         """
         The Query operation searches a namespace, using a query vector.
         It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
@@ -638,13 +640,14 @@ class IndexInterface(ABC):
     @abstractmethod
     def query_namespaces(
         self,
-        vector: List[float],
+        vector: Optional[List[float]],
         namespaces: List[str],
+        metric: Literal["cosine", "euclidean", "dotproduct"],
         top_k: Optional[int] = None,
         filter: Optional[FilterTypedDict] = None,
         include_values: Optional[bool] = None,
         include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        sparse_vector: Optional[SparseValues | SparseVectorTypedDict] = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         """The ``query_namespaces()`` method is used to make a query to multiple namespaces in parallel and combine the results into one result set.
@@ -714,7 +717,7 @@ class IndexInterface(ABC):
         values: Optional[List[float]] = None,
         set_metadata: Optional[VectorMetadataTypedDict] = None,
         namespace: Optional[str] = None,
-        sparse_values: Optional[Union[SparseValues, SparseVectorTypedDict]] = None,
+        sparse_values: Optional[SparseValues | SparseVectorTypedDict] = None,
         filter: Optional[FilterTypedDict] = None,
         dry_run: Optional[bool] = None,
         **kwargs,

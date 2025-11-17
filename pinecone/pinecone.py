@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Dict, Union, TYPE_CHECKING, Any
+from typing import Optional, Dict, Union, TYPE_CHECKING, Any, NoReturn
 from multiprocessing import cpu_count
 import warnings
 
@@ -18,6 +18,8 @@ if TYPE_CHECKING:
     from pinecone.db_data import _Index as Index, _IndexAsyncio as IndexAsyncio
     from pinecone.db_control.index_host_store import IndexHostStore
     from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
+    from pinecone.inference import Inference
+    from pinecone.db_control import DBControl
     from pinecone.db_control.types import CreateIndexForModelEmbedTypedDict, ConfigureIndexEmbed
     from pinecone.db_control.models.serverless_spec import (
         ReadCapacityDict,
@@ -72,7 +74,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         additional_headers: Optional[Dict[str, str]] = {},
         pool_threads: Optional[int] = None,
         **kwargs,
-    ):
+    ) -> None:
         """
         The ``Pinecone`` class is the main entry point for interacting with Pinecone via this Python SDK.
         Instances of the ``Pinecone`` class are used to manage and interact with Pinecone resources such as
@@ -247,16 +249,16 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
             self._pool_threads = pool_threads
             """ :meta private: """
 
-        self._inference = None  # Lazy initialization
+        self._inference: Optional["Inference"] = None  # Lazy initialization
         """ :meta private: """
 
-        self._db_control = None  # Lazy initialization
+        self._db_control: Optional["DBControl"] = None  # Lazy initialization
         """ :meta private: """
 
         super().__init__()  # Initialize PluginAware
 
     @property
-    def inference(self):
+    def inference(self) -> "Inference":
         """
         Inference is a namespace where an instance of the `pinecone.inference.Inference` class is lazily created and cached.
         """
@@ -271,7 +273,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         return self._inference
 
     @property
-    def db(self):
+    def db(self) -> "DBControl":
         """
         DBControl is a namespace where an instance of the `pinecone.db_control.DBControl` class is lazily created and cached.
         """
@@ -413,7 +415,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
             timeout=timeout,
         )
 
-    def delete_index(self, name: str, timeout: Optional[int] = None):
+    def delete_index(self, name: str, timeout: Optional[int] = None) -> None:
         return self.db.index.delete(name=name, timeout=timeout)
 
     def list_indexes(self) -> "IndexList":
@@ -441,7 +443,7 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
                 "ReadCapacityDedicatedSpec",
             ]
         ] = None,
-    ):
+    ) -> None:
         return self.db.index.configure(
             name=name,
             replicas=replicas,
@@ -461,8 +463,11 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
     def delete_collection(self, name: str) -> None:
         return self.db.collection.delete(name=name)
 
-    def describe_collection(self, name: str):
-        return self.db.collection.describe(name=name)
+    def describe_collection(self, name: str) -> Dict[str, Any]:
+        from typing import cast
+
+        result = self.db.collection.describe(name=name)
+        return cast(Dict[str, Any], result)
 
     @require_kwargs
     def create_backup(
@@ -503,12 +508,12 @@ class Pinecone(PluginAware, LegacyPineconeDBControlInterface):
         return self.db.restore_job.describe(job_id=job_id)
 
     @staticmethod
-    def from_texts(*args, **kwargs):
+    def from_texts(*args: Any, **kwargs: Any) -> NoReturn:
         """:meta private:"""
         raise AttributeError(_build_langchain_attribute_error_message("from_texts"))
 
     @staticmethod
-    def from_documents(*args, **kwargs):
+    def from_documents(*args: Any, **kwargs: Any) -> NoReturn:
         """:meta private:"""
         raise AttributeError(_build_langchain_attribute_error_message("from_documents"))
 

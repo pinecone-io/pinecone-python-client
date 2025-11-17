@@ -9,6 +9,11 @@ The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Dict, cast
+from multiprocessing.pool import ApplyResult
+
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
 from pinecone.openapi_support.endpoint_utils import (
     ExtraOpenApiKwargsTypedDict,
@@ -45,7 +50,7 @@ class NamespaceOperationsApi:
             create_namespace_request,
             x_pinecone_api_version="2025-10",
             **kwargs: ExtraOpenApiKwargsTypedDict,
-        ):
+        ) -> NamespaceDescription | ApplyResult[NamespaceDescription]:
             """Create a namespace  # noqa: E501
 
             Create a namespace in a serverless index.  For guidance and examples, see [Manage namespaces](https://docs.pinecone.io/guides/manage-data/manage-namespaces).  **Note:** This operation is not supported for pod-based indexes.  # noqa: E501
@@ -85,7 +90,10 @@ class NamespaceOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_namespace_request"] = create_namespace_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                NamespaceDescription | ApplyResult[NamespaceDescription],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.create_namespace = _Endpoint(
             settings={
@@ -124,7 +132,7 @@ class NamespaceOperationsApi:
 
         def __delete_namespace(
             self, namespace, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> Dict[str, Any] | ApplyResult[Dict[str, Any]]:
             """Delete a namespace  # noqa: E501
 
             Delete a namespace from a serverless index. Deleting a namespace is irreversible; all data in the namespace is permanently deleted.  For guidance and examples, see [Manage namespaces](https://docs.pinecone.io/guides/manage-data/manage-namespaces).  **Note:** This operation is not supported for pod-based indexes.  # noqa: E501
@@ -157,18 +165,20 @@ class NamespaceOperationsApi:
                 async_req (bool): execute request asynchronously
 
             Returns:
-                {str: (bool, dict, float, int, list, str, none_type)}
+                Dict[str, Any]
                     If the method is called asynchronously, returns the request
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                Dict[str, Any] | ApplyResult[Dict[str, Any]], self.call_with_http_info(**kwargs)
+            )
 
         self.delete_namespace = _Endpoint(
             settings={
-                "response_type": ({str: (bool, dict, float, int, list, str, none_type)},),
+                "response_type": (Dict[str, Any],),
                 "auth": ["ApiKeyAuth"],
                 "endpoint_path": "/namespaces/{namespace}",
                 "operation_id": "delete_namespace",
@@ -200,7 +210,7 @@ class NamespaceOperationsApi:
 
         def __describe_namespace(
             self, namespace, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> NamespaceDescription | ApplyResult[NamespaceDescription]:
             """Describe a namespace  # noqa: E501
 
             Describe a namespace in a serverless index, including the total number of vectors in the namespace.  For guidance and examples, see [Manage namespaces](https://docs.pinecone.io/guides/manage-data/manage-namespaces).  **Note:** This operation is not supported for pod-based indexes.  # noqa: E501
@@ -240,7 +250,10 @@ class NamespaceOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                NamespaceDescription | ApplyResult[NamespaceDescription],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.describe_namespace = _Endpoint(
             settings={
@@ -276,7 +289,7 @@ class NamespaceOperationsApi:
 
         def __list_namespaces_operation(
             self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+        ) -> ListNamespacesResponse | ApplyResult[ListNamespacesResponse]:
             """List namespaces  # noqa: E501
 
             List all namespaces in a serverless index.  Up to 100 namespaces are returned at a time by default, in sorted order (bitwise “C” collation). If the `limit` parameter is set, up to that number of namespaces are returned instead. Whenever there are additional namespaces to return, the response also includes a `pagination_token` that you can use to get the next batch of namespaces. When the response does not include a `pagination_token`, there are no more namespaces to return.  For guidance and examples, see [Manage namespaces](https://docs.pinecone.io/guides/manage-data/manage-namespaces).  **Note:** This operation is not supported for pod-based indexes.  # noqa: E501
@@ -317,7 +330,10 @@ class NamespaceOperationsApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                ListNamespacesResponse | ApplyResult[ListNamespacesResponse],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.list_namespaces_operation = _Endpoint(
             settings={
@@ -377,7 +393,7 @@ class AsyncioNamespaceOperationsApi:
 
         async def __create_namespace(
             self, create_namespace_request, x_pinecone_api_version="2025-10", **kwargs
-        ):
+        ) -> NamespaceDescription:
             """Create a namespace  # noqa: E501
 
             Create a namespace in a serverless index.  For guidance and examples, see [Manage namespaces](https://docs.pinecone.io/guides/manage-data/manage-namespaces).  **Note:** This operation is not supported for pod-based indexes.  # noqa: E501
@@ -410,7 +426,7 @@ class AsyncioNamespaceOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_namespace_request"] = create_namespace_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(NamespaceDescription, await self.call_with_http_info(**kwargs))
 
         self.create_namespace = _AsyncioEndpoint(
             settings={
@@ -447,7 +463,9 @@ class AsyncioNamespaceOperationsApi:
             callable=__create_namespace,
         )
 
-        async def __delete_namespace(self, namespace, x_pinecone_api_version="2025-10", **kwargs):
+        async def __delete_namespace(
+            self, namespace, x_pinecone_api_version="2025-10", **kwargs
+        ) -> Dict[str, Any]:
             """Delete a namespace  # noqa: E501
 
             Delete a namespace from a serverless index. Deleting a namespace is irreversible; all data in the namespace is permanently deleted.  For guidance and examples, see [Manage namespaces](https://docs.pinecone.io/guides/manage-data/manage-namespaces).  **Note:** This operation is not supported for pod-based indexes.  # noqa: E501
@@ -475,16 +493,16 @@ class AsyncioNamespaceOperationsApi:
                     Default is True.
 
             Returns:
-                {str: (bool, dict, float, int, list, str, none_type)}
+                Dict[str, Any]
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
-            return await self.call_with_http_info(**kwargs)
+            return cast(Dict[str, Any], await self.call_with_http_info(**kwargs))
 
         self.delete_namespace = _AsyncioEndpoint(
             settings={
-                "response_type": ({str: (bool, dict, float, int, list, str, none_type)},),
+                "response_type": (Dict[str, Any],),
                 "auth": ["ApiKeyAuth"],
                 "endpoint_path": "/namespaces/{namespace}",
                 "operation_id": "delete_namespace",
@@ -514,7 +532,9 @@ class AsyncioNamespaceOperationsApi:
             callable=__delete_namespace,
         )
 
-        async def __describe_namespace(self, namespace, x_pinecone_api_version="2025-10", **kwargs):
+        async def __describe_namespace(
+            self, namespace, x_pinecone_api_version="2025-10", **kwargs
+        ) -> NamespaceDescription:
             """Describe a namespace  # noqa: E501
 
             Describe a namespace in a serverless index, including the total number of vectors in the namespace.  For guidance and examples, see [Manage namespaces](https://docs.pinecone.io/guides/manage-data/manage-namespaces).  **Note:** This operation is not supported for pod-based indexes.  # noqa: E501
@@ -547,7 +567,7 @@ class AsyncioNamespaceOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
-            return await self.call_with_http_info(**kwargs)
+            return cast(NamespaceDescription, await self.call_with_http_info(**kwargs))
 
         self.describe_namespace = _AsyncioEndpoint(
             settings={
@@ -581,7 +601,9 @@ class AsyncioNamespaceOperationsApi:
             callable=__describe_namespace,
         )
 
-        async def __list_namespaces_operation(self, x_pinecone_api_version="2025-10", **kwargs):
+        async def __list_namespaces_operation(
+            self, x_pinecone_api_version="2025-10", **kwargs
+        ) -> ListNamespacesResponse:
             """List namespaces  # noqa: E501
 
             List all namespaces in a serverless index.  Up to 100 namespaces are returned at a time by default, in sorted order (bitwise “C” collation). If the `limit` parameter is set, up to that number of namespaces are returned instead. Whenever there are additional namespaces to return, the response also includes a `pagination_token` that you can use to get the next batch of namespaces. When the response does not include a `pagination_token`, there are no more namespaces to return.  For guidance and examples, see [Manage namespaces](https://docs.pinecone.io/guides/manage-data/manage-namespaces).  **Note:** This operation is not supported for pod-based indexes.  # noqa: E501
@@ -615,7 +637,7 @@ class AsyncioNamespaceOperationsApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(ListNamespacesResponse, await self.call_with_http_info(**kwargs))
 
         self.list_namespaces_operation = _AsyncioEndpoint(
             settings={

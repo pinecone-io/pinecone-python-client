@@ -75,10 +75,14 @@ class PineconeDBControlRequestFactory:
 
     @staticmethod
     def __parse_tags(tags: Optional[Dict[str, str]]) -> IndexTags:
+        from typing import cast
+
         if tags is None:
-            return IndexTags()
+            result = IndexTags()
+            return cast(IndexTags, result)
         else:
-            return IndexTags(**tags)
+            result = IndexTags(**tags)
+            return cast(IndexTags, result)
 
     @staticmethod
     def __parse_deletion_protection(deletion_protection: Union[DeletionProtection, str]) -> str:
@@ -99,10 +103,13 @@ class PineconeDBControlRequestFactory:
         :param read_capacity: Dict with read capacity configuration or existing ReadCapacity model instance
         :return: ReadCapacityOnDemandSpec, ReadCapacityDedicatedSpec, or existing model instance
         """
+        from typing import cast
+
         if isinstance(read_capacity, dict):
             mode = read_capacity.get("mode", "OnDemand")
             if mode == "OnDemand":
-                return ReadCapacityOnDemandSpec(mode="OnDemand")
+                result = ReadCapacityOnDemandSpec(mode="OnDemand")
+                return cast(ReadCapacityOnDemandSpec, result)
             elif mode == "Dedicated":
                 dedicated_dict: Dict[str, Any] = read_capacity.get("dedicated", {})  # type: ignore
                 # Construct ReadCapacityDedicatedConfig
@@ -152,13 +159,19 @@ class PineconeDBControlRequestFactory:
                     dedicated_config_kwargs["manual"] = ScalingConfigManual(**manual_dict)
 
                 dedicated_config = ReadCapacityDedicatedConfig(**dedicated_config_kwargs)
-                return ReadCapacityDedicatedSpec(mode="Dedicated", dedicated=dedicated_config)
+                result = ReadCapacityDedicatedSpec(mode="Dedicated", dedicated=dedicated_config)
+                return cast(ReadCapacityDedicatedSpec, result)
             else:
                 # Fallback: let OpenAPI handle it
-                return read_capacity  # type: ignore
+                from typing import cast
+
+                return cast(
+                    Union[ReadCapacityOnDemandSpec, ReadCapacityDedicatedSpec, "ReadCapacity"],
+                    read_capacity,
+                )
         else:
             # Already a ReadCapacity model instance
-            return read_capacity  # type: ignore
+            return read_capacity
 
     @staticmethod
     def __parse_schema(
@@ -221,10 +234,13 @@ class PineconeDBControlRequestFactory:
                     "or provide field_name: field_config pairs directly."
                 )
 
-            return BackupModelSchema(**schema_kwargs)
+            from typing import cast
+
+            result = BackupModelSchema(**schema_kwargs)
+            return cast(BackupModelSchema, result)
         else:
             # Already a BackupModelSchema instance
-            return schema  # type: ignore
+            return schema
 
     @staticmethod
     def __parse_index_spec(spec: Union[Dict, ServerlessSpec, PodSpec, ByocSpec]) -> IndexSpec:
@@ -336,7 +352,9 @@ class PineconeDBControlRequestFactory:
         else:
             raise TypeError("spec must be of type dict, ServerlessSpec, PodSpec, or ByocSpec")
 
-        return index_spec
+        from typing import cast
+
+        return cast(IndexSpec, index_spec)
 
     @staticmethod
     def create_index_request(
@@ -375,7 +393,10 @@ class PineconeDBControlRequestFactory:
             ]
         )
 
-        return CreateIndexRequest(**args)
+        from typing import cast
+
+        result = CreateIndexRequest(**args)
+        return cast(CreateIndexRequest, result)
 
     @staticmethod
     def create_index_for_model_request(
@@ -454,7 +475,10 @@ class PineconeDBControlRequestFactory:
             ]
         )
 
-        return CreateIndexForModelRequest(**args)
+        from typing import cast
+
+        result = CreateIndexForModelRequest(**args)
+        return cast(CreateIndexForModelRequest, result)
 
     @staticmethod
     def create_index_from_backup_request(
@@ -469,7 +493,10 @@ class PineconeDBControlRequestFactory:
 
         tags_obj = PineconeDBControlRequestFactory.__parse_tags(tags)
 
-        return CreateIndexFromBackupRequest(name=name, deletion_protection=dp, tags=tags_obj)
+        from typing import cast
+
+        result = CreateIndexFromBackupRequest(name=name, deletion_protection=dp, tags=tags_obj)
+        return cast(CreateIndexFromBackupRequest, result)
 
     @staticmethod
     def configure_index_request(
@@ -544,8 +571,14 @@ class PineconeDBControlRequestFactory:
             ]
         )
 
-        return ConfigureIndexRequest(**args_dict)
+        from typing import cast
+
+        result = ConfigureIndexRequest(**args_dict)
+        return cast(ConfigureIndexRequest, result)
 
     @staticmethod
     def create_collection_request(name: str, source: str) -> CreateCollectionRequest:
-        return CreateCollectionRequest(name=name, source=source)
+        from typing import cast
+
+        result = CreateCollectionRequest(name=name, source=source)
+        return cast(CreateCollectionRequest, result)

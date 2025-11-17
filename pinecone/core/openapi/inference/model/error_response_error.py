@@ -86,7 +86,7 @@ class ErrorResponseError(ModelNormal):
         return {
             "code": (str,),  # noqa: E501
             "message": (str,),  # noqa: E501
-            "details": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "details": (Dict[str, Any],),  # noqa: E501
         }
 
     @cached_class_property
@@ -102,6 +102,17 @@ class ErrorResponseError(ModelNormal):
     read_only_vars: Set[str] = set([])
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of ErrorResponseError.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
 
     @classmethod
     @convert_js_args_to_python_args
@@ -143,7 +154,7 @@ class ErrorResponseError(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            details ({str: (bool, dict, float, int, list, str, none_type)}): Additional information about the error. This field is not guaranteed to be present. [optional]  # noqa: E501
+            details (Dict[str, Any]): Additional information about the error. This field is not guaranteed to be present. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -239,7 +250,7 @@ class ErrorResponseError(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            details ({str: (bool, dict, float, int, list, str, none_type)}): Additional information about the error. This field is not guaranteed to be present. [optional]  # noqa: E501
+            details (Dict[str, Any]): Additional information about the error. This field is not guaranteed to be present. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

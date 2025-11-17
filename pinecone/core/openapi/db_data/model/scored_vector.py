@@ -26,6 +26,11 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.core.openapi.db_data.model.sparse_values import SparseValues
+
 
 def lazy_import():
     from pinecone.core.openapi.db_data.model.sparse_values import SparseValues
@@ -98,7 +103,7 @@ class ScoredVector(ModelNormal):
             "score": (float,),  # noqa: E501
             "values": ([float],),  # noqa: E501
             "sparse_values": (SparseValues,),  # noqa: E501
-            "metadata": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "metadata": (Dict[str, Any],),  # noqa: E501
         }
 
     @cached_class_property
@@ -116,6 +121,17 @@ class ScoredVector(ModelNormal):
     read_only_vars: Set[str] = set([])
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of ScoredVector.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
 
     @classmethod
     @convert_js_args_to_python_args
@@ -159,7 +175,7 @@ class ScoredVector(ModelNormal):
             score (float): This is a measure of similarity between this vector and the query vector.  The higher the score, the more they are similar. [optional]  # noqa: E501
             values ([float]): This is the vector data, if it is requested. [optional]  # noqa: E501
             sparse_values (SparseValues): [optional]  # noqa: E501
-            metadata ({str: (bool, dict, float, int, list, str, none_type)}): This is the metadata, if it is requested. [optional]  # noqa: E501
+            metadata (Dict[str, Any]): This is the metadata, if it is requested. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -256,7 +272,7 @@ class ScoredVector(ModelNormal):
             score (float): This is a measure of similarity between this vector and the query vector.  The higher the score, the more they are similar. [optional]  # noqa: E501
             values ([float]): This is the vector data, if it is requested. [optional]  # noqa: E501
             sparse_values (SparseValues): [optional]  # noqa: E501
-            metadata ({str: (bool, dict, float, int, list, str, none_type)}): This is the metadata, if it is requested. [optional]  # noqa: E501
+            metadata (Dict[str, Any]): This is the metadata, if it is requested. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

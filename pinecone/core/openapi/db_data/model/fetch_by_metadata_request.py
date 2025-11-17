@@ -87,7 +87,7 @@ class FetchByMetadataRequest(ModelNormal):
         """
         return {
             "namespace": (str,),  # noqa: E501
-            "filter": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "filter": (Dict[str, Any],),  # noqa: E501
             "limit": (int,),  # noqa: E501
             "pagination_token": (str,),  # noqa: E501
         }
@@ -106,6 +106,17 @@ class FetchByMetadataRequest(ModelNormal):
     read_only_vars: Set[str] = set([])
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of FetchByMetadataRequest.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
 
     @classmethod
     @convert_js_args_to_python_args
@@ -144,7 +155,7 @@ class FetchByMetadataRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             namespace (str): The namespace to fetch vectors from. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): Metadata filter expression to select vectors. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
+            filter (Dict[str, Any]): Metadata filter expression to select vectors. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
             limit (int): Max number of vectors to return. [optional] if omitted the server will use the default value of 100.  # noqa: E501
             pagination_token (str): Pagination token to continue a previous listing operation. [optional]  # noqa: E501
         """
@@ -237,7 +248,7 @@ class FetchByMetadataRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             namespace (str): The namespace to fetch vectors from. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): Metadata filter expression to select vectors. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
+            filter (Dict[str, Any]): Metadata filter expression to select vectors. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
             limit (int): Max number of vectors to return. [optional] if omitted the server will use the default value of 100.  # noqa: E501
             pagination_token (str): Pagination token to continue a previous listing operation. [optional]  # noqa: E501
         """

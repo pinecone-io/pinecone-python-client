@@ -57,7 +57,7 @@ class SearchQuery(DictLike):
         Converts `vector` to a `SearchQueryVectorTypedDict` instance if an enum is provided.
         """
         if isinstance(self.vector, SearchQueryVector):
-            self.vector = self.vector.as_dict()
+            self.vector = self.vector.as_dict()  # type: ignore[assignment]
 
     def as_dict(self) -> Dict[str, Any]:
         """

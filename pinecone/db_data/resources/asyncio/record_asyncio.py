@@ -144,7 +144,10 @@ class RecordResourceAsyncio(PluginAware):
 
         request = IndexRequestFactory.search_request(query=query, rerank=rerank, fields=fields)
 
-        return await self._vector_api.search_records_namespace(namespace, request)
+        from typing import cast
+
+        result = await self._vector_api.search_records_namespace(namespace, request)
+        return cast(SearchRecordsResponse, result)
 
     @validate_and_convert_errors
     async def search_records(

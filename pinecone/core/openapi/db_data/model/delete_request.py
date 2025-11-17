@@ -87,7 +87,7 @@ class DeleteRequest(ModelNormal):
             "ids": ([str],),  # noqa: E501
             "delete_all": (bool,),  # noqa: E501
             "namespace": (str,),  # noqa: E501
-            "filter": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "filter": (Dict[str, Any],),  # noqa: E501
         }
 
     @cached_class_property
@@ -104,6 +104,17 @@ class DeleteRequest(ModelNormal):
     read_only_vars: Set[str] = set([])
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of DeleteRequest.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
 
     @classmethod
     @convert_js_args_to_python_args
@@ -144,7 +155,7 @@ class DeleteRequest(ModelNormal):
             ids ([str]): Vectors to delete. [optional]  # noqa: E501
             delete_all (bool): This indicates that all vectors in the index namespace should be deleted. [optional] if omitted the server will use the default value of False.  # noqa: E501
             namespace (str): The namespace to delete vectors from, if applicable. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True. See [Delete data](https://docs.pinecone.io/guides/manage-data/delete-data#delete-records-by-metadata). [optional]  # noqa: E501
+            filter (Dict[str, Any]): If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True. See [Delete data](https://docs.pinecone.io/guides/manage-data/delete-data#delete-records-by-metadata). [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -237,7 +248,7 @@ class DeleteRequest(ModelNormal):
             ids ([str]): Vectors to delete. [optional]  # noqa: E501
             delete_all (bool): This indicates that all vectors in the index namespace should be deleted. [optional] if omitted the server will use the default value of False.  # noqa: E501
             namespace (str): The namespace to delete vectors from, if applicable. [optional]  # noqa: E501
-            filter ({str: (bool, dict, float, int, list, str, none_type)}): If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True. See [Delete data](https://docs.pinecone.io/guides/manage-data/delete-data#delete-records-by-metadata). [optional]  # noqa: E501
+            filter (Dict[str, Any]): If specified, the metadata filter here will be used to select the vectors to delete. This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True. See [Delete data](https://docs.pinecone.io/guides/manage-data/delete-data#delete-records-by-metadata). [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

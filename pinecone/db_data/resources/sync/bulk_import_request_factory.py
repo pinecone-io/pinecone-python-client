@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from enum import Enum
-from typing import Optional, TypedDict, Any, Union
+from typing import TypedDict, Any
 
 from pinecone.core.openapi.db_data.models import (
     StartImportRequest,
@@ -26,8 +28,8 @@ class BulkImportRequestFactory:
     @staticmethod
     def start_import_request(
         uri: str,
-        integration_id: Optional[str] = None,
-        error_mode: Optional[Union[ImportErrorMode, str]] = "CONTINUE",
+        integration_id: str | None = None,
+        error_mode: (ImportErrorMode | str) | None = "CONTINUE",
     ) -> StartImportRequest:
         if error_mode is None:
             error_mode = "CONTINUE"
@@ -46,11 +48,12 @@ class BulkImportRequestFactory:
             ]
         )
 
-        return StartImportRequest(**args_dict)
+        import_request: StartImportRequest = StartImportRequest(**args_dict)
+        return import_request
 
     @staticmethod
     def list_imports_paginated_args(
-        limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+        limit: int | None = None, pagination_token: str | None = None, **kwargs
     ) -> dict[str, Any]:
         return parse_non_empty_args([("limit", limit), ("pagination_token", pagination_token)])
 
