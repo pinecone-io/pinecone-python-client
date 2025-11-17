@@ -167,7 +167,7 @@ class Pinecone(PluginAware):
         .. code-block:: python
 
             from pinecone import Pinecone
-            import urllib3 import make_headers
+            from urllib3.util import make_headers
 
             pc = Pinecone(
                 api_key='YOUR_API_KEY',
@@ -176,8 +176,6 @@ class Pinecone(PluginAware):
             )
 
             pc.list_indexes()
-
-
 
         **Using proxies with self-signed certificates**
 
@@ -189,7 +187,7 @@ class Pinecone(PluginAware):
         .. code-block:: python
 
             from pinecone import Pinecone
-            import urllib3 import make_headers
+            from urllib3.util import make_headers
 
             pc = Pinecone(
                 api_key='YOUR_API_KEY',
@@ -200,8 +198,6 @@ class Pinecone(PluginAware):
 
             pc.list_indexes()
 
-
-
         **Disabling SSL verification**
 
         If you would like to disable SSL verification, you can pass the ``ssl_verify``
@@ -210,7 +206,7 @@ class Pinecone(PluginAware):
         .. code-block:: python
 
             from pinecone import Pinecone
-            import urllib3 import make_headers
+            from urllib3.util import make_headers
 
             pc = Pinecone(
                 api_key='YOUR_API_KEY',
@@ -221,7 +217,6 @@ class Pinecone(PluginAware):
             )
 
             pc.list_indexes()
-
 
         """
         for deprecated_kwarg in {"config", "openapi_config", "index_api"}:
