@@ -244,11 +244,38 @@ class IndexInterface(ABC):
     ):
         """Upserts a dataframe into the index.
 
-        Args:
-            df: A pandas dataframe with the following columns: id, values, sparse_values, and metadata.
-            namespace: The namespace to upsert into.
-            batch_size: The number of rows to upsert in a single batch.
-            show_progress: Whether to show a progress bar.
+        :param df: A pandas dataframe with the following columns: id, values, sparse_values, and metadata.
+        :type df: pandas.DataFrame
+        :param namespace: The namespace to upsert into.
+        :type namespace: str, optional
+        :param batch_size: The number of rows to upsert in a single batch.
+        :type batch_size: int, optional
+        :param show_progress: Whether to show a progress bar.
+        :type show_progress: bool, optional
+
+        .. code-block:: python
+
+            import pandas as pd
+            from pinecone import Pinecone
+
+            pc = Pinecone()
+            idx = pc.Index(host="your-index-host")
+
+            # Create a dataframe with vector data
+            df = pd.DataFrame({
+                'id': ['id1', 'id2', 'id3'],
+                'values': [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6], [0.7, 0.8, 0.9]],
+                'metadata': [{'key': 'value1'}, {'key': 'value2'}, {'key': 'value3'}]
+            })
+
+            # Upsert the dataframe
+            idx.upsert_from_dataframe(
+                df=df,
+                namespace="my-namespace",
+                batch_size=100,
+                show_progress=True
+            )
+
         """
         pass
 
@@ -276,7 +303,7 @@ class IndexInterface(ABC):
                 Pinecone,
                 CloudProvider,
                 AwsRegion,
-                EmbedModel
+                EmbedModel,
                 IndexEmbed
             )
 
@@ -382,7 +409,7 @@ class IndexInterface(ABC):
                 Pinecone,
                 CloudProvider,
                 AwsRegion,
-                EmbedModel
+                EmbedModel,
                 IndexEmbed
             )
 
