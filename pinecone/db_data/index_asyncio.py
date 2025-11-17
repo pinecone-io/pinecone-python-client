@@ -918,7 +918,7 @@ class _IndexAsyncio(IndexAsyncioInterface):
 
     @validate_and_convert_errors
     @require_kwargs
-    async def list_namespaces(  # type: ignore[override]
+    async def list_namespaces(  # type: ignore[override, misc]  # mypy limitation: async generators in abstract methods
         self, limit: Optional[int] = None, **kwargs
     ) -> AsyncIterator[ListNamespacesResponse]:
         async for namespace in self.namespace.list(limit=limit, **kwargs):
