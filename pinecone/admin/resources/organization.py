@@ -64,6 +64,7 @@ class OrganizationResource:
                 print(organization.name)
                 print(organization.plan)
                 print(organization.payment_status)
+
         """
         return self._organizations_api.list_organizations()
 
@@ -125,6 +126,7 @@ class OrganizationResource:
             )
             print(organization.id)
             print(organization.name)
+
         """
         return self.fetch(organization_id=organization_id)
 
@@ -150,6 +152,7 @@ class OrganizationResource:
             )
             print(organization.id)
             print(organization.name)
+
         """
         return self.fetch(organization_id=organization_id)
 

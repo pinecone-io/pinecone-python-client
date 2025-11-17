@@ -76,8 +76,6 @@ class AsyncioInference:
             ``usage`` key contains the total number of tokens used at request-time.
         :rtype: EmbeddingsList
 
-        Example:
-
         .. code-block:: python
 
             import asyncio
@@ -101,6 +99,40 @@ class AsyncioInference:
                     # )
 
             asyncio.run(main())
+
+        You can also use a single string input:
+
+        .. code-block:: python
+
+            import asyncio
+            from pinecone import PineconeAsyncio
+
+            async def main():
+                async with PineconeAsyncio() as pc:
+                    output = await pc.inference.embed(
+                        model="text-embedding-3-small",
+                        inputs="Hello, world!"
+                    )
+
+            asyncio.run(main())
+
+        Or use the EmbedModel enum:
+
+        .. code-block:: python
+
+            import asyncio
+            from pinecone import PineconeAsyncio
+            from pinecone.inference import EmbedModel
+
+            async def main():
+                async with PineconeAsyncio() as pc:
+                    outputs = await pc.inference.embed(
+                        model=EmbedModel.TEXT_EMBEDDING_3_SMALL,
+                        inputs=["Document 1", "Document 2"]
+                    )
+
+            asyncio.run(main())
+
         """
         request_body = InferenceRequestBuilder.embed_request(
             model=model, inputs=inputs, parameters=parameters
@@ -189,8 +221,6 @@ class AsyncioInference:
             representing how close the document relates to the query.
         :rtype: RerankResult
 
-        Example:
-
         .. code-block:: python
 
             import asyncio
@@ -224,6 +254,47 @@ class AsyncioInference:
                     # )
 
             asyncio.run(main())
+
+        You can also use document dictionaries with custom fields:
+
+        .. code-block:: python
+
+            import asyncio
+            from pinecone import PineconeAsyncio
+
+            async def main():
+                async with PineconeAsyncio() as pc:
+                    result = await pc.inference.rerank(
+                        model="pinecone-rerank-v0",
+                        query="What is machine learning?",
+                        documents=[
+                            {"text": "Machine learning is a subset of AI.", "category": "tech"},
+                            {"text": "Cooking recipes for pasta.", "category": "food"},
+                        ],
+                        rank_fields=["text"],
+                        top_n=1
+                    )
+
+            asyncio.run(main())
+
+        Or use the RerankModel enum:
+
+        .. code-block:: python
+
+            import asyncio
+            from pinecone import PineconeAsyncio
+            from pinecone.inference import RerankModel
+
+            async def main():
+                async with PineconeAsyncio() as pc:
+                    result = await pc.inference.rerank(
+                        model=RerankModel.PINECONE_RERANK_V0,
+                        query="Your query here",
+                        documents=["doc1", "doc2", "doc3"]
+                    )
+
+            asyncio.run(main())
+
         """
         rerank_request = InferenceRequestBuilder.rerank(
             model=model,
@@ -252,6 +323,30 @@ class AsyncioInference:
 
         :return: A list of models.
         :rtype: ModelInfoList
+
+        .. code-block:: python
+
+            import asyncio
+            from pinecone import PineconeAsyncio
+
+            async def main():
+                async with PineconeAsyncio() as pc:
+                    # List all models
+                    models = await pc.inference.list_models()
+
+                    # List models, with model type filtering
+                    models = await pc.inference.list_models(type="embed")
+                    models = await pc.inference.list_models(type="rerank")
+
+                    # List models, with vector type filtering
+                    models = await pc.inference.list_models(vector_type="dense")
+                    models = await pc.inference.list_models(vector_type="sparse")
+
+                    # List models, with both type and vector type filtering
+                    models = await pc.inference.list_models(type="rerank", vector_type="dense")
+
+            asyncio.run(main())
+
         """
         args = parse_non_empty_args([("type", type), ("vector_type", vector_type)])
         resp = await self.__inference_api.list_models(**args)
@@ -267,8 +362,6 @@ class AsyncioInference:
         :return: A ModelInfo object.
         :rtype: ModelInfo
 
-        Example:
-
         .. code-block:: python
 
             import asyncio
@@ -276,9 +369,17 @@ class AsyncioInference:
 
             async def main():
                 async with PineconeAsyncio() as pc:
-                    model = await pc.inference.get_model(model_name="text-embedding-3-small")
+                    model_info = await pc.inference.get_model(model_name="text-embedding-3-small")
+                    print(model_info)
+                    # {
+                    #     "model": "text-embedding-3-small",
+                    #     "short_description": "...",
+                    #     "type": "embed",
+                    #     ...
+                    # }
 
             asyncio.run(main())
+
         """
         resp = await self.__inference_api.get_model(model_name=model_name)
         return ModelInfo(resp)

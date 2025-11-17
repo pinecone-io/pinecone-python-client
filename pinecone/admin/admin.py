@@ -58,6 +58,46 @@ class Admin:
           dictionary of key-value pairs. This is primarily used for internal testing
           purposes.
         :type additional_headers: Optional[dict[str, str]]
+
+        Examples
+        --------
+
+        .. code-block:: python
+            :caption: Initialize Admin using environment variables
+
+            import os
+            from pinecone import Admin
+
+            # Set environment variables
+            os.environ["PINECONE_CLIENT_ID"] = "your-client-id"
+            os.environ["PINECONE_CLIENT_SECRET"] = "your-client-secret"
+
+            # Initialize Admin (reads from environment variables)
+            admin = Admin()
+
+        .. code-block:: python
+            :caption: Initialize Admin with explicit credentials
+
+            from pinecone import Admin
+
+            # Initialize Admin with explicit credentials
+            admin = Admin(
+                client_id="your-client-id",
+                client_secret="your-client-secret"
+            )
+
+        .. code-block:: python
+            :caption: Initialize Admin with additional headers
+
+            from pinecone import Admin
+
+            # Initialize Admin with additional headers for testing
+            admin = Admin(
+                client_id="your-client-id",
+                client_secret="your-client-secret",
+                additional_headers={"X-Custom-Header": "value"}
+            )
+
         """
 
         if client_id is not None:
@@ -149,7 +189,7 @@ class Admin:
 
             # Create a project with no quota for pod indexes
             admin.project.create(
-                name="my-project"
+                name="my-project",
                 max_pods=0
             )
 
@@ -169,6 +209,7 @@ class Admin:
             admin = Admin()
             project = admin.project.get(name="my-project")
             admin.project.delete(project_id=project.id)
+
         """
         if self._project is None:
             from pinecone.admin.resources import ProjectResource

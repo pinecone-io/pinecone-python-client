@@ -67,6 +67,7 @@ class ApiKeyResource:
                 print(api_key.name)
                 print(api_key.description)
                 print(api_key.roles)
+
         """
         return self._api_keys_api.list_project_api_keys(project_id=project_id)
 
@@ -108,12 +109,54 @@ class ApiKeyResource:
 
     @require_kwargs
     def get(self, api_key_id: str):
-        """Alias for :func:`fetch`"""
+        """Alias for :func:`fetch`
+
+        Examples
+        --------
+
+        .. code-block:: python
+            :caption: Get an API key by api_key_id
+
+            from pinecone import Admin
+
+            # Credentials read from PINECONE_CLIENT_ID and
+            # PINECONE_CLIENT_SECRET environment variables
+            admin = Admin()
+
+            api_key = admin.api_key.get(api_key_id='my-api-key-id')
+            print(api_key.id)
+            print(api_key.name)
+            print(api_key.description)
+            print(api_key.roles)
+            print(api_key.created_at)
+
+        """
         return self.fetch(api_key_id=api_key_id)
 
     @require_kwargs
     def describe(self, api_key_id: str):
-        """Alias for :func:`fetch`"""
+        """Alias for :func:`fetch`
+
+        Examples
+        --------
+
+        .. code-block:: python
+            :caption: Describe an API key by api_key_id
+
+            from pinecone import Admin
+
+            # Credentials read from PINECONE_CLIENT_ID and
+            # PINECONE_CLIENT_SECRET environment variables
+            admin = Admin()
+
+            api_key = admin.api_key.describe(api_key_id='my-api-key-id')
+            print(api_key.id)
+            print(api_key.name)
+            print(api_key.description)
+            print(api_key.roles)
+            print(api_key.created_at)
+
+        """
         return self.fetch(api_key_id=api_key_id)
 
     @require_kwargs
@@ -204,6 +247,7 @@ class ApiKeyResource:
 
             api_key_value = api_key_response.value
             print(api_key_value)
+
         """
         args = [("name", name), ("description", description), ("roles", roles)]
         create_api_key_request = CreateAPIKeyRequest(**parse_non_empty_args(args))
