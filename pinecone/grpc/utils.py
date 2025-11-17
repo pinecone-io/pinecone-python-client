@@ -55,38 +55,49 @@ def parse_sparse_values(sparse_values: dict | None) -> SparseValues:
 def parse_fetch_response(
     response: Message, initial_metadata: dict[str, str] | None = None
 ) -> FetchResponse:
-    json_response = json_format.MessageToDict(response)
+    """Parse a FetchResponse protobuf message directly without MessageToDict conversion.
 
-    vd = {}
-    vectors = json_response.get("vectors", {})
-    namespace = json_response.get("namespace", "")
-
-    for id, vec in vectors.items():
-        # Convert to Vector dataclass
-        sparse_vals = vec.get("sparseValues")
-        parsed_sparse = None
-        if sparse_vals:
-            from pinecone.db_data.dataclasses import SparseValues
-
-            parsed_sparse = SparseValues(
-                indices=sparse_vals.get("indices", []), values=sparse_vals.get("values", [])
-            )
-        vd[id] = Vector(
-            id=vec["id"],
-            values=vec.get("values") or [],
-            sparse_values=parsed_sparse,
-            metadata=vec.get("metadata", None),
-        )
-
+    This optimized version directly accesses protobuf fields for better performance.
+    """
     # Extract response info from initial metadata
     from pinecone.utils.response_info import extract_response_info
 
     metadata = initial_metadata or {}
     response_info = extract_response_info(metadata)
 
+    # Directly access protobuf fields instead of converting entire message to dict
+    vd = {}
+    # namespace is a required string field, so it will always have a value (default empty string)
+    namespace = response.namespace
+
+    # Iterate over vectors map directly
+    for vec_id, vec in response.vectors.items():
+        # Convert vector.values (RepeatedScalarFieldContainer) to list
+        values = list(vec.values) if vec.values else []
+
+        # Handle sparse_values if present (check if field is set and not empty)
+        parsed_sparse = None
+        if vec.HasField("sparse_values") and vec.sparse_values:
+            from pinecone.db_data.dataclasses import SparseValues
+
+            parsed_sparse = SparseValues(
+                indices=list(vec.sparse_values.indices), values=list(vec.sparse_values.values)
+            )
+
+        # Convert metadata Struct to dict only when needed
+        metadata_dict = None
+        if vec.HasField("metadata") and vec.metadata:
+            metadata_dict = json_format.MessageToDict(vec.metadata)
+
+        vd[vec_id] = Vector(
+            id=vec.id, values=values, sparse_values=parsed_sparse, metadata=metadata_dict
+        )
+
+    # Parse usage if present (usage is optional, so check HasField)
     usage = None
-    if json_response.get("usage"):
-        usage = parse_usage(json_response.get("usage", {}))
+    if response.HasField("usage") and response.usage:
+        usage = parse_usage({"readUnits": response.usage.read_units})
+
     fetch_response = FetchResponse(
         vectors=vd, namespace=namespace, usage=usage, _response_info=response_info
     )
@@ -204,40 +215,86 @@ def parse_query_response(
     _check_type: bool = False,
     initial_metadata: dict[str, str] | None = None,
 ) -> QueryResponse:
-    if isinstance(response, Message):
-        json_response = json_format.MessageToDict(response)
-    else:
-        json_response = response
+    """Parse a QueryResponse protobuf message directly without MessageToDict conversion.
 
-    matches = []
-    for item in json_response.get("matches", []):
-        sc = ScoredVector(
-            id=item["id"],
-            score=item.get("score", 0.0),
-            values=item.get("values", []),
-            sparse_values=parse_sparse_values(item.get("sparseValues")),
-            metadata=item.get("metadata", None),
-            _check_type=_check_type,
-        )
-        matches.append(sc)
-
-    # Due to OpenAPI model classes / actual parsing cost, we want to avoid
-    # creating empty `Usage` objects and then passing them into QueryResponse
-    # when they are not actually present in the response from the server.
-    args = {"namespace": json_response.get("namespace", ""), "matches": matches}
-    usage = json_response.get("usage")
-    if usage:
-        args["usage"] = parse_usage(usage)
-
+    This optimized version directly accesses protobuf fields for better performance.
+    For dict responses (REST API), falls back to the original dict-based parsing.
+    """
     # Extract response info from initial metadata
-    # For gRPC, LSN headers are in initial_metadata
     from pinecone.utils.response_info import extract_response_info
 
     metadata = initial_metadata or {}
     response_info = extract_response_info(metadata)
 
-    query_response = QueryResponse(**args, _response_info=response_info)
-    return query_response
+    if isinstance(response, Message):
+        # Optimized path: directly access protobuf fields
+        matches = []
+        # namespace is a required string field, so it will always have a value (default empty string)
+        namespace = response.namespace
+
+        # Iterate over matches directly
+        for match in response.matches:
+            # Convert match.values (RepeatedScalarFieldContainer) to list
+            values = list(match.values) if match.values else []
+
+            # Handle sparse_values if present (check if field is set and not empty)
+            parsed_sparse = None
+            if match.HasField("sparse_values") and match.sparse_values:
+                parsed_sparse = SparseValues(
+                    indices=list(match.sparse_values.indices),
+                    values=list(match.sparse_values.values),
+                )
+
+            # Convert metadata Struct to dict only when needed
+            metadata_dict = None
+            if match.HasField("metadata") and match.metadata:
+                metadata_dict = json_format.MessageToDict(match.metadata)
+
+            sc = ScoredVector(
+                id=match.id,
+                score=match.score,
+                values=values,
+                sparse_values=parsed_sparse,
+                metadata=metadata_dict,
+                _check_type=_check_type,
+            )
+            matches.append(sc)
+
+        # Parse usage if present (usage is optional, so check HasField)
+        usage = None
+        if response.HasField("usage") and response.usage:
+            usage = parse_usage({"readUnits": response.usage.read_units})
+
+        query_response = QueryResponse(
+            namespace=namespace, matches=matches, usage=usage, _response_info=response_info
+        )
+        return query_response
+    else:
+        # Fallback for dict responses (REST API)
+        json_response = response
+
+        matches = []
+        for item in json_response.get("matches", []):
+            sc = ScoredVector(
+                id=item["id"],
+                score=item.get("score", 0.0),
+                values=item.get("values", []),
+                sparse_values=parse_sparse_values(item.get("sparseValues")),
+                metadata=item.get("metadata", None),
+                _check_type=_check_type,
+            )
+            matches.append(sc)
+
+        # Due to OpenAPI model classes / actual parsing cost, we want to avoid
+        # creating empty `Usage` objects and then passing them into QueryResponse
+        # when they are not actually present in the response from the server.
+        args = {"namespace": json_response.get("namespace", ""), "matches": matches}
+        usage = json_response.get("usage")
+        if usage:
+            args["usage"] = parse_usage(usage)
+
+        query_response = QueryResponse(**args, _response_info=response_info)
+        return query_response
 
 
 def parse_stats_response(response: dict) -> "DescribeIndexStatsResponse":
