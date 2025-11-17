@@ -1,24 +1,24 @@
 """
-    Pinecone Data Plane API
+Pinecone Data Plane API
 
-    Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
-    This file is @generated using OpenAPI.
+This file is @generated using OpenAPI.
 
-    The version of the OpenAPI document: 2025-10
-    Contact: support@pinecone.io
+The version of the OpenAPI document: 2025-10
+Contact: support@pinecone.io
 """
-
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict, cast
-
-if TYPE_CHECKING:
-    from multiprocessing.pool import ApplyResult
+from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
-from pinecone.openapi_support.endpoint_utils import ExtraOpenApiKwargsTypedDict, KwargsWithOpenApiKwargDefaultsTypedDict
+from pinecone.openapi_support.endpoint_utils import (
+    ExtraOpenApiKwargsTypedDict,
+    KwargsWithOpenApiKwargDefaultsTypedDict,
+)
 from pinecone.openapi_support.endpoint import Endpoint as _Endpoint, ExtraOpenApiKwargsTypedDict
 from pinecone.openapi_support.asyncio_endpoint import AsyncioEndpoint as _AsyncioEndpoint
 from pinecone.openapi_support.model_utils import (  # noqa: F401
@@ -26,7 +26,7 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     datetime,
     file_type,
     none_type,
-    validate_and_convert_types
+    validate_and_convert_types,
 )
 from pinecone.core.openapi.db_data.model.create_namespace_request import CreateNamespaceRequest
 from pinecone.core.openapi.db_data.model.list_namespaces_response import ListNamespacesResponse
@@ -49,7 +49,7 @@ class NamespaceOperationsApi:
             self,
             create_namespace_request,
             x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict
+            **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> NamespaceDescription | ApplyResult[NamespaceDescription]:
             """Create a namespace  # noqa: E501
 
@@ -88,77 +88,50 @@ class NamespaceOperationsApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            kwargs['create_namespace_request'] = \
-                create_namespace_request
-            return cast(NamespaceDescription | ApplyResult[NamespaceDescription], self.call_with_http_info(**kwargs))
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["create_namespace_request"] = create_namespace_request
+            return cast(
+                NamespaceDescription | ApplyResult[NamespaceDescription],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.create_namespace = _Endpoint(
             settings={
-                'response_type': (NamespaceDescription,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/namespaces',
-                'operation_id': 'create_namespace',
-                'http_method': 'POST',
-                'servers': None,
+                "response_type": (NamespaceDescription,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/namespaces",
+                "operation_id": "create_namespace",
+                "http_method": "POST",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'create_namespace_request',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                    'create_namespace_request',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "create_namespace_request"],
+                "required": ["x_pinecone_api_version", "create_namespace_request"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "create_namespace_request": (CreateNamespaceRequest,),
                 },
-                'allowed_values': {
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "create_namespace_request": "body",
                 },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'create_namespace_request':
-                        (CreateNamespaceRequest,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'create_namespace_request': 'body',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
+            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__create_namespace
+            callable=__create_namespace,
         )
 
         def __delete_namespace(
-            self,
-            namespace,
-            x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict
+            self, namespace, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> Dict[str, Any] | ApplyResult[Dict[str, Any]]:
             """Delete a namespace  # noqa: E501
 
@@ -197,76 +170,46 @@ class NamespaceOperationsApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            kwargs['namespace'] = \
-                namespace
-            return cast(Dict[str, Any] | ApplyResult[Dict[str, Any]], self.call_with_http_info(**kwargs))
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["namespace"] = namespace
+            return cast(
+                Dict[str, Any] | ApplyResult[Dict[str, Any]], self.call_with_http_info(**kwargs)
+            )
 
         self.delete_namespace = _Endpoint(
             settings={
-                'response_type': (Dict[str, Any],),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/namespaces/{namespace}',
-                'operation_id': 'delete_namespace',
-                'http_method': 'DELETE',
-                'servers': None,
+                "response_type": (Dict[str, Any],),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/namespaces/{namespace}",
+                "operation_id": "delete_namespace",
+                "http_method": "DELETE",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'namespace',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                    'namespace',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "namespace"],
+                "required": ["x_pinecone_api_version", "namespace"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"x_pinecone_api_version": (str,), "namespace": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "namespace": "namespace",
                 },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'namespace':
-                        (str,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                    'namespace': 'namespace',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'namespace': 'path',
-                },
-                'collection_format_map': {
-                }
+                "location_map": {"x_pinecone_api_version": "header", "namespace": "path"},
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
+            headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__delete_namespace
+            callable=__delete_namespace,
         )
 
         def __describe_namespace(
-            self,
-            namespace,
-            x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict
+            self, namespace, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> NamespaceDescription | ApplyResult[NamespaceDescription]:
             """Describe a namespace  # noqa: E501
 
@@ -305,75 +248,47 @@ class NamespaceOperationsApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            kwargs['namespace'] = \
-                namespace
-            return cast(NamespaceDescription | ApplyResult[NamespaceDescription], self.call_with_http_info(**kwargs))
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["namespace"] = namespace
+            return cast(
+                NamespaceDescription | ApplyResult[NamespaceDescription],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.describe_namespace = _Endpoint(
             settings={
-                'response_type': (NamespaceDescription,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/namespaces/{namespace}',
-                'operation_id': 'describe_namespace',
-                'http_method': 'GET',
-                'servers': None,
+                "response_type": (NamespaceDescription,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/namespaces/{namespace}",
+                "operation_id": "describe_namespace",
+                "http_method": "GET",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'namespace',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                    'namespace',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "namespace"],
+                "required": ["x_pinecone_api_version", "namespace"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"x_pinecone_api_version": (str,), "namespace": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "namespace": "namespace",
                 },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'namespace':
-                        (str,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                    'namespace': 'namespace',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'namespace': 'path',
-                },
-                'collection_format_map': {
-                }
+                "location_map": {"x_pinecone_api_version": "header", "namespace": "path"},
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
+            headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__describe_namespace
+            callable=__describe_namespace,
         )
 
         def __list_namespaces_operation(
-            self,
-            x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict
+            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> ListNamespacesResponse | ApplyResult[ListNamespacesResponse]:
             """List namespaces  # noqa: E501
 
@@ -414,78 +329,55 @@ class NamespaceOperationsApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            return cast(ListNamespacesResponse | ApplyResult[ListNamespacesResponse], self.call_with_http_info(**kwargs))
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            return cast(
+                ListNamespacesResponse | ApplyResult[ListNamespacesResponse],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.list_namespaces_operation = _Endpoint(
             settings={
-                'response_type': (ListNamespacesResponse,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/namespaces',
-                'operation_id': 'list_namespaces_operation',
-                'http_method': 'GET',
-                'servers': None,
+                "response_type": (ListNamespacesResponse,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/namespaces",
+                "operation_id": "list_namespaces_operation",
+                "http_method": "GET",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'limit',
-                    'pagination_token',
-                    'prefix',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "limit", "pagination_token", "prefix"],
+                "required": ["x_pinecone_api_version"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "limit": (int,),
+                    "pagination_token": (str,),
+                    "prefix": (str,),
                 },
-                'allowed_values': {
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "limit": "limit",
+                    "pagination_token": "paginationToken",
+                    "prefix": "prefix",
                 },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'limit':
-                        (int,),
-                    'pagination_token':
-                        (str,),
-                    'prefix':
-                        (str,),
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "limit": "query",
+                    "pagination_token": "query",
+                    "prefix": "query",
                 },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                    'limit': 'limit',
-                    'pagination_token': 'paginationToken',
-                    'prefix': 'prefix',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'limit': 'query',
-                    'pagination_token': 'query',
-                    'prefix': 'query',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
+            headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__list_namespaces_operation
+            callable=__list_namespaces_operation,
         )
-
 
 
 class AsyncioNamespaceOperationsApi:
@@ -500,10 +392,7 @@ class AsyncioNamespaceOperationsApi:
         self.api_client = api_client
 
         async def __create_namespace(
-            self,
-            create_namespace_request,
-            x_pinecone_api_version="2025-10",
-            **kwargs
+            self, create_namespace_request, x_pinecone_api_version="2025-10", **kwargs
         ) -> NamespaceDescription:
             """Create a namespace  # noqa: E501
 
@@ -535,77 +424,47 @@ class AsyncioNamespaceOperationsApi:
                 NamespaceDescription
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            kwargs['create_namespace_request'] = \
-                create_namespace_request
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["create_namespace_request"] = create_namespace_request
             return cast(NamespaceDescription, await self.call_with_http_info(**kwargs))
 
         self.create_namespace = _AsyncioEndpoint(
             settings={
-                'response_type': (NamespaceDescription,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/namespaces',
-                'operation_id': 'create_namespace',
-                'http_method': 'POST',
-                'servers': None,
+                "response_type": (NamespaceDescription,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/namespaces",
+                "operation_id": "create_namespace",
+                "http_method": "POST",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'create_namespace_request',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                    'create_namespace_request',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "create_namespace_request"],
+                "required": ["x_pinecone_api_version", "create_namespace_request"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "create_namespace_request": (CreateNamespaceRequest,),
                 },
-                'allowed_values': {
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "create_namespace_request": "body",
                 },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'create_namespace_request':
-                        (CreateNamespaceRequest,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'create_namespace_request': 'body',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
+            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__create_namespace
+            callable=__create_namespace,
         )
 
         async def __delete_namespace(
-            self,
-            namespace,
-            x_pinecone_api_version="2025-10",
-            **kwargs
+            self, namespace, x_pinecone_api_version="2025-10", **kwargs
         ) -> Dict[str, Any]:
             """Delete a namespace  # noqa: E501
 
@@ -637,76 +496,44 @@ class AsyncioNamespaceOperationsApi:
                 Dict[str, Any]
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            kwargs['namespace'] = \
-                namespace
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["namespace"] = namespace
             return cast(Dict[str, Any], await self.call_with_http_info(**kwargs))
 
         self.delete_namespace = _AsyncioEndpoint(
             settings={
-                'response_type': (Dict[str, Any],),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/namespaces/{namespace}',
-                'operation_id': 'delete_namespace',
-                'http_method': 'DELETE',
-                'servers': None,
+                "response_type": (Dict[str, Any],),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/namespaces/{namespace}",
+                "operation_id": "delete_namespace",
+                "http_method": "DELETE",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'namespace',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                    'namespace',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "namespace"],
+                "required": ["x_pinecone_api_version", "namespace"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"x_pinecone_api_version": (str,), "namespace": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "namespace": "namespace",
                 },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'namespace':
-                        (str,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                    'namespace': 'namespace',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'namespace': 'path',
-                },
-                'collection_format_map': {
-                }
+                "location_map": {"x_pinecone_api_version": "header", "namespace": "path"},
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
+            headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__delete_namespace
+            callable=__delete_namespace,
         )
 
         async def __describe_namespace(
-            self,
-            namespace,
-            x_pinecone_api_version="2025-10",
-            **kwargs
+            self, namespace, x_pinecone_api_version="2025-10", **kwargs
         ) -> NamespaceDescription:
             """Describe a namespace  # noqa: E501
 
@@ -738,75 +565,44 @@ class AsyncioNamespaceOperationsApi:
                 NamespaceDescription
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            kwargs['namespace'] = \
-                namespace
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["namespace"] = namespace
             return cast(NamespaceDescription, await self.call_with_http_info(**kwargs))
 
         self.describe_namespace = _AsyncioEndpoint(
             settings={
-                'response_type': (NamespaceDescription,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/namespaces/{namespace}',
-                'operation_id': 'describe_namespace',
-                'http_method': 'GET',
-                'servers': None,
+                "response_type": (NamespaceDescription,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/namespaces/{namespace}",
+                "operation_id": "describe_namespace",
+                "http_method": "GET",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'namespace',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                    'namespace',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "namespace"],
+                "required": ["x_pinecone_api_version", "namespace"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"x_pinecone_api_version": (str,), "namespace": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "namespace": "namespace",
                 },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'namespace':
-                        (str,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                    'namespace': 'namespace',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'namespace': 'path',
-                },
-                'collection_format_map': {
-                }
+                "location_map": {"x_pinecone_api_version": "header", "namespace": "path"},
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
+            headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__describe_namespace
+            callable=__describe_namespace,
         )
 
         async def __list_namespaces_operation(
-            self,
-            x_pinecone_api_version="2025-10",
-            **kwargs
+            self, x_pinecone_api_version="2025-10", **kwargs
         ) -> ListNamespacesResponse:
             """List namespaces  # noqa: E501
 
@@ -840,74 +636,49 @@ class AsyncioNamespaceOperationsApi:
                 ListNamespacesResponse
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             return cast(ListNamespacesResponse, await self.call_with_http_info(**kwargs))
 
         self.list_namespaces_operation = _AsyncioEndpoint(
             settings={
-                'response_type': (ListNamespacesResponse,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/namespaces',
-                'operation_id': 'list_namespaces_operation',
-                'http_method': 'GET',
-                'servers': None,
+                "response_type": (ListNamespacesResponse,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/namespaces",
+                "operation_id": "list_namespaces_operation",
+                "http_method": "GET",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'limit',
-                    'pagination_token',
-                    'prefix',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "limit", "pagination_token", "prefix"],
+                "required": ["x_pinecone_api_version"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "limit": (int,),
+                    "pagination_token": (str,),
+                    "prefix": (str,),
                 },
-                'allowed_values': {
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "limit": "limit",
+                    "pagination_token": "paginationToken",
+                    "prefix": "prefix",
                 },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'limit':
-                        (int,),
-                    'pagination_token':
-                        (str,),
-                    'prefix':
-                        (str,),
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "limit": "query",
+                    "pagination_token": "query",
+                    "prefix": "query",
                 },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                    'limit': 'limit',
-                    'pagination_token': 'paginationToken',
-                    'prefix': 'prefix',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'limit': 'query',
-                    'pagination_token': 'query',
-                    'prefix': 'query',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
+            headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__list_namespaces_operation
+            callable=__list_namespaces_operation,
         )

@@ -1,14 +1,13 @@
 """
-    Pinecone Control Plane API
+Pinecone Control Plane API
 
-    Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
-    This file is @generated using OpenAPI.
+This file is @generated using OpenAPI.
 
-    The version of the OpenAPI document: 2025-10
-    Contact: support@pinecone.io
+The version of the OpenAPI document: 2025-10
+Contact: support@pinecone.io
 """
-
 
 from pinecone.openapi_support.model_utils import (  # noqa: F401
     PineconeApiTypeError,
@@ -37,6 +36,7 @@ if TYPE_CHECKING:
     from pinecone.core.openapi.db_control.model.serverless import Serverless
     from pinecone.core.openapi.db_control.model.serverless_spec import ServerlessSpec
 
+
 def lazy_import():
     from pinecone.core.openapi.db_control.model.byoc import BYOC
     from pinecone.core.openapi.db_control.model.byoc_spec import ByocSpec
@@ -44,12 +44,13 @@ def lazy_import():
     from pinecone.core.openapi.db_control.model.pod_spec import PodSpec
     from pinecone.core.openapi.db_control.model.serverless import Serverless
     from pinecone.core.openapi.db_control.model.serverless_spec import ServerlessSpec
-    globals()['BYOC'] = BYOC
-    globals()['ByocSpec'] = ByocSpec
-    globals()['PodBased'] = PodBased
-    globals()['PodSpec'] = PodSpec
-    globals()['Serverless'] = Serverless
-    globals()['ServerlessSpec'] = ServerlessSpec
+
+    globals()["BYOC"] = BYOC
+    globals()["ByocSpec"] = ByocSpec
+    globals()["PodBased"] = PodBased
+    globals()["PodSpec"] = PodSpec
+    globals()["Serverless"] = Serverless
+    globals()["ServerlessSpec"] = ServerlessSpec
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -84,11 +85,9 @@ class IndexSpec(ModelComposed):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-    }
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -97,7 +96,7 @@ class IndexSpec(ModelComposed):
         of type self, this must run after the class is loaded
         """
         lazy_import()
-        return (bool, dict, float, int, list, str, none_type,)  # noqa: E501
+        return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
 
@@ -113,24 +112,22 @@ class IndexSpec(ModelComposed):
         """
         lazy_import()
         return {
-            'serverless': (ServerlessSpec,),  # noqa: E501
-            'pod': (PodSpec,),  # noqa: E501
-            'byoc': (ByocSpec,),  # noqa: E501
+            "serverless": (ServerlessSpec,),  # noqa: E501
+            "pod": (PodSpec,),  # noqa: E501
+            "byoc": (ByocSpec,),  # noqa: E501
         }
 
     @cached_class_property
     def discriminator(cls):
         return None
 
-
     attribute_map: Dict[str, str] = {
-        'serverless': 'serverless',  # noqa: E501
-        'pod': 'pod',  # noqa: E501
-        'byoc': 'byoc',  # noqa: E501
+        "serverless": "serverless",  # noqa: E501
+        "pod": "pod",  # noqa: E501
+        "byoc": "byoc",  # noqa: E501
     }
 
-    read_only_vars: Set[str] = set([
-    ])
+    read_only_vars: Set[str] = set([])
 
     @classmethod
     @convert_js_args_to_python_args
@@ -173,20 +170,18 @@ class IndexSpec(ModelComposed):
             byoc (ByocSpec): [optional]  # noqa: E501
         """
 
-        _check_type = kwargs.pop('_check_type', True)
-        _spec_property_naming = kwargs.pop('_spec_property_naming', False)
-        _path_to_item = kwargs.pop('_path_to_item', ())
-        _configuration = kwargs.pop('_configuration', None)
-        _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
+        _check_type = kwargs.pop("_check_type", True)
+        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
+        _path_to_item = kwargs.pop("_path_to_item", ())
+        _configuration = kwargs.pop("_configuration", None)
+        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
 
         self = super(OpenApiModel, cls).__new__(cls)
 
         if args:
             raise PineconeApiTypeError(
-                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
-                    args,
-                    self.__class__.__name__,
-                ),
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
+                % (args, self.__class__.__name__),
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
             )
@@ -199,43 +194,46 @@ class IndexSpec(ModelComposed):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         constant_args = {
-            '_check_type': _check_type,
-            '_path_to_item': _path_to_item,
-            '_spec_property_naming': _spec_property_naming,
-            '_configuration': _configuration,
-            '_visited_composed_classes': self._visited_composed_classes,
+            "_check_type": _check_type,
+            "_path_to_item": _path_to_item,
+            "_spec_property_naming": _spec_property_naming,
+            "_configuration": _configuration,
+            "_visited_composed_classes": self._visited_composed_classes,
         }
-        composed_info = validate_get_composed_info(
-            constant_args, kwargs, self)
+        composed_info = validate_get_composed_info(constant_args, kwargs, self)
         self._composed_instances = composed_info[0]
         self._var_name_to_model_instances = composed_info[1]
         self._additional_properties_model_instances = composed_info[2]
         discarded_args = composed_info[3]
 
         for var_name, var_value in kwargs.items():
-            if var_name in discarded_args and \
-                        self._configuration is not None and \
-                        self._configuration.discard_unknown_keys and \
-                        self._additional_properties_model_instances:
+            if (
+                var_name in discarded_args
+                and self._configuration is not None
+                and self._configuration.discard_unknown_keys
+                and self._additional_properties_model_instances
+            ):
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
 
         return self
 
-    required_properties = set([
-        '_enforce_allowed_values',
-        '_enforce_validations',
-        '_data_store',
-        '_check_type',
-        '_spec_property_naming',
-        '_path_to_item',
-        '_configuration',
-        '_visited_composed_classes',
-        '_composed_instances',
-        '_var_name_to_model_instances',
-        '_additional_properties_model_instances',
-    ])
+    required_properties = set(
+        [
+            "_enforce_allowed_values",
+            "_enforce_validations",
+            "_data_store",
+            "_check_type",
+            "_spec_property_naming",
+            "_path_to_item",
+            "_configuration",
+            "_visited_composed_classes",
+            "_composed_instances",
+            "_var_name_to_model_instances",
+            "_additional_properties_model_instances",
+        ]
+    )
 
     @convert_js_args_to_python_args
     def __init__(self, *args, **kwargs) -> None:  # noqa: E501
@@ -277,20 +275,18 @@ class IndexSpec(ModelComposed):
             byoc (ByocSpec): [optional]  # noqa: E501
         """
 
-        _enforce_allowed_values = kwargs.pop('_enforce_allowed_values', True)
-        _enforce_validations = kwargs.pop('_enforce_validations', True)
-        _check_type = kwargs.pop('_check_type', True)
-        _spec_property_naming = kwargs.pop('_spec_property_naming', False)
-        _path_to_item = kwargs.pop('_path_to_item', ())
-        _configuration = kwargs.pop('_configuration', None)
-        _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
+        _enforce_validations = kwargs.pop("_enforce_validations", True)
+        _check_type = kwargs.pop("_check_type", True)
+        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
+        _path_to_item = kwargs.pop("_path_to_item", ())
+        _configuration = kwargs.pop("_configuration", None)
+        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
 
         if args:
             raise PineconeApiTypeError(
-                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
-                    args,
-                    self.__class__.__name__,
-                ),
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
+                % (args, self.__class__.__name__),
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
             )
@@ -305,30 +301,33 @@ class IndexSpec(ModelComposed):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         constant_args = {
-            '_check_type': _check_type,
-            '_path_to_item': _path_to_item,
-            '_spec_property_naming': _spec_property_naming,
-            '_configuration': _configuration,
-            '_visited_composed_classes': self._visited_composed_classes,
+            "_check_type": _check_type,
+            "_path_to_item": _path_to_item,
+            "_spec_property_naming": _spec_property_naming,
+            "_configuration": _configuration,
+            "_visited_composed_classes": self._visited_composed_classes,
         }
-        composed_info = validate_get_composed_info(
-            constant_args, kwargs, self)
+        composed_info = validate_get_composed_info(constant_args, kwargs, self)
         self._composed_instances = composed_info[0]
         self._var_name_to_model_instances = composed_info[1]
         self._additional_properties_model_instances = composed_info[2]
         discarded_args = composed_info[3]
 
         for var_name, var_value in kwargs.items():
-            if var_name in discarded_args and \
-                        self._configuration is not None and \
-                        self._configuration.discard_unknown_keys and \
-                        self._additional_properties_model_instances:
+            if (
+                var_name in discarded_args
+                and self._configuration is not None
+                and self._configuration.discard_unknown_keys
+                and self._additional_properties_model_instances
+            ):
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
             if var_name in self.read_only_vars:
-                raise PineconeApiAttributeError(f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
-                                     f"class with read only attributes.")
+                raise PineconeApiAttributeError(
+                    f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
+                    f"class with read only attributes."
+                )
 
     @cached_property
     def _composed_schemas():
@@ -340,14 +339,4 @@ class IndexSpec(ModelComposed):
         # classes don't exist yet because their module has not finished
         # loading
         lazy_import()
-        return {
-          'anyOf': [
-          ],
-          'allOf': [
-          ],
-          'oneOf': [
-              BYOC,
-              PodBased,
-              Serverless,
-          ],
-        }
+        return {"anyOf": [], "allOf": [], "oneOf": [BYOC, PodBased, Serverless]}

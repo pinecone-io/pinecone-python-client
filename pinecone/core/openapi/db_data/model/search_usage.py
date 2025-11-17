@@ -1,14 +1,13 @@
 """
-    Pinecone Data Plane API
+Pinecone Data Plane API
 
-    Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
-    This file is @generated using OpenAPI.
+This file is @generated using OpenAPI.
 
-    The version of the OpenAPI document: 2025-10
-    Contact: support@pinecone.io
+The version of the OpenAPI document: 2025-10
+Contact: support@pinecone.io
 """
-
 
 from pinecone.openapi_support.model_utils import (  # noqa: F401
     PineconeApiTypeError,
@@ -26,7 +25,6 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     validate_get_composed_info,
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
-
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -61,19 +59,12 @@ class SearchUsage(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-        ('read_units',): {
-            'inclusive_minimum': 0,
-        },
-        ('embed_total_tokens',): {
-            'inclusive_minimum': 0,
-        },
-        ('rerank_units',): {
-            'inclusive_minimum': 0,
-        },
+        ("read_units",): {"inclusive_minimum": 0},
+        ("embed_total_tokens",): {"inclusive_minimum": 0},
+        ("rerank_units",): {"inclusive_minimum": 0},
     }
 
     @cached_class_property
@@ -82,7 +73,7 @@ class SearchUsage(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        return (bool, dict, float, int, list, str, none_type,)  # noqa: E501
+        return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
 
@@ -97,26 +88,24 @@ class SearchUsage(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            'read_units': (int,),  # noqa: E501
-            'embed_total_tokens': (int,),  # noqa: E501
-            'rerank_units': (int,),  # noqa: E501
+            "read_units": (int,),  # noqa: E501
+            "embed_total_tokens": (int,),  # noqa: E501
+            "rerank_units": (int,),  # noqa: E501
         }
 
     @cached_class_property
     def discriminator(cls):
         return None
 
-
     attribute_map: Dict[str, str] = {
-        'read_units': 'read_units',  # noqa: E501
-        'embed_total_tokens': 'embed_total_tokens',  # noqa: E501
-        'rerank_units': 'rerank_units',  # noqa: E501
+        "read_units": "read_units",  # noqa: E501
+        "embed_total_tokens": "embed_total_tokens",  # noqa: E501
+        "rerank_units": "rerank_units",  # noqa: E501
     }
 
-    read_only_vars: Set[str] = set([
-    ])
+    read_only_vars: Set[str] = set([])
 
-    _composed_schemas: Dict[Literal['allOf', 'oneOf', 'anyOf'], Any] = {}
+    _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
         """Create a new instance of SearchUsage.
@@ -128,8 +117,6 @@ class SearchUsage(ModelNormal):
         # Call parent's __new__ with all arguments to preserve discriminator logic
         instance: T = super().__new__(cls, *args, **kwargs)
         return instance
-
-
 
     @classmethod
     @convert_js_args_to_python_args
@@ -174,22 +161,20 @@ class SearchUsage(ModelNormal):
             rerank_units (int): The number of rerank units consumed by this operation. [optional]  # noqa: E501
         """
 
-        _enforce_allowed_values = kwargs.pop('_enforce_allowed_values', False)
-        _enforce_validations = kwargs.pop('_enforce_validations', False)
-        _check_type = kwargs.pop('_check_type', True)
-        _spec_property_naming = kwargs.pop('_spec_property_naming', False)
-        _path_to_item = kwargs.pop('_path_to_item', ())
-        _configuration = kwargs.pop('_configuration', None)
-        _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
+        _enforce_validations = kwargs.pop("_enforce_validations", False)
+        _check_type = kwargs.pop("_check_type", True)
+        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
+        _path_to_item = kwargs.pop("_path_to_item", ())
+        _configuration = kwargs.pop("_configuration", None)
+        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
 
         self = super(OpenApiModel, cls).__new__(cls)
 
         if args:
             raise PineconeApiTypeError(
-                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
-                    args,
-                    self.__class__.__name__,
-                ),
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
+                % (args, self.__class__.__name__),
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
             )
@@ -205,25 +190,29 @@ class SearchUsage(ModelNormal):
 
         self.read_units = read_units
         for var_name, var_value in kwargs.items():
-            if var_name not in self.attribute_map and \
-                        self._configuration is not None and \
-                        self._configuration.discard_unknown_keys and \
-                        self.additional_properties_type is None:
+            if (
+                var_name not in self.attribute_map
+                and self._configuration is not None
+                and self._configuration.discard_unknown_keys
+                and self.additional_properties_type is None
+            ):
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
         return self
 
-    required_properties = set([
-        '_enforce_allowed_values',
-        '_enforce_validations',
-        '_data_store',
-        '_check_type',
-        '_spec_property_naming',
-        '_path_to_item',
-        '_configuration',
-        '_visited_composed_classes',
-    ])
+    required_properties = set(
+        [
+            "_enforce_allowed_values",
+            "_enforce_validations",
+            "_data_store",
+            "_check_type",
+            "_spec_property_naming",
+            "_path_to_item",
+            "_configuration",
+            "_visited_composed_classes",
+        ]
+    )
 
     @convert_js_args_to_python_args
     def __init__(self, read_units, *args, **kwargs) -> None:  # noqa: E501
@@ -268,19 +257,17 @@ class SearchUsage(ModelNormal):
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
-        _enforce_validations = kwargs.pop('_enforce_validations', True)
-        _check_type = kwargs.pop('_check_type', True)
-        _spec_property_naming = kwargs.pop('_spec_property_naming', False)
-        _path_to_item = kwargs.pop('_path_to_item', ())
-        _configuration = kwargs.pop('_configuration', None)
-        _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
+        _enforce_validations = kwargs.pop("_enforce_validations", True)
+        _check_type = kwargs.pop("_check_type", True)
+        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
+        _path_to_item = kwargs.pop("_path_to_item", ())
+        _configuration = kwargs.pop("_configuration", None)
+        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
 
         if args:
             raise PineconeApiTypeError(
-                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
-                    args,
-                    self.__class__.__name__,
-                ),
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
+                % (args, self.__class__.__name__),
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
             )
@@ -296,13 +283,17 @@ class SearchUsage(ModelNormal):
 
         self.read_units = read_units
         for var_name, var_value in kwargs.items():
-            if var_name not in self.attribute_map and \
-                        self._configuration is not None and \
-                        self._configuration.discard_unknown_keys and \
-                        self.additional_properties_type is None:
+            if (
+                var_name not in self.attribute_map
+                and self._configuration is not None
+                and self._configuration.discard_unknown_keys
+                and self.additional_properties_type is None
+            ):
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
             if var_name in self.read_only_vars:
-                raise PineconeApiAttributeError(f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
-                                     f"class with read only attributes.")
+                raise PineconeApiAttributeError(
+                    f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
+                    f"class with read only attributes."
+                )

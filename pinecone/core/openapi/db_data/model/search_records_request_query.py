@@ -1,14 +1,13 @@
 """
-    Pinecone Data Plane API
+Pinecone Data Plane API
 
-    Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
-    This file is @generated using OpenAPI.
+This file is @generated using OpenAPI.
 
-    The version of the OpenAPI document: 2025-10
-    Contact: support@pinecone.io
+The version of the OpenAPI document: 2025-10
+Contact: support@pinecone.io
 """
-
 
 from pinecone.openapi_support.model_utils import (  # noqa: F401
     PineconeApiTypeError,
@@ -33,11 +32,13 @@ if TYPE_CHECKING:
     from pinecone.core.openapi.db_data.model.search_match_terms import SearchMatchTerms
     from pinecone.core.openapi.db_data.model.search_records_vector import SearchRecordsVector
 
+
 def lazy_import():
     from pinecone.core.openapi.db_data.model.search_match_terms import SearchMatchTerms
     from pinecone.core.openapi.db_data.model.search_records_vector import SearchRecordsVector
-    globals()['SearchMatchTerms'] = SearchMatchTerms
-    globals()['SearchRecordsVector'] = SearchRecordsVector
+
+    globals()["SearchMatchTerms"] = SearchMatchTerms
+    globals()["SearchRecordsVector"] = SearchRecordsVector
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -72,14 +73,9 @@ class SearchRecordsRequestQuery(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-        ('id',): {
-            'max_length': 512,
-        },
-    }
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {("id",): {"max_length": 512}}
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -88,7 +84,7 @@ class SearchRecordsRequestQuery(ModelNormal):
         of type self, this must run after the class is loaded
         """
         lazy_import()
-        return (bool, dict, float, int, list, str, none_type,)  # noqa: E501
+        return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
 
@@ -104,32 +100,30 @@ class SearchRecordsRequestQuery(ModelNormal):
         """
         lazy_import()
         return {
-            'top_k': (int,),  # noqa: E501
-            'filter': (Dict[str, Any],),  # noqa: E501
-            'inputs': (Dict[str, Any],),  # noqa: E501
-            'vector': (SearchRecordsVector,),  # noqa: E501
-            'id': (str,),  # noqa: E501
-            'match_terms': (SearchMatchTerms,),  # noqa: E501
+            "top_k": (int,),  # noqa: E501
+            "filter": (Dict[str, Any],),  # noqa: E501
+            "inputs": (Dict[str, Any],),  # noqa: E501
+            "vector": (SearchRecordsVector,),  # noqa: E501
+            "id": (str,),  # noqa: E501
+            "match_terms": (SearchMatchTerms,),  # noqa: E501
         }
 
     @cached_class_property
     def discriminator(cls):
         return None
 
-
     attribute_map: Dict[str, str] = {
-        'top_k': 'top_k',  # noqa: E501
-        'filter': 'filter',  # noqa: E501
-        'inputs': 'inputs',  # noqa: E501
-        'vector': 'vector',  # noqa: E501
-        'id': 'id',  # noqa: E501
-        'match_terms': 'match_terms',  # noqa: E501
+        "top_k": "top_k",  # noqa: E501
+        "filter": "filter",  # noqa: E501
+        "inputs": "inputs",  # noqa: E501
+        "vector": "vector",  # noqa: E501
+        "id": "id",  # noqa: E501
+        "match_terms": "match_terms",  # noqa: E501
     }
 
-    read_only_vars: Set[str] = set([
-    ])
+    read_only_vars: Set[str] = set([])
 
-    _composed_schemas: Dict[Literal['allOf', 'oneOf', 'anyOf'], Any] = {}
+    _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
         """Create a new instance of SearchRecordsRequestQuery.
@@ -141,8 +135,6 @@ class SearchRecordsRequestQuery(ModelNormal):
         # Call parent's __new__ with all arguments to preserve discriminator logic
         instance: T = super().__new__(cls, *args, **kwargs)
         return instance
-
-
 
     @classmethod
     @convert_js_args_to_python_args
@@ -190,22 +182,20 @@ class SearchRecordsRequestQuery(ModelNormal):
             match_terms (SearchMatchTerms): [optional]  # noqa: E501
         """
 
-        _enforce_allowed_values = kwargs.pop('_enforce_allowed_values', False)
-        _enforce_validations = kwargs.pop('_enforce_validations', False)
-        _check_type = kwargs.pop('_check_type', True)
-        _spec_property_naming = kwargs.pop('_spec_property_naming', False)
-        _path_to_item = kwargs.pop('_path_to_item', ())
-        _configuration = kwargs.pop('_configuration', None)
-        _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
+        _enforce_validations = kwargs.pop("_enforce_validations", False)
+        _check_type = kwargs.pop("_check_type", True)
+        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
+        _path_to_item = kwargs.pop("_path_to_item", ())
+        _configuration = kwargs.pop("_configuration", None)
+        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
 
         self = super(OpenApiModel, cls).__new__(cls)
 
         if args:
             raise PineconeApiTypeError(
-                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
-                    args,
-                    self.__class__.__name__,
-                ),
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
+                % (args, self.__class__.__name__),
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
             )
@@ -221,25 +211,29 @@ class SearchRecordsRequestQuery(ModelNormal):
 
         self.top_k = top_k
         for var_name, var_value in kwargs.items():
-            if var_name not in self.attribute_map and \
-                        self._configuration is not None and \
-                        self._configuration.discard_unknown_keys and \
-                        self.additional_properties_type is None:
+            if (
+                var_name not in self.attribute_map
+                and self._configuration is not None
+                and self._configuration.discard_unknown_keys
+                and self.additional_properties_type is None
+            ):
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
         return self
 
-    required_properties = set([
-        '_enforce_allowed_values',
-        '_enforce_validations',
-        '_data_store',
-        '_check_type',
-        '_spec_property_naming',
-        '_path_to_item',
-        '_configuration',
-        '_visited_composed_classes',
-    ])
+    required_properties = set(
+        [
+            "_enforce_allowed_values",
+            "_enforce_validations",
+            "_data_store",
+            "_check_type",
+            "_spec_property_naming",
+            "_path_to_item",
+            "_configuration",
+            "_visited_composed_classes",
+        ]
+    )
 
     @convert_js_args_to_python_args
     def __init__(self, top_k, *args, **kwargs) -> None:  # noqa: E501
@@ -287,19 +281,17 @@ class SearchRecordsRequestQuery(ModelNormal):
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
-        _enforce_validations = kwargs.pop('_enforce_validations', True)
-        _check_type = kwargs.pop('_check_type', True)
-        _spec_property_naming = kwargs.pop('_spec_property_naming', False)
-        _path_to_item = kwargs.pop('_path_to_item', ())
-        _configuration = kwargs.pop('_configuration', None)
-        _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
+        _enforce_validations = kwargs.pop("_enforce_validations", True)
+        _check_type = kwargs.pop("_check_type", True)
+        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
+        _path_to_item = kwargs.pop("_path_to_item", ())
+        _configuration = kwargs.pop("_configuration", None)
+        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
 
         if args:
             raise PineconeApiTypeError(
-                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
-                    args,
-                    self.__class__.__name__,
-                ),
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
+                % (args, self.__class__.__name__),
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
             )
@@ -315,13 +307,17 @@ class SearchRecordsRequestQuery(ModelNormal):
 
         self.top_k = top_k
         for var_name, var_value in kwargs.items():
-            if var_name not in self.attribute_map and \
-                        self._configuration is not None and \
-                        self._configuration.discard_unknown_keys and \
-                        self.additional_properties_type is None:
+            if (
+                var_name not in self.attribute_map
+                and self._configuration is not None
+                and self._configuration.discard_unknown_keys
+                and self.additional_properties_type is None
+            ):
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
             if var_name in self.read_only_vars:
-                raise PineconeApiAttributeError(f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
-                                     f"class with read only attributes.")
+                raise PineconeApiAttributeError(
+                    f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
+                    f"class with read only attributes."
+                )

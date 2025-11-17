@@ -69,6 +69,34 @@ def parse_query_response(response: OpenAPIQueryResponse) -> QueryResponse:
     )
 
 
+class UpsertResponseTransformer:
+    """Transformer for converting ApplyResult[OpenAPIUpsertResponse] to UpsertResponse.
+
+    This wrapper transforms the OpenAPI response to our dataclass when .get() is called,
+    while delegating other methods to the underlying ApplyResult.
+    """
+
+    def __init__(self, apply_result: ApplyResult):
+        self._apply_result = apply_result
+
+    def get(self, timeout=None):
+        openapi_response = self._apply_result.get(timeout)
+        from pinecone.utils.response_info import extract_response_info
+
+        response_info = None
+        if hasattr(openapi_response, "_response_info"):
+            response_info = openapi_response._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
+        return UpsertResponse(
+            upserted_count=openapi_response.upserted_count, _response_info=response_info
+        )
+
+    def __getattr__(self, name):
+        # Delegate other methods to the underlying ApplyResult
+        return getattr(self._apply_result, name)
+
+
 class VectorResource(PluginAware):
     """Resource for vector operations on a Pinecone index."""
 
@@ -140,29 +168,6 @@ class VectorResource(PluginAware):
             # If async_req=True, result is an ApplyResult[OpenAPIUpsertResponse]
             # We need to wrap it to convert to our dataclass when .get() is called
             if kwargs.get("async_req", False):
-                # Create a wrapper that transforms the OpenAPI response to our dataclass
-                class UpsertResponseTransformer:
-                    def __init__(self, apply_result: ApplyResult):
-                        self._apply_result = apply_result
-
-                    def get(self, timeout=None):
-                        openapi_response = self._apply_result.get(timeout)
-                        from pinecone.utils.response_info import extract_response_info
-
-                        response_info = None
-                        if hasattr(openapi_response, "_response_info"):
-                            response_info = openapi_response._response_info
-                        if response_info is None:
-                            response_info = extract_response_info({})
-                        return UpsertResponse(
-                            upserted_count=openapi_response.upserted_count,
-                            _response_info=response_info,
-                        )
-
-                    def __getattr__(self, name):
-                        # Delegate other methods to the underlying ApplyResult
-                        return getattr(self._apply_result, name)
-
                 # result is ApplyResult when async_req=True
                 from typing import cast
 

@@ -1075,6 +1075,16 @@ def get_discriminated_classes(cls):
 
 def get_possible_classes(cls, from_server_context):
     # TODO: lru_cache this
+    from typing import Any
+
+    # Handle Any specially - it accepts any type
+    if cls is Any:
+        return [Any]
+
+    # Handle cases where cls might not be a class (e.g., None, string, etc.)
+    if not isinstance(cls, type):
+        return [cls] if cls is not None else []
+
     possible_classes = [cls]
     if from_server_context:
         return possible_classes
@@ -1107,7 +1117,7 @@ def get_required_type_classes(required_types_mixed, spec_property_naming):
                 child_types_mixed (list/dict/tuple): describes the valid child
                     types
     """
-    from typing import Any, Type
+    from typing import Any, Type, get_origin
 
     valid_classes: list[Type[Any]] = []
     child_req_types_by_current_type: dict[Type[Any], Any] = {}
@@ -1123,7 +1133,47 @@ def get_required_type_classes(required_types_mixed, spec_property_naming):
             valid_classes.append(dict)
             child_req_types_by_current_type[dict] = required_type[str]
         else:
-            valid_classes.extend(get_possible_classes(required_type, spec_property_naming))
+            # Handle typing generics like Dict[str, Any], List[str], etc.
+            # by converting them to their built-in equivalents
+            # Check if it's a typing generic by looking for __origin__ or __args__
+            if hasattr(required_type, "__origin__") or (
+                hasattr(required_type, "__args__") and required_type.__args__
+            ):
+                try:
+                    origin = get_origin(required_type)
+                    if origin is dict:
+                        valid_classes.append(dict)
+                        # Extract value type from Dict[K, V] - value type is args[1]
+                        from typing import get_args
+
+                        args = get_args(required_type)
+                        if len(args) >= 2:
+                            # Store the value type for child type checking
+                            child_req_types_by_current_type[dict] = (args[1],)
+                        else:
+                            child_req_types_by_current_type[dict] = required_type
+                    elif origin is list:
+                        valid_classes.append(list)
+                        # Extract element type from List[T] - element type is args[0]
+                        from typing import get_args
+
+                        args = get_args(required_type)
+                        if len(args) >= 1:
+                            child_req_types_by_current_type[list] = (args[0],)
+                        else:
+                            child_req_types_by_current_type[list] = required_type
+                    elif origin is tuple:
+                        valid_classes.append(tuple)
+                        child_req_types_by_current_type[tuple] = required_type
+                    else:
+                        valid_classes.extend(
+                            get_possible_classes(required_type, spec_property_naming)
+                        )
+                except (TypeError, AttributeError):
+                    # Not a typing generic, treat as regular class
+                    valid_classes.extend(get_possible_classes(required_type, spec_property_naming))
+            else:
+                valid_classes.extend(get_possible_classes(required_type, spec_property_naming))
     return tuple(valid_classes), child_req_types_by_current_type
 
 
@@ -1456,6 +1506,12 @@ def is_valid_type(input_class_simple, valid_classes):
     Returns:
         bool
     """
+    from typing import Any
+
+    # If Any is in valid_classes, accept any type
+    if Any in valid_classes:
+        return True
+
     valid_type = input_class_simple in valid_classes
     if not valid_type and (
         issubclass(input_class_simple, OpenApiModel) or input_class_simple is none_type

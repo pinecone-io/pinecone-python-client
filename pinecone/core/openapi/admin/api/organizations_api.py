@@ -1,24 +1,24 @@
 """
-    Pinecone Admin API
+Pinecone Admin API
 
-    Provides an API for managing a Pinecone organization and its resources.   # noqa: E501
+Provides an API for managing a Pinecone organization and its resources.   # noqa: E501
 
-    This file is @generated using OpenAPI.
+This file is @generated using OpenAPI.
 
-    The version of the OpenAPI document: 2025-10
-    Contact: support@pinecone.io
+The version of the OpenAPI document: 2025-10
+Contact: support@pinecone.io
 """
-
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict, cast
-
-if TYPE_CHECKING:
-    from multiprocessing.pool import ApplyResult
+from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
-from pinecone.openapi_support.endpoint_utils import ExtraOpenApiKwargsTypedDict, KwargsWithOpenApiKwargDefaultsTypedDict
+from pinecone.openapi_support.endpoint_utils import (
+    ExtraOpenApiKwargsTypedDict,
+    KwargsWithOpenApiKwargDefaultsTypedDict,
+)
 from pinecone.openapi_support.endpoint import Endpoint as _Endpoint, ExtraOpenApiKwargsTypedDict
 from pinecone.openapi_support.asyncio_endpoint import AsyncioEndpoint as _AsyncioEndpoint
 from pinecone.openapi_support.model_utils import (  # noqa: F401
@@ -26,7 +26,7 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     datetime,
     file_type,
     none_type,
-    validate_and_convert_types
+    validate_and_convert_types,
 )
 from pinecone.core.openapi.admin.model.error_response import ErrorResponse
 from pinecone.core.openapi.admin.model.organization import Organization
@@ -49,7 +49,7 @@ class OrganizationsApi:
             self,
             organization_id,
             x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict
+            **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> None:
             """Delete an organization  # noqa: E501
 
@@ -88,76 +88,47 @@ class OrganizationsApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            kwargs['organization_id'] = \
-                organization_id
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["organization_id"] = organization_id
             return cast(None, self.call_with_http_info(**kwargs))
 
         self.delete_organization = _Endpoint(
             settings={
-                'response_type': None,
-                'auth': [
-                    'BearerAuth'
-                ],
-                'endpoint_path': '/admin/organizations/{organization_id}',
-                'operation_id': 'delete_organization',
-                'http_method': 'DELETE',
-                'servers': None,
+                "response_type": None,
+                "auth": ["BearerAuth"],
+                "endpoint_path": "/admin/organizations/{organization_id}",
+                "operation_id": "delete_organization",
+                "http_method": "DELETE",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'organization_id',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                    'organization_id',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "organization_id"],
+                "required": ["x_pinecone_api_version", "organization_id"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"x_pinecone_api_version": (str,), "organization_id": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "organization_id": "organization_id",
                 },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'organization_id':
-                        (str,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                    'organization_id': 'organization_id',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'organization_id': 'path',
-                },
-                'collection_format_map': {
-                }
+                "location_map": {"x_pinecone_api_version": "header", "organization_id": "path"},
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
+            headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__delete_organization
+            callable=__delete_organization,
         )
 
         def __fetch_organization(
             self,
             organization_id,
             x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict
+            **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> Organization | ApplyResult[Organization]:
             """Get organization details  # noqa: E501
 
@@ -196,75 +167,46 @@ class OrganizationsApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            kwargs['organization_id'] = \
-                organization_id
-            return cast(Organization | ApplyResult[Organization], self.call_with_http_info(**kwargs))
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["organization_id"] = organization_id
+            return cast(
+                Organization | ApplyResult[Organization], self.call_with_http_info(**kwargs)
+            )
 
         self.fetch_organization = _Endpoint(
             settings={
-                'response_type': (Organization,),
-                'auth': [
-                    'BearerAuth'
-                ],
-                'endpoint_path': '/admin/organizations/{organization_id}',
-                'operation_id': 'fetch_organization',
-                'http_method': 'GET',
-                'servers': None,
+                "response_type": (Organization,),
+                "auth": ["BearerAuth"],
+                "endpoint_path": "/admin/organizations/{organization_id}",
+                "operation_id": "fetch_organization",
+                "http_method": "GET",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'organization_id',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                    'organization_id',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "organization_id"],
+                "required": ["x_pinecone_api_version", "organization_id"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"x_pinecone_api_version": (str,), "organization_id": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "organization_id": "organization_id",
                 },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'organization_id':
-                        (str,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                    'organization_id': 'organization_id',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'organization_id': 'path',
-                },
-                'collection_format_map': {
-                }
+                "location_map": {"x_pinecone_api_version": "header", "organization_id": "path"},
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
+            headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__fetch_organization
+            callable=__fetch_organization,
         )
 
         def __list_organizations(
-            self,
-            x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict
+            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> OrganizationList | ApplyResult[OrganizationList]:
             """List organizations  # noqa: E501
 
@@ -302,61 +244,38 @@ class OrganizationsApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            return cast(OrganizationList | ApplyResult[OrganizationList], self.call_with_http_info(**kwargs))
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            return cast(
+                OrganizationList | ApplyResult[OrganizationList], self.call_with_http_info(**kwargs)
+            )
 
         self.list_organizations = _Endpoint(
             settings={
-                'response_type': (OrganizationList,),
-                'auth': [
-                    'BearerAuth'
-                ],
-                'endpoint_path': '/admin/organizations',
-                'operation_id': 'list_organizations',
-                'http_method': 'GET',
-                'servers': None,
+                "response_type": (OrganizationList,),
+                "auth": ["BearerAuth"],
+                "endpoint_path": "/admin/organizations",
+                "operation_id": "list_organizations",
+                "http_method": "GET",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version"],
+                "required": ["x_pinecone_api_version"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
-                },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                },
-                'collection_format_map': {
-                }
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"x_pinecone_api_version": (str,)},
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header"},
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
+            headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__list_organizations
+            callable=__list_organizations,
         )
 
         def __update_organization(
@@ -364,7 +283,7 @@ class OrganizationsApi:
             organization_id,
             update_organization_request,
             x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict
+            **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> Organization | ApplyResult[Organization]:
             """Update an organization  # noqa: E501
 
@@ -404,80 +323,56 @@ class OrganizationsApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            kwargs['organization_id'] = \
-                organization_id
-            kwargs['update_organization_request'] = \
-                update_organization_request
-            return cast(Organization | ApplyResult[Organization], self.call_with_http_info(**kwargs))
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["organization_id"] = organization_id
+            kwargs["update_organization_request"] = update_organization_request
+            return cast(
+                Organization | ApplyResult[Organization], self.call_with_http_info(**kwargs)
+            )
 
         self.update_organization = _Endpoint(
             settings={
-                'response_type': (Organization,),
-                'auth': [
-                    'BearerAuth'
-                ],
-                'endpoint_path': '/admin/organizations/{organization_id}',
-                'operation_id': 'update_organization',
-                'http_method': 'PATCH',
-                'servers': None,
+                "response_type": (Organization,),
+                "auth": ["BearerAuth"],
+                "endpoint_path": "/admin/organizations/{organization_id}",
+                "operation_id": "update_organization",
+                "http_method": "PATCH",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'organization_id',
-                    'update_organization_request',
+                "all": ["x_pinecone_api_version", "organization_id", "update_organization_request"],
+                "required": [
+                    "x_pinecone_api_version",
+                    "organization_id",
+                    "update_organization_request",
                 ],
-                'required': [
-                    'x_pinecone_api_version',
-                    'organization_id',
-                    'update_organization_request',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "organization_id": (str,),
+                    "update_organization_request": (UpdateOrganizationRequest,),
                 },
-                'allowed_values': {
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "organization_id": "organization_id",
                 },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'organization_id':
-                        (str,),
-                    'update_organization_request':
-                        (UpdateOrganizationRequest,),
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "organization_id": "path",
+                    "update_organization_request": "body",
                 },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                    'organization_id': 'organization_id',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'organization_id': 'path',
-                    'update_organization_request': 'body',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
+            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__update_organization
+            callable=__update_organization,
         )
-
 
 
 class AsyncioOrganizationsApi:
@@ -492,10 +387,7 @@ class AsyncioOrganizationsApi:
         self.api_client = api_client
 
         async def __delete_organization(
-            self,
-            organization_id,
-            x_pinecone_api_version="2025-10",
-            **kwargs
+            self, organization_id, x_pinecone_api_version="2025-10", **kwargs
         ) -> None:
             """Delete an organization  # noqa: E501
 
@@ -527,76 +419,44 @@ class AsyncioOrganizationsApi:
                 None
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            kwargs['organization_id'] = \
-                organization_id
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["organization_id"] = organization_id
             return cast(None, await self.call_with_http_info(**kwargs))
 
         self.delete_organization = _AsyncioEndpoint(
             settings={
-                'response_type': None,
-                'auth': [
-                    'BearerAuth'
-                ],
-                'endpoint_path': '/admin/organizations/{organization_id}',
-                'operation_id': 'delete_organization',
-                'http_method': 'DELETE',
-                'servers': None,
+                "response_type": None,
+                "auth": ["BearerAuth"],
+                "endpoint_path": "/admin/organizations/{organization_id}",
+                "operation_id": "delete_organization",
+                "http_method": "DELETE",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'organization_id',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                    'organization_id',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "organization_id"],
+                "required": ["x_pinecone_api_version", "organization_id"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"x_pinecone_api_version": (str,), "organization_id": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "organization_id": "organization_id",
                 },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'organization_id':
-                        (str,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                    'organization_id': 'organization_id',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'organization_id': 'path',
-                },
-                'collection_format_map': {
-                }
+                "location_map": {"x_pinecone_api_version": "header", "organization_id": "path"},
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
+            headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__delete_organization
+            callable=__delete_organization,
         )
 
         async def __fetch_organization(
-            self,
-            organization_id,
-            x_pinecone_api_version="2025-10",
-            **kwargs
+            self, organization_id, x_pinecone_api_version="2025-10", **kwargs
         ) -> Organization:
             """Get organization details  # noqa: E501
 
@@ -628,75 +488,44 @@ class AsyncioOrganizationsApi:
                 Organization
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            kwargs['organization_id'] = \
-                organization_id
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["organization_id"] = organization_id
             return cast(Organization, await self.call_with_http_info(**kwargs))
 
         self.fetch_organization = _AsyncioEndpoint(
             settings={
-                'response_type': (Organization,),
-                'auth': [
-                    'BearerAuth'
-                ],
-                'endpoint_path': '/admin/organizations/{organization_id}',
-                'operation_id': 'fetch_organization',
-                'http_method': 'GET',
-                'servers': None,
+                "response_type": (Organization,),
+                "auth": ["BearerAuth"],
+                "endpoint_path": "/admin/organizations/{organization_id}",
+                "operation_id": "fetch_organization",
+                "http_method": "GET",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'organization_id',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                    'organization_id',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "organization_id"],
+                "required": ["x_pinecone_api_version", "organization_id"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"x_pinecone_api_version": (str,), "organization_id": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "organization_id": "organization_id",
                 },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'organization_id':
-                        (str,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                    'organization_id': 'organization_id',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'organization_id': 'path',
-                },
-                'collection_format_map': {
-                }
+                "location_map": {"x_pinecone_api_version": "header", "organization_id": "path"},
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
+            headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__fetch_organization
+            callable=__fetch_organization,
         )
 
         async def __list_organizations(
-            self,
-            x_pinecone_api_version="2025-10",
-            **kwargs
+            self, x_pinecone_api_version="2025-10", **kwargs
         ) -> OrganizationList:
             """List organizations  # noqa: E501
 
@@ -727,61 +556,36 @@ class AsyncioOrganizationsApi:
                 OrganizationList
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             return cast(OrganizationList, await self.call_with_http_info(**kwargs))
 
         self.list_organizations = _AsyncioEndpoint(
             settings={
-                'response_type': (OrganizationList,),
-                'auth': [
-                    'BearerAuth'
-                ],
-                'endpoint_path': '/admin/organizations',
-                'operation_id': 'list_organizations',
-                'http_method': 'GET',
-                'servers': None,
+                "response_type": (OrganizationList,),
+                "auth": ["BearerAuth"],
+                "endpoint_path": "/admin/organizations",
+                "operation_id": "list_organizations",
+                "http_method": "GET",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version"],
+                "required": ["x_pinecone_api_version"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
-                },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                },
-                'collection_format_map': {
-                }
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"x_pinecone_api_version": (str,)},
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header"},
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
+            headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__list_organizations
+            callable=__list_organizations,
         )
 
         async def __update_organization(
@@ -789,7 +593,7 @@ class AsyncioOrganizationsApi:
             organization_id,
             update_organization_request,
             x_pinecone_api_version="2025-10",
-            **kwargs
+            **kwargs,
         ) -> Organization:
             """Update an organization  # noqa: E501
 
@@ -822,76 +626,51 @@ class AsyncioOrganizationsApi:
                 Organization
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            kwargs['organization_id'] = \
-                organization_id
-            kwargs['update_organization_request'] = \
-                update_organization_request
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["organization_id"] = organization_id
+            kwargs["update_organization_request"] = update_organization_request
             return cast(Organization, await self.call_with_http_info(**kwargs))
 
         self.update_organization = _AsyncioEndpoint(
             settings={
-                'response_type': (Organization,),
-                'auth': [
-                    'BearerAuth'
-                ],
-                'endpoint_path': '/admin/organizations/{organization_id}',
-                'operation_id': 'update_organization',
-                'http_method': 'PATCH',
-                'servers': None,
+                "response_type": (Organization,),
+                "auth": ["BearerAuth"],
+                "endpoint_path": "/admin/organizations/{organization_id}",
+                "operation_id": "update_organization",
+                "http_method": "PATCH",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'organization_id',
-                    'update_organization_request',
+                "all": ["x_pinecone_api_version", "organization_id", "update_organization_request"],
+                "required": [
+                    "x_pinecone_api_version",
+                    "organization_id",
+                    "update_organization_request",
                 ],
-                'required': [
-                    'x_pinecone_api_version',
-                    'organization_id',
-                    'update_organization_request',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "organization_id": (str,),
+                    "update_organization_request": (UpdateOrganizationRequest,),
                 },
-                'allowed_values': {
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "organization_id": "organization_id",
                 },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'organization_id':
-                        (str,),
-                    'update_organization_request':
-                        (UpdateOrganizationRequest,),
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "organization_id": "path",
+                    "update_organization_request": "body",
                 },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                    'organization_id': 'organization_id',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'organization_id': 'path',
-                    'update_organization_request': 'body',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
+            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__update_organization
+            callable=__update_organization,
         )

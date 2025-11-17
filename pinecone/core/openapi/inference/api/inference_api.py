@@ -1,24 +1,24 @@
 """
-    Pinecone Inference API
+Pinecone Inference API
 
-    Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
-    This file is @generated using OpenAPI.
+This file is @generated using OpenAPI.
 
-    The version of the OpenAPI document: 2025-10
-    Contact: support@pinecone.io
+The version of the OpenAPI document: 2025-10
+Contact: support@pinecone.io
 """
-
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict, cast
-
-if TYPE_CHECKING:
-    from multiprocessing.pool import ApplyResult
+from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
-from pinecone.openapi_support.endpoint_utils import ExtraOpenApiKwargsTypedDict, KwargsWithOpenApiKwargDefaultsTypedDict
+from pinecone.openapi_support.endpoint_utils import (
+    ExtraOpenApiKwargsTypedDict,
+    KwargsWithOpenApiKwargDefaultsTypedDict,
+)
 from pinecone.openapi_support.endpoint import Endpoint as _Endpoint, ExtraOpenApiKwargsTypedDict
 from pinecone.openapi_support.asyncio_endpoint import AsyncioEndpoint as _AsyncioEndpoint
 from pinecone.openapi_support.model_utils import (  # noqa: F401
@@ -26,7 +26,7 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     datetime,
     file_type,
     none_type,
-    validate_and_convert_types
+    validate_and_convert_types,
 )
 from pinecone.core.openapi.inference.model.embed_request import EmbedRequest
 from pinecone.core.openapi.inference.model.embeddings_list import EmbeddingsList
@@ -49,9 +49,7 @@ class InferenceApi:
         self.api_client = api_client
 
         def __embed(
-            self,
-            x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict
+            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> EmbeddingsList | ApplyResult[EmbeddingsList]:
             """Generate vectors  # noqa: E501
 
@@ -90,74 +88,48 @@ class InferenceApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            return cast(EmbeddingsList | ApplyResult[EmbeddingsList], self.call_with_http_info(**kwargs))
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            return cast(
+                EmbeddingsList | ApplyResult[EmbeddingsList], self.call_with_http_info(**kwargs)
+            )
 
         self.embed = _Endpoint(
             settings={
-                'response_type': (EmbeddingsList,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/embed',
-                'operation_id': 'embed',
-                'http_method': 'POST',
-                'servers': None,
+                "response_type": (EmbeddingsList,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/embed",
+                "operation_id": "embed",
+                "http_method": "POST",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'embed_request',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "embed_request"],
+                "required": ["x_pinecone_api_version"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "embed_request": (EmbedRequest,),
                 },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'embed_request':
-                        (EmbedRequest,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'embed_request': 'body',
-                },
-                'collection_format_map': {
-                }
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header", "embed_request": "body"},
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
+            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__embed
+            callable=__embed,
         )
 
         def __get_model(
             self,
             model_name,
             x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict
+            **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> ModelInfo | ApplyResult[ModelInfo]:
             """Describe a model  # noqa: E501
 
@@ -196,75 +168,44 @@ class InferenceApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            kwargs['model_name'] = \
-                model_name
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["model_name"] = model_name
             return cast(ModelInfo | ApplyResult[ModelInfo], self.call_with_http_info(**kwargs))
 
         self.get_model = _Endpoint(
             settings={
-                'response_type': (ModelInfo,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/models/{model_name}',
-                'operation_id': 'get_model',
-                'http_method': 'GET',
-                'servers': None,
+                "response_type": (ModelInfo,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/models/{model_name}",
+                "operation_id": "get_model",
+                "http_method": "GET",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'model_name',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                    'model_name',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "model_name"],
+                "required": ["x_pinecone_api_version", "model_name"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"x_pinecone_api_version": (str,), "model_name": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "model_name": "model_name",
                 },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'model_name':
-                        (str,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                    'model_name': 'model_name',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'model_name': 'path',
-                },
-                'collection_format_map': {
-                }
+                "location_map": {"x_pinecone_api_version": "header", "model_name": "path"},
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
+            headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__get_model
+            callable=__get_model,
         )
 
         def __list_models(
-            self,
-            x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict
+            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> ModelInfoList | ApplyResult[ModelInfoList]:
             """List available models  # noqa: E501
 
@@ -304,77 +245,54 @@ class InferenceApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            return cast(ModelInfoList | ApplyResult[ModelInfoList], self.call_with_http_info(**kwargs))
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            return cast(
+                ModelInfoList | ApplyResult[ModelInfoList], self.call_with_http_info(**kwargs)
+            )
 
         self.list_models = _Endpoint(
             settings={
-                'response_type': (ModelInfoList,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/models',
-                'operation_id': 'list_models',
-                'http_method': 'GET',
-                'servers': None,
+                "response_type": (ModelInfoList,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/models",
+                "operation_id": "list_models",
+                "http_method": "GET",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'type',
-                    'vector_type',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "type", "vector_type"],
+                "required": ["x_pinecone_api_version"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "type": (str,),
+                    "vector_type": (str,),
                 },
-                'allowed_values': {
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "type": "type",
+                    "vector_type": "vector_type",
                 },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'type':
-                        (str,),
-                    'vector_type':
-                        (str,),
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "type": "query",
+                    "vector_type": "query",
                 },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                    'type': 'type',
-                    'vector_type': 'vector_type',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'type': 'query',
-                    'vector_type': 'query',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
+            headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__list_models
+            callable=__list_models,
         )
 
         def __rerank(
-            self,
-            x_pinecone_api_version="2025-10",
-            **kwargs: ExtraOpenApiKwargsTypedDict
+            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> RerankResult | ApplyResult[RerankResult]:
             """Rerank results  # noqa: E501
 
@@ -413,69 +331,42 @@ class InferenceApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            return cast(RerankResult | ApplyResult[RerankResult], self.call_with_http_info(**kwargs))
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            return cast(
+                RerankResult | ApplyResult[RerankResult], self.call_with_http_info(**kwargs)
+            )
 
         self.rerank = _Endpoint(
             settings={
-                'response_type': (RerankResult,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/rerank',
-                'operation_id': 'rerank',
-                'http_method': 'POST',
-                'servers': None,
+                "response_type": (RerankResult,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/rerank",
+                "operation_id": "rerank",
+                "http_method": "POST",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'rerank_request',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "rerank_request"],
+                "required": ["x_pinecone_api_version"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "rerank_request": (RerankRequest,),
                 },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'rerank_request':
-                        (RerankRequest,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'rerank_request': 'body',
-                },
-                'collection_format_map': {
-                }
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header", "rerank_request": "body"},
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
+            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__rerank
+            callable=__rerank,
         )
-
 
 
 class AsyncioInferenceApi:
@@ -489,11 +380,7 @@ class AsyncioInferenceApi:
             api_client = AsyncioApiClient()
         self.api_client = api_client
 
-        async def __embed(
-            self,
-            x_pinecone_api_version="2025-10",
-            **kwargs
-        ) -> EmbeddingsList:
+        async def __embed(self, x_pinecone_api_version="2025-10", **kwargs) -> EmbeddingsList:
             """Generate vectors  # noqa: E501
 
             Generate vector embeddings for input data. This endpoint uses Pinecone's [hosted embedding models](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models).  # noqa: E501
@@ -524,74 +411,43 @@ class AsyncioInferenceApi:
                 EmbeddingsList
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             return cast(EmbeddingsList, await self.call_with_http_info(**kwargs))
 
         self.embed = _AsyncioEndpoint(
             settings={
-                'response_type': (EmbeddingsList,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/embed',
-                'operation_id': 'embed',
-                'http_method': 'POST',
-                'servers': None,
+                "response_type": (EmbeddingsList,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/embed",
+                "operation_id": "embed",
+                "http_method": "POST",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'embed_request',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "embed_request"],
+                "required": ["x_pinecone_api_version"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "embed_request": (EmbedRequest,),
                 },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'embed_request':
-                        (EmbedRequest,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'embed_request': 'body',
-                },
-                'collection_format_map': {
-                }
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header", "embed_request": "body"},
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
+            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__embed
+            callable=__embed,
         )
 
         async def __get_model(
-            self,
-            model_name,
-            x_pinecone_api_version="2025-10",
-            **kwargs
+            self, model_name, x_pinecone_api_version="2025-10", **kwargs
         ) -> ModelInfo:
             """Describe a model  # noqa: E501
 
@@ -623,76 +479,43 @@ class AsyncioInferenceApi:
                 ModelInfo
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
-            kwargs['model_name'] = \
-                model_name
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            kwargs["model_name"] = model_name
             return cast(ModelInfo, await self.call_with_http_info(**kwargs))
 
         self.get_model = _AsyncioEndpoint(
             settings={
-                'response_type': (ModelInfo,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/models/{model_name}',
-                'operation_id': 'get_model',
-                'http_method': 'GET',
-                'servers': None,
+                "response_type": (ModelInfo,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/models/{model_name}",
+                "operation_id": "get_model",
+                "http_method": "GET",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'model_name',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                    'model_name',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "model_name"],
+                "required": ["x_pinecone_api_version", "model_name"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {"x_pinecone_api_version": (str,), "model_name": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "model_name": "model_name",
                 },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'model_name':
-                        (str,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                    'model_name': 'model_name',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'model_name': 'path',
-                },
-                'collection_format_map': {
-                }
+                "location_map": {"x_pinecone_api_version": "header", "model_name": "path"},
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
+            headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__get_model
+            callable=__get_model,
         )
 
-        async def __list_models(
-            self,
-            x_pinecone_api_version="2025-10",
-            **kwargs
-        ) -> ModelInfoList:
+        async def __list_models(self, x_pinecone_api_version="2025-10", **kwargs) -> ModelInfoList:
             """List available models  # noqa: E501
 
             List the embedding and reranking models hosted by Pinecone.   You can use hosted models as an integrated part of Pinecone operations or for standalone embedding and reranking. For more details, see [Vector embedding](https://docs.pinecone.io/guides/index-data/indexing-overview#vector-embedding) and [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
@@ -724,78 +547,51 @@ class AsyncioInferenceApi:
                 ModelInfoList
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             return cast(ModelInfoList, await self.call_with_http_info(**kwargs))
 
         self.list_models = _AsyncioEndpoint(
             settings={
-                'response_type': (ModelInfoList,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/models',
-                'operation_id': 'list_models',
-                'http_method': 'GET',
-                'servers': None,
+                "response_type": (ModelInfoList,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/models",
+                "operation_id": "list_models",
+                "http_method": "GET",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'type',
-                    'vector_type',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "type", "vector_type"],
+                "required": ["x_pinecone_api_version"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "type": (str,),
+                    "vector_type": (str,),
                 },
-                'allowed_values': {
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "type": "type",
+                    "vector_type": "vector_type",
                 },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'type':
-                        (str,),
-                    'vector_type':
-                        (str,),
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "type": "query",
+                    "vector_type": "query",
                 },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                    'type': 'type',
-                    'vector_type': 'vector_type',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'type': 'query',
-                    'vector_type': 'query',
-                },
-                'collection_format_map': {
-                }
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [],
-            },
+            headers_map={"accept": ["application/json"], "content_type": []},
             api_client=api_client,
-            callable=__list_models
+            callable=__list_models,
         )
 
-        async def __rerank(
-            self,
-            x_pinecone_api_version="2025-10",
-            **kwargs
-        ) -> RerankResult:
+        async def __rerank(self, x_pinecone_api_version="2025-10", **kwargs) -> RerankResult:
             """Rerank results  # noqa: E501
 
             Rerank results according to their relevance to a query.  For guidance and examples, see [Rerank results](https://docs.pinecone.io/guides/search/rerank-results).  # noqa: E501
@@ -826,65 +622,37 @@ class AsyncioInferenceApi:
                 RerankResult
             """
             self._process_openapi_kwargs(kwargs)
-            kwargs['x_pinecone_api_version'] = \
-                x_pinecone_api_version
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             return cast(RerankResult, await self.call_with_http_info(**kwargs))
 
         self.rerank = _AsyncioEndpoint(
             settings={
-                'response_type': (RerankResult,),
-                'auth': [
-                    'ApiKeyAuth'
-                ],
-                'endpoint_path': '/rerank',
-                'operation_id': 'rerank',
-                'http_method': 'POST',
-                'servers': None,
+                "response_type": (RerankResult,),
+                "auth": ["ApiKeyAuth"],
+                "endpoint_path": "/rerank",
+                "operation_id": "rerank",
+                "http_method": "POST",
+                "servers": None,
             },
             params_map={
-                'all': [
-                    'x_pinecone_api_version',
-                    'rerank_request',
-                ],
-                'required': [
-                    'x_pinecone_api_version',
-                ],
-                'nullable': [
-                ],
-                'enum': [
-                ],
-                'validation': [
-                ]
+                "all": ["x_pinecone_api_version", "rerank_request"],
+                "required": ["x_pinecone_api_version"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
             },
             root_map={
-                'validations': {
+                "validations": {},
+                "allowed_values": {},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "rerank_request": (RerankRequest,),
                 },
-                'allowed_values': {
-                },
-                'openapi_types': {
-                    'x_pinecone_api_version':
-                        (str,),
-                    'rerank_request':
-                        (RerankRequest,),
-                },
-                'attribute_map': {
-                    'x_pinecone_api_version': 'X-Pinecone-Api-Version',
-                },
-                'location_map': {
-                    'x_pinecone_api_version': 'header',
-                    'rerank_request': 'body',
-                },
-                'collection_format_map': {
-                }
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header", "rerank_request": "body"},
+                "collection_format_map": {},
             },
-            headers_map={
-                'accept': [
-                    'application/json'
-                ],
-                'content_type': [
-                    'application/json'
-                ]
-            },
+            headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
             api_client=api_client,
-            callable=__rerank
+            callable=__rerank,
         )

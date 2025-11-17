@@ -140,6 +140,69 @@ PYTHON_SCRIPT
 		sed -i '' 's/instance: T = super().__new__(cls, \*args, \*\*kwargs)  # type: ignore\[misc\]/instance: T = super().__new__(cls, *args, **kwargs)/g' "$file"
 	done
 
+	# Fix ApplyResult import - move from TYPE_CHECKING to runtime import
+	# ApplyResult is used in cast() calls which need it at runtime
+	find "${build_dir}" -name "*_api.py" | while IFS= read -r file; do
+		python3 <<PYTHON_SCRIPT
+with open('$file', 'r') as f:
+    lines = f.readlines()
+
+# Check if ApplyResult is imported under TYPE_CHECKING
+apply_result_in_type_checking = False
+apply_result_line_idx = -1
+typing_import_idx = -1
+type_checking_start_idx = -1
+output_lines = []
+i = 0
+
+while i < len(lines):
+    line = lines[i]
+
+    # Find typing import line
+    if 'from typing import' in line and typing_import_idx == -1:
+        typing_import_idx = len(output_lines)
+        output_lines.append(line)
+        i += 1
+        continue
+
+    # Check for TYPE_CHECKING block
+    if 'if TYPE_CHECKING:' in line:
+        type_checking_start_idx = len(output_lines)
+        output_lines.append(line)
+        i += 1
+        # Check next line for ApplyResult import
+        if i < len(lines) and 'from multiprocessing.pool import ApplyResult' in lines[i]:
+            apply_result_in_type_checking = True
+            apply_result_line_idx = i
+            i += 1  # Skip the ApplyResult import line
+            # Skip blank line if present
+            if i < len(lines) and lines[i].strip() == '':
+                i += 1
+            # Check if TYPE_CHECKING block is now empty
+            if i < len(lines):
+                next_line = lines[i]
+                # If next line is not indented, the TYPE_CHECKING block is empty
+                if next_line.strip() and not (next_line.startswith(' ') or next_line.startswith('\t')):
+                    # Remove the empty TYPE_CHECKING block
+                    output_lines.pop()  # Remove 'if TYPE_CHECKING:'
+                    type_checking_start_idx = -1
+            continue
+
+    output_lines.append(line)
+    i += 1
+
+# If we found ApplyResult under TYPE_CHECKING, add it after typing import
+if apply_result_in_type_checking and typing_import_idx != -1:
+    # Check if it's not already imported at module level
+    module_start = ''.join(output_lines[:typing_import_idx+10])
+    if 'from multiprocessing.pool import ApplyResult' not in module_start:
+        output_lines.insert(typing_import_idx + 1, 'from multiprocessing.pool import ApplyResult\n')
+
+with open('$file', 'w') as f:
+    f.writelines(output_lines)
+PYTHON_SCRIPT
+	done
+
 	# Copy the generated module to the correct location
 	rm -rf "${destination}/${module_name}"
 	mkdir -p "${destination}"

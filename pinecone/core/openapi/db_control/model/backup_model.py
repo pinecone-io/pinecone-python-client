@@ -1,14 +1,13 @@
 """
-    Pinecone Control Plane API
+Pinecone Control Plane API
 
-    Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
-    This file is @generated using OpenAPI.
+This file is @generated using OpenAPI.
 
-    The version of the OpenAPI document: 2025-10
-    Contact: support@pinecone.io
+The version of the OpenAPI document: 2025-10
+Contact: support@pinecone.io
 """
-
 
 from pinecone.openapi_support.model_utils import (  # noqa: F401
     PineconeApiTypeError,
@@ -33,11 +32,13 @@ if TYPE_CHECKING:
     from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
     from pinecone.core.openapi.db_control.model.index_tags import IndexTags
 
+
 def lazy_import():
     from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
     from pinecone.core.openapi.db_control.model.index_tags import IndexTags
-    globals()['BackupModelSchema'] = BackupModelSchema
-    globals()['IndexTags'] = IndexTags
+
+    globals()["BackupModelSchema"] = BackupModelSchema
+    globals()["IndexTags"] = IndexTags
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -72,14 +73,10 @@ class BackupModel(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-        ('dimension',): {
-            'inclusive_maximum': 20000,
-            'inclusive_minimum': 1,
-        },
+        ("dimension",): {"inclusive_maximum": 20000, "inclusive_minimum": 1}
     }
 
     @cached_class_property
@@ -89,7 +86,7 @@ class BackupModel(ModelNormal):
         of type self, this must run after the class is loaded
         """
         lazy_import()
-        return (bool, dict, float, int, list, str, none_type,)  # noqa: E501
+        return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
 
@@ -105,52 +102,50 @@ class BackupModel(ModelNormal):
         """
         lazy_import()
         return {
-            'backup_id': (str,),  # noqa: E501
-            'source_index_name': (str,),  # noqa: E501
-            'source_index_id': (str,),  # noqa: E501
-            'status': (str,),  # noqa: E501
-            'cloud': (str,),  # noqa: E501
-            'region': (str,),  # noqa: E501
-            'name': (str,),  # noqa: E501
-            'description': (str,),  # noqa: E501
-            'dimension': (int,),  # noqa: E501
-            'metric': (str,),  # noqa: E501
-            'schema': (BackupModelSchema,),  # noqa: E501
-            'record_count': (int,),  # noqa: E501
-            'namespace_count': (int,),  # noqa: E501
-            'size_bytes': (int,),  # noqa: E501
-            'tags': (IndexTags,),  # noqa: E501
-            'created_at': (str,),  # noqa: E501
+            "backup_id": (str,),  # noqa: E501
+            "source_index_name": (str,),  # noqa: E501
+            "source_index_id": (str,),  # noqa: E501
+            "status": (str,),  # noqa: E501
+            "cloud": (str,),  # noqa: E501
+            "region": (str,),  # noqa: E501
+            "name": (str,),  # noqa: E501
+            "description": (str,),  # noqa: E501
+            "dimension": (int,),  # noqa: E501
+            "metric": (str,),  # noqa: E501
+            "schema": (BackupModelSchema,),  # noqa: E501
+            "record_count": (int,),  # noqa: E501
+            "namespace_count": (int,),  # noqa: E501
+            "size_bytes": (int,),  # noqa: E501
+            "tags": (IndexTags,),  # noqa: E501
+            "created_at": (str,),  # noqa: E501
         }
 
     @cached_class_property
     def discriminator(cls):
         return None
 
-
     attribute_map: Dict[str, str] = {
-        'backup_id': 'backup_id',  # noqa: E501
-        'source_index_name': 'source_index_name',  # noqa: E501
-        'source_index_id': 'source_index_id',  # noqa: E501
-        'status': 'status',  # noqa: E501
-        'cloud': 'cloud',  # noqa: E501
-        'region': 'region',  # noqa: E501
-        'name': 'name',  # noqa: E501
-        'description': 'description',  # noqa: E501
-        'dimension': 'dimension',  # noqa: E501
-        'metric': 'metric',  # noqa: E501
-        'schema': 'schema',  # noqa: E501
-        'record_count': 'record_count',  # noqa: E501
-        'namespace_count': 'namespace_count',  # noqa: E501
-        'size_bytes': 'size_bytes',  # noqa: E501
-        'tags': 'tags',  # noqa: E501
-        'created_at': 'created_at',  # noqa: E501
+        "backup_id": "backup_id",  # noqa: E501
+        "source_index_name": "source_index_name",  # noqa: E501
+        "source_index_id": "source_index_id",  # noqa: E501
+        "status": "status",  # noqa: E501
+        "cloud": "cloud",  # noqa: E501
+        "region": "region",  # noqa: E501
+        "name": "name",  # noqa: E501
+        "description": "description",  # noqa: E501
+        "dimension": "dimension",  # noqa: E501
+        "metric": "metric",  # noqa: E501
+        "schema": "schema",  # noqa: E501
+        "record_count": "record_count",  # noqa: E501
+        "namespace_count": "namespace_count",  # noqa: E501
+        "size_bytes": "size_bytes",  # noqa: E501
+        "tags": "tags",  # noqa: E501
+        "created_at": "created_at",  # noqa: E501
     }
 
-    read_only_vars: Set[str] = set([
-    ])
+    read_only_vars: Set[str] = set([])
 
-    _composed_schemas: Dict[Literal['allOf', 'oneOf', 'anyOf'], Any] = {}
+    _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
         """Create a new instance of BackupModel.
@@ -163,11 +158,19 @@ class BackupModel(ModelNormal):
         instance: T = super().__new__(cls, *args, **kwargs)
         return instance
 
-
-
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], backup_id, source_index_name, source_index_id, status, cloud, region, *args, **kwargs) -> T:  # noqa: E501
+    def _from_openapi_data(
+        cls: Type[T],
+        backup_id,
+        source_index_name,
+        source_index_id,
+        status,
+        cloud,
+        region,
+        *args,
+        **kwargs,
+    ) -> T:  # noqa: E501
         """BackupModel - a model defined in OpenAPI
 
         Args:
@@ -221,22 +224,20 @@ class BackupModel(ModelNormal):
             created_at (str): Timestamp when the backup was created. [optional]  # noqa: E501
         """
 
-        _enforce_allowed_values = kwargs.pop('_enforce_allowed_values', False)
-        _enforce_validations = kwargs.pop('_enforce_validations', False)
-        _check_type = kwargs.pop('_check_type', True)
-        _spec_property_naming = kwargs.pop('_spec_property_naming', False)
-        _path_to_item = kwargs.pop('_path_to_item', ())
-        _configuration = kwargs.pop('_configuration', None)
-        _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
+        _enforce_validations = kwargs.pop("_enforce_validations", False)
+        _check_type = kwargs.pop("_check_type", True)
+        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
+        _path_to_item = kwargs.pop("_path_to_item", ())
+        _configuration = kwargs.pop("_configuration", None)
+        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
 
         self = super(OpenApiModel, cls).__new__(cls)
 
         if args:
             raise PineconeApiTypeError(
-                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
-                    args,
-                    self.__class__.__name__,
-                ),
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
+                % (args, self.__class__.__name__),
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
             )
@@ -257,28 +258,34 @@ class BackupModel(ModelNormal):
         self.cloud = cloud
         self.region = region
         for var_name, var_value in kwargs.items():
-            if var_name not in self.attribute_map and \
-                        self._configuration is not None and \
-                        self._configuration.discard_unknown_keys and \
-                        self.additional_properties_type is None:
+            if (
+                var_name not in self.attribute_map
+                and self._configuration is not None
+                and self._configuration.discard_unknown_keys
+                and self.additional_properties_type is None
+            ):
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
         return self
 
-    required_properties = set([
-        '_enforce_allowed_values',
-        '_enforce_validations',
-        '_data_store',
-        '_check_type',
-        '_spec_property_naming',
-        '_path_to_item',
-        '_configuration',
-        '_visited_composed_classes',
-    ])
+    required_properties = set(
+        [
+            "_enforce_allowed_values",
+            "_enforce_validations",
+            "_data_store",
+            "_check_type",
+            "_spec_property_naming",
+            "_path_to_item",
+            "_configuration",
+            "_visited_composed_classes",
+        ]
+    )
 
     @convert_js_args_to_python_args
-    def __init__(self, backup_id, source_index_name, source_index_id, status, cloud, region, *args, **kwargs) -> None:  # noqa: E501
+    def __init__(
+        self, backup_id, source_index_name, source_index_id, status, cloud, region, *args, **kwargs
+    ) -> None:  # noqa: E501
         """BackupModel - a model defined in OpenAPI
 
         Args:
@@ -333,19 +340,17 @@ class BackupModel(ModelNormal):
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
-        _enforce_validations = kwargs.pop('_enforce_validations', True)
-        _check_type = kwargs.pop('_check_type', True)
-        _spec_property_naming = kwargs.pop('_spec_property_naming', False)
-        _path_to_item = kwargs.pop('_path_to_item', ())
-        _configuration = kwargs.pop('_configuration', None)
-        _visited_composed_classes = kwargs.pop('_visited_composed_classes', ())
+        _enforce_validations = kwargs.pop("_enforce_validations", True)
+        _check_type = kwargs.pop("_check_type", True)
+        _spec_property_naming = kwargs.pop("_spec_property_naming", False)
+        _path_to_item = kwargs.pop("_path_to_item", ())
+        _configuration = kwargs.pop("_configuration", None)
+        _visited_composed_classes = kwargs.pop("_visited_composed_classes", ())
 
         if args:
             raise PineconeApiTypeError(
-                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments." % (
-                    args,
-                    self.__class__.__name__,
-                ),
+                "Invalid positional arguments=%s passed to %s. Remove those invalid positional arguments."
+                % (args, self.__class__.__name__),
                 path_to_item=_path_to_item,
                 valid_classes=(self.__class__,),
             )
@@ -366,13 +371,17 @@ class BackupModel(ModelNormal):
         self.cloud = cloud
         self.region = region
         for var_name, var_value in kwargs.items():
-            if var_name not in self.attribute_map and \
-                        self._configuration is not None and \
-                        self._configuration.discard_unknown_keys and \
-                        self.additional_properties_type is None:
+            if (
+                var_name not in self.attribute_map
+                and self._configuration is not None
+                and self._configuration.discard_unknown_keys
+                and self.additional_properties_type is None
+            ):
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
             if var_name in self.read_only_vars:
-                raise PineconeApiAttributeError(f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
-                                     f"class with read only attributes.")
+                raise PineconeApiAttributeError(
+                    f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
+                    f"class with read only attributes."
+                )
