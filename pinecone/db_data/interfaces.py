@@ -242,16 +242,18 @@ class IndexInterface(ABC):
     def upsert_from_dataframe(
         self, df, namespace: str | None = None, batch_size: int = 500, show_progress: bool = True
     ):
-        """Upserts a dataframe into the index.
+        """Upsert vectors from a pandas DataFrame into the index.
 
-        :param df: A pandas dataframe with the following columns: id, values, sparse_values, and metadata.
-        :type df: pandas.DataFrame
-        :param namespace: The namespace to upsert into.
-        :type namespace: str, optional
-        :param batch_size: The number of rows to upsert in a single batch.
-        :type batch_size: int, optional
-        :param show_progress: Whether to show a progress bar.
-        :type show_progress: bool, optional
+        Args:
+            df: A pandas DataFrame with the following columns: id, values, sparse_values, and metadata.
+            namespace: The namespace to upsert into. If not specified, the default namespace is used. [optional]
+            batch_size: The number of rows to upsert in a single batch. Defaults to 500.
+            show_progress: Whether to show a progress bar. Defaults to True.
+
+        Returns:
+            UpsertResponse: Object containing the number of vectors upserted.
+
+        Examples:
 
         .. code-block:: python
 
@@ -259,19 +261,27 @@ class IndexInterface(ABC):
             from pinecone import Pinecone
 
             pc = Pinecone()
-            idx = pc.Index(host="your-index-host")
+            idx = pc.Index(host="example-index-host")
 
-            # Create a dataframe with vector data
+            # Create a DataFrame with vector data
             df = pd.DataFrame({
                 'id': ['id1', 'id2', 'id3'],
-                'values': [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6], [0.7, 0.8, 0.9]],
-                'metadata': [{'key': 'value1'}, {'key': 'value2'}, {'key': 'value3'}]
+                'values': [
+                    [0.1, 0.2, 0.3],
+                    [0.4, 0.5, 0.6],
+                    [0.7, 0.8, 0.9]
+                ],
+                'metadata': [
+                    {'key1': 'value1'},
+                    {'key2': 'value2'},
+                    {'key3': 'value3'}
+                ]
             })
 
-            # Upsert the dataframe
-            idx.upsert_from_dataframe(
+            # Upsert from DataFrame
+            response = idx.upsert_from_dataframe(
                 df=df,
-                namespace="my-namespace",
+                namespace='my-namespace',
                 batch_size=100,
                 show_progress=True
             )
@@ -281,20 +291,25 @@ class IndexInterface(ABC):
 
     @abstractmethod
     def upsert_records(self, namespace: str, records: list[dict]) -> UpsertResponse:
-        """
-        :param namespace: The namespace of the index to upsert records to.
-        :type namespace: str, required
-        :param records: The records to upsert into the index.
-        :type records: list[dict], required
-        :return: UpsertResponse object which contains the number of records upserted.
+        """Upsert records to a namespace.
 
-        Upsert records to a namespace. A record is a dictionary that contains eitiher an `id` or `_id`
-        field along with other fields that will be stored as metadata. The `id` or `_id` field is used
+        A record is a dictionary that contains either an ``id`` or ``_id``
+        field along with other fields that will be stored as metadata. The ``id`` or ``_id`` field is used
         as the unique identifier for the record. At least one field in the record should correspond to
         a field mapping in the index's embed configuration.
 
         When records are upserted, Pinecone converts mapped fields into embeddings and upserts them into
-        the specified namespacce of the index.
+        the specified namespace of the index.
+
+        Args:
+            namespace: The namespace of the index to upsert records to.
+            records: The records to upsert into the index. Each record should contain an ``id`` or ``_id``
+                    field and fields that match the index's embed configuration field mappings.
+
+        Returns:
+            UpsertResponse: Object which contains the number of records upserted.
+
+        Examples:
 
         .. code-block:: python
             :caption: Upserting records to be embedded with Pinecone's integrated inference models
@@ -323,7 +338,7 @@ class IndexInterface(ABC):
             # Instantiate the index client
             idx = pc.Index(host=index_model.host)
 
-            # upsert records
+            # Upsert records
             idx.upsert_records(
                 namespace="my-namespace",
                 records=[
@@ -339,37 +354,7 @@ class IndexInterface(ABC):
                         "_id": "test3",
                         "my_text_field": "Many people enjoy eating apples as a healthy snack.",
                     },
-                    {
-                        "_id": "test4",
-                        "my_text_field": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
-                    },
-                    {
-                        "_id": "test5",
-                        "my_text_field": "An apple a day keeps the doctor away, as the saying goes.",
-                    },
-                    {
-                        "_id": "test6",
-                        "my_text_field": "Apple Computer Company was founded on April 1, 1976, by Steve Jobs, Steve Wozniak, and Ronald Wayne as a partnership.",
-                    },
                 ],
-            )
-
-            from pinecone import SearchQuery, SearchRerank, RerankModel
-
-            # Search for similar records
-            response = idx.search_records(
-                namespace="my-namespace",
-                query=SearchQuery(
-                    inputs={
-                        "text": "Apple corporation",
-                    },
-                    top_k=3,
-                ),
-                rerank=SearchRerank(
-                    model=RerankModel.Bge_Reranker_V2_M3,
-                    rank_fields=["my_text_field"],
-                    top_n=3,
-                ),
             )
 
         """
@@ -383,25 +368,27 @@ class IndexInterface(ABC):
         rerank: (SearchRerankTypedDict | SearchRerank) | None = None,
         fields: list[str] | None = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
-        """
-        :param namespace: The namespace in the index to search.
-        :type namespace: str, required
-        :param query: The SearchQuery to use for the search. The query can include a ``match_terms`` field
-                      to specify which terms must be present in the text of each search hit. The match_terms
-                      should be a dict with ``strategy`` (str) and ``terms`` (list[str]) keys, e.g.
-                      ``{"strategy": "all", "terms": ["term1", "term2"]}``. Currently only "all" strategy
-                      is supported, which means all specified terms must be present.
-                      **Note:** match_terms is only supported for sparse indexes with integrated embedding
-                      configured to use the pinecone-sparse-english-v0 model.
-        :type query: Union[dict, SearchQuery], required
-        :param rerank: The SearchRerank to use with the search request.
-        :type rerank: Union[dict, SearchRerank], optional
-        :return: The records that match the search.
-
-        Search for records.
+        """Search for records in a namespace.
 
         This operation converts a query to a vector embedding and then searches a namespace. You
         can optionally provide a reranking operation as part of the search.
+
+        Args:
+            namespace: The namespace in the index to search.
+            query: The SearchQuery to use for the search. The query can include a ``match_terms`` field
+                   to specify which terms must be present in the text of each search hit. The match_terms
+                   should be a dict with ``strategy`` (str) and ``terms`` (list[str]) keys, e.g.
+                   ``{"strategy": "all", "terms": ["term1", "term2"]}``. Currently only "all" strategy
+                   is supported, which means all specified terms must be present.
+                   **Note:** match_terms is only supported for sparse indexes with integrated embedding
+                   configured to use the pinecone-sparse-english-v0 model.
+            rerank: The SearchRerank to use with the search request. [optional]
+            fields: List of fields to return in the response. Defaults to ["*"] to return all fields. [optional]
+
+        Returns:
+            SearchRecordsResponse: The records that match the search.
+
+        Examples:
 
         .. code-block:: python
 
@@ -410,7 +397,10 @@ class IndexInterface(ABC):
                 CloudProvider,
                 AwsRegion,
                 EmbedModel,
-                IndexEmbed
+                IndexEmbed,
+                SearchQuery,
+                SearchRerank,
+                RerankModel
             )
 
             pc = Pinecone(api_key="<<PINECONE_API_KEY>>")
@@ -429,41 +419,8 @@ class IndexInterface(ABC):
             # Instantiate the index client
             idx = pc.Index(host=index_model.host)
 
-            # upsert records
-            idx.upsert_records(
-                namespace="my-namespace",
-                records=[
-                    {
-                        "_id": "test1",
-                        "my_text_field": "Apple is a popular fruit known for its sweetness and crisp texture.",
-                    },
-                    {
-                        "_id": "test2",
-                        "my_text_field": "The tech company Apple is known for its innovative products like the iPhone.",
-                    },
-                    {
-                        "_id": "test3",
-                        "my_text_field": "Many people enjoy eating apples as a healthy snack.",
-                    },
-                    {
-                        "_id": "test4",
-                        "my_text_field": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
-                    },
-                    {
-                        "_id": "test5",
-                        "my_text_field": "An apple a day keeps the doctor away, as the saying goes.",
-                    },
-                    {
-                        "_id": "test6",
-                        "my_text_field": "Apple Computer Company was founded on April 1, 1976, by Steve Jobs, Steve Wozniak, and Ronald Wayne as a partnership.",
-                    },
-                ],
-            )
-
-            from pinecone import SearchQuery, SearchRerank, RerankModel
-
-            # search for similar records
-            response = idx.search_records(
+            # Search for similar records
+            response = idx.search(
                 namespace="my-namespace",
                 query=SearchQuery(
                     inputs={
@@ -489,7 +446,11 @@ class IndexInterface(ABC):
         rerank: (SearchRerankTypedDict | SearchRerank) | None = None,
         fields: list[str] | None = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
-        """Alias of the search() method."""
+        """Alias of the search() method.
+
+        See :meth:`search` for full documentation and examples.
+
+        """
         pass
 
     @abstractmethod
@@ -501,66 +462,81 @@ class IndexInterface(ABC):
         filter: FilterTypedDict | None = None,
         **kwargs,
     ) -> dict[str, Any]:
-        """
-        Args:
-            ids (list[str]): Vector ids to delete [optional]
-            delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional]
-                                Default is False.
-            namespace (str): The namespace to delete vectors from [optional]
-                            If not specified, the default namespace is used.
-            filter (dict[str, Union[str, float, int, bool, List, dict]]):
-                    If specified, the metadata filter here will be used to select the vectors to delete.
-                    This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True.
-                    See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
-
+        """Delete vectors from the index, from a single namespace.
 
         The Delete operation deletes vectors from the index, from a single namespace.
-
         No error is raised if the vector id does not exist.
 
         Note: For any delete call, if namespace is not specified, the default namespace ``""`` is used.
         Since the delete operation does not error when ids are not present, this means you may not receive
         an error if you delete from the wrong namespace.
 
-        Delete can occur in the following mutual exclusive ways:
+        Delete can occur in the following mutually exclusive ways:
 
         1. Delete by ids from a single namespace
         2. Delete all vectors from a single namespace by setting delete_all to True
         3. Delete all vectors from a single namespace by specifying a metadata filter
-            (note that for this option delete all must be set to False)
+           (note that for this option delete_all must be set to False)
+
+        Args:
+            ids: Vector ids to delete. [optional]
+            delete_all: This indicates that all vectors in the index namespace should be deleted.
+                       Default is False. [optional]
+            namespace: The namespace to delete vectors from. If not specified, the default namespace is used. [optional]
+            filter: If specified, the metadata filter here will be used to select the vectors to delete.
+                   This is mutually exclusive with specifying ids to delete in the ids param or using delete_all=True.
+                   See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
+            **kwargs: Additional keyword arguments for the API call.
+
+        Returns:
+            dict[str, Any]: An empty dictionary if the delete operation was successful.
 
         Examples:
 
         .. code-block:: python
 
+            >>> # Delete specific vectors by ID
             >>> index.delete(ids=['id1', 'id2'], namespace='my_namespace')
+            {}
+
+            >>> # Delete all vectors from a namespace
             >>> index.delete(delete_all=True, namespace='my_namespace')
+            {}
+
+            >>> # Delete vectors matching a metadata filter
             >>> index.delete(filter={'key': 'value'}, namespace='my_namespace')
+            {}
 
-
-        Returns: An empty dictionary if the delete operation was successful.
         """
         pass
 
     @abstractmethod
     def fetch(self, ids: list[str], namespace: str | None = None, **kwargs) -> FetchResponse:
-        """
+        """Fetch vectors by ID from a single namespace.
+
         The fetch operation looks up and returns vectors, by ID, from a single namespace.
         The returned vectors include the vector data and/or metadata.
+
+        Args:
+            ids: The vector IDs to fetch.
+            namespace: The namespace to fetch vectors from. If not specified, the default namespace is used. [optional]
+            **kwargs: Additional keyword arguments for the API call.
+
+        Returns:
+            FetchResponse: Object which contains the list of Vector objects, and namespace name.
 
         Examples:
 
         .. code-block:: python
 
-            >>> index.fetch(ids=['id1', 'id2'], namespace='my_namespace')
-            >>> index.fetch(ids=['id1', 'id2'])
+            >>> # Fetch vectors from a specific namespace
+            >>> response = index.fetch(ids=['id1', 'id2'], namespace='my_namespace')
+            >>> for vector_id, vector in response.vectors.items():
+            ...     print(f"{vector_id}: {vector.values}")
 
-        Args:
-            ids (list[str]): The vector IDs to fetch.
-            namespace (str): The namespace to fetch vectors from.
-                             If not specified, the default namespace is used. [optional]
+            >>> # Fetch vectors from the default namespace
+            >>> response = index.fetch(ids=['id1', 'id2'])
 
-        Returns: FetchResponse object which contains the list of Vector objects, and namespace name.
         """
         pass
 
@@ -648,9 +624,8 @@ class IndexInterface(ABC):
             top_k (int): The number of results to return for each query. Must be an integer greater than 1.
             namespace (str): The namespace to query vectors from.
                              If not specified, the default namespace is used. [optional]
-            filter (dict[str, Union[str, float, int, bool, List, dict]):
-                    The filter to apply. You can use vector metadata to limit your search.
-                    See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
+            filter: The filter to apply. You can use vector metadata to limit your search.
+                   See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
             include_values (bool): Indicates whether vector values are included in the response.
                                    If omitted the server will use the default value of False [optional]
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.
@@ -801,22 +776,20 @@ class IndexInterface(ABC):
             >>> print(f"Would update {response.matched_records} vectors")
 
         Args:
-            id (str): Vector's unique id. Required for single vector updates. Must not be provided when using filter. [optional]
-            values (list[float]): Vector values to set. [optional]
-            set_metadata (dict[str, Union[str, float, int, bool, list[int], list[float], list[str]]]]):
-                Metadata to merge with existing metadata on the vector(s). Fields specified will overwrite
-                existing fields with the same key, while fields not specified will remain unchanged. [optional]
-            namespace (str): Namespace name where to update the vector(s). [optional]
-            sparse_values: (dict[str, Union[list[float], list[int]]]): Sparse values to update for the vector.
-                           Expected to be either a SparseValues object or a dict of the form:
-                           {'indices': list[int], 'values': list[float]} where the lists each have the same length. [optional]
-            filter (dict[str, Union[str, float, int, bool, List, dict]]): A metadata filter expression.
-                    When provided, updates all vectors in the namespace that match the filter criteria.
-                    See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`.
-                    Must not be provided when using id. Either `id` or `filter` must be provided. [optional]
-            dry_run (bool): If `True`, return the number of records that match the `filter` without executing
-                    the update. Only meaningful when using `filter` (not with `id`). Useful for previewing
-                    the impact of a bulk update before applying changes. Defaults to `False`. [optional]
+            id: Vector unique id. Required for single vector updates. Must not be provided when using filter. [optional]
+            values: Vector values to set. [optional]
+            set_metadata: Metadata to merge with existing metadata on the vector(s). Fields specified will overwrite
+                         existing fields with the same key, while fields not specified will remain unchanged. [optional]
+            namespace: Namespace name where to update the vector(s). [optional]
+            sparse_values: Sparse values to update for the vector. Expected to be either a SparseValues object or a dict
+                          of the form: ``{'indices': list[int], 'values': list[float]}`` where the lists each have
+                          the same length. [optional]
+            filter: A metadata filter expression. When provided, updates all vectors in the namespace that match
+                   the filter criteria. See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`.
+                   Must not be provided when using id. Either ``id`` or ``filter`` must be provided. [optional]
+            dry_run: If ``True``, return the number of records that match the ``filter`` without executing
+                    the update. Only meaningful when using ``filter`` (not with ``id``). Useful for previewing
+                    the impact of a bulk update before applying changes. Defaults to ``False``. [optional]
 
         Returns:
             UpdateResponse: An UpdateResponse object. When using filter-based updates, the response includes
@@ -830,7 +803,7 @@ class IndexInterface(ABC):
         self, filter: FilterTypedDict | None = None, **kwargs
     ) -> DescribeIndexStatsResponse:
         """
-        The DescribeIndexStats operation returns statistics about the index's contents.
+        The DescribeIndexStats operation returns statistics about the index contents.
         For example: The vector count per namespace and the number of dimensions.
 
         Args:
@@ -977,10 +950,10 @@ class IndexInterface(ABC):
         """Delete a namespace from an index.
 
         Args:
-            namespace (str): The namespace to delete
+            namespace: The namespace to delete.
 
         Returns:
-            dict[str, Any]: Response from the delete operation
+            dict[str, Any]: Response from the delete operation.
         """
         pass
 
@@ -992,18 +965,26 @@ class IndexInterface(ABC):
         """List all namespaces in an index. This method automatically handles pagination to return all results.
 
         Args:
-            limit (Optional[int]): The maximum number of namespaces to return. If unspecified, the server will use a default value. [optional]
+            limit: The maximum number of namespaces to return. If unspecified, the server will use a default value. [optional]
 
         Returns:
-            ``ListNamespacesResponse``: Object containing the list of namespaces.
+            Iterator[ListNamespacesResponse]: An iterator that yields ListNamespacesResponse objects containing the list of namespaces.
 
         Examples:
-            .. code-block:: python
-                >>> results = list(index.list_namespaces(limit=5))
-                >>> for namespace in results:
-                ...     print(f"Namespace: {namespace.name}, Vector count: {namespace.vector_count}")
-                Namespace: namespace1, Vector count: 1000
-                Namespace: namespace2, Vector count: 2000
+
+        .. code-block:: python
+
+            >>> # Iterate over all namespaces
+            >>> for namespace_response in index.list_namespaces(limit=5):
+            ...     for namespace in namespace_response.namespaces:
+            ...         print(f"Namespace: {namespace.name}, Vector count: {namespace.vector_count}")
+
+            >>> # Convert to list (be cautious with large datasets)
+            >>> results = list(index.list_namespaces(limit=5))
+            >>> for namespace_response in results:
+            ...     for namespace in namespace_response.namespaces:
+            ...         print(f"Namespace: {namespace.name}, Vector count: {namespace.vector_count}")
+
         """
         pass
 
@@ -1017,18 +998,29 @@ class IndexInterface(ABC):
         Consider using the ``list_namespaces`` method to avoid having to handle pagination tokens manually.
 
         Args:
-            limit (Optional[int]): The maximum number of namespaces to return. If unspecified, the server will use a default value. [optional]
-            pagination_token (Optional[str]): A token needed to fetch the next page of results. This token is returned
-                in the response if additional results are available. [optional]
+            limit: The maximum number of namespaces to return. If unspecified, the server will use a default value. [optional]
+            pagination_token: A token needed to fetch the next page of results. This token is returned
+                            in the response if additional results are available. [optional]
+            **kwargs: Additional keyword arguments for the API call.
 
         Returns:
-            ``ListNamespacesResponse``: Object containing the list of namespaces and pagination information.
+            ListNamespacesResponse: Object containing the list of namespaces and pagination information.
 
         Examples:
-            .. code-block:: python
-                >>> results = index.list_namespaces_paginated(limit=5)
-                >>> results.pagination.next
-                eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
-                >>> next_results = index.list_namespaces_paginated(limit=5, pagination_token=results.pagination.next)
+
+        .. code-block:: python
+
+            >>> # Get first page of namespaces
+            >>> results = index.list_namespaces_paginated(limit=5)
+            >>> for namespace in results.namespaces:
+            ...     print(f"Namespace: {namespace.name}, Vector count: {namespace.vector_count}")
+
+            >>> # Get next page if available
+            >>> if results.pagination and results.pagination.next:
+            ...     next_results = index.list_namespaces_paginated(
+            ...         limit=5,
+            ...         pagination_token=results.pagination.next
+            ...     )
+
         """
         pass
