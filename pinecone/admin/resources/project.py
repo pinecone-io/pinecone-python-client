@@ -74,6 +74,7 @@ class ProjectResource:
                 print(project.name)
                 print(project.max_pods)
                 print(project.force_encryption_with_cmek)
+
         """
         return self._projects_api.list_projects()
 
@@ -129,6 +130,7 @@ class ProjectResource:
             print(project.force_encryption_with_cmek)
             print(project.organization_id)
             print(project.created_at)
+
         """
         if project_id is not None and name is not None:
             raise ValueError("Either project_id or name must be provided but not both")
@@ -174,6 +176,7 @@ class ProjectResource:
             print(project.name)
             print(project.max_pods)
             print(project.force_encryption_with_cmek)
+
         """
         return self.fetch(project_id=project_id, name=name)
 
@@ -201,6 +204,7 @@ class ProjectResource:
             print(project.name)
             print(project.max_pods)
             print(project.force_encryption_with_cmek)
+
         """
         return self.fetch(project_id=project_id, name=name)
 
@@ -256,6 +260,7 @@ class ProjectResource:
                 print(f"Project {project_id} exists")
             else:
                 print(f"Project {project_id} does not exist")
+
         """
         if project_id is not None and name is not None:
             raise ValueError("Either project_id or name must be provided but not both")
@@ -453,6 +458,7 @@ class ProjectResource:
                 print("Project deleted successfully")
             else:
                 print("Project deletion failed")
+
         """
         project = self.get(project_id=project_id)
 

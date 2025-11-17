@@ -194,6 +194,31 @@ class Inference(PluginAware):
             #     usage={'total_tokens': 6}
             # )
 
+        You can also use a single string input:
+
+        .. code-block:: python
+
+            from pinecone import Pinecone
+
+            pc = Pinecone()
+            output = pc.inference.embed(
+                model="text-embedding-3-small",
+                inputs="Hello, world!"
+            )
+
+        Or use the EmbedModel enum:
+
+        .. code-block:: python
+
+            from pinecone import Pinecone
+            from pinecone.inference import EmbedModel
+
+            pc = Pinecone()
+            outputs = pc.inference.embed(
+                model=EmbedModel.TEXT_EMBEDDING_3_SMALL,
+                inputs=["Document 1", "Document 2"]
+            )
+
         """
         request_body = InferenceRequestBuilder.embed_request(
             model=model, inputs=inputs, parameters=parameters
@@ -235,8 +260,7 @@ class Inference(PluginAware):
           relevance, with the first being the most relevant. The ``index`` field can be used to locate the document
           relative to the list of documents specified in the request. Each document contains a ``score`` key
           representing how close the document relates to the query.
-
-        Example:
+        :rtype: RerankResult
 
         .. code-block:: python
 
@@ -275,6 +299,38 @@ class Inference(PluginAware):
             #     usage={'rerank_units': 1}
             # )
 
+        You can also use document dictionaries with custom fields:
+
+        .. code-block:: python
+
+            from pinecone import Pinecone
+
+            pc = Pinecone()
+            result = pc.inference.rerank(
+                model="pinecone-rerank-v0",
+                query="What is machine learning?",
+                documents=[
+                    {"text": "Machine learning is a subset of AI.", "category": "tech"},
+                    {"text": "Cooking recipes for pasta.", "category": "food"},
+                ],
+                rank_fields=["text"],
+                top_n=1
+            )
+
+        Or use the RerankModel enum:
+
+        .. code-block:: python
+
+            from pinecone import Pinecone
+            from pinecone.inference import RerankModel
+
+            pc = Pinecone()
+            result = pc.inference.rerank(
+                model=RerankModel.PINECONE_RERANK_V0,
+                query="Your query here",
+                documents=["doc1", "doc2", "doc3"]
+            )
+
         """
         rerank_request = InferenceRequestBuilder.rerank(
             model=model,
@@ -302,8 +358,7 @@ class Inference(PluginAware):
         :type vector_type: str, optional
 
         :return: A list of models.
-
-        Example:
+        :rtype: ModelInfoList
 
         .. code-block:: python
 
@@ -339,8 +394,6 @@ class Inference(PluginAware):
         :return: A ModelInfo object.
         :rtype: ModelInfo
 
-        Example:
-
         .. code-block:: python
 
             from pinecone import Pinecone
@@ -371,5 +424,6 @@ class Inference(PluginAware):
             #     "provider_name": "Pinecone",
             #     "supported_metrics": []
             # }
+
         """
         return self.model.get(model_name=model_name)
