@@ -182,28 +182,27 @@ def parse_fetch_by_metadata_response(
     """
     # Extract response info from initial metadata
     from pinecone.utils.response_info import extract_response_info
+    from pinecone.db_data.dataclasses import SparseValues
 
     metadata = initial_metadata or {}
     response_info = extract_response_info(metadata)
 
     # Directly access protobuf fields instead of converting entire message to dict
+    vectors = response.vectors
     vd = {}
     # namespace is a required string field, so it will always have a value (default empty string)
     namespace = response.namespace
 
     # Iterate over vectors map directly
-    for vec_id, vec in response.vectors.items():
+    for vec_id, vec in vectors.items():
         # Convert vector.values (RepeatedScalarFieldContainer) to list
         values = list(vec.values) if vec.values else None
 
-        # Handle sparse_values if present
+        # Handle sparse_values if present - optimize by creating SparseValues directly
         parsed_sparse = None
         if vec.HasField("sparse_values") and vec.sparse_values:
-            parsed_sparse = parse_sparse_values(
-                {
-                    "indices": list(vec.sparse_values.indices),
-                    "values": list(vec.sparse_values.values),
-                }
+            parsed_sparse = SparseValues(
+                indices=list(vec.sparse_values.indices), values=list(vec.sparse_values.values)
             )
 
         # Convert metadata Struct to dict only when needed using optimized conversion
@@ -380,13 +379,16 @@ def parse_query_response(
     response_info = extract_response_info(metadata)
 
     # Directly access protobuf fields
-    matches = []
+    # Pre-allocate matches list with known size for better performance
+    matches_proto = response.matches
+    matches = [None] * len(matches_proto) if matches_proto else []
     # namespace is a required string field, so it will always have a value (default empty string)
     namespace = response.namespace
 
     # Iterate over matches directly
-    for match in response.matches:
+    for idx, match in enumerate(matches_proto):
         # Convert match.values (RepeatedScalarFieldContainer) to list
+        # Optimize: only convert if values exist, avoid creating empty list unnecessarily
         values = list(match.values) if match.values else []
 
         # Handle sparse_values if present (check if field is set and not empty)
@@ -401,7 +403,7 @@ def parse_query_response(
         if match.HasField("metadata") and match.metadata:
             metadata_dict = _struct_to_dict(match.metadata)
 
-        sc = ScoredVector(
+        matches[idx] = ScoredVector(
             id=match.id,
             score=match.score,
             values=values,
@@ -409,7 +411,6 @@ def parse_query_response(
             metadata=metadata_dict,
             _check_type=_check_type,
         )
-        matches.append(sc)
 
     # Parse usage if present (usage is optional, so check HasField)
     usage = None
@@ -445,9 +446,10 @@ def parse_stats_response(
         # Extract total_vector_count (required int field)
         total_vector_count = response.total_vector_count
 
-        # Extract namespaces map
+        # Extract namespaces map - pre-allocate dict with known size
+        namespaces_proto = response.namespaces
         namespace_summaries = {}
-        for ns_name, ns_summary in response.namespaces.items():
+        for ns_name, ns_summary in namespaces_proto.items():
             namespace_summaries[ns_name] = NamespaceSummary(vector_count=ns_summary.vector_count)
 
         result = DescribeIndexStatsResponse(
@@ -525,8 +527,10 @@ def parse_list_namespaces_response(
     This optimized version directly accesses protobuf fields for better performance.
     """
     # Directly iterate over namespaces
-    namespaces = []
-    for ns in response.namespaces:
+    # Pre-allocate namespaces list with known size for better performance
+    namespaces_proto = response.namespaces
+    namespaces = [None] * len(namespaces_proto) if namespaces_proto else []
+    for idx, ns in enumerate(namespaces_proto):
         # Extract indexed_fields if present
         indexed_fields = None
         if ns.HasField("indexed_fields") and ns.indexed_fields:
@@ -537,13 +541,11 @@ def parse_list_namespaces_response(
                     fields=fields_list, _check_type=False
                 )
 
-        namespaces.append(
-            NamespaceDescription(
-                name=ns.name,
-                record_count=ns.record_count,
-                indexed_fields=indexed_fields,
-                _check_type=False,
-            )
+        namespaces[idx] = NamespaceDescription(
+            name=ns.name,
+            record_count=ns.record_count,
+            indexed_fields=indexed_fields,
+            _check_type=False,
         )
 
     # Parse pagination if present
