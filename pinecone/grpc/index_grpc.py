@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import List, Any, Iterable, cast, Literal, Iterator, TYPE_CHECKING
 
-from google.protobuf import json_format
+from google.protobuf.message import Message
 
 from pinecone.utils.tqdm import tqdm
 from pinecone.utils import require_kwargs
@@ -15,6 +15,7 @@ from .utils import (
     parse_fetch_response,
     parse_fetch_by_metadata_response,
     parse_query_response,
+    query_response_to_dict,
     parse_stats_response,
     parse_upsert_response,
     parse_update_response,
@@ -501,13 +502,13 @@ class GRPCIndex(GRPCIndexBase):
         include_metadata: bool | None = None,
         sparse_vector: (SparseValues | GRPCSparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
-    ) -> tuple[dict[str, Any], dict[str, str] | None]:
+    ) -> tuple[Message, dict[str, str] | None]:
         """
-        Low-level query method that returns raw JSON dict and initial metadata without parsing.
+        Low-level query method that returns protobuf Message and initial metadata without parsing.
         Used internally by query() and query_namespaces() for performance.
 
         Returns:
-            Tuple of (json_dict, initial_metadata). initial_metadata may be None.
+            Tuple of (protobuf_message, initial_metadata). initial_metadata may be None.
         """
         if vector is not None and id is not None:
             raise ValueError("Cannot specify both `id` and `vector`")
@@ -535,7 +536,7 @@ class GRPCIndex(GRPCIndexBase):
 
         timeout = kwargs.pop("timeout", None)
         response, initial_metadata = self.runner.run(self.stub.Query, request, timeout=timeout)
-        return json_format.MessageToDict(response), initial_metadata
+        return response, initial_metadata
 
     def query(
         self,
@@ -626,8 +627,8 @@ class GRPCIndex(GRPCIndexBase):
                 future, result_transformer=parse_query_response, timeout=timeout
             )
         else:
-            # For sync requests, use _query to get raw dict and metadata, then parse it
-            json_response, initial_metadata = self._query(
+            # For sync requests, use _query to get protobuf Message and metadata, then parse it
+            response, initial_metadata = self._query(
                 vector=vector,
                 id=id,
                 namespace=namespace,
@@ -640,7 +641,7 @@ class GRPCIndex(GRPCIndexBase):
                 **kwargs,
             )
             return parse_query_response(
-                json_response, _check_type=False, initial_metadata=initial_metadata
+                response, _check_type=False, initial_metadata=initial_metadata
             )
 
     def query_namespaces(
@@ -681,8 +682,9 @@ class GRPCIndex(GRPCIndexBase):
 
         only_futures = cast(Iterable[Future], futures)
         for response in as_completed(only_futures):
-            json_response, _ = response.result()  # Ignore initial_metadata for query_namespaces
-            # Pass raw dict directly to aggregator - no parsing needed
+            proto_response, _ = response.result()  # Ignore initial_metadata for query_namespaces
+            # Convert protobuf Message to dict format for aggregator using optimized helper
+            json_response = query_response_to_dict(proto_response)
             aggregator.add_results(json_response)
 
         final_results = aggregator.get_results()
@@ -946,8 +948,7 @@ class GRPCIndex(GRPCIndexBase):
 
         request = DescribeIndexStatsRequest(**args_dict)
         response, _ = self.runner.run(self.stub.DescribeIndexStats, request, timeout=timeout)
-        json_response = json_format.MessageToDict(response)
-        return parse_stats_response(json_response)
+        return parse_stats_response(response)
 
     @require_kwargs
     def create_namespace(

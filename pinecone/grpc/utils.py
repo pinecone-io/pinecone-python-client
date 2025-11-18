@@ -39,6 +39,7 @@ if TYPE_CHECKING:
         UpdateResponse as ProtoUpdateResponse,
         NamespaceDescription as ProtoNamespaceDescription,
         ListNamespacesResponse as ProtoListNamespacesResponse,
+        DescribeIndexStatsResponse as ProtoDescribeIndexStatsResponse,
     )
 
 
@@ -255,6 +256,42 @@ def parse_delete_response(
     return result
 
 
+def query_response_to_dict(response: "ProtoQueryResponse") -> dict[str, Any]:
+    """Convert a QueryResponse protobuf message to dict format for aggregator.
+
+    This optimized version directly accesses protobuf fields instead of using MessageToDict.
+    Only converts the fields needed by the aggregator.
+    """
+    result: dict[str, Any] = {"namespace": response.namespace, "matches": []}
+
+    # Convert matches
+    for match in response.matches:
+        match_dict: dict[str, Any] = {"id": match.id, "score": match.score}
+
+        # Convert values if present
+        if match.values:
+            match_dict["values"] = list(match.values)
+
+        # Convert sparse_values if present
+        if match.HasField("sparse_values") and match.sparse_values:
+            match_dict["sparseValues"] = {
+                "indices": list(match.sparse_values.indices),
+                "values": list(match.sparse_values.values),
+            }
+
+        # Convert metadata if present
+        if match.HasField("metadata") and match.metadata:
+            match_dict["metadata"] = json_format.MessageToDict(match.metadata)
+
+        result["matches"].append(match_dict)
+
+    # Convert usage if present
+    if response.HasField("usage") and response.usage:
+        result["usage"] = {"readUnits": response.usage.read_units}
+
+    return result
+
+
 def parse_query_response(
     response: dict | "ProtoQueryResponse",
     _check_type: bool = False,
@@ -342,26 +379,62 @@ def parse_query_response(
         return query_response
 
 
-def parse_stats_response(response: dict) -> "DescribeIndexStatsResponse":
-    fullness = response.get("indexFullness", 0.0)
-    total_vector_count = response.get("totalVectorCount", 0)
-    # For sparse indexes, dimension is not present, so use None instead of 0
-    dimension = response.get("dimension") if "dimension" in response else None
-    summaries = response.get("namespaces", {})
-    namespace_summaries = {}
-    for key in summaries:
-        vc = summaries[key].get("vectorCount", 0)
-        namespace_summaries[key] = NamespaceSummary(vector_count=vc)
+def parse_stats_response(
+    response: dict | "ProtoDescribeIndexStatsResponse",
+) -> "DescribeIndexStatsResponse":
+    """Parse a DescribeIndexStatsResponse protobuf message directly without MessageToDict conversion.
+
+    This optimized version directly accesses protobuf fields for better performance.
+    For dict responses (REST API), falls back to the original dict-based parsing.
+    """
     from typing import cast
 
-    result = DescribeIndexStatsResponse(
-        namespaces=namespace_summaries,
-        dimension=dimension,
-        index_fullness=fullness,
-        total_vector_count=total_vector_count,
-        _check_type=False,
-    )
-    return cast(DescribeIndexStatsResponse, result)
+    if isinstance(response, Message) and not isinstance(response, dict):
+        # Optimized path: directly access protobuf fields
+        # For sparse indexes, dimension is not present, so use None instead of 0
+        dimension = None
+        if response.HasField("dimension"):
+            dimension = response.dimension
+
+        # Extract index_fullness (required float field)
+        index_fullness = response.index_fullness
+
+        # Extract total_vector_count (required int field)
+        total_vector_count = response.total_vector_count
+
+        # Extract namespaces map
+        namespace_summaries = {}
+        for ns_name, ns_summary in response.namespaces.items():
+            namespace_summaries[ns_name] = NamespaceSummary(vector_count=ns_summary.vector_count)
+
+        result = DescribeIndexStatsResponse(
+            namespaces=namespace_summaries,
+            dimension=dimension,
+            index_fullness=index_fullness,
+            total_vector_count=total_vector_count,
+            _check_type=False,
+        )
+        return cast(DescribeIndexStatsResponse, result)
+    else:
+        # Fallback for dict responses (REST API)
+        fullness = response.get("indexFullness", 0.0)
+        total_vector_count = response.get("totalVectorCount", 0)
+        # For sparse indexes, dimension is not present, so use None instead of 0
+        dimension = response.get("dimension") if "dimension" in response else None
+        summaries = response.get("namespaces", {})
+        namespace_summaries = {}
+        for key in summaries:
+            vc = summaries[key].get("vectorCount", 0)
+            namespace_summaries[key] = NamespaceSummary(vector_count=vc)
+
+        result = DescribeIndexStatsResponse(
+            namespaces=namespace_summaries,
+            dimension=dimension,
+            index_fullness=fullness,
+            total_vector_count=total_vector_count,
+            _check_type=False,
+        )
+        return cast(DescribeIndexStatsResponse, result)
 
 
 def parse_namespace_description(
