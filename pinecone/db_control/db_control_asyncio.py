@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import logging
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from pinecone.core.openapi.db_control.api.manage_indexes_api import AsyncioManageIndexesApi
 from pinecone.openapi_support import AsyncioApiClient
@@ -27,7 +29,7 @@ class DBControlAsyncio:
         self._openapi_config = openapi_config
         """ :meta private: """
 
-        self._index_api = setup_async_openapi_client(
+        self._index_api: AsyncioManageIndexesApi = setup_async_openapi_client(
             api_client_klass=AsyncioApiClient,
             api_klass=AsyncioManageIndexesApi,
             config=self._config,
@@ -36,16 +38,16 @@ class DBControlAsyncio:
         )
         """ :meta private: """
 
-        self._index_resource: Optional["IndexResourceAsyncio"] = None
+        self._index_resource: "IndexResourceAsyncio" | None = None
         """ :meta private: """
 
-        self._collection_resource: Optional["CollectionResourceAsyncio"] = None
+        self._collection_resource: "CollectionResourceAsyncio" | None = None
         """ :meta private: """
 
-        self._restore_job_resource: Optional["RestoreJobResourceAsyncio"] = None
+        self._restore_job_resource: "RestoreJobResourceAsyncio" | None = None
         """ :meta private: """
 
-        self._backup_resource: Optional["BackupResourceAsyncio"] = None
+        self._backup_resource: "BackupResourceAsyncio" | None = None
         """ :meta private: """
 
     @property

@@ -5,9 +5,14 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Dict, cast
+from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
 from pinecone.openapi_support.endpoint_utils import (
@@ -59,20 +64,25 @@ class ManageIndexesApi:
         self.api_client = api_client
 
         def __configure_index(
-            self, index_name, configure_index_request, **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+            self,
+            index_name,
+            configure_index_request,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ) -> IndexModel | ApplyResult[IndexModel]:
             """Configure an index  # noqa: E501
 
             Configure an existing index. For serverless indexes, you can configure index deletion protection, tags, and integrated inference embedding settings for the index. For pod-based indexes, you can configure the pod size, number of replicas, tags, and index deletion protection.  It is not possible to change the pod type of a pod-based index. However, you can create a collection from a pod-based index and then [create a new pod-based index with a different pod type](http://docs.pinecone.io/guides/indexes/pods/create-a-pod-based-index#create-a-pod-index-from-a-collection) from the collection. For guidance and examples, see [Configure an index](http://docs.pinecone.io/guides/indexes/pods/manage-pod-based-indexes).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.configure_index(index_name, configure_index_request, async_req=True)
+            >>> thread = api.configure_index(index_name, configure_index_request, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 index_name (str): The name of the index to configure.
                 configure_index_request (ConfigureIndexRequest): The desired pod size and replica configuration for the index.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -98,9 +108,10 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
             kwargs["configure_index_request"] = configure_index_request
-            return self.call_with_http_info(**kwargs)
+            return cast(IndexModel | ApplyResult[IndexModel], self.call_with_http_info(**kwargs))
 
         self.configure_index = _Endpoint(
             settings={
@@ -112,8 +123,8 @@ class ManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["index_name", "configure_index_request"],
-                "required": ["index_name", "configure_index_request"],
+                "all": ["x_pinecone_api_version", "index_name", "configure_index_request"],
+                "required": ["x_pinecone_api_version", "index_name", "configure_index_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -122,11 +133,19 @@ class ManageIndexesApi:
                 "validations": {},
                 "allowed_values": {},
                 "openapi_types": {
+                    "x_pinecone_api_version": (str,),
                     "index_name": (str,),
                     "configure_index_request": (ConfigureIndexRequest,),
                 },
-                "attribute_map": {"index_name": "index_name"},
-                "location_map": {"index_name": "path", "configure_index_request": "body"},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "index_name": "index_name",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "index_name": "path",
+                    "configure_index_request": "body",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -135,20 +154,25 @@ class ManageIndexesApi:
         )
 
         def __create_backup(
-            self, index_name, create_backup_request, **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+            self,
+            index_name,
+            create_backup_request,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ) -> BackupModel | ApplyResult[BackupModel]:
             """Create a backup of an index  # noqa: E501
 
             Create a backup of an index.   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.create_backup(index_name, create_backup_request, async_req=True)
+            >>> thread = api.create_backup(index_name, create_backup_request, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 index_name (str): Name of the index to backup
                 create_backup_request (CreateBackupRequest): The desired configuration for the backup.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -174,9 +198,10 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
             kwargs["create_backup_request"] = create_backup_request
-            return self.call_with_http_info(**kwargs)
+            return cast(BackupModel | ApplyResult[BackupModel], self.call_with_http_info(**kwargs))
 
         self.create_backup = _Endpoint(
             settings={
@@ -188,8 +213,8 @@ class ManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["index_name", "create_backup_request"],
-                "required": ["index_name", "create_backup_request"],
+                "all": ["x_pinecone_api_version", "index_name", "create_backup_request"],
+                "required": ["x_pinecone_api_version", "index_name", "create_backup_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -198,11 +223,19 @@ class ManageIndexesApi:
                 "validations": {},
                 "allowed_values": {},
                 "openapi_types": {
+                    "x_pinecone_api_version": (str,),
                     "index_name": (str,),
                     "create_backup_request": (CreateBackupRequest,),
                 },
-                "attribute_map": {"index_name": "index_name"},
-                "location_map": {"index_name": "path", "create_backup_request": "body"},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "index_name": "index_name",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "index_name": "path",
+                    "create_backup_request": "body",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -211,19 +244,23 @@ class ManageIndexesApi:
         )
 
         def __create_collection(
-            self, create_collection_request, **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+            self,
+            create_collection_request,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ) -> CollectionModel | ApplyResult[CollectionModel]:
             """Create a collection  # noqa: E501
 
             Create a Pinecone collection.    Serverless indexes do not support collections.   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.create_collection(create_collection_request, async_req=True)
+            >>> thread = api.create_collection(create_collection_request, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 create_collection_request (CreateCollectionRequest): The desired configuration for the collection.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -249,8 +286,11 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_collection_request"] = create_collection_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                CollectionModel | ApplyResult[CollectionModel], self.call_with_http_info(**kwargs)
+            )
 
         self.create_collection = _Endpoint(
             settings={
@@ -262,8 +302,8 @@ class ManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["create_collection_request"],
-                "required": ["create_collection_request"],
+                "all": ["x_pinecone_api_version", "create_collection_request"],
+                "required": ["x_pinecone_api_version", "create_collection_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -271,9 +311,15 @@ class ManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"create_collection_request": (CreateCollectionRequest,)},
-                "attribute_map": {},
-                "location_map": {"create_collection_request": "body"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "create_collection_request": (CreateCollectionRequest,),
+                },
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "create_collection_request": "body",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -281,18 +327,24 @@ class ManageIndexesApi:
             callable=__create_collection,
         )
 
-        def __create_index(self, create_index_request, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __create_index(
+            self,
+            create_index_request,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ) -> IndexModel | ApplyResult[IndexModel]:
             """Create an index  # noqa: E501
 
             Create a Pinecone index. This is where you specify the measure of similarity, the dimension of vectors to be stored in the index, which cloud provider you would like to deploy with, and more.    For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index).   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.create_index(create_index_request, async_req=True)
+            >>> thread = api.create_index(create_index_request, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 create_index_request (CreateIndexRequest): The desired configuration for the index.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -318,8 +370,9 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_index_request"] = create_index_request
-            return self.call_with_http_info(**kwargs)
+            return cast(IndexModel | ApplyResult[IndexModel], self.call_with_http_info(**kwargs))
 
         self.create_index = _Endpoint(
             settings={
@@ -331,8 +384,8 @@ class ManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["create_index_request"],
-                "required": ["create_index_request"],
+                "all": ["x_pinecone_api_version", "create_index_request"],
+                "required": ["x_pinecone_api_version", "create_index_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -340,9 +393,15 @@ class ManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"create_index_request": (CreateIndexRequest,)},
-                "attribute_map": {},
-                "location_map": {"create_index_request": "body"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "create_index_request": (CreateIndexRequest,),
+                },
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "create_index_request": "body",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -351,19 +410,23 @@ class ManageIndexesApi:
         )
 
         def __create_index_for_model(
-            self, create_index_for_model_request, **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+            self,
+            create_index_for_model_request,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ) -> IndexModel | ApplyResult[IndexModel]:
             """Create an index with integrated embedding  # noqa: E501
 
-            Create an index with integrated embedding.  With this type of index, you provide source text, and Pinecone uses a [hosted embedding model](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models) to convert the text automatically during [upsert](https://docs.pinecone.io/reference/api/2025-01/data-plane/upsert_records) and [search](https://docs.pinecone.io/reference/api/2025-01/data-plane/search_records).  For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index#integrated-embedding).  # noqa: E501
+            Create an index with integrated embedding. With this type of index, you provide source text, and  Pinecone uses a [hosted embedding model](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models)  to convert the text automatically during [upsert](https://docs.pinecone.io/reference/api/2025-10/data-plane/upsert_records)  and [search](https://docs.pinecone.io/reference/api/2025-10/data-plane/search_records).   For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index#integrated-embedding).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.create_index_for_model(create_index_for_model_request, async_req=True)
+            >>> thread = api.create_index_for_model(create_index_for_model_request, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 create_index_for_model_request (CreateIndexForModelRequest): The desired configuration for the index and associated embedding model.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -389,8 +452,9 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_index_for_model_request"] = create_index_for_model_request
-            return self.call_with_http_info(**kwargs)
+            return cast(IndexModel | ApplyResult[IndexModel], self.call_with_http_info(**kwargs))
 
         self.create_index_for_model = _Endpoint(
             settings={
@@ -402,8 +466,8 @@ class ManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["create_index_for_model_request"],
-                "required": ["create_index_for_model_request"],
+                "all": ["x_pinecone_api_version", "create_index_for_model_request"],
+                "required": ["x_pinecone_api_version", "create_index_for_model_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -411,9 +475,15 @@ class ManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"create_index_for_model_request": (CreateIndexForModelRequest,)},
-                "attribute_map": {},
-                "location_map": {"create_index_for_model_request": "body"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "create_index_for_model_request": (CreateIndexForModelRequest,),
+                },
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "create_index_for_model_request": "body",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -422,20 +492,25 @@ class ManageIndexesApi:
         )
 
         def __create_index_from_backup_operation(
-            self, backup_id, create_index_from_backup_request, **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+            self,
+            backup_id,
+            create_index_from_backup_request,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ) -> CreateIndexFromBackupResponse | ApplyResult[CreateIndexFromBackupResponse]:
             """Create an index from a backup  # noqa: E501
 
             Create an index from a backup.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.create_index_from_backup_operation(backup_id, create_index_from_backup_request, async_req=True)
+            >>> thread = api.create_index_from_backup_operation(backup_id, create_index_from_backup_request, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 backup_id (str): The ID of the backup to create an index from.
                 create_index_from_backup_request (CreateIndexFromBackupRequest): The desired configuration for the index created from a backup.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -461,9 +536,13 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
             kwargs["create_index_from_backup_request"] = create_index_from_backup_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                CreateIndexFromBackupResponse | ApplyResult[CreateIndexFromBackupResponse],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.create_index_from_backup_operation = _Endpoint(
             settings={
@@ -475,8 +554,12 @@ class ManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["backup_id", "create_index_from_backup_request"],
-                "required": ["backup_id", "create_index_from_backup_request"],
+                "all": ["x_pinecone_api_version", "backup_id", "create_index_from_backup_request"],
+                "required": [
+                    "x_pinecone_api_version",
+                    "backup_id",
+                    "create_index_from_backup_request",
+                ],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -485,11 +568,19 @@ class ManageIndexesApi:
                 "validations": {},
                 "allowed_values": {},
                 "openapi_types": {
+                    "x_pinecone_api_version": (str,),
                     "backup_id": (str,),
                     "create_index_from_backup_request": (CreateIndexFromBackupRequest,),
                 },
-                "attribute_map": {"backup_id": "backup_id"},
-                "location_map": {"backup_id": "path", "create_index_from_backup_request": "body"},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "backup_id": "backup_id",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "backup_id": "path",
+                    "create_index_from_backup_request": "body",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -497,18 +588,21 @@ class ManageIndexesApi:
             callable=__create_index_from_backup_operation,
         )
 
-        def __delete_backup(self, backup_id, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __delete_backup(
+            self, backup_id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> None:
             """Delete a backup  # noqa: E501
 
             Delete a backup.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.delete_backup(backup_id, async_req=True)
+            >>> thread = api.delete_backup(backup_id, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 backup_id (str): The ID of the backup to delete.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -534,8 +628,9 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
-            return self.call_with_http_info(**kwargs)
+            return cast(None, self.call_with_http_info(**kwargs))
 
         self.delete_backup = _Endpoint(
             settings={
@@ -547,8 +642,8 @@ class ManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["backup_id"],
-                "required": ["backup_id"],
+                "all": ["x_pinecone_api_version", "backup_id"],
+                "required": ["x_pinecone_api_version", "backup_id"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -556,9 +651,12 @@ class ManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"backup_id": (str,)},
-                "attribute_map": {"backup_id": "backup_id"},
-                "location_map": {"backup_id": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "backup_id": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "backup_id": "backup_id",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "backup_id": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -566,18 +664,24 @@ class ManageIndexesApi:
             callable=__delete_backup,
         )
 
-        def __delete_collection(self, collection_name, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __delete_collection(
+            self,
+            collection_name,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ) -> None:
             """Delete a collection  # noqa: E501
 
             Delete an existing collection. Serverless indexes do not support collections.   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.delete_collection(collection_name, async_req=True)
+            >>> thread = api.delete_collection(collection_name, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 collection_name (str): The name of the collection.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -603,8 +707,9 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["collection_name"] = collection_name
-            return self.call_with_http_info(**kwargs)
+            return cast(None, self.call_with_http_info(**kwargs))
 
         self.delete_collection = _Endpoint(
             settings={
@@ -616,8 +721,8 @@ class ManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["collection_name"],
-                "required": ["collection_name"],
+                "all": ["x_pinecone_api_version", "collection_name"],
+                "required": ["x_pinecone_api_version", "collection_name"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -625,9 +730,12 @@ class ManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"collection_name": (str,)},
-                "attribute_map": {"collection_name": "collection_name"},
-                "location_map": {"collection_name": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "collection_name": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "collection_name": "collection_name",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "collection_name": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -635,18 +743,24 @@ class ManageIndexesApi:
             callable=__delete_collection,
         )
 
-        def __delete_index(self, index_name, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __delete_index(
+            self,
+            index_name,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ) -> None:
             """Delete an index  # noqa: E501
 
             Delete an existing index.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.delete_index(index_name, async_req=True)
+            >>> thread = api.delete_index(index_name, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 index_name (str): The name of the index to delete.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -672,8 +786,9 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return self.call_with_http_info(**kwargs)
+            return cast(None, self.call_with_http_info(**kwargs))
 
         self.delete_index = _Endpoint(
             settings={
@@ -685,8 +800,8 @@ class ManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["index_name"],
-                "required": ["index_name"],
+                "all": ["x_pinecone_api_version", "index_name"],
+                "required": ["x_pinecone_api_version", "index_name"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -694,9 +809,12 @@ class ManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"index_name": (str,)},
-                "attribute_map": {"index_name": "index_name"},
-                "location_map": {"index_name": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "index_name": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "index_name": "index_name",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "index_name": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -704,18 +822,21 @@ class ManageIndexesApi:
             callable=__delete_index,
         )
 
-        def __describe_backup(self, backup_id, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __describe_backup(
+            self, backup_id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> BackupModel | ApplyResult[BackupModel]:
             """Describe a backup  # noqa: E501
 
             Get a description of a backup.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.describe_backup(backup_id, async_req=True)
+            >>> thread = api.describe_backup(backup_id, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 backup_id (str): The ID of the backup to describe.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -741,8 +862,9 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
-            return self.call_with_http_info(**kwargs)
+            return cast(BackupModel | ApplyResult[BackupModel], self.call_with_http_info(**kwargs))
 
         self.describe_backup = _Endpoint(
             settings={
@@ -754,8 +876,8 @@ class ManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["backup_id"],
-                "required": ["backup_id"],
+                "all": ["x_pinecone_api_version", "backup_id"],
+                "required": ["x_pinecone_api_version", "backup_id"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -763,9 +885,12 @@ class ManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"backup_id": (str,)},
-                "attribute_map": {"backup_id": "backup_id"},
-                "location_map": {"backup_id": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "backup_id": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "backup_id": "backup_id",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "backup_id": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -773,18 +898,24 @@ class ManageIndexesApi:
             callable=__describe_backup,
         )
 
-        def __describe_collection(self, collection_name, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __describe_collection(
+            self,
+            collection_name,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ) -> CollectionModel | ApplyResult[CollectionModel]:
             """Describe a collection  # noqa: E501
 
             Get a description of a collection. Serverless indexes do not support collections.   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.describe_collection(collection_name, async_req=True)
+            >>> thread = api.describe_collection(collection_name, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 collection_name (str): The name of the collection to be described.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -810,8 +941,11 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["collection_name"] = collection_name
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                CollectionModel | ApplyResult[CollectionModel], self.call_with_http_info(**kwargs)
+            )
 
         self.describe_collection = _Endpoint(
             settings={
@@ -823,8 +957,8 @@ class ManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["collection_name"],
-                "required": ["collection_name"],
+                "all": ["x_pinecone_api_version", "collection_name"],
+                "required": ["x_pinecone_api_version", "collection_name"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -832,9 +966,12 @@ class ManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"collection_name": (str,)},
-                "attribute_map": {"collection_name": "collection_name"},
-                "location_map": {"collection_name": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "collection_name": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "collection_name": "collection_name",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "collection_name": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -842,18 +979,24 @@ class ManageIndexesApi:
             callable=__describe_collection,
         )
 
-        def __describe_index(self, index_name, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __describe_index(
+            self,
+            index_name,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ) -> IndexModel | ApplyResult[IndexModel]:
             """Describe an index  # noqa: E501
 
             Get a description of an index.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.describe_index(index_name, async_req=True)
+            >>> thread = api.describe_index(index_name, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 index_name (str): The name of the index to be described.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -879,8 +1022,9 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return self.call_with_http_info(**kwargs)
+            return cast(IndexModel | ApplyResult[IndexModel], self.call_with_http_info(**kwargs))
 
         self.describe_index = _Endpoint(
             settings={
@@ -892,8 +1036,8 @@ class ManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["index_name"],
-                "required": ["index_name"],
+                "all": ["x_pinecone_api_version", "index_name"],
+                "required": ["x_pinecone_api_version", "index_name"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -901,9 +1045,12 @@ class ManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"index_name": (str,)},
-                "attribute_map": {"index_name": "index_name"},
-                "location_map": {"index_name": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "index_name": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "index_name": "index_name",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "index_name": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -911,18 +1058,21 @@ class ManageIndexesApi:
             callable=__describe_index,
         )
 
-        def __describe_restore_job(self, job_id, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __describe_restore_job(
+            self, job_id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> RestoreJobModel | ApplyResult[RestoreJobModel]:
             """Describe a restore job  # noqa: E501
 
             Get a description of a restore job.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.describe_restore_job(job_id, async_req=True)
+            >>> thread = api.describe_restore_job(job_id, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 job_id (str): The ID of the restore job to describe.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -948,8 +1098,11 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["job_id"] = job_id
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                RestoreJobModel | ApplyResult[RestoreJobModel], self.call_with_http_info(**kwargs)
+            )
 
         self.describe_restore_job = _Endpoint(
             settings={
@@ -961,8 +1114,8 @@ class ManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["job_id"],
-                "required": ["job_id"],
+                "all": ["x_pinecone_api_version", "job_id"],
+                "required": ["x_pinecone_api_version", "job_id"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -970,9 +1123,12 @@ class ManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"job_id": (str,)},
-                "attribute_map": {"job_id": "job_id"},
-                "location_map": {"job_id": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "job_id": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "job_id": "job_id",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "job_id": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -980,16 +1136,20 @@ class ManageIndexesApi:
             callable=__describe_restore_job,
         )
 
-        def __list_collections(self, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __list_collections(
+            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> CollectionList | ApplyResult[CollectionList]:
             """List collections  # noqa: E501
 
             List all collections in a project. Serverless indexes do not support collections.   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_collections(async_req=True)
+            >>> thread = api.list_collections(x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
+            Args:
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1015,7 +1175,10 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            return self.call_with_http_info(**kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            return cast(
+                CollectionList | ApplyResult[CollectionList], self.call_with_http_info(**kwargs)
+            )
 
         self.list_collections = _Endpoint(
             settings={
@@ -1026,13 +1189,19 @@ class ManageIndexesApi:
                 "http_method": "GET",
                 "servers": None,
             },
-            params_map={"all": [], "required": [], "nullable": [], "enum": [], "validation": []},
+            params_map={
+                "all": ["x_pinecone_api_version"],
+                "required": ["x_pinecone_api_version"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {},
-                "attribute_map": {},
-                "location_map": {},
+                "openapi_types": {"x_pinecone_api_version": (str,)},
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -1040,18 +1209,24 @@ class ManageIndexesApi:
             callable=__list_collections,
         )
 
-        def __list_index_backups(self, index_name, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __list_index_backups(
+            self,
+            index_name,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ) -> BackupList | ApplyResult[BackupList]:
             """List backups for an index  # noqa: E501
 
             List all backups for an index.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_index_backups(index_name, async_req=True)
+            >>> thread = api.list_index_backups(index_name, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 index_name (str): Name of the backed up index
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 limit (int): The number of results to return per page. [optional] if omitted the server will use the default value of 10.
@@ -1079,8 +1254,9 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return self.call_with_http_info(**kwargs)
+            return cast(BackupList | ApplyResult[BackupList], self.call_with_http_info(**kwargs))
 
         self.list_index_backups = _Endpoint(
             settings={
@@ -1092,8 +1268,8 @@ class ManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["index_name", "limit", "pagination_token"],
-                "required": ["index_name"],
+                "all": ["x_pinecone_api_version", "index_name", "limit", "pagination_token"],
+                "required": ["x_pinecone_api_version", "index_name"],
                 "nullable": [],
                 "enum": [],
                 "validation": ["limit"],
@@ -1102,16 +1278,19 @@ class ManageIndexesApi:
                 "validations": {("limit",): {"inclusive_maximum": 100, "inclusive_minimum": 1}},
                 "allowed_values": {},
                 "openapi_types": {
+                    "x_pinecone_api_version": (str,),
                     "index_name": (str,),
                     "limit": (int,),
                     "pagination_token": (str,),
                 },
                 "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
                     "index_name": "index_name",
                     "limit": "limit",
                     "pagination_token": "paginationToken",
                 },
                 "location_map": {
+                    "x_pinecone_api_version": "header",
                     "index_name": "path",
                     "limit": "query",
                     "pagination_token": "query",
@@ -1123,16 +1302,20 @@ class ManageIndexesApi:
             callable=__list_index_backups,
         )
 
-        def __list_indexes(self, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __list_indexes(
+            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> IndexList | ApplyResult[IndexList]:
             """List indexes  # noqa: E501
 
             List all indexes in a project.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_indexes(async_req=True)
+            >>> thread = api.list_indexes(x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
+            Args:
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1158,7 +1341,8 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            return self.call_with_http_info(**kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            return cast(IndexList | ApplyResult[IndexList], self.call_with_http_info(**kwargs))
 
         self.list_indexes = _Endpoint(
             settings={
@@ -1169,13 +1353,19 @@ class ManageIndexesApi:
                 "http_method": "GET",
                 "servers": None,
             },
-            params_map={"all": [], "required": [], "nullable": [], "enum": [], "validation": []},
+            params_map={
+                "all": ["x_pinecone_api_version"],
+                "required": ["x_pinecone_api_version"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {},
-                "attribute_map": {},
-                "location_map": {},
+                "openapi_types": {"x_pinecone_api_version": (str,)},
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -1183,16 +1373,20 @@ class ManageIndexesApi:
             callable=__list_indexes,
         )
 
-        def __list_project_backups(self, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __list_project_backups(
+            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> BackupList | ApplyResult[BackupList]:
             """List backups for all indexes in a project  # noqa: E501
 
             List all backups for a project.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_project_backups(async_req=True)
+            >>> thread = api.list_project_backups(x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
+            Args:
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 limit (int): The number of results to return per page. [optional] if omitted the server will use the default value of 10.
@@ -1220,7 +1414,8 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            return self.call_with_http_info(**kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            return cast(BackupList | ApplyResult[BackupList], self.call_with_http_info(**kwargs))
 
         self.list_project_backups = _Endpoint(
             settings={
@@ -1232,8 +1427,8 @@ class ManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["limit", "pagination_token"],
-                "required": [],
+                "all": ["x_pinecone_api_version", "limit", "pagination_token"],
+                "required": ["x_pinecone_api_version"],
                 "nullable": [],
                 "enum": [],
                 "validation": ["limit"],
@@ -1241,9 +1436,21 @@ class ManageIndexesApi:
             root_map={
                 "validations": {("limit",): {"inclusive_maximum": 100, "inclusive_minimum": 1}},
                 "allowed_values": {},
-                "openapi_types": {"limit": (int,), "pagination_token": (str,)},
-                "attribute_map": {"limit": "limit", "pagination_token": "paginationToken"},
-                "location_map": {"limit": "query", "pagination_token": "query"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "limit": (int,),
+                    "pagination_token": (str,),
+                },
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "limit": "limit",
+                    "pagination_token": "paginationToken",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "limit": "query",
+                    "pagination_token": "query",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -1251,16 +1458,20 @@ class ManageIndexesApi:
             callable=__list_project_backups,
         )
 
-        def __list_restore_jobs(self, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __list_restore_jobs(
+            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> RestoreJobList | ApplyResult[RestoreJobList]:
             """List restore jobs  # noqa: E501
 
             List all restore jobs for a project.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_restore_jobs(async_req=True)
+            >>> thread = api.list_restore_jobs(x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
+            Args:
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 limit (int): The number of results to return per page. [optional] if omitted the server will use the default value of 10.
@@ -1288,7 +1499,10 @@ class ManageIndexesApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            return self.call_with_http_info(**kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            return cast(
+                RestoreJobList | ApplyResult[RestoreJobList], self.call_with_http_info(**kwargs)
+            )
 
         self.list_restore_jobs = _Endpoint(
             settings={
@@ -1300,8 +1514,8 @@ class ManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["limit", "pagination_token"],
-                "required": [],
+                "all": ["x_pinecone_api_version", "limit", "pagination_token"],
+                "required": ["x_pinecone_api_version"],
                 "nullable": [],
                 "enum": [],
                 "validation": ["limit"],
@@ -1309,9 +1523,21 @@ class ManageIndexesApi:
             root_map={
                 "validations": {("limit",): {"inclusive_maximum": 100, "inclusive_minimum": 1}},
                 "allowed_values": {},
-                "openapi_types": {"limit": (int,), "pagination_token": (str,)},
-                "attribute_map": {"limit": "limit", "pagination_token": "paginationToken"},
-                "location_map": {"limit": "query", "pagination_token": "query"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "limit": (int,),
+                    "pagination_token": (str,),
+                },
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "limit": "limit",
+                    "pagination_token": "paginationToken",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "limit": "query",
+                    "pagination_token": "query",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -1331,7 +1557,9 @@ class AsyncioManageIndexesApi:
             api_client = AsyncioApiClient()
         self.api_client = api_client
 
-        async def __configure_index(self, index_name, configure_index_request, **kwargs):
+        async def __configure_index(
+            self, index_name, configure_index_request, x_pinecone_api_version="2025-10", **kwargs
+        ) -> IndexModel:
             """Configure an index  # noqa: E501
 
             Configure an existing index. For serverless indexes, you can configure index deletion protection, tags, and integrated inference embedding settings for the index. For pod-based indexes, you can configure the pod size, number of replicas, tags, and index deletion protection.  It is not possible to change the pod type of a pod-based index. However, you can create a collection from a pod-based index and then [create a new pod-based index with a different pod type](http://docs.pinecone.io/guides/indexes/pods/create-a-pod-based-index#create-a-pod-index-from-a-collection) from the collection. For guidance and examples, see [Configure an index](http://docs.pinecone.io/guides/indexes/pods/manage-pod-based-indexes).  # noqa: E501
@@ -1340,6 +1568,7 @@ class AsyncioManageIndexesApi:
             Args:
                 index_name (str): The name of the index to configure.
                 configure_index_request (ConfigureIndexRequest): The desired pod size and replica configuration for the index.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1362,9 +1591,10 @@ class AsyncioManageIndexesApi:
                 IndexModel
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
             kwargs["configure_index_request"] = configure_index_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(IndexModel, await self.call_with_http_info(**kwargs))
 
         self.configure_index = _AsyncioEndpoint(
             settings={
@@ -1376,8 +1606,8 @@ class AsyncioManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["index_name", "configure_index_request"],
-                "required": ["index_name", "configure_index_request"],
+                "all": ["x_pinecone_api_version", "index_name", "configure_index_request"],
+                "required": ["x_pinecone_api_version", "index_name", "configure_index_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -1386,11 +1616,19 @@ class AsyncioManageIndexesApi:
                 "validations": {},
                 "allowed_values": {},
                 "openapi_types": {
+                    "x_pinecone_api_version": (str,),
                     "index_name": (str,),
                     "configure_index_request": (ConfigureIndexRequest,),
                 },
-                "attribute_map": {"index_name": "index_name"},
-                "location_map": {"index_name": "path", "configure_index_request": "body"},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "index_name": "index_name",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "index_name": "path",
+                    "configure_index_request": "body",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -1398,7 +1636,9 @@ class AsyncioManageIndexesApi:
             callable=__configure_index,
         )
 
-        async def __create_backup(self, index_name, create_backup_request, **kwargs):
+        async def __create_backup(
+            self, index_name, create_backup_request, x_pinecone_api_version="2025-10", **kwargs
+        ) -> BackupModel:
             """Create a backup of an index  # noqa: E501
 
             Create a backup of an index.   # noqa: E501
@@ -1407,6 +1647,7 @@ class AsyncioManageIndexesApi:
             Args:
                 index_name (str): Name of the index to backup
                 create_backup_request (CreateBackupRequest): The desired configuration for the backup.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1429,9 +1670,10 @@ class AsyncioManageIndexesApi:
                 BackupModel
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
             kwargs["create_backup_request"] = create_backup_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(BackupModel, await self.call_with_http_info(**kwargs))
 
         self.create_backup = _AsyncioEndpoint(
             settings={
@@ -1443,8 +1685,8 @@ class AsyncioManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["index_name", "create_backup_request"],
-                "required": ["index_name", "create_backup_request"],
+                "all": ["x_pinecone_api_version", "index_name", "create_backup_request"],
+                "required": ["x_pinecone_api_version", "index_name", "create_backup_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -1453,11 +1695,19 @@ class AsyncioManageIndexesApi:
                 "validations": {},
                 "allowed_values": {},
                 "openapi_types": {
+                    "x_pinecone_api_version": (str,),
                     "index_name": (str,),
                     "create_backup_request": (CreateBackupRequest,),
                 },
-                "attribute_map": {"index_name": "index_name"},
-                "location_map": {"index_name": "path", "create_backup_request": "body"},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "index_name": "index_name",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "index_name": "path",
+                    "create_backup_request": "body",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -1465,7 +1715,9 @@ class AsyncioManageIndexesApi:
             callable=__create_backup,
         )
 
-        async def __create_collection(self, create_collection_request, **kwargs):
+        async def __create_collection(
+            self, create_collection_request, x_pinecone_api_version="2025-10", **kwargs
+        ) -> CollectionModel:
             """Create a collection  # noqa: E501
 
             Create a Pinecone collection.    Serverless indexes do not support collections.   # noqa: E501
@@ -1473,6 +1725,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 create_collection_request (CreateCollectionRequest): The desired configuration for the collection.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1495,8 +1748,9 @@ class AsyncioManageIndexesApi:
                 CollectionModel
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_collection_request"] = create_collection_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(CollectionModel, await self.call_with_http_info(**kwargs))
 
         self.create_collection = _AsyncioEndpoint(
             settings={
@@ -1508,8 +1762,8 @@ class AsyncioManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["create_collection_request"],
-                "required": ["create_collection_request"],
+                "all": ["x_pinecone_api_version", "create_collection_request"],
+                "required": ["x_pinecone_api_version", "create_collection_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -1517,9 +1771,15 @@ class AsyncioManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"create_collection_request": (CreateCollectionRequest,)},
-                "attribute_map": {},
-                "location_map": {"create_collection_request": "body"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "create_collection_request": (CreateCollectionRequest,),
+                },
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "create_collection_request": "body",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -1527,7 +1787,9 @@ class AsyncioManageIndexesApi:
             callable=__create_collection,
         )
 
-        async def __create_index(self, create_index_request, **kwargs):
+        async def __create_index(
+            self, create_index_request, x_pinecone_api_version="2025-10", **kwargs
+        ) -> IndexModel:
             """Create an index  # noqa: E501
 
             Create a Pinecone index. This is where you specify the measure of similarity, the dimension of vectors to be stored in the index, which cloud provider you would like to deploy with, and more.    For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index).   # noqa: E501
@@ -1535,6 +1797,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 create_index_request (CreateIndexRequest): The desired configuration for the index.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1557,8 +1820,9 @@ class AsyncioManageIndexesApi:
                 IndexModel
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_index_request"] = create_index_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(IndexModel, await self.call_with_http_info(**kwargs))
 
         self.create_index = _AsyncioEndpoint(
             settings={
@@ -1570,8 +1834,8 @@ class AsyncioManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["create_index_request"],
-                "required": ["create_index_request"],
+                "all": ["x_pinecone_api_version", "create_index_request"],
+                "required": ["x_pinecone_api_version", "create_index_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -1579,9 +1843,15 @@ class AsyncioManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"create_index_request": (CreateIndexRequest,)},
-                "attribute_map": {},
-                "location_map": {"create_index_request": "body"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "create_index_request": (CreateIndexRequest,),
+                },
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "create_index_request": "body",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -1589,14 +1859,17 @@ class AsyncioManageIndexesApi:
             callable=__create_index,
         )
 
-        async def __create_index_for_model(self, create_index_for_model_request, **kwargs):
+        async def __create_index_for_model(
+            self, create_index_for_model_request, x_pinecone_api_version="2025-10", **kwargs
+        ) -> IndexModel:
             """Create an index with integrated embedding  # noqa: E501
 
-            Create an index with integrated embedding.  With this type of index, you provide source text, and Pinecone uses a [hosted embedding model](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models) to convert the text automatically during [upsert](https://docs.pinecone.io/reference/api/2025-01/data-plane/upsert_records) and [search](https://docs.pinecone.io/reference/api/2025-01/data-plane/search_records).  For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index#integrated-embedding).  # noqa: E501
+            Create an index with integrated embedding. With this type of index, you provide source text, and  Pinecone uses a [hosted embedding model](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models)  to convert the text automatically during [upsert](https://docs.pinecone.io/reference/api/2025-10/data-plane/upsert_records)  and [search](https://docs.pinecone.io/reference/api/2025-10/data-plane/search_records).   For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index#integrated-embedding).  # noqa: E501
 
 
             Args:
                 create_index_for_model_request (CreateIndexForModelRequest): The desired configuration for the index and associated embedding model.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1619,8 +1892,9 @@ class AsyncioManageIndexesApi:
                 IndexModel
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_index_for_model_request"] = create_index_for_model_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(IndexModel, await self.call_with_http_info(**kwargs))
 
         self.create_index_for_model = _AsyncioEndpoint(
             settings={
@@ -1632,8 +1906,8 @@ class AsyncioManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["create_index_for_model_request"],
-                "required": ["create_index_for_model_request"],
+                "all": ["x_pinecone_api_version", "create_index_for_model_request"],
+                "required": ["x_pinecone_api_version", "create_index_for_model_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -1641,9 +1915,15 @@ class AsyncioManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"create_index_for_model_request": (CreateIndexForModelRequest,)},
-                "attribute_map": {},
-                "location_map": {"create_index_for_model_request": "body"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "create_index_for_model_request": (CreateIndexForModelRequest,),
+                },
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "create_index_for_model_request": "body",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -1652,8 +1932,12 @@ class AsyncioManageIndexesApi:
         )
 
         async def __create_index_from_backup_operation(
-            self, backup_id, create_index_from_backup_request, **kwargs
-        ):
+            self,
+            backup_id,
+            create_index_from_backup_request,
+            x_pinecone_api_version="2025-10",
+            **kwargs,
+        ) -> CreateIndexFromBackupResponse:
             """Create an index from a backup  # noqa: E501
 
             Create an index from a backup.  # noqa: E501
@@ -1662,6 +1946,7 @@ class AsyncioManageIndexesApi:
             Args:
                 backup_id (str): The ID of the backup to create an index from.
                 create_index_from_backup_request (CreateIndexFromBackupRequest): The desired configuration for the index created from a backup.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1684,9 +1969,10 @@ class AsyncioManageIndexesApi:
                 CreateIndexFromBackupResponse
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
             kwargs["create_index_from_backup_request"] = create_index_from_backup_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(CreateIndexFromBackupResponse, await self.call_with_http_info(**kwargs))
 
         self.create_index_from_backup_operation = _AsyncioEndpoint(
             settings={
@@ -1698,8 +1984,12 @@ class AsyncioManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["backup_id", "create_index_from_backup_request"],
-                "required": ["backup_id", "create_index_from_backup_request"],
+                "all": ["x_pinecone_api_version", "backup_id", "create_index_from_backup_request"],
+                "required": [
+                    "x_pinecone_api_version",
+                    "backup_id",
+                    "create_index_from_backup_request",
+                ],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -1708,11 +1998,19 @@ class AsyncioManageIndexesApi:
                 "validations": {},
                 "allowed_values": {},
                 "openapi_types": {
+                    "x_pinecone_api_version": (str,),
                     "backup_id": (str,),
                     "create_index_from_backup_request": (CreateIndexFromBackupRequest,),
                 },
-                "attribute_map": {"backup_id": "backup_id"},
-                "location_map": {"backup_id": "path", "create_index_from_backup_request": "body"},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "backup_id": "backup_id",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "backup_id": "path",
+                    "create_index_from_backup_request": "body",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -1720,7 +2018,9 @@ class AsyncioManageIndexesApi:
             callable=__create_index_from_backup_operation,
         )
 
-        async def __delete_backup(self, backup_id, **kwargs):
+        async def __delete_backup(
+            self, backup_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> None:
             """Delete a backup  # noqa: E501
 
             Delete a backup.  # noqa: E501
@@ -1728,6 +2028,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 backup_id (str): The ID of the backup to delete.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1750,8 +2051,9 @@ class AsyncioManageIndexesApi:
                 None
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(None, await self.call_with_http_info(**kwargs))
 
         self.delete_backup = _AsyncioEndpoint(
             settings={
@@ -1763,8 +2065,8 @@ class AsyncioManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["backup_id"],
-                "required": ["backup_id"],
+                "all": ["x_pinecone_api_version", "backup_id"],
+                "required": ["x_pinecone_api_version", "backup_id"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -1772,9 +2074,12 @@ class AsyncioManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"backup_id": (str,)},
-                "attribute_map": {"backup_id": "backup_id"},
-                "location_map": {"backup_id": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "backup_id": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "backup_id": "backup_id",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "backup_id": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -1782,7 +2087,9 @@ class AsyncioManageIndexesApi:
             callable=__delete_backup,
         )
 
-        async def __delete_collection(self, collection_name, **kwargs):
+        async def __delete_collection(
+            self, collection_name, x_pinecone_api_version="2025-10", **kwargs
+        ) -> None:
             """Delete a collection  # noqa: E501
 
             Delete an existing collection. Serverless indexes do not support collections.   # noqa: E501
@@ -1790,6 +2097,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 collection_name (str): The name of the collection.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1812,8 +2120,9 @@ class AsyncioManageIndexesApi:
                 None
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["collection_name"] = collection_name
-            return await self.call_with_http_info(**kwargs)
+            return cast(None, await self.call_with_http_info(**kwargs))
 
         self.delete_collection = _AsyncioEndpoint(
             settings={
@@ -1825,8 +2134,8 @@ class AsyncioManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["collection_name"],
-                "required": ["collection_name"],
+                "all": ["x_pinecone_api_version", "collection_name"],
+                "required": ["x_pinecone_api_version", "collection_name"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -1834,9 +2143,12 @@ class AsyncioManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"collection_name": (str,)},
-                "attribute_map": {"collection_name": "collection_name"},
-                "location_map": {"collection_name": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "collection_name": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "collection_name": "collection_name",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "collection_name": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -1844,7 +2156,9 @@ class AsyncioManageIndexesApi:
             callable=__delete_collection,
         )
 
-        async def __delete_index(self, index_name, **kwargs):
+        async def __delete_index(
+            self, index_name, x_pinecone_api_version="2025-10", **kwargs
+        ) -> None:
             """Delete an index  # noqa: E501
 
             Delete an existing index.  # noqa: E501
@@ -1852,6 +2166,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 index_name (str): The name of the index to delete.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1874,8 +2189,9 @@ class AsyncioManageIndexesApi:
                 None
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return await self.call_with_http_info(**kwargs)
+            return cast(None, await self.call_with_http_info(**kwargs))
 
         self.delete_index = _AsyncioEndpoint(
             settings={
@@ -1887,8 +2203,8 @@ class AsyncioManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["index_name"],
-                "required": ["index_name"],
+                "all": ["x_pinecone_api_version", "index_name"],
+                "required": ["x_pinecone_api_version", "index_name"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -1896,9 +2212,12 @@ class AsyncioManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"index_name": (str,)},
-                "attribute_map": {"index_name": "index_name"},
-                "location_map": {"index_name": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "index_name": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "index_name": "index_name",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "index_name": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -1906,7 +2225,9 @@ class AsyncioManageIndexesApi:
             callable=__delete_index,
         )
 
-        async def __describe_backup(self, backup_id, **kwargs):
+        async def __describe_backup(
+            self, backup_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> BackupModel:
             """Describe a backup  # noqa: E501
 
             Get a description of a backup.  # noqa: E501
@@ -1914,6 +2235,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 backup_id (str): The ID of the backup to describe.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1936,8 +2258,9 @@ class AsyncioManageIndexesApi:
                 BackupModel
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(BackupModel, await self.call_with_http_info(**kwargs))
 
         self.describe_backup = _AsyncioEndpoint(
             settings={
@@ -1949,8 +2272,8 @@ class AsyncioManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["backup_id"],
-                "required": ["backup_id"],
+                "all": ["x_pinecone_api_version", "backup_id"],
+                "required": ["x_pinecone_api_version", "backup_id"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -1958,9 +2281,12 @@ class AsyncioManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"backup_id": (str,)},
-                "attribute_map": {"backup_id": "backup_id"},
-                "location_map": {"backup_id": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "backup_id": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "backup_id": "backup_id",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "backup_id": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -1968,7 +2294,9 @@ class AsyncioManageIndexesApi:
             callable=__describe_backup,
         )
 
-        async def __describe_collection(self, collection_name, **kwargs):
+        async def __describe_collection(
+            self, collection_name, x_pinecone_api_version="2025-10", **kwargs
+        ) -> CollectionModel:
             """Describe a collection  # noqa: E501
 
             Get a description of a collection. Serverless indexes do not support collections.   # noqa: E501
@@ -1976,6 +2304,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 collection_name (str): The name of the collection to be described.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1998,8 +2327,9 @@ class AsyncioManageIndexesApi:
                 CollectionModel
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["collection_name"] = collection_name
-            return await self.call_with_http_info(**kwargs)
+            return cast(CollectionModel, await self.call_with_http_info(**kwargs))
 
         self.describe_collection = _AsyncioEndpoint(
             settings={
@@ -2011,8 +2341,8 @@ class AsyncioManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["collection_name"],
-                "required": ["collection_name"],
+                "all": ["x_pinecone_api_version", "collection_name"],
+                "required": ["x_pinecone_api_version", "collection_name"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -2020,9 +2350,12 @@ class AsyncioManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"collection_name": (str,)},
-                "attribute_map": {"collection_name": "collection_name"},
-                "location_map": {"collection_name": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "collection_name": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "collection_name": "collection_name",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "collection_name": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -2030,7 +2363,9 @@ class AsyncioManageIndexesApi:
             callable=__describe_collection,
         )
 
-        async def __describe_index(self, index_name, **kwargs):
+        async def __describe_index(
+            self, index_name, x_pinecone_api_version="2025-10", **kwargs
+        ) -> IndexModel:
             """Describe an index  # noqa: E501
 
             Get a description of an index.  # noqa: E501
@@ -2038,6 +2373,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 index_name (str): The name of the index to be described.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -2060,8 +2396,9 @@ class AsyncioManageIndexesApi:
                 IndexModel
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return await self.call_with_http_info(**kwargs)
+            return cast(IndexModel, await self.call_with_http_info(**kwargs))
 
         self.describe_index = _AsyncioEndpoint(
             settings={
@@ -2073,8 +2410,8 @@ class AsyncioManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["index_name"],
-                "required": ["index_name"],
+                "all": ["x_pinecone_api_version", "index_name"],
+                "required": ["x_pinecone_api_version", "index_name"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -2082,9 +2419,12 @@ class AsyncioManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"index_name": (str,)},
-                "attribute_map": {"index_name": "index_name"},
-                "location_map": {"index_name": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "index_name": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "index_name": "index_name",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "index_name": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -2092,7 +2432,9 @@ class AsyncioManageIndexesApi:
             callable=__describe_index,
         )
 
-        async def __describe_restore_job(self, job_id, **kwargs):
+        async def __describe_restore_job(
+            self, job_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> RestoreJobModel:
             """Describe a restore job  # noqa: E501
 
             Get a description of a restore job.  # noqa: E501
@@ -2100,6 +2442,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 job_id (str): The ID of the restore job to describe.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -2122,8 +2465,9 @@ class AsyncioManageIndexesApi:
                 RestoreJobModel
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["job_id"] = job_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(RestoreJobModel, await self.call_with_http_info(**kwargs))
 
         self.describe_restore_job = _AsyncioEndpoint(
             settings={
@@ -2135,8 +2479,8 @@ class AsyncioManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["job_id"],
-                "required": ["job_id"],
+                "all": ["x_pinecone_api_version", "job_id"],
+                "required": ["x_pinecone_api_version", "job_id"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -2144,9 +2488,12 @@ class AsyncioManageIndexesApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"job_id": (str,)},
-                "attribute_map": {"job_id": "job_id"},
-                "location_map": {"job_id": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "job_id": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "job_id": "job_id",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "job_id": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -2154,12 +2501,16 @@ class AsyncioManageIndexesApi:
             callable=__describe_restore_job,
         )
 
-        async def __list_collections(self, **kwargs):
+        async def __list_collections(
+            self, x_pinecone_api_version="2025-10", **kwargs
+        ) -> CollectionList:
             """List collections  # noqa: E501
 
             List all collections in a project. Serverless indexes do not support collections.   # noqa: E501
 
 
+            Args:
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -2182,7 +2533,8 @@ class AsyncioManageIndexesApi:
                 CollectionList
             """
             self._process_openapi_kwargs(kwargs)
-            return await self.call_with_http_info(**kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            return cast(CollectionList, await self.call_with_http_info(**kwargs))
 
         self.list_collections = _AsyncioEndpoint(
             settings={
@@ -2193,13 +2545,19 @@ class AsyncioManageIndexesApi:
                 "http_method": "GET",
                 "servers": None,
             },
-            params_map={"all": [], "required": [], "nullable": [], "enum": [], "validation": []},
+            params_map={
+                "all": ["x_pinecone_api_version"],
+                "required": ["x_pinecone_api_version"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {},
-                "attribute_map": {},
-                "location_map": {},
+                "openapi_types": {"x_pinecone_api_version": (str,)},
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -2207,7 +2565,9 @@ class AsyncioManageIndexesApi:
             callable=__list_collections,
         )
 
-        async def __list_index_backups(self, index_name, **kwargs):
+        async def __list_index_backups(
+            self, index_name, x_pinecone_api_version="2025-10", **kwargs
+        ) -> BackupList:
             """List backups for an index  # noqa: E501
 
             List all backups for an index.  # noqa: E501
@@ -2215,6 +2575,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 index_name (str): Name of the backed up index
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 limit (int): The number of results to return per page. [optional] if omitted the server will use the default value of 10.
@@ -2239,8 +2600,9 @@ class AsyncioManageIndexesApi:
                 BackupList
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return await self.call_with_http_info(**kwargs)
+            return cast(BackupList, await self.call_with_http_info(**kwargs))
 
         self.list_index_backups = _AsyncioEndpoint(
             settings={
@@ -2252,8 +2614,8 @@ class AsyncioManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["index_name", "limit", "pagination_token"],
-                "required": ["index_name"],
+                "all": ["x_pinecone_api_version", "index_name", "limit", "pagination_token"],
+                "required": ["x_pinecone_api_version", "index_name"],
                 "nullable": [],
                 "enum": [],
                 "validation": ["limit"],
@@ -2262,16 +2624,19 @@ class AsyncioManageIndexesApi:
                 "validations": {("limit",): {"inclusive_maximum": 100, "inclusive_minimum": 1}},
                 "allowed_values": {},
                 "openapi_types": {
+                    "x_pinecone_api_version": (str,),
                     "index_name": (str,),
                     "limit": (int,),
                     "pagination_token": (str,),
                 },
                 "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
                     "index_name": "index_name",
                     "limit": "limit",
                     "pagination_token": "paginationToken",
                 },
                 "location_map": {
+                    "x_pinecone_api_version": "header",
                     "index_name": "path",
                     "limit": "query",
                     "pagination_token": "query",
@@ -2283,12 +2648,14 @@ class AsyncioManageIndexesApi:
             callable=__list_index_backups,
         )
 
-        async def __list_indexes(self, **kwargs):
+        async def __list_indexes(self, x_pinecone_api_version="2025-10", **kwargs) -> IndexList:
             """List indexes  # noqa: E501
 
             List all indexes in a project.  # noqa: E501
 
 
+            Args:
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -2311,7 +2678,8 @@ class AsyncioManageIndexesApi:
                 IndexList
             """
             self._process_openapi_kwargs(kwargs)
-            return await self.call_with_http_info(**kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            return cast(IndexList, await self.call_with_http_info(**kwargs))
 
         self.list_indexes = _AsyncioEndpoint(
             settings={
@@ -2322,13 +2690,19 @@ class AsyncioManageIndexesApi:
                 "http_method": "GET",
                 "servers": None,
             },
-            params_map={"all": [], "required": [], "nullable": [], "enum": [], "validation": []},
+            params_map={
+                "all": ["x_pinecone_api_version"],
+                "required": ["x_pinecone_api_version"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {},
-                "attribute_map": {},
-                "location_map": {},
+                "openapi_types": {"x_pinecone_api_version": (str,)},
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -2336,12 +2710,16 @@ class AsyncioManageIndexesApi:
             callable=__list_indexes,
         )
 
-        async def __list_project_backups(self, **kwargs):
+        async def __list_project_backups(
+            self, x_pinecone_api_version="2025-10", **kwargs
+        ) -> BackupList:
             """List backups for all indexes in a project  # noqa: E501
 
             List all backups for a project.  # noqa: E501
 
 
+            Args:
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 limit (int): The number of results to return per page. [optional] if omitted the server will use the default value of 10.
@@ -2366,7 +2744,8 @@ class AsyncioManageIndexesApi:
                 BackupList
             """
             self._process_openapi_kwargs(kwargs)
-            return await self.call_with_http_info(**kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            return cast(BackupList, await self.call_with_http_info(**kwargs))
 
         self.list_project_backups = _AsyncioEndpoint(
             settings={
@@ -2378,8 +2757,8 @@ class AsyncioManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["limit", "pagination_token"],
-                "required": [],
+                "all": ["x_pinecone_api_version", "limit", "pagination_token"],
+                "required": ["x_pinecone_api_version"],
                 "nullable": [],
                 "enum": [],
                 "validation": ["limit"],
@@ -2387,9 +2766,21 @@ class AsyncioManageIndexesApi:
             root_map={
                 "validations": {("limit",): {"inclusive_maximum": 100, "inclusive_minimum": 1}},
                 "allowed_values": {},
-                "openapi_types": {"limit": (int,), "pagination_token": (str,)},
-                "attribute_map": {"limit": "limit", "pagination_token": "paginationToken"},
-                "location_map": {"limit": "query", "pagination_token": "query"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "limit": (int,),
+                    "pagination_token": (str,),
+                },
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "limit": "limit",
+                    "pagination_token": "paginationToken",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "limit": "query",
+                    "pagination_token": "query",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -2397,12 +2788,16 @@ class AsyncioManageIndexesApi:
             callable=__list_project_backups,
         )
 
-        async def __list_restore_jobs(self, **kwargs):
+        async def __list_restore_jobs(
+            self, x_pinecone_api_version="2025-10", **kwargs
+        ) -> RestoreJobList:
             """List restore jobs  # noqa: E501
 
             List all restore jobs for a project.  # noqa: E501
 
 
+            Args:
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 limit (int): The number of results to return per page. [optional] if omitted the server will use the default value of 10.
@@ -2427,7 +2822,8 @@ class AsyncioManageIndexesApi:
                 RestoreJobList
             """
             self._process_openapi_kwargs(kwargs)
-            return await self.call_with_http_info(**kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            return cast(RestoreJobList, await self.call_with_http_info(**kwargs))
 
         self.list_restore_jobs = _AsyncioEndpoint(
             settings={
@@ -2439,8 +2835,8 @@ class AsyncioManageIndexesApi:
                 "servers": None,
             },
             params_map={
-                "all": ["limit", "pagination_token"],
-                "required": [],
+                "all": ["x_pinecone_api_version", "limit", "pagination_token"],
+                "required": ["x_pinecone_api_version"],
                 "nullable": [],
                 "enum": [],
                 "validation": ["limit"],
@@ -2448,9 +2844,21 @@ class AsyncioManageIndexesApi:
             root_map={
                 "validations": {("limit",): {"inclusive_maximum": 100, "inclusive_minimum": 1}},
                 "allowed_values": {},
-                "openapi_types": {"limit": (int,), "pagination_token": (str,)},
-                "attribute_map": {"limit": "limit", "pagination_token": "paginationToken"},
-                "location_map": {"limit": "query", "pagination_token": "query"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "limit": (int,),
+                    "pagination_token": (str,),
+                },
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "limit": "limit",
+                    "pagination_token": "paginationToken",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "limit": "query",
+                    "pagination_token": "query",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},

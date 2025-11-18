@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from pinecone.utils import require_kwargs, parse_non_empty_args
 from ...models import ModelInfoList, ModelInfo
 
@@ -12,11 +12,9 @@ class ModelAsyncio:
         self.__inference_api = inference_api
         """ :meta private: """
 
-        super().__init__()  # Initialize PluginAware
-
     @require_kwargs
     async def list(
-        self, *, type: Optional[str] = None, vector_type: Optional[str] = None
+        self, *, type: str | None = None, vector_type: str | None = None
     ) -> ModelInfoList:
         """
         List all available models.
@@ -28,6 +26,7 @@ class ModelAsyncio:
         :type vector_type: str, optional
 
         :return: A list of models.
+        :rtype: ModelInfoList
         """
         args = parse_non_empty_args([("type", type), ("vector_type", vector_type)])
         model_list = await self.__inference_api.list_models(**args)
@@ -42,6 +41,7 @@ class ModelAsyncio:
         :type model_name: str, required
 
         :return: A model.
+        :rtype: ModelInfo
         """
         model_info = await self.__inference_api.get_model(model_name=model_name)
         return ModelInfo(model_info)

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import logging
 import warnings
-from typing import Optional, Dict, List, Union, Any, TYPE_CHECKING
+from typing import Dict, Any, TYPE_CHECKING
 
 from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.inference.apis import InferenceApi
@@ -76,7 +78,7 @@ class Inference(PluginAware):
             api_version=API_VERSION,
         )
 
-        self._model: Optional["ModelResource"] = None  # Lazy initialization
+        self._model: "ModelResource" | None = None  # Lazy initialization
         """ :meta private: """
 
         super().__init__()  # Initialize PluginAware
@@ -113,9 +115,12 @@ class Inference(PluginAware):
         """
         Model is a resource that describes models available in the Pinecone Inference API.
 
-        Curently you can get or list models.
+        Currently you can get or list models.
 
         .. code-block:: python
+
+            from pinecone import Pinecone
+
             pc = Pinecone()
 
             # List all models
@@ -149,9 +154,9 @@ class Inference(PluginAware):
 
     def embed(
         self,
-        model: Union[EmbedModelEnum, str],
-        inputs: Union[str, List[Dict], List[str]],
-        parameters: Optional[Dict[str, Any]] = None,
+        model: EmbedModelEnum | str,
+        inputs: str | list[Dict] | list[str],
+        parameters: dict[str, Any] | None = None,
     ) -> EmbeddingsList:
         """
         Generates embeddings for the provided inputs using the specified model and (optional) parameters.
@@ -167,21 +172,51 @@ class Inference(PluginAware):
           ``n`` embeddings, where ``n`` = len(inputs). Precision of returned embeddings is either
           float16 or float32, with float32 being the default. ``model`` key is the model used to generate the embeddings.
           ``usage`` key contains the total number of tokens used at request-time.
-
-        Example:
+        :rtype: EmbeddingsList
 
         .. code-block:: python
 
-            >>> pc = Pinecone()
-            >>> inputs = ["Who created the first computer?"]
-            >>> outputs = pc.inference.embed(model="multilingual-e5-large", inputs=inputs, parameters={"input_type": "passage", "truncate": "END"})
-            >>> print(outputs)
-            EmbeddingsList(
-                model='multilingual-e5-large',
-                data=[
-                    {'values': [0.1, ...., 0.2]},
-                ],
-                usage={'total_tokens': 6}
+            from pinecone import Pinecone
+
+            pc = Pinecone()
+            inputs = ["Who created the first computer?"]
+            outputs = pc.inference.embed(
+                model="multilingual-e5-large",
+                inputs=inputs,
+                parameters={"input_type": "passage", "truncate": "END"}
+            )
+            print(outputs)
+            # EmbeddingsList(
+            #     model='multilingual-e5-large',
+            #     data=[
+            #         {'values': [0.1, ...., 0.2]},
+            #     ],
+            #     usage={'total_tokens': 6}
+            # )
+
+        You can also use a single string input:
+
+        .. code-block:: python
+
+            from pinecone import Pinecone
+
+            pc = Pinecone()
+            output = pc.inference.embed(
+                model="text-embedding-3-small",
+                inputs="Hello, world!"
+            )
+
+        Or use the EmbedModel enum:
+
+        .. code-block:: python
+
+            from pinecone import Pinecone
+            from pinecone.inference import EmbedModel
+
+            pc = Pinecone()
+            outputs = pc.inference.embed(
+                model=EmbedModel.TEXT_EMBEDDING_3_SMALL,
+                inputs=["Document 1", "Document 2"]
             )
 
         """
@@ -193,13 +228,13 @@ class Inference(PluginAware):
 
     def rerank(
         self,
-        model: Union[RerankModelEnum, str],
+        model: RerankModelEnum | str,
         query: str,
-        documents: Union[List[str], List[Dict[str, Any]]],
-        rank_fields: List[str] = ["text"],
+        documents: list[str] | list[dict[str, Any]],
+        rank_fields: list[str] = ["text"],
         return_documents: bool = True,
-        top_n: Optional[int] = None,
-        parameters: Optional[Dict[str, Any]] = None,
+        top_n: int | None = None,
+        parameters: dict[str, Any] | None = None,
     ) -> RerankResult:
         """
         Rerank documents with associated relevance scores that represent the relevance of each document
@@ -225,41 +260,75 @@ class Inference(PluginAware):
           relevance, with the first being the most relevant. The ``index`` field can be used to locate the document
           relative to the list of documents specified in the request. Each document contains a ``score`` key
           representing how close the document relates to the query.
-
-        Example:
+        :rtype: RerankResult
 
         .. code-block:: python
 
-            >>> pc = Pinecone()
-            >>> pc.inference.rerank(
-                    model="bge-reranker-v2-m3",
-                    query="Tell me about tech companies",
-                    documents=[
-                        "Apple is a popular fruit known for its sweetness and crisp texture.",
-                        "Software is still eating the world.",
-                        "Many people enjoy eating apples as a healthy snack.",
-                        "Acme Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
-                        "An apple a day keeps the doctor away, as the saying goes.",
+            from pinecone import Pinecone
+
+            pc = Pinecone()
+            result = pc.inference.rerank(
+                model="bge-reranker-v2-m3",
+                query="Tell me about tech companies",
+                documents=[
+                    "Apple is a popular fruit known for its sweetness and crisp texture.",
+                    "Software is still eating the world.",
+                    "Many people enjoy eating apples as a healthy snack.",
+                    "Acme Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.",
+                    "An apple a day keeps the doctor away, as the saying goes.",
                 ],
                 top_n=2,
                 return_documents=True,
             )
-            RerankResult(
-                model='bge-reranker-v2-m3',
-                data=[{
-                    index=3,
-                    score=0.020924192,
-                    document={
-                        text='Acme Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.'
-                    }
-                },{
-                    index=1,
-                    score=0.00034464317,
-                    document={
-                        text='Software is still eating the world.'
-                    }
-                }],
-                usage={'rerank_units': 1}
+            print(result)
+            # RerankResult(
+            #     model='bge-reranker-v2-m3',
+            #     data=[{
+            #         index=3,
+            #         score=0.020924192,
+            #         document={
+            #             text='Acme Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces.'
+            #         }
+            #     },{
+            #         index=1,
+            #         score=0.00034464317,
+            #         document={
+            #             text='Software is still eating the world.'
+            #         }
+            #     }],
+            #     usage={'rerank_units': 1}
+            # )
+
+        You can also use document dictionaries with custom fields:
+
+        .. code-block:: python
+
+            from pinecone import Pinecone
+
+            pc = Pinecone()
+            result = pc.inference.rerank(
+                model="pinecone-rerank-v0",
+                query="What is machine learning?",
+                documents=[
+                    {"text": "Machine learning is a subset of AI.", "category": "tech"},
+                    {"text": "Cooking recipes for pasta.", "category": "food"},
+                ],
+                rank_fields=["text"],
+                top_n=1
+            )
+
+        Or use the RerankModel enum:
+
+        .. code-block:: python
+
+            from pinecone import Pinecone
+            from pinecone.inference import RerankModel
+
+            pc = Pinecone()
+            result = pc.inference.rerank(
+                model=RerankModel.PINECONE_RERANK_V0,
+                query="Your query here",
+                documents=["doc1", "doc2", "doc3"]
             )
 
         """
@@ -277,7 +346,7 @@ class Inference(PluginAware):
 
     @require_kwargs
     def list_models(
-        self, *, type: Optional[str] = None, vector_type: Optional[str] = None
+        self, *, type: str | None = None, vector_type: str | None = None
     ) -> "ModelInfoList":
         """
         List all available models.
@@ -289,10 +358,11 @@ class Inference(PluginAware):
         :type vector_type: str, optional
 
         :return: A list of models.
-
-        Example:
+        :rtype: ModelInfoList
 
         .. code-block:: python
+
+            from pinecone import Pinecone
 
             pc = Pinecone()
 
@@ -322,33 +392,38 @@ class Inference(PluginAware):
         :type model_name: str, required
 
         :return: A ModelInfo object.
+        :rtype: ModelInfo
 
         .. code-block:: python
 
-            >>> pc = Pinecone()
-            >>> pc.inference.get_model(model_name="pinecone-rerank-v0")
-            {
-                "model": "pinecone-rerank-v0",
-                "short_description": "A state of the art reranking model that out-performs competitors on widely accepted benchmarks. It can handle chunks up to 512 tokens (1-2 paragraphs)",
-                "type": "rerank",
-                "supported_parameters": [
-                    {
-                        "parameter": "truncate",
-                        "type": "one_of",
-                        "value_type": "string",
-                        "required": false,
-                        "default": "END",
-                        "allowed_values": [
-                            "END",
-                            "NONE"
-                        ]
-                    }
-                ],
-                "modality": "text",
-                "max_sequence_length": 512,
-                "max_batch_size": 100,
-                "provider_name": "Pinecone",
-                "supported_metrics": []
-            }
+            from pinecone import Pinecone
+
+            pc = Pinecone()
+            model_info = pc.inference.get_model(model_name="pinecone-rerank-v0")
+            print(model_info)
+            # {
+            #     "model": "pinecone-rerank-v0",
+            #     "short_description": "A state of the art reranking model that out-performs competitors on widely accepted benchmarks. It can handle chunks up to 512 tokens (1-2 paragraphs)",
+            #     "type": "rerank",
+            #     "supported_parameters": [
+            #         {
+            #             "parameter": "truncate",
+            #             "type": "one_of",
+            #             "value_type": "string",
+            #             "required": false,
+            #             "default": "END",
+            #             "allowed_values": [
+            #                 "END",
+            #                 "NONE"
+            #             ]
+            #         }
+            #     ],
+            #     "modality": "text",
+            #     "max_sequence_length": 512,
+            #     "max_batch_size": 100,
+            #     "provider_name": "Pinecone",
+            #     "supported_metrics": []
+            # }
+
         """
         return self.model.get(model_name=model_name)

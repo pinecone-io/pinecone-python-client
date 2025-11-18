@@ -2,7 +2,7 @@ import abc
 import logging
 import random
 import time
-from typing import Optional, Tuple, NamedTuple
+from typing import NamedTuple
 
 import grpc
 
@@ -52,11 +52,13 @@ class RetryOnRpcErrorClientInterceptor(
 
     def _is_retryable_error(self, response_or_error):
         """Determine if a response is a retryable error."""
-        return (
-            isinstance(response_or_error, grpc.RpcError)
-            and "_MultiThreadedRendezvous" not in response_or_error.__class__.__name__
-            and response_or_error.code() in self.retryable_status
-        )
+        if not isinstance(response_or_error, grpc.RpcError):
+            return False
+        if "_MultiThreadedRendezvous" in response_or_error.__class__.__name__:
+            return False
+        if self.retryable_status is None:
+            return False
+        return response_or_error.code() in self.retryable_status
 
     def _intercept_call(self, continuation, client_call_details, request_or_iterator):
         response = None
@@ -87,4 +89,4 @@ class RetryConfig(NamedTuple):
     sleep_policy: SleepPolicy = ExponentialBackoff(
         init_backoff_ms=100, max_backoff_ms=1600, multiplier=2
     )
-    retryable_status: Optional[Tuple[grpc.StatusCode, ...]] = (grpc.StatusCode.UNAVAILABLE,)
+    retryable_status: tuple[grpc.StatusCode, ...] | None = (grpc.StatusCode.UNAVAILABLE,)

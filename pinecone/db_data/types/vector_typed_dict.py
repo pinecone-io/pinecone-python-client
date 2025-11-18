@@ -1,9 +1,9 @@
 from .sparse_vector_typed_dict import SparseVectorTypedDict
-from typing import TypedDict, List
+from typing import TypedDict
 
 
 class VectorTypedDict(TypedDict, total=False):
-    values: List[float]
+    values: list[float]
     metadata: dict
     sparse_values: SparseVectorTypedDict
     id: str

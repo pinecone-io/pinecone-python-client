@@ -61,7 +61,7 @@ class TestIndexResource:
         assert desc.description == "test-description"
         assert desc.dimension == 1024
         assert desc.metric == "cosine"
-        assert desc.spec.byoc.environment == "test-environment"
+        assert desc.spec["byoc"]["environment"] == "test-environment"
         assert desc.vector_type == "dense"
         assert desc.status.ready == True
         assert desc.deletion_protection == "disabled"

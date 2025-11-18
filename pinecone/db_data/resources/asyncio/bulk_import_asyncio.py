@@ -1,4 +1,4 @@
-from typing import Optional, Literal, AsyncIterator
+from typing import Literal, AsyncIterator
 
 from pinecone.core.openapi.db_data.api.bulk_operations_api import AsyncioBulkOperationsApi
 
@@ -23,8 +23,8 @@ class BulkImportResourceAsyncio:
     async def start(
         self,
         uri: str,
-        integration_id: Optional[str] = None,
-        error_mode: Optional[Literal["CONTINUE", "ABORT"]] = "CONTINUE",
+        integration_id: str | None = None,
+        error_mode: Literal["CONTINUE", "ABORT"] | None = "CONTINUE",
     ) -> StartImportResponse:
         """
         Args:
@@ -50,7 +50,10 @@ class BulkImportResourceAsyncio:
         req = BulkImportRequestFactory.start_import_request(
             uri=uri, integration_id=integration_id, error_mode=error_mode
         )
-        return await self.__import_operations_api.start_bulk_import(req)
+        from typing import cast
+
+        result = await self.__import_operations_api.start_bulk_import(req)
+        return cast(StartImportResponse, result)
 
     async def list(self, **kwargs) -> AsyncIterator["ImportModel"]:
         """
@@ -80,7 +83,7 @@ class BulkImportResourceAsyncio:
                 done = True
 
     async def list_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+        self, limit: int | None = None, pagination_token: str | None = None, **kwargs
     ) -> ListImportsResponse:
         """
         Args:
@@ -117,7 +120,10 @@ class BulkImportResourceAsyncio:
         args_dict = BulkImportRequestFactory.list_imports_paginated_args(
             limit=limit, pagination_token=pagination_token, **kwargs
         )
-        return await self.__import_operations_api.list_bulk_imports(**args_dict)
+        from typing import cast
+
+        result = await self.__import_operations_api.list_bulk_imports(**args_dict)
+        return cast(ListImportsResponse, result)
 
     async def describe(self, id: str) -> ImportModel:
         """
@@ -131,7 +137,10 @@ class BulkImportResourceAsyncio:
         `describe_import` is used to get detailed information about a specific import operation.
         """
         args = BulkImportRequestFactory.describe_import_args(id=id)
-        return await self.__import_operations_api.describe_bulk_import(**args)
+        from typing import cast
+
+        result = await self.__import_operations_api.describe_bulk_import(**args)
+        return cast(ImportModel, result)
 
     async def cancel(self, id: str):
         """Cancel an import operation.

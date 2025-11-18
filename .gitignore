@@ -1,4 +1,5 @@
 scratch
+.cursor
 
 # IDEs
 .idea
@@ -6,6 +7,7 @@ scratch
 # misc.
 *.model
 *pdf
+PR_DESCRIPTION.md
 
 tmp
 *swp
@@ -159,3 +161,4 @@ dmypy.json
 *~
 
 tests/integration/proxy_config/logs
+benchmark_results.json

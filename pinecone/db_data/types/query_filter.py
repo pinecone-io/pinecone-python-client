@@ -1,33 +1,35 @@
-from typing import Literal, Dict, List, Union
+from typing import Literal
 
-FieldValue = Union[str, int, float, bool]
+FieldValue = str | int | float | bool
 
-ExactMatchFilter = Dict[str, FieldValue]
+ExactMatchFilter = dict[str, FieldValue]
 
-EqFilter = Dict[Literal["$eq"], FieldValue]
-NeFilter = Dict[Literal["$ne"], FieldValue]
+EqFilter = dict[Literal["$eq"], FieldValue]
+NeFilter = dict[Literal["$ne"], FieldValue]
 
-NumericFieldValue = Union[int, float]
-GtFilter = Dict[Literal["$gt"], NumericFieldValue]
-GteFilter = Dict[Literal["$gte"], NumericFieldValue]
-LtFilter = Dict[Literal["$lt"], NumericFieldValue]
-LteFilter = Dict[Literal["$lte"], NumericFieldValue]
+NumericFieldValue = int | float
+GtFilter = dict[Literal["$gt"], NumericFieldValue]
+GteFilter = dict[Literal["$gte"], NumericFieldValue]
+LtFilter = dict[Literal["$lt"], NumericFieldValue]
+LteFilter = dict[Literal["$lte"], NumericFieldValue]
 
-InFilter = Dict[Literal["$in"], List[FieldValue]]
-NinFilter = Dict[Literal["$nin"], List[FieldValue]]
+InFilter = dict[Literal["$in"], list[FieldValue]]
+NinFilter = dict[Literal["$nin"], list[FieldValue]]
+ExistsFilter = dict[Literal["$exists"], bool]
 
+SimpleFilter = (
+    ExactMatchFilter
+    | EqFilter
+    | NeFilter
+    | GtFilter
+    | GteFilter
+    | LtFilter
+    | LteFilter
+    | InFilter
+    | NinFilter
+    | ExistsFilter
+)
+AndFilter = dict[Literal["$and"], list[SimpleFilter]]
+OrFilter = dict[Literal["$or"], list[SimpleFilter]]
 
-SimpleFilter = Union[
-    ExactMatchFilter,
-    EqFilter,
-    NeFilter,
-    GtFilter,
-    GteFilter,
-    LtFilter,
-    LteFilter,
-    InFilter,
-    NinFilter,
-]
-AndFilter = Dict[Literal["$and"], List[SimpleFilter]]
-
-FilterTypedDict = Union[SimpleFilter, AndFilter]
+FilterTypedDict = SimpleFilter | AndFilter | OrFilter

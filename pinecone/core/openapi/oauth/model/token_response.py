@@ -5,7 +5,7 @@ Provides an API for authenticating with Pinecone.   # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -59,7 +59,7 @@ class TokenResponse(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {("token_type",): {"BEARER": "Bearer"}}
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 
@@ -103,17 +103,30 @@ class TokenResponse(ModelNormal):
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of TokenResponse.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
+
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], access_token, expires_in, *args, **kwargs) -> T:  # noqa: E501
+    def _from_openapi_data(
+        cls: Type[T], access_token, token_type, expires_in, *args, **kwargs
+    ) -> T:  # noqa: E501
         """TokenResponse - a model defined in OpenAPI
 
         Args:
             access_token (str): The access token.
+            token_type (str): The type of token. Possible values: `Bearer`.
             expires_in (int): The number of seconds until the token expires.
 
         Keyword Args:
-            token_type (str): The type of token. defaults to "Bearer", must be one of ["Bearer", ]  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -146,7 +159,6 @@ class TokenResponse(ModelNormal):
                                 _visited_composed_classes = (Animal,)
         """
 
-        token_type = kwargs.get("token_type", "Bearer")
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
         _enforce_validations = kwargs.pop("_enforce_validations", False)
         _check_type = kwargs.pop("_check_type", True)
@@ -203,15 +215,15 @@ class TokenResponse(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, access_token, expires_in, *args, **kwargs) -> None:  # noqa: E501
+    def __init__(self, access_token, token_type, expires_in, *args, **kwargs) -> None:  # noqa: E501
         """TokenResponse - a model defined in OpenAPI
 
         Args:
             access_token (str): The access token.
+            token_type (str): The type of token. Possible values: `Bearer`.
             expires_in (int): The number of seconds until the token expires.
 
         Keyword Args:
-            token_type (str): The type of token. defaults to "Bearer", must be one of ["Bearer", ]  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -244,7 +256,6 @@ class TokenResponse(ModelNormal):
                                 _visited_composed_classes = (Animal,)
         """
 
-        token_type = kwargs.get("token_type", "Bearer")
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
         _enforce_validations = kwargs.pop("_enforce_validations", True)
         _check_type = kwargs.pop("_check_type", True)

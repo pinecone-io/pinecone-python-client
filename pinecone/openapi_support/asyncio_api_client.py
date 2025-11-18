@@ -1,9 +1,9 @@
-import json
 import io
-from urllib3.fields import RequestField
 import logging
+from urllib3.fields import RequestField
 
-from typing import Optional, List, Tuple, Dict, Any, Union
+import orjson
+from typing import Any
 
 
 from .rest_aiohttp import AiohttpRestClient
@@ -20,6 +20,7 @@ from .api_client_utils import (
 from .serializer import Serializer
 from .deserializer import Deserializer
 from .auth_util import AuthUtil
+from pinecone.utils.response_info import extract_response_info
 
 logger = logging.getLogger(__name__)
 """ :meta private: """
@@ -38,7 +39,7 @@ class AsyncioApiClient(object):
 
         self.rest_client = AiohttpRestClient(configuration)
 
-        self.default_headers: Dict[str, str] = {}
+        self.default_headers: dict[str, str] = {}
         # Set default User-Agent.
         self.user_agent = "OpenAPI-Generator/1.0.0/python"
 
@@ -68,20 +69,20 @@ class AsyncioApiClient(object):
         self,
         resource_path: str,
         method: str,
-        path_params: Optional[Dict[str, Any]] = None,
-        query_params: Optional[List[Tuple[str, Any]]] = None,
-        header_params: Optional[Dict[str, Any]] = None,
-        body: Optional[Any] = None,
-        post_params: Optional[List[Tuple[str, Any]]] = None,
-        files: Optional[Dict[str, List[io.IOBase]]] = None,
-        response_type: Optional[Tuple[Any]] = None,
-        auth_settings: Optional[List[str]] = None,
-        _return_http_data_only: Optional[bool] = None,
-        collection_formats: Optional[Dict[str, str]] = None,
+        path_params: dict[str, Any] | None = None,
+        query_params: list[tuple[str, Any]] | None = None,
+        header_params: dict[str, Any] | None = None,
+        body: Any | None = None,
+        post_params: list[tuple[str, Any]] | None = None,
+        files: dict[str, list[io.IOBase]] | None = None,
+        response_type: tuple[Any] | None = None,
+        auth_settings: list[str] | None = None,
+        _return_http_data_only: bool | None = None,
+        collection_formats: dict[str, str] | None = None,
         _preload_content: bool = True,
-        _request_timeout: Optional[Union[int, float, Tuple]] = None,
-        _host: Optional[str] = None,
-        _check_type: Optional[bool] = None,
+        _request_timeout: (int | float | tuple) | None = None,
+        _host: str | None = None,
+        _check_type: bool | None = None,
     ):
         config = self.configuration
 
@@ -161,10 +162,24 @@ class AsyncioApiClient(object):
         if response_type:
             Deserializer.decode_response(response_type=response_type, response=response_data)
             return_data = Deserializer.deserialize(
-                response_data, response_type, self.configuration, _check_type
+                response_data,
+                response_type,
+                self.configuration,
+                _check_type if _check_type is not None else True,
             )
         else:
             return_data = None
+
+        # Attach response info to response object if it exists
+        if return_data is not None:
+            headers = response_data.getheaders()
+            if headers:
+                response_info = extract_response_info(headers)
+                if isinstance(return_data, dict):
+                    return_data["_response_info"] = response_info
+                else:
+                    # Dynamic attribute assignment on OpenAPI models
+                    setattr(return_data, "_response_info", response_info)
 
         if _return_http_data_only:
             return return_data
@@ -178,14 +193,15 @@ class AsyncioApiClient(object):
         :param dict collection_types: Parameter collection types
         :return: Parameters as list of tuple or urllib3.fields.RequestField
         """
-        new_params = []
+        new_params: list[RequestField | tuple[Any, Any]] = []
         if collection_types is None:
             collection_types = dict
         for k, v in params.items() if isinstance(params, dict) else params:  # noqa: E501
             if isinstance(
                 v, collection_types
             ):  # v is instance of collection_type, formatting as application/json
-                v = json.dumps(v, ensure_ascii=False).encode("utf-8")
+                # orjson.dumps() returns bytes, no need to encode
+                v = orjson.dumps(v)
                 field = RequestField(k, v)
                 field.make_multipart(content_type="application/json; charset=utf-8")
                 new_params.append(field)
@@ -197,20 +213,20 @@ class AsyncioApiClient(object):
         self,
         resource_path: str,
         method: str,
-        path_params: Optional[Dict[str, Any]] = None,
-        query_params: Optional[List[Tuple[str, Any]]] = None,
-        header_params: Optional[Dict[str, Any]] = None,
-        body: Optional[Any] = None,
-        post_params: Optional[List[Tuple[str, Any]]] = None,
-        files: Optional[Dict[str, List[io.IOBase]]] = None,
-        response_type: Optional[Tuple[Any]] = None,
-        auth_settings: Optional[List[str]] = None,
-        _return_http_data_only: Optional[bool] = None,
-        collection_formats: Optional[Dict[str, str]] = None,
+        path_params: dict[str, Any] | None = None,
+        query_params: list[tuple[str, Any]] | None = None,
+        header_params: dict[str, Any] | None = None,
+        body: Any | None = None,
+        post_params: list[tuple[str, Any]] | None = None,
+        files: dict[str, list[io.IOBase]] | None = None,
+        response_type: tuple[Any] | None = None,
+        auth_settings: list[str] | None = None,
+        _return_http_data_only: bool | None = None,
+        collection_formats: dict[str, str] | None = None,
         _preload_content: bool = True,
-        _request_timeout: Optional[Union[int, float, Tuple]] = None,
-        _host: Optional[str] = None,
-        _check_type: Optional[bool] = None,
+        _request_timeout: (int | float | tuple) | None = None,
+        _host: str | None = None,
+        _check_type: bool | None = None,
     ):
         """Makes the HTTP request (synchronous) and returns deserialized data.
 
@@ -360,4 +376,10 @@ class AsyncioApiClient(object):
     def get_file_data_and_close_file(file_instance: io.IOBase) -> bytes:
         file_data = file_instance.read()
         file_instance.close()
-        return file_data
+        if isinstance(file_data, bytes):
+            return file_data
+        # If read() returns str, encode it
+        if isinstance(file_data, str):
+            return file_data.encode("utf-8")
+        # Fallback: convert to bytes
+        return bytes(file_data) if file_data is not None else b""

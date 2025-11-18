@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Union, List, Dict, Any
+from typing import Any
 
 from pinecone.core.openapi.inference.models import (
     EmbedRequest,
@@ -24,12 +24,12 @@ class RerankModel(Enum):
 class InferenceRequestBuilder:
     @staticmethod
     def embed_request(
-        model: Union[EmbedModel, str],
-        inputs: Union[str, List[Dict], List[str]],
-        parameters: Optional[Dict[str, Any]] = None,
+        model: EmbedModel | str,
+        inputs: str | list[dict] | list[str],
+        parameters: dict[str, Any] | None = None,
     ) -> EmbedRequest:
         model = convert_enum_to_string(model)
-        embeddings_inputs: List[EmbedRequestInputs] = []
+        embeddings_inputs: list[EmbedRequestInputs] = []
         if isinstance(inputs, str):
             embeddings_inputs = [EmbedRequestInputs(text=inputs)]
         elif isinstance(inputs, list) and len(inputs) > 0:
@@ -42,20 +42,24 @@ class InferenceRequestBuilder:
         else:
             raise Exception("Invalid type for variable 'inputs'")
 
+        from typing import cast
+
         if parameters:
-            return EmbedRequest(model=model, inputs=embeddings_inputs, parameters=parameters)
+            result = EmbedRequest(model=model, inputs=embeddings_inputs, parameters=parameters)
+            return cast(EmbedRequest, result)
         else:
-            return EmbedRequest(model=model, inputs=embeddings_inputs)
+            result = EmbedRequest(model=model, inputs=embeddings_inputs)
+            return cast(EmbedRequest, result)
 
     @staticmethod
     def rerank(
-        model: Union[RerankModel, str],
+        model: RerankModel | str,
         query: str,
-        documents: Union[List[str], List[Dict[str, Any]]],
-        rank_fields: List[str] = ["text"],
+        documents: list[str] | list[dict[str, Any]],
+        rank_fields: list[str] = ["text"],
         return_documents: bool = True,
-        top_n: Optional[int] = None,
-        parameters: Optional[Dict[str, Any]] = None,
+        top_n: int | None = None,
+        parameters: dict[str, Any] | None = None,
     ) -> RerankRequest:
         if isinstance(model, RerankModel):
             model = model.value
@@ -72,7 +76,7 @@ class InferenceRequestBuilder:
         else:
             raise Exception("Invalid type or value for variable 'documents'")
 
-        args: Dict[str, Any] = {
+        args: dict[str, Any] = {
             "model": model,
             "query": query,
             "documents": documents,
@@ -84,4 +88,7 @@ class InferenceRequestBuilder:
         if parameters is not None:
             args["parameters"] = parameters
 
-        return RerankRequest(**args)
+        from typing import cast
+
+        result = RerankRequest(**args)
+        return cast(RerankRequest, result)

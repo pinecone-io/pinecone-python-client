@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -59,28 +59,7 @@ class ErrorResponseError(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("code",): {
-            "OK": "OK",
-            "UNKNOWN": "UNKNOWN",
-            "INVALID_ARGUMENT": "INVALID_ARGUMENT",
-            "DEADLINE_EXCEEDED": "DEADLINE_EXCEEDED",
-            "QUOTA_EXCEEDED": "QUOTA_EXCEEDED",
-            "NOT_FOUND": "NOT_FOUND",
-            "ALREADY_EXISTS": "ALREADY_EXISTS",
-            "PERMISSION_DENIED": "PERMISSION_DENIED",
-            "UNAUTHENTICATED": "UNAUTHENTICATED",
-            "RESOURCE_EXHAUSTED": "RESOURCE_EXHAUSTED",
-            "FAILED_PRECONDITION": "FAILED_PRECONDITION",
-            "ABORTED": "ABORTED",
-            "OUT_OF_RANGE": "OUT_OF_RANGE",
-            "UNIMPLEMENTED": "UNIMPLEMENTED",
-            "INTERNAL": "INTERNAL",
-            "UNAVAILABLE": "UNAVAILABLE",
-            "DATA_LOSS": "DATA_LOSS",
-            "FORBIDDEN": "FORBIDDEN",
-        }
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 
@@ -107,7 +86,7 @@ class ErrorResponseError(ModelNormal):
         return {
             "code": (str,),  # noqa: E501
             "message": (str,),  # noqa: E501
-            "details": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "details": (Dict[str, Any],),  # noqa: E501
         }
 
     @cached_class_property
@@ -124,14 +103,25 @@ class ErrorResponseError(ModelNormal):
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of ErrorResponseError.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
+
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], code, message, *args, **kwargs) -> T:  # noqa: E501
         """ErrorResponseError - a model defined in OpenAPI
 
         Args:
-            code (str):
-            message (str):
+            code (str): The error code. Possible values: `OK`, `UNKNOWN`, `INVALID_ARGUMENT`, `DEADLINE_EXCEEDED`, `QUOTA_EXCEEDED`, `NOT_FOUND`, `ALREADY_EXISTS`, `PERMISSION_DENIED`, `UNAUTHENTICATED`, `RESOURCE_EXHAUSTED`, `FAILED_PRECONDITION`, `ABORTED`, `OUT_OF_RANGE`, `UNIMPLEMENTED`, `INTERNAL`, `UNAVAILABLE`, `DATA_LOSS`, or `FORBIDDEN`.
+            message (str): A human-readable error message describing the error.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -164,7 +154,7 @@ class ErrorResponseError(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            details ({str: (bool, dict, float, int, list, str, none_type)}): Additional information about the error. This field is not guaranteed to be present. [optional]  # noqa: E501
+            details (Dict[str, Any]): Additional information about the error. This field is not guaranteed to be present. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -226,8 +216,8 @@ class ErrorResponseError(ModelNormal):
         """ErrorResponseError - a model defined in OpenAPI
 
         Args:
-            code (str):
-            message (str):
+            code (str): The error code. Possible values: `OK`, `UNKNOWN`, `INVALID_ARGUMENT`, `DEADLINE_EXCEEDED`, `QUOTA_EXCEEDED`, `NOT_FOUND`, `ALREADY_EXISTS`, `PERMISSION_DENIED`, `UNAUTHENTICATED`, `RESOURCE_EXHAUSTED`, `FAILED_PRECONDITION`, `ABORTED`, `OUT_OF_RANGE`, `UNIMPLEMENTED`, `INTERNAL`, `UNAVAILABLE`, `DATA_LOSS`, or `FORBIDDEN`.
+            message (str): A human-readable error message describing the error.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -260,7 +250,7 @@ class ErrorResponseError(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            details ({str: (bool, dict, float, int, list, str, none_type)}): Additional information about the error. This field is not guaranteed to be present. [optional]  # noqa: E501
+            details (Dict[str, Any]): Additional information about the error. This field is not guaranteed to be present. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

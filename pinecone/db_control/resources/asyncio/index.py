@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import logging
 import asyncio
-from typing import Optional, Dict, Union
+from typing import Dict, Any, TYPE_CHECKING
 
 
 from pinecone.db_control.models import (
@@ -32,6 +34,20 @@ from pinecone.db_control.types.configure_index_embed import ConfigureIndexEmbed
 logger = logging.getLogger(__name__)
 """ :meta private: """
 
+if TYPE_CHECKING:
+    from pinecone.db_control.models.serverless_spec import (
+        ReadCapacityDict,
+        MetadataSchemaFieldConfig,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
+    from pinecone.core.openapi.db_control.model.read_capacity_on_demand_spec import (
+        ReadCapacityOnDemandSpec,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
+        ReadCapacityDedicatedSpec,
+    )
+    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
+
 
 class IndexResourceAsyncio:
     def __init__(self, index_api, config):
@@ -43,13 +59,13 @@ class IndexResourceAsyncio:
         self,
         *,
         name: str,
-        spec: Union[Dict, ServerlessSpec, PodSpec, ByocSpec],
-        dimension: Optional[int] = None,
-        metric: Optional[Union[Metric, str]] = Metric.COSINE,
-        timeout: Optional[int] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
-        vector_type: Optional[Union[VectorType, str]] = VectorType.DENSE,
-        tags: Optional[Dict[str, str]] = None,
+        spec: Dict | ServerlessSpec | PodSpec | ByocSpec,
+        dimension: int | None = None,
+        metric: (Metric | str) | None = Metric.COSINE,
+        timeout: int | None = None,
+        deletion_protection: (DeletionProtection | str) | None = DeletionProtection.DISABLED,
+        vector_type: (VectorType | str) | None = VectorType.DENSE,
+        tags: dict[str, str] | None = None,
     ) -> IndexModel:
         req = PineconeDBControlRequestFactory.create_index_request(
             name=name,
@@ -63,7 +79,9 @@ class IndexResourceAsyncio:
         resp = await self._index_api.create_index(create_index_request=req)
 
         if timeout == -1:
-            return IndexModel(resp)
+            from typing import cast
+
+            return IndexModel(cast(Any, resp))
         return await self.__poll_describe_index_until_ready(name, timeout)
 
     @require_kwargs
@@ -71,12 +89,29 @@ class IndexResourceAsyncio:
         self,
         *,
         name: str,
-        cloud: Union[CloudProvider, str],
-        region: Union[AwsRegion, GcpRegion, AzureRegion, str],
-        embed: Union[IndexEmbed, CreateIndexForModelEmbedTypedDict],
-        tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
-        timeout: Optional[int] = None,
+        cloud: CloudProvider | str,
+        region: AwsRegion | GcpRegion | AzureRegion | str,
+        embed: IndexEmbed | CreateIndexForModelEmbedTypedDict,
+        tags: dict[str, str] | None = None,
+        deletion_protection: (DeletionProtection | str) | None = DeletionProtection.DISABLED,
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        )
+        | None = None,
+        schema: (
+            dict[
+                str, "MetadataSchemaFieldConfig"
+            ]  # Direct field mapping: {field_name: {filterable: bool}}
+            | dict[
+                str, dict[str, Any]
+            ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
+            | "BackupModelSchema"  # OpenAPI model instance
+        )
+        | None = None,
+        timeout: int | None = None,
     ) -> IndexModel:
         req = PineconeDBControlRequestFactory.create_index_for_model_request(
             name=name,
@@ -85,11 +120,15 @@ class IndexResourceAsyncio:
             embed=embed,
             tags=tags,
             deletion_protection=deletion_protection,
+            read_capacity=read_capacity,
+            schema=schema,
         )
         resp = await self._index_api.create_index_for_model(req)
 
         if timeout == -1:
-            return IndexModel(resp)
+            from typing import cast
+
+            return IndexModel(cast(Any, resp))
         return await self.__poll_describe_index_until_ready(name, timeout)
 
     @require_kwargs
@@ -98,9 +137,9 @@ class IndexResourceAsyncio:
         *,
         name: str,
         backup_id: str,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = DeletionProtection.DISABLED,
-        tags: Optional[Dict[str, str]] = None,
-        timeout: Optional[int] = None,
+        deletion_protection: (DeletionProtection | str) | None = DeletionProtection.DISABLED,
+        tags: dict[str, str] | None = None,
+        timeout: int | None = None,
     ) -> IndexModel:
         req = PineconeDBControlRequestFactory.create_index_from_backup_request(
             name=name, deletion_protection=deletion_protection, tags=tags
@@ -110,7 +149,9 @@ class IndexResourceAsyncio:
         )
         return await self.__poll_describe_index_until_ready(name, timeout)
 
-    async def __poll_describe_index_until_ready(self, name: str, timeout: Optional[int] = None):
+    async def __poll_describe_index_until_ready(
+        self, name: str, timeout: int | None = None
+    ) -> IndexModel:
         total_wait_time = 0
         while True:
             description = await self.describe(name=name)
@@ -135,7 +176,7 @@ class IndexResourceAsyncio:
             await asyncio.sleep(5)
 
     @require_kwargs
-    async def delete(self, *, name: str, timeout: Optional[int] = None):
+    async def delete(self, *, name: str, timeout: int | None = None) -> None:
         await self._index_api.delete_index(name)
 
         if timeout == -1:
@@ -180,12 +221,19 @@ class IndexResourceAsyncio:
         self,
         *,
         name: str,
-        replicas: Optional[int] = None,
-        pod_type: Optional[Union[PodType, str]] = None,
-        deletion_protection: Optional[Union[DeletionProtection, str]] = None,
-        tags: Optional[Dict[str, str]] = None,
-        embed: Optional[Union[ConfigureIndexEmbed, Dict]] = None,
-    ):
+        replicas: int | None = None,
+        pod_type: (PodType | str) | None = None,
+        deletion_protection: (DeletionProtection | str) | None = None,
+        tags: dict[str, str] | None = None,
+        embed: (ConfigureIndexEmbed | Dict) | None = None,
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        )
+        | None = None,
+    ) -> None:
         description = await self.describe(name=name)
 
         req = PineconeDBControlRequestFactory.configure_index_request(
@@ -195,5 +243,6 @@ class IndexResourceAsyncio:
             deletion_protection=deletion_protection,
             tags=tags,
             embed=embed,
+            read_capacity=read_capacity,
         )
         await self._index_api.configure_index(name, configure_index_request=req)

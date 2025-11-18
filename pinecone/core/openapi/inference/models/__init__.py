@@ -20,7 +20,6 @@ from pinecone.core.openapi.inference.model.error_response import ErrorResponse
 from pinecone.core.openapi.inference.model.error_response_error import ErrorResponseError
 from pinecone.core.openapi.inference.model.model_info import ModelInfo
 from pinecone.core.openapi.inference.model.model_info_list import ModelInfoList
-from pinecone.core.openapi.inference.model.model_info_metric import ModelInfoMetric
 from pinecone.core.openapi.inference.model.model_info_supported_metrics import (
     ModelInfoSupportedMetrics,
 )

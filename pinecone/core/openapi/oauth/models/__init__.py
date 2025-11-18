@@ -9,6 +9,6 @@
 # import sys
 # sys.setrecursionlimit(n)
 
-from pinecone.core.openapi.oauth.model.inline_response400 import InlineResponse400
+from pinecone.core.openapi.oauth.model.error_response import ErrorResponse
 from pinecone.core.openapi.oauth.model.token_request import TokenRequest
 from pinecone.core.openapi.oauth.model.token_response import TokenResponse

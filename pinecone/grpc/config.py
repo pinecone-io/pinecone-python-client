@@ -1,5 +1,5 @@
 from .retry import RetryConfig
-from typing import NamedTuple, Optional, Dict
+from typing import NamedTuple
 
 
 class GRPCClientConfig(NamedTuple):
@@ -17,20 +17,20 @@ class GRPCClientConfig(NamedTuple):
     :param retry_config: RetryConfig indicating how requests should be retried
     :type retry_config: RetryConfig, optional
     :param grpc_channel_options: A dict of gRPC channel arguments
-    :type grpc_channel_options: Dict[str, str]
+    :type grpc_channel_options: dict[str, str]
     :param additional_metadata: Additional metadata to be sent to the server with each request. Note that this
         metadata refers to [gRPC metadata](https://grpc.io/docs/guides/metadata/) which is a concept similar
         to HTTP headers. This is unrelated to the metadata can be stored with a vector in the index.
-    :type additional_metadata: Dict[str, str]
+    :type additional_metadata: dict[str, str]
     """
 
     secure: bool = True
     timeout: int = 20
     conn_timeout: int = 1
     reuse_channel: bool = True
-    retry_config: Optional[RetryConfig] = None
-    grpc_channel_options: Optional[Dict[str, str]] = None
-    additional_metadata: Optional[Dict[str, str]] = None
+    retry_config: RetryConfig | None = None
+    grpc_channel_options: dict[str, str] | None = None
+    additional_metadata: dict[str, str] | None = None
 
     @classmethod
     def _from_dict(cls, kwargs: dict):

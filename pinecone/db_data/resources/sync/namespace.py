@@ -1,10 +1,7 @@
-from typing import Optional, Iterator
+from typing import Iterator, Any
 
 from pinecone.core.openapi.db_data.api.namespace_operations_api import NamespaceOperationsApi
-from pinecone.core.openapi.db_data.models import (
-    ListNamespacesResponse,
-    NamespaceDescription,
-)
+from pinecone.core.openapi.db_data.models import ListNamespacesResponse, NamespaceDescription
 
 from pinecone.utils import install_json_repr_override, PluginAware, require_kwargs
 
@@ -15,13 +12,7 @@ for m in [ListNamespacesResponse, NamespaceDescription]:
 
 
 class NamespaceResource(PluginAware):
-    def __init__(
-        self,
-        api_client,
-        config,
-        openapi_config,
-        pool_threads: int,
-    ) -> None:
+    def __init__(self, api_client, config, openapi_config, pool_threads: int) -> None:
         self.config = config
         """ :meta private: """
 
@@ -35,6 +26,27 @@ class NamespaceResource(PluginAware):
         super().__init__()
 
     @require_kwargs
+    def create(self, name: str, schema: Any | None = None, **kwargs) -> NamespaceDescription:
+        """
+        Args:
+            name (str): The name of the namespace to create
+            schema (Optional[Any]): Optional schema configuration for the namespace. Can be a dictionary or CreateNamespaceRequestSchema object. [optional]
+
+        Returns:
+            ``NamespaceDescription``: Information about the created namespace including vector count
+
+        Create a namespace in a serverless index. For guidance and examples, see
+        `Manage namespaces <https://docs.pinecone.io/guides/manage-data/manage-namespaces>`_.
+
+        **Note:** This operation is not supported for pod-based indexes.
+        """
+        from typing import cast
+
+        args = NamespaceRequestFactory.create_namespace_args(name=name, schema=schema, **kwargs)
+        result = self.__namespace_operations_api.create_namespace(**args)
+        return cast(NamespaceDescription, result)
+
+    @require_kwargs
     def describe(self, namespace: str, **kwargs) -> NamespaceDescription:
         """
         Args:
@@ -45,8 +57,11 @@ class NamespaceResource(PluginAware):
 
         Describe a namespace within an index, showing the vector count within the namespace.
         """
+        from typing import cast
+
         args = NamespaceRequestFactory.describe_namespace_args(namespace=namespace, **kwargs)
-        return self.__namespace_operations_api.describe_namespace(**args)
+        result = self.__namespace_operations_api.describe_namespace(**args)
+        return cast(NamespaceDescription, result)
 
     @require_kwargs
     def delete(self, namespace: str, **kwargs):
@@ -60,7 +75,7 @@ class NamespaceResource(PluginAware):
         return self.__namespace_operations_api.delete_namespace(**args)
 
     @require_kwargs
-    def list(self, limit: Optional[int] = None, **kwargs) -> Iterator[ListNamespacesResponse]:
+    def list(self, limit: int | None = None, **kwargs) -> Iterator[ListNamespacesResponse]:
         """
         Args:
             limit (Optional[int]): The maximum number of namespaces to fetch in each network call. If unspecified, the server will use a default value. [optional]
@@ -97,7 +112,7 @@ class NamespaceResource(PluginAware):
 
     @require_kwargs
     def list_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+        self, limit: int | None = None, pagination_token: str | None = None, **kwargs
     ) -> ListNamespacesResponse:
         """
         Args:
@@ -119,5 +134,10 @@ class NamespaceResource(PluginAware):
                 eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
                 >>> next_results = index.list_paginated(limit=5, pagination_token=results.pagination.next)
         """
-        args = NamespaceRequestFactory.list_namespaces_args(limit=limit, pagination_token=pagination_token, **kwargs)
-        return self.__namespace_operations_api.list_namespaces_operation(**args)
+        from typing import cast
+
+        args = NamespaceRequestFactory.list_namespaces_args(
+            limit=limit, pagination_token=pagination_token, **kwargs
+        )
+        result = self.__namespace_operations_api.list_namespaces_operation(**args)
+        return cast(ListNamespacesResponse, result)

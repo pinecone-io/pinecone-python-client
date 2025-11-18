@@ -1,7 +1,8 @@
-import logging
-from typing import Optional, Dict, Union, List, Tuple, Any, Iterable, cast, Literal
+from __future__ import annotations
 
-from google.protobuf import json_format
+import logging
+from typing import List, Any, Iterable, cast, Literal, Iterator, TYPE_CHECKING
+
 
 from pinecone.utils.tqdm import tqdm
 from pinecone.utils import require_kwargs
@@ -11,7 +12,9 @@ from concurrent.futures import as_completed, Future
 from .utils import (
     dict_to_proto_struct,
     parse_fetch_response,
+    parse_fetch_by_metadata_response,
     parse_query_response,
+    query_response_to_dict,
     parse_stats_response,
     parse_upsert_response,
     parse_update_response,
@@ -23,36 +26,46 @@ from .vector_factory_grpc import VectorFactoryGRPC
 from .sparse_values_factory import SparseValuesFactory
 
 from pinecone.core.openapi.db_data.models import (
-    FetchResponse,
-    QueryResponse,
     IndexDescription as DescribeIndexStatsResponse,
     NamespaceDescription,
     ListNamespacesResponse,
 )
+from pinecone.db_data.dataclasses import (
+    FetchByMetadataResponse,
+    UpdateResponse,
+    UpsertResponse,
+    FetchResponse,
+    QueryResponse,
+)
 from pinecone.db_control.models.list_response import ListResponse as SimpleListResponse, Pagination
-from pinecone.core.grpc.protos.db_data_2025_04_pb2 import (
+from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
     Vector as GRPCVector,
     QueryVector as GRPCQueryVector,
+    QueryResponse as ProtoQueryResponse,
     UpsertRequest,
-    UpsertResponse,
     DeleteRequest,
     QueryRequest,
     FetchRequest,
+    FetchByMetadataRequest,
     UpdateRequest,
     ListRequest,
     DescribeIndexStatsRequest,
-    DeleteResponse,
-    UpdateResponse,
     SparseValues as GRPCSparseValues,
     DescribeNamespaceRequest,
     DeleteNamespaceRequest,
     ListNamespacesRequest,
+    CreateNamespaceRequest,
+    MetadataSchema,
+    MetadataFieldProperties,
 )
+from pinecone.core.grpc.protos.db_data_2025_10_pb2_grpc import VectorServiceStub
 from pinecone import Vector, SparseValues
 from pinecone.db_data.query_results_aggregator import QueryNamespacesResults, QueryResultsAggregator
-from pinecone.core.grpc.protos.db_data_2025_04_pb2_grpc import VectorServiceStub
 from .base import GRPCIndexBase
 from .future import PineconeGrpcFuture
+
+if TYPE_CHECKING:
+    from typing import Type
 from ..db_data.types import (
     SparseVectorTypedDict,
     VectorTypedDict,
@@ -62,7 +75,14 @@ from ..db_data.types import (
 )
 
 
-__all__ = ["GRPCIndex", "GRPCVector", "GRPCQueryVector", "GRPCSparseValues", "NamespaceDescription", "ListNamespacesResponse"]
+__all__ = [
+    "GRPCIndex",
+    "GRPCVector",
+    "GRPCQueryVector",
+    "GRPCSparseValues",
+    "NamespaceDescription",
+    "ListNamespacesResponse",
+]
 
 _logger = logging.getLogger(__name__)
 """ :meta private: """
@@ -72,19 +92,19 @@ class GRPCIndex(GRPCIndexBase):
     """A client for interacting with a Pinecone index via GRPC API."""
 
     @property
-    def stub_class(self):
+    def stub_class(self) -> "Type[VectorServiceStub]":
         """:meta private:"""
         return VectorServiceStub
 
     def upsert(
         self,
-        vectors: Union[List[Vector], List[GRPCVector], List[VectorTuple], List[VectorTypedDict]],
+        vectors: list[Vector] | list[GRPCVector] | list[VectorTuple] | list[VectorTypedDict],
         async_req: bool = False,
-        namespace: Optional[str] = None,
-        batch_size: Optional[int] = None,
+        namespace: str | None = None,
+        batch_size: int | None = None,
         show_progress: bool = True,
         **kwargs,
-    ) -> Union[UpsertResponse, PineconeGrpcFuture]:
+    ) -> UpsertResponse | PineconeGrpcFuture:
         """
         The upsert operation writes vectors into a namespace.
         If a new value is upserted for an existing vector id, it will overwrite the previous value.
@@ -109,7 +129,7 @@ class GRPCIndex(GRPCIndexBase):
                                          sparse_values=GRPCSparseValues(indices=[1, 2], values=[0.2, 0.4]))])
 
         Args:
-            vectors (Union[List[Vector], List[Tuple]]): A list of vectors to upsert.
+            vectors (Union[list[Vector], list[Tuple]]): A list of vectors to upsert.
 
                      A vector can be represented by a 1) GRPCVector object, a 2) tuple or 3) a dictionary
                      1) if a tuple is used, it must be of the form (id, values, metadata) or (id, values).
@@ -118,7 +138,7 @@ class GRPCIndex(GRPCIndexBase):
 
                     2) if a GRPCVector object is used, a GRPCVector object must be of the form
                         GRPCVector(id, values, metadata), where metadata is an optional argument of type
-                        Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]
+                        dict[str, Union[str, float, int, bool, list[int], list[float], list[str]]]
                        Examples: GRPCVector(id='id1', values=[1.0, 2.0, 3.0], metadata={'key': 'value'}),
                                  GRPCVector(id='id2', values=[1.0, 2.0, 3.0]),
                                  GRPCVector(id='id3',
@@ -126,7 +146,7 @@ class GRPCIndex(GRPCIndexBase):
                                             sparse_values=GRPCSparseValues(indices=[1, 2], values=[0.2, 0.4]))
 
                     3) if a dictionary is used, it must be in the form
-                       {'id': str, 'values': List[float], 'sparse_values': {'indices': List[int], 'values': List[float]},
+                       {'id': str, 'values': list[float], 'sparse_values': {'indices': list[int], 'values': list[float]},
                         'metadata': dict}
 
                     Note: the dimension of each vector must match the dimension of the index.
@@ -155,7 +175,10 @@ class GRPCIndex(GRPCIndexBase):
         if async_req:
             args_dict = self._parse_non_empty_args([("namespace", namespace)])
             request = UpsertRequest(vectors=vectors, **args_dict, **kwargs)
-            future = self.runner.run(self.stub.Upsert.future, request, timeout=timeout)
+            future_result = self.runner.run(self.stub.Upsert.future, request, timeout=timeout)
+            # For .future calls, runner returns (future, None, None) since .future doesn't support with_call
+            # The future itself will provide metadata when it completes
+            future = future_result[0] if isinstance(future_result, tuple) else future_result
             return PineconeGrpcFuture(
                 future, timeout=timeout, result_transformer=parse_upsert_response
             )
@@ -168,6 +191,7 @@ class GRPCIndex(GRPCIndexBase):
 
         pbar = tqdm(total=len(vectors), disable=not show_progress, desc="Upserted vectors")
         total_upserted = 0
+        last_batch_result = None
         for i in range(0, len(vectors), batch_size):
             batch_result = self._upsert_batch(
                 vectors[i : i + batch_size], namespace, timeout=timeout, **kwargs
@@ -175,20 +199,35 @@ class GRPCIndex(GRPCIndexBase):
             pbar.update(batch_result.upserted_count)
             # we can't use here pbar.n for the case show_progress=False
             total_upserted += batch_result.upserted_count
+            last_batch_result = batch_result
 
-        return UpsertResponse(upserted_count=total_upserted)
+        # Create aggregated response with metadata from final batch
+        from pinecone.db_data.dataclasses import UpsertResponse
+
+        response_info = None
+        if last_batch_result and hasattr(last_batch_result, "_response_info"):
+            response_info = last_batch_result._response_info
+        else:
+            from pinecone.utils.response_info import extract_response_info
+
+            response_info = extract_response_info({})
+
+        return UpsertResponse(upserted_count=total_upserted, _response_info=response_info)
 
     def _upsert_batch(
-        self, vectors: List[GRPCVector], namespace: Optional[str], timeout: Optional[int], **kwargs
+        self, vectors: list[GRPCVector], namespace: str | None, timeout: int | None, **kwargs
     ) -> UpsertResponse:
         args_dict = self._parse_non_empty_args([("namespace", namespace)])
         request = UpsertRequest(vectors=vectors, **args_dict)
-        return self.runner.run(self.stub.Upsert, request, timeout=timeout, **kwargs)
+        response, initial_metadata = self.runner.run(
+            self.stub.Upsert, request, timeout=timeout, **kwargs
+        )
+        return parse_upsert_response(response, initial_metadata=initial_metadata)
 
     def upsert_from_dataframe(
         self,
-        df,
-        namespace: str = "",
+        df: Any,
+        namespace: str | None = None,
         batch_size: int = 500,
         use_async_requests: bool = True,
         show_progress: bool = True,
@@ -216,12 +255,17 @@ class GRPCIndex(GRPCIndexBase):
         pbar = tqdm(total=len(df), disable=not show_progress, desc="sending upsert requests")
         results = []
         for chunk in self._iter_dataframe(df, batch_size=batch_size):
-            res = self.upsert(vectors=chunk, namespace=namespace, async_req=use_async_requests)
+            # Type cast: dataframe dicts match VectorTypedDict structure
+            res = self.upsert(
+                vectors=cast(list[VectorTypedDict], chunk),
+                namespace=namespace,
+                async_req=use_async_requests,
+            )
             pbar.update(len(chunk))
             results.append(res)
 
         if use_async_requests:
-            cast_results = cast(List[PineconeGrpcFuture], results)
+            cast_results = cast(list[PineconeGrpcFuture], results)
             results = [
                 async_result.result()
                 for async_result in tqdm(
@@ -232,33 +276,43 @@ class GRPCIndex(GRPCIndexBase):
             ]
 
         upserted_count = 0
+        last_result = None
         for res in results:
             if hasattr(res, "upserted_count") and isinstance(res.upserted_count, int):
                 upserted_count += res.upserted_count
+                last_result = res
 
-        return UpsertResponse(upserted_count=upserted_count)
+        response_info = None
+        if last_result and hasattr(last_result, "_response_info"):
+            response_info = last_result._response_info
+        else:
+            from pinecone.utils.response_info import extract_response_info
+
+            response_info = extract_response_info({})
+
+        return UpsertResponse(upserted_count=upserted_count, _response_info=response_info)
 
     @staticmethod
-    def _iter_dataframe(df, batch_size):
+    def _iter_dataframe(df: Any, batch_size: int) -> Iterator[list[dict[str, Any]]]:
         for i in range(0, len(df), batch_size):
             batch = df.iloc[i : i + batch_size].to_dict(orient="records")
             yield batch
 
     def delete(
         self,
-        ids: Optional[List[str]] = None,
-        delete_all: Optional[bool] = None,
-        namespace: Optional[str] = None,
-        filter: Optional[FilterTypedDict] = None,
+        ids: list[str] | None = None,
+        delete_all: bool | None = None,
+        namespace: str | None = None,
+        filter: FilterTypedDict | None = None,
         async_req: bool = False,
         **kwargs,
-    ) -> Union[DeleteResponse, PineconeGrpcFuture]:
+    ) -> dict[str, Any] | PineconeGrpcFuture:
         """
         The Delete operation deletes vectors from the index, from a single namespace.
         No error raised if the vector id does not exist.
 
         Args:
-            ids (List[str]): Vector ids to delete [optional]
+            ids (list[str]): Vector ids to delete [optional]
             delete_all (bool): This indicates that all vectors in the index namespace should be deleted.. [optional]
                                Default is False.
             namespace (str): The namespace to delete vectors from [optional]
@@ -309,20 +363,23 @@ class GRPCIndex(GRPCIndexBase):
 
         request = DeleteRequest(**args_dict, **kwargs)
         if async_req:
-            future = self.runner.run(self.stub.Delete.future, request, timeout=timeout)
+            future_result = self.runner.run(self.stub.Delete.future, request, timeout=timeout)
+            # For .future calls, runner returns (future, None, None) since .future doesn't support with_call
+            future = future_result[0] if isinstance(future_result, tuple) else future_result
             return PineconeGrpcFuture(
                 future, timeout=timeout, result_transformer=parse_delete_response
             )
         else:
-            return self.runner.run(self.stub.Delete, request, timeout=timeout)
+            response, initial_metadata = self.runner.run(self.stub.Delete, request, timeout=timeout)
+            return parse_delete_response(response, initial_metadata=initial_metadata)
 
     def fetch(
         self,
-        ids: Optional[List[str]],
-        namespace: Optional[str] = None,
-        async_req: Optional[bool] = False,
+        ids: list[str] | None,
+        namespace: str | None = None,
+        async_req: bool | None = False,
         **kwargs,
-    ) -> Union[FetchResponse, PineconeGrpcFuture]:
+    ) -> FetchResponse | PineconeGrpcFuture:
         """
         The fetch operation looks up and returns vectors, by ID, from a single namespace.
         The returned vectors include the vector data and/or metadata.
@@ -335,7 +392,7 @@ class GRPCIndex(GRPCIndexBase):
             >>> index.fetch(ids=['id1', 'id2'])
 
         Args:
-            ids (List[str]): The vector IDs to fetch.
+            ids (list[str]): The vector IDs to fetch.
             namespace (str): The namespace to fetch vectors from.
                              If not specified, the default namespace is used. [optional]
 
@@ -348,71 +405,111 @@ class GRPCIndex(GRPCIndexBase):
         request = FetchRequest(ids=ids, **args_dict, **kwargs)
 
         if async_req:
-            future = self.runner.run(self.stub.Fetch.future, request, timeout=timeout)
+            future_result = self.runner.run(self.stub.Fetch.future, request, timeout=timeout)
+            # For .future calls, runner returns (future, None, None) since .future doesn't support with_call
+            future = future_result[0] if isinstance(future_result, tuple) else future_result
             return PineconeGrpcFuture(
                 future, result_transformer=parse_fetch_response, timeout=timeout
             )
         else:
-            response = self.runner.run(self.stub.Fetch, request, timeout=timeout)
-            return parse_fetch_response(response)
+            response, initial_metadata = self.runner.run(self.stub.Fetch, request, timeout=timeout)
+            return parse_fetch_response(response, initial_metadata=initial_metadata)
 
-    def query(
+    def fetch_by_metadata(
         self,
-        vector: Optional[List[float]] = None,
-        id: Optional[str] = None,
-        namespace: Optional[str] = None,
-        top_k: Optional[int] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[
-            Union[SparseValues, GRPCSparseValues, SparseVectorTypedDict]
-        ] = None,
-        async_req: Optional[bool] = False,
+        filter: FilterTypedDict,
+        namespace: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        async_req: bool | None = False,
         **kwargs,
-    ) -> Union[QueryResponse, PineconeGrpcFuture]:
+    ) -> FetchByMetadataResponse | PineconeGrpcFuture:
         """
-        The Query operation searches a namespace, using a query vector.
-        It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
+        Fetch vectors by metadata filter.
+
+        Look up and return vectors by metadata filter from a single namespace.
+        The returned vectors include the vector data and/or metadata.
 
         Examples:
 
         .. code-block:: python
 
-            >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace')
-            >>> index.query(id='id1', top_k=10, namespace='my_namespace')
-            >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace', filter={'key': 'value'})
-            >>> index.query(id='id1', top_k=10, namespace='my_namespace', include_metadata=True, include_values=True)
-            >>> index.query(vector=[1, 2, 3], sparse_vector={'indices': [1, 2], 'values': [0.2, 0.4]},
-            >>>             top_k=10, namespace='my_namespace')
-            >>> index.query(vector=[1, 2, 3], sparse_vector=GRPCSparseValues([1, 2], [0.2, 0.4]),
-            >>>             top_k=10, namespace='my_namespace')
+            >>> index.fetch_by_metadata(
+            ...     filter={'genre': {'$in': ['comedy', 'drama']}, 'year': {'$eq': 2019}},
+            ...     namespace='my_namespace',
+            ...     limit=50
+            ... )
+            >>> index.fetch_by_metadata(
+            ...     filter={'status': 'active'},
+            ...     pagination_token='token123'
+            ... )
 
         Args:
-            vector (List[float]): The query vector. This should be the same length as the dimension of the index
-                                  being queried. Each ``query()`` request can contain only one of the parameters
-                                  ``id`` or ``vector``.. [optional]
-            id (str): The unique ID of the vector to be used as a query vector.
-                      Each ``query()`` request can contain only one of the parameters
-                      ``vector`` or ``id``.. [optional]
-            top_k (int): The number of results to return for each query. Must be an integer greater than 1.
+            filter (dict[str, Union[str, float, int, bool, List, dict]]):
+                Metadata filter expression to select vectors.
+                See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`
             namespace (str): The namespace to fetch vectors from.
-                             If not specified, the default namespace is used. [optional]
-            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
-                    The filter to apply. You can use vector metadata to limit your search.
-                    See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
-            include_values (bool): Indicates whether vector values are included in the response.
-                                   If omitted the server will use the default value of False [optional]
-            include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.
-                                     If omitted the server will use the default value of False  [optional]
-            sparse_vector: (Union[SparseValues, Dict[str, Union[List[float], List[int]]]]): sparse values of the query vector.
-                            Expected to be either a SparseValues object or a dict of the form:
-                             {'indices': List[int], 'values': List[float]}, where the lists each have the same length.
+                            If not specified, the default namespace is used. [optional]
+            limit (int): Max number of vectors to return. Defaults to 100. [optional]
+            pagination_token (str): Pagination token to continue a previous listing operation. [optional]
+            async_req (bool): If True, the fetch operation will be performed asynchronously.
+                             Defaults to False. [optional]
 
-        Returns: QueryResponse object which contains the list of the closest vectors as ScoredVector objects,
-                 and namespace name.
+        Returns:
+            FetchByMetadataResponse: Object containing the fetched vectors, namespace, usage, and pagination token.
         """
+        timeout = kwargs.pop("timeout", None)
 
+        if filter is not None:
+            filter_struct = dict_to_proto_struct(filter)
+        else:
+            filter_struct = None
+
+        args_dict = self._parse_non_empty_args(
+            [
+                ("namespace", namespace),
+                ("filter", filter_struct),
+                ("limit", limit),
+                ("pagination_token", pagination_token),
+            ]
+        )
+
+        request = FetchByMetadataRequest(**args_dict, **kwargs)
+
+        if async_req:
+            future_result = self.runner.run(
+                self.stub.FetchByMetadata.future, request, timeout=timeout
+            )
+            # For .future calls, runner returns (future, None, None) since .future doesn't support with_call
+            future = future_result[0] if isinstance(future_result, tuple) else future_result
+            return PineconeGrpcFuture(
+                future, result_transformer=parse_fetch_by_metadata_response, timeout=timeout
+            )
+        else:
+            response, initial_metadata = self.runner.run(
+                self.stub.FetchByMetadata, request, timeout=timeout
+            )
+            return parse_fetch_by_metadata_response(response, initial_metadata=initial_metadata)
+
+    def _query(
+        self,
+        vector: list[float] | None = None,
+        id: str | None = None,
+        namespace: str | None = None,
+        top_k: int | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: (SparseValues | GRPCSparseValues | SparseVectorTypedDict) | None = None,
+        **kwargs,
+    ) -> tuple[ProtoQueryResponse, dict[str, str] | None]:
+        """
+        Low-level query method that returns protobuf Message and initial metadata without parsing.
+        Used internally by query() and query_namespaces() for performance.
+
+        Returns:
+            Tuple of (protobuf_message, initial_metadata). initial_metadata may be None.
+        """
         if vector is not None and id is not None:
             raise ValueError("Cannot specify both `id` and `vector`")
 
@@ -438,27 +535,125 @@ class GRPCIndex(GRPCIndexBase):
         request = QueryRequest(**args_dict)
 
         timeout = kwargs.pop("timeout", None)
+        response, initial_metadata = self.runner.run(self.stub.Query, request, timeout=timeout)
+        return response, initial_metadata
+
+    def query(
+        self,
+        vector: list[float] | None = None,
+        id: str | None = None,
+        namespace: str | None = None,
+        top_k: int | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: (SparseValues | GRPCSparseValues | SparseVectorTypedDict) | None = None,
+        async_req: bool | None = False,
+        **kwargs,
+    ) -> "QueryResponse" | PineconeGrpcFuture:
+        """
+        The Query operation searches a namespace, using a query vector.
+        It retrieves the ids of the most similar items in a namespace, along with their similarity scores.
+
+        Examples:
+
+        .. code-block:: python
+
+            >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace')
+            >>> index.query(id='id1', top_k=10, namespace='my_namespace')
+            >>> index.query(vector=[1, 2, 3], top_k=10, namespace='my_namespace', filter={'key': 'value'})
+            >>> index.query(id='id1', top_k=10, namespace='my_namespace', include_metadata=True, include_values=True)
+            >>> index.query(vector=[1, 2, 3], sparse_vector={'indices': [1, 2], 'values': [0.2, 0.4]},
+            >>>             top_k=10, namespace='my_namespace')
+            >>> index.query(vector=[1, 2, 3], sparse_vector=GRPCSparseValues([1, 2], [0.2, 0.4]),
+            >>>             top_k=10, namespace='my_namespace')
+
+        Args:
+            vector (list[float]): The query vector. This should be the same length as the dimension of the index
+                                  being queried. Each ``query()`` request can contain only one of the parameters
+                                  ``id`` or ``vector``.. [optional]
+            id (str): The unique ID of the vector to be used as a query vector.
+                      Each ``query()`` request can contain only one of the parameters
+                      ``vector`` or ``id``.. [optional]
+            top_k (int): The number of results to return for each query. Must be an integer greater than 1.
+            namespace (str): The namespace to fetch vectors from.
+                             If not specified, the default namespace is used. [optional]
+            filter (dict[str, Union[str, float, int, bool, List, dict]]):
+                    The filter to apply. You can use vector metadata to limit your search.
+                    See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
+            include_values (bool): Indicates whether vector values are included in the response.
+                                   If omitted the server will use the default value of False [optional]
+            include_metadata (bool): Indicates whether metadata is included in the response as well as the ids.
+                                     If omitted the server will use the default value of False  [optional]
+            sparse_vector: (Union[SparseValues, dict[str, Union[list[float], list[int]]]]): sparse values of the query vector.
+                            Expected to be either a SparseValues object or a dict of the form:
+                             {'indices': list[int], 'values': list[float]}, where the lists each have the same length.
+
+        Returns: QueryResponse object which contains the list of the closest vectors as ScoredVector objects,
+                 and namespace name.
+        """
+
+        timeout = kwargs.pop("timeout", None)
 
         if async_req:
-            future = self.runner.run(self.stub.Query.future, request, timeout=timeout)
+            # For async requests, we need to build the request manually
+            if vector is not None and id is not None:
+                raise ValueError("Cannot specify both `id` and `vector`")
+
+            if filter is not None:
+                filter_struct = dict_to_proto_struct(filter)
+            else:
+                filter_struct = None
+
+            sparse_vector = SparseValuesFactory.build(sparse_vector)
+            args_dict = self._parse_non_empty_args(
+                [
+                    ("vector", vector),
+                    ("id", id),
+                    ("namespace", namespace),
+                    ("top_k", top_k),
+                    ("filter", filter_struct),
+                    ("include_values", include_values),
+                    ("include_metadata", include_metadata),
+                    ("sparse_vector", sparse_vector),
+                ]
+            )
+
+            request = QueryRequest(**args_dict)
+            future_result = self.runner.run(self.stub.Query.future, request, timeout=timeout)
+            # For .future calls, runner returns (future, None) since .future doesn't support with_call
+            future = future_result[0] if isinstance(future_result, tuple) else future_result
             return PineconeGrpcFuture(
                 future, result_transformer=parse_query_response, timeout=timeout
             )
         else:
-            response = self.runner.run(self.stub.Query, request, timeout=timeout)
-            json_response = json_format.MessageToDict(response)
-            return parse_query_response(json_response, _check_type=False)
+            # For sync requests, use _query to get protobuf Message and metadata, then parse it
+            response, initial_metadata = self._query(
+                vector=vector,
+                id=id,
+                namespace=namespace,
+                top_k=top_k,
+                filter=filter,
+                include_values=include_values,
+                include_metadata=include_metadata,
+                sparse_vector=sparse_vector,
+                timeout=timeout,
+                **kwargs,
+            )
+            return parse_query_response(
+                response, _check_type=False, initial_metadata=initial_metadata
+            )
 
     def query_namespaces(
         self,
-        vector: List[float],
-        namespaces: List[str],
+        vector: list[float],
+        namespaces: list[str],
         metric: Literal["cosine", "euclidean", "dotproduct"],
-        top_k: Optional[int] = None,
-        filter: Optional[FilterTypedDict] = None,
-        include_values: Optional[bool] = None,
-        include_metadata: Optional[bool] = None,
-        sparse_vector: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
+        top_k: int | None = None,
+        filter: FilterTypedDict | None = None,
+        include_values: bool | None = None,
+        include_metadata: bool | None = None,
+        sparse_vector: (GRPCSparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         if namespaces is None or len(namespaces) == 0:
@@ -472,7 +667,7 @@ class GRPCIndex(GRPCIndexBase):
         target_namespaces = set(namespaces)  # dedup namespaces
         futures = [
             self.threadpool_executor.submit(
-                self.query,
+                self._query,
                 vector=vector,
                 namespace=ns,
                 top_k=overall_topk,
@@ -480,7 +675,6 @@ class GRPCIndex(GRPCIndexBase):
                 include_values=include_values,
                 include_metadata=include_metadata,
                 sparse_vector=sparse_vector,
-                async_req=False,
                 **kwargs,
             )
             for ns in target_namespaces
@@ -488,84 +682,152 @@ class GRPCIndex(GRPCIndexBase):
 
         only_futures = cast(Iterable[Future], futures)
         for response in as_completed(only_futures):
-            aggregator.add_results(response.result())
+            proto_response, _ = response.result()  # Ignore initial_metadata for query_namespaces
+            # Convert protobuf Message to dict format for aggregator using optimized helper
+            json_response = query_response_to_dict(proto_response)
+            aggregator.add_results(json_response)
 
         final_results = aggregator.get_results()
         return final_results
 
     def update(
         self,
-        id: str,
+        id: str | None = None,
         async_req: bool = False,
-        values: Optional[List[float]] = None,
-        set_metadata: Optional[VectorMetadataTypedDict] = None,
-        namespace: Optional[str] = None,
-        sparse_values: Optional[Union[GRPCSparseValues, SparseVectorTypedDict]] = None,
+        values: list[float] | None = None,
+        set_metadata: VectorMetadataTypedDict | None = None,
+        namespace: str | None = None,
+        sparse_values: (GRPCSparseValues | SparseVectorTypedDict) | None = None,
+        filter: FilterTypedDict | None = None,
+        dry_run: bool | None = None,
         **kwargs,
-    ) -> Union[UpdateResponse, PineconeGrpcFuture]:
+    ) -> UpdateResponse | PineconeGrpcFuture:
         """
-        The Update operation updates vector in a namespace.
-        If a value is included, it will overwrite the previous value.
-        If a set_metadata is included,
-        the values of the fields specified in it will be added or overwrite the previous value.
+        The Update operation updates vectors in a namespace.
+
+        This method supports two update modes:
+
+        1. **Single vector update by ID**: Provide `id` to update a specific vector.
+           - Updates the vector with the given ID
+           - If `values` is included, it will overwrite the previous vector values
+           - If `set_metadata` is included, the metadata will be merged with existing metadata on the vector.
+             Fields specified in `set_metadata` will overwrite existing fields with the same key, while
+             fields not in `set_metadata` will remain unchanged.
+
+        2. **Bulk update by metadata filter**: Provide `filter` to update all vectors matching the filter criteria.
+           - Updates all vectors in the namespace that match the filter expression
+           - Useful for updating metadata across multiple vectors at once
+           - If `set_metadata` is included, the metadata will be merged with existing metadata on each vector.
+             Fields specified in `set_metadata` will overwrite existing fields with the same key, while
+             fields not in `set_metadata` will remain unchanged.
+           - The response includes `matched_records` indicating how many vectors were updated
+
+        Either `id` or `filter` must be provided (but not both in the same call).
 
         Examples:
 
+        **Single vector update by ID:**
+
         .. code-block:: python
 
+            >>> # Update vector values
             >>> index.update(id='id1', values=[1, 2, 3], namespace='my_namespace')
+            >>> # Update vector metadata
             >>> index.update(id='id1', set_metadata={'key': 'value'}, namespace='my_namespace', async_req=True)
+            >>> # Update vector values and sparse values
             >>> index.update(id='id1', values=[1, 2, 3], sparse_values={'indices': [1, 2], 'values': [0.2, 0.4]},
             >>>              namespace='my_namespace')
             >>> index.update(id='id1', values=[1, 2, 3], sparse_values=GRPCSparseValues(indices=[1, 2], values=[0.2, 0.4]),
             >>>              namespace='my_namespace')
 
+        **Bulk update by metadata filter:**
+
+        .. code-block:: python
+
+            >>> # Update metadata for all vectors matching the filter
+            >>> response = index.update(set_metadata={'status': 'active'}, filter={'genre': {'$eq': 'drama'}},
+            >>>                        namespace='my_namespace')
+            >>> print(f"Updated {response.matched_records} vectors")
+            >>> # Preview how many vectors would be updated (dry run)
+            >>> response = index.update(set_metadata={'status': 'active'}, filter={'genre': {'$eq': 'drama'}},
+            >>>                        namespace='my_namespace', dry_run=True)
+            >>> print(f"Would update {response.matched_records} vectors")
+
         Args:
-            id (str): Vector's unique id.
+            id (str): Vector's unique id. Required for single vector updates. Must not be provided when using filter. [optional]
             async_req (bool): If True, the update operation will be performed asynchronously.
                               Defaults to False. [optional]
-            values (List[float]): vector values to set. [optional]
-            set_metadata (Dict[str, Union[str, float, int, bool, List[int], List[float], List[str]]]]):
-                metadata to set for vector. [optional]
-            namespace (str): Namespace name where to update the vector.. [optional]
-            sparse_values: (Dict[str, Union[List[float], List[int]]]): sparse values to update for the vector.
+            values (list[float]): Vector values to set. [optional]
+            set_metadata (dict[str, Union[str, float, int, bool, list[int], list[float], list[str]]]]):
+                Metadata to merge with existing metadata on the vector(s). Fields specified will overwrite
+                existing fields with the same key, while fields not specified will remain unchanged. [optional]
+            namespace (str): Namespace name where to update the vector(s). [optional]
+            sparse_values: (dict[str, Union[list[float], list[int]]]): Sparse values to update for the vector.
                            Expected to be either a GRPCSparseValues object or a dict of the form:
-                           {'indices': List[int], 'values': List[float]} where the lists each have the same length.
+                           {'indices': list[int], 'values': list[float]} where the lists each have the same length. [optional]
+            filter (dict[str, Union[str, float, int, bool, List, dict]]): A metadata filter expression.
+                    When provided, updates all vectors in the namespace that match the filter criteria.
+                    See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_`.
+                    Must not be provided when using id. Either `id` or `filter` must be provided. [optional]
+            dry_run (bool): If `True`, return the number of records that match the `filter` without executing
+                    the update. Only meaningful when using `filter` (not with `id`). Useful for previewing
+                    the impact of a bulk update before applying changes. Defaults to `False`. [optional]
 
-
-        Returns: UpdateResponse (contains no data) or a PineconeGrpcFuture object if async_req is True.
+        Returns:
+            UpdateResponse or PineconeGrpcFuture: When using filter-based updates, the UpdateResponse includes
+            `matched_records` indicating the number of vectors that were updated (or would be updated if
+            `dry_run=True`). If `async_req=True`, returns a PineconeGrpcFuture object instead.
         """
+        # Validate that exactly one of id or filter is provided
+        if id is None and filter is None:
+            raise ValueError("Either 'id' or 'filter' must be provided to update vectors.")
+        if id is not None and filter is not None:
+            raise ValueError(
+                "Cannot provide both 'id' and 'filter' in the same update call. Use 'id' for single vector updates or 'filter' for bulk updates."
+            )
+
         if set_metadata is not None:
             set_metadata_struct = dict_to_proto_struct(set_metadata)
         else:
             set_metadata_struct = None
 
+        if filter is not None:
+            filter_struct = dict_to_proto_struct(filter)
+        else:
+            filter_struct = None
+
         timeout = kwargs.pop("timeout", None)
         sparse_values = SparseValuesFactory.build(sparse_values)
         args_dict = self._parse_non_empty_args(
             [
+                ("id", id),
                 ("values", values),
                 ("set_metadata", set_metadata_struct),
                 ("namespace", namespace),
                 ("sparse_values", sparse_values),
+                ("filter", filter_struct),
+                ("dry_run", dry_run),
             ]
         )
 
-        request = UpdateRequest(id=id, **args_dict)
+        request = UpdateRequest(**args_dict)
         if async_req:
-            future = self.runner.run(self.stub.Update.future, request, timeout=timeout)
+            future_result = self.runner.run(self.stub.Update.future, request, timeout=timeout)
+            # For .future calls, runner returns (future, None, None) since .future doesn't support with_call
+            future = future_result[0] if isinstance(future_result, tuple) else future_result
             return PineconeGrpcFuture(
                 future, timeout=timeout, result_transformer=parse_update_response
             )
         else:
-            return self.runner.run(self.stub.Update, request, timeout=timeout)
+            response, initial_metadata = self.runner.run(self.stub.Update, request, timeout=timeout)
+            return parse_update_response(response, initial_metadata=initial_metadata)
 
     def list_paginated(
         self,
-        prefix: Optional[str] = None,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
-        namespace: Optional[str] = None,
+        prefix: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        namespace: str | None = None,
         **kwargs,
     ) -> SimpleListResponse:
         """
@@ -606,7 +868,7 @@ class GRPCIndex(GRPCIndexBase):
         )
         request = ListRequest(**args_dict, **kwargs)
         timeout = kwargs.pop("timeout", None)
-        response = self.runner.run(self.stub.List, request, timeout=timeout)
+        response, _ = self.runner.run(self.stub.List, request, timeout=timeout)
 
         if response.pagination and response.pagination.next != "":
             pagination = Pagination(next=response.pagination.next)
@@ -617,7 +879,7 @@ class GRPCIndex(GRPCIndexBase):
             namespace=response.namespace, vectors=response.vectors, pagination=pagination
         )
 
-    def list(self, **kwargs):
+    def list(self, **kwargs) -> Iterator[list[str]]:
         """
         The list operation accepts all of the same arguments as list_paginated, and returns a generator that yields
         a list of the matching vector ids in each page of results. It automatically handles pagination tokens on your
@@ -657,7 +919,7 @@ class GRPCIndex(GRPCIndexBase):
                 done = True
 
     def describe_index_stats(
-        self, filter: Optional[FilterTypedDict] = None, **kwargs
+        self, filter: FilterTypedDict | None = None, **kwargs
     ) -> DescribeIndexStatsResponse:
         """
         The DescribeIndexStats operation returns statistics about the index's contents.
@@ -671,7 +933,7 @@ class GRPCIndex(GRPCIndexBase):
             >>> index.describe_index_stats(filter={'key': 'value'})
 
         Args:
-            filter (Dict[str, Union[str, float, int, bool, List, dict]]):
+            filter (dict[str, Union[str, float, int, bool, List, dict]]):
             If this parameter is present, the operation only returns statistics for vectors that satisfy the filter.
             See `metadata filtering <https://www.pinecone.io/docs/metadata-filtering/>_` [optional]
 
@@ -685,14 +947,76 @@ class GRPCIndex(GRPCIndexBase):
         timeout = kwargs.pop("timeout", None)
 
         request = DescribeIndexStatsRequest(**args_dict)
-        response = self.runner.run(self.stub.DescribeIndexStats, request, timeout=timeout)
-        json_response = json_format.MessageToDict(response)
-        return parse_stats_response(json_response)
+        response, _ = self.runner.run(self.stub.DescribeIndexStats, request, timeout=timeout)
+        return parse_stats_response(response)
 
     @require_kwargs
-    def describe_namespace(
-        self, namespace: str, **kwargs
-    ) -> NamespaceDescription:
+    def create_namespace(
+        self, name: str, schema: dict[str, Any] | None = None, async_req: bool = False, **kwargs
+    ) -> NamespaceDescription | PineconeGrpcFuture:
+        """
+        The create_namespace operation creates a namespace in a serverless index.
+
+        Examples:
+
+        .. code-block:: python
+
+            >>> index.create_namespace(name='my_namespace')
+
+            >>> # Create namespace asynchronously
+            >>> future = index.create_namespace(name='my_namespace', async_req=True)
+            >>> namespace = future.result()
+
+        Args:
+            name (str): The name of the namespace to create.
+            schema (Optional[dict[str, Any]]): Optional schema configuration for the namespace as a dictionary. [optional]
+            async_req (bool): If True, the create_namespace operation will be performed asynchronously. [optional]
+
+        Returns: NamespaceDescription object which contains information about the created namespace, or a PineconeGrpcFuture object if async_req is True.
+        """
+        timeout = kwargs.pop("timeout", None)
+
+        # Build MetadataSchema from dict if provided
+        metadata_schema = None
+        if schema is not None:
+            if isinstance(schema, dict):
+                # Convert dict to MetadataSchema
+                fields = {}
+                for key, value in schema.get("fields", {}).items():
+                    if isinstance(value, dict):
+                        filterable = value.get("filterable", False)
+                        fields[key] = MetadataFieldProperties(filterable=filterable)
+                    else:
+                        # If value is already a MetadataFieldProperties, use it directly
+                        fields[key] = value
+                metadata_schema = MetadataSchema(fields=fields)
+            else:
+                # Assume it's already a MetadataSchema
+                metadata_schema = schema
+
+        request_kwargs: dict[str, Any] = {"name": name}
+        if metadata_schema is not None:
+            request_kwargs["schema"] = metadata_schema
+
+        request = CreateNamespaceRequest(**request_kwargs)
+
+        if async_req:
+            future_result = self.runner.run(
+                self.stub.CreateNamespace.future, request, timeout=timeout
+            )
+            # For .future calls, runner returns (future, None, None) since .future doesn't support with_call
+            future = future_result[0] if isinstance(future_result, tuple) else future_result
+            return PineconeGrpcFuture(
+                future, timeout=timeout, result_transformer=parse_namespace_description
+            )
+
+        response, initial_metadata = self.runner.run(
+            self.stub.CreateNamespace, request, timeout=timeout
+        )
+        return parse_namespace_description(response, initial_metadata=initial_metadata)
+
+    @require_kwargs
+    def describe_namespace(self, namespace: str, **kwargs) -> NamespaceDescription:
         """
         The describe_namespace operation returns information about a specific namespace,
         including the total number of vectors in the namespace.
@@ -710,13 +1034,13 @@ class GRPCIndex(GRPCIndexBase):
         """
         timeout = kwargs.pop("timeout", None)
         request = DescribeNamespaceRequest(namespace=namespace)
-        response = self.runner.run(self.stub.DescribeNamespace, request, timeout=timeout)
-        return parse_namespace_description(response)
+        response, initial_metadata = self.runner.run(
+            self.stub.DescribeNamespace, request, timeout=timeout
+        )
+        return parse_namespace_description(response, initial_metadata=initial_metadata)
 
     @require_kwargs
-    def delete_namespace(
-        self, namespace: str, **kwargs
-    ) -> Dict[str, Any]:
+    def delete_namespace(self, namespace: str, **kwargs) -> dict[str, Any]:
         """
         The delete_namespace operation deletes a namespace from an index.
         This operation is irreversible and will permanently delete all data in the namespace.
@@ -734,15 +1058,14 @@ class GRPCIndex(GRPCIndexBase):
         """
         timeout = kwargs.pop("timeout", None)
         request = DeleteNamespaceRequest(namespace=namespace)
-        response = self.runner.run(self.stub.DeleteNamespace, request, timeout=timeout)
-        return parse_delete_response(response)
+        response, initial_metadata = self.runner.run(
+            self.stub.DeleteNamespace, request, timeout=timeout
+        )
+        return parse_delete_response(response, initial_metadata=initial_metadata)
 
     @require_kwargs
     def list_namespaces_paginated(
-        self,
-        limit: Optional[int] = None,
-        pagination_token: Optional[str] = None,
-        **kwargs,
+        self, limit: int | None = None, pagination_token: str | None = None, **kwargs
     ) -> ListNamespacesResponse:
         """
         The list_namespaces_paginated operation returns a list of all namespaces in a serverless index.
@@ -767,18 +1090,15 @@ class GRPCIndex(GRPCIndexBase):
         Returns: ListNamespacesResponse object which contains the list of namespaces and pagination information.
         """
         args_dict = self._parse_non_empty_args(
-            [
-                ("limit", limit),
-                ("pagination_token", pagination_token),
-            ]
+            [("limit", limit), ("pagination_token", pagination_token)]
         )
         timeout = kwargs.pop("timeout", None)
         request = ListNamespacesRequest(**args_dict, **kwargs)
-        response = self.runner.run(self.stub.ListNamespaces, request, timeout=timeout)
+        response, _ = self.runner.run(self.stub.ListNamespaces, request, timeout=timeout)
         return parse_list_namespaces_response(response)
 
     @require_kwargs
-    def list_namespaces(self, limit: Optional[int] = None, **kwargs):
+    def list_namespaces(self, limit: int | None = None, **kwargs):
         """
         The list_namespaces operation accepts all of the same arguments as list_namespaces_paginated, and returns a generator that yields
         each namespace. It automatically handles pagination tokens on your behalf.
@@ -826,5 +1146,5 @@ class GRPCIndex(GRPCIndexBase):
                 done = True
 
     @staticmethod
-    def _parse_non_empty_args(args: List[Tuple[str, Any]]) -> Dict[str, Any]:
+    def _parse_non_empty_args(args: List[tuple[str, Any]]) -> dict[str, Any]:
         return {arg_name: val for arg_name, val in args if val is not None}

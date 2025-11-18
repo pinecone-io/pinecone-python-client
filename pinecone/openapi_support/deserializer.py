@@ -1,7 +1,11 @@
-import json
 import re
+from typing import TypeVar, Type, Any
+
+import orjson
 
 from .model_utils import deserialize_file, file_type, validate_and_convert_types
+
+T = TypeVar("T")
 
 
 class Deserializer:
@@ -17,7 +21,12 @@ class Deserializer:
             response.data = response.data.decode(encoding)
 
     @staticmethod
-    def deserialize(response, response_type, config, _check_type):
+    def deserialize(
+        response: Any,
+        response_type: tuple[Type[T], ...] | tuple[Type[Any], ...],
+        config: Any,
+        _check_type: bool,
+    ) -> T | Any:
         """Deserializes response into an object.
 
         :param response: RESTResponse object to be deserialized.
@@ -45,7 +54,7 @@ class Deserializer:
 
         # fetch data from response object
         try:
-            received_data = json.loads(response.data)
+            received_data = orjson.loads(response.data)
         except ValueError:
             received_data = response.data
 

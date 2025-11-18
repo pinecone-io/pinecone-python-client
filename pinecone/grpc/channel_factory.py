@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 import certifi
 import grpc
@@ -16,10 +15,7 @@ _logger = logging.getLogger(__name__)
 
 class GrpcChannelFactory:
     def __init__(
-        self,
-        config: Config,
-        grpc_client_config: GRPCClientConfig,
-        use_asyncio: Optional[bool] = False,
+        self, config: Config, grpc_client_config: GRPCClientConfig, use_asyncio: bool | None = False
     ):
         self.config = config
         self.grpc_client_config = grpc_client_config
@@ -95,7 +91,13 @@ class GrpcChannelFactory:
             channel = create_channel_fn(endpoint, options=options_tuple)
         else:
             channel_creds = self._build_channel_credentials()
-            create_channel_fn = grpc.aio.secure_channel if self.use_asyncio else grpc.secure_channel
-            channel = create_channel_fn(endpoint, credentials=channel_creds, options=options_tuple)
+            if self.use_asyncio:
+                channel = grpc.aio.secure_channel(
+                    endpoint, credentials=channel_creds, options=options_tuple
+                )
+            else:
+                channel = grpc.secure_channel(
+                    endpoint, credentials=channel_creds, options=options_tuple
+                )
 
         return channel

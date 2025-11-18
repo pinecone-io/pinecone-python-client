@@ -5,9 +5,14 @@ Provides an API for managing a Pinecone organization and its resources.   # noqa
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Dict, cast
+from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
 from pinecone.openapi_support.endpoint_utils import (
@@ -24,9 +29,9 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     validate_and_convert_types,
 )
 from pinecone.core.openapi.admin.model.create_project_request import CreateProjectRequest
-from pinecone.core.openapi.admin.model.inline_response200 import InlineResponse200
-from pinecone.core.openapi.admin.model.inline_response401 import InlineResponse401
+from pinecone.core.openapi.admin.model.error_response import ErrorResponse
 from pinecone.core.openapi.admin.model.project import Project
+from pinecone.core.openapi.admin.model.project_list import ProjectList
 from pinecone.core.openapi.admin.model.update_project_request import UpdateProjectRequest
 
 
@@ -41,18 +46,24 @@ class ProjectsApi:
             api_client = ApiClient()
         self.api_client = api_client
 
-        def __create_project(self, create_project_request, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __create_project(
+            self,
+            create_project_request,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ) -> Project | ApplyResult[Project]:
             """Create a new project  # noqa: E501
 
             Creates a new project.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.create_project(create_project_request, async_req=True)
+            >>> thread = api.create_project(create_project_request, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 create_project_request (CreateProjectRequest): The details of the new project.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -78,8 +89,9 @@ class ProjectsApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_project_request"] = create_project_request
-            return self.call_with_http_info(**kwargs)
+            return cast(Project | ApplyResult[Project], self.call_with_http_info(**kwargs))
 
         self.create_project = _Endpoint(
             settings={
@@ -91,8 +103,8 @@ class ProjectsApi:
                 "servers": None,
             },
             params_map={
-                "all": ["create_project_request"],
-                "required": ["create_project_request"],
+                "all": ["x_pinecone_api_version", "create_project_request"],
+                "required": ["x_pinecone_api_version", "create_project_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -100,9 +112,15 @@ class ProjectsApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"create_project_request": (CreateProjectRequest,)},
-                "attribute_map": {},
-                "location_map": {"create_project_request": "body"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "create_project_request": (CreateProjectRequest,),
+                },
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "create_project_request": "body",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -110,18 +128,24 @@ class ProjectsApi:
             callable=__create_project,
         )
 
-        def __delete_project(self, project_id, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __delete_project(
+            self,
+            project_id,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ) -> None:
             """Delete a project  # noqa: E501
 
             Delete a project and all its associated configuration. Before deleting a project, you must delete all indexes, assistants, backups, and collections associated with the project. Other project resources, such as API keys, are automatically deleted when the project is deleted.   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.delete_project(project_id, async_req=True)
+            >>> thread = api.delete_project(project_id, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 project_id (str): Project ID
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -147,8 +171,9 @@ class ProjectsApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
-            return self.call_with_http_info(**kwargs)
+            return cast(None, self.call_with_http_info(**kwargs))
 
         self.delete_project = _Endpoint(
             settings={
@@ -160,8 +185,8 @@ class ProjectsApi:
                 "servers": None,
             },
             params_map={
-                "all": ["project_id"],
-                "required": ["project_id"],
+                "all": ["x_pinecone_api_version", "project_id"],
+                "required": ["x_pinecone_api_version", "project_id"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -169,9 +194,12 @@ class ProjectsApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"project_id": (str,)},
-                "attribute_map": {"project_id": "project_id"},
-                "location_map": {"project_id": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "project_id": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "project_id": "project_id",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "project_id": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -179,18 +207,24 @@ class ProjectsApi:
             callable=__delete_project,
         )
 
-        def __fetch_project(self, project_id, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __fetch_project(
+            self,
+            project_id,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ) -> Project | ApplyResult[Project]:
             """Get project details  # noqa: E501
 
             Get details about a project.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.fetch_project(project_id, async_req=True)
+            >>> thread = api.fetch_project(project_id, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 project_id (str): Project ID
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -216,8 +250,9 @@ class ProjectsApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
-            return self.call_with_http_info(**kwargs)
+            return cast(Project | ApplyResult[Project], self.call_with_http_info(**kwargs))
 
         self.fetch_project = _Endpoint(
             settings={
@@ -229,8 +264,8 @@ class ProjectsApi:
                 "servers": None,
             },
             params_map={
-                "all": ["project_id"],
-                "required": ["project_id"],
+                "all": ["x_pinecone_api_version", "project_id"],
+                "required": ["x_pinecone_api_version", "project_id"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -238,9 +273,12 @@ class ProjectsApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"project_id": (str,)},
-                "attribute_map": {"project_id": "project_id"},
-                "location_map": {"project_id": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "project_id": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "project_id": "project_id",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "project_id": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -248,16 +286,20 @@ class ProjectsApi:
             callable=__fetch_project,
         )
 
-        def __list_projects(self, **kwargs: ExtraOpenApiKwargsTypedDict):
+        def __list_projects(
+            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+        ) -> ProjectList | ApplyResult[ProjectList]:
             """List projects  # noqa: E501
 
             List all projects in an organization.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_projects(async_req=True)
+            >>> thread = api.list_projects(x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
+            Args:
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -278,29 +320,36 @@ class ProjectsApi:
                 async_req (bool): execute request asynchronously
 
             Returns:
-                InlineResponse200
+                ProjectList
                     If the method is called asynchronously, returns the request
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
-            return self.call_with_http_info(**kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            return cast(ProjectList | ApplyResult[ProjectList], self.call_with_http_info(**kwargs))
 
         self.list_projects = _Endpoint(
             settings={
-                "response_type": (InlineResponse200,),
+                "response_type": (ProjectList,),
                 "auth": ["BearerAuth"],
                 "endpoint_path": "/admin/projects",
                 "operation_id": "list_projects",
                 "http_method": "GET",
                 "servers": None,
             },
-            params_map={"all": [], "required": [], "nullable": [], "enum": [], "validation": []},
+            params_map={
+                "all": ["x_pinecone_api_version"],
+                "required": ["x_pinecone_api_version"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {},
-                "attribute_map": {},
-                "location_map": {},
+                "openapi_types": {"x_pinecone_api_version": (str,)},
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -309,20 +358,25 @@ class ProjectsApi:
         )
 
         def __update_project(
-            self, project_id, update_project_request, **kwargs: ExtraOpenApiKwargsTypedDict
-        ):
+            self,
+            project_id,
+            update_project_request,
+            x_pinecone_api_version="2025-10",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
+        ) -> Project | ApplyResult[Project]:
             """Update a project  # noqa: E501
 
             Update a project's configuration details. You can update the project's name, maximum number of Pods, or enable encryption with a customer-managed encryption key (CMEK).   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.update_project(project_id, update_project_request, async_req=True)
+            >>> thread = api.update_project(project_id, update_project_request, x_pinecone_api_version="2025-10", async_req=True)
             >>> result = thread.get()
 
             Args:
                 project_id (str): Project ID
                 update_project_request (UpdateProjectRequest): Project details to be updated. Fields that are omitted will not be updated.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -348,9 +402,10 @@ class ProjectsApi:
                     thread.
             """
             kwargs = self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
             kwargs["update_project_request"] = update_project_request
-            return self.call_with_http_info(**kwargs)
+            return cast(Project | ApplyResult[Project], self.call_with_http_info(**kwargs))
 
         self.update_project = _Endpoint(
             settings={
@@ -362,8 +417,8 @@ class ProjectsApi:
                 "servers": None,
             },
             params_map={
-                "all": ["project_id", "update_project_request"],
-                "required": ["project_id", "update_project_request"],
+                "all": ["x_pinecone_api_version", "project_id", "update_project_request"],
+                "required": ["x_pinecone_api_version", "project_id", "update_project_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -372,11 +427,19 @@ class ProjectsApi:
                 "validations": {},
                 "allowed_values": {},
                 "openapi_types": {
+                    "x_pinecone_api_version": (str,),
                     "project_id": (str,),
                     "update_project_request": (UpdateProjectRequest,),
                 },
-                "attribute_map": {"project_id": "project_id"},
-                "location_map": {"project_id": "path", "update_project_request": "body"},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "project_id": "project_id",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "project_id": "path",
+                    "update_project_request": "body",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -396,7 +459,9 @@ class AsyncioProjectsApi:
             api_client = AsyncioApiClient()
         self.api_client = api_client
 
-        async def __create_project(self, create_project_request, **kwargs):
+        async def __create_project(
+            self, create_project_request, x_pinecone_api_version="2025-10", **kwargs
+        ) -> Project:
             """Create a new project  # noqa: E501
 
             Creates a new project.  # noqa: E501
@@ -404,6 +469,7 @@ class AsyncioProjectsApi:
 
             Args:
                 create_project_request (CreateProjectRequest): The details of the new project.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -426,8 +492,9 @@ class AsyncioProjectsApi:
                 Project
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_project_request"] = create_project_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(Project, await self.call_with_http_info(**kwargs))
 
         self.create_project = _AsyncioEndpoint(
             settings={
@@ -439,8 +506,8 @@ class AsyncioProjectsApi:
                 "servers": None,
             },
             params_map={
-                "all": ["create_project_request"],
-                "required": ["create_project_request"],
+                "all": ["x_pinecone_api_version", "create_project_request"],
+                "required": ["x_pinecone_api_version", "create_project_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -448,9 +515,15 @@ class AsyncioProjectsApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"create_project_request": (CreateProjectRequest,)},
-                "attribute_map": {},
-                "location_map": {"create_project_request": "body"},
+                "openapi_types": {
+                    "x_pinecone_api_version": (str,),
+                    "create_project_request": (CreateProjectRequest,),
+                },
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "create_project_request": "body",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},
@@ -458,7 +531,9 @@ class AsyncioProjectsApi:
             callable=__create_project,
         )
 
-        async def __delete_project(self, project_id, **kwargs):
+        async def __delete_project(
+            self, project_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> None:
             """Delete a project  # noqa: E501
 
             Delete a project and all its associated configuration. Before deleting a project, you must delete all indexes, assistants, backups, and collections associated with the project. Other project resources, such as API keys, are automatically deleted when the project is deleted.   # noqa: E501
@@ -466,6 +541,7 @@ class AsyncioProjectsApi:
 
             Args:
                 project_id (str): Project ID
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -488,8 +564,9 @@ class AsyncioProjectsApi:
                 None
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(None, await self.call_with_http_info(**kwargs))
 
         self.delete_project = _AsyncioEndpoint(
             settings={
@@ -501,8 +578,8 @@ class AsyncioProjectsApi:
                 "servers": None,
             },
             params_map={
-                "all": ["project_id"],
-                "required": ["project_id"],
+                "all": ["x_pinecone_api_version", "project_id"],
+                "required": ["x_pinecone_api_version", "project_id"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -510,9 +587,12 @@ class AsyncioProjectsApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"project_id": (str,)},
-                "attribute_map": {"project_id": "project_id"},
-                "location_map": {"project_id": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "project_id": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "project_id": "project_id",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "project_id": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -520,7 +600,9 @@ class AsyncioProjectsApi:
             callable=__delete_project,
         )
 
-        async def __fetch_project(self, project_id, **kwargs):
+        async def __fetch_project(
+            self, project_id, x_pinecone_api_version="2025-10", **kwargs
+        ) -> Project:
             """Get project details  # noqa: E501
 
             Get details about a project.  # noqa: E501
@@ -528,6 +610,7 @@ class AsyncioProjectsApi:
 
             Args:
                 project_id (str): Project ID
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -550,8 +633,9 @@ class AsyncioProjectsApi:
                 Project
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(Project, await self.call_with_http_info(**kwargs))
 
         self.fetch_project = _AsyncioEndpoint(
             settings={
@@ -563,8 +647,8 @@ class AsyncioProjectsApi:
                 "servers": None,
             },
             params_map={
-                "all": ["project_id"],
-                "required": ["project_id"],
+                "all": ["x_pinecone_api_version", "project_id"],
+                "required": ["x_pinecone_api_version", "project_id"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -572,9 +656,12 @@ class AsyncioProjectsApi:
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {"project_id": (str,)},
-                "attribute_map": {"project_id": "project_id"},
-                "location_map": {"project_id": "path"},
+                "openapi_types": {"x_pinecone_api_version": (str,), "project_id": (str,)},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "project_id": "project_id",
+                },
+                "location_map": {"x_pinecone_api_version": "header", "project_id": "path"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -582,12 +669,14 @@ class AsyncioProjectsApi:
             callable=__fetch_project,
         )
 
-        async def __list_projects(self, **kwargs):
+        async def __list_projects(self, x_pinecone_api_version="2025-10", **kwargs) -> ProjectList:
             """List projects  # noqa: E501
 
             List all projects in an organization.  # noqa: E501
 
 
+            Args:
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -607,27 +696,34 @@ class AsyncioProjectsApi:
                     Default is True.
 
             Returns:
-                InlineResponse200
+                ProjectList
             """
             self._process_openapi_kwargs(kwargs)
-            return await self.call_with_http_info(**kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
+            return cast(ProjectList, await self.call_with_http_info(**kwargs))
 
         self.list_projects = _AsyncioEndpoint(
             settings={
-                "response_type": (InlineResponse200,),
+                "response_type": (ProjectList,),
                 "auth": ["BearerAuth"],
                 "endpoint_path": "/admin/projects",
                 "operation_id": "list_projects",
                 "http_method": "GET",
                 "servers": None,
             },
-            params_map={"all": [], "required": [], "nullable": [], "enum": [], "validation": []},
+            params_map={
+                "all": ["x_pinecone_api_version"],
+                "required": ["x_pinecone_api_version"],
+                "nullable": [],
+                "enum": [],
+                "validation": [],
+            },
             root_map={
                 "validations": {},
                 "allowed_values": {},
-                "openapi_types": {},
-                "attribute_map": {},
-                "location_map": {},
+                "openapi_types": {"x_pinecone_api_version": (str,)},
+                "attribute_map": {"x_pinecone_api_version": "X-Pinecone-Api-Version"},
+                "location_map": {"x_pinecone_api_version": "header"},
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": []},
@@ -635,7 +731,9 @@ class AsyncioProjectsApi:
             callable=__list_projects,
         )
 
-        async def __update_project(self, project_id, update_project_request, **kwargs):
+        async def __update_project(
+            self, project_id, update_project_request, x_pinecone_api_version="2025-10", **kwargs
+        ) -> Project:
             """Update a project  # noqa: E501
 
             Update a project's configuration details. You can update the project's name, maximum number of Pods, or enable encryption with a customer-managed encryption key (CMEK).   # noqa: E501
@@ -644,6 +742,7 @@ class AsyncioProjectsApi:
             Args:
                 project_id (str): Project ID
                 update_project_request (UpdateProjectRequest): Project details to be updated. Fields that are omitted will not be updated.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -666,9 +765,10 @@ class AsyncioProjectsApi:
                 Project
             """
             self._process_openapi_kwargs(kwargs)
+            kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
             kwargs["update_project_request"] = update_project_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(Project, await self.call_with_http_info(**kwargs))
 
         self.update_project = _AsyncioEndpoint(
             settings={
@@ -680,8 +780,8 @@ class AsyncioProjectsApi:
                 "servers": None,
             },
             params_map={
-                "all": ["project_id", "update_project_request"],
-                "required": ["project_id", "update_project_request"],
+                "all": ["x_pinecone_api_version", "project_id", "update_project_request"],
+                "required": ["x_pinecone_api_version", "project_id", "update_project_request"],
                 "nullable": [],
                 "enum": [],
                 "validation": [],
@@ -690,11 +790,19 @@ class AsyncioProjectsApi:
                 "validations": {},
                 "allowed_values": {},
                 "openapi_types": {
+                    "x_pinecone_api_version": (str,),
                     "project_id": (str,),
                     "update_project_request": (UpdateProjectRequest,),
                 },
-                "attribute_map": {"project_id": "project_id"},
-                "location_map": {"project_id": "path", "update_project_request": "body"},
+                "attribute_map": {
+                    "x_pinecone_api_version": "X-Pinecone-Api-Version",
+                    "project_id": "project_id",
+                },
+                "location_map": {
+                    "x_pinecone_api_version": "header",
+                    "project_id": "path",
+                    "update_project_request": "body",
+                },
                 "collection_format_map": {},
             },
             headers_map={"accept": ["application/json"], "content_type": ["application/json"]},

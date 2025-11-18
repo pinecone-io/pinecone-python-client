@@ -3,7 +3,6 @@ from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.oauth import API_VERSION
 from pinecone.core.openapi.oauth.apis import OAuthApi
 from pinecone.core.openapi.oauth.models import TokenRequest
-from typing import Optional, Dict
 from pinecone.utils import get_user_agent
 import os
 from copy import deepcopy
@@ -34,14 +33,14 @@ class Admin:
     :param additional_headers: Additional headers to use for the Pinecone API. This is a
         dictionary of key-value pairs. This is primarily used for internal testing
         purposes.
-    :type additional_headers: Optional[Dict[str, str]]
+    :type additional_headers: Optional[dict[str, str]]
     """
 
     def __init__(
         self,
-        client_id: Optional[str] = None,
-        client_secret: Optional[str] = None,
-        additional_headers: Optional[Dict[str, str]] = None,
+        client_id: str | None = None,
+        client_secret: str | None = None,
+        additional_headers: dict[str, str] | None = None,
     ):
         """
         Initialize the ``Admin`` class.
@@ -58,28 +57,66 @@ class Admin:
         :param additional_headers: Additional headers to use for the Pinecone API. This is a
           dictionary of key-value pairs. This is primarily used for internal testing
           purposes.
-        :type additional_headers: Optional[Dict[str, str]]
+        :type additional_headers: Optional[dict[str, str]]
+
+        Examples
+        --------
+
+        .. code-block:: python
+            :caption: Initialize Admin using environment variables
+
+            import os
+            from pinecone import Admin
+
+            # Set environment variables
+            os.environ["PINECONE_CLIENT_ID"] = "your-client-id"
+            os.environ["PINECONE_CLIENT_SECRET"] = "your-client-secret"
+
+            # Initialize Admin (reads from environment variables)
+            admin = Admin()
+
+        .. code-block:: python
+            :caption: Initialize Admin with explicit credentials
+
+            from pinecone import Admin
+
+            # Initialize Admin with explicit credentials
+            admin = Admin(
+                client_id="your-client-id",
+                client_secret="your-client-secret"
+            )
+
+        .. code-block:: python
+            :caption: Initialize Admin with additional headers
+
+            from pinecone import Admin
+
+            # Initialize Admin with additional headers for testing
+            admin = Admin(
+                client_id="your-client-id",
+                client_secret="your-client-secret",
+                additional_headers={"X-Custom-Header": "value"}
+            )
+
         """
 
         if client_id is not None:
             self._client_id = client_id
         else:
-            env_client_id = os.environ.get("PINECONE_CLIENT_ID", None)
-            if env_client_id is None:
-                raise ValueError(
-                    "client_id is not set. Pass client_id to the Admin constructor or set the PINECONE_CLIENT_ID environment variable."
-                )
-            self._client_id = env_client_id
+            self._client_id = os.environ.get("PINECONE_CLIENT_ID", "")
+        if self._client_id is None or self._client_id == "":
+            raise ValueError(
+                "client_id is not set or is empty. Pass client_id to the Admin constructor or set the PINECONE_CLIENT_ID environment variable."
+            )
 
         if client_secret is not None:
             self._client_secret = client_secret
         else:
-            env_client_secret = os.environ.get("PINECONE_CLIENT_SECRET", None)
-            if env_client_secret is None:
-                raise ValueError(
-                    "client_secret is not set. Pass client_secret to the Admin constructor or set the PINECONE_CLIENT_SECRET environment variable."
-                )
-            self._client_secret = env_client_secret
+            self._client_secret = os.environ.get("PINECONE_CLIENT_SECRET", "")
+        if self._client_secret is None or self._client_secret == "":
+            raise ValueError(
+                "client_secret is not set or is empty. Pass client_secret to the Admin constructor or set the PINECONE_CLIENT_SECRET environment variable."
+            )
 
         if additional_headers is None:
             additional_headers = {}
@@ -114,8 +151,22 @@ class Admin:
         self._child_api_client.user_agent = get_user_agent(Config())
 
         # Lazily initialize resources
-        self._project = None
-        self._api_key = None
+        from typing import TYPE_CHECKING
+
+        if TYPE_CHECKING:
+            from pinecone.admin.resources import (
+                ProjectResource,
+                ApiKeyResource,
+                OrganizationResource,
+            )
+
+            self._project: ProjectResource | None = None
+            self._api_key: ApiKeyResource | None = None
+            self._organization: OrganizationResource | None = None
+        else:
+            self._project = None  # type: ignore[assignment]
+            self._api_key = None  # type: ignore[assignment]
+            self._organization = None  # type: ignore[assignment]
 
     @property
     def project(self):
@@ -138,7 +189,7 @@ class Admin:
 
             # Create a project with no quota for pod indexes
             admin.project.create(
-                name="my-project"
+                name="my-project",
                 max_pods=0
             )
 
@@ -158,6 +209,7 @@ class Admin:
             admin = Admin()
             project = admin.project.get(name="my-project")
             admin.project.delete(project_id=project.id)
+
         """
         if self._project is None:
             from pinecone.admin.resources import ProjectResource
@@ -231,3 +283,62 @@ class Admin:
     def api_keys(self):
         """Alias for :func:`api_key`"""
         return self.api_key
+
+    @property
+    def organization(self):
+        """A namespace for organization-related operations
+
+        Alias for :func:`organizations`.
+
+        To learn about all organization-related operations, see :func:`pinecone.admin.resources.OrganizationResource`.
+
+        Examples
+        --------
+
+        .. code-block:: python
+            :caption: Listing all organizations
+
+            from pinecone import Admin
+
+            # Using environment variables to pass PINECONE_CLIENT_ID and PINECONE_CLIENT_SECRET
+            admin = Admin()
+
+            # List all organizations
+            organizations_response = admin.organization.list()
+            for org in organizations_response.data:
+                print(org.id)
+                print(org.name)
+
+        .. code-block:: python
+            :caption: Fetching an organization
+
+            from pinecone import Admin
+
+            admin = Admin()
+            organization = admin.organization.get(organization_id="my-organization-id")
+            print(organization.name)
+            print(organization.plan)
+
+        .. code-block:: python
+            :caption: Updating an organization
+
+            from pinecone import Admin
+
+            admin = Admin()
+            organization = admin.organization.update(
+                organization_id="my-organization-id",
+                name="updated-organization-name"
+            )
+            print(organization.name)
+
+        """
+        if self._organization is None:
+            from pinecone.admin.resources import OrganizationResource
+
+            self._organization = OrganizationResource(self._child_api_client)
+        return self._organization
+
+    @property
+    def organizations(self):
+        """Alias for :func:`organization`"""
+        return self.organization

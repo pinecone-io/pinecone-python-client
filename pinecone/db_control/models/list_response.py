@@ -1,4 +1,4 @@
-from typing import NamedTuple, Optional, List
+from typing import NamedTuple, List
 
 
 class Pagination(NamedTuple):
@@ -8,4 +8,4 @@ class Pagination(NamedTuple):
 class ListResponse(NamedTuple):
     namespace: str
     vectors: List
-    pagination: Optional[Pagination]
+    pagination: Pagination | None

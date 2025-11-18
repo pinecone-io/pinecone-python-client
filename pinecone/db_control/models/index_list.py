@@ -1,7 +1,6 @@
 import json
 from pinecone.core.openapi.db_control.model.index_list import IndexList as OpenAPIIndexList
 from .index_model import IndexModel
-from typing import List
 
 
 class IndexList:
@@ -10,7 +9,7 @@ class IndexList:
         self.indexes = [IndexModel(i) for i in self.index_list.indexes]
         self.current = 0
 
-    def names(self) -> List[str]:
+    def names(self) -> list[str]:
         return [i.name for i in self.indexes]
 
     def __getitem__(self, key):

@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -26,12 +26,15 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
+from typing import TYPE_CHECKING
 
-def lazy_import():
-    from pinecone.core.openapi.db_control.model.deletion_protection import DeletionProtection
+if TYPE_CHECKING:
     from pinecone.core.openapi.db_control.model.index_tags import IndexTags
 
-    globals()["DeletionProtection"] = DeletionProtection
+
+def lazy_import():
+    from pinecone.core.openapi.db_control.model.index_tags import IndexTags
+
     globals()["IndexTags"] = IndexTags
 
 
@@ -98,7 +101,7 @@ class CreateIndexFromBackupRequest(ModelNormal):
         return {
             "name": (str,),  # noqa: E501
             "tags": (IndexTags,),  # noqa: E501
-            "deletion_protection": (DeletionProtection,),  # noqa: E501
+            "deletion_protection": (str,),  # noqa: E501
         }
 
     @cached_class_property
@@ -114,6 +117,17 @@ class CreateIndexFromBackupRequest(ModelNormal):
     read_only_vars: Set[str] = set([])
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of CreateIndexFromBackupRequest.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
 
     @classmethod
     @convert_js_args_to_python_args
@@ -155,7 +169,7 @@ class CreateIndexFromBackupRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             tags (IndexTags): [optional]  # noqa: E501
-            deletion_protection (DeletionProtection): [optional]  # noqa: E501
+            deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. [optional] if omitted the server will use the default value of "disabled".  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -250,7 +264,7 @@ class CreateIndexFromBackupRequest(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             tags (IndexTags): [optional]  # noqa: E501
-            deletion_protection (DeletionProtection): [optional]  # noqa: E501
+            deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. [optional] if omitted the server will use the default value of "disabled".  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

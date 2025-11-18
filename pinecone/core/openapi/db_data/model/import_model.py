@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -59,15 +59,7 @@ class ImportModel(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("status",): {
-            "PENDING": "Pending",
-            "INPROGRESS": "InProgress",
-            "FAILED": "Failed",
-            "COMPLETED": "Completed",
-            "CANCELLED": "Cancelled",
-        }
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
         ("id",): {"max_length": 1000, "min_length": 1},
@@ -124,6 +116,17 @@ class ImportModel(ModelNormal):
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of ImportModel.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
+
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
@@ -162,7 +165,7 @@ class ImportModel(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             id (str): Unique identifier for the import operation. [optional]  # noqa: E501
             uri (str): The URI from where the data is imported. [optional]  # noqa: E501
-            status (str): The status of the operation. [optional]  # noqa: E501
+            status (str): The status of the operation. Possible values: `Pending`, `InProgress`, `Failed`, `Completed`, or `Cancelled`. [optional]  # noqa: E501
             created_at (datetime): The start time of the import operation. [optional]  # noqa: E501
             finished_at (datetime): The end time of the import operation. [optional]  # noqa: E501
             percent_complete (float): The progress made by the operation, as a percentage. [optional]  # noqa: E501
@@ -259,7 +262,7 @@ class ImportModel(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             id (str): Unique identifier for the import operation. [optional]  # noqa: E501
             uri (str): The URI from where the data is imported. [optional]  # noqa: E501
-            status (str): The status of the operation. [optional]  # noqa: E501
+            status (str): The status of the operation. Possible values: `Pending`, `InProgress`, `Failed`, `Completed`, or `Cancelled`. [optional]  # noqa: E501
             created_at (datetime): The start time of the import operation. [optional]  # noqa: E501
             finished_at (datetime): The end time of the import operation. [optional]  # noqa: E501
             percent_complete (float): The progress made by the operation, as a percentage. [optional]  # noqa: E501

@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -86,7 +86,7 @@ class Hit(ModelNormal):
         return {
             "_id": (str,),  # noqa: E501
             "_score": (float,),  # noqa: E501
-            "fields": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "fields": (Dict[str, Any],),  # noqa: E501
         }
 
     @cached_class_property
@@ -103,6 +103,17 @@ class Hit(ModelNormal):
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of Hit.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
+
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], _id, _score, fields, *args, **kwargs) -> T:  # noqa: E501
@@ -111,7 +122,7 @@ class Hit(ModelNormal):
         Args:
             _id (str): The record id of the search hit.
             _score (float): The similarity score of the returned record.
-            fields ({str: (bool, dict, float, int, list, str, none_type)}): The selected record fields associated with the search hit.
+            fields (Dict[str, Any]): The selected record fields associated with the search hit.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -208,7 +219,7 @@ class Hit(ModelNormal):
         Args:
             _id (str): The record id of the search hit.
             _score (float): The similarity score of the returned record.
-            fields ({str: (bool, dict, float, int, list, str, none_type)}): The selected record fields associated with the search hit.
+            fields (Dict[str, Any]): The selected record fields associated with the search hit.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types

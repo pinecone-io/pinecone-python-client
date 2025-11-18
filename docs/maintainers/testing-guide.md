@@ -6,6 +6,7 @@ We have a lot of different types of tests in this repository. At a high level, t
 tests
 ├── dependency
 ├── integration
+├── integration_manual
 ├── perf
 ├── unit
 ├── unit_grpc
@@ -14,7 +15,9 @@ tests
 
 - `dependency`: These tests are a set of very minimal end-to-end integration tests that ensure basic functionality works to upsert and query vectors from an index. These are rarely run locally; we use them in CI to confirm the client can be used when installed with a large matrix of different python versions and versions of key dependencies. See [`.github/workflows/testing-dependency.yaml`](https://github.com/pinecone-io/pinecone-python-client/blob/main/.github/workflows/testing-dependency.yaml) for more details on how these are run.
 
-- `integration`: These are a large suite of end-to-end integration tests exercising most of the core functions of the product. They are slow and expensive to run, but they give the greatest confidence the SDK actually works end-to-end. See notes below on how to setup the required configuration and run individual tests if you are iterating on a bug or feature and want to get more rapid feedback than running the entire suite in CI will give you. In CI, these are run using [`.github/workflows/testing-dependency.yaml`](https://github.com/pinecone-io/pinecone-python-client/blob/main/.github/workflows/testing-integration.yaml).
+- `integration`: These are a large suite of end-to-end integration tests exercising most of the core functions of the product. They are slow and expensive to run, but they give the greatest confidence the SDK actually works end-to-end. See notes below on how to setup the required configuration and run individual tests if you are iterating on a bug or feature and want to get more rapid feedback than running the entire suite in CI will give you. In CI, these are run using [`.github/workflows/testing-integration.yaml`](https://github.com/pinecone-io/pinecone-python-client/blob/main/.github/workflows/testing-integration.yaml).
+
+- `integration_manual`: These are integration tests that are not run automatically in CI but can be run manually when needed. These typically include tests for features that are expensive to run (like backups and restores), tests that require special setup (like proxy configuration), or tests that exercise edge cases that don't need to be validated on every PR. To run these manually, use: `uv run pytest tests/integration_manual`
 
 - `perf`: These tests are still being developed. But eventually, they will play an important roll in making sure we don't regress on client performance when building new features.
 
@@ -25,11 +28,11 @@ tests
 
 ## Running the ruff linter / formatter
 
-These should automatically trigger if you have enabled pre-commit hooks with `poetry run pre-commit install`. But in case you want to trigger these yourself, you can run them like this:
+These should automatically trigger if you have enabled pre-commit hooks with `uv run pre-commit install`. But in case you want to trigger these yourself, you can run them like this:
 
 ```sh
-poetry run ruff check --fix # lint rules
-poetry run ruff format      # formatting
+uv run ruff check --fix # lint rules
+uv run ruff format      # formatting
 ```
 
 If you want to adjust the behavior of ruff, configurations are in `pyproject.toml`.
@@ -41,7 +44,7 @@ If you are adding new code, you should make an effort to annotate it with [type 
 You can run the type-checker to check for issues with:
 
 ```sh
-poetry run mypy pinecone
+uv run mypy pinecone
 ```
 
 ## Automated tests
@@ -54,10 +57,10 @@ Unit tests do not automatically read environment variables in the `.env` file be
 
 To run them:
 
-- For REST: `poetry run pytest tests/unit`
-- For GRPC: `poetry run pytest tests/unit_grpc`
+- For REST: `uv run pytest tests/unit`
+- For GRPC: `uv run pytest tests/unit_grpc`
 
-If you want to set an environment variable anyway, you can do it be prefacing the test command inline. E.g. `FOO='bar' poetry run pytest tests/unit`
+If you want to set an environment variable anyway, you can do it be prefacing the test command inline. E.g. `FOO='bar' uv run pytest tests/unit`
 
 ### Running integration tests
 
@@ -69,9 +72,50 @@ I never run all of these locally in one shot because it would take too long and 
 
 If I see one or a few tests broken in CI, I will run just those tests locally while iterating on the fix:
 
-- Run the tests for a specific part of the SDK (example: index): `poetry run pytest tests/integration/control/resources/index`
-- Run the tests in a single file: `poetry run pytest tests/integration/control/resources/index/test_create.py`
-- Run a single test `poetry run pytest tests/integration/control/resources/index/test_list.py::TestListIndexes::test_list_indexes_includes_ready_indexes`
+- Run the tests for a specific part of the SDK (example: index): `uv run pytest tests/integration/db/control/sync/resources/index`
+- Run the tests in a single file: `uv run pytest tests/integration/db/control/sync/resources/index/test_create.py`
+- Run a single test `uv run pytest tests/integration/db/control/sync/resources/index/test_list.py::TestListIndexes::test_list_indexes_includes_ready_indexes`
+
+### Test Sharding
+
+To speed up CI runs, we use a custom pytest plugin to shard (split) tests across multiple parallel jobs. This allows us to run tests in parallel across multiple CI workers, reducing overall test execution time.
+
+The sharding plugin is automatically available when running pytest (registered in `tests/conftest.py`). To use it:
+
+**Command-line options:**
+```sh
+# Run shard 1 of 3
+uv run pytest tests/integration/rest_sync --splits=3 --group=1
+
+# Run shard 2 of 3
+uv run pytest tests/integration/rest_sync --splits=3 --group=2
+
+# Run shard 3 of 3
+uv run pytest tests/integration/rest_sync --splits=3 --group=3
+```
+
+**Environment variables (alternative to command-line options):**
+```sh
+# Set environment variables instead of using --splits and --group
+export PYTEST_SPLITS=3
+export PYTEST_GROUP=1
+uv run pytest tests/integration/rest_sync
+```
+
+**How it works:**
+- Tests are distributed across shards using a hash-based algorithm, ensuring deterministic assignment (the same test will always be in the same shard)
+- Tests are distributed evenly across all shards
+- The `--group` parameter is 1-indexed (first shard is 1, not 0)
+- All shards must be run to execute the complete test suite
+
+**In CI:**
+The CI workflows (`.github/workflows/testing-integration.yaml`) automatically use sharding to split tests across multiple parallel jobs. Each job runs a different shard, allowing tests to execute in parallel and complete faster. Different test suites use different shard counts based on their size:
+- `rest_sync` tests: 8 shards
+- `rest_asyncio` tests: 5 shards
+- `grpc` tests: No sharding (runs all tests in a single job, including `tests/integration/rest_sync/db/data` with `USE_GRPC='true'`)
+
+**Local development:**
+When running tests locally, you typically don't need to use sharding unless you want to simulate the CI environment or test the sharding functionality itself.
 
 ### Fixtures and other test configuration
 
@@ -99,7 +143,7 @@ This is a highly contrived example, but we use this technique to access test con
 
 ### Testing data plane: REST vs GRPC vs Asyncio
 
-Integration tests for the data plane (i.e. `poetry run pytest tests/integration/data`) are reused for both the REST and GRPC client variants since the interfaces of these different client implementations are nearly identical (other than `async_req=True` responses). To toggle how they are run, set `USE_GRPC='true'` in your `.env` before running.
+Integration tests for the data plane (i.e. `uv run pytest tests/integration/db/data/sync`) are reused for both the REST and GRPC client variants since the interfaces of these different client implementations are nearly identical (other than `async_req=True` responses). To toggle how they are run, set `USE_GRPC='true'` in your `.env` before running.
 
 There are a relatively small number of tests which are not shared, usually related to futures when using GRPC with `async_req=True`. We use `@pytest.mark.skipif` to control whether these are run or not.
 
@@ -112,16 +156,16 @@ class TestDeleteFuture:
         # ... test implementation
 ```
 
-Asyncio tests of the data plane are unfortunately separate because there are quite a few differences in how you interact with the asyncio client. So those tests are found in a different directory, `tests/integration/data_asyncio`
+Asyncio tests of the data plane are unfortunately separate because there are quite a few differences in how you interact with the asyncio client. So those tests are found in a different directory, `tests/integration/db/data/asyncio`
 
 ## Manual testing
 
 ### With an interactive REPL
 
-You can access a python REPL that is preloaded with the virtualenv maintained by Poetry (including all dependencies declared in `pyproject.toml`), any changes you've made to the code in `pinecone/`, the environment variables set in your `.env` file, and a few useful variables and functions defined in [`scripts/repl.py`](https://github.com/pinecone-io/pinecone-python-client/blob/main/scripts/repl.py) :
+You can access a python REPL that is preloaded with the virtualenv maintained by uv (including all dependencies declared in `pyproject.toml`), any changes you've made to the code in `pinecone/`, the environment variables set in your `.env` file, and a few useful variables and functions defined in [`scripts/repl.py`](https://github.com/pinecone-io/pinecone-python-client/blob/main/scripts/repl.py) :
 
 ```sh
-$ poetry run repl
+$ uv run repl
 
     Welcome to the custom Python REPL!
     Your initialization steps have been completed.
@@ -164,20 +208,20 @@ $ poetry run repl
 We don't have automated tests for this, but if you want to do some one-off testing to check on how efficiently the package can be imported and initialized, you can run code like this:
 
 ```sh
-poetry run python3 -X importtime -c 'from pinecone import Pinecone; pc = Pinecone(api_key="foo")' 2> import_time.log
+uv run python3 -X importtime -c 'from pinecone import Pinecone; pc = Pinecone(api_key="foo")' 2> import_time.log
 ```
 
 And then inspect the results with a visualization tool called tuna.
 
 ```sh
-poetry run tuna import_time.log
+uv run tuna import_time.log
 ```
 
 This is a useful thing to do when you are introducing new classes or plugins to ensure you're not causing a performance regression on imports.
 
 ### Installing SDK WIP in another project on your machine
 
-pip, poetry, and similar tools know how to install from local files. This can sometimes be useful to validate a change or bugfix.
+pip, uv, and similar tools know how to install from local files. This can sometimes be useful to validate a change or bugfix.
 
 If your local files look like this:
 
@@ -192,8 +236,8 @@ You should be able to test changes in your repro project by doing something like
 ```sh
 cd repro_project
 
-# With poetry
-poetry add ../pinecone-python-client
+# With uv
+uv add ../pinecone-python-client
 
 # With pip3
 pip3 install ../pinecone-python-client

@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -59,13 +59,7 @@ class CollectionModel(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("status",): {
-            "INITIALIZING": "Initializing",
-            "READY": "Ready",
-            "TERMINATING": "Terminating",
-        }
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
         ("dimension",): {"inclusive_maximum": 20000, "inclusive_minimum": 1}
@@ -117,6 +111,17 @@ class CollectionModel(ModelNormal):
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of CollectionModel.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
+
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], name, status, environment, *args, **kwargs) -> T:  # noqa: E501
@@ -124,7 +129,7 @@ class CollectionModel(ModelNormal):
 
         Args:
             name (str): The name of the collection.
-            status (str): The status of the collection.
+            status (str): The status of the collection. Possible values: `Initializing`, `Ready`, or `Terminating`.
             environment (str): The environment where the collection is hosted.
 
         Keyword Args:
@@ -224,7 +229,7 @@ class CollectionModel(ModelNormal):
 
         Args:
             name (str): The name of the collection.
-            status (str): The status of the collection.
+            status (str): The status of the collection. Possible values: `Initializing`, `Ready`, or `Terminating`.
             environment (str): The environment where the collection is hosted.
 
         Keyword Args:

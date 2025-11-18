@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -99,6 +99,17 @@ class EmbedRequestInputs(ModelNormal):
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of EmbedRequestInputs.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
+
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
@@ -135,7 +146,7 @@ class EmbedRequestInputs(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            text (str): [optional]  # noqa: E501
+            text (str): The text input to generate embeddings for. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -225,7 +236,7 @@ class EmbedRequestInputs(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            text (str): [optional]  # noqa: E501
+            text (str): The text input to generate embeddings for. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

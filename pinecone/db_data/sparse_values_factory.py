@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Union, Optional
+from typing import Any
 
 from ..utils import convert_to_list
 
@@ -19,14 +21,18 @@ class SparseValuesFactory:
 
     @staticmethod
     def build(
-        input: Optional[Union[SparseValues, OpenApiSparseValues, SparseVectorTypedDict]],
-    ) -> Optional[OpenApiSparseValues]:
+        input: (SparseValues | OpenApiSparseValues | SparseVectorTypedDict) | None,
+    ) -> OpenApiSparseValues | None:
         if input is None:
             return input
         if isinstance(input, OpenApiSparseValues):
-            return input
+            result_input: OpenApiSparseValues = input
+            return result_input
         if isinstance(input, SparseValues):
-            return OpenApiSparseValues(indices=input.indices, values=input.values)
+            result: OpenApiSparseValues = OpenApiSparseValues(
+                indices=input.indices, values=input.values
+            )
+            return result
         if not isinstance(input, Mapping):
             raise SparseValuesDictionaryExpectedError(input)
         if not {"indices", "values"}.issubset(input):
@@ -39,21 +45,22 @@ class SparseValuesFactory:
             raise ValueError("Sparse values indices and values must have the same length")
 
         try:
-            return OpenApiSparseValues(indices=indices, values=values)
+            result_dict: OpenApiSparseValues = OpenApiSparseValues(indices=indices, values=values)
+            return result_dict
         except TypeError as e:
             raise SparseValuesTypeError() from e
 
     @staticmethod
-    def _convert_to_list(input, expected_type):
+    def _convert_to_list(input: Any, expected_type: type) -> list[Any]:
         try:
             converted = convert_to_list(input)
         except TypeError as e:
             raise SparseValuesTypeError() from e
 
         SparseValuesFactory._validate_list_items_type(converted, expected_type)
-        return converted
+        return converted  # type: ignore[no-any-return]
 
     @staticmethod
-    def _validate_list_items_type(input, expected_type):
+    def _validate_list_items_type(input: list[Any], expected_type: type) -> None:
         if len(input) > 0 and not isinstance(input[0], expected_type):
             raise SparseValuesTypeError()

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from pinecone.utils import PluginAware, require_kwargs, parse_non_empty_args
 from ...models import ModelInfoList, ModelInfo
 
@@ -39,9 +39,7 @@ class Model(PluginAware):
         return self._config
 
     @require_kwargs
-    def list(
-        self, *, type: Optional[str] = None, vector_type: Optional[str] = None
-    ) -> ModelInfoList:
+    def list(self, *, type: str | None = None, vector_type: str | None = None) -> ModelInfoList:
         """
         List all available models.
 
@@ -52,6 +50,7 @@ class Model(PluginAware):
         :type vector_type: str, optional
 
         :return: A list of models.
+        :rtype: ModelInfoList
         """
         args = parse_non_empty_args([("type", type), ("vector_type", vector_type)])
         return ModelInfoList(self.__inference_api.list_models(**args))
@@ -65,5 +64,6 @@ class Model(PluginAware):
         :type model_name: str, required
 
         :return: A model.
+        :rtype: ModelInfo
         """
         return ModelInfo(self.__inference_api.get_model(model_name=model_name))

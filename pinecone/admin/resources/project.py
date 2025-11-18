@@ -1,4 +1,3 @@
-from typing import Optional
 from pinecone.exceptions import NotFoundException, PineconeException
 from pinecone.openapi_support import ApiClient
 from pinecone.core.openapi.admin.apis import ProjectsApi
@@ -75,11 +74,12 @@ class ProjectResource:
                 print(project.name)
                 print(project.max_pods)
                 print(project.force_encryption_with_cmek)
+
         """
         return self._projects_api.list_projects()
 
     @require_kwargs
-    def fetch(self, project_id: Optional[str] = None, name: Optional[str] = None):
+    def fetch(self, project_id: str | None = None, name: str | None = None):
         """
         Fetch a project by project_id or name.
 
@@ -130,6 +130,7 @@ class ProjectResource:
             print(project.force_encryption_with_cmek)
             print(project.organization_id)
             print(project.created_at)
+
         """
         if project_id is not None and name is not None:
             raise ValueError("Either project_id or name must be provided but not both")
@@ -152,7 +153,7 @@ class ProjectResource:
                 return projects[0]
 
     @require_kwargs
-    def get(self, project_id: Optional[str] = None, name: Optional[str] = None):
+    def get(self, project_id: str | None = None, name: str | None = None):
         """Alias for :func:`fetch`
 
         Examples
@@ -175,11 +176,12 @@ class ProjectResource:
             print(project.name)
             print(project.max_pods)
             print(project.force_encryption_with_cmek)
+
         """
         return self.fetch(project_id=project_id, name=name)
 
     @require_kwargs
-    def describe(self, project_id: Optional[str] = None, name: Optional[str] = None):
+    def describe(self, project_id: str | None = None, name: str | None = None):
         """Alias for :func:`fetch`
 
         Examples
@@ -202,11 +204,12 @@ class ProjectResource:
             print(project.name)
             print(project.max_pods)
             print(project.force_encryption_with_cmek)
+
         """
         return self.fetch(project_id=project_id, name=name)
 
     @require_kwargs
-    def exists(self, project_id: Optional[str] = None, name: Optional[str] = None):
+    def exists(self, project_id: str | None = None, name: str | None = None):
         """
         Check if a project exists by project_id or name.
 
@@ -257,6 +260,7 @@ class ProjectResource:
                 print(f"Project {project_id} exists")
             else:
                 print(f"Project {project_id} does not exist")
+
         """
         if project_id is not None and name is not None:
             raise ValueError("Either project_id or name must be provided but not both")
@@ -272,10 +276,7 @@ class ProjectResource:
 
     @require_kwargs
     def create(
-        self,
-        name: str,
-        max_pods: Optional[int] = None,
-        force_encryption_with_cmek: Optional[bool] = None,
+        self, name: str, max_pods: int | None = None, force_encryption_with_cmek: bool | None = None
     ):
         """
         Create a project.
@@ -328,9 +329,9 @@ class ProjectResource:
     def update(
         self,
         project_id: str,
-        name: Optional[str] = None,
-        max_pods: Optional[int] = None,
-        force_encryption_with_cmek: Optional[bool] = None,
+        name: str | None = None,
+        max_pods: int | None = None,
+        force_encryption_with_cmek: bool | None = None,
     ):
         """
         Update a project.
@@ -457,6 +458,7 @@ class ProjectResource:
                 print("Project deleted successfully")
             else:
                 print("Project deletion failed")
+
         """
         project = self.get(project_id=project_id)
 

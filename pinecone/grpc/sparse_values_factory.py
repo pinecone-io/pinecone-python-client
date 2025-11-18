@@ -1,12 +1,11 @@
 from collections.abc import Mapping
-from typing import Union, Optional
 
 from ..utils import convert_to_list
 
 from ..db_data import SparseValuesTypeError, SparseValuesMissingKeysError
 from ..db_data.types import SparseVectorTypedDict
 
-from pinecone.core.grpc.protos.db_data_2025_04_pb2 import SparseValues as GRPCSparseValues
+from pinecone.core.grpc.protos.db_data_2025_10_pb2 import SparseValues as GRPCSparseValues
 from pinecone.core.openapi.db_data.models import SparseValues as OpenApiSparseValues
 from pinecone import SparseValues
 
@@ -14,10 +13,9 @@ from pinecone import SparseValues
 class SparseValuesFactory:
     @staticmethod
     def build(
-        input: Optional[
-            Union[SparseVectorTypedDict, SparseValues, GRPCSparseValues, OpenApiSparseValues]
-        ],
-    ) -> Optional[GRPCSparseValues]:
+        input: (SparseVectorTypedDict | SparseValues | GRPCSparseValues | OpenApiSparseValues)
+        | None,
+    ) -> GRPCSparseValues | None:
         if input is None:
             return input
         if isinstance(input, GRPCSparseValues):

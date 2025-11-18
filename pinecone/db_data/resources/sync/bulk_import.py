@@ -1,4 +1,4 @@
-from typing import Optional, Literal, Iterator, Union
+from typing import Literal, Iterator
 
 from pinecone.core.openapi.db_data.api.bulk_operations_api import BulkOperationsApi
 
@@ -23,10 +23,8 @@ class BulkImportResource:
     def start(
         self,
         uri: str,
-        integration_id: Optional[str] = None,
-        error_mode: Optional[
-            Union[ImportErrorMode, Literal["CONTINUE", "ABORT"], str]
-        ] = "CONTINUE",
+        integration_id: str | None = None,
+        error_mode: (ImportErrorMode | Literal["CONTINUE", "ABORT"] | str) | None = "CONTINUE",
     ) -> StartImportResponse:
         """
         Args:
@@ -51,7 +49,10 @@ class BulkImportResource:
         req = BulkImportRequestFactory.start_import_request(
             uri=uri, integration_id=integration_id, error_mode=error_mode
         )
-        return self.__import_operations_api.start_bulk_import(req)
+        from typing import cast
+
+        result = self.__import_operations_api.start_bulk_import(req)
+        return cast(StartImportResponse, result)
 
     def list(self, **kwargs) -> Iterator[ImportModel]:
         """
@@ -91,7 +92,7 @@ class BulkImportResource:
                 done = True
 
     def list_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+        self, limit: int | None = None, pagination_token: str | None = None, **kwargs
     ) -> ListImportsResponse:
         """
         Args:
@@ -126,7 +127,10 @@ class BulkImportResource:
         args_dict = BulkImportRequestFactory.list_imports_paginated_args(
             limit=limit, pagination_token=pagination_token, **kwargs
         )
-        return self.__import_operations_api.list_bulk_imports(**args_dict)
+        from typing import cast
+
+        result = self.__import_operations_api.list_bulk_imports(**args_dict)
+        return cast(ListImportsResponse, result)
 
     def describe(self, id: str) -> ImportModel:
         """
@@ -140,7 +144,10 @@ class BulkImportResource:
         describe_import is used to get detailed information about a specific import operation.
         """
         args = BulkImportRequestFactory.describe_import_args(id=id)
-        return self.__import_operations_api.describe_bulk_import(**args)
+        from typing import cast
+
+        result = self.__import_operations_api.describe_bulk_import(**args)
+        return cast(ImportModel, result)
 
     def cancel(self, id: str):
         """Cancel an import operation.

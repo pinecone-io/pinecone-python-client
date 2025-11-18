@@ -2,7 +2,7 @@ import pytest
 
 from pinecone import Config
 from pinecone.grpc import GRPCIndex
-from pinecone.core.grpc.protos.db_data_2025_04_pb2 import QueryRequest
+from pinecone.core.grpc.protos.db_data_2025_10_pb2 import QueryRequest, QueryResponse
 from pinecone.grpc.utils import dict_to_proto_struct
 
 
@@ -14,14 +14,16 @@ class TestGrpcIndexQuery:
         )
 
     def test_query_byVectorNoFilter_queryVectorNoFilter(self, mocker, vals1):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = QueryResponse()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
         self.index.query(top_k=10, vector=vals1)
         self.index.runner.run.assert_called_once_with(
             self.index.stub.Query, QueryRequest(top_k=10, vector=vals1), timeout=None
         )
 
     def test_query_byVectorWithFilter_queryVectorWithFilter(self, mocker, vals1, filter1):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = QueryResponse()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
         self.index.query(top_k=10, vector=vals1, filter=filter1, namespace="ns", timeout=10)
         self.index.runner.run.assert_called_once_with(
             self.index.stub.Query,
@@ -32,7 +34,8 @@ class TestGrpcIndexQuery:
         )
 
     def test_query_byVecId_queryByVecId(self, mocker):
-        mocker.patch.object(self.index.runner, "run", autospec=True)
+        mock_response = QueryResponse()
+        mocker.patch.object(self.index.runner, "run", return_value=(mock_response, None))
         self.index.query(top_k=10, id="vec1", include_metadata=True, include_values=False)
         self.index.runner.run.assert_called_once_with(
             self.index.stub.Query,

@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import numbers
 
 from collections.abc import Iterable, Mapping
-from typing import Union, Tuple
 
 from ..utils import fix_tuple_length, convert_to_list, parse_non_empty_args
 from ..utils.constants import REQUIRED_VECTOR_FIELDS, OPTIONAL_VECTOR_FIELDS
@@ -12,7 +13,7 @@ from pinecone.core.openapi.db_data.models import (
     Vector as OpenApiVector,
     SparseValues as OpenApiSparseValues,
 )
-from .dataclasses import Vector
+from .dataclasses import Vector, SparseValues
 
 from .errors import (
     VectorDictionaryMissingKeysError,
@@ -21,7 +22,7 @@ from .errors import (
     MetadataDictionaryExpectedError,
 )
 
-from .types import VectorTuple, VectorTypedDict
+from .types import VectorTuple, VectorTupleWithMetadata, VectorTypedDict
 
 
 class VectorFactory:
@@ -29,10 +30,12 @@ class VectorFactory:
 
     @staticmethod
     def build(
-        item: Union[OpenApiVector, VectorTuple, VectorTypedDict], check_type: bool = True
+        item: OpenApiVector | Vector | VectorTuple | VectorTupleWithMetadata | VectorTypedDict,
+        check_type: bool = True,
     ) -> OpenApiVector:
         if isinstance(item, OpenApiVector):
-            return item
+            result: OpenApiVector = item
+            return result
         elif isinstance(item, Vector):
             args = parse_non_empty_args(
                 [
@@ -43,7 +46,8 @@ class VectorFactory:
                 ]
             )
 
-            return OpenApiVector(**args)
+            vector_result: OpenApiVector = OpenApiVector(**args)
+            return vector_result
         elif isinstance(item, tuple):
             return VectorFactory._tuple_to_vector(item, check_type)
         elif isinstance(item, Mapping):
@@ -52,11 +56,11 @@ class VectorFactory:
             raise ValueError(f"Invalid vector value passed: cannot interpret type {type(item)}")
 
     @staticmethod
-    def _tuple_to_vector(item: Tuple, check_type: bool) -> OpenApiVector:
+    def _tuple_to_vector(item: tuple, check_type: bool) -> OpenApiVector:
         if len(item) < 2 or len(item) > 3:
             raise VectorTupleLengthError(item)
         id, values, metadata = fix_tuple_length(item, 3)
-        if isinstance(values, OpenApiSparseValues):
+        if isinstance(values, (OpenApiSparseValues, SparseValues)):
             raise ValueError(
                 "Sparse values are not supported in tuples. Please use either dicts or OpenApiVector objects as inputs."
             )
@@ -100,7 +104,8 @@ class VectorFactory:
             raise MetadataDictionaryExpectedError(item)
 
         try:
-            return OpenApiVector(**item, _check_type=check_type)
+            result: OpenApiVector = OpenApiVector(**item, _check_type=check_type)
+            return result
         except TypeError as e:
             if not isinstance(item["values"], Iterable) or not isinstance(
                 item["values"].__iter__().__next__(), numbers.Real

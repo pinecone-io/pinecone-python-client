@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import time
 import logging
-from typing import Optional, Dict, Union, TYPE_CHECKING
+from typing import Dict, TYPE_CHECKING, Any
 
 from pinecone.db_control.index_host_store import IndexHostStore
 
@@ -29,6 +31,18 @@ if TYPE_CHECKING:
         AzureRegion,
     )
     from pinecone.db_control.models import ServerlessSpec, PodSpec, ByocSpec, IndexEmbed
+    from pinecone.db_control.models.serverless_spec import (
+        ReadCapacityDict,
+        MetadataSchemaFieldConfig,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
+    from pinecone.core.openapi.db_control.model.read_capacity_on_demand_spec import (
+        ReadCapacityOnDemandSpec,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
+        ReadCapacityDedicatedSpec,
+    )
+    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
 
 
 class IndexResource(PluginAware):
@@ -61,13 +75,13 @@ class IndexResource(PluginAware):
         self,
         *,
         name: str,
-        spec: Union[Dict, "ServerlessSpec", "PodSpec", "ByocSpec"],
-        dimension: Optional[int] = None,
-        metric: Optional[Union["Metric", str]] = "cosine",
-        timeout: Optional[int] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        vector_type: Optional[Union["VectorType", str]] = "dense",
-        tags: Optional[Dict[str, str]] = None,
+        spec: Dict | "ServerlessSpec" | "PodSpec" | "ByocSpec",
+        dimension: int | None = None,
+        metric: ("Metric" | str) | None = "cosine",
+        timeout: int | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        vector_type: ("VectorType" | str) | None = "dense",
+        tags: dict[str, str] | None = None,
     ) -> IndexModel:
         req = PineconeDBControlRequestFactory.create_index_request(
             name=name,
@@ -81,7 +95,9 @@ class IndexResource(PluginAware):
         resp = self._index_api.create_index(create_index_request=req)
 
         if timeout == -1:
-            return IndexModel(resp)
+            from typing import cast
+
+            return IndexModel(cast(Any, resp))
         return self.__poll_describe_index_until_ready(name, timeout)
 
     @require_kwargs
@@ -89,12 +105,29 @@ class IndexResource(PluginAware):
         self,
         *,
         name: str,
-        cloud: Union["CloudProvider", str],
-        region: Union["AwsRegion", "GcpRegion", "AzureRegion", str],
-        embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
-        tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        timeout: Optional[int] = None,
+        cloud: "CloudProvider" | str,
+        region: "AwsRegion" | "GcpRegion" | "AzureRegion" | str,
+        embed: "IndexEmbed" | "CreateIndexForModelEmbedTypedDict",
+        tags: dict[str, str] | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        )
+        | None = None,
+        schema: (
+            dict[
+                str, "MetadataSchemaFieldConfig"
+            ]  # Direct field mapping: {field_name: {filterable: bool}}
+            | dict[
+                str, dict[str, Any]
+            ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
+            | "BackupModelSchema"  # OpenAPI model instance
+        )
+        | None = None,
+        timeout: int | None = None,
     ) -> IndexModel:
         req = PineconeDBControlRequestFactory.create_index_for_model_request(
             name=name,
@@ -103,11 +136,15 @@ class IndexResource(PluginAware):
             embed=embed,
             tags=tags,
             deletion_protection=deletion_protection,
+            read_capacity=read_capacity,
+            schema=schema,
         )
         resp = self._index_api.create_index_for_model(req)
 
         if timeout == -1:
-            return IndexModel(resp)
+            from typing import cast
+
+            return IndexModel(cast(Any, resp))
         return self.__poll_describe_index_until_ready(name, timeout)
 
     @require_kwargs
@@ -116,9 +153,9 @@ class IndexResource(PluginAware):
         *,
         name: str,
         backup_id: str,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        tags: Optional[Dict[str, str]] = None,
-        timeout: Optional[int] = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        tags: dict[str, str] | None = None,
+        timeout: int | None = None,
     ) -> IndexModel:
         """
         Create an index from a backup.
@@ -127,7 +164,7 @@ class IndexResource(PluginAware):
             name (str): The name of the index to create.
             backup_id (str): The ID of the backup to create the index from.
             deletion_protection (DeletionProtection): The deletion protection to use for the index.
-            tags (Dict[str, str]): The tags to use for the index.
+            tags (dict[str, str]): The tags to use for the index.
             timeout (int): The number of seconds to wait for the index to be ready. If -1, the function will return without polling for the index status to be ready. If None, the function will poll indefinitely for the index to be ready.
 
         Returns:
@@ -145,7 +182,9 @@ class IndexResource(PluginAware):
             return self.describe(name=name)
         return self.__poll_describe_index_until_ready(name, timeout)
 
-    def __poll_describe_index_until_ready(self, name: str, timeout: Optional[int] = None):
+    def __poll_describe_index_until_ready(
+        self, name: str, timeout: int | None = None
+    ) -> IndexModel:
         total_wait_time = 0
         while True:
             description = self.describe(name=name)
@@ -172,7 +211,7 @@ class IndexResource(PluginAware):
             time.sleep(5)
 
     @require_kwargs
-    def delete(self, *, name: str, timeout: Optional[int] = None) -> None:
+    def delete(self, *, name: str, timeout: int | None = None) -> None:
         self._index_api.delete_index(name)
         self._index_host_store.delete_host(self.config, name)
 
@@ -221,11 +260,18 @@ class IndexResource(PluginAware):
         self,
         *,
         name: str,
-        replicas: Optional[int] = None,
-        pod_type: Optional[Union["PodType", str]] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = None,
-        tags: Optional[Dict[str, str]] = None,
-        embed: Optional[Union["ConfigureIndexEmbed", Dict]] = None,
+        replicas: int | None = None,
+        pod_type: ("PodType" | str) | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = None,
+        tags: dict[str, str] | None = None,
+        embed: ("ConfigureIndexEmbed" | Dict) | None = None,
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        )
+        | None = None,
     ) -> None:
         api_instance = self._index_api
         description = self.describe(name=name)
@@ -237,6 +283,7 @@ class IndexResource(PluginAware):
             deletion_protection=deletion_protection,
             tags=tags,
             embed=embed,
+            read_capacity=read_capacity,
         )
         api_instance.configure_index(name, configure_index_request=req)
 

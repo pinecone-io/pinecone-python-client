@@ -17,11 +17,15 @@ inputs:
   dimension:
     description: 'The dimension of the index'
     required: false
-    default: '3'
+    default: ''
   metric:
     description: 'The metric of the index'
     required: false
     default: 'cosine'
+  vector_type:
+    description: 'The type of the index'
+    required: false
+    default: 'dense'
   PINECONE_API_KEY:
     description: 'The Pinecone API key'
     required: true
@@ -36,21 +40,26 @@ outputs:
     description: 'The name of the index, including randomized suffix'
     value: ${{ steps.create-index.outputs.index_name }}
 
+  index_host:
+    description: 'The host of the index'
+    value: ${{ steps.create-index.outputs.index_host }}
+
 runs:
   using: 'composite'
   steps:
-    - name: Setup Poetry
-      uses: ./.github/actions/setup-poetry
+    - name: Setup uv
+      uses: ./.github/actions/setup-uv
 
     - name: Create index
       id: create-index
       shell: bash
-      run: poetry run python3 ./.github/actions/index-create/create.py
+      run: uv run python3 ./.github/actions/index-create/create.py
       env:
         PINECONE_API_KEY: ${{ inputs.PINECONE_API_KEY }}
         PINECONE_ADDITIONAL_HEADERS: ${{ inputs.PINECONE_ADDITIONAL_HEADERS }}
         NAME_PREFIX: ${{ inputs.name_prefix }}
         REGION: ${{ inputs.region }}
         CLOUD: ${{ inputs.cloud }}
+        VECTOR_TYPE: ${{ inputs.vector_type }}
         DIMENSION: ${{ inputs.dimension }}
         METRIC: ${{ inputs.metric }}

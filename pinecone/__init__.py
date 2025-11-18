@@ -46,6 +46,7 @@ _db_data_lazy_imports = {
     "SearchQueryVector": ("pinecone.db_data.dataclasses", "SearchQueryVector"),
     "SearchRerank": ("pinecone.db_data.dataclasses", "SearchRerank"),
     "FetchResponse": ("pinecone.db_data.dataclasses", "FetchResponse"),
+    "FetchByMetadataResponse": ("pinecone.db_data.dataclasses", "FetchByMetadataResponse"),
     "DeleteRequest": ("pinecone.db_data.models", "DeleteRequest"),
     "DescribeIndexStatsRequest": ("pinecone.db_data.models", "DescribeIndexStatsRequest"),
     "DescribeIndexStatsResponse": ("pinecone.db_data.models", "IndexDescription"),
@@ -53,11 +54,13 @@ _db_data_lazy_imports = {
     "ScoredVector": ("pinecone.db_data.models", "ScoredVector"),
     "SingleQueryResults": ("pinecone.db_data.models", "SingleQueryResults"),
     "QueryRequest": ("pinecone.db_data.models", "QueryRequest"),
-    "QueryResponse": ("pinecone.db_data.models", "QueryResponse"),
-    "UpsertResponse": ("pinecone.db_data.models", "UpsertResponse"),
+    "QueryResponse": ("pinecone.db_data.dataclasses", "QueryResponse"),
+    "UpsertResponse": ("pinecone.db_data.dataclasses", "UpsertResponse"),
+    "UpdateResponse": ("pinecone.db_data.dataclasses", "UpdateResponse"),
     "UpdateRequest": ("pinecone.db_data.models", "UpdateRequest"),
     "NamespaceDescription": ("pinecone.core.openapi.db_data.models", "NamespaceDescription"),
     "ImportErrorMode": ("pinecone.db_data.resources.sync.bulk_import", "ImportErrorMode"),
+    "FilterBuilder": ("pinecone.db_data.filter_builder", "FilterBuilder"),
     "VectorDictionaryMissingKeysError": (
         "pinecone.db_data.errors",
         "VectorDictionaryMissingKeysError",
@@ -103,6 +106,29 @@ _db_control_lazy_imports = {
     "CreateIndexForModelEmbedTypedDict": (
         "pinecone.db_control.types",
         "CreateIndexForModelEmbedTypedDict",
+    ),
+    # Read capacity TypedDict classes
+    "ScalingConfigManualDict": (
+        "pinecone.db_control.models.serverless_spec",
+        "ScalingConfigManualDict",
+    ),
+    "ReadCapacityDedicatedConfigDict": (
+        "pinecone.db_control.models.serverless_spec",
+        "ReadCapacityDedicatedConfigDict",
+    ),
+    "ReadCapacityOnDemandDict": (
+        "pinecone.db_control.models.serverless_spec",
+        "ReadCapacityOnDemandDict",
+    ),
+    "ReadCapacityDedicatedDict": (
+        "pinecone.db_control.models.serverless_spec",
+        "ReadCapacityDedicatedDict",
+    ),
+    "ReadCapacityDict": ("pinecone.db_control.models.serverless_spec", "ReadCapacityDict"),
+    # Metadata schema TypedDict class
+    "MetadataSchemaFieldConfig": (
+        "pinecone.db_control.models.serverless_spec",
+        "MetadataSchemaFieldConfig",
     ),
 }
 

@@ -8,10 +8,9 @@ via star imports but are no longer imported at the top level.
 
 import ast
 import os
-from typing import Set
 
 
-def find_star_imports(file_path: str) -> Set[str]:
+def find_star_imports(file_path: str) -> set[str]:
     """
     Find all star imports in a file.
 
@@ -41,7 +40,7 @@ def find_star_imports(file_path: str) -> Set[str]:
     return star_imports
 
 
-def find_imported_names(file_path: str) -> Set[str]:
+def find_imported_names(file_path: str) -> set[str]:
     """
     Find all names that are imported in a file.
 
@@ -74,7 +73,7 @@ def find_imported_names(file_path: str) -> Set[str]:
     return imported_names
 
 
-def find_module_exports(module_path: str) -> Set[str]:
+def find_module_exports(module_path: str) -> set[str]:
     """
     Find all names that are exported by a module.
 

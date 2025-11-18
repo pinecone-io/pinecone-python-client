@@ -5,7 +5,7 @@ Provides an API for managing a Pinecone organization and its resources.   # noqa
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -110,6 +110,17 @@ class Project(ModelNormal):
     read_only_vars: Set[str] = set([])
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of Project.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
 
     @classmethod
     @convert_js_args_to_python_args

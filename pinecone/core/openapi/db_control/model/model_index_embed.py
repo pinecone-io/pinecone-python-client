@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -59,9 +59,7 @@ class ModelIndexEmbed(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("metric",): {"COSINE": "cosine", "EUCLIDEAN": "euclidean", "DOTPRODUCT": "dotproduct"}
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
         ("dimension",): {"inclusive_maximum": 20000, "inclusive_minimum": 1}
@@ -92,9 +90,9 @@ class ModelIndexEmbed(ModelNormal):
             "metric": (str,),  # noqa: E501
             "dimension": (int,),  # noqa: E501
             "vector_type": (str,),  # noqa: E501
-            "field_map": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
-            "read_parameters": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
-            "write_parameters": ({str: (bool, dict, float, int, list, str, none_type)},),  # noqa: E501
+            "field_map": (Dict[str, Any],),  # noqa: E501
+            "read_parameters": (Dict[str, Any],),  # noqa: E501
+            "write_parameters": (Dict[str, Any],),  # noqa: E501
         }
 
     @cached_class_property
@@ -114,6 +112,17 @@ class ModelIndexEmbed(ModelNormal):
     read_only_vars: Set[str] = set([])
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of ModelIndexEmbed.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
 
     @classmethod
     @convert_js_args_to_python_args
@@ -154,12 +163,12 @@ class ModelIndexEmbed(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set. [optional]  # noqa: E501
+            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set. Possible values: `cosine`, `euclidean`, or `dotproduct`. [optional]  # noqa: E501
             dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
             vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified. [optional] if omitted the server will use the default value of "dense".  # noqa: E501
-            field_map ({str: (bool, dict, float, int, list, str, none_type)}): Identifies the name of the text field from your document model that is embedded. [optional]  # noqa: E501
-            read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model. [optional]  # noqa: E501
-            write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model. [optional]  # noqa: E501
+            field_map (Dict[str, Any]): Identifies the name of the text field from your document model that is embedded. [optional]  # noqa: E501
+            read_parameters (Dict[str, Any]): The read parameters for the embedding model. [optional]  # noqa: E501
+            write_parameters (Dict[str, Any]): The write parameters for the embedding model. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -253,12 +262,12 @@ class ModelIndexEmbed(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set. [optional]  # noqa: E501
+            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set. Possible values: `cosine`, `euclidean`, or `dotproduct`. [optional]  # noqa: E501
             dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
             vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified. [optional] if omitted the server will use the default value of "dense".  # noqa: E501
-            field_map ({str: (bool, dict, float, int, list, str, none_type)}): Identifies the name of the text field from your document model that is embedded. [optional]  # noqa: E501
-            read_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The read parameters for the embedding model. [optional]  # noqa: E501
-            write_parameters ({str: (bool, dict, float, int, list, str, none_type)}): The write parameters for the embedding model. [optional]  # noqa: E501
+            field_map (Dict[str, Any]): Identifies the name of the text field from your document model that is embedded. [optional]  # noqa: E501
+            read_parameters (Dict[str, Any]): The read parameters for the embedding model. [optional]  # noqa: E501
+            write_parameters (Dict[str, Any]): The write parameters for the embedding model. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

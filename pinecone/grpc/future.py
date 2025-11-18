@@ -1,12 +1,11 @@
 from concurrent.futures import Future as ConcurrentFuture
-from typing import Optional
 from grpc import Future as GrpcFuture, RpcError
 from pinecone.exceptions.exceptions import PineconeException
 
 
 class PineconeGrpcFuture(ConcurrentFuture):
     def __init__(
-        self, grpc_future: GrpcFuture, timeout: Optional[int] = None, result_transformer=None
+        self, grpc_future: GrpcFuture, timeout: int | None = None, result_transformer=None
     ):
         super().__init__()
         self._grpc_future = grpc_future
@@ -44,7 +43,22 @@ class PineconeGrpcFuture(ConcurrentFuture):
 
     def set_result(self, result):
         if self._result_transformer:
-            result = self._result_transformer(result)
+            # Extract initial metadata from GRPC future if available
+            initial_metadata = None
+            try:
+                if hasattr(self._grpc_future, "initial_metadata"):
+                    initial_metadata_tuple = self._grpc_future.initial_metadata()
+                    if initial_metadata_tuple:
+                        initial_metadata = {key: value for key, value in initial_metadata_tuple}
+            except Exception:
+                # If metadata extraction fails, continue without it
+                pass
+
+            # Always pass initial_metadata if available (transformer is internal API)
+            if initial_metadata is not None:
+                result = self._result_transformer(result, initial_metadata=initial_metadata)
+            else:
+                result = self._result_transformer(result)
         return super().set_result(result)
 
     def cancel(self):
@@ -68,7 +82,7 @@ class PineconeGrpcFuture(ConcurrentFuture):
         except RpcError as e:
             raise self._wrap_rpc_exception(e) from e
 
-    def _timeout(self, timeout: Optional[int] = None) -> int:
+    def _timeout(self, timeout: int | None = None) -> int:
         if timeout is not None:
             return timeout
         else:
@@ -91,4 +105,4 @@ class PineconeGrpcFuture(ConcurrentFuture):
 
     def __del__(self):
         self._grpc_future.cancel()
-        self = None  # release the reference to the grpc future
+        # Note: self = None is not valid Python syntax and has no effect

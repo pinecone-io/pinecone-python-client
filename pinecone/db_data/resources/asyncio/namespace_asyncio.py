@@ -1,10 +1,7 @@
-from typing import Optional, AsyncIterator
+from typing import AsyncIterator, Any
 
 from pinecone.core.openapi.db_data.api.namespace_operations_api import AsyncioNamespaceOperationsApi
-from pinecone.core.openapi.db_data.models import (
-    ListNamespacesResponse,
-    NamespaceDescription,
-)
+from pinecone.core.openapi.db_data.models import ListNamespacesResponse, NamespaceDescription
 
 from pinecone.utils import install_json_repr_override, require_kwargs
 
@@ -19,6 +16,27 @@ class NamespaceResourceAsyncio:
         self.__namespace_operations_api = AsyncioNamespaceOperationsApi(api_client)
 
     @require_kwargs
+    async def create(self, name: str, schema: Any | None = None, **kwargs) -> NamespaceDescription:
+        """
+        Args:
+            name (str): The name of the namespace to create
+            schema (Optional[Any]): Optional schema configuration for the namespace. Can be a dictionary or CreateNamespaceRequestSchema object. [optional]
+
+        Returns:
+            ``NamespaceDescription``: Information about the created namespace including vector count
+
+        Create a namespace in a serverless index. For guidance and examples, see
+        `Manage namespaces <https://docs.pinecone.io/guides/manage-data/manage-namespaces>`_.
+
+        **Note:** This operation is not supported for pod-based indexes.
+        """
+        from typing import cast
+
+        args = NamespaceRequestFactory.create_namespace_args(name=name, schema=schema, **kwargs)
+        result = await self.__namespace_operations_api.create_namespace(**args)
+        return cast(NamespaceDescription, result)
+
+    @require_kwargs
     async def describe(self, namespace: str, **kwargs) -> NamespaceDescription:
         """
         Args:
@@ -29,8 +47,11 @@ class NamespaceResourceAsyncio:
 
         Describe a namespace within an index, showing the vector count within the namespace.
         """
+        from typing import cast
+
         args = NamespaceRequestFactory.describe_namespace_args(namespace=namespace, **kwargs)
-        return await self.__namespace_operations_api.describe_namespace(**args)
+        result = await self.__namespace_operations_api.describe_namespace(**args)
+        return cast(NamespaceDescription, result)
 
     @require_kwargs
     async def delete(self, namespace: str, **kwargs):
@@ -44,7 +65,9 @@ class NamespaceResourceAsyncio:
         return await self.__namespace_operations_api.delete_namespace(**args)
 
     @require_kwargs
-    async def list(self, limit: Optional[int] = None, **kwargs) -> AsyncIterator[ListNamespacesResponse]:
+    async def list(
+        self, limit: int | None = None, **kwargs
+    ) -> AsyncIterator[ListNamespacesResponse]:
         """
         Args:
             limit (Optional[int]): The maximum number of namespaces to fetch in each network call. If unspecified, the server will use a default value. [optional]
@@ -81,7 +104,7 @@ class NamespaceResourceAsyncio:
 
     @require_kwargs
     async def list_paginated(
-        self, limit: Optional[int] = None, pagination_token: Optional[str] = None, **kwargs
+        self, limit: int | None = None, pagination_token: str | None = None, **kwargs
     ) -> ListNamespacesResponse:
         """
         Args:
@@ -103,5 +126,10 @@ class NamespaceResourceAsyncio:
                 eyJza2lwX3Bhc3QiOiI5OTMiLCJwcmVmaXgiOiI5OSJ9
                 >>> next_results = await index.list_paginated(limit=5, pagination_token=results.pagination.next)
         """
-        args = NamespaceRequestFactory.list_namespaces_args(limit=limit, pagination_token=pagination_token, **kwargs)
-        return await self.__namespace_operations_api.list_namespaces_operation(**args)
+        from typing import cast
+
+        args = NamespaceRequestFactory.list_namespaces_args(
+            limit=limit, pagination_token=pagination_token, **kwargs
+        )
+        result = await self.__namespace_operations_api.list_namespaces_operation(**args)
+        return cast(ListNamespacesResponse, result)

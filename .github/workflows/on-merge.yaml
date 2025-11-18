@@ -35,7 +35,7 @@ jobs:
     uses: './.github/workflows/testing-unit.yaml'
     secrets: inherit
     with:
-      python_versions_json: '["3.9", "3.13"]'
+      python_versions_json: '["3.10", "3.13"]'
 
   create-project:
     uses: './.github/workflows/project-setup.yaml'
@@ -51,7 +51,7 @@ jobs:
         - create-project
       with:
         encrypted_project_api_key: ${{ needs.create-project.outputs.encrypted_project_api_key }}
-        python_versions_json: '["3.9", "3.13"]'
+        python_versions_json: '["3.10", "3.13"]'
   dependency-tests:
     uses: './.github/workflows/testing-dependency.yaml'
     secrets: inherit
@@ -85,15 +85,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9, 3.13]
+        python-version: ['3.10', '3.13']
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Poetry
-        uses: ./.github/actions/setup-poetry
+      - name: Setup uv
+        uses: ./.github/actions/setup-uv
         with:
           python_version: ${{ matrix.python-version }}
       - name: Package
-        run: poetry build
+        run: uv build
 
   build-docs:
     name: Build docs with pdoc

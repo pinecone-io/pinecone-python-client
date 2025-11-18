@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -26,16 +26,19 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
+from typing import TYPE_CHECKING
 
-def lazy_import():
-    from pinecone.core.openapi.db_control.model.deletion_protection import DeletionProtection
-    from pinecone.core.openapi.db_control.model.index_model_spec import IndexModelSpec
+if TYPE_CHECKING:
     from pinecone.core.openapi.db_control.model.index_model_status import IndexModelStatus
     from pinecone.core.openapi.db_control.model.index_tags import IndexTags
     from pinecone.core.openapi.db_control.model.model_index_embed import ModelIndexEmbed
 
-    globals()["DeletionProtection"] = DeletionProtection
-    globals()["IndexModelSpec"] = IndexModelSpec
+
+def lazy_import():
+    from pinecone.core.openapi.db_control.model.index_model_status import IndexModelStatus
+    from pinecone.core.openapi.db_control.model.index_tags import IndexTags
+    from pinecone.core.openapi.db_control.model.model_index_embed import ModelIndexEmbed
+
     globals()["IndexModelStatus"] = IndexModelStatus
     globals()["IndexTags"] = IndexTags
     globals()["ModelIndexEmbed"] = ModelIndexEmbed
@@ -73,9 +76,7 @@ class IndexModel(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("metric",): {"COSINE": "cosine", "EUCLIDEAN": "euclidean", "DOTPRODUCT": "dotproduct"}
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
         ("name",): {"max_length": 45, "min_length": 1},
@@ -108,11 +109,12 @@ class IndexModel(ModelNormal):
             "name": (str,),  # noqa: E501
             "metric": (str,),  # noqa: E501
             "host": (str,),  # noqa: E501
-            "spec": (IndexModelSpec,),  # noqa: E501
+            "spec": (Dict[str, Any],),  # noqa: E501
             "status": (IndexModelStatus,),  # noqa: E501
             "vector_type": (str,),  # noqa: E501
             "dimension": (int,),  # noqa: E501
-            "deletion_protection": (DeletionProtection,),  # noqa: E501
+            "private_host": (str,),  # noqa: E501
+            "deletion_protection": (str,),  # noqa: E501
             "tags": (IndexTags,),  # noqa: E501
             "embed": (ModelIndexEmbed,),  # noqa: E501
         }
@@ -129,6 +131,7 @@ class IndexModel(ModelNormal):
         "status": "status",  # noqa: E501
         "vector_type": "vector_type",  # noqa: E501
         "dimension": "dimension",  # noqa: E501
+        "private_host": "private_host",  # noqa: E501
         "deletion_protection": "deletion_protection",  # noqa: E501
         "tags": "tags",  # noqa: E501
         "embed": "embed",  # noqa: E501
@@ -138,6 +141,17 @@ class IndexModel(ModelNormal):
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of IndexModel.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
+
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], name, metric, host, spec, status, *args, **kwargs) -> T:  # noqa: E501
@@ -145,9 +159,9 @@ class IndexModel(ModelNormal):
 
         Args:
             name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'.
+            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'. Possible values: `cosine`, `euclidean`, or `dotproduct`.
             host (str): The URL address where the index is hosted.
-            spec (IndexModelSpec):
+            spec (Dict[str, Any]): The spec object defines how the index should be deployed.
             status (IndexModelStatus):
 
         Keyword Args:
@@ -183,7 +197,8 @@ class IndexModel(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
-            deletion_protection (DeletionProtection): [optional]  # noqa: E501
+            private_host (str): The private endpoint URL of an index. [optional]  # noqa: E501
+            deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. [optional] if omitted the server will use the default value of "disabled".  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
             embed (ModelIndexEmbed): [optional]  # noqa: E501
         """
@@ -253,9 +268,9 @@ class IndexModel(ModelNormal):
 
         Args:
             name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'.
+            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'. Possible values: `cosine`, `euclidean`, or `dotproduct`.
             host (str): The URL address where the index is hosted.
-            spec (IndexModelSpec):
+            spec (Dict[str, Any]): The spec object defines how the index should be deployed.
             status (IndexModelStatus):
 
         Keyword Args:
@@ -291,7 +306,8 @@ class IndexModel(ModelNormal):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
-            deletion_protection (DeletionProtection): [optional]  # noqa: E501
+            private_host (str): The private endpoint URL of an index. [optional]  # noqa: E501
+            deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. [optional] if omitted the server will use the default value of "disabled".  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
             embed (ModelIndexEmbed): [optional]  # noqa: E501
         """

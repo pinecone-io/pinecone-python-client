@@ -17,10 +17,19 @@ for klass in [
 class ModelInfo:
     def __init__(self, model_info: OpenAPIModelInfo):
         self._model_info = model_info
+        self.supported_metrics: list[str] = []
         if self._model_info.supported_metrics is not None:
-            self.supported_metrics = [sm.value for sm in self._model_info.supported_metrics.value]
-        else:
-            self.supported_metrics = []
+            # Handle both cases: list of strings (Python 3.13+) or list of enum-like objects
+            metrics_value = self._model_info.supported_metrics.value
+            if metrics_value is not None:
+                for sm in metrics_value:
+                    if isinstance(sm, str):
+                        self.supported_metrics.append(sm)
+                    elif hasattr(sm, "value"):
+                        self.supported_metrics.append(sm.value)
+                    else:
+                        # Fallback: use the value as-is
+                        self.supported_metrics.append(sm)
 
     def __str__(self):
         return str(self._model_info)

@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - 'pyproject.toml'
-      - 'poetry.lock'
+      - 'uv.lock'
   workflow_dispatch: {}
 
 permissions: {}

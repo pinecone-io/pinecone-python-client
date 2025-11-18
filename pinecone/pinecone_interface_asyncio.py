@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 
-from typing import Optional, Dict, Union, TYPE_CHECKING
+from typing import Dict, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from pinecone.config import Config
@@ -31,22 +33,34 @@ if TYPE_CHECKING:
         AzureRegion,
     )
     from pinecone.db_control.types import ConfigureIndexEmbed, CreateIndexForModelEmbedTypedDict
+    from pinecone.db_control.models.serverless_spec import (
+        ReadCapacityDict,
+        MetadataSchemaFieldConfig,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
+    from pinecone.core.openapi.db_control.model.read_capacity_on_demand_spec import (
+        ReadCapacityOnDemandSpec,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
+        ReadCapacityDedicatedSpec,
+    )
+    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
 
 
 class PineconeAsyncioDBControlInterface(ABC):
     @abstractmethod
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        host: Optional[str] = None,
-        proxy_url: Optional[str] = None,
-        proxy_headers: Optional[Dict[str, str]] = None,
-        ssl_ca_certs: Optional[str] = None,
-        ssl_verify: Optional[bool] = None,
-        config: Optional["Config"] = None,
-        additional_headers: Optional[Dict[str, str]] = {},
-        pool_threads: Optional[int] = 1,
-        index_api: Optional["ManageIndexesApi"] = None,
+        api_key: str | None = None,
+        host: str | None = None,
+        proxy_url: str | None = None,
+        proxy_headers: dict[str, str] | None = None,
+        ssl_ca_certs: str | None = None,
+        ssl_verify: bool | None = None,
+        config: "Config" | None = None,
+        additional_headers: dict[str, str] | None = {},
+        pool_threads: int | None = 1,
+        index_api: "ManageIndexesApi" | None = None,
         **kwargs,
     ):
         """
@@ -62,7 +76,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         :param proxy_url: The URL of the proxy to use for the connection. Default: ``None``
         :type proxy_url: str, optional
         :param proxy_headers: Additional headers to pass to the proxy. Use this if your proxy setup requires authentication. Default: ``{}``
-        :type proxy_headers: Dict[str, str], optional
+        :type proxy_headers: dict[str, str], optional
         :param ssl_ca_certs: The path to the SSL CA certificate bundle to use for the connection. This path should point to a file in PEM format. Default: ``None``
         :type ssl_ca_certs: str, optional
         :param ssl_verify: SSL verification is performed by default, but can be disabled using the boolean flag. Default: ``True``
@@ -70,7 +84,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         :param config: A ``pinecone.config.Config`` object. If passed, the ``api_key`` and ``host`` parameters will be ignored.
         :type config: pinecone.config.Config, optional
         :param additional_headers: Additional headers to pass to the API. Default: ``{}``
-        :type additional_headers: Dict[str, str], optional
+        :type additional_headers: dict[str, str], optional
 
 
         **Managing the async context**
@@ -108,11 +122,11 @@ class PineconeAsyncioDBControlInterface(ABC):
 
             asyncio.run(main())
 
-        Failing to do this may result in error messages appearing from the underlyling aiohttp library.
+        Failing to do this may result in error messages appearing from the underlying aiohttp library.
 
         **Configuration with environment variables**
 
-        If you instantiate the Pinecone client with no arguments, it will attempt to read the API key from the environment variable ``PINECONE_API_KEY``.
+        If you instantiate the PineconeAsyncio client with no arguments, it will attempt to read the API key from the environment variable ``PINECONE_API_KEY``.
 
         .. code-block:: python
 
@@ -128,44 +142,7 @@ class PineconeAsyncioDBControlInterface(ABC):
 
         **Configuration with keyword arguments**
 
-        If you prefer being more explicit in your code, you can also pass the API  as
-
-        **Configuration with environment variables**
-
-        If you instantiate the Pinecone client with no arguments, it will attempt to read the API key from the environment variable ``PINECONE_API_KEY``.
-
-        .. code-block:: python
-
-            import asyncio
-            from pinecone import PineconeAsyncio
-
-            async def main():
-                async with PineconeAsyncio() as pc:
-                    # Do async things
-                    index_list = await pc.list_indexes()
-
-            asyncio.run(main())
-
-
-        **Configuration with environment variables**
-
-        If you instantiate the Pinecone client with no arguments, it will attempt to read the API key from the environment variable ``PINECONE_API_KEY``.
-
-        .. code-block:: python
-
-            import asyncio
-            from pinecone import PineconeAsyncio
-
-            async def main():
-                async with PineconeAsyncio() as pc:
-                    # Do async things
-                    index_list = await pc.list_indexes()
-
-            asyncio.run(main())
-
-        **Configuration with keyword arguments**
-
-        If you prefer being more explicit in your code, you can also pass the API  as a keyword argument.
+        If you prefer being more explicit in your code, you can also pass the API key as a keyword argument.
 
         .. code-block:: python
 
@@ -174,7 +151,7 @@ class PineconeAsyncioDBControlInterface(ABC):
             from pinecone import PineconeAsyncio
 
             async def main():
-                async with Pinecone(api_key=os.environ.get("PINECONE_API_KEY")) as pc:
+                async with PineconeAsyncio(api_key=os.environ.get("PINECONE_API_KEY")) as pc:
                     # Do async things
                     index_list = await pc.list_indexes()
 
@@ -294,13 +271,13 @@ class PineconeAsyncioDBControlInterface(ABC):
     async def create_index(
         self,
         name: str,
-        spec: Union[Dict, "ServerlessSpec", "PodSpec", "ByocSpec"],
-        dimension: Optional[int],
-        metric: Optional[Union["Metric", str]] = "cosine",
-        timeout: Optional[int] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        vector_type: Optional[Union["VectorType", str]] = "dense",
-        tags: Optional[Dict[str, str]] = None,
+        spec: Dict | "ServerlessSpec" | "PodSpec" | "ByocSpec",
+        dimension: int | None,
+        metric: ("Metric" | str) | None = "cosine",
+        timeout: int | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        vector_type: ("VectorType" | str) | None = "dense",
+        tags: dict[str, str] | None = None,
     ):
         """Creates a Pinecone index.
 
@@ -311,7 +288,9 @@ class PineconeAsyncioDBControlInterface(ABC):
         :param metric: Type of similarity metric used in the vector index when querying, one of ``{"cosine", "dotproduct", "euclidean"}``.
         :type metric: str, optional
         :param spec: A dictionary containing configurations describing how the index should be deployed. For serverless indexes,
-            specify region and cloud. For pod indexes, specify replicas, shards, pods, pod_type, metadata_config, and source_collection.
+            specify region and cloud. Optionally, you can specify ``read_capacity`` to configure dedicated read capacity mode
+            (OnDemand or Dedicated) and ``schema`` to configure which metadata fields are filterable. For pod indexes, specify
+            replicas, shards, pods, pod_type, metadata_config, and source_collection.
             Alternatively, use the ``ServerlessSpec`` or ``PodSpec`` objects to specify these configurations.
         :type spec: Dict
         :param dimension: If you are creating an index with ``vector_type="dense"`` (which is the default), you need to specify ``dimension`` to indicate the size of your vectors.
@@ -327,7 +306,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         :param vector_type: The type of vectors to be stored in the index. One of ``{"dense", "sparse"}``.
         :type vector_type: str, optional
         :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
-        :type tags: Optional[Dict[str, str]]
+        :type tags: Optional[dict[str, str]]
         :return: A ``IndexModel`` instance containing a description of the index that was created.
 
         **Creating a serverless index**
@@ -355,14 +334,27 @@ class PineconeAsyncioDBControlInterface(ABC):
                         metric=Metric.COSINE,
                         spec=ServerlessSpec(
                             cloud=CloudProvider.AWS,
-                            region=AwsRegion.US_WEST_2
+                            region=AwsRegion.US_WEST_2,
+                            read_capacity={
+                                "mode": "Dedicated",
+                                "dedicated": {
+                                    "node_type": "t1",
+                                    "scaling": "Manual",
+                                    "manual": {"shards": 2, "replicas": 2},
+                                },
+                            },
+                            schema={
+                                "genre": {"filterable": True},
+                                "year": {"filterable": True},
+                                "rating": {"filterable": True},
+                            },
                         ),
                         deletion_protection=DeletionProtection.DISABLED,
                         vector_type=VectorType.DENSE,
                         tags={
                             "model": "clip",
                             "app": "image-search",
-                            "env": "testing"
+                            "env": "production"
                         }
                     )
 
@@ -412,12 +404,29 @@ class PineconeAsyncioDBControlInterface(ABC):
     async def create_index_for_model(
         self,
         name: str,
-        cloud: Union["CloudProvider", str],
-        region: Union["AwsRegion", "GcpRegion", "AzureRegion", str],
-        embed: Union["IndexEmbed", "CreateIndexForModelEmbedTypedDict"],
-        tags: Optional[Dict[str, str]] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        timeout: Optional[int] = None,
+        cloud: "CloudProvider" | str,
+        region: "AwsRegion" | "GcpRegion" | "AzureRegion" | str,
+        embed: "IndexEmbed" | "CreateIndexForModelEmbedTypedDict",
+        tags: dict[str, str] | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        )
+        | None = None,
+        schema: (
+            dict[
+                str, "MetadataSchemaFieldConfig"
+            ]  # Direct field mapping: {field_name: {filterable: bool}}
+            | dict[
+                str, dict[str, Any]
+            ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
+            | "BackupModelSchema"  # OpenAPI model instance
+        )
+        | None = None,
+        timeout: int | None = None,
     ) -> "IndexModel":
         """
         :param name: The name of the index to create. Must be unique within your project and
@@ -431,9 +440,16 @@ class PineconeAsyncioDBControlInterface(ABC):
         :param embed: The embedding configuration for the index. This param accepts a dictionary or an instance of the ``IndexEmbed`` object.
         :type embed: Union[Dict, IndexEmbed]
         :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
-        :type tags: Optional[Dict[str, str]]
+        :type tags: Optional[dict[str, str]]
         :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. This setting can be changed with ``configure_index``.
         :type deletion_protection: Optional[Literal["enabled", "disabled"]]
+        :param read_capacity: Optional read capacity configuration. You can specify ``read_capacity`` to configure dedicated read capacity mode
+            (OnDemand or Dedicated). See ``ServerlessSpec`` documentation for details on read capacity configuration.
+        :type read_capacity: Optional[Union[ReadCapacityDict, ReadCapacity, ReadCapacityOnDemandSpec, ReadCapacityDedicatedSpec]]
+        :param schema: Optional metadata schema configuration. You can specify ``schema`` to configure which metadata fields are filterable.
+            The schema can be provided as a dictionary mapping field names to their configurations (e.g., ``{"genre": {"filterable": True}}``)
+            or as a dictionary with a ``fields`` key (e.g., ``{"fields": {"genre": {"filterable": True}}}``).
+        :type schema: Optional[Union[dict[str, MetadataSchemaFieldConfig], dict[str, dict[str, Any]], BackupModelSchema]]
         :type timeout: Optional[int]
         :param timeout: Specify the number of seconds to wait until index is ready to receive data. If None, wait indefinitely; if >=0, time out after this many seconds;
             if -1, return immediately and do not wait.
@@ -477,6 +493,52 @@ class PineconeAsyncioDBControlInterface(ABC):
 
             asyncio.run(main())
 
+        **Creating an index for model with schema and dedicated read capacity**
+
+        .. code-block:: python
+
+            import asyncio
+
+            from pinecone import (
+                PineconeAsyncio,
+                IndexEmbed,
+                CloudProvider,
+                AwsRegion,
+                EmbedModel,
+                Metric,
+            )
+
+            async def main():
+                async with PineconeAsyncio() as pc:
+                    if not await pc.has_index("book-search"):
+                        desc = await pc.create_index_for_model(
+                            name="book-search",
+                            cloud=CloudProvider.AWS,
+                            region=AwsRegion.US_EAST_1,
+                            embed=IndexEmbed(
+                                model=EmbedModel.Multilingual_E5_Large,
+                                metric=Metric.COSINE,
+                                field_map={
+                                    "text": "description",
+                                },
+                            ),
+                            read_capacity={
+                                "mode": "Dedicated",
+                                "dedicated": {
+                                    "node_type": "t1",
+                                    "scaling": "Manual",
+                                    "manual": {"shards": 2, "replicas": 2},
+                                },
+                            },
+                            schema={
+                                "genre": {"filterable": True},
+                                "year": {"filterable": True},
+                                "rating": {"filterable": True},
+                            },
+                        )
+
+            asyncio.run(main())
+
         See also:
 
         * See `available cloud regions <https://docs.pinecone.io/troubleshooting/available-cloud-regions>`_
@@ -486,14 +548,14 @@ class PineconeAsyncioDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    def create_index_from_backup(
+    async def create_index_from_backup(
         self,
         *,
         name: str,
         backup_id: str,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = "disabled",
-        tags: Optional[Dict[str, str]] = None,
-        timeout: Optional[int] = None,
+        deletion_protection: ("DeletionProtection" | str) | None = "disabled",
+        tags: dict[str, str] | None = None,
+        timeout: int | None = None,
     ) -> "IndexModel":
         """
         Create an index from a backup.
@@ -507,7 +569,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         :param deletion_protection: If enabled, the index cannot be deleted. If disabled, the index can be deleted. This setting can be changed with ``configure_index``.
         :type deletion_protection: Optional[Literal["enabled", "disabled"]]
         :param tags: Tags are key-value pairs you can attach to indexes to better understand, organize, and identify your resources. Some example use cases include tagging indexes with the name of the model that generated the embeddings, the date the index was created, or the purpose of the index.
-        :type tags: Optional[Dict[str, str]]
+        :type tags: Optional[dict[str, str]]
         :param timeout: Specify the number of seconds to wait until index is ready to receive data. If None, wait indefinitely; if >=0, time out after this many seconds;
             if -1, return immediately and do not wait.
         :return: A description of the index that was created.
@@ -516,7 +578,7 @@ class PineconeAsyncioDBControlInterface(ABC):
         pass
 
     @abstractmethod
-    async def delete_index(self, name: str, timeout: Optional[int] = None):
+    async def delete_index(self, name: str, timeout: int | None = None):
         """
         :param name: the name of the index.
         :type name: str
@@ -707,11 +769,18 @@ class PineconeAsyncioDBControlInterface(ABC):
     async def configure_index(
         self,
         name: str,
-        replicas: Optional[int] = None,
-        pod_type: Optional[Union["PodType", str]] = None,
-        deletion_protection: Optional[Union["DeletionProtection", str]] = None,
-        tags: Optional[Dict[str, str]] = None,
-        embed: Optional[Union["ConfigureIndexEmbed", Dict]] = None,
+        replicas: int | None = None,
+        pod_type: ("PodType" | str) | None = None,
+        deletion_protection: ("DeletionProtection" | str) | None = None,
+        tags: dict[str, str] | None = None,
+        embed: ("ConfigureIndexEmbed" | Dict) | None = None,
+        read_capacity: (
+            "ReadCapacityDict"
+            | "ReadCapacity"
+            | "ReadCapacityOnDemandSpec"
+            | "ReadCapacityDedicatedSpec"
+        )
+        | None = None,
     ):
         """
         :param: name: the name of the Index
@@ -724,13 +793,55 @@ class PineconeAsyncioDBControlInterface(ABC):
             The index vector type and dimension must match the model vector type and dimension, and the index similarity metric must be supported by the model.
             You can later change the embedding configuration to update the field_map, read_parameters, or write_parameters. Once set, the model cannot be changed.
         :type embed: Optional[Union[ConfigureIndexEmbed, Dict]], optional
+        :param read_capacity: Optional read capacity configuration for serverless indexes. You can specify ``read_capacity`` to configure dedicated read capacity mode
+            (OnDemand or Dedicated). See ``ServerlessSpec`` documentation for details on read capacity configuration.
+            Note that read capacity configuration is only available for serverless indexes.
+        :type read_capacity: Optional[Union[ReadCapacityDict, ReadCapacity, ReadCapacityOnDemandSpec, ReadCapacityDedicatedSpec]]
 
         This method is used to modify an index's configuration. It can be used to:
 
+        - Configure read capacity for serverless indexes using ``read_capacity``
         - Scale a pod-based index horizontally using ``replicas``
         - Scale a pod-based index vertically using ``pod_type``
         - Enable or disable deletion protection using ``deletion_protection``
         - Add, change, or remove tags using ``tags``
+
+        **Configuring read capacity for serverless indexes**
+
+        To configure read capacity for serverless indexes, pass the ``read_capacity`` parameter to the ``configure_index`` method.
+        You can configure either OnDemand or Dedicated read capacity mode.
+
+        .. code-block:: python
+
+            import asyncio
+            from pinecone import PineconeAsyncio
+
+            async def main():
+                async with PineconeAsyncio() as pc:
+                    # Configure to OnDemand read capacity (default)
+                    await pc.configure_index(
+                        name="my_index",
+                        read_capacity={"mode": "OnDemand"}
+                    )
+
+                    # Configure to Dedicated read capacity with manual scaling
+                    await pc.configure_index(
+                        name="my_index",
+                        read_capacity={
+                            "mode": "Dedicated",
+                            "dedicated": {
+                                "node_type": "t1",
+                                "scaling": "Manual",
+                                "manual": {"shards": 1, "replicas": 1}
+                            }
+                        }
+                    )
+
+                    # Verify the configuration was applied
+                    desc = await pc.describe_index("my_index")
+                    assert desc.spec.serverless.read_capacity.mode == "Dedicated"
+
+            asyncio.run(main())
 
         **Scaling pod-based indexes**
 
@@ -833,9 +944,9 @@ class PineconeAsyncioDBControlInterface(ABC):
     async def list_backups(
         self,
         *,
-        index_name: Optional[str] = None,
-        limit: Optional[int] = 10,
-        pagination_token: Optional[str] = None,
+        index_name: str | None = None,
+        limit: int | None = 10,
+        pagination_token: str | None = None,
     ) -> "BackupList":
         """List backups.
 
@@ -868,7 +979,7 @@ class PineconeAsyncioDBControlInterface(ABC):
 
     @abstractmethod
     async def list_restore_jobs(
-        self, *, limit: Optional[int] = 10, pagination_token: Optional[str] = None
+        self, *, limit: int | None = 10, pagination_token: str | None = None
     ) -> "RestoreJobList":
         """List restore jobs.
 

@@ -1,4 +1,6 @@
-from typing import NamedTuple, Optional, Dict, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import NamedTuple, TYPE_CHECKING
 import os
 
 from pinecone.exceptions import PineconeConfigurationError
@@ -9,7 +11,7 @@ if TYPE_CHECKING:
 
 
 # Duplicated this util to help resolve circular imports
-def normalize_host(host: Optional[str]) -> str:
+def normalize_host(host: str | None) -> str:
     if host is None:
         return ""
     if host.startswith("https://"):
@@ -22,12 +24,12 @@ def normalize_host(host: Optional[str]) -> str:
 class Config(NamedTuple):
     api_key: str = ""
     host: str = ""
-    proxy_url: Optional[str] = None
-    proxy_headers: Optional[Dict[str, str]] = None
-    ssl_ca_certs: Optional[str] = None
-    ssl_verify: Optional[bool] = None
-    additional_headers: Optional[Dict[str, str]] = {}
-    source_tag: Optional[str] = None
+    proxy_url: str | None = None
+    proxy_headers: dict[str, str] | None = None
+    ssl_ca_certs: str | None = None
+    ssl_verify: bool | None = None
+    additional_headers: dict[str, str] | None = {}
+    source_tag: str | None = None
 
 
 class ConfigBuilder:
@@ -49,13 +51,13 @@ class ConfigBuilder:
 
     @staticmethod
     def build(
-        api_key: Optional[str] = None,
-        host: Optional[str] = None,
-        proxy_url: Optional[str] = None,
-        proxy_headers: Optional[Dict[str, str]] = None,
-        ssl_ca_certs: Optional[str] = None,
-        ssl_verify: Optional[bool] = None,
-        additional_headers: Optional[Dict[str, str]] = {},
+        api_key: str | None = None,
+        host: str | None = None,
+        proxy_url: str | None = None,
+        proxy_headers: dict[str, str] | None = None,
+        ssl_ca_certs: str | None = None,
+        ssl_verify: bool | None = None,
+        additional_headers: dict[str, str] | None = {},
         **kwargs,
     ) -> Config:
         api_key = api_key or kwargs.pop("api_key", None) or os.getenv("PINECONE_API_KEY")
@@ -83,7 +85,7 @@ class ConfigBuilder:
 
     @staticmethod
     def build_openapi_config(
-        config: Config, openapi_config: Optional["OpenApiConfiguration"] = None, **kwargs
+        config: Config, openapi_config: "OpenApiConfiguration" | None = None, **kwargs
     ) -> "OpenApiConfiguration":
         if openapi_config:
             openapi_config = OpenApiConfigFactory.copy(

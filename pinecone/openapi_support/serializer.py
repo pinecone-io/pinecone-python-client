@@ -12,7 +12,13 @@ class Serializer:
     def get_file_data_and_close_file(file_instance: io.IOBase) -> bytes:
         file_data = file_instance.read()
         file_instance.close()
-        return file_data
+        if isinstance(file_data, bytes):
+            return file_data
+        # If read() returns str, encode it
+        if isinstance(file_data, str):
+            return file_data.encode("utf-8")
+        # Fallback: convert to bytes
+        return bytes(file_data) if file_data is not None else b""
 
     @classmethod
     def sanitize_for_serialization(cls, obj) -> Any:

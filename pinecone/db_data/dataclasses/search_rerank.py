@@ -1,10 +1,11 @@
 from dataclasses import dataclass
-from typing import Optional, Dict, Any, List
+from typing import Any
 from pinecone.inference import RerankModel
+from .utils import DictLike
 
 
 @dataclass
-class SearchRerank:
+class SearchRerank(DictLike):
     """
     SearchRerank represents a rerank request when searching within a specific namespace.
     """
@@ -15,26 +16,26 @@ class SearchRerank:
     Required.
     """
 
-    rank_fields: List[str]
+    rank_fields: list[str]
     """
     The fields to use for reranking.
     Required.
     """
 
-    top_n: Optional[int] = None
+    top_n: int | None = None
     """
     The number of top results to return after reranking. Defaults to top_k.
     Optional.
     """
 
-    parameters: Optional[Dict[str, Any]] = None
+    parameters: dict[str, Any] | None = None
     """
     Additional model-specific parameters. Refer to the [model guide](https://docs.pinecone.io/guides/inference/understanding-inference#models)
     for available model parameters.
     Optional.
     """
 
-    query: Optional[str] = None
+    query: str | None = None
     """
     The query to rerank documents against. If a specific rerank query is specified, it overwrites
     the query input that was provided at the top level.
@@ -47,7 +48,7 @@ class SearchRerank:
         if isinstance(self.model, RerankModel):
             self.model = self.model.value  # Convert Enum to string
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         """
         Returns the SearchRerank as a dictionary.
         """

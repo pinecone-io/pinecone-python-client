@@ -14,11 +14,29 @@ inputs:
   PINECONE_ADDITIONAL_HEADERS:
     description: 'Additional headers to send with the request'
     required: false
-    default: '{"sdk-test-suite": "pinecone-python-client"}'
+    default: '{"sdk-test-suite": "pinecone-python-client", "x-environment": "preprod-aws-0"}'
   use_grpc:
     description: 'Whether to use gRPC or REST'
     required: false
     default: 'false'
+  PINECONE_CLIENT_ID:
+    description: 'The client ID to use for admin tests'
+    required: false
+  PINECONE_CLIENT_SECRET:
+    description: 'The client secret to use for admin tests'
+    required: false
+  INDEX_HOST_DENSE:
+    description: 'The host of the dense index for db data tests'
+    required: false
+  INDEX_HOST_SPARSE:
+    description: 'The host of the sparse index for db data tests'
+    required: false
+  pytest_splits:
+    description: 'Number of shards to split tests into (for test sharding)'
+    required: false
+  pytest_group:
+    description: 'Which shard to run (1-indexed, for test sharding)'
+    required: false
 
 runs:
   using: 'composite'
@@ -33,9 +51,23 @@ runs:
     - name: Run tests
       id: run-tests
       shell: bash
-      run: poetry run pytest tests/integration/${{ inputs.test_suite }} --retries 2 --retry-delay 35 -s -vv --log-cli-level=DEBUG
+      run: |
+        PYTEST_ARGS=""
+        if [ -n "${{ inputs.pytest_splits }}" ] && [ -n "${{ inputs.pytest_group }}" ]; then
+          PYTEST_ARGS="--splits=${{ inputs.pytest_splits }} --group=${{ inputs.pytest_group }}"
+        fi
+        uv run pytest ${{ inputs.test_suite }} \
+          $PYTEST_ARGS \
+          --retries 2 \
+          --retry-delay 35 \
+          --log-cli-level=DEBUG \
+          --durations=25 \
+          -s -vv
       env:
         PINECONE_API_KEY: ${{ steps.decrypt-api-key.outputs.decrypted_secret }}
         PINECONE_ADDITIONAL_HEADERS: ${{ inputs.PINECONE_ADDITIONAL_HEADERS }}
+        PINECONE_CLIENT_ID: ${{ inputs.PINECONE_CLIENT_ID }}
+        PINECONE_CLIENT_SECRET: ${{ inputs.PINECONE_CLIENT_SECRET }}
         USE_GRPC: ${{ inputs.use_grpc }}
-        SKIP_WEIRD: 'true'
+        INDEX_HOST_DENSE: ${{ inputs.INDEX_HOST_DENSE }}
+        INDEX_HOST_SPARSE: ${{ inputs.INDEX_HOST_SPARSE }}

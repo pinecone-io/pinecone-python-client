@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from pinecone.db_control.models import CollectionList
 
@@ -14,7 +15,7 @@ class CollectionResourceAsyncio:
         self.index_api = index_api
 
     @require_kwargs
-    async def create(self, *, name: str, source: str):
+    async def create(self, *, name: str, source: str) -> None:
         req = PineconeDBControlRequestFactory.create_collection_request(name=name, source=source)
         await self.index_api.create_collection(create_collection_request=req)
 
@@ -24,9 +25,12 @@ class CollectionResourceAsyncio:
         return CollectionList(response)
 
     @require_kwargs
-    async def delete(self, *, name: str):
+    async def delete(self, *, name: str) -> None:
         await self.index_api.delete_collection(name)
 
     @require_kwargs
-    async def describe(self, *, name: str):
-        return await self.index_api.describe_collection(name).to_dict()
+    async def describe(self, *, name: str) -> dict[str, Any]:
+        from typing import cast
+
+        result = await self.index_api.describe_collection(name)
+        return cast(dict[str, Any], result.to_dict())

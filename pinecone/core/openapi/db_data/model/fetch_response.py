@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -25,6 +25,12 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     validate_get_composed_info,
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.core.openapi.db_data.model.usage import Usage
+    from pinecone.core.openapi.db_data.model.vector import Vector
 
 
 def lazy_import():
@@ -112,6 +118,17 @@ class FetchResponse(ModelNormal):
     read_only_vars: Set[str] = set([])
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of FetchResponse.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
 
     @classmethod
     @convert_js_args_to_python_args

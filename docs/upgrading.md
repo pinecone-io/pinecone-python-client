@@ -4,6 +4,161 @@ The official SDK package was renamed from `pinecone-client` to `pinecone` beginn
 Please remove `pinecone-client` from your project dependencies and add `pinecone` instead to get
 the latest updates.
 
+## Upgrading from `7.x` to `8.x`
+
+### Breaking changes in 8.x
+
+⚠️ **Python 3.9 is no longer supported.** The SDK now requires Python 3.10 or later. Python 3.9 reached end-of-life on October 2, 2025. Users must upgrade to Python 3.10+ to continue using the SDK.
+
+⚠️ **Namespace parameter default behavior changed.** The SDK no longer applies default values for the `namespace` parameter in GRPC methods. When `namespace=None`, the parameter is omitted from requests, allowing the API to handle namespace defaults appropriately. This change affects `upsert_from_dataframe` methods in GRPC clients. The API is moving toward `"__default__"` as the default namespace value, and this change ensures the SDK doesn't override API defaults.
+
+### Useful additions in `8.x`
+
+**Most Important Features:**
+
+1. **Dedicated Read Capacity for Serverless Indexes**: Configure dedicated read nodes with manual scaling control for better performance and capacity planning. You can create indexes with dedicated read capacity or configure existing indexes to switch between OnDemand and Dedicated modes.
+
+2. **Fetch and Update by Metadata**:
+   - `fetch_by_metadata()`: Retrieve vectors using metadata filters instead of vector IDs, with pagination support
+   - `update()` with `filter` parameter: Bulk update vectors matching metadata criteria
+   - `FilterBuilder`: Fluent, type-safe interface for constructing metadata filters with AND/OR logic
+
+**Other New Features:**
+
+- `create_namespace()`: Programmatically create namespaces in serverless indexes
+- `match_terms` parameter: Specify required terms in search operations for sparse indexes
+- Admin API enhancements: Update API keys, projects, and organizations; delete organizations
+- Metadata schema configuration: Control which metadata fields are filterable when creating indexes
+- LSN header information: Access Log Sequence Number information from API responses
+
+**Performance Improvements:**
+
+- **orjson adoption**: 10-23x faster JSON serialization/deserialization (see [PR #556](https://github.com/pinecone-io/pinecone-python-client/pull/556))
+- **gRPC response parsing optimization**: ~2x faster response parsing (see [PR #553](https://github.com/pinecone-io/pinecone-python-client/pull/553))
+
+**Other Improvements:**
+
+- Comprehensive type hints with Python 3.10+ syntax throughout the SDK
+- Updated docstrings with RST formatting and code examples
+- Updated protobuf to 5.29.5 for security
+- Migrated from poetry to uv for faster dependency management
+
+### Dedicated Read Capacity for Serverless Indexes
+
+You can now configure dedicated read nodes for your serverless indexes. By default, serverless indexes use OnDemand read capacity, which automatically scales based on demand. With dedicated read capacity, you can allocate specific read nodes with manual scaling control.
+
+```python
+from pinecone import (
+    Pinecone,
+    ServerlessSpec,
+    CloudProvider,
+    AwsRegion,
+    Metric
+)
+
+pc = Pinecone()
+
+# Create an index with dedicated read capacity
+pc.create_index(
+    name='my-index',
+    dimension=1536,
+    metric=Metric.COSINE,
+    spec=ServerlessSpec(
+        cloud=CloudProvider.AWS,
+        region=AwsRegion.US_EAST_1,
+        read_capacity={
+            "mode": "Dedicated",
+            "dedicated": {
+                "node_type": "t1",
+                "scaling": "Manual",
+                "manual": {
+                    "shards": 2,
+                    "replicas": 2
+                }
+            }
+        }
+    )
+)
+
+# Configure read capacity on an existing index
+pc.configure_index(
+    name='my-index',
+    read_capacity={
+        "mode": "Dedicated",
+        "dedicated": {
+            "node_type": "t1",
+            "scaling": "Manual",
+            "manual": {
+                "shards": 3,
+                "replicas": 2
+            }
+        }
+    }
+)
+```
+
+### Fetch and Update Vectors by Metadata
+
+#### Fetch vectors by metadata filter
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone()
+index = pc.Index(host="your-index-host")
+
+# Fetch vectors matching a filter
+response = index.fetch_by_metadata(
+    filter={'genre': {'$in': ['comedy', 'drama']}, 'year': {'$eq': 2019}},
+    namespace='my_namespace',
+    limit=50
+)
+
+# Use pagination for large result sets
+if response.pagination and response.pagination.next:
+    next_response = index.fetch_by_metadata(
+        filter={'status': 'active'},
+        pagination_token=response.pagination.next,
+        limit=100
+    )
+```
+
+#### Update vectors by metadata filter
+
+```python
+# Update metadata for all vectors matching the filter
+response = index.update(
+    set_metadata={'status': 'active'},
+    filter={'genre': {'$eq': 'drama'}},
+    namespace='my_namespace'
+)
+
+# Preview updates with dry run
+response = index.update(
+    set_metadata={'status': 'active'},
+    filter={'genre': {'$eq': 'drama'}},
+    dry_run=True
+)
+```
+
+#### FilterBuilder for fluent filter construction
+
+```python
+from pinecone import FilterBuilder
+
+# Simple filter
+filter1 = FilterBuilder().eq("genre", "drama").build()
+
+# Complex filter with AND/OR logic
+filter2 = ((FilterBuilder().eq("genre", "drama") &
+            FilterBuilder().gte("year", 2020)) |
+           (FilterBuilder().eq("genre", "comedy") &
+            FilterBuilder().lt("year", 2000))).build()
+
+# Use with fetch_by_metadata or update
+response = index.fetch_by_metadata(filter=filter2, limit=50)
+```
+
 ## Upgrading from `6.x` to `7.x`
 
 There are no intentional breaking changes when moving from v6 to v7 of the SDK. The major version bump reflects the move from calling the `2025-01` to the `2025-04` version of the underlying API.

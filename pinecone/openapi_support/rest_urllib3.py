@@ -1,9 +1,9 @@
-import json
 import logging
-import ssl
 import os
-from typing import Optional
+import ssl
 from urllib.parse import urlencode, quote
+
+import orjson
 from ..config.openapi_configuration import Configuration
 from .rest_utils import raise_exceptions_or_return, RESTResponse, RestClientInterface
 
@@ -32,7 +32,7 @@ class Urllib3RestClient(RestClientInterface):
     pool_manager: urllib3.PoolManager
 
     def __init__(
-        self, configuration: Configuration, pools_size: int = 4, maxsize: Optional[int] = None
+        self, configuration: Configuration, pools_size: int = 4, maxsize: int | None = None
     ) -> None:
         # urllib3.PoolManager will pass all kw parameters to connectionpool
         # https://github.com/shazow/urllib3/blob/f9409436f83aeb79fbaf090181cd81b784f1b8ce/urllib3/poolmanager.py#L75  # noqa: E501
@@ -142,7 +142,7 @@ class Urllib3RestClient(RestClientInterface):
                     + bcolors.ENDC
                 )
             else:
-                formatted_body = json.dumps(body)
+                formatted_body = orjson.dumps(body).decode("utf-8")
                 print(
                     bcolors.OKBLUE
                     + "curl -X {method} '{url}' {formatted_headers} -d '{data}'".format(
@@ -178,15 +178,18 @@ class Urllib3RestClient(RestClientInterface):
 
                 content_type = headers.get("Content-Type", "").lower()
                 if content_type == "" or ("json" in content_type):
+                    request_body: str | bytes | None = None
                     if body is None:
                         request_body = None
                     else:
                         if content_type == "application/x-ndjson":
                             # for x-ndjson requests, we are expecting an array of elements
                             # that need to be converted to a newline separated string
-                            request_body = "\n".join(json.dumps(element) for element in body)
+                            request_body = "\n".join(
+                                orjson.dumps(element).decode("utf-8") for element in body
+                            )
                         else:  # content_type == "application/json":
-                            request_body = json.dumps(body)
+                            request_body = orjson.dumps(body).decode("utf-8")
                     r = self.pool_manager.request(
                         method,
                         url,

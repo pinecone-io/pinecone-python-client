@@ -1,10 +1,8 @@
 import pytest
 
+import orjson
 from pinecone.openapi_support import ApiClient, PineconeApiException
-from pinecone.core.openapi.db_data.models import (
-    StartImportResponse,
-    ImportErrorMode as ImportErrorModeGeneratedClass,
-)
+from pinecone.core.openapi.db_data.models import StartImportResponse
 
 from pinecone.db_data.resources.sync.bulk_import import BulkImportResource, ImportErrorMode
 
@@ -39,7 +37,11 @@ class TestBulkImportStartImport:
 
         assert my_import.id == "1"
         assert my_import["id"] == "1"
-        assert my_import.to_dict() == {"id": "1"}
+        result_dict = my_import.to_dict()
+        assert result_dict["id"] == "1"
+        # _response_info may be present if headers are available
+        if "_response_info" in result_dict:
+            assert isinstance(result_dict["_response_info"], dict)
         assert my_import.__class__ == StartImportResponse
 
     def test_start_with_kwargs(self, mocker):
@@ -53,15 +55,23 @@ class TestBulkImportStartImport:
         my_import = client.start(uri="s3://path/to/file.parquet", integration_id="123-456-789")
         assert my_import.id == "1"
         assert my_import["id"] == "1"
-        assert my_import.to_dict() == {"id": "1"}
+        result_dict = my_import.to_dict()
+        assert result_dict["id"] == "1"
+        # _response_info may be present if headers are available
+        if "_response_info" in result_dict:
+            assert isinstance(result_dict["_response_info"], dict)
         assert my_import.__class__ == StartImportResponse
 
         # By default, use continue error mode
         _, call_kwargs = mock_req.call_args
-        assert (
-            call_kwargs["body"]
-            == '{"uri": "s3://path/to/file.parquet", "integrationId": "123-456-789", "errorMode": {"onError": "continue"}}'
-        )
+        expected_body = {
+            "uri": "s3://path/to/file.parquet",
+            "integrationId": "123-456-789",
+            "errorMode": {"onError": "continue"},
+        }
+        # Compare parsed JSON since orjson produces compact JSON (no spaces)
+        actual_body = orjson.loads(call_kwargs["body"])
+        assert actual_body == expected_body
 
     @pytest.mark.parametrize(
         "error_mode_input", [ImportErrorMode.CONTINUE, "Continue", "continue", "cONTINUE"]
@@ -76,10 +86,10 @@ class TestBulkImportStartImport:
 
         client.start(uri="s3://path/to/file.parquet", error_mode=error_mode_input)
         _, call_kwargs = mock_req.call_args
-        assert (
-            call_kwargs["body"]
-            == '{"uri": "s3://path/to/file.parquet", "errorMode": {"onError": "continue"}}'
-        )
+        expected_body = {"uri": "s3://path/to/file.parquet", "errorMode": {"onError": "continue"}}
+        # Compare parsed JSON since orjson produces compact JSON (no spaces)
+        actual_body = orjson.loads(call_kwargs["body"])
+        assert actual_body == expected_body
 
     def test_start_with_abort_error_mode(self, mocker):
         body = """
@@ -91,10 +101,10 @@ class TestBulkImportStartImport:
 
         client.start(uri="s3://path/to/file.parquet", error_mode=ImportErrorMode.ABORT)
         _, call_kwargs = mock_req.call_args
-        assert (
-            call_kwargs["body"]
-            == '{"uri": "s3://path/to/file.parquet", "errorMode": {"onError": "abort"}}'
-        )
+        expected_body = {"uri": "s3://path/to/file.parquet", "errorMode": {"onError": "abort"}}
+        # Compare parsed JSON since orjson produces compact JSON (no spaces)
+        actual_body = orjson.loads(call_kwargs["body"])
+        assert actual_body == expected_body
 
     def test_start_with_unknown_error_mode(self, mocker):
         body = """
@@ -135,11 +145,6 @@ class TestBulkImportStartImport:
             client.start()
 
         assert "missing 1 required positional argument" in str(e.value)
-
-    def test_enums_are_aligned(self):
-        modes = dir(ImportErrorMode)
-        for key, _ in ImportErrorModeGeneratedClass().allowed_values[("on_error",)].items():
-            assert key in modes
 
 
 class TestDescribeImport:

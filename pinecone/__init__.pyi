@@ -32,9 +32,13 @@ from pinecone.db_data.dataclasses import (
     SearchQuery,
     SearchQueryVector,
     SearchRerank,
+    FetchResponse,
+    FetchByMetadataResponse,
+    QueryResponse,
+    UpsertResponse,
+    UpdateResponse,
 )
 from pinecone.db_data.models import (
-    FetchResponse,
     DeleteRequest,
     DescribeIndexStatsRequest,
     IndexDescription as DescribeIndexStatsResponse,
@@ -42,8 +46,6 @@ from pinecone.db_data.models import (
     ScoredVector,
     SingleQueryResults,
     QueryRequest,
-    QueryResponse,
-    UpsertResponse,
     UpdateRequest,
 )
 from pinecone.core.openapi.db_data.models import NamespaceDescription
@@ -77,19 +79,59 @@ from pinecone.db_control.models import (
     ServerlessSpecDefinition,
     PodSpec,
     PodSpecDefinition,
+    ByocSpec,
+    BackupModel,
+    BackupList,
+    RestoreJobModel,
+    RestoreJobList,
 )
-from pinecone.db_control.types import (
-    ConfigureIndexEmbed,
-    CreateIndexForModelEmbedTypedDict,
+from pinecone.db_control.models.serverless_spec import (
+    ScalingConfigManualDict,
+    ReadCapacityDedicatedConfigDict,
+    ReadCapacityOnDemandDict,
+    ReadCapacityDedicatedDict,
+    ReadCapacityDict,
+    MetadataSchemaFieldConfig,
 )
+from pinecone.db_data.filter_builder import FilterBuilder
+from pinecone.db_control.types import ConfigureIndexEmbed, CreateIndexForModelEmbedTypedDict
 from pinecone.pinecone import Pinecone
 from pinecone.pinecone_asyncio import PineconeAsyncio
+from pinecone.admin import Admin
+from pinecone.utils import __version__
+
+# Deprecated top-level functions
+def init(*args: object, **kwargs: object) -> None: ...
+def create_index(*args: object, **kwargs: object) -> None: ...
+def delete_index(*args: object, **kwargs: object) -> None: ...
+def list_indexes(*args: object, **kwargs: object) -> None: ...
+def describe_index(*args: object, **kwargs: object) -> None: ...
+def configure_index(*args: object, **kwargs: object) -> None: ...
+def scale_index(*args: object, **kwargs: object) -> None: ...
+def create_collection(*args: object, **kwargs: object) -> None: ...
+def delete_collection(*args: object, **kwargs: object) -> None: ...
+def describe_collection(*args: object, **kwargs: object) -> None: ...
+def list_collections(*args: object, **kwargs: object) -> None: ...
 
 # Re-export all the types
 __all__ = [
+    "__version__",
+    # Deprecated top-level functions
+    "init",
+    "create_index",
+    "delete_index",
+    "list_indexes",
+    "describe_index",
+    "configure_index",
+    "scale_index",
+    "create_collection",
+    "delete_collection",
+    "describe_collection",
+    "list_collections",
     # Primary client classes
     "Pinecone",
     "PineconeAsyncio",
+    "Admin",
     # Config classes
     "Config",
     "ConfigBuilder",
@@ -123,8 +165,13 @@ __all__ = [
     "SearchQuery",
     "SearchQueryVector",
     "SearchRerank",
-    # Model classes
+    # Data response classes
     "FetchResponse",
+    "FetchByMetadataResponse",
+    "QueryResponse",
+    "UpsertResponse",
+    "UpdateResponse",
+    # Model classes
     "DeleteRequest",
     "DescribeIndexStatsRequest",
     "DescribeIndexStatsResponse",
@@ -132,11 +179,10 @@ __all__ = [
     "ScoredVector",
     "SingleQueryResults",
     "QueryRequest",
-    "QueryResponse",
-    "UpsertResponse",
     "UpdateRequest",
     "NamespaceDescription",
     "ImportErrorMode",
+    "FilterBuilder",
     # Error classes
     "VectorDictionaryMissingKeysError",
     "VectorDictionaryExcessKeysError",
@@ -164,7 +210,18 @@ __all__ = [
     "ServerlessSpecDefinition",
     "PodSpec",
     "PodSpecDefinition",
+    "ByocSpec",
+    "BackupModel",
+    "BackupList",
+    "RestoreJobModel",
+    "RestoreJobList",
     # Control plane types
     "ConfigureIndexEmbed",
     "CreateIndexForModelEmbedTypedDict",
+    "ScalingConfigManualDict",
+    "ReadCapacityDedicatedConfigDict",
+    "ReadCapacityOnDemandDict",
+    "ReadCapacityDedicatedDict",
+    "ReadCapacityDict",
+    "MetadataSchemaFieldConfig",
 ]

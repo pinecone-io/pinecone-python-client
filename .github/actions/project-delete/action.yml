@@ -28,7 +28,7 @@ runs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.9
+        python-version: '3.10'
 
     - name: Install deps
       shell: bash
@@ -45,7 +45,7 @@ runs:
     - name: Delete project
       id: delete-project
       shell: bash
-      run: poetry run python3 ./.github/actions/project-delete/delete-project.py
+      run: uv run python3 ./.github/actions/project-delete/delete-project.py
       env:
         API_VERSION: ${{ inputs.api_version }}
         PINECONE_SERVICE_ACCOUNT_CLIENT_ID: ${{ inputs.PINECONE_SERVICE_ACCOUNT_CLIENT_ID }}

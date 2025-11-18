@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -59,19 +59,7 @@ class IndexModelStatus(ModelNormal):
     _data_store: Dict[str, Any]
     _check_type: bool
 
-    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {
-        ("state",): {
-            "INITIALIZING": "Initializing",
-            "INITIALIZATIONFAILED": "InitializationFailed",
-            "SCALINGUP": "ScalingUp",
-            "SCALINGDOWN": "ScalingDown",
-            "SCALINGUPPODSIZE": "ScalingUpPodSize",
-            "SCALINGDOWNPODSIZE": "ScalingDownPodSize",
-            "TERMINATING": "Terminating",
-            "READY": "Ready",
-            "DISABLED": "Disabled",
-        }
-    }
+    allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 
@@ -113,14 +101,25 @@ class IndexModelStatus(ModelNormal):
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of IndexModelStatus.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
+
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], ready, state, *args, **kwargs) -> T:  # noqa: E501
         """IndexModelStatus - a model defined in OpenAPI
 
         Args:
-            ready (bool):
-            state (str):
+            ready (bool): Whether the index is ready for use
+            state (str): The state of the index. Possible values: `Initializing`, `InitializationFailed`, `ScalingUp`, `ScalingDown`, `ScalingUpPodSize`, `ScalingDownPodSize`, `Terminating`, `Ready`, or `Disabled`.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -214,8 +213,8 @@ class IndexModelStatus(ModelNormal):
         """IndexModelStatus - a model defined in OpenAPI
 
         Args:
-            ready (bool):
-            state (str):
+            ready (bool): Whether the index is ready for use
+            state (str): The state of the index. Possible values: `Initializing`, `InitializationFailed`, `ScalingUp`, `ScalingDown`, `ScalingUpPodSize`, `ScalingDownPodSize`, `Terminating`, `Ready`, or `Disabled`.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types

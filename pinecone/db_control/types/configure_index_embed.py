@@ -1,8 +1,8 @@
-from typing import TypedDict, Dict, Any, Optional
+from typing import TypedDict, Any
 
 
 class ConfigureIndexEmbed(TypedDict):
     model: str
-    field_map: Dict[str, str]
-    read_parameters: Optional[Dict[str, Any]]
-    write_parameters: Optional[Dict[str, Any]]
+    field_map: dict[str, str]
+    read_parameters: dict[str, Any] | None
+    write_parameters: dict[str, Any] | None

@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-04
+The version of the OpenAPI document: 2025-10
 Contact: support@pinecone.io
 """
 
@@ -25,6 +25,11 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     validate_get_composed_info,
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.core.openapi.db_data.model.import_error_mode import ImportErrorMode
 
 
 def lazy_import():
@@ -114,13 +119,24 @@ class StartImportRequest(ModelNormal):
 
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of StartImportRequest.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
+
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], uri, *args, **kwargs) -> T:  # noqa: E501
         """StartImportRequest - a model defined in OpenAPI
 
         Args:
-            uri (str): The [URI prefix](https://docs.pinecone.io/guides/index-data/import-data#prepare-your-data) under which the data to import is available. All data within this prefix will be listed then imported into the target index. Currently only `s3://` URIs are supported.
+            uri (str): The URI of the bucket (or container) and import directory containing the namespaces and Parquet files you want to import. For example, `s3://BUCKET_NAME/IMPORT_DIR` for Amazon S3, `gs://BUCKET_NAME/IMPORT_DIR` for Google Cloud Storage, or `https://STORAGE_ACCOUNT.blob.core.windows.net/CONTAINER_NAME/IMPORT_DIR` for Azure Blob Storage. For more information, see [Import records](https://docs.pinecone.io/guides/index-data/import-data#prepare-your-data).
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -215,7 +231,7 @@ class StartImportRequest(ModelNormal):
         """StartImportRequest - a model defined in OpenAPI
 
         Args:
-            uri (str): The [URI prefix](https://docs.pinecone.io/guides/index-data/import-data#prepare-your-data) under which the data to import is available. All data within this prefix will be listed then imported into the target index. Currently only `s3://` URIs are supported.
+            uri (str): The URI of the bucket (or container) and import directory containing the namespaces and Parquet files you want to import. For example, `s3://BUCKET_NAME/IMPORT_DIR` for Amazon S3, `gs://BUCKET_NAME/IMPORT_DIR` for Google Cloud Storage, or `https://STORAGE_ACCOUNT.blob.core.windows.net/CONTAINER_NAME/IMPORT_DIR` for Azure Blob Storage. For more information, see [Import records](https://docs.pinecone.io/guides/index-data/import-data#prepare-your-data).
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types

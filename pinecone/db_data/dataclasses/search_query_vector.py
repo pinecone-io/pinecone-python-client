@@ -1,26 +1,26 @@
 from dataclasses import dataclass
-from typing import Optional, List
+from .utils import DictLike
 
 
 @dataclass
-class SearchQueryVector:
+class SearchQueryVector(DictLike):
     """
     SearchQueryVector represents the vector values used to query.
     """
 
-    values: Optional[List[float]] = None
+    values: list[float] | None = None
     """
     The vector data included in the search request.
     Optional.
     """
 
-    sparse_values: Optional[List[float]] = None
+    sparse_values: list[float] | None = None
     """
     The sparse embedding values to search with.
     Optional.
     """
 
-    sparse_indices: Optional[List[int]] = None
+    sparse_indices: list[int] | None = None
     """
     The sparse embedding indices to search with.
     Optional.

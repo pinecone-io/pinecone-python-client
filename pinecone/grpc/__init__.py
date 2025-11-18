@@ -51,7 +51,7 @@ from .future import PineconeGrpcFuture
 
 from pinecone.db_data.dataclasses import Vector, SparseValues
 
-from pinecone.core.grpc.protos.db_data_2025_04_pb2 import (
+from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
     Vector as GRPCVector,
     SparseValues as GRPCSparseValues,
     DeleteResponse as GRPCDeleteResponse,

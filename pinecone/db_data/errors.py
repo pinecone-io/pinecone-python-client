@@ -22,13 +22,13 @@ class VectorTupleLengthError(ValueError):
 
 class SparseValuesTypeError(ValueError, TypeError):
     def __init__(self) -> None:
-        message = "Found unexpected data in column `sparse_values`. Expected format is `'sparse_values': {'indices': List[int], 'values': List[float]}`."
+        message = "Found unexpected data in column `sparse_values`. Expected format is `'sparse_values': {'indices': list[int], 'values': list[float]}`."
         super().__init__(message)
 
 
 class SparseValuesMissingKeysError(ValueError):
     def __init__(self, sparse_values_dict) -> None:
-        message = f"Missing required keys in data in column `sparse_values`. Expected format is `'sparse_values': {{'indices': List[int], 'values': List[float]}}`. Found keys {list(sparse_values_dict.keys())}"
+        message = f"Missing required keys in data in column `sparse_values`. Expected format is `'sparse_values': {{'indices': list[int], 'values': list[float]}}`. Found keys {list(sparse_values_dict.keys())}"
         super().__init__(message)
 
 
