@@ -30,6 +30,7 @@ classifiers = [
 dependencies = [
     "typing-extensions>=3.7.4",
     "certifi>=2019.11.17",
+    "orjson>=3.0.0",
     "pinecone-plugin-interface>=0.0.7,<0.1.0",
     "python-dateutil>=2.5.3",
     "pinecone-plugin-assistant==3.0.0",

@@ -1,10 +1,10 @@
-import json
-import mimetypes
 import io
+import mimetypes
 import os
-from urllib3.fields import RequestField
 from urllib.parse import quote
+from urllib3.fields import RequestField
 
+import orjson
 from typing import Any
 from .serializer import Serializer
 from .exceptions import PineconeApiValueError
@@ -116,7 +116,8 @@ def parameters_to_multipart(params, collection_types):
         if isinstance(
             v, collection_types
         ):  # v is instance of collection_type, formatting as application/json
-            v = json.dumps(v, ensure_ascii=False).encode("utf-8")
+            # orjson.dumps() returns bytes, no need to encode
+            v = orjson.dumps(v)
             field = RequestField(k, v)
             field.make_multipart(content_type="application/json; charset=utf-8")
             new_params.append(field)

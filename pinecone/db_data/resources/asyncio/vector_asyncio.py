@@ -3,8 +3,9 @@ from __future__ import annotations
 from pinecone.utils.tqdm import tqdm
 import logging
 import asyncio
-import json
 from typing import List, Any, Literal, AsyncIterator
+
+import orjson
 
 from pinecone.core.openapi.db_data.api.vector_operations_api import AsyncioVectorOperationsApi
 from pinecone.core.openapi.db_data.models import (
@@ -571,11 +572,12 @@ class VectorResourceAsyncio(PluginAware):
             from pinecone.openapi_support.rest_utils import RESTResponse
 
             if isinstance(raw_result, RESTResponse):
-                response = json.loads(raw_result.data.decode("utf-8"))
+                response = orjson.loads(raw_result.data)
                 aggregator.add_results(response)
             else:
-                # Fallback: if somehow we got an OpenAPIQueryResponse, parse it
-                response = json.loads(raw_result.to_dict())
+                # Fallback: if somehow we got an OpenAPIQueryResponse, use dict directly
+                # to_dict() returns a dict, not JSON, so no parsing needed
+                response = raw_result.to_dict()
                 aggregator.add_results(response)
 
         final_results = aggregator.get_results()

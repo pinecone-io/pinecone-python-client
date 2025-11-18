@@ -161,3 +161,4 @@ dmypy.json
 *~
 
 tests/integration/proxy_config/logs
+benchmark_results.json

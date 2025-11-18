@@ -1,5 +1,6 @@
 import pytest
 
+import orjson
 from pinecone.openapi_support import ApiClient, PineconeApiException
 from pinecone.core.openapi.db_data.models import StartImportResponse
 
@@ -63,10 +64,14 @@ class TestBulkImportStartImport:
 
         # By default, use continue error mode
         _, call_kwargs = mock_req.call_args
-        assert (
-            call_kwargs["body"]
-            == '{"uri": "s3://path/to/file.parquet", "integrationId": "123-456-789", "errorMode": {"onError": "continue"}}'
-        )
+        expected_body = {
+            "uri": "s3://path/to/file.parquet",
+            "integrationId": "123-456-789",
+            "errorMode": {"onError": "continue"},
+        }
+        # Compare parsed JSON since orjson produces compact JSON (no spaces)
+        actual_body = orjson.loads(call_kwargs["body"])
+        assert actual_body == expected_body
 
     @pytest.mark.parametrize(
         "error_mode_input", [ImportErrorMode.CONTINUE, "Continue", "continue", "cONTINUE"]
@@ -81,10 +86,10 @@ class TestBulkImportStartImport:
 
         client.start(uri="s3://path/to/file.parquet", error_mode=error_mode_input)
         _, call_kwargs = mock_req.call_args
-        assert (
-            call_kwargs["body"]
-            == '{"uri": "s3://path/to/file.parquet", "errorMode": {"onError": "continue"}}'
-        )
+        expected_body = {"uri": "s3://path/to/file.parquet", "errorMode": {"onError": "continue"}}
+        # Compare parsed JSON since orjson produces compact JSON (no spaces)
+        actual_body = orjson.loads(call_kwargs["body"])
+        assert actual_body == expected_body
 
     def test_start_with_abort_error_mode(self, mocker):
         body = """
@@ -96,10 +101,10 @@ class TestBulkImportStartImport:
 
         client.start(uri="s3://path/to/file.parquet", error_mode=ImportErrorMode.ABORT)
         _, call_kwargs = mock_req.call_args
-        assert (
-            call_kwargs["body"]
-            == '{"uri": "s3://path/to/file.parquet", "errorMode": {"onError": "abort"}}'
-        )
+        expected_body = {"uri": "s3://path/to/file.parquet", "errorMode": {"onError": "abort"}}
+        # Compare parsed JSON since orjson produces compact JSON (no spaces)
+        actual_body = orjson.loads(call_kwargs["body"])
+        assert actual_body == expected_body
 
     def test_start_with_unknown_error_mode(self, mocker):
         body = """
