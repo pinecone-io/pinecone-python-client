@@ -22,6 +22,7 @@ from .api_client_utils import (
 )
 from .auth_util import AuthUtil
 from .serializer import Serializer
+from pinecone.utils.response_info import extract_response_info
 
 
 class ApiClient(object):
@@ -208,16 +209,12 @@ class ApiClient(object):
         if return_data is not None:
             headers = response_data.getheaders()
             if headers:
-                from pinecone.utils.response_info import extract_response_info
-
                 response_info = extract_response_info(headers)
-                # Attach if response_info exists (may contain raw_headers even without LSN values)
-                if response_info:
-                    if isinstance(return_data, dict):
-                        return_data["_response_info"] = response_info
-                    else:
-                        # Dynamic attribute assignment on OpenAPI models
-                        setattr(return_data, "_response_info", response_info)
+                if isinstance(return_data, dict):
+                    return_data["_response_info"] = response_info
+                else:
+                    # Dynamic attribute assignment on OpenAPI models
+                    setattr(return_data, "_response_info", response_info)
 
         if _return_http_data_only:
             return return_data

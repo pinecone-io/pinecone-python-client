@@ -498,9 +498,15 @@ class ModelNormal(OpenApiModel):
         if not isinstance(other, self.__class__):
             return False
 
-        if not set(self._data_store.keys()) == set(other._data_store.keys()):
+        # Exclude _response_info from equality comparison since it contains
+        # timing-dependent headers that may differ between requests
+        self_keys = {k for k in self._data_store.keys() if k != "_response_info"}
+        other_keys = {k for k in other._data_store.keys() if k != "_response_info"}
+
+        if not self_keys == other_keys:
             return False
-        for _var_name, this_val in self._data_store.items():
+        for _var_name in self_keys:
+            this_val = self._data_store[_var_name]
             that_val = other._data_store[_var_name]
             types = set()
             types.add(this_val.__class__)
@@ -653,9 +659,15 @@ class ModelComposed(OpenApiModel):
         if not isinstance(other, self.__class__):
             return False
 
-        if not set(self._data_store.keys()) == set(other._data_store.keys()):
+        # Exclude _response_info from equality comparison since it contains
+        # timing-dependent headers that may differ between requests
+        self_keys = {k for k in self._data_store.keys() if k != "_response_info"}
+        other_keys = {k for k in other._data_store.keys() if k != "_response_info"}
+
+        if not self_keys == other_keys:
             return False
-        for _var_name, this_val in self._data_store.items():
+        for _var_name in self_keys:
+            this_val = self._data_store[_var_name]
             that_val = other._data_store[_var_name]
             types = set()
             types.add(this_val.__class__)
