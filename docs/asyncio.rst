@@ -6,6 +6,10 @@ PineconeAsyncio
 
 .. automethod:: pinecone::PineconeAsyncio.__init__
 
+.. automethod:: pinecone::PineconeAsyncio.IndexAsyncio
+
+.. automethod:: pinecone::PineconeAsyncio.close
+
 DB Control Plane
 ================
 
@@ -83,15 +87,52 @@ Vectors
 
 .. automethod:: pinecone.db_data::IndexAsyncio.list_paginated
 
+.. automethod:: pinecone.db_data::IndexAsyncio.fetch_by_metadata
+
+.. automethod:: pinecone.db_data::IndexAsyncio.update
+
+.. automethod:: pinecone.db_data::IndexAsyncio.upsert_from_dataframe
+
+
+Bulk Import
+-----------
+
+.. automethod:: pinecone.db_data::IndexAsyncio.start_import
+
+.. automethod:: pinecone.db_data::IndexAsyncio.list_imports
+
+.. automethod:: pinecone.db_data::IndexAsyncio.list_imports_paginated
+
+.. automethod:: pinecone.db_data::IndexAsyncio.describe_import
+
+.. automethod:: pinecone.db_data::IndexAsyncio.cancel_import
+
+
 Records
 -------
 
 If you have created an index using integrated inference, you can use the following methods to
 search and retrieve records.
 
+.. automethod:: pinecone.db_data::IndexAsyncio.upsert_records
+
 .. automethod:: pinecone.db_data::IndexAsyncio.search
 
 .. automethod:: pinecone.db_data::IndexAsyncio.search_records
+
+
+Namespaces
+----------
+
+.. automethod:: pinecone.db_data::IndexAsyncio.create_namespace
+
+.. automethod:: pinecone.db_data::IndexAsyncio.describe_namespace
+
+.. automethod:: pinecone.db_data::IndexAsyncio.delete_namespace
+
+.. automethod:: pinecone.db_data::IndexAsyncio.list_namespaces
+
+.. automethod:: pinecone.db_data::IndexAsyncio.list_namespaces_paginated
 
 
 

@@ -4,6 +4,8 @@ PineconeGRPC
 
 .. autoclass:: pinecone.grpc::PineconeGRPC
 
+.. automethod:: pinecone.grpc::PineconeGRPC.Index
+
 DB Control Plane
 ================
 
@@ -81,13 +83,21 @@ Vectors
 
 .. automethod:: pinecone.grpc::GRPCIndex.list_paginated
 
+.. automethod:: pinecone.grpc::GRPCIndex.fetch_by_metadata
+
+.. automethod:: pinecone.grpc::GRPCIndex.update
+
+.. automethod:: pinecone.grpc::GRPCIndex.upsert_from_dataframe
+
 Namespaces
 ----------
 
-.. automethod:: pinecone.grpc::GRPCIndex.list_namespaces
-
-.. automethod:: pinecone.grpc::GRPCIndex.list_namespaces_paginated
+.. automethod:: pinecone.grpc::GRPCIndex.create_namespace
 
 .. automethod:: pinecone.grpc::GRPCIndex.describe_namespace
 
 .. automethod:: pinecone.grpc::GRPCIndex.delete_namespace
+
+.. automethod:: pinecone.grpc::GRPCIndex.list_namespaces
+
+.. automethod:: pinecone.grpc::GRPCIndex.list_namespaces_paginated

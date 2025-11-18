@@ -87,6 +87,12 @@ Vectors
 
 .. automethod:: pinecone.db_data::Index.list_paginated
 
+.. automethod:: pinecone.db_data::Index.fetch_by_metadata
+
+.. automethod:: pinecone.db_data::Index.update
+
+.. automethod:: pinecone.db_data::Index.upsert_from_dataframe
+
 
 Bulk Import
 -----------
@@ -108,9 +114,25 @@ Records
 If you have created an index using integrated inference, you can use the following methods to
 search and retrieve records.
 
+.. automethod:: pinecone.db_data::Index.upsert_records
+
 .. automethod:: pinecone.db_data::Index.search
 
 .. automethod:: pinecone.db_data::Index.search_records
+
+
+Namespaces
+----------
+
+.. automethod:: pinecone.db_data::Index.create_namespace
+
+.. automethod:: pinecone.db_data::Index.describe_namespace
+
+.. automethod:: pinecone.db_data::Index.delete_namespace
+
+.. automethod:: pinecone.db_data::Index.list_namespaces
+
+.. automethod:: pinecone.db_data::Index.list_namespaces_paginated
 
 
 
