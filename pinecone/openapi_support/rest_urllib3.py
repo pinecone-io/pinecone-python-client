@@ -1,8 +1,9 @@
-import json
 import logging
-import ssl
 import os
+import ssl
 from urllib.parse import urlencode, quote
+
+import orjson
 from ..config.openapi_configuration import Configuration
 from .rest_utils import raise_exceptions_or_return, RESTResponse, RestClientInterface
 
@@ -141,7 +142,7 @@ class Urllib3RestClient(RestClientInterface):
                     + bcolors.ENDC
                 )
             else:
-                formatted_body = json.dumps(body)
+                formatted_body = orjson.dumps(body).decode("utf-8")
                 print(
                     bcolors.OKBLUE
                     + "curl -X {method} '{url}' {formatted_headers} -d '{data}'".format(
@@ -184,9 +185,11 @@ class Urllib3RestClient(RestClientInterface):
                         if content_type == "application/x-ndjson":
                             # for x-ndjson requests, we are expecting an array of elements
                             # that need to be converted to a newline separated string
-                            request_body = "\n".join(json.dumps(element) for element in body)
+                            request_body = "\n".join(
+                                orjson.dumps(element).decode("utf-8") for element in body
+                            )
                         else:  # content_type == "application/json":
-                            request_body = json.dumps(body)
+                            request_body = orjson.dumps(body).decode("utf-8")
                     r = self.pool_manager.request(
                         method,
                         url,

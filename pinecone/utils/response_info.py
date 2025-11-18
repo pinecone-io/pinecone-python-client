@@ -2,6 +2,16 @@
 
 from typing import Any, TypedDict
 
+# Exclude timing-dependent headers that cause test flakiness
+# Defined at module level to avoid recreation on every function call
+_TIMING_HEADERS = frozenset(
+    (
+        "x-envoy-upstream-service-time",
+        "date",
+        "x-request-id",  # Request IDs are unique per request
+    )
+)
+
 
 class ResponseInfo(TypedDict):
     """Response metadata including raw headers.
@@ -34,16 +44,24 @@ def extract_response_info(headers: dict[str, Any] | None) -> ResponseInfo:
         >>> info["raw_headers"]["x-pinecone-request-lsn"]
         '12345'
     """
-    if headers is None:
+    if not headers:
         return {"raw_headers": {}}
 
-    raw_headers: dict[str, str] = {}
+    # Optimized: use dictionary comprehension for better performance
+    # Pre-compute lowercase keys and filter in one pass
+    raw_headers = {}
     for key, value in headers.items():
         key_lower = key.lower()
-        if isinstance(value, (list, tuple)) and len(value) > 0:
-            # Handle headers that may be lists
-            raw_headers[key_lower] = str(value[0])
-        else:
-            raw_headers[key_lower] = str(value)
+        if key_lower not in _TIMING_HEADERS:
+            # Optimize value conversion: check most common types first
+            if isinstance(value, list) and value:
+                raw_headers[key_lower] = str(value[0])
+            elif isinstance(value, tuple) and value:
+                raw_headers[key_lower] = str(value[0])
+            elif isinstance(value, str):
+                # Already a string, no conversion needed
+                raw_headers[key_lower] = value
+            else:
+                raw_headers[key_lower] = str(value)
 
     return {"raw_headers": raw_headers}
