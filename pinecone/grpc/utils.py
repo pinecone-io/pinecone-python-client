@@ -83,7 +83,7 @@ def _struct_to_dict(struct: "Struct") -> dict[str, Any]:
             result[key] = _struct_to_dict(value.struct_value)
         elif value.HasField("list_value"):
             # Convert ListValue to Python list
-            list_result = []
+            list_result: list[Any] = []
             for item in value.list_value.values:
                 if item.HasField("null_value"):
                     list_result.append(None)
@@ -97,7 +97,7 @@ def _struct_to_dict(struct: "Struct") -> dict[str, Any]:
                     list_result.append(_struct_to_dict(item.struct_value))
                 elif item.HasField("list_value"):
                     # Nested lists
-                    nested_list = []
+                    nested_list: list[Any] = []
                     for nested_item in item.list_value.values:
                         if nested_item.HasField("number_value"):
                             nested_list.append(nested_item.number_value)
@@ -381,7 +381,7 @@ def parse_query_response(
     # Directly access protobuf fields
     # Pre-allocate matches list with known size for better performance
     matches_proto = response.matches
-    matches = [None] * len(matches_proto) if matches_proto else []
+    matches: list[ScoredVector] = [None] * len(matches_proto) if matches_proto else []  # type: ignore[list-item]
     # namespace is a required string field, so it will always have a value (default empty string)
     namespace = response.namespace
 
