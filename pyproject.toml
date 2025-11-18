@@ -33,7 +33,7 @@ dependencies = [
     "orjson>=3.0.0",
     "pinecone-plugin-interface>=0.0.7,<0.1.0",
     "python-dateutil>=2.5.3",
-    "pinecone-plugin-assistant==3.0.0",
+    "pinecone-plugin-assistant>=3.0.1,<4.0.0",
     "urllib3>=1.26.0; python_version<'3.12'",
     "urllib3>=1.26.5; python_version>='3.12'",
 ]
