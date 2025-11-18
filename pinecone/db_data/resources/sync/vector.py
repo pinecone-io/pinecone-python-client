@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from pinecone.utils.tqdm import tqdm
 import logging
-import json
 from typing import Any, Literal
+
+import orjson
 from multiprocessing.pool import ApplyResult
 from concurrent.futures import as_completed
 
@@ -649,7 +650,7 @@ class VectorResource(PluginAware):
         futures: list[Future[Any]] = cast(list[Future[Any]], async_futures)
         for result in as_completed(futures):
             raw_result = result.result()
-            response = json.loads(raw_result.data.decode("utf-8"))
+            response = orjson.loads(raw_result.data)
             aggregator.add_results(response)
 
         final_results = aggregator.get_results()

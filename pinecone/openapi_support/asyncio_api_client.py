@@ -1,8 +1,8 @@
-import json
 import io
-from urllib3.fields import RequestField
 import logging
+from urllib3.fields import RequestField
 
+import orjson
 from typing import Any
 
 
@@ -203,7 +203,8 @@ class AsyncioApiClient(object):
             if isinstance(
                 v, collection_types
             ):  # v is instance of collection_type, formatting as application/json
-                v = json.dumps(v, ensure_ascii=False).encode("utf-8")
+                # orjson.dumps() returns bytes, no need to encode
+                v = orjson.dumps(v)
                 field = RequestField(k, v)
                 field.make_multipart(content_type="application/json; charset=utf-8")
                 new_params.append(field)

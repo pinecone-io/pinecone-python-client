@@ -1,6 +1,7 @@
 import ssl
 import certifi
-import json
+
+import orjson
 from .rest_utils import RestClientInterface, RESTResponse, raise_exceptions_or_return
 from ..config.openapi_configuration import Configuration
 
@@ -61,7 +62,7 @@ class AiohttpRestClient(RestClientInterface):
             headers["Content-Type"] = "application/json"
 
         if "application/x-ndjson" in headers.get("Content-Type", "").lower():
-            ndjson_data = "\n".join(json.dumps(record) for record in body)
+            ndjson_data = "\n".join(orjson.dumps(record).decode("utf-8") for record in body)
 
             async with self._retry_client.request(
                 method, url, params=query_params, headers=headers, data=ndjson_data
@@ -72,8 +73,11 @@ class AiohttpRestClient(RestClientInterface):
                 )
 
         else:
+            # Pre-serialize with orjson for better performance than aiohttp's json parameter
+            # which uses standard library json
+            body_data = orjson.dumps(body) if body is not None else None
             async with self._retry_client.request(
-                method, url, params=query_params, headers=headers, json=body
+                method, url, params=query_params, headers=headers, data=body_data
             ) as resp:
                 content = await resp.read()
                 return raise_exceptions_or_return(
