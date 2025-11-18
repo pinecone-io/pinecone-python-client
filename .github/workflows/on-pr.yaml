@@ -38,7 +38,7 @@ jobs:
     uses: './.github/workflows/testing-unit.yaml'
     secrets: inherit
     with:
-      python_versions_json: '["3.10"]'
+      python_versions_json: '["3.10", "3.11", "3.12", "3.13"]'
 
   create-project:
     uses: './.github/workflows/project-setup.yaml'
