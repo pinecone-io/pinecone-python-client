@@ -11,6 +11,7 @@ from concurrent.futures import as_completed, Future
 from .utils import (
     dict_to_proto_struct,
     parse_fetch_response,
+    parse_list_response,
     parse_query_response,
     parse_stats_response,
     parse_upsert_response,
@@ -29,7 +30,7 @@ from pinecone.core.openapi.db_data.models import (
     NamespaceDescription,
     ListNamespacesResponse,
 )
-from pinecone.db_control.models.list_response import ListResponse as SimpleListResponse, Pagination
+from pinecone.db_control.models.list_response import ListResponse as SimpleListResponse
 from pinecone.core.grpc.protos.db_data_2025_04_pb2 import (
     Vector as GRPCVector,
     QueryVector as GRPCQueryVector,
@@ -566,8 +567,9 @@ class GRPCIndex(GRPCIndexBase):
         limit: Optional[int] = None,
         pagination_token: Optional[str] = None,
         namespace: Optional[str] = None,
+        async_req: bool = False,
         **kwargs,
-    ) -> SimpleListResponse:
+    ) -> Union[SimpleListResponse, PineconeGrpcFuture]:
         """
         The list_paginated operation finds vectors based on an id prefix within a single namespace.
         It returns matching ids in a paginated form, with a pagination token to fetch the next page of results.
@@ -606,16 +608,15 @@ class GRPCIndex(GRPCIndexBase):
         )
         request = ListRequest(**args_dict, **kwargs)
         timeout = kwargs.pop("timeout", None)
-        response = self.runner.run(self.stub.List, request, timeout=timeout)
 
-        if response.pagination and response.pagination.next != "":
-            pagination = Pagination(next=response.pagination.next)
+        if async_req:
+            future = self.runner.run(self.stub.List.future, request, timeout=timeout)
+            return PineconeGrpcFuture(
+                future, timeout=timeout, result_transformer=parse_list_response
+            )
         else:
-            pagination = None
-
-        return SimpleListResponse(
-            namespace=response.namespace, vectors=response.vectors, pagination=pagination
-        )
+            response = self.runner.run(self.stub.List, request, timeout=timeout)
+            return parse_list_response(response)
 
     def list(self, **kwargs):
         """

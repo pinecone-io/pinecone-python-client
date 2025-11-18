@@ -17,6 +17,8 @@ from pinecone.core.openapi.db_data.models import (
     ListNamespacesResponse,
     Pagination,
 )
+from pinecone.core.grpc.protos.db_data_2025_04_pb2 import ListResponse as GRPCListResponse
+from pinecone.db_control.models.list_response import ListResponse, Pagination as SimplePagination
 from pinecone.db_data.dataclasses import FetchResponse
 
 from google.protobuf.struct_pb2 import Struct
@@ -162,4 +164,17 @@ def parse_list_namespaces_response(response: Message) -> ListNamespacesResponse:
         namespaces=namespaces,
         pagination=pagination,
         _check_type=False,
+    )
+
+def parse_list_response(response: GRPCListResponse) -> ListResponse:
+    if response.pagination and response.pagination.next != "":
+        pagination = SimplePagination(next=response.pagination.next)
+    else:
+        pagination = None
+
+    return ListResponse(
+        namespace=response.namespace,
+        vectors=list(response.vectors),
+        pagination=pagination,
+        usage=parse_usage(response.usage),
     )
