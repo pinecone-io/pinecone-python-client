@@ -1,5 +1,6 @@
 from datetime import date, datetime  # noqa: F401
 
+import functools
 import inspect
 import io
 import os
@@ -59,6 +60,7 @@ class cached_property(object):
 PRIMITIVE_TYPES = (list, float, int, bool, str, file_type)
 
 
+@functools.lru_cache(maxsize=256)
 def allows_single_value_input(cls):
     """
     This function returns True if the input composed schema model or any
@@ -70,7 +72,6 @@ def allows_single_value_input(cls):
       - StringEnum
       - ArrayModel
       - null
-    TODO: lru_cache this
     """
     if issubclass(cls, ModelSimple) or cls in PRIMITIVE_TYPES:
         return True
@@ -81,11 +82,11 @@ def allows_single_value_input(cls):
     return False
 
 
+@functools.lru_cache(maxsize=256)
 def composed_model_input_classes(cls):
     """
     This function returns a list of the possible models that can be accepted as
     inputs.
-    TODO: lru_cache this
     """
     if issubclass(cls, ModelSimple) or cls in PRIMITIVE_TYPES:
         return [cls]
@@ -181,11 +182,11 @@ class OpenApiModel(object):
 
         if len(args) == 1:
             arg = args[0]
-            if arg is None and is_type_nullable(cls):
+            if arg is None and is_type_nullable(cls):  # type: ignore[arg-type]
                 # The input data is the 'null' value and the type is nullable.
                 return None
 
-            if issubclass(cls, ModelComposed) and allows_single_value_input(cls):
+            if issubclass(cls, ModelComposed) and allows_single_value_input(cls):  # type: ignore[arg-type]
                 model_kwargs: dict = {}
                 oneof_instance = get_oneof_instance(cls, model_kwargs, kwargs, model_arg=arg)
                 return oneof_instance
@@ -293,11 +294,11 @@ class OpenApiModel(object):
 
         if len(args) == 1:
             arg = args[0]
-            if arg is None and is_type_nullable(cls):
+            if arg is None and is_type_nullable(cls):  # type: ignore[arg-type]
                 # The input data is the 'null' value and the type is nullable.
                 return None
 
-            if issubclass(cls, ModelComposed) and allows_single_value_input(cls):
+            if issubclass(cls, ModelComposed) and allows_single_value_input(cls):  # type: ignore[arg-type]
                 model_kwargs: dict = {}
                 oneof_instance = get_oneof_instance(cls, model_kwargs, kwargs, model_arg=arg)
                 return oneof_instance
@@ -740,18 +741,8 @@ COERCIBLE_TYPE_PAIRS = {
 }
 
 
-def get_simple_class(input_value):
-    """Returns an input_value's simple class that we will use for type checking
-    Python2:
-    float and int will return int, where int is the python3 int backport
-    str and unicode will return str, where str is the python3 str backport
-    Note: float and int ARE both instances of int backport
-    Note: str_py2 and unicode_py2 are NOT both instances of str backport
-
-    Args:
-        input_value (class/class_instance): the item for which we will return
-                                            the simple class
-    """
+def _get_simple_class_impl(input_value):
+    """Internal implementation of get_simple_class."""
     if isinstance(input_value, type):
         # input_value is a class
         return input_value
@@ -780,6 +771,34 @@ def get_simple_class(input_value):
     elif isinstance(input_value, str):
         return str
     return type(input_value)
+
+
+@functools.lru_cache(maxsize=256)
+def _get_simple_class_cached(input_value):
+    """Cached version of get_simple_class for hashable inputs."""
+    return _get_simple_class_impl(input_value)
+
+
+def get_simple_class(input_value):
+    """Returns an input_value's simple class that we will use for type checking
+    Python2:
+    float and int will return int, where int is the python3 int backport
+    str and unicode will return str, where str is the python3 str backport
+    Note: float and int ARE both instances of int backport
+    Note: str_py2 and unicode_py2 are NOT both instances of str backport
+
+    Args:
+        input_value (class/class_instance): the item for which we will return
+                                            the simple class
+    """
+    # For hashable inputs (types, None, primitives), use cache
+    # For unhashable inputs (instances), compute directly
+    try:
+        hash(input_value)
+        return _get_simple_class_cached(input_value)
+    except TypeError:
+        # Input is not hashable (e.g., an instance), compute directly
+        return _get_simple_class_impl(input_value)
 
 
 def check_allowed_values(allowed_values, input_variable_path, input_values):
@@ -1056,10 +1075,10 @@ def remove_uncoercible(
     return results_classes
 
 
+@functools.lru_cache(maxsize=256)
 def get_discriminated_classes(cls):
     """
     Returns all the classes that a discriminator converts to
-    TODO: lru_cache this
     """
     possible_classes = []
     key = list(cls.discriminator.keys())[0]
@@ -1073,8 +1092,8 @@ def get_discriminated_classes(cls):
     return possible_classes
 
 
+@functools.lru_cache(maxsize=256)
 def get_possible_classes(cls, from_server_context):
-    # TODO: lru_cache this
     from typing import Any
 
     # Handle Any specially - it accepts any type
@@ -1092,31 +1111,12 @@ def get_possible_classes(cls, from_server_context):
         possible_classes = []
         possible_classes.extend(get_discriminated_classes(cls))
     elif issubclass(cls, ModelComposed):
-        possible_classes.extend(composed_model_input_classes(cls))
+        possible_classes.extend(composed_model_input_classes(cls))  # type: ignore[arg-type]
     return possible_classes
 
 
-def get_required_type_classes(required_types_mixed, spec_property_naming):
-    """Converts the tuple required_types into a tuple and a dict described
-    below
-
-    Args:
-        required_types_mixed (tuple/list): will contain either classes or
-            instance of list or dict
-        spec_property_naming (bool): if True these values came from the
-            server, and we use the data types in our endpoints.
-            If False, we are client side and we need to include
-            oneOf and discriminator classes inside the data types in our endpoints
-
-    Returns:
-        (valid_classes, dict_valid_class_to_child_types_mixed):
-            valid_classes (tuple): the valid classes that the current item
-                                   should be
-            dict_valid_class_to_child_types_mixed (dict):
-                valid_class (class): this is the key
-                child_types_mixed (list/dict/tuple): describes the valid child
-                    types
-    """
+def _get_required_type_classes_impl(required_types_mixed, spec_property_naming):
+    """Internal implementation of get_required_type_classes."""
     from typing import Any, Type, get_origin
 
     valid_classes: list[Type[Any]] = []
@@ -1175,6 +1175,36 @@ def get_required_type_classes(required_types_mixed, spec_property_naming):
             else:
                 valid_classes.extend(get_possible_classes(required_type, spec_property_naming))
     return tuple(valid_classes), child_req_types_by_current_type
+
+
+# Note: get_required_type_classes is not cached due to complexity of handling
+# lists vs tuples and unhashable elements. The other cached functions provide
+# most of the performance benefit.
+def get_required_type_classes(required_types_mixed, spec_property_naming):
+    """Converts the tuple required_types into a tuple and a dict described
+    below
+
+    Args:
+        required_types_mixed (tuple/list): will contain either classes or
+            instance of list or dict
+        spec_property_naming (bool): if True these values came from the
+            server, and we use the data types in our endpoints.
+            If False, we are client side and we need to include
+            oneOf and discriminator classes inside the data types in our endpoints
+
+    Returns:
+        (valid_classes, dict_valid_class_to_child_types_mixed):
+            valid_classes (tuple): the valid classes that the current item
+                                   should be
+            dict_valid_class_to_child_types_mixed (dict):
+                valid_class (class): this is the key
+                child_types_mixed (list/dict/tuple): describes the valid child
+                    types
+    """
+    # Note: Caching disabled for this function due to complexity of handling
+    # lists vs tuples and unhashable elements. The other cached functions
+    # provide most of the performance benefit.
+    return _get_required_type_classes_impl(required_types_mixed, spec_property_naming)
 
 
 def change_keys_js_to_python(input_dict, model_class):
@@ -1466,6 +1496,7 @@ def attempt_convert_item(
     return input_value
 
 
+@functools.lru_cache(maxsize=256)
 def is_type_nullable(input_type):
     """
     Returns true if None is an allowed value for the specified input_type.
