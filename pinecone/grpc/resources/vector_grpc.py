@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 from typing import Any, Iterable, cast, Literal
 
-from google.protobuf.message import Message
 
 from pinecone.utils.tqdm import tqdm
 from concurrent.futures import as_completed, Future
@@ -33,6 +32,7 @@ from pinecone.db_data.dataclasses import (
 from pinecone.db_control.models.list_response import ListResponse as SimpleListResponse, Pagination
 from pinecone.core.grpc.protos.db_data_2025_10_pb2 import (
     Vector as GRPCVector,
+    QueryResponse as ProtoQueryResponse,
     UpsertRequest,
     DeleteRequest,
     QueryRequest,
@@ -445,7 +445,7 @@ class VectorResourceGRPC(PluginAware):
         include_metadata: bool | None = None,
         sparse_vector: (SparseValues | GRPCSparseValues | SparseVectorTypedDict) | None = None,
         **kwargs,
-    ) -> tuple[Message, dict[str, str] | None]:
+    ) -> tuple[ProtoQueryResponse, dict[str, str] | None]:
         """
         Low-level query method that returns protobuf Message and initial metadata without parsing.
         Used internally by query() and query_namespaces() for performance.
