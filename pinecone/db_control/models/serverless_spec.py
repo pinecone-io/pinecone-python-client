@@ -2,17 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any, TypedDict, TYPE_CHECKING, Literal
+from typing_extensions import NotRequired, TypeAlias
 from enum import Enum
-
-try:
-    from typing_extensions import NotRequired, TypeAlias
-except ImportError:
-    try:
-        from typing import NotRequired, TypeAlias  # type: ignore
-    except ImportError:
-        # Fallback for older Python versions - NotRequired not available
-        NotRequired = None  # type: ignore
-        TypeAlias = type  # type: ignore
 
 from ..enums import CloudProvider, AwsRegion, GcpRegion, AzureRegion
 
@@ -24,31 +15,16 @@ class ScalingConfigManualDict(TypedDict, total=False):
     replicas: int
 
 
-if NotRequired is not None:
-    # Python 3.11+ or typing_extensions available - use NotRequired for better type hints
-    class ReadCapacityDedicatedConfigDict(TypedDict):
-        """TypedDict for dedicated read capacity configuration.
+class ReadCapacityDedicatedConfigDict(TypedDict):
+    """TypedDict for dedicated read capacity configuration.
 
-        Required fields: node_type, scaling
-        Optional fields: manual
-        """
+    Required fields: node_type, scaling
+    Optional fields: manual
+    """
 
-        node_type: str  # Required: "t1" or "b1"
-        scaling: str  # Required: "Manual" or other scaling types
-        manual: NotRequired[ScalingConfigManualDict]  # Optional
-else:
-    # Fallback for older Python versions - all fields optional
-    class ReadCapacityDedicatedConfigDict(TypedDict, total=False):  # type: ignore[no-redef]
-        """TypedDict for dedicated read capacity configuration.
-
-        Note: In older Python versions without NotRequired support, all fields
-        are marked as optional. However, node_type and scaling are required
-        when using Dedicated mode. Users must provide these fields.
-        """
-
-        node_type: str  # Required: "t1" or "b1"
-        scaling: str  # Required: "Manual" or other scaling types
-        manual: ScalingConfigManualDict  # Optional
+    node_type: str  # Required: "t1" or "b1"
+    scaling: str  # Required: "Manual" or other scaling types
+    manual: NotRequired[ScalingConfigManualDict]  # Optional
 
 
 class ReadCapacityOnDemandDict(TypedDict):
