@@ -83,7 +83,7 @@ jobs:
 
       - name: Bump pyproject.toml version
         run: |
-          python -c "import re; content = open('pyproject.toml').read(); content = re.sub(r'version = \"[^\"]+\"', 'version = \"${{ steps.bump.outputs.version }}\"', content); open('pyproject.toml', 'w').write(content)"
+          python -c "import re; content = open('pyproject.toml').read(); content = re.sub(r'^version = \"[^\"]+\"', 'version = \"${{ steps.bump.outputs.version }}\"', content, flags=re.MULTILINE); open('pyproject.toml', 'w').write(content)"
 
       - name: Build Python client
         run: make package
