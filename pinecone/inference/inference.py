@@ -307,7 +307,7 @@ class Inference(PluginAware):
 
             pc = Pinecone()
             result = pc.inference.rerank(
-                model="pinecone-rerank-v0",
+                model="bge-reranker-v2-m3",
                 query="What is machine learning?",
                 documents=[
                     {"text": "Machine learning is a subset of AI.", "category": "tech"},
@@ -326,7 +326,7 @@ class Inference(PluginAware):
 
             pc = Pinecone()
             result = pc.inference.rerank(
-                model=RerankModel.PINECONE_RERANK_V0,
+                model=RerankModel.Bge_Reranker_V2_M3,
                 query="Your query here",
                 documents=["doc1", "doc2", "doc3"]
             )
@@ -399,10 +399,10 @@ class Inference(PluginAware):
             from pinecone import Pinecone
 
             pc = Pinecone()
-            model_info = pc.inference.get_model(model_name="pinecone-rerank-v0")
+            model_info = pc.inference.get_model(model_name="bge-reranker-v2-m3")
             print(model_info)
             # {
-            #     "model": "pinecone-rerank-v0",
+            #     "model": "bge-reranker-v2-m3",
             #     "short_description": "A state of the art reranking model that out-performs competitors on widely accepted benchmarks. It can handle chunks up to 512 tokens (1-2 paragraphs)",
             #     "type": "rerank",
             #     "supported_parameters": [
