@@ -19,9 +19,6 @@ inputs:
   grpcio_version:
     description: 'The version of grpcio to install'
     required: true
-  lz4_version:
-    description: 'The version of lz4 to install'
-    required: true
   protobuf_version:
     description: 'The version of protobuf to install'
     required: true
@@ -42,10 +39,6 @@ runs:
 
     - name: Install grpcio ${{ inputs.grpcio_version }}
       run: uv pip install --reinstall-package grpcio grpcio==${{ inputs.grpcio_version }}
-      shell: bash
-
-    - name: Install lz4 ${{ inputs.lz4_version }}
-      run: uv pip install --reinstall-package lz4 lz4==${{ inputs.lz4_version }}
       shell: bash
 
     - name: Install protobuf ${{ inputs.protobuf_version }}
