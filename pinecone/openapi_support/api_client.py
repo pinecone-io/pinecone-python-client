@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import atexit
 import io
+import json
 
 from typing import Any, TYPE_CHECKING
 
@@ -212,9 +213,25 @@ class ApiClient(object):
                 response_info = extract_response_info(headers)
                 if isinstance(return_data, dict):
                     return_data["_response_info"] = response_info
+                elif isinstance(return_data, str):
+                    if not return_data:
+                        return_data = {"_response_info": response_info}
+                    else:
+                        try:
+                            parsed = json.loads(return_data)
+                            if isinstance(parsed, dict):
+                                parsed["_response_info"] = response_info
+                                return_data = parsed
+                            else:
+                                return_data = {"_response_info": response_info}
+                        except (json.JSONDecodeError, ValueError):
+                            return_data = {"_response_info": response_info}
                 else:
                     # Dynamic attribute assignment on OpenAPI models
-                    setattr(return_data, "_response_info", response_info)
+                    try:
+                        setattr(return_data, "_response_info", response_info)
+                    except (TypeError, AttributeError):
+                        pass
 
         if _return_http_data_only:
             return return_data
