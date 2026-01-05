@@ -1696,7 +1696,7 @@ class _IndexAsyncio:
 
     @validate_and_convert_errors
     @require_kwargs
-    async def list_namespaces(  # type: ignore[override, misc]  # mypy limitation: async generators in abstract methods
+    async def list_namespaces(
         self, limit: int | None = None, **kwargs
     ) -> AsyncIterator[ListNamespacesResponse]:
         """List all namespaces in an index. This method automatically handles pagination to return all results.
