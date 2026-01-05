@@ -464,9 +464,9 @@ class Index(PluginAware, IndexInterface):
             )
             # When batch_size is provided, async_req cannot be True (checked above),
             # so batch_result is always UpsertResponse, not ApplyResult
-            assert isinstance(
-                batch_result, UpsertResponse
-            ), "batch_result must be UpsertResponse when batch_size is provided"
+            assert isinstance(batch_result, UpsertResponse), (
+                "batch_result must be UpsertResponse when batch_size is provided"
+            )
             pbar.update(batch_result.upserted_count)
             # we can't use here pbar.n for the case show_progress=False
             total_upserted += batch_result.upserted_count
@@ -591,9 +591,9 @@ class Index(PluginAware, IndexInterface):
         last_result = None
         for res in results:
             # upsert_from_dataframe doesn't use async_req, so res is always UpsertResponse
-            assert isinstance(
-                res, UpsertResponse
-            ), "Expected UpsertResponse when not using async_req"
+            assert isinstance(res, UpsertResponse), (
+                "Expected UpsertResponse when not using async_req"
+            )
             upserted_count += res.upserted_count
             last_result = res
 

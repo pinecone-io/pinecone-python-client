@@ -74,8 +74,8 @@ async def test_upsert_with_batch_size_sparse(sparse_index_host, target_namespace
     assert "2" in fetched_vec.vectors
     assert "3" in fetched_vec.vectors
 
-    assert (
-        fetched_vec._response_info is not None
-    ), "Expected _response_info to be present on fetch response"
+    assert fetched_vec._response_info is not None, (
+        "Expected _response_info to be present on fetch response"
+    )
     logger.info(f"Fetch response info: {fetched_vec._response_info}")
     await asyncio_sparse_idx.close()
