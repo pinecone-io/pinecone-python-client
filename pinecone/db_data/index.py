@@ -31,7 +31,6 @@ from .dataclasses import (
     UpsertResponse,
     UpdateResponse,
 )
-from .interfaces import IndexInterface
 from .request_factory import IndexRequestFactory
 from .types import (
     SparseVectorTypedDict,
@@ -131,7 +130,7 @@ class UpsertResponseTransformer:
         return getattr(self._apply_result, name)
 
 
-class Index(PluginAware, IndexInterface):
+class Index(PluginAware):
     """
     A client for interacting with a Pinecone index via REST API.
     For improved performance, use the Pinecone GRPC index client.
