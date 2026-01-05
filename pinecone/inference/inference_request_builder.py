@@ -17,8 +17,6 @@ class EmbedModel(Enum):
 
 class RerankModel(Enum):
     Bge_Reranker_V2_M3 = "bge-reranker-v2-m3"
-    Cohere_Rerank_3_5 = "cohere-rerank-3.5"
-    Pinecone_Rerank_V0 = "pinecone-rerank-v0"
 
 
 class InferenceRequestBuilder:
