@@ -114,9 +114,9 @@ class TestPytestShardPlugin:
         # If plugin didn't load (testdir limitation), skip this assertion
         if total_test_count > 0:
             # Plugin worked - verify sharding
-            assert (
-                shard1_count < total_test_count or shard1_count == 0
-            ), "Plugin should filter tests"
+            assert shard1_count < total_test_count or shard1_count == 0, (
+                "Plugin should filter tests"
+            )
             # If we got 0 tests, the plugin might have filtered them all out (unlikely but possible)
             # Or the plugin didn't load - either way, the test logic is sound
 
@@ -208,7 +208,9 @@ class TestPytestShardPlugin:
             "--splits must be a positive integer" in stderr_text
             or "unrecognized arguments" in stderr_text
             or "INTERNALERROR" in stderr_text
-        ), f"Expected validation error, unrecognized args, or internal error, got: {stderr_text[:200]}"
+        ), (
+            f"Expected validation error, unrecognized args, or internal error, got: {stderr_text[:200]}"
+        )
 
         result = testdir.runpytest("--splits=-1", "--group=1")
         if result.ret == 3:  # INTERNAL_ERROR
@@ -218,7 +220,9 @@ class TestPytestShardPlugin:
             "--splits must be a positive integer" in stderr_text
             or "unrecognized arguments" in stderr_text
             or "INTERNALERROR" in stderr_text
-        ), f"Expected validation error, unrecognized args, or internal error, got: {stderr_text[:200]}"
+        ), (
+            f"Expected validation error, unrecognized args, or internal error, got: {stderr_text[:200]}"
+        )
 
     def test_validation_group_must_be_positive(self, testdir):
         """Test that --group must be a positive integer."""
@@ -237,7 +241,9 @@ class TestPytestShardPlugin:
             "--group must be a positive integer" in stderr_text
             or "unrecognized arguments" in stderr_text
             or "INTERNALERROR" in stderr_text
-        ), f"Expected validation error, unrecognized args, or internal error, got: {stderr_text[:200]}"
+        ), (
+            f"Expected validation error, unrecognized args, or internal error, got: {stderr_text[:200]}"
+        )
 
         result = testdir.runpytest("--splits=3", "--group=-1")
         if result.ret == 3:  # INTERNAL_ERROR
@@ -247,7 +253,9 @@ class TestPytestShardPlugin:
             "--group must be a positive integer" in stderr_text
             or "unrecognized arguments" in stderr_text
             or "INTERNALERROR" in stderr_text
-        ), f"Expected validation error, unrecognized args, or internal error, got: {stderr_text[:200]}"
+        ), (
+            f"Expected validation error, unrecognized args, or internal error, got: {stderr_text[:200]}"
+        )
 
     def test_validation_group_cannot_exceed_splits(self, testdir):
         """Test that --group cannot exceed --splits."""
@@ -266,7 +274,9 @@ class TestPytestShardPlugin:
             "--group (4) must be between 1 and --splits (3)" in stderr_text
             or "unrecognized arguments" in stderr_text
             or "INTERNALERROR" in stderr_text
-        ), f"Expected validation error, unrecognized args, or internal error, got: {stderr_text[:200]}"
+        ), (
+            f"Expected validation error, unrecognized args, or internal error, got: {stderr_text[:200]}"
+        )
 
     def test_plugin_inactive_without_splits(self, testdir):
         """Test that plugin doesn't filter tests when --splits is not provided."""

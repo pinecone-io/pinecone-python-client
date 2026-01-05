@@ -23,9 +23,9 @@ class TestGrpcRunner:
         assert ("client-version", CLIENT_VERSION) in passed_metadata
 
         # Request id assigned for each request
-        assert any(
-            item[0] == "request_id" for item in passed_metadata
-        ), "request_id not found in metadata"
+        assert any(item[0] == "request_id" for item in passed_metadata), (
+            "request_id not found in metadata"
+        )
         for items in passed_metadata:
             if items[0] == "request_id":
                 assert isinstance(items[1], str)
@@ -47,9 +47,9 @@ class TestGrpcRunner:
         for items in mock_func.call_args.kwargs["metadata"]:
             if items[0] == "request_id":
                 second_request_id = items[1]
-                assert (
-                    second_request_id != first_request_id
-                ), "request_id is not unique for each request"
+                assert second_request_id != first_request_id, (
+                    "request_id is not unique for each request"
+                )
 
     def test_run_with_additional_metadata_from_grpc_config(self, mocker):
         config = Config(api_key="YOUR_API_KEY")
@@ -89,9 +89,9 @@ class TestGrpcRunner:
         assert ("service-name", "my-index") in passed_metadata
         assert ("client-version", CLIENT_VERSION) in passed_metadata
         # Request id
-        assert any(
-            item[0] == "request_id" for item in passed_metadata
-        ), "request_id not found in metadata"
+        assert any(item[0] == "request_id" for item in passed_metadata), (
+            "request_id not found in metadata"
+        )
         # Extras from configuration
         assert ("debug-header", "value123") in passed_metadata
         assert ("debug-header2", "value456") in passed_metadata
