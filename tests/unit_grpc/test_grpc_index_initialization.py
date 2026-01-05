@@ -74,7 +74,7 @@ class TestGRPCIndexInitialization:
     def test_config_passed_when_target_by_host_and_port(self):
         pc = PineconeGRPC(api_key="YOUR_API_KEY")
         config = GRPCClientConfig(timeout=5, secure=False)
-        index = pc.Index(host="myhost:4343", grpc_config=config)
+        index = pc.Index(host="myhost.example.com:4343", grpc_config=config)
 
         assert index.grpc_client_config.timeout == 5
         assert index.grpc_client_config.secure == False
@@ -84,7 +84,7 @@ class TestGRPCIndexInitialization:
         assert index.grpc_client_config.conn_timeout == 1
 
         # Endpoint calculation does not override port
-        assert index._endpoint() == "myhost:4343"
+        assert index._endpoint() == "myhost.example.com:4343"
 
     def test_config_passes_source_tag_when_set(self):
         pc = PineconeGRPC(api_key="YOUR_API_KEY", source_tag="my_source_tag")
