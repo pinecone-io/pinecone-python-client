@@ -1,3 +1,4 @@
+import pytest
 import re
 from pinecone.grpc import PineconeGRPC, GRPCClientConfig
 
@@ -91,3 +92,24 @@ class TestGRPCIndexInitialization:
             re.search(r"source_tag=my_source_tag", pc.db._index_api.api_client.user_agent)
             is not None
         )
+
+    def test_invalid_host(self):
+        pc = PineconeGRPC(api_key="key")
+
+        with pytest.raises(ValueError) as e:
+            pc.Index(host="invalid")
+        assert "You passed 'invalid' as the host but this does not appear to be valid" in str(
+            e.value
+        )
+
+        with pytest.raises(ValueError) as e:
+            pc.Index(host="my-index")
+        assert "You passed 'my-index' as the host but this does not appear to be valid" in str(
+            e.value
+        )
+
+        # Can instantiate with realistic host
+        pc.Index(host="test-bt8x3su.svc.apw5-4e34-81fa.pinecone.io")
+
+        # Can instantiate with localhost address
+        pc.Index(host="localhost:8080")
