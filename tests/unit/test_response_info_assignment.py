@@ -110,19 +110,20 @@ class TestResponseInfoAssignment:
 
         mocker.patch.object(api_client, 'request', side_effect=mock_request)
 
-        # Call the API
-        result = await api_client.call_api(
-            resource_path='/test',
-            method='POST',
-            response_type=(dict,),
-            _return_http_data_only=True,
-        )
+        try:
+            # Call the API
+            result = await api_client.call_api(
+                resource_path='/test',
+                method='POST',
+                response_type=(dict,),
+                _return_http_data_only=True,
+            )
 
-        # Verify _response_info is set as a dict key
-        assert isinstance(result, dict)
-        assert '_response_info' in result
-
-        await api_client.close()
+            # Verify _response_info is set as a dict key
+            assert isinstance(result, dict)
+            assert '_response_info' in result
+        finally:
+            await api_client.close()
 
     @pytest.mark.asyncio
     @pytest.mark.skip(reason="Requires asyncio extras")
