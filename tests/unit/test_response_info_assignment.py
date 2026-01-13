@@ -1,6 +1,6 @@
 """Test that response_info assignment handles all types correctly"""
 import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 from pinecone.openapi_support.api_client import ApiClient
 from pinecone.openapi_support.asyncio_api_client import AsyncioApiClient
 from pinecone.config.openapi_configuration import Configuration
@@ -53,7 +53,7 @@ class TestResponseInfoAssignment:
 
         # This should not raise AttributeError when trying to set _response_info
         try:
-            result = api_client.call_api(
+            api_client.call_api(
                 resource_path='/test',
                 method='POST',
                 response_type=(str,),
@@ -144,7 +144,7 @@ class TestResponseInfoAssignment:
 
         # This should not raise AttributeError when trying to set _response_info
         try:
-            result = await api_client.call_api(
+            await api_client.call_api(
                 resource_path='/test',
                 method='POST',
                 response_type=(str,),
