@@ -262,9 +262,12 @@ class Urllib3RestClient(RestClientInterface):
                 print(bcolors.FAIL + o.data.decode("utf-8") + bcolors.ENDC)
 
         if _preload_content:
-            r = RESTResponse(r.status, r.data, r.headers, r.reason)
+            rest_response = RESTResponse(r.status, r.data, r.headers, r.reason)
 
             # log response body
-            logger.debug("response body: %s", r.data)
+            logger.debug("response body: %s", rest_response.data)
 
-        return raise_exceptions_or_return(r)
+            return raise_exceptions_or_return(rest_response)
+
+        # When not preloading content, still wrap and check for exceptions
+        return raise_exceptions_or_return(RESTResponse(r.status, r.data, r.headers, r.reason))
