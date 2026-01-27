@@ -1,7 +1,31 @@
 # Pinecone Python SDK
-![License](https://img.shields.io/github/license/pinecone-io/pinecone-python-client?color=orange) [![CI](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/pr.yaml/badge.svg)](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/pr.yaml)
+![License](https://img.shields.io/github/license/pinecone-io/pinecone-python-client?color=orange) [![CI](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/pr.yaml/badge.svg)](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/pr.yaml) [![PyPI version](https://img.shields.io/pypi/v/pinecone.svg)](https://pypi.org/project/pinecone/) [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 
-The official Pinecone Python SDK.
+The official Pinecone Python SDK for building vector search applications with AI/ML.
+
+Pinecone is a vector database that makes it easy to add vector search to production applications. Use Pinecone to store, search, and manage high-dimensional vectors for applications like semantic search, recommendation systems, and RAG (Retrieval-Augmented Generation).
+
+## Features
+
+- **Vector Operations**: Store, query, and manage high-dimensional vectors with metadata filtering
+- **Serverless & Pod Indexes**: Choose between serverless (auto-scaling) or pod-based (dedicated) indexes
+- **Integrated Inference**: Built-in embedding and reranking models for end-to-end search workflows
+- **Async Support**: Full asyncio support with `PineconeAsyncio` for modern Python applications
+- **GRPC Support**: Optional GRPC transport for improved performance
+- **Type Safety**: Full type hints and type checking support
+
+## Table of Contents
+
+- [Documentation](#documentation)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Quickstart](#quickstart)
+  - [Bringing your own vectors](#bringing-your-own-vectors-to-pinecone)
+  - [Bring your own data using Pinecone integrated inference](#bring-your-own-data-using-pinecone-integrated-inference)
+- [Pinecone Assistant](#pinecone-assistant)
+- [More Information](#more-information-on-usage)
+- [Issues & Bugs](#issues--bugs)
+- [Contributing](#contributing)
 
 ## Documentation
 
@@ -24,12 +48,21 @@ For notes on changes between major versions, see [Upgrading](./docs/upgrading.md
 
 ## Installation
 
-The Pinecone Python SDK is distributed on PyPI using the package name `pinecone`. By default the `pinecone` has a minimal set of dependencies, but you can install some extras to unlock additional functionality.
+The Pinecone Python SDK is distributed on PyPI using the package name `pinecone`. The base installation includes everything you need to get started with vector operations, but you can install optional extras to unlock additional functionality.
 
-Available extras:
+**Base installation includes:**
+- Core Pinecone client (`Pinecone`)
+- Vector operations (upsert, query, fetch, delete)
+- Index management (create, list, describe, delete)
+- Metadata filtering
+- Pinecone Assistant plugin
 
-- `pinecone[asyncio]` will add a dependency on `aiohttp` and enable usage of `PineconeAsyncio`, the asyncio-enabled version of the client for use with highly asynchronous modern web frameworks such as FastAPI.
-- `pinecone[grpc]` will add dependencies on `grpcio` and related libraries needed to make pinecone data calls such as `upsert` and `query` over [GRPC](https://grpc.io/) for a modest performance improvement. See the guide on [tuning performance](https://docs.pinecone.io/docs/performance-tuning).
+**Optional extras:**
+
+- `pinecone[asyncio]` - Adds `aiohttp` dependency and enables `PineconeAsyncio` for async/await support. Use this if you're building applications with FastAPI, aiohttp, or other async frameworks.
+- `pinecone[grpc]` - Adds `grpcio` and related libraries for GRPC transport. Provides modest performance improvements for data operations like `upsert` and `query`. See the guide on [tuning performance](https://docs.pinecone.io/docs/performance-tuning).
+
+**Configuration:** The SDK can read your API key from the `PINECONE_API_KEY` environment variable, or you can pass it directly when instantiating the client.
 
 #### Installing with pip
 
@@ -63,9 +96,11 @@ poetry add pinecone
 poetry add pinecone --extras asyncio --extras grpc
 ```
 
-# Quickstart
+## Quickstart
 
-## Bringing your own vectors to Pinecone
+### Bringing your own vectors to Pinecone
+
+This example shows how to create an index, add vectors with embeddings you've generated, and query them. This approach gives you full control over your embedding model and vector generation process.
 
 ```python
 from pinecone import (
@@ -77,7 +112,11 @@ from pinecone import (
 )
 
 # 1. Instantiate the Pinecone client
+# Option A: Pass API key directly
 pc = Pinecone(api_key='YOUR_API_KEY')
+
+# Option B: Use environment variable (PINECONE_API_KEY)
+# pc = Pinecone()
 
 # 2. Create an index
 index_config = pc.create_index(
@@ -112,7 +151,9 @@ idx.query(
 )
 ```
 
-## Bring your own data using Pinecone integrated inference
+### Bring your own data using Pinecone integrated inference
+
+This example demonstrates using Pinecone's integrated inference capabilities. You provide raw text data, and Pinecone handles embedding generation and optional reranking automatically. This is ideal when you want to focus on your data and let Pinecone handle the ML complexity.
 
 ```python
 from pinecone import (
@@ -120,12 +161,15 @@ from pinecone import (
     CloudProvider,
     AwsRegion,
     EmbedModel,
+    IndexEmbed,
 )
 
 # 1. Instantiate the Pinecone client
-pc = Pinecone(api_key="<<PINECONE_API_KEY>>")
+# The API key can be passed directly or read from PINECONE_API_KEY environment variable
+pc = Pinecone(api_key='YOUR_API_KEY')
 
-# 2. Create an index configured for use with a particular model
+# 2. Create an index configured for use with a particular embedding model
+# This sets up the index with the right dimensions and configuration for your chosen model
 index_config = pc.create_index_for_model(
     name="my-model-index",
     cloud=CloudProvider.AWS,
@@ -136,10 +180,11 @@ index_config = pc.create_index_for_model(
     )
 )
 
-# 3. Instantiate an Index client
+# 3. Instantiate an Index client for data operations
 idx = pc.Index(host=index_config.host)
 
-# 4. Upsert records
+# 4. Upsert records with raw text data
+# Pinecone will automatically generate embeddings using the configured model
 idx.upsert_records(
     namespace="my-namespace",
     records=[
@@ -170,10 +215,11 @@ idx.upsert_records(
     ],
 )
 
-# 5. Search for similar records
+# 5. Search for similar records using text queries
+# Pinecone handles embedding the query and optionally reranking results
 from pinecone import SearchQuery, SearchRerank, RerankModel
 
-response = index.search_records(
+response = idx.search_records(
     namespace="my-namespace",
     query=SearchQuery(
         inputs={
@@ -199,15 +245,18 @@ For more information on Pinecone Assistant, see the [Pinecone Assistant document
 
 ## More information on usage
 
-Detailed information on specific ways of using the SDK are covered in these other pages.
+Detailed information on specific ways of using the SDK are covered in these guides:
 
-- Store and query your vectors
-  - [Serverless Indexes](./docs/db_control/serverless-indexes.md)
-  - [Pod Indexes](./docs/db_control/pod-indexes.md)
-  - [Working with vectors](./docs/db_data/index-usage-byov.md)
+**Index Management:**
+- [Serverless Indexes](./docs/db_control/serverless-indexes.md) - Learn about auto-scaling serverless indexes that scale automatically with your workload
+- [Pod Indexes](./docs/db_control/pod-indexes.md) - Understand dedicated pod-based indexes for consistent performance
 
-- [Inference API](./docs/inference-api.md)
-- [FAQ](./docs/faq.md)
+**Data Operations:**
+- [Working with vectors](./docs/db_data/index-usage-byov.md) - Comprehensive guide to storing, querying, and managing vectors with metadata filtering
+
+**Advanced Features:**
+- [Inference API](./docs/inference-api.md) - Use Pinecone's integrated embedding and reranking models
+- [FAQ](./docs/faq.md) - Common questions and troubleshooting tips
 
 
 # Issues & Bugs
