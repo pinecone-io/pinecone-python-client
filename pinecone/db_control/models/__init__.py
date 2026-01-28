@@ -21,6 +21,7 @@ from .schema_fields import (
     SchemaField,
 )
 from .schema_builder import SchemaBuilder
+from .deployment import ServerlessDeployment, ByocDeployment, PodDeployment, Deployment
 
 
 __all__ = [
@@ -46,4 +47,8 @@ __all__ = [
     "SemanticTextField",
     "SchemaField",
     "SchemaBuilder",
+    "ServerlessDeployment",
+    "ByocDeployment",
+    "PodDeployment",
+    "Deployment",
 ]
