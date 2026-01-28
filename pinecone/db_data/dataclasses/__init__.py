@@ -8,6 +8,8 @@ from .search_rerank import SearchRerank
 from .query_response import QueryResponse
 from .upsert_response import UpsertResponse
 from .update_response import UpdateResponse
+from .text_query import TextQuery
+from .vector_query import VectorQuery
 
 __all__ = [
     "SparseValues",
@@ -21,4 +23,6 @@ __all__ = [
     "QueryResponse",
     "UpsertResponse",
     "UpdateResponse",
+    "TextQuery",
+    "VectorQuery",
 ]
