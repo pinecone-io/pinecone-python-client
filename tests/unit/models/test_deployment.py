@@ -1,34 +1,6 @@
 """Tests for deployment model classes."""
 
-import os
-import sys
-import types
-
-
-def _load_deployment_module():
-    """Load deployment.py as a standalone module to avoid broken imports."""
-    module_name = "pinecone.db_control.models.deployment"
-    module = types.ModuleType(module_name)
-    module.__file__ = os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        "..",
-        "..",
-        "pinecone",
-        "db_control",
-        "models",
-        "deployment.py",
-    )
-    sys.modules[module_name] = module
-    with open(module.__file__) as f:
-        exec(compile(f.read(), module.__file__, "exec"), module.__dict__)
-    return module
-
-
-_deployment = _load_deployment_module()
-ServerlessDeployment = _deployment.ServerlessDeployment
-ByocDeployment = _deployment.ByocDeployment
-PodDeployment = _deployment.PodDeployment
+from pinecone import ServerlessDeployment, ByocDeployment, PodDeployment
 
 
 class TestServerlessDeployment:
