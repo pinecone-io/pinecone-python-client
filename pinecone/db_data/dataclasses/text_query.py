@@ -36,12 +36,12 @@ class TextQuery(DictLike):
     boost: float | None = None
     slop: int | None = None
 
-    def to_dict(self) -> dict:
+    def as_dict(self) -> dict:
         """Serialize to API format.
 
         :returns: Dictionary representation for the API.
         """
-        result: dict = {"field": self.field, "query": self.query}
+        result: dict = {"type": "text", "field": self.field, "text_query": self.query}
         if self.boost is not None:
             result["boost"] = self.boost
         if self.slop is not None:
