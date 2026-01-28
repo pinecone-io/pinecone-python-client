@@ -107,6 +107,14 @@ _db_control_lazy_imports = {
         "pinecone.db_control.types",
         "CreateIndexForModelEmbedTypedDict",
     ),
+    # Schema field types
+    "TextField": ("pinecone.db_control.models", "TextField"),
+    "IntegerField": ("pinecone.db_control.models", "IntegerField"),
+    "FloatField": ("pinecone.db_control.models", "FloatField"),
+    "DenseVectorField": ("pinecone.db_control.models", "DenseVectorField"),
+    "SparseVectorField": ("pinecone.db_control.models", "SparseVectorField"),
+    "SemanticTextField": ("pinecone.db_control.models", "SemanticTextField"),
+    "SchemaField": ("pinecone.db_control.models", "SchemaField"),
     # Read capacity TypedDict classes
     "ScalingConfigManualDict": (
         "pinecone.db_control.models.serverless_spec",
