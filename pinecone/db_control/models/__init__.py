@@ -11,6 +11,15 @@ from .backup_model import BackupModel
 from .backup_list import BackupList
 from .restore_job_model import RestoreJobModel
 from .restore_job_list import RestoreJobList
+from .schema_fields import (
+    TextField,
+    IntegerField,
+    FloatField,
+    DenseVectorField,
+    SparseVectorField,
+    SemanticTextField,
+    SchemaField,
+)
 
 
 __all__ = [
@@ -28,4 +37,11 @@ __all__ = [
     "BackupList",
     "RestoreJobModel",
     "RestoreJobList",
+    "TextField",
+    "IntegerField",
+    "FloatField",
+    "DenseVectorField",
+    "SparseVectorField",
+    "SemanticTextField",
+    "SchemaField",
 ]
