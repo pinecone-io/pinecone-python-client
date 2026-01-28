@@ -45,12 +45,12 @@ class VectorQuery(DictLike):
     values: list[float] | None = None
     sparse_values: SparseValues | None = None
 
-    def to_dict(self) -> dict:
+    def as_dict(self) -> dict:
         """Serialize to API format.
 
         :returns: Dictionary representation for the API.
         """
-        result: dict = {"field": self.field}
+        result: dict = {"type": "vector", "field": self.field}
         if self.values is not None:
             result["values"] = self.values
         if self.sparse_values is not None:
