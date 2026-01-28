@@ -305,9 +305,9 @@ models = pc.inference.list_models(type="rerank", vector_type="dense")
 Or, if you know the name of a model, you can get just those details
 
 ```
-pc.inference.get_model(model_name='pinecone-rerank-v0')
+pc.inference.get_model(model_name='bge-reranker-v2-m3')
 # {
-#     "model": "pinecone-rerank-v0",
+#     "model": "bge-reranker-v2-m3",
 #     "short_description": "A state of the art reranking model that out-performs competitors on widely accepted benchmarks. It can handle chunks up to 512 tokens (1-2 paragraphs)",
 #     "type": "rerank",
 #     "supported_parameters": [
