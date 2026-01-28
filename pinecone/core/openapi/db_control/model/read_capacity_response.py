@@ -1,11 +1,11 @@
 """
 Pinecone Control Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors and documents.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -26,35 +26,21 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_config import (
-        ReadCapacityDedicatedConfig,
-    )
-    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec_response import (
-        ReadCapacityDedicatedSpecResponse,
-    )
-    from pinecone.core.openapi.db_control.model.read_capacity_on_demand_spec_response import (
-        ReadCapacityOnDemandSpecResponse,
-    )
-    from pinecone.core.openapi.db_control.model.read_capacity_status import ReadCapacityStatus
-
 
 def lazy_import():
-    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_config import (
-        ReadCapacityDedicatedConfig,
-    )
     from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec_response import (
         ReadCapacityDedicatedSpecResponse,
+    )
+    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec_response_scaling import (
+        ReadCapacityDedicatedSpecResponseScaling,
     )
     from pinecone.core.openapi.db_control.model.read_capacity_on_demand_spec_response import (
         ReadCapacityOnDemandSpecResponse,
     )
     from pinecone.core.openapi.db_control.model.read_capacity_status import ReadCapacityStatus
 
-    globals()["ReadCapacityDedicatedConfig"] = ReadCapacityDedicatedConfig
     globals()["ReadCapacityDedicatedSpecResponse"] = ReadCapacityDedicatedSpecResponse
+    globals()["ReadCapacityDedicatedSpecResponseScaling"] = ReadCapacityDedicatedSpecResponseScaling
     globals()["ReadCapacityOnDemandSpecResponse"] = ReadCapacityOnDemandSpecResponse
     globals()["ReadCapacityStatus"] = ReadCapacityStatus
 
@@ -120,7 +106,8 @@ class ReadCapacityResponse(ModelComposed):
         return {
             "mode": (str,),  # noqa: E501
             "status": (ReadCapacityStatus,),  # noqa: E501
-            "dedicated": (ReadCapacityDedicatedConfig,),  # noqa: E501
+            "node_type": (str,),  # noqa: E501
+            "scaling": (ReadCapacityDedicatedSpecResponseScaling,),  # noqa: E501
         }
 
     @cached_class_property
@@ -139,7 +126,8 @@ class ReadCapacityResponse(ModelComposed):
     attribute_map: Dict[str, str] = {
         "mode": "mode",  # noqa: E501
         "status": "status",  # noqa: E501
-        "dedicated": "dedicated",  # noqa: E501
+        "node_type": "node_type",  # noqa: E501
+        "scaling": "scaling",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -150,7 +138,7 @@ class ReadCapacityResponse(ModelComposed):
         """ReadCapacityResponse - a model defined in OpenAPI
 
         Keyword Args:
-            mode (str): The mode of the index. Possible values: `OnDemand` or `Dedicated`. Defaults to `OnDemand`. If set to `Dedicated`, `dedicated.node_type`, and `dedicated.scaling` must be specified.
+            mode (str): The mode of the index. Possible values: `OnDemand` or `Dedicated`. Defaults to `OnDemand`. If set to `Dedicated`, `node_type`, and `scaling` must be specified.
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -182,7 +170,8 @@ class ReadCapacityResponse(ModelComposed):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             status (ReadCapacityStatus): [optional]  # noqa: E501
-            dedicated (ReadCapacityDedicatedConfig): [optional]  # noqa: E501
+            node_type (str): The type of machines to use. Available options: `b1` and `t1`. `t1` includes increased processing power and memory. [optional]  # noqa: E501
+            scaling (ReadCapacityDedicatedSpecResponseScaling): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop("_check_type", True)
@@ -255,7 +244,7 @@ class ReadCapacityResponse(ModelComposed):
         """ReadCapacityResponse - a model defined in OpenAPI
 
         Keyword Args:
-            mode (str): The mode of the index. Possible values: `OnDemand` or `Dedicated`. Defaults to `OnDemand`. If set to `Dedicated`, `dedicated.node_type`, and `dedicated.scaling` must be specified.
+            mode (str): The mode of the index. Possible values: `OnDemand` or `Dedicated`. Defaults to `OnDemand`. If set to `Dedicated`, `node_type`, and `scaling` must be specified.
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -287,7 +276,8 @@ class ReadCapacityResponse(ModelComposed):
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
             status (ReadCapacityStatus): [optional]  # noqa: E501
-            dedicated (ReadCapacityDedicatedConfig): [optional]  # noqa: E501
+            node_type (str): The type of machines to use. Available options: `b1` and `t1`. `t1` includes increased processing power and memory. [optional]  # noqa: E501
+            scaling (ReadCapacityDedicatedSpecResponseScaling): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -345,7 +335,7 @@ class ReadCapacityResponse(ModelComposed):
                 )
 
     @cached_property
-    def _composed_schemas():
+    def _composed_schemas():  # type: ignore
         # we need this here to make our import statements work
         # we must store _composed_schemas in here so the code is only run
         # when we invoke this method. If we kept this at the class

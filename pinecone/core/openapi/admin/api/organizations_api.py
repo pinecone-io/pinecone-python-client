@@ -11,7 +11,7 @@ Contact: support@pinecone.io
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, cast
+from typing import TYPE_CHECKING
 from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
@@ -90,7 +90,7 @@ class OrganizationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["organization_id"] = organization_id
-            return cast(None, self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.delete_organization = _Endpoint(
             settings={
@@ -169,9 +169,7 @@ class OrganizationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["organization_id"] = organization_id
-            return cast(
-                Organization | ApplyResult[Organization], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.fetch_organization = _Endpoint(
             settings={
@@ -245,9 +243,7 @@ class OrganizationsApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return cast(
-                OrganizationList | ApplyResult[OrganizationList], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.list_organizations = _Endpoint(
             settings={
@@ -326,9 +322,7 @@ class OrganizationsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["organization_id"] = organization_id
             kwargs["update_organization_request"] = update_organization_request
-            return cast(
-                Organization | ApplyResult[Organization], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.update_organization = _Endpoint(
             settings={
@@ -421,7 +415,7 @@ class AsyncioOrganizationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["organization_id"] = organization_id
-            return cast(None, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.delete_organization = _AsyncioEndpoint(
             settings={
@@ -490,7 +484,7 @@ class AsyncioOrganizationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["organization_id"] = organization_id
-            return cast(Organization, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.fetch_organization = _AsyncioEndpoint(
             settings={
@@ -557,7 +551,7 @@ class AsyncioOrganizationsApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return cast(OrganizationList, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.list_organizations = _AsyncioEndpoint(
             settings={
@@ -629,7 +623,7 @@ class AsyncioOrganizationsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["organization_id"] = organization_id
             kwargs["update_organization_request"] = update_organization_request
-            return cast(Organization, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.update_organization = _AsyncioEndpoint(
             settings={

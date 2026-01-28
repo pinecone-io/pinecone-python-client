@@ -1,17 +1,17 @@
 """
 Pinecone Control Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors and documents.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, cast
+from typing import TYPE_CHECKING
 from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
@@ -67,22 +67,22 @@ class ManageIndexesApi:
             self,
             index_name,
             configure_index_request,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> IndexModel | ApplyResult[IndexModel]:
             """Configure an index  # noqa: E501
 
-            Configure an existing index. For serverless indexes, you can configure index deletion protection, tags, and integrated inference embedding settings for the index. For pod-based indexes, you can configure the pod size, number of replicas, tags, and index deletion protection.  It is not possible to change the pod type of a pod-based index. However, you can create a collection from a pod-based index and then [create a new pod-based index with a different pod type](http://docs.pinecone.io/guides/indexes/pods/create-a-pod-based-index#create-a-pod-index-from-a-collection) from the collection. For guidance and examples, see [Configure an index](http://docs.pinecone.io/guides/indexes/pods/manage-pod-based-indexes).  # noqa: E501
+            Configure an existing index. Supports partial updates - only include the fields you want to modify. You can update schema fields, read capacity (for serverless), deployment settings (limited), deletion protection, and tags. For guidance and examples, see [Configure an index](http://docs.pinecone.io/guides/indexes/pods/manage-pod-based-indexes).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.configure_index(index_name, configure_index_request, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.configure_index(index_name, configure_index_request, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 index_name (str): The name of the index to configure.
-                configure_index_request (ConfigureIndexRequest): The desired pod size and replica configuration for the index.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                configure_index_request (ConfigureIndexRequest): The desired configuration updates for the index.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -111,7 +111,7 @@ class ManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
             kwargs["configure_index_request"] = configure_index_request
-            return cast(IndexModel | ApplyResult[IndexModel], self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.configure_index = _Endpoint(
             settings={
@@ -157,7 +157,7 @@ class ManageIndexesApi:
             self,
             index_name,
             create_backup_request,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> BackupModel | ApplyResult[BackupModel]:
             """Create a backup of an index  # noqa: E501
@@ -166,13 +166,13 @@ class ManageIndexesApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.create_backup(index_name, create_backup_request, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.create_backup(index_name, create_backup_request, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 index_name (str): Name of the index to backup
                 create_backup_request (CreateBackupRequest): The desired configuration for the backup.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -201,7 +201,7 @@ class ManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
             kwargs["create_backup_request"] = create_backup_request
-            return cast(BackupModel | ApplyResult[BackupModel], self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.create_backup = _Endpoint(
             settings={
@@ -246,7 +246,7 @@ class ManageIndexesApi:
         def __create_collection(
             self,
             create_collection_request,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> CollectionModel | ApplyResult[CollectionModel]:
             """Create a collection  # noqa: E501
@@ -255,12 +255,12 @@ class ManageIndexesApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.create_collection(create_collection_request, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.create_collection(create_collection_request, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 create_collection_request (CreateCollectionRequest): The desired configuration for the collection.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -288,9 +288,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_collection_request"] = create_collection_request
-            return cast(
-                CollectionModel | ApplyResult[CollectionModel], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.create_collection = _Endpoint(
             settings={
@@ -330,21 +328,21 @@ class ManageIndexesApi:
         def __create_index(
             self,
             create_index_request,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> IndexModel | ApplyResult[IndexModel]:
             """Create an index  # noqa: E501
 
-            Create a Pinecone index. This is where you specify the measure of similarity, the dimension of vectors to be stored in the index, which cloud provider you would like to deploy with, and more.    For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index).   # noqa: E501
+            Create a Pinecone index. This is where you specify the schema defining field-level capabilities, deployment configuration, and other index settings.    For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index).   # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.create_index(create_index_request, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.create_index(create_index_request, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 create_index_request (CreateIndexRequest): The desired configuration for the index.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -372,7 +370,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_index_request"] = create_index_request
-            return cast(IndexModel | ApplyResult[IndexModel], self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.create_index = _Endpoint(
             settings={
@@ -412,21 +410,21 @@ class ManageIndexesApi:
         def __create_index_for_model(
             self,
             create_index_for_model_request,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> IndexModel | ApplyResult[IndexModel]:
             """Create an index with integrated embedding  # noqa: E501
 
-            Create an index with integrated embedding. With this type of index, you provide source text, and  Pinecone uses a [hosted embedding model](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models)  to convert the text automatically during [upsert](https://docs.pinecone.io/reference/api/2025-10/data-plane/upsert_records)  and [search](https://docs.pinecone.io/reference/api/2025-10/data-plane/search_records).   For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index#integrated-embedding).  # noqa: E501
+            Create an index with integrated embedding using semantic_text field type. This endpoint is a convenience method that creates an index with a semantic_text field configured. You can also achieve the same result using the create_index endpoint with a schema containing a semantic_text field. With this type of index, you provide source text, and  Pinecone uses a [hosted embedding model](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models)  to convert the text automatically during [upsert](https://docs.pinecone.io/reference/api/2026-01/data-plane/upsert_records)  and [search](https://docs.pinecone.io/reference/api/2026-01/data-plane/search_records).   For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index#integrated-embedding).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.create_index_for_model(create_index_for_model_request, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.create_index_for_model(create_index_for_model_request, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 create_index_for_model_request (CreateIndexForModelRequest): The desired configuration for the index and associated embedding model.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -454,7 +452,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_index_for_model_request"] = create_index_for_model_request
-            return cast(IndexModel | ApplyResult[IndexModel], self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.create_index_for_model = _Endpoint(
             settings={
@@ -495,7 +493,7 @@ class ManageIndexesApi:
             self,
             backup_id,
             create_index_from_backup_request,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> CreateIndexFromBackupResponse | ApplyResult[CreateIndexFromBackupResponse]:
             """Create an index from a backup  # noqa: E501
@@ -504,13 +502,13 @@ class ManageIndexesApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.create_index_from_backup_operation(backup_id, create_index_from_backup_request, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.create_index_from_backup_operation(backup_id, create_index_from_backup_request, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 backup_id (str): The ID of the backup to create an index from.
                 create_index_from_backup_request (CreateIndexFromBackupRequest): The desired configuration for the index created from a backup.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -539,10 +537,7 @@ class ManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
             kwargs["create_index_from_backup_request"] = create_index_from_backup_request
-            return cast(
-                CreateIndexFromBackupResponse | ApplyResult[CreateIndexFromBackupResponse],
-                self.call_with_http_info(**kwargs),
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.create_index_from_backup_operation = _Endpoint(
             settings={
@@ -589,7 +584,10 @@ class ManageIndexesApi:
         )
 
         def __delete_backup(
-            self, backup_id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self,
+            backup_id,
+            x_pinecone_api_version="2026-01.alpha",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> None:
             """Delete a backup  # noqa: E501
 
@@ -597,12 +595,12 @@ class ManageIndexesApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.delete_backup(backup_id, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.delete_backup(backup_id, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 backup_id (str): The ID of the backup to delete.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -630,7 +628,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
-            return cast(None, self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.delete_backup = _Endpoint(
             settings={
@@ -667,7 +665,7 @@ class ManageIndexesApi:
         def __delete_collection(
             self,
             collection_name,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> None:
             """Delete a collection  # noqa: E501
@@ -676,12 +674,12 @@ class ManageIndexesApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.delete_collection(collection_name, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.delete_collection(collection_name, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 collection_name (str): The name of the collection.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -709,7 +707,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["collection_name"] = collection_name
-            return cast(None, self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.delete_collection = _Endpoint(
             settings={
@@ -746,7 +744,7 @@ class ManageIndexesApi:
         def __delete_index(
             self,
             index_name,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> None:
             """Delete an index  # noqa: E501
@@ -755,12 +753,12 @@ class ManageIndexesApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.delete_index(index_name, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.delete_index(index_name, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 index_name (str): The name of the index to delete.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -788,7 +786,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return cast(None, self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.delete_index = _Endpoint(
             settings={
@@ -823,7 +821,10 @@ class ManageIndexesApi:
         )
 
         def __describe_backup(
-            self, backup_id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self,
+            backup_id,
+            x_pinecone_api_version="2026-01.alpha",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> BackupModel | ApplyResult[BackupModel]:
             """Describe a backup  # noqa: E501
 
@@ -831,12 +832,12 @@ class ManageIndexesApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.describe_backup(backup_id, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.describe_backup(backup_id, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 backup_id (str): The ID of the backup to describe.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -864,7 +865,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
-            return cast(BackupModel | ApplyResult[BackupModel], self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.describe_backup = _Endpoint(
             settings={
@@ -901,7 +902,7 @@ class ManageIndexesApi:
         def __describe_collection(
             self,
             collection_name,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> CollectionModel | ApplyResult[CollectionModel]:
             """Describe a collection  # noqa: E501
@@ -910,12 +911,12 @@ class ManageIndexesApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.describe_collection(collection_name, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.describe_collection(collection_name, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 collection_name (str): The name of the collection to be described.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -943,9 +944,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["collection_name"] = collection_name
-            return cast(
-                CollectionModel | ApplyResult[CollectionModel], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.describe_collection = _Endpoint(
             settings={
@@ -982,7 +981,7 @@ class ManageIndexesApi:
         def __describe_index(
             self,
             index_name,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> IndexModel | ApplyResult[IndexModel]:
             """Describe an index  # noqa: E501
@@ -991,12 +990,12 @@ class ManageIndexesApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.describe_index(index_name, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.describe_index(index_name, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 index_name (str): The name of the index to be described.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1024,7 +1023,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return cast(IndexModel | ApplyResult[IndexModel], self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.describe_index = _Endpoint(
             settings={
@@ -1059,7 +1058,10 @@ class ManageIndexesApi:
         )
 
         def __describe_restore_job(
-            self, job_id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self,
+            job_id,
+            x_pinecone_api_version="2026-01.alpha",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> RestoreJobModel | ApplyResult[RestoreJobModel]:
             """Describe a restore job  # noqa: E501
 
@@ -1067,12 +1069,12 @@ class ManageIndexesApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.describe_restore_job(job_id, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.describe_restore_job(job_id, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 job_id (str): The ID of the restore job to describe.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1100,9 +1102,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["job_id"] = job_id
-            return cast(
-                RestoreJobModel | ApplyResult[RestoreJobModel], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.describe_restore_job = _Endpoint(
             settings={
@@ -1137,7 +1137,7 @@ class ManageIndexesApi:
         )
 
         def __list_collections(
-            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self, x_pinecone_api_version="2026-01.alpha", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> CollectionList | ApplyResult[CollectionList]:
             """List collections  # noqa: E501
 
@@ -1145,11 +1145,11 @@ class ManageIndexesApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_collections(x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.list_collections(x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1176,9 +1176,7 @@ class ManageIndexesApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return cast(
-                CollectionList | ApplyResult[CollectionList], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.list_collections = _Endpoint(
             settings={
@@ -1212,7 +1210,7 @@ class ManageIndexesApi:
         def __list_index_backups(
             self,
             index_name,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> BackupList | ApplyResult[BackupList]:
             """List backups for an index  # noqa: E501
@@ -1221,12 +1219,12 @@ class ManageIndexesApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_index_backups(index_name, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.list_index_backups(index_name, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 index_name (str): Name of the backed up index
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 limit (int): The number of results to return per page. [optional] if omitted the server will use the default value of 10.
@@ -1256,7 +1254,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return cast(BackupList | ApplyResult[BackupList], self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.list_index_backups = _Endpoint(
             settings={
@@ -1303,7 +1301,7 @@ class ManageIndexesApi:
         )
 
         def __list_indexes(
-            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self, x_pinecone_api_version="2026-01.alpha", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> IndexList | ApplyResult[IndexList]:
             """List indexes  # noqa: E501
 
@@ -1311,11 +1309,11 @@ class ManageIndexesApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_indexes(x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.list_indexes(x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1342,7 +1340,7 @@ class ManageIndexesApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return cast(IndexList | ApplyResult[IndexList], self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.list_indexes = _Endpoint(
             settings={
@@ -1374,7 +1372,7 @@ class ManageIndexesApi:
         )
 
         def __list_project_backups(
-            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self, x_pinecone_api_version="2026-01.alpha", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> BackupList | ApplyResult[BackupList]:
             """List backups for all indexes in a project  # noqa: E501
 
@@ -1382,11 +1380,11 @@ class ManageIndexesApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_project_backups(x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.list_project_backups(x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 limit (int): The number of results to return per page. [optional] if omitted the server will use the default value of 10.
@@ -1415,7 +1413,7 @@ class ManageIndexesApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return cast(BackupList | ApplyResult[BackupList], self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.list_project_backups = _Endpoint(
             settings={
@@ -1459,7 +1457,7 @@ class ManageIndexesApi:
         )
 
         def __list_restore_jobs(
-            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self, x_pinecone_api_version="2026-01.alpha", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> RestoreJobList | ApplyResult[RestoreJobList]:
             """List restore jobs  # noqa: E501
 
@@ -1467,11 +1465,11 @@ class ManageIndexesApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_restore_jobs(x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.list_restore_jobs(x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 limit (int): The number of results to return per page. [optional] if omitted the server will use the default value of 10.
@@ -1500,9 +1498,7 @@ class ManageIndexesApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return cast(
-                RestoreJobList | ApplyResult[RestoreJobList], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.list_restore_jobs = _Endpoint(
             settings={
@@ -1558,17 +1554,21 @@ class AsyncioManageIndexesApi:
         self.api_client = api_client
 
         async def __configure_index(
-            self, index_name, configure_index_request, x_pinecone_api_version="2025-10", **kwargs
+            self,
+            index_name,
+            configure_index_request,
+            x_pinecone_api_version="2026-01.alpha",
+            **kwargs,
         ) -> IndexModel:
             """Configure an index  # noqa: E501
 
-            Configure an existing index. For serverless indexes, you can configure index deletion protection, tags, and integrated inference embedding settings for the index. For pod-based indexes, you can configure the pod size, number of replicas, tags, and index deletion protection.  It is not possible to change the pod type of a pod-based index. However, you can create a collection from a pod-based index and then [create a new pod-based index with a different pod type](http://docs.pinecone.io/guides/indexes/pods/create-a-pod-based-index#create-a-pod-index-from-a-collection) from the collection. For guidance and examples, see [Configure an index](http://docs.pinecone.io/guides/indexes/pods/manage-pod-based-indexes).  # noqa: E501
+            Configure an existing index. Supports partial updates - only include the fields you want to modify. You can update schema fields, read capacity (for serverless), deployment settings (limited), deletion protection, and tags. For guidance and examples, see [Configure an index](http://docs.pinecone.io/guides/indexes/pods/manage-pod-based-indexes).  # noqa: E501
 
 
             Args:
                 index_name (str): The name of the index to configure.
-                configure_index_request (ConfigureIndexRequest): The desired pod size and replica configuration for the index.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                configure_index_request (ConfigureIndexRequest): The desired configuration updates for the index.
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1594,7 +1594,7 @@ class AsyncioManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
             kwargs["configure_index_request"] = configure_index_request
-            return cast(IndexModel, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.configure_index = _AsyncioEndpoint(
             settings={
@@ -1637,7 +1637,11 @@ class AsyncioManageIndexesApi:
         )
 
         async def __create_backup(
-            self, index_name, create_backup_request, x_pinecone_api_version="2025-10", **kwargs
+            self,
+            index_name,
+            create_backup_request,
+            x_pinecone_api_version="2026-01.alpha",
+            **kwargs,
         ) -> BackupModel:
             """Create a backup of an index  # noqa: E501
 
@@ -1647,7 +1651,7 @@ class AsyncioManageIndexesApi:
             Args:
                 index_name (str): Name of the index to backup
                 create_backup_request (CreateBackupRequest): The desired configuration for the backup.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1673,7 +1677,7 @@ class AsyncioManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
             kwargs["create_backup_request"] = create_backup_request
-            return cast(BackupModel, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.create_backup = _AsyncioEndpoint(
             settings={
@@ -1716,7 +1720,7 @@ class AsyncioManageIndexesApi:
         )
 
         async def __create_collection(
-            self, create_collection_request, x_pinecone_api_version="2025-10", **kwargs
+            self, create_collection_request, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> CollectionModel:
             """Create a collection  # noqa: E501
 
@@ -1725,7 +1729,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 create_collection_request (CreateCollectionRequest): The desired configuration for the collection.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1750,7 +1754,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_collection_request"] = create_collection_request
-            return cast(CollectionModel, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.create_collection = _AsyncioEndpoint(
             settings={
@@ -1788,16 +1792,16 @@ class AsyncioManageIndexesApi:
         )
 
         async def __create_index(
-            self, create_index_request, x_pinecone_api_version="2025-10", **kwargs
+            self, create_index_request, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> IndexModel:
             """Create an index  # noqa: E501
 
-            Create a Pinecone index. This is where you specify the measure of similarity, the dimension of vectors to be stored in the index, which cloud provider you would like to deploy with, and more.    For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index).   # noqa: E501
+            Create a Pinecone index. This is where you specify the schema defining field-level capabilities, deployment configuration, and other index settings.    For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index).   # noqa: E501
 
 
             Args:
                 create_index_request (CreateIndexRequest): The desired configuration for the index.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1822,7 +1826,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_index_request"] = create_index_request
-            return cast(IndexModel, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.create_index = _AsyncioEndpoint(
             settings={
@@ -1860,16 +1864,16 @@ class AsyncioManageIndexesApi:
         )
 
         async def __create_index_for_model(
-            self, create_index_for_model_request, x_pinecone_api_version="2025-10", **kwargs
+            self, create_index_for_model_request, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> IndexModel:
             """Create an index with integrated embedding  # noqa: E501
 
-            Create an index with integrated embedding. With this type of index, you provide source text, and  Pinecone uses a [hosted embedding model](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models)  to convert the text automatically during [upsert](https://docs.pinecone.io/reference/api/2025-10/data-plane/upsert_records)  and [search](https://docs.pinecone.io/reference/api/2025-10/data-plane/search_records).   For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index#integrated-embedding).  # noqa: E501
+            Create an index with integrated embedding using semantic_text field type. This endpoint is a convenience method that creates an index with a semantic_text field configured. You can also achieve the same result using the create_index endpoint with a schema containing a semantic_text field. With this type of index, you provide source text, and  Pinecone uses a [hosted embedding model](https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models)  to convert the text automatically during [upsert](https://docs.pinecone.io/reference/api/2026-01/data-plane/upsert_records)  and [search](https://docs.pinecone.io/reference/api/2026-01/data-plane/search_records).   For guidance and examples, see [Create an index](https://docs.pinecone.io/guides/index-data/create-an-index#integrated-embedding).  # noqa: E501
 
 
             Args:
                 create_index_for_model_request (CreateIndexForModelRequest): The desired configuration for the index and associated embedding model.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1894,7 +1898,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_index_for_model_request"] = create_index_for_model_request
-            return cast(IndexModel, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.create_index_for_model = _AsyncioEndpoint(
             settings={
@@ -1935,7 +1939,7 @@ class AsyncioManageIndexesApi:
             self,
             backup_id,
             create_index_from_backup_request,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs,
         ) -> CreateIndexFromBackupResponse:
             """Create an index from a backup  # noqa: E501
@@ -1946,7 +1950,7 @@ class AsyncioManageIndexesApi:
             Args:
                 backup_id (str): The ID of the backup to create an index from.
                 create_index_from_backup_request (CreateIndexFromBackupRequest): The desired configuration for the index created from a backup.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1972,7 +1976,7 @@ class AsyncioManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
             kwargs["create_index_from_backup_request"] = create_index_from_backup_request
-            return cast(CreateIndexFromBackupResponse, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.create_index_from_backup_operation = _AsyncioEndpoint(
             settings={
@@ -2019,7 +2023,7 @@ class AsyncioManageIndexesApi:
         )
 
         async def __delete_backup(
-            self, backup_id, x_pinecone_api_version="2025-10", **kwargs
+            self, backup_id, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> None:
             """Delete a backup  # noqa: E501
 
@@ -2028,7 +2032,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 backup_id (str): The ID of the backup to delete.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -2053,7 +2057,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
-            return cast(None, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.delete_backup = _AsyncioEndpoint(
             settings={
@@ -2088,7 +2092,7 @@ class AsyncioManageIndexesApi:
         )
 
         async def __delete_collection(
-            self, collection_name, x_pinecone_api_version="2025-10", **kwargs
+            self, collection_name, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> None:
             """Delete a collection  # noqa: E501
 
@@ -2097,7 +2101,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 collection_name (str): The name of the collection.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -2122,7 +2126,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["collection_name"] = collection_name
-            return cast(None, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.delete_collection = _AsyncioEndpoint(
             settings={
@@ -2157,7 +2161,7 @@ class AsyncioManageIndexesApi:
         )
 
         async def __delete_index(
-            self, index_name, x_pinecone_api_version="2025-10", **kwargs
+            self, index_name, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> None:
             """Delete an index  # noqa: E501
 
@@ -2166,7 +2170,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 index_name (str): The name of the index to delete.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -2191,7 +2195,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return cast(None, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.delete_index = _AsyncioEndpoint(
             settings={
@@ -2226,7 +2230,7 @@ class AsyncioManageIndexesApi:
         )
 
         async def __describe_backup(
-            self, backup_id, x_pinecone_api_version="2025-10", **kwargs
+            self, backup_id, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> BackupModel:
             """Describe a backup  # noqa: E501
 
@@ -2235,7 +2239,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 backup_id (str): The ID of the backup to describe.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -2260,7 +2264,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
-            return cast(BackupModel, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.describe_backup = _AsyncioEndpoint(
             settings={
@@ -2295,7 +2299,7 @@ class AsyncioManageIndexesApi:
         )
 
         async def __describe_collection(
-            self, collection_name, x_pinecone_api_version="2025-10", **kwargs
+            self, collection_name, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> CollectionModel:
             """Describe a collection  # noqa: E501
 
@@ -2304,7 +2308,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 collection_name (str): The name of the collection to be described.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -2329,7 +2333,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["collection_name"] = collection_name
-            return cast(CollectionModel, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.describe_collection = _AsyncioEndpoint(
             settings={
@@ -2364,7 +2368,7 @@ class AsyncioManageIndexesApi:
         )
 
         async def __describe_index(
-            self, index_name, x_pinecone_api_version="2025-10", **kwargs
+            self, index_name, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> IndexModel:
             """Describe an index  # noqa: E501
 
@@ -2373,7 +2377,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 index_name (str): The name of the index to be described.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -2398,7 +2402,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return cast(IndexModel, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.describe_index = _AsyncioEndpoint(
             settings={
@@ -2433,7 +2437,7 @@ class AsyncioManageIndexesApi:
         )
 
         async def __describe_restore_job(
-            self, job_id, x_pinecone_api_version="2025-10", **kwargs
+            self, job_id, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> RestoreJobModel:
             """Describe a restore job  # noqa: E501
 
@@ -2442,7 +2446,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 job_id (str): The ID of the restore job to describe.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -2467,7 +2471,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["job_id"] = job_id
-            return cast(RestoreJobModel, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.describe_restore_job = _AsyncioEndpoint(
             settings={
@@ -2502,7 +2506,7 @@ class AsyncioManageIndexesApi:
         )
 
         async def __list_collections(
-            self, x_pinecone_api_version="2025-10", **kwargs
+            self, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> CollectionList:
             """List collections  # noqa: E501
 
@@ -2510,7 +2514,7 @@ class AsyncioManageIndexesApi:
 
 
             Args:
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -2534,7 +2538,7 @@ class AsyncioManageIndexesApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return cast(CollectionList, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.list_collections = _AsyncioEndpoint(
             settings={
@@ -2566,7 +2570,7 @@ class AsyncioManageIndexesApi:
         )
 
         async def __list_index_backups(
-            self, index_name, x_pinecone_api_version="2025-10", **kwargs
+            self, index_name, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> BackupList:
             """List backups for an index  # noqa: E501
 
@@ -2575,7 +2579,7 @@ class AsyncioManageIndexesApi:
 
             Args:
                 index_name (str): Name of the backed up index
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 limit (int): The number of results to return per page. [optional] if omitted the server will use the default value of 10.
@@ -2602,7 +2606,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return cast(BackupList, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.list_index_backups = _AsyncioEndpoint(
             settings={
@@ -2648,14 +2652,16 @@ class AsyncioManageIndexesApi:
             callable=__list_index_backups,
         )
 
-        async def __list_indexes(self, x_pinecone_api_version="2025-10", **kwargs) -> IndexList:
+        async def __list_indexes(
+            self, x_pinecone_api_version="2026-01.alpha", **kwargs
+        ) -> IndexList:
             """List indexes  # noqa: E501
 
             List all indexes in a project.  # noqa: E501
 
 
             Args:
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -2679,7 +2685,7 @@ class AsyncioManageIndexesApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return cast(IndexList, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.list_indexes = _AsyncioEndpoint(
             settings={
@@ -2711,7 +2717,7 @@ class AsyncioManageIndexesApi:
         )
 
         async def __list_project_backups(
-            self, x_pinecone_api_version="2025-10", **kwargs
+            self, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> BackupList:
             """List backups for all indexes in a project  # noqa: E501
 
@@ -2719,7 +2725,7 @@ class AsyncioManageIndexesApi:
 
 
             Args:
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 limit (int): The number of results to return per page. [optional] if omitted the server will use the default value of 10.
@@ -2745,7 +2751,7 @@ class AsyncioManageIndexesApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return cast(BackupList, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.list_project_backups = _AsyncioEndpoint(
             settings={
@@ -2789,7 +2795,7 @@ class AsyncioManageIndexesApi:
         )
 
         async def __list_restore_jobs(
-            self, x_pinecone_api_version="2025-10", **kwargs
+            self, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> RestoreJobList:
             """List restore jobs  # noqa: E501
 
@@ -2797,7 +2803,7 @@ class AsyncioManageIndexesApi:
 
 
             Args:
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 limit (int): The number of results to return per page. [optional] if omitted the server will use the default value of 10.
@@ -2823,7 +2829,7 @@ class AsyncioManageIndexesApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return cast(RestoreJobList, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.list_restore_jobs = _AsyncioEndpoint(
             settings={

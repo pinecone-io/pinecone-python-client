@@ -1,11 +1,11 @@
 """
 Pinecone Control Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors and documents.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -26,19 +26,17 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.index_spec import IndexSpec
-    from pinecone.core.openapi.db_control.model.index_tags import IndexTags
-
 
 def lazy_import():
-    from pinecone.core.openapi.db_control.model.index_spec import IndexSpec
+    from pinecone.core.openapi.db_control.model.deployment import Deployment
     from pinecone.core.openapi.db_control.model.index_tags import IndexTags
+    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
+    from pinecone.core.openapi.db_control.model.schema import Schema
 
-    globals()["IndexSpec"] = IndexSpec
+    globals()["Deployment"] = Deployment
     globals()["IndexTags"] = IndexTags
+    globals()["ReadCapacity"] = ReadCapacity
+    globals()["Schema"] = Schema
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -76,8 +74,7 @@ class CreateIndexRequest(ModelNormal):
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-        ("name",): {"max_length": 45, "min_length": 1},
-        ("dimension",): {"inclusive_maximum": 20000, "inclusive_minimum": 1},
+        ("name",): {"max_length": 45, "min_length": 1}
     }
 
     @cached_class_property
@@ -103,13 +100,13 @@ class CreateIndexRequest(ModelNormal):
         """
         lazy_import()
         return {
+            "schema": (Schema,),  # noqa: E501
             "name": (str,),  # noqa: E501
-            "spec": (IndexSpec,),  # noqa: E501
-            "dimension": (int,),  # noqa: E501
-            "metric": (str,),  # noqa: E501
+            "deployment": (Deployment,),  # noqa: E501
+            "read_capacity": (ReadCapacity,),  # noqa: E501
             "deletion_protection": (str,),  # noqa: E501
             "tags": (IndexTags,),  # noqa: E501
-            "vector_type": (str,),  # noqa: E501
+            "source_collection": (str,),  # noqa: E501
         }
 
     @cached_class_property
@@ -117,13 +114,13 @@ class CreateIndexRequest(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
+        "schema": "schema",  # noqa: E501
         "name": "name",  # noqa: E501
-        "spec": "spec",  # noqa: E501
-        "dimension": "dimension",  # noqa: E501
-        "metric": "metric",  # noqa: E501
+        "deployment": "deployment",  # noqa: E501
+        "read_capacity": "read_capacity",  # noqa: E501
         "deletion_protection": "deletion_protection",  # noqa: E501
         "tags": "tags",  # noqa: E501
-        "vector_type": "vector_type",  # noqa: E501
+        "source_collection": "source_collection",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -143,12 +140,11 @@ class CreateIndexRequest(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], name, spec, *args, **kwargs) -> T:  # noqa: E501
+    def _from_openapi_data(cls: Type[T], schema, *args, **kwargs) -> T:  # noqa: E501
         """CreateIndexRequest - a model defined in OpenAPI
 
         Args:
-            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.
-            spec (IndexSpec):
+            schema (Schema):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -181,11 +177,12 @@ class CreateIndexRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'. Possible values: `cosine`, `euclidean`, or `dotproduct`. [optional]  # noqa: E501
+            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'. If not provided, a name will be auto-generated.  [optional]  # noqa: E501
+            deployment (Deployment): [optional]  # noqa: E501
+            read_capacity (ReadCapacity): [optional]  # noqa: E501
             deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. [optional] if omitted the server will use the default value of "disabled".  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
-            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified. [optional] if omitted the server will use the default value of "dense".  # noqa: E501
+            source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -215,8 +212,7 @@ class CreateIndexRequest(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.name = name
-        self.spec = spec
+        self.schema = schema
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -243,12 +239,11 @@ class CreateIndexRequest(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, name, spec, *args, **kwargs) -> None:  # noqa: E501
+    def __init__(self, schema, *args, **kwargs) -> None:  # noqa: E501
         """CreateIndexRequest - a model defined in OpenAPI
 
         Args:
-            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.
-            spec (IndexSpec):
+            schema (Schema):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -281,11 +276,12 @@ class CreateIndexRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'. Possible values: `cosine`, `euclidean`, or `dotproduct`. [optional]  # noqa: E501
+            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'. If not provided, a name will be auto-generated.  [optional]  # noqa: E501
+            deployment (Deployment): [optional]  # noqa: E501
+            read_capacity (ReadCapacity): [optional]  # noqa: E501
             deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. [optional] if omitted the server will use the default value of "disabled".  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
-            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified. [optional] if omitted the server will use the default value of "dense".  # noqa: E501
+            source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -313,8 +309,7 @@ class CreateIndexRequest(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.name = name
-        self.spec = spec
+        self.schema = schema
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

@@ -1,11 +1,11 @@
 """
-Pinecone Control Plane API
+Pinecone Data Plane API
 
 Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -26,29 +26,22 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.pod_spec_metadata_config import (
-        PodSpecMetadataConfig,
-    )
-
 
 def lazy_import():
-    from pinecone.core.openapi.db_control.model.pod_spec_metadata_config import (
-        PodSpecMetadataConfig,
-    )
+    from pinecone.core.openapi.db_data.model.document import Document
+    from pinecone.core.openapi.db_data.model.usage import Usage
 
-    globals()["PodSpecMetadataConfig"] = PodSpecMetadataConfig
+    globals()["Document"] = Document
+    globals()["Usage"] = Usage
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="PodSpec")
+T = TypeVar("T", bound="DocumentSearchResponse")
 
 
-class PodSpec(ModelNormal):
+class DocumentSearchResponse(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -76,11 +69,7 @@ class PodSpec(ModelNormal):
 
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-        ("replicas",): {"inclusive_minimum": 1},
-        ("shards",): {"inclusive_minimum": 1},
-        ("pods",): {"inclusive_minimum": 1},
-    }
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -105,13 +94,8 @@ class PodSpec(ModelNormal):
         """
         lazy_import()
         return {
-            "environment": (str,),  # noqa: E501
-            "pod_type": (str,),  # noqa: E501
-            "replicas": (int,),  # noqa: E501
-            "shards": (int,),  # noqa: E501
-            "pods": (int,),  # noqa: E501
-            "metadata_config": (PodSpecMetadataConfig,),  # noqa: E501
-            "source_collection": (str,),  # noqa: E501
+            "documents": ([Document],),  # noqa: E501
+            "usage": (Usage,),  # noqa: E501
         }
 
     @cached_class_property
@@ -119,13 +103,8 @@ class PodSpec(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "environment": "environment",  # noqa: E501
-        "pod_type": "pod_type",  # noqa: E501
-        "replicas": "replicas",  # noqa: E501
-        "shards": "shards",  # noqa: E501
-        "pods": "pods",  # noqa: E501
-        "metadata_config": "metadata_config",  # noqa: E501
-        "source_collection": "source_collection",  # noqa: E501
+        "documents": "documents",  # noqa: E501
+        "usage": "usage",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -133,7 +112,7 @@ class PodSpec(ModelNormal):
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
-        """Create a new instance of PodSpec.
+        """Create a new instance of DocumentSearchResponse.
 
         This method is overridden to provide proper type inference for mypy.
         The actual instance creation logic (including discriminator handling)
@@ -145,14 +124,10 @@ class PodSpec(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], environment, *args, **kwargs) -> T:  # noqa: E501
-        """PodSpec - a model defined in OpenAPI
-
-        Args:
-            environment (str): The environment where the index is hosted.
+    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
+        """DocumentSearchResponse - a model defined in OpenAPI
 
         Keyword Args:
-            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`. defaults to "p1.x1"  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -183,14 +158,10 @@ class PodSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change. [optional] if omitted the server will use the default value of 1.  # noqa: E501
-            shards (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index. [optional] if omitted the server will use the default value of 1.  # noqa: E501
-            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`.' [optional] if omitted the server will use the default value of 1.  # noqa: E501
-            metadata_config (PodSpecMetadataConfig): [optional]  # noqa: E501
-            source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
+            documents ([Document]): The matched documents, ordered by relevance score. [optional]  # noqa: E501
+            usage (Usage): [optional]  # noqa: E501
         """
 
-        pod_type = kwargs.get("pod_type", "p1.x1")
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
         _enforce_validations = kwargs.pop("_enforce_validations", False)
         _check_type = kwargs.pop("_check_type", True)
@@ -218,8 +189,6 @@ class PodSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.environment = environment
-        self.pod_type = pod_type
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -246,14 +215,10 @@ class PodSpec(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, environment, *args, **kwargs) -> None:  # noqa: E501
-        """PodSpec - a model defined in OpenAPI
-
-        Args:
-            environment (str): The environment where the index is hosted.
+    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
+        """DocumentSearchResponse - a model defined in OpenAPI
 
         Keyword Args:
-            pod_type (str): The type of pod to use. One of `s1`, `p1`, or `p2` appended with `.` and one of `x1`, `x2`, `x4`, or `x8`. defaults to "p1.x1"  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -284,14 +249,10 @@ class PodSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            replicas (int): The number of replicas. Replicas duplicate your index. They provide higher availability and throughput. Replicas can be scaled up or down as your needs change. [optional] if omitted the server will use the default value of 1.  # noqa: E501
-            shards (int): The number of shards. Shards split your data across multiple pods so you can fit more data into an index. [optional] if omitted the server will use the default value of 1.  # noqa: E501
-            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`.' [optional] if omitted the server will use the default value of 1.  # noqa: E501
-            metadata_config (PodSpecMetadataConfig): [optional]  # noqa: E501
-            source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
+            documents ([Document]): The matched documents, ordered by relevance score. [optional]  # noqa: E501
+            usage (Usage): [optional]  # noqa: E501
         """
 
-        pod_type = kwargs.get("pod_type", "p1.x1")
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
         _enforce_validations = kwargs.pop("_enforce_validations", True)
         _check_type = kwargs.pop("_check_type", True)
@@ -317,8 +278,6 @@ class PodSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.environment = environment
-        self.pod_type = pod_type
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

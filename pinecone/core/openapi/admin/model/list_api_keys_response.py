@@ -26,11 +26,6 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.admin.model.api_key import APIKey
-
 
 def lazy_import():
     from pinecone.core.openapi.admin.model.api_key import APIKey

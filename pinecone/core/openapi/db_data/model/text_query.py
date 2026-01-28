@@ -1,11 +1,11 @@
 """
-Pinecone Control Plane API
+Pinecone Data Plane API
 
 Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -26,25 +26,14 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
-
-
-def lazy_import():
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
-
-    globals()["BackupModelSchema"] = BackupModelSchema
-
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="ByocSpec")
+T = TypeVar("T", bound="TextQuery")
 
 
-class ByocSpec(ModelNormal):
+class TextQuery(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -80,7 +69,6 @@ class ByocSpec(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -95,10 +83,10 @@ class ByocSpec(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
-            "environment": (str,),  # noqa: E501
-            "schema": (BackupModelSchema,),  # noqa: E501
+            "type": (str,),  # noqa: E501
+            "field": (str,),  # noqa: E501
+            "text_query": (str,),  # noqa: E501
         }
 
     @cached_class_property
@@ -106,8 +94,9 @@ class ByocSpec(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "environment": "environment",  # noqa: E501
-        "schema": "schema",  # noqa: E501
+        "type": "type",  # noqa: E501
+        "field": "field",  # noqa: E501
+        "text_query": "text_query",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -115,7 +104,7 @@ class ByocSpec(ModelNormal):
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
-        """Create a new instance of ByocSpec.
+        """Create a new instance of TextQuery.
 
         This method is overridden to provide proper type inference for mypy.
         The actual instance creation logic (including discriminator handling)
@@ -127,11 +116,13 @@ class ByocSpec(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], environment, *args, **kwargs) -> T:  # noqa: E501
-        """ByocSpec - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], type, field, text_query, *args, **kwargs) -> T:  # noqa: E501
+        """TextQuery - a model defined in OpenAPI
 
         Args:
-            environment (str): The environment where the index is hosted.
+            type (str): The query type. Must be the string value `\"text\"`.
+            field (str): The text field to search.
+            text_query (str): The text query string. Supports multiple terms and quoted phrases. Terms are combined with OR logic.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -164,7 +155,6 @@ class ByocSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            schema (BackupModelSchema): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -194,7 +184,9 @@ class ByocSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.environment = environment
+        self.type = type
+        self.field = field
+        self.text_query = text_query
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -221,11 +213,13 @@ class ByocSpec(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, environment, *args, **kwargs) -> None:  # noqa: E501
-        """ByocSpec - a model defined in OpenAPI
+    def __init__(self, type, field, text_query, *args, **kwargs) -> None:  # noqa: E501
+        """TextQuery - a model defined in OpenAPI
 
         Args:
-            environment (str): The environment where the index is hosted.
+            type (str): The query type. Must be the string value `\"text\"`.
+            field (str): The text field to search.
+            text_query (str): The text query string. Supports multiple terms and quoted phrases. Terms are combined with OR logic.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -258,7 +252,6 @@ class ByocSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            schema (BackupModelSchema): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -286,7 +279,9 @@ class ByocSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.environment = environment
+        self.type = type
+        self.field = field
+        self.text_query = text_query
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

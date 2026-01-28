@@ -28,20 +28,26 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
 def lazy_import():
-    from pinecone.core.openapi.db_control.model.pagination_response import PaginationResponse
-    from pinecone.core.openapi.db_control.model.restore_job_model import RestoreJobModel
+    from pinecone.core.openapi.db_control.model.byoc_deployment import ByocDeployment
+    from pinecone.core.openapi.db_control.model.pod_deployment import PodDeployment
+    from pinecone.core.openapi.db_control.model.pod_deployment_metadata_config import (
+        PodDeploymentMetadataConfig,
+    )
+    from pinecone.core.openapi.db_control.model.serverless_deployment import ServerlessDeployment
 
-    globals()["PaginationResponse"] = PaginationResponse
-    globals()["RestoreJobModel"] = RestoreJobModel
+    globals()["ByocDeployment"] = ByocDeployment
+    globals()["PodDeployment"] = PodDeployment
+    globals()["PodDeploymentMetadataConfig"] = PodDeploymentMetadataConfig
+    globals()["ServerlessDeployment"] = ServerlessDeployment
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="RestoreJobList")
+T = TypeVar("T", bound="Deployment")
 
 
-class RestoreJobList(ModelNormal):
+class Deployment(ModelComposed):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -69,7 +75,11 @@ class RestoreJobList(ModelNormal):
 
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
+        ("replicas",): {"inclusive_minimum": 1},
+        ("shards",): {"inclusive_minimum": 1},
+        ("pods",): {"inclusive_minimum": 1},
+    }
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -94,43 +104,55 @@ class RestoreJobList(ModelNormal):
         """
         lazy_import()
         return {
-            "data": ([RestoreJobModel],),  # noqa: E501
-            "pagination": (PaginationResponse,),  # noqa: E501
+            "deployment_type": (str,),  # noqa: E501
+            "replicas": (int,),  # noqa: E501
+            "shards": (int,),  # noqa: E501
+            "pods": (int,),  # noqa: E501
+            "source_collection": (str,),  # noqa: E501
+            "metadata_config": (PodDeploymentMetadataConfig,),  # noqa: E501
+            "cloud": (str,),  # noqa: E501
+            "region": (str,),  # noqa: E501
+            "environment": (str,),  # noqa: E501
+            "pod_type": (str,),  # noqa: E501
         }
 
     @cached_class_property
     def discriminator(cls):
-        return None
+        lazy_import()
+        val = {
+            "ByocDeployment": ByocDeployment,
+            "PodDeployment": PodDeployment,
+            "ServerlessDeployment": ServerlessDeployment,
+            "byoc": ByocDeployment,
+            "pod": PodDeployment,
+            "serverless": ServerlessDeployment,
+        }
+        if not val:
+            return None
+        return {"deployment_type": val}
 
     attribute_map: Dict[str, str] = {
-        "data": "data",  # noqa: E501
-        "pagination": "pagination",  # noqa: E501
+        "deployment_type": "deployment_type",  # noqa: E501
+        "replicas": "replicas",  # noqa: E501
+        "shards": "shards",  # noqa: E501
+        "pods": "pods",  # noqa: E501
+        "source_collection": "source_collection",  # noqa: E501
+        "metadata_config": "metadata_config",  # noqa: E501
+        "cloud": "cloud",  # noqa: E501
+        "region": "region",  # noqa: E501
+        "environment": "environment",  # noqa: E501
+        "pod_type": "pod_type",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
 
-    _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
-
-    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
-        """Create a new instance of RestoreJobList.
-
-        This method is overridden to provide proper type inference for mypy.
-        The actual instance creation logic (including discriminator handling)
-        is handled by the parent class's __new__ method.
-        """
-        # Call parent's __new__ with all arguments to preserve discriminator logic
-        instance: T = super().__new__(cls, *args, **kwargs)
-        return instance
-
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], data, *args, **kwargs) -> T:  # noqa: E501
-        """RestoreJobList - a model defined in OpenAPI
-
-        Args:
-            data ([RestoreJobModel]): List of restore job objects
+    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
+        """Deployment - a model defined in OpenAPI
 
         Keyword Args:
+            deployment_type (str): Identifies this as a BYOC (Bring Your Own Cloud) deployment configuration.
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -161,11 +183,17 @@ class RestoreJobList(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            pagination (PaginationResponse): [optional]  # noqa: E501
+            replicas (int): The number of replicas. Replicas duplicate the compute resources and data of an index, allowing higher query throughput and availability. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            shards (int): The number of shards. Shards determine the storage capacity of an index, with each shard providing storage based on the pod type. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
+            metadata_config (PodDeploymentMetadataConfig): [optional]  # noqa: E501
+            cloud (str): The public cloud where the index is hosted. Possible values: `gcp`, `aws`, or `azure`. [optional]  # noqa: E501
+            region (str): The region where the index is hosted. [optional]  # noqa: E501
+            environment (str): The environment where the index is hosted in your cloud account. [optional]  # noqa: E501
+            pod_type (str): The pod type and size to use for the index. Possible values include: `p1.x1`, `p1.x2`, `p1.x4`, `p1.x8`, `s1.x1`, `s1.x2`, `s1.x4`, `s1.x8`. [optional]  # noqa: E501
         """
 
-        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
-        _enforce_validations = kwargs.pop("_enforce_validations", False)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -183,25 +211,36 @@ class RestoreJobList(ModelNormal):
             )
 
         self._data_store = {}
-        self._enforce_allowed_values = _enforce_allowed_values
-        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.data = data
+        constant_args = {
+            "_check_type": _check_type,
+            "_path_to_item": _path_to_item,
+            "_spec_property_naming": _spec_property_naming,
+            "_configuration": _configuration,
+            "_visited_composed_classes": self._visited_composed_classes,
+        }
+        composed_info = validate_get_composed_info(constant_args, kwargs, self)
+        self._composed_instances = composed_info[0]
+        self._var_name_to_model_instances = composed_info[1]
+        self._additional_properties_model_instances = composed_info[2]
+        discarded_args = composed_info[3]
+
         for var_name, var_value in kwargs.items():
             if (
-                var_name not in self.attribute_map
+                var_name in discarded_args
                 and self._configuration is not None
                 and self._configuration.discard_unknown_keys
-                and self.additional_properties_type is None
+                and self._additional_properties_model_instances
             ):
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
+
         return self
 
     required_properties = set(
@@ -214,17 +253,18 @@ class RestoreJobList(ModelNormal):
             "_path_to_item",
             "_configuration",
             "_visited_composed_classes",
+            "_composed_instances",
+            "_var_name_to_model_instances",
+            "_additional_properties_model_instances",
         ]
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, data, *args, **kwargs) -> None:  # noqa: E501
-        """RestoreJobList - a model defined in OpenAPI
-
-        Args:
-            data ([RestoreJobModel]): List of restore job objects
+    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
+        """Deployment - a model defined in OpenAPI
 
         Keyword Args:
+            deployment_type (str): Identifies this as a BYOC (Bring Your Own Cloud) deployment configuration.
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -255,7 +295,15 @@ class RestoreJobList(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            pagination (PaginationResponse): [optional]  # noqa: E501
+            replicas (int): The number of replicas. Replicas duplicate the compute resources and data of an index, allowing higher query throughput and availability. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            shards (int): The number of shards. Shards determine the storage capacity of an index, with each shard providing storage based on the pod type. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
+            metadata_config (PodDeploymentMetadataConfig): [optional]  # noqa: E501
+            cloud (str): The public cloud where the index is hosted. Possible values: `gcp`, `aws`, or `azure`. [optional]  # noqa: E501
+            region (str): The region where the index is hosted. [optional]  # noqa: E501
+            environment (str): The environment where the index is hosted in your cloud account. [optional]  # noqa: E501
+            pod_type (str): The pod type and size to use for the index. Possible values include: `p1.x1`, `p1.x2`, `p1.x4`, `p1.x8`, `s1.x1`, `s1.x2`, `s1.x4`, `s1.x8`. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -283,13 +331,25 @@ class RestoreJobList(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.data = data
+        constant_args = {
+            "_check_type": _check_type,
+            "_path_to_item": _path_to_item,
+            "_spec_property_naming": _spec_property_naming,
+            "_configuration": _configuration,
+            "_visited_composed_classes": self._visited_composed_classes,
+        }
+        composed_info = validate_get_composed_info(constant_args, kwargs, self)
+        self._composed_instances = composed_info[0]
+        self._var_name_to_model_instances = composed_info[1]
+        self._additional_properties_model_instances = composed_info[2]
+        discarded_args = composed_info[3]
+
         for var_name, var_value in kwargs.items():
             if (
-                var_name not in self.attribute_map
+                var_name in discarded_args
                 and self._configuration is not None
                 and self._configuration.discard_unknown_keys
-                and self.additional_properties_type is None
+                and self._additional_properties_model_instances
             ):
                 # discard variable.
                 continue
@@ -299,3 +359,19 @@ class RestoreJobList(ModelNormal):
                     f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
                     f"class with read only attributes."
                 )
+
+    @cached_property
+    def _composed_schemas():  # type: ignore
+        # we need this here to make our import statements work
+        # we must store _composed_schemas in here so the code is only run
+        # when we invoke this method. If we kept this at the class
+        # level we would get an error beause the class level
+        # code would be run when this module is imported, and these composed
+        # classes don't exist yet because their module has not finished
+        # loading
+        lazy_import()
+        return {
+            "anyOf": [],
+            "allOf": [],
+            "oneOf": [ByocDeployment, PodDeployment, ServerlessDeployment],
+        }

@@ -1,11 +1,11 @@
 """
-Pinecone Control Plane API
+Pinecone Data Plane API
 
 Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -26,25 +26,14 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.serverless_spec import ServerlessSpec
-
-
-def lazy_import():
-    from pinecone.core.openapi.db_control.model.serverless_spec import ServerlessSpec
-
-    globals()["ServerlessSpec"] = ServerlessSpec
-
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="Serverless")
+T = TypeVar("T", bound="FilterExpression")
 
 
-class Serverless(ModelNormal):
+class FilterExpression(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -80,7 +69,6 @@ class Serverless(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -95,9 +83,9 @@ class Serverless(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
-            "serverless": (ServerlessSpec,)  # noqa: E501
+            "_and": ([FilterExpression],),  # noqa: E501
+            "_or": ([FilterExpression],),  # noqa: E501
         }
 
     @cached_class_property
@@ -105,7 +93,8 @@ class Serverless(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "serverless": "serverless"  # noqa: E501
+        "_and": "$and",  # noqa: E501
+        "_or": "$or",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -113,7 +102,7 @@ class Serverless(ModelNormal):
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
-        """Create a new instance of Serverless.
+        """Create a new instance of FilterExpression.
 
         This method is overridden to provide proper type inference for mypy.
         The actual instance creation logic (including discriminator handling)
@@ -125,11 +114,8 @@ class Serverless(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], serverless, *args, **kwargs) -> T:  # noqa: E501
-        """Serverless - a model defined in OpenAPI
-
-        Args:
-            serverless (ServerlessSpec):
+    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
+        """FilterExpression - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -162,6 +148,8 @@ class Serverless(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            _and ([FilterExpression]): Logical AND of multiple filter expressions. [optional]  # noqa: E501
+            _or ([FilterExpression]): Logical OR of multiple filter expressions. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -191,7 +179,6 @@ class Serverless(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.serverless = serverless
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -218,11 +205,8 @@ class Serverless(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, serverless, *args, **kwargs) -> None:  # noqa: E501
-        """Serverless - a model defined in OpenAPI
-
-        Args:
-            serverless (ServerlessSpec):
+    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
+        """FilterExpression - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -255,6 +239,8 @@ class Serverless(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            _and ([FilterExpression]): Logical AND of multiple filter expressions. [optional]  # noqa: E501
+            _or ([FilterExpression]): Logical OR of multiple filter expressions. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -282,7 +268,6 @@ class Serverless(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.serverless = serverless
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

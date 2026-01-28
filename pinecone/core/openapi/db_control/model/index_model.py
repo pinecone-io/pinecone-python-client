@@ -1,11 +1,11 @@
 """
 Pinecone Control Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors and documents.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -26,22 +26,19 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.index_model_status import IndexModelStatus
-    from pinecone.core.openapi.db_control.model.index_tags import IndexTags
-    from pinecone.core.openapi.db_control.model.model_index_embed import ModelIndexEmbed
-
 
 def lazy_import():
+    from pinecone.core.openapi.db_control.model.deployment import Deployment
     from pinecone.core.openapi.db_control.model.index_model_status import IndexModelStatus
     from pinecone.core.openapi.db_control.model.index_tags import IndexTags
-    from pinecone.core.openapi.db_control.model.model_index_embed import ModelIndexEmbed
+    from pinecone.core.openapi.db_control.model.read_capacity_response import ReadCapacityResponse
+    from pinecone.core.openapi.db_control.model.schema import Schema
 
+    globals()["Deployment"] = Deployment
     globals()["IndexModelStatus"] = IndexModelStatus
     globals()["IndexTags"] = IndexTags
-    globals()["ModelIndexEmbed"] = ModelIndexEmbed
+    globals()["ReadCapacityResponse"] = ReadCapacityResponse
+    globals()["Schema"] = Schema
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -79,8 +76,7 @@ class IndexModel(ModelNormal):
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
     validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-        ("name",): {"max_length": 45, "min_length": 1},
-        ("dimension",): {"inclusive_maximum": 20000, "inclusive_minimum": 1},
+        ("name",): {"max_length": 45, "min_length": 1}
     }
 
     @cached_class_property
@@ -107,16 +103,15 @@ class IndexModel(ModelNormal):
         lazy_import()
         return {
             "name": (str,),  # noqa: E501
-            "metric": (str,),  # noqa: E501
+            "schema": (Schema,),  # noqa: E501
+            "deployment": (Deployment,),  # noqa: E501
             "host": (str,),  # noqa: E501
-            "spec": (Dict[str, Any],),  # noqa: E501
-            "status": (IndexModelStatus,),  # noqa: E501
-            "vector_type": (str,),  # noqa: E501
-            "dimension": (int,),  # noqa: E501
-            "private_host": (str,),  # noqa: E501
             "deletion_protection": (str,),  # noqa: E501
+            "status": (IndexModelStatus,),  # noqa: E501
+            "read_capacity": (ReadCapacityResponse,),  # noqa: E501
+            "private_host": (str,),  # noqa: E501
             "tags": (IndexTags,),  # noqa: E501
-            "embed": (ModelIndexEmbed,),  # noqa: E501
+            "source_collection": (str,),  # noqa: E501
         }
 
     @cached_class_property
@@ -125,16 +120,15 @@ class IndexModel(ModelNormal):
 
     attribute_map: Dict[str, str] = {
         "name": "name",  # noqa: E501
-        "metric": "metric",  # noqa: E501
+        "schema": "schema",  # noqa: E501
+        "deployment": "deployment",  # noqa: E501
         "host": "host",  # noqa: E501
-        "spec": "spec",  # noqa: E501
-        "status": "status",  # noqa: E501
-        "vector_type": "vector_type",  # noqa: E501
-        "dimension": "dimension",  # noqa: E501
-        "private_host": "private_host",  # noqa: E501
         "deletion_protection": "deletion_protection",  # noqa: E501
+        "status": "status",  # noqa: E501
+        "read_capacity": "read_capacity",  # noqa: E501
+        "private_host": "private_host",  # noqa: E501
         "tags": "tags",  # noqa: E501
-        "embed": "embed",  # noqa: E501
+        "source_collection": "source_collection",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -154,18 +148,20 @@ class IndexModel(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], name, metric, host, spec, status, *args, **kwargs) -> T:  # noqa: E501
+    def _from_openapi_data(
+        cls: Type[T], name, schema, deployment, host, status, *args, **kwargs
+    ) -> T:  # noqa: E501
         """IndexModel - a model defined in OpenAPI
 
         Args:
-            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'. Possible values: `cosine`, `euclidean`, or `dotproduct`.
+            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'. If not provided, a name will be auto-generated.
+            schema (Schema):
+            deployment (Deployment):
             host (str): The URL address where the index is hosted.
-            spec (Dict[str, Any]): The spec object defines how the index should be deployed.
             status (IndexModelStatus):
 
         Keyword Args:
-            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified. defaults to "dense"  # noqa: E501
+            deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. defaults to "disabled"  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -196,14 +192,13 @@ class IndexModel(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
+            read_capacity (ReadCapacityResponse): [optional]  # noqa: E501
             private_host (str): The private endpoint URL of an index. [optional]  # noqa: E501
-            deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. [optional] if omitted the server will use the default value of "disabled".  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
-            embed (ModelIndexEmbed): [optional]  # noqa: E501
+            source_collection (str): The name of the collection used as the source for the index, if any. [optional]  # noqa: E501
         """
 
-        vector_type = kwargs.get("vector_type", "dense")
+        deletion_protection = kwargs.get("deletion_protection", "disabled")
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
         _enforce_validations = kwargs.pop("_enforce_validations", False)
         _check_type = kwargs.pop("_check_type", True)
@@ -232,11 +227,11 @@ class IndexModel(ModelNormal):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         self.name = name
-        self.metric = metric
+        self.schema = schema
+        self.deployment = deployment
         self.host = host
-        self.spec = spec
+        self.deletion_protection = deletion_protection
         self.status = status
-        self.vector_type = vector_type
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -263,18 +258,18 @@ class IndexModel(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, name, metric, host, spec, status, *args, **kwargs) -> None:  # noqa: E501
+    def __init__(self, name, schema, deployment, host, status, *args, **kwargs) -> None:  # noqa: E501
         """IndexModel - a model defined in OpenAPI
 
         Args:
-            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'. Possible values: `cosine`, `euclidean`, or `dotproduct`.
+            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'. If not provided, a name will be auto-generated.
+            schema (Schema):
+            deployment (Deployment):
             host (str): The URL address where the index is hosted.
-            spec (Dict[str, Any]): The spec object defines how the index should be deployed.
             status (IndexModelStatus):
 
         Keyword Args:
-            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified. defaults to "dense"  # noqa: E501
+            deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. defaults to "disabled"  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -305,14 +300,13 @@ class IndexModel(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
+            read_capacity (ReadCapacityResponse): [optional]  # noqa: E501
             private_host (str): The private endpoint URL of an index. [optional]  # noqa: E501
-            deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. [optional] if omitted the server will use the default value of "disabled".  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
-            embed (ModelIndexEmbed): [optional]  # noqa: E501
+            source_collection (str): The name of the collection used as the source for the index, if any. [optional]  # noqa: E501
         """
 
-        vector_type = kwargs.get("vector_type", "dense")
+        deletion_protection = kwargs.get("deletion_protection", "disabled")
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
         _enforce_validations = kwargs.pop("_enforce_validations", True)
         _check_type = kwargs.pop("_check_type", True)
@@ -339,11 +333,11 @@ class IndexModel(ModelNormal):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         self.name = name
-        self.metric = metric
+        self.schema = schema
+        self.deployment = deployment
         self.host = host
-        self.spec = spec
+        self.deletion_protection = deletion_protection
         self.status = status
-        self.vector_type = vector_type
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

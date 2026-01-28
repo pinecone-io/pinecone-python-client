@@ -1,11 +1,11 @@
 """
 Pinecone Control Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors and documents.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -26,40 +26,14 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.byoc import BYOC
-    from pinecone.core.openapi.db_control.model.byoc_spec import ByocSpec
-    from pinecone.core.openapi.db_control.model.pod_based import PodBased
-    from pinecone.core.openapi.db_control.model.pod_spec import PodSpec
-    from pinecone.core.openapi.db_control.model.serverless import Serverless
-    from pinecone.core.openapi.db_control.model.serverless_spec import ServerlessSpec
-
-
-def lazy_import():
-    from pinecone.core.openapi.db_control.model.byoc import BYOC
-    from pinecone.core.openapi.db_control.model.byoc_spec import ByocSpec
-    from pinecone.core.openapi.db_control.model.pod_based import PodBased
-    from pinecone.core.openapi.db_control.model.pod_spec import PodSpec
-    from pinecone.core.openapi.db_control.model.serverless import Serverless
-    from pinecone.core.openapi.db_control.model.serverless_spec import ServerlessSpec
-
-    globals()["BYOC"] = BYOC
-    globals()["ByocSpec"] = ByocSpec
-    globals()["PodBased"] = PodBased
-    globals()["PodSpec"] = PodSpec
-    globals()["Serverless"] = Serverless
-    globals()["ServerlessSpec"] = ServerlessSpec
-
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="IndexSpec")
+T = TypeVar("T", bound="ServerlessDeployment")
 
 
-class IndexSpec(ModelComposed):
+class ServerlessDeployment(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -95,7 +69,6 @@ class IndexSpec(ModelComposed):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -110,11 +83,10 @@ class IndexSpec(ModelComposed):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
-            "serverless": (ServerlessSpec,),  # noqa: E501
-            "pod": (PodSpec,),  # noqa: E501
-            "byoc": (ByocSpec,),  # noqa: E501
+            "deployment_type": (str,),  # noqa: E501
+            "cloud": (str,),  # noqa: E501
+            "region": (str,),  # noqa: E501
         }
 
     @cached_class_property
@@ -122,17 +94,35 @@ class IndexSpec(ModelComposed):
         return None
 
     attribute_map: Dict[str, str] = {
-        "serverless": "serverless",  # noqa: E501
-        "pod": "pod",  # noqa: E501
-        "byoc": "byoc",  # noqa: E501
+        "deployment_type": "deployment_type",  # noqa: E501
+        "cloud": "cloud",  # noqa: E501
+        "region": "region",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
 
+    _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Create a new instance of ServerlessDeployment.
+
+        This method is overridden to provide proper type inference for mypy.
+        The actual instance creation logic (including discriminator handling)
+        is handled by the parent class's __new__ method.
+        """
+        # Call parent's __new__ with all arguments to preserve discriminator logic
+        instance: T = super().__new__(cls, *args, **kwargs)
+        return instance
+
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """IndexSpec - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], deployment_type, cloud, region, *args, **kwargs) -> T:  # noqa: E501
+        """ServerlessDeployment - a model defined in OpenAPI
+
+        Args:
+            deployment_type (str): Identifies this as a serverless deployment configuration.
+            cloud (str): The public cloud where the index is hosted. Possible values: `gcp`, `aws`, or `azure`.
+            region (str): The region where the index is hosted.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -165,11 +155,10 @@ class IndexSpec(ModelComposed):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            serverless (ServerlessSpec): [optional]  # noqa: E501
-            pod (PodSpec): [optional]  # noqa: E501
-            byoc (ByocSpec): [optional]  # noqa: E501
         """
 
+        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
+        _enforce_validations = kwargs.pop("_enforce_validations", False)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -187,36 +176,27 @@ class IndexSpec(ModelComposed):
             )
 
         self._data_store = {}
+        self._enforce_allowed_values = _enforce_allowed_values
+        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        constant_args = {
-            "_check_type": _check_type,
-            "_path_to_item": _path_to_item,
-            "_spec_property_naming": _spec_property_naming,
-            "_configuration": _configuration,
-            "_visited_composed_classes": self._visited_composed_classes,
-        }
-        composed_info = validate_get_composed_info(constant_args, kwargs, self)
-        self._composed_instances = composed_info[0]
-        self._var_name_to_model_instances = composed_info[1]
-        self._additional_properties_model_instances = composed_info[2]
-        discarded_args = composed_info[3]
-
+        self.deployment_type = deployment_type
+        self.cloud = cloud
+        self.region = region
         for var_name, var_value in kwargs.items():
             if (
-                var_name in discarded_args
+                var_name not in self.attribute_map
                 and self._configuration is not None
                 and self._configuration.discard_unknown_keys
-                and self._additional_properties_model_instances
+                and self.additional_properties_type is None
             ):
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
-
         return self
 
     required_properties = set(
@@ -229,15 +209,17 @@ class IndexSpec(ModelComposed):
             "_path_to_item",
             "_configuration",
             "_visited_composed_classes",
-            "_composed_instances",
-            "_var_name_to_model_instances",
-            "_additional_properties_model_instances",
         ]
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """IndexSpec - a model defined in OpenAPI
+    def __init__(self, deployment_type, cloud, region, *args, **kwargs) -> None:  # noqa: E501
+        """ServerlessDeployment - a model defined in OpenAPI
+
+        Args:
+            deployment_type (str): Identifies this as a serverless deployment configuration.
+            cloud (str): The public cloud where the index is hosted. Possible values: `gcp`, `aws`, or `azure`.
+            region (str): The region where the index is hosted.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -270,9 +252,6 @@ class IndexSpec(ModelComposed):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            serverless (ServerlessSpec): [optional]  # noqa: E501
-            pod (PodSpec): [optional]  # noqa: E501
-            byoc (ByocSpec): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -300,25 +279,15 @@ class IndexSpec(ModelComposed):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        constant_args = {
-            "_check_type": _check_type,
-            "_path_to_item": _path_to_item,
-            "_spec_property_naming": _spec_property_naming,
-            "_configuration": _configuration,
-            "_visited_composed_classes": self._visited_composed_classes,
-        }
-        composed_info = validate_get_composed_info(constant_args, kwargs, self)
-        self._composed_instances = composed_info[0]
-        self._var_name_to_model_instances = composed_info[1]
-        self._additional_properties_model_instances = composed_info[2]
-        discarded_args = composed_info[3]
-
+        self.deployment_type = deployment_type
+        self.cloud = cloud
+        self.region = region
         for var_name, var_value in kwargs.items():
             if (
-                var_name in discarded_args
+                var_name not in self.attribute_map
                 and self._configuration is not None
                 and self._configuration.discard_unknown_keys
-                and self._additional_properties_model_instances
+                and self.additional_properties_type is None
             ):
                 # discard variable.
                 continue
@@ -328,15 +297,3 @@ class IndexSpec(ModelComposed):
                     f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
                     f"class with read only attributes."
                 )
-
-    @cached_property
-    def _composed_schemas():
-        # we need this here to make our import statements work
-        # we must store _composed_schemas in here so the code is only run
-        # when we invoke this method. If we kept this at the class
-        # level we would get an error beause the class level
-        # code would be run when this module is imported, and these composed
-        # classes don't exist yet because their module has not finished
-        # loading
-        lazy_import()
-        return {"anyOf": [], "allOf": [], "oneOf": [BYOC, PodBased, Serverless]}

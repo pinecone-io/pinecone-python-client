@@ -1,11 +1,11 @@
 """
 Pinecone Control Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors and documents.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -30,10 +30,10 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="ConfigureIndexRequestEmbed")
+T = TypeVar("T", bound="ByocDeployment")
 
 
-class ConfigureIndexRequestEmbed(ModelNormal):
+class ByocDeployment(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -84,10 +84,10 @@ class ConfigureIndexRequestEmbed(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            "model": (str,),  # noqa: E501
-            "field_map": (Dict[str, Any],),  # noqa: E501
-            "read_parameters": (Dict[str, Any],),  # noqa: E501
-            "write_parameters": (Dict[str, Any],),  # noqa: E501
+            "deployment_type": (str,),  # noqa: E501
+            "environment": (str,),  # noqa: E501
+            "cloud": (str,),  # noqa: E501
+            "region": (str,),  # noqa: E501
         }
 
     @cached_class_property
@@ -95,10 +95,10 @@ class ConfigureIndexRequestEmbed(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "model": "model",  # noqa: E501
-        "field_map": "field_map",  # noqa: E501
-        "read_parameters": "read_parameters",  # noqa: E501
-        "write_parameters": "write_parameters",  # noqa: E501
+        "deployment_type": "deployment_type",  # noqa: E501
+        "environment": "environment",  # noqa: E501
+        "cloud": "cloud",  # noqa: E501
+        "region": "region",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -106,7 +106,7 @@ class ConfigureIndexRequestEmbed(ModelNormal):
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
-        """Create a new instance of ConfigureIndexRequestEmbed.
+        """Create a new instance of ByocDeployment.
 
         This method is overridden to provide proper type inference for mypy.
         The actual instance creation logic (including discriminator handling)
@@ -118,8 +118,12 @@ class ConfigureIndexRequestEmbed(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """ConfigureIndexRequestEmbed - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], deployment_type, environment, *args, **kwargs) -> T:  # noqa: E501
+        """ByocDeployment - a model defined in OpenAPI
+
+        Args:
+            deployment_type (str): Identifies this as a BYOC (Bring Your Own Cloud) deployment configuration.
+            environment (str): The environment where the index is hosted in your cloud account.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -152,10 +156,8 @@ class ConfigureIndexRequestEmbed(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            model (str): The name of the embedding model to use with the index. The index dimension and model dimension must match, and the index similarity metric must be supported by the model. The index embedding model cannot be changed once set. [optional]  # noqa: E501
-            field_map (Dict[str, Any]): Identifies the name of the text field from your document model that will be embedded. [optional]  # noqa: E501
-            read_parameters (Dict[str, Any]): The read parameters for the embedding model. [optional]  # noqa: E501
-            write_parameters (Dict[str, Any]): The write parameters for the embedding model. [optional]  # noqa: E501
+            cloud (str): The public cloud where the index is hosted. Possible values: `gcp`, `aws`, or `azure`. [optional]  # noqa: E501
+            region (str): The region where the index is hosted. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -185,6 +187,8 @@ class ConfigureIndexRequestEmbed(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.deployment_type = deployment_type
+        self.environment = environment
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -211,8 +215,12 @@ class ConfigureIndexRequestEmbed(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """ConfigureIndexRequestEmbed - a model defined in OpenAPI
+    def __init__(self, deployment_type, environment, *args, **kwargs) -> None:  # noqa: E501
+        """ByocDeployment - a model defined in OpenAPI
+
+        Args:
+            deployment_type (str): Identifies this as a BYOC (Bring Your Own Cloud) deployment configuration.
+            environment (str): The environment where the index is hosted in your cloud account.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -245,10 +253,8 @@ class ConfigureIndexRequestEmbed(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            model (str): The name of the embedding model to use with the index. The index dimension and model dimension must match, and the index similarity metric must be supported by the model. The index embedding model cannot be changed once set. [optional]  # noqa: E501
-            field_map (Dict[str, Any]): Identifies the name of the text field from your document model that will be embedded. [optional]  # noqa: E501
-            read_parameters (Dict[str, Any]): The read parameters for the embedding model. [optional]  # noqa: E501
-            write_parameters (Dict[str, Any]): The write parameters for the embedding model. [optional]  # noqa: E501
+            cloud (str): The public cloud where the index is hosted. Possible values: `gcp`, `aws`, or `azure`. [optional]  # noqa: E501
+            region (str): The region where the index is hosted. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -276,6 +282,8 @@ class ConfigureIndexRequestEmbed(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.deployment_type = deployment_type
+        self.environment = environment
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

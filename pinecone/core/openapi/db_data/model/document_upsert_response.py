@@ -1,11 +1,11 @@
 """
-Pinecone Control Plane API
+Pinecone Data Plane API
 
 Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -30,10 +30,10 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="ModelIndexEmbed")
+T = TypeVar("T", bound="DocumentUpsertResponse")
 
 
-class ModelIndexEmbed(ModelNormal):
+class DocumentUpsertResponse(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -61,9 +61,7 @@ class ModelIndexEmbed(ModelNormal):
 
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-        ("dimension",): {"inclusive_maximum": 20000, "inclusive_minimum": 1}
-    }
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -86,13 +84,7 @@ class ModelIndexEmbed(ModelNormal):
                 and the value is attribute type.
         """
         return {
-            "model": (str,),  # noqa: E501
-            "metric": (str,),  # noqa: E501
-            "dimension": (int,),  # noqa: E501
-            "vector_type": (str,),  # noqa: E501
-            "field_map": (Dict[str, Any],),  # noqa: E501
-            "read_parameters": (Dict[str, Any],),  # noqa: E501
-            "write_parameters": (Dict[str, Any],),  # noqa: E501
+            "upserted_count": (int,)  # noqa: E501
         }
 
     @cached_class_property
@@ -100,13 +92,7 @@ class ModelIndexEmbed(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "model": "model",  # noqa: E501
-        "metric": "metric",  # noqa: E501
-        "dimension": "dimension",  # noqa: E501
-        "vector_type": "vector_type",  # noqa: E501
-        "field_map": "field_map",  # noqa: E501
-        "read_parameters": "read_parameters",  # noqa: E501
-        "write_parameters": "write_parameters",  # noqa: E501
+        "upserted_count": "upsertedCount"  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -114,7 +100,7 @@ class ModelIndexEmbed(ModelNormal):
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
-        """Create a new instance of ModelIndexEmbed.
+        """Create a new instance of DocumentUpsertResponse.
 
         This method is overridden to provide proper type inference for mypy.
         The actual instance creation logic (including discriminator handling)
@@ -126,11 +112,8 @@ class ModelIndexEmbed(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], model, *args, **kwargs) -> T:  # noqa: E501
-        """ModelIndexEmbed - a model defined in OpenAPI
-
-        Args:
-            model (str): The name of the embedding model used to create the index.
+    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
+        """DocumentUpsertResponse - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -163,12 +146,7 @@ class ModelIndexEmbed(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set. Possible values: `cosine`, `euclidean`, or `dotproduct`. [optional]  # noqa: E501
-            dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
-            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified. [optional] if omitted the server will use the default value of "dense".  # noqa: E501
-            field_map (Dict[str, Any]): Identifies the name of the text field from your document model that is embedded. [optional]  # noqa: E501
-            read_parameters (Dict[str, Any]): The read parameters for the embedding model. [optional]  # noqa: E501
-            write_parameters (Dict[str, Any]): The write parameters for the embedding model. [optional]  # noqa: E501
+            upserted_count (int): The number of documents upserted. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -198,7 +176,6 @@ class ModelIndexEmbed(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.model = model
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -225,11 +202,8 @@ class ModelIndexEmbed(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, model, *args, **kwargs) -> None:  # noqa: E501
-        """ModelIndexEmbed - a model defined in OpenAPI
-
-        Args:
-            model (str): The name of the embedding model used to create the index.
+    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
+        """DocumentUpsertResponse - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -262,12 +236,7 @@ class ModelIndexEmbed(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set. Possible values: `cosine`, `euclidean`, or `dotproduct`. [optional]  # noqa: E501
-            dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
-            vector_type (str): The index vector type. You can use 'dense' or 'sparse'. If 'dense', the vector dimension must be specified.  If 'sparse', the vector dimension should not be specified. [optional] if omitted the server will use the default value of "dense".  # noqa: E501
-            field_map (Dict[str, Any]): Identifies the name of the text field from your document model that is embedded. [optional]  # noqa: E501
-            read_parameters (Dict[str, Any]): The read parameters for the embedding model. [optional]  # noqa: E501
-            write_parameters (Dict[str, Any]): The write parameters for the embedding model. [optional]  # noqa: E501
+            upserted_count (int): The number of documents upserted. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -295,7 +264,6 @@ class ModelIndexEmbed(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.model = model
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

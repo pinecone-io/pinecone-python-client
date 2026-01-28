@@ -1,11 +1,11 @@
 """
 Pinecone Control Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors and documents.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -27,13 +27,19 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
+def lazy_import():
+    from pinecone.core.openapi.db_control.model.schema_fields import SchemaFields
+
+    globals()["SchemaFields"] = SchemaFields
+
+
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="ScalingConfigManual")
+T = TypeVar("T", bound="Schema")
 
 
-class ScalingConfigManual(ModelNormal):
+class Schema(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -61,10 +67,7 @@ class ScalingConfigManual(ModelNormal):
 
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
-        ("replicas",): {"inclusive_minimum": 0},
-        ("shards",): {"inclusive_minimum": 1},
-    }
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -72,6 +75,7 @@ class ScalingConfigManual(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
+        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -86,9 +90,9 @@ class ScalingConfigManual(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
+        lazy_import()
         return {
-            "replicas": (int,),  # noqa: E501
-            "shards": (int,),  # noqa: E501
+            "fields": ({str: (SchemaFields,)},)  # noqa: E501
         }
 
     @cached_class_property
@@ -96,8 +100,7 @@ class ScalingConfigManual(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "replicas": "replicas",  # noqa: E501
-        "shards": "shards",  # noqa: E501
+        "fields": "fields"  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -105,7 +108,7 @@ class ScalingConfigManual(ModelNormal):
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
-        """Create a new instance of ScalingConfigManual.
+        """Create a new instance of Schema.
 
         This method is overridden to provide proper type inference for mypy.
         The actual instance creation logic (including discriminator handling)
@@ -117,12 +120,11 @@ class ScalingConfigManual(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], replicas, shards, *args, **kwargs) -> T:  # noqa: E501
-        """ScalingConfigManual - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], fields, *args, **kwargs) -> T:  # noqa: E501
+        """Schema - a model defined in OpenAPI
 
         Args:
-            replicas (int): The number of replicas to use. Replicas duplicate the compute resources and data of an index, allowing higher query throughput and availability. Setting replicas to 0 disables the index but can be used to reduce costs while usage is paused.
-            shards (int): The number of shards to use. Shards determine the storage capacity of an index, with each shard providing 250 GB of storage.
+            fields ({str: (SchemaFields,)}): A map of field names to their configuration. Each field name must be unique and valid according to field naming conventions.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -184,8 +186,7 @@ class ScalingConfigManual(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.replicas = replicas
-        self.shards = shards
+        self.fields = fields
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -212,12 +213,11 @@ class ScalingConfigManual(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, replicas, shards, *args, **kwargs) -> None:  # noqa: E501
-        """ScalingConfigManual - a model defined in OpenAPI
+    def __init__(self, fields, *args, **kwargs) -> None:  # noqa: E501
+        """Schema - a model defined in OpenAPI
 
         Args:
-            replicas (int): The number of replicas to use. Replicas duplicate the compute resources and data of an index, allowing higher query throughput and availability. Setting replicas to 0 disables the index but can be used to reduce costs while usage is paused.
-            shards (int): The number of shards to use. Shards determine the storage capacity of an index, with each shard providing 250 GB of storage.
+            fields ({str: (SchemaFields,)}): A map of field names to their configuration. Each field name must be unique and valid according to field naming conventions.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -277,8 +277,7 @@ class ScalingConfigManual(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.replicas = replicas
-        self.shards = shards
+        self.fields = fields
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

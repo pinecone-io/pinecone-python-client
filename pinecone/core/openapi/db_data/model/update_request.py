@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -25,11 +25,6 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     validate_get_composed_info,
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_data.model.sparse_values import SparseValues
 
 
 def lazy_import():
@@ -177,8 +172,8 @@ class UpdateRequest(ModelNormal):
             id (str): Vector's unique id. [optional]  # noqa: E501
             values ([float]): Vector data. [optional]  # noqa: E501
             sparse_values (SparseValues): [optional]  # noqa: E501
-            set_metadata (Dict[str, Any]): Metadata to set for the vector. [optional]  # noqa: E501
-            namespace (str): The namespace containing the vector to update. [optional]  # noqa: E501
+            set_metadata (Dict[str, Any]): Metadata to set for the record. [optional]  # noqa: E501
+            namespace (str): The namespace containing the record to update. [optional]  # noqa: E501
             filter (Dict[str, Any]): A metadata filter expression. When updating metadata across records in a namespace,  the update is applied to all records that match the filter.  See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
             dry_run (bool): If `true`, return the number of records that match the `filter`, but do not execute the update.  Default is `false`. [optional] if omitted the server will use the default value of False.  # noqa: E501
         """
@@ -273,8 +268,8 @@ class UpdateRequest(ModelNormal):
             id (str): Vector's unique id. [optional]  # noqa: E501
             values ([float]): Vector data. [optional]  # noqa: E501
             sparse_values (SparseValues): [optional]  # noqa: E501
-            set_metadata (Dict[str, Any]): Metadata to set for the vector. [optional]  # noqa: E501
-            namespace (str): The namespace containing the vector to update. [optional]  # noqa: E501
+            set_metadata (Dict[str, Any]): Metadata to set for the record. [optional]  # noqa: E501
+            namespace (str): The namespace containing the record to update. [optional]  # noqa: E501
             filter (Dict[str, Any]): A metadata filter expression. When updating metadata across records in a namespace,  the update is applied to all records that match the filter.  See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
             dry_run (bool): If `true`, return the number of records that match the `filter`, but do not execute the update.  Default is `false`. [optional] if omitted the server will use the default value of False.  # noqa: E501
         """

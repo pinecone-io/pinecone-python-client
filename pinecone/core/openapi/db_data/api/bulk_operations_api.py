@@ -5,13 +5,13 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, cast
+from typing import TYPE_CHECKING
 from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
@@ -47,7 +47,7 @@ class BulkOperationsApi:
         self.api_client = api_client
 
         def __cancel_bulk_import(
-            self, id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self, id, x_pinecone_api_version="2026-01.alpha", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> Dict[str, Any] | ApplyResult[Dict[str, Any]]:
             """Cancel an import  # noqa: E501
 
@@ -55,12 +55,12 @@ class BulkOperationsApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.cancel_bulk_import(id, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.cancel_bulk_import(id, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 id (str): Unique identifier for the import operation.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -88,9 +88,7 @@ class BulkOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["id"] = id
-            return cast(
-                Dict[str, Any] | ApplyResult[Dict[str, Any]], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.cancel_bulk_import = _Endpoint(
             settings={
@@ -122,7 +120,7 @@ class BulkOperationsApi:
         )
 
         def __describe_bulk_import(
-            self, id, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self, id, x_pinecone_api_version="2026-01.alpha", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> ImportModel | ApplyResult[ImportModel]:
             """Describe an import  # noqa: E501
 
@@ -130,12 +128,12 @@ class BulkOperationsApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.describe_bulk_import(id, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.describe_bulk_import(id, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 id (str): Unique identifier for the import operation.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -163,7 +161,7 @@ class BulkOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["id"] = id
-            return cast(ImportModel | ApplyResult[ImportModel], self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.describe_bulk_import = _Endpoint(
             settings={
@@ -195,7 +193,7 @@ class BulkOperationsApi:
         )
 
         def __list_bulk_imports(
-            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self, x_pinecone_api_version="2026-01.alpha", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> ListImportsResponse | ApplyResult[ListImportsResponse]:
             """List imports  # noqa: E501
 
@@ -203,11 +201,11 @@ class BulkOperationsApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_bulk_imports(x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.list_bulk_imports(x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 limit (int): Max number of operations to return per page. [optional] if omitted the server will use the default value of 100.
@@ -236,10 +234,7 @@ class BulkOperationsApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return cast(
-                ListImportsResponse | ApplyResult[ListImportsResponse],
-                self.call_with_http_info(**kwargs),
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.list_bulk_imports = _Endpoint(
             settings={
@@ -285,7 +280,7 @@ class BulkOperationsApi:
         def __start_bulk_import(
             self,
             start_import_request,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> StartImportResponse | ApplyResult[StartImportResponse]:
             """Start import  # noqa: E501
@@ -294,12 +289,12 @@ class BulkOperationsApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.start_bulk_import(start_import_request, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.start_bulk_import(start_import_request, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 start_import_request (StartImportRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -327,10 +322,7 @@ class BulkOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["start_import_request"] = start_import_request
-            return cast(
-                StartImportResponse | ApplyResult[StartImportResponse],
-                self.call_with_http_info(**kwargs),
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.start_bulk_import = _Endpoint(
             settings={
@@ -380,7 +372,7 @@ class AsyncioBulkOperationsApi:
         self.api_client = api_client
 
         async def __cancel_bulk_import(
-            self, id, x_pinecone_api_version="2025-10", **kwargs
+            self, id, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> Dict[str, Any]:
             """Cancel an import  # noqa: E501
 
@@ -389,7 +381,7 @@ class AsyncioBulkOperationsApi:
 
             Args:
                 id (str): Unique identifier for the import operation.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -414,7 +406,7 @@ class AsyncioBulkOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["id"] = id
-            return cast(Dict[str, Any], await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.cancel_bulk_import = _AsyncioEndpoint(
             settings={
@@ -446,7 +438,7 @@ class AsyncioBulkOperationsApi:
         )
 
         async def __describe_bulk_import(
-            self, id, x_pinecone_api_version="2025-10", **kwargs
+            self, id, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> ImportModel:
             """Describe an import  # noqa: E501
 
@@ -455,7 +447,7 @@ class AsyncioBulkOperationsApi:
 
             Args:
                 id (str): Unique identifier for the import operation.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -480,7 +472,7 @@ class AsyncioBulkOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["id"] = id
-            return cast(ImportModel, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.describe_bulk_import = _AsyncioEndpoint(
             settings={
@@ -512,7 +504,7 @@ class AsyncioBulkOperationsApi:
         )
 
         async def __list_bulk_imports(
-            self, x_pinecone_api_version="2025-10", **kwargs
+            self, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> ListImportsResponse:
             """List imports  # noqa: E501
 
@@ -520,7 +512,7 @@ class AsyncioBulkOperationsApi:
 
 
             Args:
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 limit (int): Max number of operations to return per page. [optional] if omitted the server will use the default value of 100.
@@ -546,7 +538,7 @@ class AsyncioBulkOperationsApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return cast(ListImportsResponse, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.list_bulk_imports = _AsyncioEndpoint(
             settings={
@@ -590,7 +582,7 @@ class AsyncioBulkOperationsApi:
         )
 
         async def __start_bulk_import(
-            self, start_import_request, x_pinecone_api_version="2025-10", **kwargs
+            self, start_import_request, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> StartImportResponse:
             """Start import  # noqa: E501
 
@@ -599,7 +591,7 @@ class AsyncioBulkOperationsApi:
 
             Args:
                 start_import_request (StartImportRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -624,7 +616,7 @@ class AsyncioBulkOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["start_import_request"] = start_import_request
-            return cast(StartImportResponse, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.start_bulk_import = _AsyncioEndpoint(
             settings={

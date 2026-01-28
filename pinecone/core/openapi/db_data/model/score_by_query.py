@@ -1,11 +1,11 @@
 """
-Pinecone Control Plane API
+Pinecone Data Plane API
 
 Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -27,13 +27,23 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
+def lazy_import():
+    from pinecone.core.openapi.db_data.model.sparse_values import SparseValues
+    from pinecone.core.openapi.db_data.model.text_query import TextQuery
+    from pinecone.core.openapi.db_data.model.vector_query import VectorQuery
+
+    globals()["SparseValues"] = SparseValues
+    globals()["TextQuery"] = TextQuery
+    globals()["VectorQuery"] = VectorQuery
+
+
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="PodSpecMetadataConfig")
+T = TypeVar("T", bound="ScoreByQuery")
 
 
-class PodSpecMetadataConfig(ModelNormal):
+class ScoreByQuery(ModelComposed):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -69,6 +79,7 @@ class PodSpecMetadataConfig(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
+        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -83,39 +94,45 @@ class PodSpecMetadataConfig(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
+        lazy_import()
         return {
-            "indexed": ([str],)  # noqa: E501
+            "type": (str,),  # noqa: E501
+            "values": ([float],),  # noqa: E501
+            "sparse_values": (SparseValues,),  # noqa: E501
+            "field": (str,),  # noqa: E501
+            "text_query": (str,),  # noqa: E501
         }
 
     @cached_class_property
     def discriminator(cls):
-        return None
+        lazy_import()
+        val = {
+            "TextQuery": TextQuery,
+            "VectorQuery": VectorQuery,
+            "text": TextQuery,
+            "vector": VectorQuery,
+        }
+        if not val:
+            return None
+        return {"type": val}
 
     attribute_map: Dict[str, str] = {
-        "indexed": "indexed"  # noqa: E501
+        "type": "type",  # noqa: E501
+        "values": "values",  # noqa: E501
+        "sparse_values": "sparse_values",  # noqa: E501
+        "field": "field",  # noqa: E501
+        "text_query": "text_query",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
 
-    _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
-
-    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
-        """Create a new instance of PodSpecMetadataConfig.
-
-        This method is overridden to provide proper type inference for mypy.
-        The actual instance creation logic (including discriminator handling)
-        is handled by the parent class's __new__ method.
-        """
-        # Call parent's __new__ with all arguments to preserve discriminator logic
-        instance: T = super().__new__(cls, *args, **kwargs)
-        return instance
-
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """PodSpecMetadataConfig - a model defined in OpenAPI
+        """ScoreByQuery - a model defined in OpenAPI
 
         Keyword Args:
+            type (str): The query type. Must be the string value `\"vector\"`.
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -146,11 +163,12 @@ class PodSpecMetadataConfig(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            indexed ([str]): By default, all metadata is indexed; to change this behavior, use this property to specify an array of metadata fields that should be indexed. [optional]  # noqa: E501
+            values ([float]): Dense vector values for the query. Required if `sparse_values` is not provided. Mutually exclusive with `sparse_values`. [optional]  # noqa: E501
+            sparse_values (SparseValues): [optional]  # noqa: E501
+            field (str): The vector field to search. [optional]  # noqa: E501
+            text_query (str): The text query string. Supports multiple terms and quoted phrases. Terms are combined with OR logic. [optional]  # noqa: E501
         """
 
-        _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
-        _enforce_validations = kwargs.pop("_enforce_validations", False)
         _check_type = kwargs.pop("_check_type", True)
         _spec_property_naming = kwargs.pop("_spec_property_naming", False)
         _path_to_item = kwargs.pop("_path_to_item", ())
@@ -168,24 +186,36 @@ class PodSpecMetadataConfig(ModelNormal):
             )
 
         self._data_store = {}
-        self._enforce_allowed_values = _enforce_allowed_values
-        self._enforce_validations = _enforce_validations
         self._check_type = _check_type
         self._spec_property_naming = _spec_property_naming
         self._path_to_item = _path_to_item
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        constant_args = {
+            "_check_type": _check_type,
+            "_path_to_item": _path_to_item,
+            "_spec_property_naming": _spec_property_naming,
+            "_configuration": _configuration,
+            "_visited_composed_classes": self._visited_composed_classes,
+        }
+        composed_info = validate_get_composed_info(constant_args, kwargs, self)
+        self._composed_instances = composed_info[0]
+        self._var_name_to_model_instances = composed_info[1]
+        self._additional_properties_model_instances = composed_info[2]
+        discarded_args = composed_info[3]
+
         for var_name, var_value in kwargs.items():
             if (
-                var_name not in self.attribute_map
+                var_name in discarded_args
                 and self._configuration is not None
                 and self._configuration.discard_unknown_keys
-                and self.additional_properties_type is None
+                and self._additional_properties_model_instances
             ):
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
+
         return self
 
     required_properties = set(
@@ -198,14 +228,18 @@ class PodSpecMetadataConfig(ModelNormal):
             "_path_to_item",
             "_configuration",
             "_visited_composed_classes",
+            "_composed_instances",
+            "_var_name_to_model_instances",
+            "_additional_properties_model_instances",
         ]
     )
 
     @convert_js_args_to_python_args
     def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """PodSpecMetadataConfig - a model defined in OpenAPI
+        """ScoreByQuery - a model defined in OpenAPI
 
         Keyword Args:
+            type (str): The query type. Must be the string value `\"vector\"`.
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -236,7 +270,10 @@ class PodSpecMetadataConfig(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            indexed ([str]): By default, all metadata is indexed; to change this behavior, use this property to specify an array of metadata fields that should be indexed. [optional]  # noqa: E501
+            values ([float]): Dense vector values for the query. Required if `sparse_values` is not provided. Mutually exclusive with `sparse_values`. [optional]  # noqa: E501
+            sparse_values (SparseValues): [optional]  # noqa: E501
+            field (str): The vector field to search. [optional]  # noqa: E501
+            text_query (str): The text query string. Supports multiple terms and quoted phrases. Terms are combined with OR logic. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -264,12 +301,25 @@ class PodSpecMetadataConfig(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        constant_args = {
+            "_check_type": _check_type,
+            "_path_to_item": _path_to_item,
+            "_spec_property_naming": _spec_property_naming,
+            "_configuration": _configuration,
+            "_visited_composed_classes": self._visited_composed_classes,
+        }
+        composed_info = validate_get_composed_info(constant_args, kwargs, self)
+        self._composed_instances = composed_info[0]
+        self._var_name_to_model_instances = composed_info[1]
+        self._additional_properties_model_instances = composed_info[2]
+        discarded_args = composed_info[3]
+
         for var_name, var_value in kwargs.items():
             if (
-                var_name not in self.attribute_map
+                var_name in discarded_args
                 and self._configuration is not None
                 and self._configuration.discard_unknown_keys
-                and self.additional_properties_type is None
+                and self._additional_properties_model_instances
             ):
                 # discard variable.
                 continue
@@ -279,3 +329,15 @@ class PodSpecMetadataConfig(ModelNormal):
                     f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
                     f"class with read only attributes."
                 )
+
+    @cached_property
+    def _composed_schemas():  # type: ignore
+        # we need this here to make our import statements work
+        # we must store _composed_schemas in here so the code is only run
+        # when we invoke this method. If we kept this at the class
+        # level we would get an error beause the class level
+        # code would be run when this module is imported, and these composed
+        # classes don't exist yet because their module has not finished
+        # loading
+        lazy_import()
+        return {"anyOf": [], "allOf": [], "oneOf": [TextQuery, VectorQuery]}

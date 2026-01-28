@@ -20,9 +20,15 @@ from pinecone.core.openapi.db_data.model.delete_request import DeleteRequest
 from pinecone.core.openapi.db_data.model.describe_index_stats_request import (
     DescribeIndexStatsRequest,
 )
+from pinecone.core.openapi.db_data.model.document import Document
+from pinecone.core.openapi.db_data.model.document_search_request import DocumentSearchRequest
+from pinecone.core.openapi.db_data.model.document_search_response import DocumentSearchResponse
+from pinecone.core.openapi.db_data.model.document_upsert_request import DocumentUpsertRequest
+from pinecone.core.openapi.db_data.model.document_upsert_response import DocumentUpsertResponse
 from pinecone.core.openapi.db_data.model.fetch_by_metadata_request import FetchByMetadataRequest
 from pinecone.core.openapi.db_data.model.fetch_by_metadata_response import FetchByMetadataResponse
 from pinecone.core.openapi.db_data.model.fetch_response import FetchResponse
+from pinecone.core.openapi.db_data.model.filter_expression import FilterExpression
 from pinecone.core.openapi.db_data.model.hit import Hit
 from pinecone.core.openapi.db_data.model.import_error_mode import ImportErrorMode
 from pinecone.core.openapi.db_data.model.import_model import ImportModel
@@ -32,9 +38,6 @@ from pinecone.core.openapi.db_data.model.list_item import ListItem
 from pinecone.core.openapi.db_data.model.list_namespaces_response import ListNamespacesResponse
 from pinecone.core.openapi.db_data.model.list_response import ListResponse
 from pinecone.core.openapi.db_data.model.namespace_description import NamespaceDescription
-from pinecone.core.openapi.db_data.model.namespace_description_indexed_fields import (
-    NamespaceDescriptionIndexedFields,
-)
 from pinecone.core.openapi.db_data.model.namespace_summary import NamespaceSummary
 from pinecone.core.openapi.db_data.model.pagination import Pagination
 from pinecone.core.openapi.db_data.model.protobuf_any import ProtobufAny
@@ -42,6 +45,7 @@ from pinecone.core.openapi.db_data.model.query_request import QueryRequest
 from pinecone.core.openapi.db_data.model.query_response import QueryResponse
 from pinecone.core.openapi.db_data.model.query_vector import QueryVector
 from pinecone.core.openapi.db_data.model.rpc_status import RpcStatus
+from pinecone.core.openapi.db_data.model.score_by_query import ScoreByQuery
 from pinecone.core.openapi.db_data.model.scored_vector import ScoredVector
 from pinecone.core.openapi.db_data.model.search_match_terms import SearchMatchTerms
 from pinecone.core.openapi.db_data.model.search_records_request import SearchRecordsRequest
@@ -61,6 +65,7 @@ from pinecone.core.openapi.db_data.model.single_query_results import SingleQuery
 from pinecone.core.openapi.db_data.model.sparse_values import SparseValues
 from pinecone.core.openapi.db_data.model.start_import_request import StartImportRequest
 from pinecone.core.openapi.db_data.model.start_import_response import StartImportResponse
+from pinecone.core.openapi.db_data.model.text_query import TextQuery
 from pinecone.core.openapi.db_data.model.update_request import UpdateRequest
 from pinecone.core.openapi.db_data.model.update_response import UpdateResponse
 from pinecone.core.openapi.db_data.model.upsert_record import UpsertRecord
@@ -68,4 +73,5 @@ from pinecone.core.openapi.db_data.model.upsert_request import UpsertRequest
 from pinecone.core.openapi.db_data.model.upsert_response import UpsertResponse
 from pinecone.core.openapi.db_data.model.usage import Usage
 from pinecone.core.openapi.db_data.model.vector import Vector
+from pinecone.core.openapi.db_data.model.vector_query import VectorQuery
 from pinecone.core.openapi.db_data.model.vector_values import VectorValues

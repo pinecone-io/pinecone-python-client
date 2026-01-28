@@ -1,11 +1,11 @@
 """
 Pinecone Control Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors and documents.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -26,28 +26,14 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
-    from pinecone.core.openapi.db_control.model.read_capacity_response import ReadCapacityResponse
-
-
-def lazy_import():
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
-    from pinecone.core.openapi.db_control.model.read_capacity_response import ReadCapacityResponse
-
-    globals()["BackupModelSchema"] = BackupModelSchema
-    globals()["ReadCapacityResponse"] = ReadCapacityResponse
-
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="ServerlessSpecResponse")
+T = TypeVar("T", bound="PodDeploymentMetadataConfig")
 
 
-class ServerlessSpecResponse(ModelNormal):
+class PodDeploymentMetadataConfig(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -83,7 +69,6 @@ class ServerlessSpecResponse(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -98,13 +83,8 @@ class ServerlessSpecResponse(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
-            "cloud": (str,),  # noqa: E501
-            "region": (str,),  # noqa: E501
-            "read_capacity": (ReadCapacityResponse,),  # noqa: E501
-            "source_collection": (str,),  # noqa: E501
-            "schema": (BackupModelSchema,),  # noqa: E501
+            "indexed": ([str],)  # noqa: E501
         }
 
     @cached_class_property
@@ -112,11 +92,7 @@ class ServerlessSpecResponse(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "cloud": "cloud",  # noqa: E501
-        "region": "region",  # noqa: E501
-        "read_capacity": "read_capacity",  # noqa: E501
-        "source_collection": "source_collection",  # noqa: E501
-        "schema": "schema",  # noqa: E501
+        "indexed": "indexed"  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -124,7 +100,7 @@ class ServerlessSpecResponse(ModelNormal):
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
-        """Create a new instance of ServerlessSpecResponse.
+        """Create a new instance of PodDeploymentMetadataConfig.
 
         This method is overridden to provide proper type inference for mypy.
         The actual instance creation logic (including discriminator handling)
@@ -136,13 +112,8 @@ class ServerlessSpecResponse(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], cloud, region, read_capacity, *args, **kwargs) -> T:  # noqa: E501
-        """ServerlessSpecResponse - a model defined in OpenAPI
-
-        Args:
-            cloud (str): The public cloud where you would like your index hosted. Possible values: `gcp`, `aws`, or `azure`.
-            region (str): The region where you would like your index to be created.
-            read_capacity (ReadCapacityResponse):
+    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
+        """PodDeploymentMetadataConfig - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -175,8 +146,7 @@ class ServerlessSpecResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
-            schema (BackupModelSchema): [optional]  # noqa: E501
+            indexed ([str]): By default, all metadata is indexed; to change this behavior, use this property to specify an array of metadata fields that should be indexed. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -206,9 +176,6 @@ class ServerlessSpecResponse(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.cloud = cloud
-        self.region = region
-        self.read_capacity = read_capacity
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -235,13 +202,8 @@ class ServerlessSpecResponse(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, cloud, region, read_capacity, *args, **kwargs) -> None:  # noqa: E501
-        """ServerlessSpecResponse - a model defined in OpenAPI
-
-        Args:
-            cloud (str): The public cloud where you would like your index hosted. Possible values: `gcp`, `aws`, or `azure`.
-            region (str): The region where you would like your index to be created.
-            read_capacity (ReadCapacityResponse):
+    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
+        """PodDeploymentMetadataConfig - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -274,8 +236,7 @@ class ServerlessSpecResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
-            schema (BackupModelSchema): [optional]  # noqa: E501
+            indexed ([str]): By default, all metadata is indexed; to change this behavior, use this property to specify an array of metadata fields that should be indexed. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -303,9 +264,6 @@ class ServerlessSpecResponse(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.cloud = cloud
-        self.region = region
-        self.read_capacity = read_capacity
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
