@@ -572,7 +572,7 @@ class PineconeDBControlRequestFactory:
         # Build schema with semantic_text fields
         schema_dict: dict[str, Any] = {"fields": {}}
 
-        for source_field, target_field in field_map.items():
+        for _, target_field in field_map.items():
             # Build the semantic_text field configuration
             field_config: dict[str, Any] = {"type": "semantic_text", "model": model}
 
