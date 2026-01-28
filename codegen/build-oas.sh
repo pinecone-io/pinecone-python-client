@@ -291,24 +291,17 @@ clean_oas_underscore_manipulation() {
 # Update templates repo (same for all modules)
 update_templates_repo
 
+# Checkout and build apis repo (same branch for all modules)
+checkout_and_build_apis "$APIS_BRANCH"
+
 # Create destination directory if it doesn't exist
 mkdir -p "${destination}"
 
-# Track which branches and versions have been processed
-processed_branches=""
+# Track which versions have been verified
 processed_versions=""
 
 for module in "${modules[@]}"; do
 	version=$(get_module_version "$module")
-
-	# Checkout and build if we haven't processed the branch yet
-	case "$processed_branches" in
-		*"$APIS_BRANCH"*) ;;  # Already processed
-		*)
-			checkout_and_build_apis "$APIS_BRANCH"
-			processed_branches="$processed_branches $APIS_BRANCH"
-			;;
-	esac
 
 	# Verify spec version exists if we haven't already
 	case "$processed_versions" in
