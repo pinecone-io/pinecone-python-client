@@ -41,11 +41,12 @@ jobs:
       python_versions_json: '["3.10", "3.11", "3.12", "3.13"]'
 
   create-project:
+    if: github.base_ref != 'fts'
     uses: './.github/workflows/project-setup.yaml'
     secrets: inherit
 
   integration-tests:
-    if: always() && (needs.create-project.result == 'success')
+    if: always() && (needs.create-project.result == 'success') && github.base_ref != 'fts'
     uses: './.github/workflows/testing-integration.yaml'
     secrets: inherit
     needs:
@@ -57,7 +58,7 @@ jobs:
       sparse_index_host: ${{ needs.create-project.outputs.index_host_sparse }}
 
   cleanup-project:
-    if: ${{ always() }}
+    if: always() && github.base_ref != 'fts'
     needs:
       - create-project
       - integration-tests
