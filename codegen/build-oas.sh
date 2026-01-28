@@ -15,11 +15,8 @@ get_module_version() {
 	esac
 }
 
-get_module_branch() {
-	local module=$1
-	# All modules use the fts branch since it contains both alpha and stable specs
-	echo "jhamon/fts"
-}
+# All modules use the fts branch since it contains both alpha and stable specs
+APIS_BRANCH="jhamon/fts"
 
 destination="pinecone/core/openapi"
 modules=("db_control" "db_data" "inference" "oauth" "admin")
@@ -28,16 +25,8 @@ template_dir="codegen/python-oas-templates/templates5.2.0"
 
 build_dir="build"
 
-# Track the current branch to avoid unnecessary rebuilds
-current_apis_branch=""
-
 checkout_and_build_apis() {
 	local branch=$1
-
-	if [ "$current_apis_branch" == "$branch" ]; then
-		echo "Already on branch $branch, skipping checkout"
-		return
-	fi
 
 	echo "Checking out and building apis repo on branch: $branch"
 	pushd codegen/apis
@@ -47,8 +36,6 @@ checkout_and_build_apis() {
 		just clean
 		just build
 	popd
-
-	current_apis_branch="$branch"
 }
 
 update_templates_repo() {
@@ -312,15 +299,14 @@ processed_branches=""
 processed_versions=""
 
 for module in "${modules[@]}"; do
-	branch=$(get_module_branch "$module")
 	version=$(get_module_version "$module")
 
-	# Checkout and build if we haven't processed this branch yet
+	# Checkout and build if we haven't processed the branch yet
 	case "$processed_branches" in
-		*"$branch"*) ;;  # Already processed
+		*"$APIS_BRANCH"*) ;;  # Already processed
 		*)
-			checkout_and_build_apis "$branch"
-			processed_branches="$processed_branches $branch"
+			checkout_and_build_apis "$APIS_BRANCH"
+			processed_branches="$processed_branches $APIS_BRANCH"
 			;;
 	esac
 
