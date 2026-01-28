@@ -44,6 +44,12 @@ from pinecone.core.openapi.db_control.model.create_index_from_backup_request imp
     CreateIndexFromBackupRequest,
 )
 from pinecone.db_control.models import ServerlessSpec, PodSpec, ByocSpec, IndexModel, IndexEmbed
+from pinecone.db_control.models.deployment import (
+    ServerlessDeployment,
+    PodDeployment,
+    ByocDeployment,
+)
+from pinecone.db_control.models.schema_fields import DenseVectorField, SparseVectorField
 
 from pinecone.db_control.enums import (
     Metric,
@@ -360,6 +366,131 @@ class PineconeDBControlRequestFactory:
         from typing import cast
 
         return cast(IndexSpec, index_spec)
+
+    @staticmethod
+    def _translate_legacy_request(
+        spec: Dict | ServerlessSpec | PodSpec | ByocSpec,
+        dimension: int | None = None,
+        metric: (Metric | str) | None = None,
+        vector_type: (VectorType | str) | None = VectorType.DENSE,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        """Translate legacy spec-based request to deployment + schema format.
+
+        This method converts legacy index creation parameters (spec, dimension, metric,
+        vector_type) to the new API format using deployment and schema structures.
+
+        :param spec: The legacy spec (ServerlessSpec, PodSpec, ByocSpec, or dict).
+        :param dimension: The vector dimension (for dense vectors).
+        :param metric: The distance metric (cosine, euclidean, dotproduct).
+        :param vector_type: The vector type (dense or sparse).
+        :returns: A tuple of (deployment_dict, schema_dict) for the new API format.
+
+        **Translation Mappings:**
+
+        * `ServerlessSpec(cloud, region)` → `deployment` with `deployment_type="serverless"`
+        * `PodSpec(environment, ...)` → `deployment` with `deployment_type="pod"`
+        * `ByocSpec(environment)` → `deployment` with `deployment_type="byoc"`
+        * `dimension` + `metric` + `vector_type="dense"` → `schema.fields._values` (dense_vector)
+        * `vector_type="sparse"` → `schema.fields._sparse_values` (sparse_vector)
+
+        Example::
+
+            deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
+                spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+                dimension=1536,
+                metric="cosine",
+                vector_type="dense"
+            )
+            # Returns:
+            # (
+            #     {"deployment_type": "serverless", "cloud": "aws", "region": "us-east-1"},
+            #     {"fields": {"_values": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}}
+            # )
+        """
+        # Convert metric to string if it's an enum
+        if metric is not None:
+            metric = convert_enum_to_string(metric)
+        if vector_type is not None:
+            vector_type = convert_enum_to_string(vector_type)
+
+        # Translate spec to deployment
+        deployment_dict: dict[str, Any]
+        if isinstance(spec, dict):
+            if "serverless" in spec:
+                serverless_spec = spec["serverless"]
+                # Convert enum values to strings for consistency with __parse_index_spec
+                cloud = convert_enum_to_string(serverless_spec.get("cloud", ""))
+                region = convert_enum_to_string(serverless_spec.get("region", ""))
+                deployment = ServerlessDeployment(cloud=cloud, region=region)
+                deployment_dict = deployment.to_dict()
+            elif "pod" in spec:
+                pod_spec = spec["pod"]
+                # Convert enum values to strings for consistency with __parse_index_spec
+                environment = convert_enum_to_string(pod_spec.get("environment", ""))
+                pod_type = convert_enum_to_string(pod_spec.get("pod_type", "p1.x1"))
+                deployment = PodDeployment(
+                    environment=environment,
+                    pod_type=pod_type,
+                    replicas=pod_spec.get("replicas", 1),
+                    shards=pod_spec.get("shards", 1),
+                    pods=pod_spec.get("pods"),
+                )
+                deployment_dict = deployment.to_dict()
+            elif "byoc" in spec:
+                byoc_spec = spec["byoc"]
+                # Convert enum values to strings for consistency with __parse_index_spec
+                environment = convert_enum_to_string(byoc_spec.get("environment", ""))
+                deployment = ByocDeployment(environment=environment)
+                deployment_dict = deployment.to_dict()
+            else:
+                raise ValueError("spec must contain either 'serverless', 'pod', or 'byoc' key")
+        elif isinstance(spec, ServerlessSpec):
+            deployment = ServerlessDeployment(cloud=spec.cloud, region=spec.region)
+            deployment_dict = deployment.to_dict()
+        elif isinstance(spec, PodSpec):
+            # PodDeployment requires pod_type, but PodSpec defaults to "p1.x1"
+            pod_type = spec.pod_type if spec.pod_type is not None else "p1.x1"
+            # Use explicit None check to preserve 0 values (consistent with dict handling)
+            replicas = spec.replicas if spec.replicas is not None else 1
+            shards = spec.shards if spec.shards is not None else 1
+            deployment = PodDeployment(
+                environment=spec.environment,
+                pod_type=pod_type,
+                replicas=replicas,
+                shards=shards,
+                pods=spec.pods,
+            )
+            deployment_dict = deployment.to_dict()
+        elif isinstance(spec, ByocSpec):
+            deployment = ByocDeployment(environment=spec.environment)
+            deployment_dict = deployment.to_dict()
+        else:
+            raise TypeError("spec must be of type dict, ServerlessSpec, PodSpec, or ByocSpec")
+
+        # Translate dimension/metric/vector_type to schema
+        schema_dict: dict[str, Any] = {"fields": {}}
+        if vector_type == VectorType.SPARSE.value:
+            # Sparse vector: use _sparse_values field
+            if metric is None:
+                metric = "dotproduct"  # Default for sparse vectors
+            sparse_field = SparseVectorField(metric=metric)
+            schema_dict["fields"]["_sparse_values"] = sparse_field.to_dict()
+        elif vector_type == VectorType.DENSE.value:
+            # Dense vector: use _values field
+            if dimension is None:
+                raise ValueError("dimension is required for dense vector indexes")
+            if metric is None:
+                metric = Metric.COSINE.value  # Default for dense vectors
+            dense_field = DenseVectorField(dimension=dimension, metric=metric)
+            schema_dict["fields"]["_values"] = dense_field.to_dict()
+        elif vector_type is not None:
+            # Invalid vector_type value - raise error instead of silently returning empty schema
+            raise ValueError(
+                f"Invalid vector_type: '{vector_type}'. Must be '{VectorType.DENSE.value}' or '{VectorType.SPARSE.value}'"
+            )
+        # If vector_type is None, return empty schema fields (no vector index)
+
+        return deployment_dict, schema_dict
 
     @staticmethod
     def create_index_request(

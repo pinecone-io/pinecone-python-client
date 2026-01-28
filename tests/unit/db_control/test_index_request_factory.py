@@ -7,6 +7,8 @@ from pinecone import (
     AwsRegion,
     PodType,
     PodIndexEnvironment,
+    VectorType,
+    Metric,
 )  # type: ignore[attr-defined]
 from pinecone.db_control.request_factory import PineconeDBControlRequestFactory
 
@@ -293,3 +295,257 @@ class TestIndexRequestFactory:
                 read_capacity
             )
         assert "scaling" in str(exc_info.value).lower()
+
+
+class TestTranslateLegacyRequest:
+    """Tests for _translate_legacy_request method."""
+
+    def test_translate_serverless_spec_to_deployment_and_schema_dense(self):
+        """Test translating ServerlessSpec with dense vector to deployment + schema."""
+        spec = ServerlessSpec(cloud="aws", region="us-east-1")
+        deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
+            spec=spec, dimension=1536, metric="cosine", vector_type="dense"
+        )
+
+        assert deployment == {
+            "deployment_type": "serverless",
+            "cloud": "aws",
+            "region": "us-east-1",
+        }
+        assert schema == {
+            "fields": {"_values": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}
+        }
+
+    def test_translate_serverless_spec_to_deployment_and_schema_sparse(self):
+        """Test translating ServerlessSpec with sparse vector to deployment + schema."""
+        spec = ServerlessSpec(cloud="gcp", region="us-central1")
+        deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
+            spec=spec, metric="dotproduct", vector_type="sparse"
+        )
+
+        assert deployment == {
+            "deployment_type": "serverless",
+            "cloud": "gcp",
+            "region": "us-central1",
+        }
+        assert schema == {
+            "fields": {"_sparse_values": {"type": "sparse_vector", "metric": "dotproduct"}}
+        }
+
+    def test_translate_pod_spec_to_deployment_and_schema(self):
+        """Test translating PodSpec to deployment + schema."""
+        spec = PodSpec(environment="us-west1-gcp", pod_type="p1.x1", replicas=2, shards=1, pods=2)
+        deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
+            spec=spec, dimension=1024, metric="euclidean", vector_type="dense"
+        )
+
+        assert deployment == {
+            "deployment_type": "pod",
+            "environment": "us-west1-gcp",
+            "pod_type": "p1.x1",
+            "replicas": 2,
+            "shards": 1,
+            "pods": 2,
+        }
+        assert schema == {
+            "fields": {
+                "_values": {"type": "dense_vector", "dimension": 1024, "metric": "euclidean"}
+            }
+        }
+
+    def test_translate_pod_spec_with_defaults(self):
+        """Test translating PodSpec with default values."""
+        spec = PodSpec(environment="us-east-1-aws")
+        deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
+            spec=spec, dimension=768, metric="cosine", vector_type="dense"
+        )
+
+        assert deployment == {
+            "deployment_type": "pod",
+            "environment": "us-east-1-aws",
+            "pod_type": "p1.x1",  # Default
+            "replicas": 1,  # Default
+            "shards": 1,  # Default
+        }
+        assert "pods" not in deployment  # Should not be included if None
+        assert schema == {
+            "fields": {"_values": {"type": "dense_vector", "dimension": 768, "metric": "cosine"}}
+        }
+
+    def test_translate_byoc_spec_to_deployment_and_schema(self):
+        """Test translating ByocSpec to deployment + schema."""
+        spec = ByocSpec(environment="aws-us-east-1-b921")
+        deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
+            spec=spec, dimension=512, metric="dotproduct", vector_type="dense"
+        )
+
+        assert deployment == {"deployment_type": "byoc", "environment": "aws-us-east-1-b921"}
+        assert schema == {
+            "fields": {
+                "_values": {"type": "dense_vector", "dimension": 512, "metric": "dotproduct"}
+            }
+        }
+
+    def test_translate_serverless_spec_dict_to_deployment_and_schema(self):
+        """Test translating ServerlessSpec as dict to deployment + schema."""
+        spec = {"serverless": {"cloud": "aws", "region": "us-east-1"}}
+        deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
+            spec=spec, dimension=1536, metric="cosine", vector_type="dense"
+        )
+
+        assert deployment == {
+            "deployment_type": "serverless",
+            "cloud": "aws",
+            "region": "us-east-1",
+        }
+        assert schema == {
+            "fields": {"_values": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}
+        }
+
+    def test_translate_pod_spec_dict_to_deployment_and_schema(self):
+        """Test translating PodSpec as dict to deployment + schema."""
+        spec = {
+            "pod": {"environment": "us-west1-gcp", "pod_type": "p1.x2", "replicas": 3, "shards": 2}
+        }
+        deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
+            spec=spec, dimension=2048, metric="cosine", vector_type="dense"
+        )
+
+        assert deployment == {
+            "deployment_type": "pod",
+            "environment": "us-west1-gcp",
+            "pod_type": "p1.x2",
+            "replicas": 3,
+            "shards": 2,
+        }
+        assert schema == {
+            "fields": {"_values": {"type": "dense_vector", "dimension": 2048, "metric": "cosine"}}
+        }
+
+    def test_translate_byoc_spec_dict_to_deployment_and_schema(self):
+        """Test translating ByocSpec as dict to deployment + schema."""
+        spec = {"byoc": {"environment": "gcp-us-central1-b123"}}
+        deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
+            spec=spec, dimension=256, metric="euclidean", vector_type="dense"
+        )
+
+        assert deployment == {"deployment_type": "byoc", "environment": "gcp-us-central1-b123"}
+        assert schema == {
+            "fields": {"_values": {"type": "dense_vector", "dimension": 256, "metric": "euclidean"}}
+        }
+
+    def test_translate_sparse_vector_default_metric(self):
+        """Test that sparse vector defaults to dotproduct metric."""
+        spec = ServerlessSpec(cloud="aws", region="us-east-1")
+        deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
+            spec=spec, vector_type="sparse"
+        )
+
+        assert schema == {
+            "fields": {
+                "_sparse_values": {
+                    "type": "sparse_vector",
+                    "metric": "dotproduct",  # Default
+                }
+            }
+        }
+
+    def test_translate_dense_vector_default_metric(self):
+        """Test that dense vector defaults to cosine metric."""
+        spec = ServerlessSpec(cloud="aws", region="us-east-1")
+        deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
+            spec=spec, dimension=1536, vector_type="dense"
+        )
+
+        assert schema == {
+            "fields": {
+                "_values": {
+                    "type": "dense_vector",
+                    "dimension": 1536,
+                    "metric": "cosine",  # Default
+                }
+            }
+        }
+
+    def test_translate_dense_vector_with_enum_metric(self):
+        """Test translating with Metric enum."""
+        spec = ServerlessSpec(cloud="aws", region="us-east-1")
+        deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
+            spec=spec, dimension=1536, metric=Metric.EUCLIDEAN, vector_type=VectorType.DENSE
+        )
+
+        assert schema == {
+            "fields": {
+                "_values": {"type": "dense_vector", "dimension": 1536, "metric": "euclidean"}
+            }
+        }
+
+    def test_translate_dense_vector_requires_dimension(self):
+        """Test that dense vector requires dimension."""
+        spec = ServerlessSpec(cloud="aws", region="us-east-1")
+        with pytest.raises(ValueError, match="dimension is required"):
+            PineconeDBControlRequestFactory._translate_legacy_request(
+                spec=spec, vector_type="dense"
+            )
+
+    def test_translate_invalid_spec_type(self):
+        """Test that invalid spec type raises TypeError."""
+        with pytest.raises(TypeError, match="spec must be of type"):
+            PineconeDBControlRequestFactory._translate_legacy_request(
+                spec="invalid", dimension=1536, vector_type="dense"
+            )
+
+    def test_translate_invalid_spec_dict(self):
+        """Test that invalid spec dict raises ValueError."""
+        with pytest.raises(ValueError, match="spec must contain"):
+            PineconeDBControlRequestFactory._translate_legacy_request(
+                spec={"invalid": {}}, dimension=1536, vector_type="dense"
+            )
+
+    def test_translate_dict_spec_with_enum_values(self):
+        """Test that dict specs with enum values are converted to strings."""
+        spec = {"serverless": {"cloud": CloudProvider.AWS, "region": AwsRegion.US_EAST_1}}
+        deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
+            spec=spec, dimension=1536, metric="cosine", vector_type="dense"
+        )
+
+        assert deployment["cloud"] == "aws"  # Enum converted to string
+        assert deployment["region"] == "us-east-1"  # Enum converted to string
+
+    def test_translate_pod_spec_with_zero_replicas(self):
+        """Test that zero replicas/shards are preserved (not converted to 1)."""
+        spec = PodSpec(environment="us-east-1-aws", replicas=0, shards=0)
+        deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
+            spec=spec, dimension=1536, metric="cosine", vector_type="dense"
+        )
+
+        assert deployment["replicas"] == 0  # Zero preserved
+        assert deployment["shards"] == 0  # Zero preserved
+
+    def test_translate_dict_spec_with_zero_replicas(self):
+        """Test that zero replicas/shards in dict specs are preserved."""
+        spec = {"pod": {"environment": "us-east-1-aws", "replicas": 0, "shards": 0}}
+        deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
+            spec=spec, dimension=1536, metric="cosine", vector_type="dense"
+        )
+
+        assert deployment["replicas"] == 0  # Zero preserved
+        assert deployment["shards"] == 0  # Zero preserved
+
+    def test_translate_invalid_vector_type_raises_error(self):
+        """Test that invalid vector_type raises ValueError instead of silently failing."""
+        spec = ServerlessSpec(cloud="aws", region="us-east-1")
+        with pytest.raises(ValueError, match="Invalid vector_type"):
+            PineconeDBControlRequestFactory._translate_legacy_request(
+                spec=spec, dimension=1536, vector_type="invalid_type"
+            )
+
+    def test_translate_invalid_vector_type_typo(self):
+        """Test that typos in vector_type raise error."""
+        spec = ServerlessSpec(cloud="aws", region="us-east-1")
+        with pytest.raises(ValueError, match="Invalid vector_type"):
+            PineconeDBControlRequestFactory._translate_legacy_request(
+                spec=spec,
+                dimension=1536,
+                vector_type="desnse",  # Typo
+            )
