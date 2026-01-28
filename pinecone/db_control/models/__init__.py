@@ -20,6 +20,7 @@ from .schema_fields import (
     SemanticTextField,
     SchemaField,
 )
+from .schema_builder import SchemaBuilder
 
 
 __all__ = [
@@ -44,4 +45,5 @@ __all__ = [
     "SparseVectorField",
     "SemanticTextField",
     "SchemaField",
+    "SchemaBuilder",
 ]

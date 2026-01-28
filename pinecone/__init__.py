@@ -115,6 +115,7 @@ _db_control_lazy_imports = {
     "SparseVectorField": ("pinecone.db_control.models", "SparseVectorField"),
     "SemanticTextField": ("pinecone.db_control.models", "SemanticTextField"),
     "SchemaField": ("pinecone.db_control.models", "SchemaField"),
+    "SchemaBuilder": ("pinecone.db_control.models", "SchemaBuilder"),
     # Read capacity TypedDict classes
     "ScalingConfigManualDict": (
         "pinecone.db_control.models.serverless_spec",
