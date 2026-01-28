@@ -116,6 +116,11 @@ _db_control_lazy_imports = {
     "SemanticTextField": ("pinecone.db_control.models", "SemanticTextField"),
     "SchemaField": ("pinecone.db_control.models", "SchemaField"),
     "SchemaBuilder": ("pinecone.db_control.models", "SchemaBuilder"),
+    # Deployment classes
+    "ServerlessDeployment": ("pinecone.db_control.models", "ServerlessDeployment"),
+    "ByocDeployment": ("pinecone.db_control.models", "ByocDeployment"),
+    "PodDeployment": ("pinecone.db_control.models", "PodDeployment"),
+    "Deployment": ("pinecone.db_control.models", "Deployment"),
     # Read capacity TypedDict classes
     "ScalingConfigManualDict": (
         "pinecone.db_control.models.serverless_spec",
