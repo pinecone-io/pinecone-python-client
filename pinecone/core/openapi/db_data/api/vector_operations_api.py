@@ -5,13 +5,13 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, cast
+from typing import TYPE_CHECKING
 from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
@@ -63,21 +63,21 @@ class VectorOperationsApi:
         def __delete_vectors(
             self,
             delete_request,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> Dict[str, Any] | ApplyResult[Dict[str, Any]]:
-            """Delete vectors  # noqa: E501
+            """Delete records  # noqa: E501
 
-            Delete vectors by id from a single namespace.  For guidance and examples, see [Delete data](https://docs.pinecone.io/guides/manage-data/delete-data).  # noqa: E501
+            Delete records by id or by metadata from a single namespace.  For guidance and examples, see [Delete data](https://docs.pinecone.io/guides/manage-data/delete-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.delete_vectors(delete_request, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.delete_vectors(delete_request, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 delete_request (DeleteRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -105,9 +105,7 @@ class VectorOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["delete_request"] = delete_request
-            return cast(
-                Dict[str, Any] | ApplyResult[Dict[str, Any]], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.delete_vectors = _Endpoint(
             settings={
@@ -144,7 +142,7 @@ class VectorOperationsApi:
         def __describe_index_stats(
             self,
             describe_index_stats_request,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> IndexDescription | ApplyResult[IndexDescription]:
             """Get index stats  # noqa: E501
@@ -153,12 +151,12 @@ class VectorOperationsApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.describe_index_stats(describe_index_stats_request, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.describe_index_stats(describe_index_stats_request, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 describe_index_stats_request (DescribeIndexStatsRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -186,9 +184,7 @@ class VectorOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["describe_index_stats_request"] = describe_index_stats_request
-            return cast(
-                IndexDescription | ApplyResult[IndexDescription], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.describe_index_stats = _Endpoint(
             settings={
@@ -226,23 +222,23 @@ class VectorOperationsApi:
         )
 
         def __fetch_vectors(
-            self, ids, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self, ids, x_pinecone_api_version="2026-01.alpha", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> FetchResponse | ApplyResult[FetchResponse]:
-            """Fetch vectors  # noqa: E501
+            """Fetch records  # noqa: E501
 
-            Look up and return vectors by ID from a single namespace. The returned vectors include the vector data and/or metadata.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
+            Look up and return records by ID from a single namespace. The returned records include the vector data and/or metadata.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.fetch_vectors(ids, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.fetch_vectors(ids, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 ids ([str]): The vector IDs to fetch. Does not accept values containing spaces.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
-                namespace (str): The namespace to fetch vectors from. If not provided, the default namespace is used. [optional]
+                namespace (str): The namespace to fetch records from. If not provided, the default namespace is used. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -268,9 +264,7 @@ class VectorOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["ids"] = ids
-            return cast(
-                FetchResponse | ApplyResult[FetchResponse], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.fetch_vectors = _Endpoint(
             settings={
@@ -316,21 +310,21 @@ class VectorOperationsApi:
         def __fetch_vectors_by_metadata(
             self,
             fetch_by_metadata_request,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> FetchByMetadataResponse | ApplyResult[FetchByMetadataResponse]:
-            """Fetch vectors by metadata  # noqa: E501
+            """Fetch records by metadata  # noqa: E501
 
-            Look up and return vectors by metadata filter from a single namespace. The returned vectors include the vector data and/or metadata. For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
+            Look up and return records by metadata from a single namespace. The returned records include the vector data and metadata. For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.fetch_vectors_by_metadata(fetch_by_metadata_request, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.fetch_vectors_by_metadata(fetch_by_metadata_request, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 fetch_by_metadata_request (FetchByMetadataRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -358,10 +352,7 @@ class VectorOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["fetch_by_metadata_request"] = fetch_by_metadata_request
-            return cast(
-                FetchByMetadataResponse | ApplyResult[FetchByMetadataResponse],
-                self.call_with_http_info(**kwargs),
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.fetch_vectors_by_metadata = _Endpoint(
             settings={
@@ -399,19 +390,19 @@ class VectorOperationsApi:
         )
 
         def __list_vectors(
-            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self, x_pinecone_api_version="2026-01.alpha", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> ListResponse | ApplyResult[ListResponse]:
-            """List vector IDs  # noqa: E501
+            """List record IDs  # noqa: E501
 
-            List the IDs of vectors in a single namespace of a serverless index. An optional prefix can be passed to limit the results to IDs with a common prefix.  Returns up to 100 IDs at a time by default in sorted order (bitwise \"C\" collation). If the `limit` parameter is set, `list` returns up to that number of IDs instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of IDs. When the response does not include a `pagination_token`, there are no more IDs to return.  For guidance and examples, see [List record IDs](https://docs.pinecone.io/guides/manage-data/list-record-ids).  **Note:** `list` is supported only for serverless indexes.  # noqa: E501
+            List the IDs of records in a single namespace of a serverless index. An optional prefix can be passed to limit the results to IDs with a common prefix.  Returns up to 100 IDs at a time by default in sorted order (bitwise \"C\" collation). If the `limit` parameter is set, `list` returns up to that number of IDs instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of IDs. When the response does not include a `pagination_token`, there are no more IDs to return.  For guidance and examples, see [List record IDs](https://docs.pinecone.io/guides/manage-data/list-record-ids).  **Note:** `list` is supported only for serverless indexes.  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_vectors(x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.list_vectors(x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 prefix (str): The vector IDs to fetch. Does not accept values containing spaces. [optional]
@@ -442,9 +433,7 @@ class VectorOperationsApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return cast(
-                ListResponse | ApplyResult[ListResponse], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.list_vectors = _Endpoint(
             settings={
@@ -502,7 +491,7 @@ class VectorOperationsApi:
         def __query_vectors(
             self,
             query_request,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> QueryResponse | ApplyResult[QueryResponse]:
             """Search with a vector  # noqa: E501
@@ -511,12 +500,12 @@ class VectorOperationsApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.query_vectors(query_request, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.query_vectors(query_request, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 query_request (QueryRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -544,9 +533,7 @@ class VectorOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["query_request"] = query_request
-            return cast(
-                QueryResponse | ApplyResult[QueryResponse], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.query_vectors = _Endpoint(
             settings={
@@ -584,7 +571,7 @@ class VectorOperationsApi:
             self,
             namespace,
             search_records_request,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> SearchRecordsResponse | ApplyResult[SearchRecordsResponse]:
             """Search with text  # noqa: E501
@@ -593,13 +580,13 @@ class VectorOperationsApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.search_records_namespace(namespace, search_records_request, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.search_records_namespace(namespace, search_records_request, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 namespace (str): The namespace to search.
                 search_records_request (SearchRecordsRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -628,10 +615,7 @@ class VectorOperationsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
             kwargs["search_records_request"] = search_records_request
-            return cast(
-                SearchRecordsResponse | ApplyResult[SearchRecordsResponse],
-                self.call_with_http_info(**kwargs),
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.search_records_namespace = _Endpoint(
             settings={
@@ -676,21 +660,21 @@ class VectorOperationsApi:
         def __update_vector(
             self,
             update_request,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> UpdateResponse | ApplyResult[UpdateResponse]:
-            """Update a vector  # noqa: E501
+            """Update a record  # noqa: E501
 
-            Update a vector in a namespace. If a value is included, it will overwrite the previous value. If a `set_metadata` is included, the values of the fields specified in it will be added or overwrite the previous value.  For guidance and examples, see [Update data](https://docs.pinecone.io/guides/manage-data/update-data).  # noqa: E501
+            Update records by ID or by metadata in a namespace. Updating by ID changes the vector and/or metadata of a single record. Updating by metadata changes metadata across multiple records using a metadata filter. If a vector value is included, it will overwrite the previous value. If `set_metadata` is included, only the specified metadata fields are modified, and if a specified metadata field does not exist, it is added. For guidance and examples, see [Update data](https://docs.pinecone.io/guides/manage-data/update-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.update_vector(update_request, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.update_vector(update_request, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 update_request (UpdateRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -718,9 +702,7 @@ class VectorOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["update_request"] = update_request
-            return cast(
-                UpdateResponse | ApplyResult[UpdateResponse], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.update_vector = _Endpoint(
             settings={
@@ -758,7 +740,7 @@ class VectorOperationsApi:
             self,
             namespace,
             upsert_record,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> None:
             """Upsert text  # noqa: E501
@@ -767,13 +749,13 @@ class VectorOperationsApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.upsert_records_namespace(namespace, upsert_record, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.upsert_records_namespace(namespace, upsert_record, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 namespace (str): The namespace to upsert records into.
                 upsert_record ([UpsertRecord]):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -802,7 +784,7 @@ class VectorOperationsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
             kwargs["upsert_record"] = upsert_record
-            return cast(None, self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.upsert_records_namespace = _Endpoint(
             settings={
@@ -847,21 +829,21 @@ class VectorOperationsApi:
         def __upsert_vectors(
             self,
             upsert_request,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> UpsertResponse | ApplyResult[UpsertResponse]:
-            """Upsert vectors  # noqa: E501
+            """Upsert records  # noqa: E501
 
-            Upsert vectors into a namespace. If a new value is upserted for an existing vector ID, it will overwrite the previous value.  For guidance, examples, and limits, see [Upsert data](https://docs.pinecone.io/guides/index-data/upsert-data).  # noqa: E501
+            Upsert records into a namespace. If a new value is upserted for an existing record ID, it will overwrite the previous value.  For guidance, examples, and limits, see [Upsert data](https://docs.pinecone.io/guides/index-data/upsert-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.upsert_vectors(upsert_request, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.upsert_vectors(upsert_request, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 upsert_request (UpsertRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -889,9 +871,7 @@ class VectorOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["upsert_request"] = upsert_request
-            return cast(
-                UpsertResponse | ApplyResult[UpsertResponse], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.upsert_vectors = _Endpoint(
             settings={
@@ -938,16 +918,16 @@ class AsyncioVectorOperationsApi:
         self.api_client = api_client
 
         async def __delete_vectors(
-            self, delete_request, x_pinecone_api_version="2025-10", **kwargs
+            self, delete_request, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> Dict[str, Any]:
-            """Delete vectors  # noqa: E501
+            """Delete records  # noqa: E501
 
-            Delete vectors by id from a single namespace.  For guidance and examples, see [Delete data](https://docs.pinecone.io/guides/manage-data/delete-data).  # noqa: E501
+            Delete records by id or by metadata from a single namespace.  For guidance and examples, see [Delete data](https://docs.pinecone.io/guides/manage-data/delete-data).  # noqa: E501
 
 
             Args:
                 delete_request (DeleteRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -972,7 +952,7 @@ class AsyncioVectorOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["delete_request"] = delete_request
-            return cast(Dict[str, Any], await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.delete_vectors = _AsyncioEndpoint(
             settings={
@@ -1007,7 +987,7 @@ class AsyncioVectorOperationsApi:
         )
 
         async def __describe_index_stats(
-            self, describe_index_stats_request, x_pinecone_api_version="2025-10", **kwargs
+            self, describe_index_stats_request, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> IndexDescription:
             """Get index stats  # noqa: E501
 
@@ -1016,7 +996,7 @@ class AsyncioVectorOperationsApi:
 
             Args:
                 describe_index_stats_request (DescribeIndexStatsRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1041,7 +1021,7 @@ class AsyncioVectorOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["describe_index_stats_request"] = describe_index_stats_request
-            return cast(IndexDescription, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.describe_index_stats = _AsyncioEndpoint(
             settings={
@@ -1079,19 +1059,19 @@ class AsyncioVectorOperationsApi:
         )
 
         async def __fetch_vectors(
-            self, ids, x_pinecone_api_version="2025-10", **kwargs
+            self, ids, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> FetchResponse:
-            """Fetch vectors  # noqa: E501
+            """Fetch records  # noqa: E501
 
-            Look up and return vectors by ID from a single namespace. The returned vectors include the vector data and/or metadata.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
+            Look up and return records by ID from a single namespace. The returned records include the vector data and/or metadata.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
 
 
             Args:
                 ids ([str]): The vector IDs to fetch. Does not accept values containing spaces.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
-                namespace (str): The namespace to fetch vectors from. If not provided, the default namespace is used. [optional]
+                namespace (str): The namespace to fetch records from. If not provided, the default namespace is used. [optional]
                 _return_http_data_only (bool): response data without head status
                     code and headers. Default is True.
                 _preload_content (bool): if False, the urllib3.HTTPResponse object
@@ -1114,7 +1094,7 @@ class AsyncioVectorOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["ids"] = ids
-            return cast(FetchResponse, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.fetch_vectors = _AsyncioEndpoint(
             settings={
@@ -1158,16 +1138,16 @@ class AsyncioVectorOperationsApi:
         )
 
         async def __fetch_vectors_by_metadata(
-            self, fetch_by_metadata_request, x_pinecone_api_version="2025-10", **kwargs
+            self, fetch_by_metadata_request, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> FetchByMetadataResponse:
-            """Fetch vectors by metadata  # noqa: E501
+            """Fetch records by metadata  # noqa: E501
 
-            Look up and return vectors by metadata filter from a single namespace. The returned vectors include the vector data and/or metadata. For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
+            Look up and return records by metadata from a single namespace. The returned records include the vector data and metadata. For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
 
 
             Args:
                 fetch_by_metadata_request (FetchByMetadataRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1192,7 +1172,7 @@ class AsyncioVectorOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["fetch_by_metadata_request"] = fetch_by_metadata_request
-            return cast(FetchByMetadataResponse, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.fetch_vectors_by_metadata = _AsyncioEndpoint(
             settings={
@@ -1229,14 +1209,16 @@ class AsyncioVectorOperationsApi:
             callable=__fetch_vectors_by_metadata,
         )
 
-        async def __list_vectors(self, x_pinecone_api_version="2025-10", **kwargs) -> ListResponse:
-            """List vector IDs  # noqa: E501
+        async def __list_vectors(
+            self, x_pinecone_api_version="2026-01.alpha", **kwargs
+        ) -> ListResponse:
+            """List record IDs  # noqa: E501
 
-            List the IDs of vectors in a single namespace of a serverless index. An optional prefix can be passed to limit the results to IDs with a common prefix.  Returns up to 100 IDs at a time by default in sorted order (bitwise \"C\" collation). If the `limit` parameter is set, `list` returns up to that number of IDs instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of IDs. When the response does not include a `pagination_token`, there are no more IDs to return.  For guidance and examples, see [List record IDs](https://docs.pinecone.io/guides/manage-data/list-record-ids).  **Note:** `list` is supported only for serverless indexes.  # noqa: E501
+            List the IDs of records in a single namespace of a serverless index. An optional prefix can be passed to limit the results to IDs with a common prefix.  Returns up to 100 IDs at a time by default in sorted order (bitwise \"C\" collation). If the `limit` parameter is set, `list` returns up to that number of IDs instead. Whenever there are additional IDs to return, the response also includes a `pagination_token` that you can use to get the next batch of IDs. When the response does not include a `pagination_token`, there are no more IDs to return.  For guidance and examples, see [List record IDs](https://docs.pinecone.io/guides/manage-data/list-record-ids).  **Note:** `list` is supported only for serverless indexes.  # noqa: E501
 
 
             Args:
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 prefix (str): The vector IDs to fetch. Does not accept values containing spaces. [optional]
@@ -1264,7 +1246,7 @@ class AsyncioVectorOperationsApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return cast(ListResponse, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.list_vectors = _AsyncioEndpoint(
             settings={
@@ -1320,7 +1302,7 @@ class AsyncioVectorOperationsApi:
         )
 
         async def __query_vectors(
-            self, query_request, x_pinecone_api_version="2025-10", **kwargs
+            self, query_request, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> QueryResponse:
             """Search with a vector  # noqa: E501
 
@@ -1329,7 +1311,7 @@ class AsyncioVectorOperationsApi:
 
             Args:
                 query_request (QueryRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1354,7 +1336,7 @@ class AsyncioVectorOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["query_request"] = query_request
-            return cast(QueryResponse, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.query_vectors = _AsyncioEndpoint(
             settings={
@@ -1389,7 +1371,11 @@ class AsyncioVectorOperationsApi:
         )
 
         async def __search_records_namespace(
-            self, namespace, search_records_request, x_pinecone_api_version="2025-10", **kwargs
+            self,
+            namespace,
+            search_records_request,
+            x_pinecone_api_version="2026-01.alpha",
+            **kwargs,
         ) -> SearchRecordsResponse:
             """Search with text  # noqa: E501
 
@@ -1399,7 +1385,7 @@ class AsyncioVectorOperationsApi:
             Args:
                 namespace (str): The namespace to search.
                 search_records_request (SearchRecordsRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1425,7 +1411,7 @@ class AsyncioVectorOperationsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
             kwargs["search_records_request"] = search_records_request
-            return cast(SearchRecordsResponse, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.search_records_namespace = _AsyncioEndpoint(
             settings={
@@ -1468,16 +1454,16 @@ class AsyncioVectorOperationsApi:
         )
 
         async def __update_vector(
-            self, update_request, x_pinecone_api_version="2025-10", **kwargs
+            self, update_request, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> UpdateResponse:
-            """Update a vector  # noqa: E501
+            """Update a record  # noqa: E501
 
-            Update a vector in a namespace. If a value is included, it will overwrite the previous value. If a `set_metadata` is included, the values of the fields specified in it will be added or overwrite the previous value.  For guidance and examples, see [Update data](https://docs.pinecone.io/guides/manage-data/update-data).  # noqa: E501
+            Update records by ID or by metadata in a namespace. Updating by ID changes the vector and/or metadata of a single record. Updating by metadata changes metadata across multiple records using a metadata filter. If a vector value is included, it will overwrite the previous value. If `set_metadata` is included, only the specified metadata fields are modified, and if a specified metadata field does not exist, it is added. For guidance and examples, see [Update data](https://docs.pinecone.io/guides/manage-data/update-data).  # noqa: E501
 
 
             Args:
                 update_request (UpdateRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1502,7 +1488,7 @@ class AsyncioVectorOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["update_request"] = update_request
-            return cast(UpdateResponse, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.update_vector = _AsyncioEndpoint(
             settings={
@@ -1537,7 +1523,7 @@ class AsyncioVectorOperationsApi:
         )
 
         async def __upsert_records_namespace(
-            self, namespace, upsert_record, x_pinecone_api_version="2025-10", **kwargs
+            self, namespace, upsert_record, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> None:
             """Upsert text  # noqa: E501
 
@@ -1547,7 +1533,7 @@ class AsyncioVectorOperationsApi:
             Args:
                 namespace (str): The namespace to upsert records into.
                 upsert_record ([UpsertRecord]):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1573,7 +1559,7 @@ class AsyncioVectorOperationsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
             kwargs["upsert_record"] = upsert_record
-            return cast(None, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.upsert_records_namespace = _AsyncioEndpoint(
             settings={
@@ -1616,16 +1602,16 @@ class AsyncioVectorOperationsApi:
         )
 
         async def __upsert_vectors(
-            self, upsert_request, x_pinecone_api_version="2025-10", **kwargs
+            self, upsert_request, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> UpsertResponse:
-            """Upsert vectors  # noqa: E501
+            """Upsert records  # noqa: E501
 
-            Upsert vectors into a namespace. If a new value is upserted for an existing vector ID, it will overwrite the previous value.  For guidance, examples, and limits, see [Upsert data](https://docs.pinecone.io/guides/index-data/upsert-data).  # noqa: E501
+            Upsert records into a namespace. If a new value is upserted for an existing record ID, it will overwrite the previous value.  For guidance, examples, and limits, see [Upsert data](https://docs.pinecone.io/guides/index-data/upsert-data).  # noqa: E501
 
 
             Args:
                 upsert_request (UpsertRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -1650,7 +1636,7 @@ class AsyncioVectorOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["upsert_request"] = upsert_request
-            return cast(UpsertResponse, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.upsert_vectors = _AsyncioEndpoint(
             settings={

@@ -1,11 +1,11 @@
 """
 Pinecone Control Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors and documents.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -26,28 +26,14 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
-    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
-
-
-def lazy_import():
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
-    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
-
-    globals()["BackupModelSchema"] = BackupModelSchema
-    globals()["ReadCapacity"] = ReadCapacity
-
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="ServerlessSpec")
+T = TypeVar("T", bound="SchemaFields")
 
 
-class ServerlessSpec(ModelNormal):
+class SchemaFields(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -75,7 +61,9 @@ class ServerlessSpec(ModelNormal):
 
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
+        ("dimension",): {"inclusive_maximum": 20000, "inclusive_minimum": 1}
+    }
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -83,7 +71,6 @@ class ServerlessSpec(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -98,13 +85,17 @@ class ServerlessSpec(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
-            "cloud": (str,),  # noqa: E501
-            "region": (str,),  # noqa: E501
-            "read_capacity": (ReadCapacity,),  # noqa: E501
-            "source_collection": (str,),  # noqa: E501
-            "schema": (BackupModelSchema,),  # noqa: E501
+            "type": (str,),  # noqa: E501
+            "description": (str,),  # noqa: E501
+            "filterable": (bool,),  # noqa: E501
+            "full_text_searchable": (bool,),  # noqa: E501
+            "dimension": (int,),  # noqa: E501
+            "metric": (str,),  # noqa: E501
+            "model": (str,),  # noqa: E501
+            "field_map": ({str: (str,)},),  # noqa: E501
+            "read_parameters": (Dict[str, Any],),  # noqa: E501
+            "write_parameters": (Dict[str, Any],),  # noqa: E501
         }
 
     @cached_class_property
@@ -112,11 +103,16 @@ class ServerlessSpec(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "cloud": "cloud",  # noqa: E501
-        "region": "region",  # noqa: E501
-        "read_capacity": "read_capacity",  # noqa: E501
-        "source_collection": "source_collection",  # noqa: E501
-        "schema": "schema",  # noqa: E501
+        "type": "type",  # noqa: E501
+        "description": "description",  # noqa: E501
+        "filterable": "filterable",  # noqa: E501
+        "full_text_searchable": "full_text_searchable",  # noqa: E501
+        "dimension": "dimension",  # noqa: E501
+        "metric": "metric",  # noqa: E501
+        "model": "model",  # noqa: E501
+        "field_map": "field_map",  # noqa: E501
+        "read_parameters": "read_parameters",  # noqa: E501
+        "write_parameters": "write_parameters",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -124,7 +120,7 @@ class ServerlessSpec(ModelNormal):
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
-        """Create a new instance of ServerlessSpec.
+        """Create a new instance of SchemaFields.
 
         This method is overridden to provide proper type inference for mypy.
         The actual instance creation logic (including discriminator handling)
@@ -136,12 +132,11 @@ class ServerlessSpec(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], cloud, region, *args, **kwargs) -> T:  # noqa: E501
-        """ServerlessSpec - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], type, *args, **kwargs) -> T:  # noqa: E501
+        """SchemaFields - a model defined in OpenAPI
 
         Args:
-            cloud (str): The public cloud where you would like your index hosted. Possible values: `gcp`, `aws`, or `azure`.
-            region (str): The region where you would like your index to be created.
+            type (str): The data type of the field. Can be a base type (string, integer) or a vector type (dense_vector, sparse_vector, semantic_text).
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -174,9 +169,15 @@ class ServerlessSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            read_capacity (ReadCapacity): [optional]  # noqa: E501
-            source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
-            schema (BackupModelSchema): [optional]  # noqa: E501
+            description (str): A description of the field. [optional]  # noqa: E501
+            filterable (bool): Whether the field is filterable. If true, the field is indexed and can be used in query filters. Only applicable for base types (string, integer). [optional]  # noqa: E501
+            full_text_searchable (bool): Whether the field is full-text searchable. If true, the field is indexed for lexical search. Only applicable for string type fields. [optional]  # noqa: E501
+            dimension (int): The dimension of the dense vectors. Required when type is dense_vector. [optional]  # noqa: E501
+            metric (str): The distance metric to be used for similarity search. Required when type is dense_vector or sparse_vector. Optional when type is semantic_text (may be included in responses). For dense_vector: cosine, euclidean, or dotproduct. For sparse_vector: must be dotproduct. For semantic_text: typically cosine. [optional]  # noqa: E501
+            model (str): The name of the embedding model to use. Required when type is semantic_text. [optional]  # noqa: E501
+            field_map ({str: (str,)}): Identifies the name of the text field from your document model that will be embedded. Maps the field name in your documents to the field name used for embedding. Only applicable when type is semantic_text. [optional]  # noqa: E501
+            read_parameters (Dict[str, Any]): The read parameters for the embedding model used during queries. Only applicable when type is semantic_text. [optional]  # noqa: E501
+            write_parameters (Dict[str, Any]): The write parameters for the embedding model used during indexing. Only applicable when type is semantic_text. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -206,8 +207,7 @@ class ServerlessSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.cloud = cloud
-        self.region = region
+        self.type = type
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -234,12 +234,11 @@ class ServerlessSpec(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, cloud, region, *args, **kwargs) -> None:  # noqa: E501
-        """ServerlessSpec - a model defined in OpenAPI
+    def __init__(self, type, *args, **kwargs) -> None:  # noqa: E501
+        """SchemaFields - a model defined in OpenAPI
 
         Args:
-            cloud (str): The public cloud where you would like your index hosted. Possible values: `gcp`, `aws`, or `azure`.
-            region (str): The region where you would like your index to be created.
+            type (str): The data type of the field. Can be a base type (string, integer) or a vector type (dense_vector, sparse_vector, semantic_text).
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -272,9 +271,15 @@ class ServerlessSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            read_capacity (ReadCapacity): [optional]  # noqa: E501
-            source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
-            schema (BackupModelSchema): [optional]  # noqa: E501
+            description (str): A description of the field. [optional]  # noqa: E501
+            filterable (bool): Whether the field is filterable. If true, the field is indexed and can be used in query filters. Only applicable for base types (string, integer). [optional]  # noqa: E501
+            full_text_searchable (bool): Whether the field is full-text searchable. If true, the field is indexed for lexical search. Only applicable for string type fields. [optional]  # noqa: E501
+            dimension (int): The dimension of the dense vectors. Required when type is dense_vector. [optional]  # noqa: E501
+            metric (str): The distance metric to be used for similarity search. Required when type is dense_vector or sparse_vector. Optional when type is semantic_text (may be included in responses). For dense_vector: cosine, euclidean, or dotproduct. For sparse_vector: must be dotproduct. For semantic_text: typically cosine. [optional]  # noqa: E501
+            model (str): The name of the embedding model to use. Required when type is semantic_text. [optional]  # noqa: E501
+            field_map ({str: (str,)}): Identifies the name of the text field from your document model that will be embedded. Maps the field name in your documents to the field name used for embedding. Only applicable when type is semantic_text. [optional]  # noqa: E501
+            read_parameters (Dict[str, Any]): The read parameters for the embedding model used during queries. Only applicable when type is semantic_text. [optional]  # noqa: E501
+            write_parameters (Dict[str, Any]): The write parameters for the embedding model used during indexing. Only applicable when type is semantic_text. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -302,8 +307,7 @@ class ServerlessSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.cloud = cloud
-        self.region = region
+        self.type = type
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

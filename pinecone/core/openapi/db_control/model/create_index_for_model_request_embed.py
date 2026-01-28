@@ -1,11 +1,11 @@
 """
 Pinecone Control Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors and documents.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -85,9 +85,8 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
         """
         return {
             "model": (str,),  # noqa: E501
-            "field_map": (Dict[str, Any],),  # noqa: E501
+            "field_map": ({str: (str,)},),  # noqa: E501
             "metric": (str,),  # noqa: E501
-            "dimension": (int,),  # noqa: E501
             "read_parameters": (Dict[str, Any],),  # noqa: E501
             "write_parameters": (Dict[str, Any],),  # noqa: E501
         }
@@ -100,7 +99,6 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
         "model": "model",  # noqa: E501
         "field_map": "field_map",  # noqa: E501
         "metric": "metric",  # noqa: E501
-        "dimension": "dimension",  # noqa: E501
         "read_parameters": "read_parameters",  # noqa: E501
         "write_parameters": "write_parameters",  # noqa: E501
     }
@@ -127,7 +125,7 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
 
         Args:
             model (str): The name of the embedding model to use for the index.
-            field_map (Dict[str, Any]): Identifies the name of the text field from your document model that will be embedded.
+            field_map ({str: (str,)}): Identifies the name of the text field from your document model that will be embedded.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -160,8 +158,7 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set. Possible values: `cosine`, `euclidean`, or `dotproduct`. [optional]  # noqa: E501
-            dimension (int): The dimension of embedding vectors produced for the index. [optional]  # noqa: E501
+            metric (str): The similarity metric for the embedding vectors. [optional]  # noqa: E501
             read_parameters (Dict[str, Any]): The read parameters for the embedding model. [optional]  # noqa: E501
             write_parameters (Dict[str, Any]): The write parameters for the embedding model. [optional]  # noqa: E501
         """
@@ -226,7 +223,7 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
 
         Args:
             model (str): The name of the embedding model to use for the index.
-            field_map (Dict[str, Any]): Identifies the name of the text field from your document model that will be embedded.
+            field_map ({str: (str,)}): Identifies the name of the text field from your document model that will be embedded.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -259,8 +256,7 @@ class CreateIndexForModelRequestEmbed(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If not specified, the metric will be defaulted according to the model. Cannot be updated once set. Possible values: `cosine`, `euclidean`, or `dotproduct`. [optional]  # noqa: E501
-            dimension (int): The dimension of embedding vectors produced for the index. [optional]  # noqa: E501
+            metric (str): The similarity metric for the embedding vectors. [optional]  # noqa: E501
             read_parameters (Dict[str, Any]): The read parameters for the embedding model. [optional]  # noqa: E501
             write_parameters (Dict[str, Any]): The write parameters for the embedding model. [optional]  # noqa: E501
         """

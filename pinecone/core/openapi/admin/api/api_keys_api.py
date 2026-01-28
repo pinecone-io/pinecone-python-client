@@ -11,7 +11,7 @@ Contact: support@pinecone.io
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, cast
+from typing import TYPE_CHECKING
 from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
@@ -95,9 +95,7 @@ class APIKeysApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
             kwargs["create_api_key_request"] = create_api_key_request
-            return cast(
-                APIKeyWithSecret | ApplyResult[APIKeyWithSecret], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.create_api_key = _Endpoint(
             settings={
@@ -184,7 +182,7 @@ class APIKeysApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["api_key_id"] = api_key_id
-            return cast(None, self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.delete_api_key = _Endpoint(
             settings={
@@ -263,7 +261,7 @@ class APIKeysApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["api_key_id"] = api_key_id
-            return cast(APIKey | ApplyResult[APIKey], self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.fetch_api_key = _Endpoint(
             settings={
@@ -342,10 +340,7 @@ class APIKeysApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
-            return cast(
-                ListApiKeysResponse | ApplyResult[ListApiKeysResponse],
-                self.call_with_http_info(**kwargs),
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.list_project_api_keys = _Endpoint(
             settings={
@@ -427,7 +422,7 @@ class APIKeysApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["api_key_id"] = api_key_id
             kwargs["update_api_key_request"] = update_api_key_request
-            return cast(APIKey | ApplyResult[APIKey], self.call_with_http_info(**kwargs))
+            return self.call_with_http_info(**kwargs)
 
         self.update_api_key = _Endpoint(
             settings={
@@ -518,7 +513,7 @@ class AsyncioAPIKeysApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
             kwargs["create_api_key_request"] = create_api_key_request
-            return cast(APIKeyWithSecret, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.create_api_key = _AsyncioEndpoint(
             settings={
@@ -595,7 +590,7 @@ class AsyncioAPIKeysApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["api_key_id"] = api_key_id
-            return cast(None, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.delete_api_key = _AsyncioEndpoint(
             settings={
@@ -664,7 +659,7 @@ class AsyncioAPIKeysApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["api_key_id"] = api_key_id
-            return cast(APIKey, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.fetch_api_key = _AsyncioEndpoint(
             settings={
@@ -733,7 +728,7 @@ class AsyncioAPIKeysApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
-            return cast(ListApiKeysResponse, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.list_project_api_keys = _AsyncioEndpoint(
             settings={
@@ -804,7 +799,7 @@ class AsyncioAPIKeysApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["api_key_id"] = api_key_id
             kwargs["update_api_key_request"] = update_api_key_request
-            return cast(APIKey, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.update_api_key = _AsyncioEndpoint(
             settings={

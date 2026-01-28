@@ -1,11 +1,11 @@
 """
-Pinecone Control Plane API
+Pinecone Data Plane API
 
 Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -27,13 +27,21 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
 
+def lazy_import():
+    from pinecone.core.openapi.db_data.model.filter_expression import FilterExpression
+    from pinecone.core.openapi.db_data.model.score_by_query import ScoreByQuery
+
+    globals()["FilterExpression"] = FilterExpression
+    globals()["ScoreByQuery"] = ScoreByQuery
+
+
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="BackupModelSchemaFields")
+T = TypeVar("T", bound="DocumentSearchRequest")
 
 
-class BackupModelSchemaFields(ModelNormal):
+class DocumentSearchRequest(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -61,7 +69,10 @@ class BackupModelSchemaFields(ModelNormal):
 
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
+        ("top_k",): {"inclusive_maximum": 10000, "inclusive_minimum": 1},
+        ("score_by",): {"max_items": 1, "min_items": 1},
+    }
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -69,6 +80,7 @@ class BackupModelSchemaFields(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
+        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -83,8 +95,12 @@ class BackupModelSchemaFields(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
+        lazy_import()
         return {
-            "filterable": (bool,)  # noqa: E501
+            "top_k": (int,),  # noqa: E501
+            "include_fields": (dict,),  # noqa: E501
+            "filter": (FilterExpression,),  # noqa: E501
+            "score_by": ([ScoreByQuery],),  # noqa: E501
         }
 
     @cached_class_property
@@ -92,7 +108,10 @@ class BackupModelSchemaFields(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "filterable": "filterable"  # noqa: E501
+        "top_k": "top_k",  # noqa: E501
+        "include_fields": "include_fields",  # noqa: E501
+        "filter": "filter",  # noqa: E501
+        "score_by": "score_by",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -100,7 +119,7 @@ class BackupModelSchemaFields(ModelNormal):
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
-        """Create a new instance of BackupModelSchemaFields.
+        """Create a new instance of DocumentSearchRequest.
 
         This method is overridden to provide proper type inference for mypy.
         The actual instance creation logic (including discriminator handling)
@@ -112,8 +131,11 @@ class BackupModelSchemaFields(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
-        """BackupModelSchemaFields - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], top_k, *args, **kwargs) -> T:  # noqa: E501
+        """DocumentSearchRequest - a model defined in OpenAPI
+
+        Args:
+            top_k (int): The number of top results to return.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -146,7 +168,9 @@ class BackupModelSchemaFields(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            filterable (bool): Whether the field is filterable. If true, the field is indexed and can be used in filters. Only true values are allowed. [optional]  # noqa: E501
+            include_fields (dict): Fields to include in the response. Default behavior is to return IDs only. Use `\"*\"` to return all fields, or specify an array of specific field names. [optional]  # noqa: E501
+            filter (FilterExpression): [optional]  # noqa: E501
+            score_by ([ScoreByQuery]): Array of query objects to rank documents. For v0, only one query is supported: either a pure text query or a pure vector query (dense or sparse). [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -176,6 +200,7 @@ class BackupModelSchemaFields(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.top_k = top_k
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -202,8 +227,11 @@ class BackupModelSchemaFields(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
-        """BackupModelSchemaFields - a model defined in OpenAPI
+    def __init__(self, top_k, *args, **kwargs) -> None:  # noqa: E501
+        """DocumentSearchRequest - a model defined in OpenAPI
+
+        Args:
+            top_k (int): The number of top results to return.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -236,7 +264,9 @@ class BackupModelSchemaFields(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            filterable (bool): Whether the field is filterable. If true, the field is indexed and can be used in filters. Only true values are allowed. [optional]  # noqa: E501
+            include_fields (dict): Fields to include in the response. Default behavior is to return IDs only. Use `\"*\"` to return all fields, or specify an array of specific field names. [optional]  # noqa: E501
+            filter (FilterExpression): [optional]  # noqa: E501
+            score_by ([ScoreByQuery]): Array of query objects to rank documents. For v0, only one query is supported: either a pure text query or a pure vector query (dense or sparse). [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -264,6 +294,7 @@ class BackupModelSchemaFields(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.top_k = top_k
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

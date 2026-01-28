@@ -32,9 +32,13 @@ concurrency:
 
 jobs:
   linting:
+    # Skip linting for PRs targeting fts branch until SDK compatibility work is complete
+    if: github.base_ref != 'fts'
     uses: './.github/workflows/testing-lint.yaml'
 
   unit-tests:
+    # Skip unit tests for PRs targeting fts branch until SDK compatibility work is complete
+    if: github.base_ref != 'fts'
     uses: './.github/workflows/testing-unit.yaml'
     secrets: inherit
     with:

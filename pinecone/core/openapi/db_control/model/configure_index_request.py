@@ -1,11 +1,11 @@
 """
 Pinecone Control Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors and documents.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -26,23 +26,17 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.configure_index_request_embed import (
-        ConfigureIndexRequestEmbed,
-    )
-    from pinecone.core.openapi.db_control.model.index_tags import IndexTags
-
 
 def lazy_import():
-    from pinecone.core.openapi.db_control.model.configure_index_request_embed import (
-        ConfigureIndexRequestEmbed,
-    )
+    from pinecone.core.openapi.db_control.model.deployment import Deployment
     from pinecone.core.openapi.db_control.model.index_tags import IndexTags
+    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
+    from pinecone.core.openapi.db_control.model.schema import Schema
 
-    globals()["ConfigureIndexRequestEmbed"] = ConfigureIndexRequestEmbed
+    globals()["Deployment"] = Deployment
     globals()["IndexTags"] = IndexTags
+    globals()["ReadCapacity"] = ReadCapacity
+    globals()["Schema"] = Schema
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -104,10 +98,11 @@ class ConfigureIndexRequest(ModelNormal):
         """
         lazy_import()
         return {
-            "spec": (dict,),  # noqa: E501
+            "schema": (Schema,),  # noqa: E501
+            "deployment": (Deployment,),  # noqa: E501
+            "read_capacity": (ReadCapacity,),  # noqa: E501
             "deletion_protection": (str,),  # noqa: E501
             "tags": (IndexTags,),  # noqa: E501
-            "embed": (ConfigureIndexRequestEmbed,),  # noqa: E501
         }
 
     @cached_class_property
@@ -115,10 +110,11 @@ class ConfigureIndexRequest(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "spec": "spec",  # noqa: E501
+        "schema": "schema",  # noqa: E501
+        "deployment": "deployment",  # noqa: E501
+        "read_capacity": "read_capacity",  # noqa: E501
         "deletion_protection": "deletion_protection",  # noqa: E501
         "tags": "tags",  # noqa: E501
-        "embed": "embed",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -172,10 +168,11 @@ class ConfigureIndexRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            spec (dict): The spec object defines how the index should be deployed.  Only some attributes of an index's spec may be updated.  In general, you can modify settings related to scaling and  configuration but you cannot change the cloud or region  where the index is hosted. [optional]  # noqa: E501
+            schema (Schema): [optional]  # noqa: E501
+            deployment (Deployment): [optional]  # noqa: E501
+            read_capacity (ReadCapacity): [optional]  # noqa: E501
             deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. [optional] if omitted the server will use the default value of "disabled".  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
-            embed (ConfigureIndexRequestEmbed): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -265,10 +262,11 @@ class ConfigureIndexRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            spec (dict): The spec object defines how the index should be deployed.  Only some attributes of an index's spec may be updated.  In general, you can modify settings related to scaling and  configuration but you cannot change the cloud or region  where the index is hosted. [optional]  # noqa: E501
+            schema (Schema): [optional]  # noqa: E501
+            deployment (Deployment): [optional]  # noqa: E501
+            read_capacity (ReadCapacity): [optional]  # noqa: E501
             deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. [optional] if omitted the server will use the default value of "disabled".  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
-            embed (ConfigureIndexRequestEmbed): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

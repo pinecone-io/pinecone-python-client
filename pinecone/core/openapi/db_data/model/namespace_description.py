@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -26,27 +26,13 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_data.model.create_namespace_request_schema import (
-        CreateNamespaceRequestSchema,
-    )
-    from pinecone.core.openapi.db_data.model.namespace_description_indexed_fields import (
-        NamespaceDescriptionIndexedFields,
-    )
-
 
 def lazy_import():
     from pinecone.core.openapi.db_data.model.create_namespace_request_schema import (
         CreateNamespaceRequestSchema,
     )
-    from pinecone.core.openapi.db_data.model.namespace_description_indexed_fields import (
-        NamespaceDescriptionIndexedFields,
-    )
 
     globals()["CreateNamespaceRequestSchema"] = CreateNamespaceRequestSchema
-    globals()["NamespaceDescriptionIndexedFields"] = NamespaceDescriptionIndexedFields
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -111,7 +97,7 @@ class NamespaceDescription(ModelNormal):
             "name": (str,),  # noqa: E501
             "record_count": (int,),  # noqa: E501
             "schema": (CreateNamespaceRequestSchema,),  # noqa: E501
-            "indexed_fields": (NamespaceDescriptionIndexedFields,),  # noqa: E501
+            "total_count": (int,),  # noqa: E501
         }
 
     @cached_class_property
@@ -122,7 +108,7 @@ class NamespaceDescription(ModelNormal):
         "name": "name",  # noqa: E501
         "record_count": "record_count",  # noqa: E501
         "schema": "schema",  # noqa: E501
-        "indexed_fields": "indexed_fields",  # noqa: E501
+        "total_count": "total_count",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -179,7 +165,7 @@ class NamespaceDescription(ModelNormal):
             name (str): The name of the namespace. [optional]  # noqa: E501
             record_count (int): The total amount of records within the namespace. [optional]  # noqa: E501
             schema (CreateNamespaceRequestSchema): [optional]  # noqa: E501
-            indexed_fields (NamespaceDescriptionIndexedFields): [optional]  # noqa: E501
+            total_count (int): The total number of namespaces in the index matching the prefix [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -272,7 +258,7 @@ class NamespaceDescription(ModelNormal):
             name (str): The name of the namespace. [optional]  # noqa: E501
             record_count (int): The total amount of records within the namespace. [optional]  # noqa: E501
             schema (CreateNamespaceRequestSchema): [optional]  # noqa: E501
-            indexed_fields (NamespaceDescriptionIndexedFields): [optional]  # noqa: E501
+            total_count (int): The total number of namespaces in the index matching the prefix [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

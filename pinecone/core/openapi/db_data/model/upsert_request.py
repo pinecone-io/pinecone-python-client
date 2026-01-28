@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -25,11 +25,6 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     validate_get_composed_info,
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_data.model.vector import Vector
 
 
 def lazy_import():
@@ -164,7 +159,7 @@ class UpsertRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            namespace (str): The namespace where you upsert vectors. [optional]  # noqa: E501
+            namespace (str): The namespace where you upsert records. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -258,7 +253,7 @@ class UpsertRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            namespace (str): The namespace where you upsert vectors. [optional]  # noqa: E501
+            namespace (str): The namespace where you upsert records. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

@@ -5,7 +5,7 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -154,7 +154,7 @@ class FetchByMetadataRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            namespace (str): The namespace to fetch vectors from. [optional]  # noqa: E501
+            namespace (str): The namespace to fetch records from. [optional]  # noqa: E501
             filter (Dict[str, Any]): Metadata filter expression to select vectors. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
             limit (int): Max number of vectors to return. [optional] if omitted the server will use the default value of 100.  # noqa: E501
             pagination_token (str): Pagination token to continue a previous listing operation. [optional]  # noqa: E501
@@ -247,7 +247,7 @@ class FetchByMetadataRequest(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            namespace (str): The namespace to fetch vectors from. [optional]  # noqa: E501
+            namespace (str): The namespace to fetch records from. [optional]  # noqa: E501
             filter (Dict[str, Any]): Metadata filter expression to select vectors. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
             limit (int): Max number of vectors to return. [optional] if omitted the server will use the default value of 100.  # noqa: E501
             pagination_token (str): Pagination token to continue a previous listing operation. [optional]  # noqa: E501

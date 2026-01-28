@@ -1,11 +1,11 @@
 """
 Pinecone Control Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors and documents.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -26,20 +26,13 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_config import (
-        ReadCapacityDedicatedConfig,
-    )
-
 
 def lazy_import():
-    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_config import (
-        ReadCapacityDedicatedConfig,
+    from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec_response_scaling import (
+        ReadCapacityDedicatedSpecResponseScaling,
     )
 
-    globals()["ReadCapacityDedicatedConfig"] = ReadCapacityDedicatedConfig
+    globals()["ReadCapacityDedicatedSpecResponseScaling"] = ReadCapacityDedicatedSpecResponseScaling
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -102,7 +95,8 @@ class ReadCapacityDedicatedSpec(ModelNormal):
         lazy_import()
         return {
             "mode": (str,),  # noqa: E501
-            "dedicated": (ReadCapacityDedicatedConfig,),  # noqa: E501
+            "node_type": (str,),  # noqa: E501
+            "scaling": (ReadCapacityDedicatedSpecResponseScaling,),  # noqa: E501
         }
 
     @cached_class_property
@@ -111,7 +105,8 @@ class ReadCapacityDedicatedSpec(ModelNormal):
 
     attribute_map: Dict[str, str] = {
         "mode": "mode",  # noqa: E501
-        "dedicated": "dedicated",  # noqa: E501
+        "node_type": "node_type",  # noqa: E501
+        "scaling": "scaling",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -131,12 +126,13 @@ class ReadCapacityDedicatedSpec(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], mode, dedicated, *args, **kwargs) -> T:  # noqa: E501
+    def _from_openapi_data(cls: Type[T], mode, node_type, scaling, *args, **kwargs) -> T:  # noqa: E501
         """ReadCapacityDedicatedSpec - a model defined in OpenAPI
 
         Args:
-            mode (str): The mode of the index. Possible values: `OnDemand` or `Dedicated`. Defaults to `OnDemand`. If set to `Dedicated`, `dedicated.node_type`, and `dedicated.scaling` must be specified.
-            dedicated (ReadCapacityDedicatedConfig):
+            mode (str): The mode of the index. Possible values: `OnDemand` or `Dedicated`. Defaults to `OnDemand`. If set to `Dedicated`, `node_type`, and `scaling` must be specified.
+            node_type (str): The type of machines to use. Available options: `b1` and `t1`. `t1` includes increased processing power and memory.
+            scaling (ReadCapacityDedicatedSpecResponseScaling):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -199,7 +195,8 @@ class ReadCapacityDedicatedSpec(ModelNormal):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         self.mode = mode
-        self.dedicated = dedicated
+        self.node_type = node_type
+        self.scaling = scaling
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -226,12 +223,13 @@ class ReadCapacityDedicatedSpec(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, mode, dedicated, *args, **kwargs) -> None:  # noqa: E501
+    def __init__(self, mode, node_type, scaling, *args, **kwargs) -> None:  # noqa: E501
         """ReadCapacityDedicatedSpec - a model defined in OpenAPI
 
         Args:
-            mode (str): The mode of the index. Possible values: `OnDemand` or `Dedicated`. Defaults to `OnDemand`. If set to `Dedicated`, `dedicated.node_type`, and `dedicated.scaling` must be specified.
-            dedicated (ReadCapacityDedicatedConfig):
+            mode (str): The mode of the index. Possible values: `OnDemand` or `Dedicated`. Defaults to `OnDemand`. If set to `Dedicated`, `node_type`, and `scaling` must be specified.
+            node_type (str): The type of machines to use. Available options: `b1` and `t1`. `t1` includes increased processing power and memory.
+            scaling (ReadCapacityDedicatedSpecResponseScaling):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -292,7 +290,8 @@ class ReadCapacityDedicatedSpec(ModelNormal):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         self.mode = mode
-        self.dedicated = dedicated
+        self.node_type = node_type
+        self.scaling = scaling
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

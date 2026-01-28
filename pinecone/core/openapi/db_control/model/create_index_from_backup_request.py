@@ -1,11 +1,11 @@
 """
 Pinecone Control Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors and documents.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -25,11 +25,6 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
     validate_get_composed_info,
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.index_tags import IndexTags
 
 
 def lazy_import():
@@ -135,7 +130,7 @@ class CreateIndexFromBackupRequest(ModelNormal):
         """CreateIndexFromBackupRequest - a model defined in OpenAPI
 
         Args:
-            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.
+            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'. If not provided, a name will be auto-generated.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -230,7 +225,7 @@ class CreateIndexFromBackupRequest(ModelNormal):
         """CreateIndexFromBackupRequest - a model defined in OpenAPI
 
         Args:
-            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'.
+            name (str): The name of the index. Resource name must be 1-45 characters long, start and end with an alphanumeric character, and consist only of lower case alphanumeric characters or '-'. If not provided, a name will be auto-generated.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types

@@ -1,11 +1,11 @@
 """
 Pinecone Control Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors and documents.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -26,25 +26,22 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.scaling_config_manual import ScalingConfigManual
-
 
 def lazy_import():
-    from pinecone.core.openapi.db_control.model.scaling_config_manual import ScalingConfigManual
+    from pinecone.core.openapi.db_control.model.pod_deployment_metadata_config import (
+        PodDeploymentMetadataConfig,
+    )
 
-    globals()["ScalingConfigManual"] = ScalingConfigManual
+    globals()["PodDeploymentMetadataConfig"] = PodDeploymentMetadataConfig
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="ReadCapacityDedicatedConfig")
+T = TypeVar("T", bound="PodDeployment")
 
 
-class ReadCapacityDedicatedConfig(ModelNormal):
+class PodDeployment(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -72,7 +69,11 @@ class ReadCapacityDedicatedConfig(ModelNormal):
 
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
+        ("replicas",): {"inclusive_minimum": 1},
+        ("shards",): {"inclusive_minimum": 1},
+        ("pods",): {"inclusive_minimum": 1},
+    }
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -97,9 +98,14 @@ class ReadCapacityDedicatedConfig(ModelNormal):
         """
         lazy_import()
         return {
-            "node_type": (str,),  # noqa: E501
-            "scaling": (str,),  # noqa: E501
-            "manual": (ScalingConfigManual,),  # noqa: E501
+            "deployment_type": (str,),  # noqa: E501
+            "environment": (str,),  # noqa: E501
+            "pod_type": (str,),  # noqa: E501
+            "replicas": (int,),  # noqa: E501
+            "shards": (int,),  # noqa: E501
+            "pods": (int,),  # noqa: E501
+            "source_collection": (str,),  # noqa: E501
+            "metadata_config": (PodDeploymentMetadataConfig,),  # noqa: E501
         }
 
     @cached_class_property
@@ -107,9 +113,14 @@ class ReadCapacityDedicatedConfig(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "node_type": "node_type",  # noqa: E501
-        "scaling": "scaling",  # noqa: E501
-        "manual": "manual",  # noqa: E501
+        "deployment_type": "deployment_type",  # noqa: E501
+        "environment": "environment",  # noqa: E501
+        "pod_type": "pod_type",  # noqa: E501
+        "replicas": "replicas",  # noqa: E501
+        "shards": "shards",  # noqa: E501
+        "pods": "pods",  # noqa: E501
+        "source_collection": "source_collection",  # noqa: E501
+        "metadata_config": "metadata_config",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -117,7 +128,7 @@ class ReadCapacityDedicatedConfig(ModelNormal):
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
-        """Create a new instance of ReadCapacityDedicatedConfig.
+        """Create a new instance of PodDeployment.
 
         This method is overridden to provide proper type inference for mypy.
         The actual instance creation logic (including discriminator handling)
@@ -129,12 +140,15 @@ class ReadCapacityDedicatedConfig(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], node_type, scaling, *args, **kwargs) -> T:  # noqa: E501
-        """ReadCapacityDedicatedConfig - a model defined in OpenAPI
+    def _from_openapi_data(
+        cls: Type[T], deployment_type, environment, pod_type, *args, **kwargs
+    ) -> T:  # noqa: E501
+        """PodDeployment - a model defined in OpenAPI
 
         Args:
-            node_type (str): The type of machines to use. Available options: `b1` and `t1`. `t1` includes increased processing power and memory.
-            scaling (str): The type of scaling strategy to use.
+            deployment_type (str): Identifies this as a pod-based deployment configuration.
+            environment (str): The environment where the index is hosted.
+            pod_type (str): The pod type and size to use for the index. Possible values include: `p1.x1`, `p1.x2`, `p1.x4`, `p1.x8`, `s1.x1`, `s1.x2`, `s1.x4`, `s1.x8`.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -167,7 +181,11 @@ class ReadCapacityDedicatedConfig(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            manual (ScalingConfigManual): [optional]  # noqa: E501
+            replicas (int): The number of replicas. Replicas duplicate the compute resources and data of an index, allowing higher query throughput and availability. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            shards (int): The number of shards. Shards determine the storage capacity of an index, with each shard providing storage based on the pod type. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
+            metadata_config (PodDeploymentMetadataConfig): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -197,8 +215,9 @@ class ReadCapacityDedicatedConfig(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.node_type = node_type
-        self.scaling = scaling
+        self.deployment_type = deployment_type
+        self.environment = environment
+        self.pod_type = pod_type
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -225,12 +244,13 @@ class ReadCapacityDedicatedConfig(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, node_type, scaling, *args, **kwargs) -> None:  # noqa: E501
-        """ReadCapacityDedicatedConfig - a model defined in OpenAPI
+    def __init__(self, deployment_type, environment, pod_type, *args, **kwargs) -> None:  # noqa: E501
+        """PodDeployment - a model defined in OpenAPI
 
         Args:
-            node_type (str): The type of machines to use. Available options: `b1` and `t1`. `t1` includes increased processing power and memory.
-            scaling (str): The type of scaling strategy to use.
+            deployment_type (str): Identifies this as a pod-based deployment configuration.
+            environment (str): The environment where the index is hosted.
+            pod_type (str): The pod type and size to use for the index. Possible values include: `p1.x1`, `p1.x2`, `p1.x4`, `p1.x8`, `s1.x1`, `s1.x2`, `s1.x4`, `s1.x8`.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -263,7 +283,11 @@ class ReadCapacityDedicatedConfig(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            manual (ScalingConfigManual): [optional]  # noqa: E501
+            replicas (int): The number of replicas. Replicas duplicate the compute resources and data of an index, allowing higher query throughput and availability. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            shards (int): The number of shards. Shards determine the storage capacity of an index, with each shard providing storage based on the pod type. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            pods (int): The number of pods to be used in the index. This should be equal to `shards` x `replicas`. [optional] if omitted the server will use the default value of 1.  # noqa: E501
+            source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
+            metadata_config (PodDeploymentMetadataConfig): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -291,8 +315,9 @@ class ReadCapacityDedicatedConfig(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.node_type = node_type
-        self.scaling = scaling
+        self.deployment_type = deployment_type
+        self.environment = environment
+        self.pod_type = pod_type
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

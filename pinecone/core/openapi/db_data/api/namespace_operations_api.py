@@ -5,13 +5,13 @@ Pinecone is a vector database that makes it easy to search and retrieve billions
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, cast
+from typing import TYPE_CHECKING
 from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
@@ -48,7 +48,7 @@ class NamespaceOperationsApi:
         def __create_namespace(
             self,
             create_namespace_request,
-            x_pinecone_api_version="2025-10",
+            x_pinecone_api_version="2026-01.alpha",
             **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> NamespaceDescription | ApplyResult[NamespaceDescription]:
             """Create a namespace  # noqa: E501
@@ -57,12 +57,12 @@ class NamespaceOperationsApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.create_namespace(create_namespace_request, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.create_namespace(create_namespace_request, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 create_namespace_request (CreateNamespaceRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -90,10 +90,7 @@ class NamespaceOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_namespace_request"] = create_namespace_request
-            return cast(
-                NamespaceDescription | ApplyResult[NamespaceDescription],
-                self.call_with_http_info(**kwargs),
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.create_namespace = _Endpoint(
             settings={
@@ -131,7 +128,10 @@ class NamespaceOperationsApi:
         )
 
         def __delete_namespace(
-            self, namespace, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self,
+            namespace,
+            x_pinecone_api_version="2026-01.alpha",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> Dict[str, Any] | ApplyResult[Dict[str, Any]]:
             """Delete a namespace  # noqa: E501
 
@@ -139,12 +139,12 @@ class NamespaceOperationsApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.delete_namespace(namespace, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.delete_namespace(namespace, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 namespace (str): The namespace to delete.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -172,9 +172,7 @@ class NamespaceOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
-            return cast(
-                Dict[str, Any] | ApplyResult[Dict[str, Any]], self.call_with_http_info(**kwargs)
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.delete_namespace = _Endpoint(
             settings={
@@ -209,7 +207,10 @@ class NamespaceOperationsApi:
         )
 
         def __describe_namespace(
-            self, namespace, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self,
+            namespace,
+            x_pinecone_api_version="2026-01.alpha",
+            **kwargs: ExtraOpenApiKwargsTypedDict,
         ) -> NamespaceDescription | ApplyResult[NamespaceDescription]:
             """Describe a namespace  # noqa: E501
 
@@ -217,12 +218,12 @@ class NamespaceOperationsApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.describe_namespace(namespace, x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.describe_namespace(namespace, x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
                 namespace (str): The namespace to describe.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -250,10 +251,7 @@ class NamespaceOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
-            return cast(
-                NamespaceDescription | ApplyResult[NamespaceDescription],
-                self.call_with_http_info(**kwargs),
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.describe_namespace = _Endpoint(
             settings={
@@ -288,7 +286,7 @@ class NamespaceOperationsApi:
         )
 
         def __list_namespaces_operation(
-            self, x_pinecone_api_version="2025-10", **kwargs: ExtraOpenApiKwargsTypedDict
+            self, x_pinecone_api_version="2026-01.alpha", **kwargs: ExtraOpenApiKwargsTypedDict
         ) -> ListNamespacesResponse | ApplyResult[ListNamespacesResponse]:
             """List namespaces  # noqa: E501
 
@@ -296,11 +294,11 @@ class NamespaceOperationsApi:
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
-            >>> thread = api.list_namespaces_operation(x_pinecone_api_version="2025-10", async_req=True)
+            >>> thread = api.list_namespaces_operation(x_pinecone_api_version="2026-01.alpha", async_req=True)
             >>> result = thread.get()
 
             Args:
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 limit (int): Max number namespaces to return per page. [optional]
@@ -330,10 +328,7 @@ class NamespaceOperationsApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return cast(
-                ListNamespacesResponse | ApplyResult[ListNamespacesResponse],
-                self.call_with_http_info(**kwargs),
-            )
+            return self.call_with_http_info(**kwargs)
 
         self.list_namespaces_operation = _Endpoint(
             settings={
@@ -392,7 +387,7 @@ class AsyncioNamespaceOperationsApi:
         self.api_client = api_client
 
         async def __create_namespace(
-            self, create_namespace_request, x_pinecone_api_version="2025-10", **kwargs
+            self, create_namespace_request, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> NamespaceDescription:
             """Create a namespace  # noqa: E501
 
@@ -401,7 +396,7 @@ class AsyncioNamespaceOperationsApi:
 
             Args:
                 create_namespace_request (CreateNamespaceRequest):
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -426,7 +421,7 @@ class AsyncioNamespaceOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_namespace_request"] = create_namespace_request
-            return cast(NamespaceDescription, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.create_namespace = _AsyncioEndpoint(
             settings={
@@ -464,7 +459,7 @@ class AsyncioNamespaceOperationsApi:
         )
 
         async def __delete_namespace(
-            self, namespace, x_pinecone_api_version="2025-10", **kwargs
+            self, namespace, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> Dict[str, Any]:
             """Delete a namespace  # noqa: E501
 
@@ -473,7 +468,7 @@ class AsyncioNamespaceOperationsApi:
 
             Args:
                 namespace (str): The namespace to delete.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -498,7 +493,7 @@ class AsyncioNamespaceOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
-            return cast(Dict[str, Any], await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.delete_namespace = _AsyncioEndpoint(
             settings={
@@ -533,7 +528,7 @@ class AsyncioNamespaceOperationsApi:
         )
 
         async def __describe_namespace(
-            self, namespace, x_pinecone_api_version="2025-10", **kwargs
+            self, namespace, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> NamespaceDescription:
             """Describe a namespace  # noqa: E501
 
@@ -542,7 +537,7 @@ class AsyncioNamespaceOperationsApi:
 
             Args:
                 namespace (str): The namespace to describe.
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 _return_http_data_only (bool): response data without head status
@@ -567,7 +562,7 @@ class AsyncioNamespaceOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
-            return cast(NamespaceDescription, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.describe_namespace = _AsyncioEndpoint(
             settings={
@@ -602,7 +597,7 @@ class AsyncioNamespaceOperationsApi:
         )
 
         async def __list_namespaces_operation(
-            self, x_pinecone_api_version="2025-10", **kwargs
+            self, x_pinecone_api_version="2026-01.alpha", **kwargs
         ) -> ListNamespacesResponse:
             """List namespaces  # noqa: E501
 
@@ -610,7 +605,7 @@ class AsyncioNamespaceOperationsApi:
 
 
             Args:
-                x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
+                x_pinecone_api_version (str): Required date-based version header Defaults to "2026-01.alpha", must be one of ["2026-01.alpha"]
 
             Keyword Args:
                 limit (int): Max number namespaces to return per page. [optional]
@@ -637,7 +632,7 @@ class AsyncioNamespaceOperationsApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return cast(ListNamespacesResponse, await self.call_with_http_info(**kwargs))
+            return await self.call_with_http_info(**kwargs)
 
         self.list_namespaces_operation = _AsyncioEndpoint(
             settings={

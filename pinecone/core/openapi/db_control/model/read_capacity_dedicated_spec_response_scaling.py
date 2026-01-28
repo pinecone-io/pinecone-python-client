@@ -1,11 +1,11 @@
 """
 Pinecone Control Plane API
 
-Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors.  # noqa: E501
+Pinecone is a vector database that makes it easy to search and retrieve billions of high-dimensional vectors and documents.  # noqa: E501
 
 This file is @generated using OpenAPI.
 
-The version of the OpenAPI document: 2025-10
+The version of the OpenAPI document: 2026-01.alpha
 Contact: support@pinecone.io
 """
 
@@ -26,25 +26,14 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.byoc_spec import ByocSpec
-
-
-def lazy_import():
-    from pinecone.core.openapi.db_control.model.byoc_spec import ByocSpec
-
-    globals()["ByocSpec"] = ByocSpec
-
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="BYOC")
+T = TypeVar("T", bound="ReadCapacityDedicatedSpecResponseScaling")
 
 
-class BYOC(ModelNormal):
+class ReadCapacityDedicatedSpecResponseScaling(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -72,7 +61,10 @@ class BYOC(ModelNormal):
 
     allowed_values: Dict[Tuple[str, ...], Dict[str, Any]] = {}
 
-    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {}
+    validations: Dict[Tuple[str, ...], PropertyValidationTypedDict] = {
+        ("replicas",): {"inclusive_minimum": 0},
+        ("shards",): {"inclusive_minimum": 1},
+    }
 
     @cached_class_property
     def additional_properties_type(cls):
@@ -80,7 +72,6 @@ class BYOC(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -95,9 +86,10 @@ class BYOC(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
-            "byoc": (ByocSpec,)  # noqa: E501
+            "strategy": (str,),  # noqa: E501
+            "replicas": (int,),  # noqa: E501
+            "shards": (int,),  # noqa: E501
         }
 
     @cached_class_property
@@ -105,7 +97,9 @@ class BYOC(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "byoc": "byoc"  # noqa: E501
+        "strategy": "strategy",  # noqa: E501
+        "replicas": "replicas",  # noqa: E501
+        "shards": "shards",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -113,7 +107,7 @@ class BYOC(ModelNormal):
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
-        """Create a new instance of BYOC.
+        """Create a new instance of ReadCapacityDedicatedSpecResponseScaling.
 
         This method is overridden to provide proper type inference for mypy.
         The actual instance creation logic (including discriminator handling)
@@ -125,11 +119,13 @@ class BYOC(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], byoc, *args, **kwargs) -> T:  # noqa: E501
-        """BYOC - a model defined in OpenAPI
+    def _from_openapi_data(cls: Type[T], strategy, replicas, shards, *args, **kwargs) -> T:  # noqa: E501
+        """ReadCapacityDedicatedSpecResponseScaling - a model defined in OpenAPI
 
         Args:
-            byoc (ByocSpec):
+            strategy (str): The scaling strategy type.
+            replicas (int): The number of replicas to use.
+            shards (int): The number of shards to use.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -191,7 +187,9 @@ class BYOC(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.byoc = byoc
+        self.strategy = strategy
+        self.replicas = replicas
+        self.shards = shards
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -218,11 +216,13 @@ class BYOC(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, byoc, *args, **kwargs) -> None:  # noqa: E501
-        """BYOC - a model defined in OpenAPI
+    def __init__(self, strategy, replicas, shards, *args, **kwargs) -> None:  # noqa: E501
+        """ReadCapacityDedicatedSpecResponseScaling - a model defined in OpenAPI
 
         Args:
-            byoc (ByocSpec):
+            strategy (str): The scaling strategy type.
+            replicas (int): The number of replicas to use.
+            shards (int): The number of shards to use.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -282,7 +282,9 @@ class BYOC(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.byoc = byoc
+        self.strategy = strategy
+        self.replicas = replicas
+        self.shards = shards
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
