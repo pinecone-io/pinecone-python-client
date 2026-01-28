@@ -712,3 +712,36 @@ class TestTranslateEmbedToSemanticText:
         )
 
         assert schema["fields"]["synopsis"]["metric"] == "euclidean"
+
+    def test_embed_translation_multiple_fields_independent_copies(self):
+        """Test that multiple field mappings get independent copies of parameters."""
+        from pinecone.db_control.models import IndexEmbed
+
+        embed = IndexEmbed(
+            model="multilingual-e5-large",
+            metric="cosine",
+            field_map={"text": "title", "description": "content"},
+            read_parameters={"input_type": "search_query"},
+            write_parameters={"input_type": "search_document"},
+        )
+        deployment, schema = PineconeDBControlRequestFactory._translate_embed_to_semantic_text(
+            cloud="aws", region="us-east-1", embed=embed
+        )
+
+        # Verify both fields have correct parameters
+        assert schema["fields"]["title"]["read_parameters"] == {"input_type": "search_query"}
+        assert schema["fields"]["content"]["read_parameters"] == {"input_type": "search_query"}
+
+        # Verify dictionaries are independent copies (not shared references)
+        assert (
+            schema["fields"]["title"]["read_parameters"]
+            is not schema["fields"]["content"]["read_parameters"]
+        )
+        assert (
+            schema["fields"]["title"]["write_parameters"]
+            is not schema["fields"]["content"]["write_parameters"]
+        )
+
+        # Verify modifying one doesn't affect the other
+        schema["fields"]["title"]["read_parameters"]["extra"] = "value"
+        assert "extra" not in schema["fields"]["content"]["read_parameters"]

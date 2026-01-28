@@ -581,14 +581,16 @@ class PineconeDBControlRequestFactory:
                 field_config["metric"] = convert_enum_to_string(metric)
 
             # Apply default read_parameters if not provided or empty
+            # Use dict() to create a copy to avoid shared references across fields
             if read_parameters:
-                field_config["read_parameters"] = read_parameters
+                field_config["read_parameters"] = dict(read_parameters)
             else:
                 field_config["read_parameters"] = {"input_type": "query"}
 
             # Apply default write_parameters if not provided or empty
+            # Use dict() to create a copy to avoid shared references across fields
             if write_parameters:
-                field_config["write_parameters"] = write_parameters
+                field_config["write_parameters"] = dict(write_parameters)
             else:
                 field_config["write_parameters"] = {"input_type": "passage"}
 
