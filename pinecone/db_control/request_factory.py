@@ -493,6 +493,112 @@ class PineconeDBControlRequestFactory:
         return deployment_dict, schema_dict
 
     @staticmethod
+    def _translate_embed_to_semantic_text(
+        cloud: CloudProvider | str,
+        region: AwsRegion | GcpRegion | AzureRegion | str,
+        embed: IndexEmbed | CreateIndexForModelEmbedTypedDict,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        """Translate embed-based request to deployment + schema format.
+
+        This method converts `create_index_for_model` parameters (cloud, region, embed)
+        to the new API format using deployment and schema structures with a semantic_text
+        field type.
+
+        :param cloud: The cloud provider (aws, gcp, azure).
+        :param region: The cloud region.
+        :param embed: The IndexEmbed configuration or equivalent dict.
+        :returns: A tuple of (deployment_dict, schema_dict) for the new API format.
+
+        **Translation Example:**
+
+        * Input: ``cloud="aws"``, ``region="us-east-1"``,
+          ``embed=IndexEmbed(model="multilingual-e5-large", metric="cosine", field_map={"text": "synopsis"})``
+        * Output deployment: ``{"deployment_type": "serverless", "cloud": "aws", "region": "us-east-1"}``
+        * Output schema: ``{"fields": {"synopsis": {"type": "semantic_text", "model": "multilingual-e5-large", ...}}}``
+
+        Example::
+
+            deployment, schema = PineconeDBControlRequestFactory._translate_embed_to_semantic_text(
+                cloud="aws",
+                region="us-east-1",
+                embed=IndexEmbed(
+                    model="multilingual-e5-large",
+                    metric="cosine",
+                    field_map={"text": "synopsis"}
+                )
+            )
+        """
+        # Convert enum values to strings
+        cloud = convert_enum_to_string(cloud)
+        region = convert_enum_to_string(region)
+
+        # Create ServerlessDeployment for cloud/region
+        deployment = ServerlessDeployment(cloud=cloud, region=region)
+        deployment_dict = deployment.to_dict()
+
+        # Parse embed configuration
+        model: str
+        metric: str | None
+        field_map: dict[str, str]
+        read_parameters: dict[str, Any] | None
+        write_parameters: dict[str, Any] | None
+
+        if isinstance(embed, IndexEmbed):
+            model = embed.model
+            metric = embed.metric
+            field_map = embed.field_map
+            read_parameters = embed.read_parameters
+            write_parameters = embed.write_parameters
+        else:
+            # Dict-based embed
+            raw_model = embed.get("model")
+            if raw_model is None:
+                raise ValueError("model is required in embed")
+            model = convert_enum_to_string(raw_model)
+            raw_metric = embed.get("metric")
+            metric = convert_enum_to_string(raw_metric) if raw_metric is not None else None
+            raw_field_map = embed.get("field_map")
+            if raw_field_map is None:
+                raise ValueError("field_map is required in embed")
+            field_map = raw_field_map
+            read_parameters = embed.get("read_parameters")
+            write_parameters = embed.get("write_parameters")
+
+        # Extract field name from field_map values
+        # field_map is like {"text": "synopsis"} where "synopsis" is the target field name
+        if not field_map:
+            raise ValueError("field_map must contain at least one mapping")
+
+        # Build schema with semantic_text fields
+        schema_dict: dict[str, Any] = {"fields": {}}
+
+        for _, target_field in field_map.items():
+            # Build the semantic_text field configuration
+            field_config: dict[str, Any] = {"type": "semantic_text", "model": model}
+
+            # Include metric if provided
+            if metric is not None:
+                field_config["metric"] = convert_enum_to_string(metric)
+
+            # Apply default read_parameters if not provided or empty
+            # Use dict() to create a copy to avoid shared references across fields
+            if read_parameters:
+                field_config["read_parameters"] = dict(read_parameters)
+            else:
+                field_config["read_parameters"] = {"input_type": "query"}
+
+            # Apply default write_parameters if not provided or empty
+            # Use dict() to create a copy to avoid shared references across fields
+            if write_parameters:
+                field_config["write_parameters"] = dict(write_parameters)
+            else:
+                field_config["write_parameters"] = {"input_type": "passage"}
+
+            schema_dict["fields"][target_field] = field_config
+
+        return deployment_dict, schema_dict
+
+    @staticmethod
     def create_index_request(
         name: str,
         spec: Dict | ServerlessSpec | PodSpec | ByocSpec,
