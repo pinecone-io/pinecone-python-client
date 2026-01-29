@@ -549,3 +549,199 @@ class TestTranslateLegacyRequest:
                 dimension=1536,
                 vector_type="desnse",  # Typo
             )
+
+
+class TestTranslateEmbedToSemanticText:
+    """Tests for _translate_embed_to_semantic_text method."""
+
+    def test_basic_index_embed_translation(self):
+        """Test basic IndexEmbed to semantic_text translation."""
+        from pinecone.db_control.models import IndexEmbed
+
+        embed = IndexEmbed(
+            model="multilingual-e5-large", metric="cosine", field_map={"text": "synopsis"}
+        )
+        deployment, schema = PineconeDBControlRequestFactory._translate_embed_to_semantic_text(
+            cloud="aws", region="us-east-1", embed=embed
+        )
+
+        assert deployment == {
+            "deployment_type": "serverless",
+            "cloud": "aws",
+            "region": "us-east-1",
+        }
+        assert schema == {
+            "fields": {
+                "synopsis": {
+                    "type": "semantic_text",
+                    "model": "multilingual-e5-large",
+                    "metric": "cosine",
+                    "read_parameters": {"input_type": "query"},
+                    "write_parameters": {"input_type": "passage"},
+                }
+            }
+        }
+
+    def test_embed_translation_with_custom_parameters(self):
+        """Test IndexEmbed translation with custom read/write parameters."""
+        from pinecone.db_control.models import IndexEmbed
+
+        embed = IndexEmbed(
+            model="multilingual-e5-large",
+            metric="dotproduct",
+            field_map={"text": "content"},
+            read_parameters={"input_type": "search_query", "truncate": "END"},
+            write_parameters={"input_type": "search_document", "truncate": "END"},
+        )
+        deployment, schema = PineconeDBControlRequestFactory._translate_embed_to_semantic_text(
+            cloud="gcp", region="us-central1", embed=embed
+        )
+
+        assert deployment == {
+            "deployment_type": "serverless",
+            "cloud": "gcp",
+            "region": "us-central1",
+        }
+        assert schema["fields"]["content"]["read_parameters"] == {
+            "input_type": "search_query",
+            "truncate": "END",
+        }
+        assert schema["fields"]["content"]["write_parameters"] == {
+            "input_type": "search_document",
+            "truncate": "END",
+        }
+
+    def test_embed_translation_without_metric(self):
+        """Test IndexEmbed translation without metric (should not include metric in output)."""
+        from pinecone.db_control.models import IndexEmbed
+
+        embed = IndexEmbed(model="multilingual-e5-large", field_map={"text": "description"})
+        deployment, schema = PineconeDBControlRequestFactory._translate_embed_to_semantic_text(
+            cloud="aws", region="us-west-2", embed=embed
+        )
+
+        assert "metric" not in schema["fields"]["description"]
+        assert schema["fields"]["description"]["type"] == "semantic_text"
+        assert schema["fields"]["description"]["model"] == "multilingual-e5-large"
+
+    def test_embed_translation_with_dict(self):
+        """Test dict-based embed configuration translation."""
+        embed = {
+            "model": "multilingual-e5-large",
+            "metric": "euclidean",
+            "field_map": {"text": "body"},
+        }
+        deployment, schema = PineconeDBControlRequestFactory._translate_embed_to_semantic_text(
+            cloud="aws", region="us-east-1", embed=embed
+        )
+
+        assert deployment["deployment_type"] == "serverless"
+        assert schema["fields"]["body"]["type"] == "semantic_text"
+        assert schema["fields"]["body"]["model"] == "multilingual-e5-large"
+        assert schema["fields"]["body"]["metric"] == "euclidean"
+        assert schema["fields"]["body"]["read_parameters"] == {"input_type": "query"}
+        assert schema["fields"]["body"]["write_parameters"] == {"input_type": "passage"}
+
+    def test_embed_translation_with_enum_cloud_region(self):
+        """Test translation with enum values for cloud and region."""
+        from pinecone.db_control.models import IndexEmbed
+
+        embed = IndexEmbed(
+            model="multilingual-e5-large", metric="cosine", field_map={"text": "synopsis"}
+        )
+        deployment, schema = PineconeDBControlRequestFactory._translate_embed_to_semantic_text(
+            cloud=CloudProvider.AWS, region=AwsRegion.US_EAST_1, embed=embed
+        )
+
+        assert deployment["cloud"] == "aws"
+        assert deployment["region"] == "us-east-1"
+
+    def test_embed_translation_multiple_field_mappings(self):
+        """Test IndexEmbed translation with multiple field mappings."""
+        from pinecone.db_control.models import IndexEmbed
+
+        embed = IndexEmbed(
+            model="multilingual-e5-large",
+            metric="cosine",
+            field_map={"text": "title", "description": "content"},
+        )
+        deployment, schema = PineconeDBControlRequestFactory._translate_embed_to_semantic_text(
+            cloud="aws", region="us-east-1", embed=embed
+        )
+
+        assert "title" in schema["fields"]
+        assert "content" in schema["fields"]
+        assert schema["fields"]["title"]["type"] == "semantic_text"
+        assert schema["fields"]["content"]["type"] == "semantic_text"
+
+    def test_embed_translation_missing_model_raises_error(self):
+        """Test that missing model in dict embed raises ValueError."""
+        embed = {"field_map": {"text": "synopsis"}}
+        with pytest.raises(ValueError, match="model is required"):
+            PineconeDBControlRequestFactory._translate_embed_to_semantic_text(
+                cloud="aws", region="us-east-1", embed=embed
+            )
+
+    def test_embed_translation_missing_field_map_raises_error(self):
+        """Test that missing field_map in dict embed raises ValueError."""
+        embed = {"model": "multilingual-e5-large"}
+        with pytest.raises(ValueError, match="field_map is required"):
+            PineconeDBControlRequestFactory._translate_embed_to_semantic_text(
+                cloud="aws", region="us-east-1", embed=embed
+            )
+
+    def test_embed_translation_empty_field_map_raises_error(self):
+        """Test that empty field_map raises ValueError."""
+        from pinecone.db_control.models import IndexEmbed
+
+        embed = IndexEmbed(model="multilingual-e5-large", field_map={})
+        with pytest.raises(ValueError, match="field_map must contain at least one mapping"):
+            PineconeDBControlRequestFactory._translate_embed_to_semantic_text(
+                cloud="aws", region="us-east-1", embed=embed
+            )
+
+    def test_embed_translation_with_metric_enum(self):
+        """Test IndexEmbed translation with Metric enum value."""
+        from pinecone.db_control.models import IndexEmbed
+
+        embed = IndexEmbed(
+            model="multilingual-e5-large", metric=Metric.EUCLIDEAN, field_map={"text": "synopsis"}
+        )
+        deployment, schema = PineconeDBControlRequestFactory._translate_embed_to_semantic_text(
+            cloud="aws", region="us-east-1", embed=embed
+        )
+
+        assert schema["fields"]["synopsis"]["metric"] == "euclidean"
+
+    def test_embed_translation_multiple_fields_independent_copies(self):
+        """Test that multiple field mappings get independent copies of parameters."""
+        from pinecone.db_control.models import IndexEmbed
+
+        embed = IndexEmbed(
+            model="multilingual-e5-large",
+            metric="cosine",
+            field_map={"text": "title", "description": "content"},
+            read_parameters={"input_type": "search_query"},
+            write_parameters={"input_type": "search_document"},
+        )
+        deployment, schema = PineconeDBControlRequestFactory._translate_embed_to_semantic_text(
+            cloud="aws", region="us-east-1", embed=embed
+        )
+
+        # Verify both fields have correct parameters
+        assert schema["fields"]["title"]["read_parameters"] == {"input_type": "search_query"}
+        assert schema["fields"]["content"]["read_parameters"] == {"input_type": "search_query"}
+
+        # Verify dictionaries are independent copies (not shared references)
+        assert (
+            schema["fields"]["title"]["read_parameters"]
+            is not schema["fields"]["content"]["read_parameters"]
+        )
+        assert (
+            schema["fields"]["title"]["write_parameters"]
+            is not schema["fields"]["content"]["write_parameters"]
+        )
+
+        # Verify modifying one doesn't affect the other
+        schema["fields"]["title"]["read_parameters"]["extra"] = "value"
+        assert "extra" not in schema["fields"]["content"]["read_parameters"]
