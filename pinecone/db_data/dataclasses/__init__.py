@@ -10,6 +10,8 @@ from .upsert_response import UpsertResponse
 from .update_response import UpdateResponse
 from .text_query import TextQuery
 from .vector_query import VectorQuery
+from .document import Document
+from .document_search_response import DocumentSearchResponse
 
 __all__ = [
     "SparseValues",
@@ -25,4 +27,6 @@ __all__ = [
     "UpdateResponse",
     "TextQuery",
     "VectorQuery",
+    "Document",
+    "DocumentSearchResponse",
 ]
