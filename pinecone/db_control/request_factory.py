@@ -599,6 +599,77 @@ class PineconeDBControlRequestFactory:
         return deployment_dict, schema_dict
 
     @staticmethod
+    def _serialize_schema(schema: dict[str, Any]) -> dict[str, Any]:
+        """Serialize schema dict, converting field objects to dicts.
+
+        :param schema: Schema dict with field name to field config mappings.
+        :returns: Schema dict with all field objects serialized.
+        """
+        serialized: dict[str, Any] = {"fields": {}}
+        for field_name, field_config in schema.items():
+            if hasattr(field_config, "to_dict"):
+                # Field type object (TextField, DenseVectorField, etc.)
+                serialized["fields"][field_name] = field_config.to_dict()
+            elif isinstance(field_config, dict):
+                # Already a dict
+                serialized["fields"][field_name] = field_config
+            else:
+                raise TypeError(
+                    f"Invalid schema field type for '{field_name}': {type(field_config)}. "
+                    "Expected a field type class or dict."
+                )
+        return serialized
+
+    @staticmethod
+    def create_index_with_schema_request(
+        name: str,
+        schema: dict[str, Any],
+        deployment: ServerlessDeployment | PodDeployment | ByocDeployment | None = None,
+        deletion_protection: (DeletionProtection | str) | None = DeletionProtection.DISABLED,
+        tags: dict[str, str] | None = None,
+    ) -> CreateIndexRequest:
+        """Create an index request using schema and deployment format.
+
+        This method creates an index request using the new schema-based API format
+        rather than the legacy spec-based format.
+
+        :param name: The name of the index.
+        :param schema: A dict mapping field names to field configurations.
+        :param deployment: The deployment configuration. Defaults to serverless aws/us-east-1.
+        :param deletion_protection: Whether to enable deletion protection.
+        :param tags: Optional tags for the index.
+        :returns: A CreateIndexRequest object for the API.
+        """
+        if deletion_protection is not None:
+            dp = PineconeDBControlRequestFactory.__parse_deletion_protection(deletion_protection)
+        else:
+            dp = None
+
+        tags_obj = PineconeDBControlRequestFactory.__parse_tags(tags)
+
+        # Default deployment to aws/us-east-1 serverless
+        if deployment is None:
+            deployment = ServerlessDeployment(cloud="aws", region="us-east-1")
+
+        deployment_dict = deployment.to_dict()
+        schema_dict = PineconeDBControlRequestFactory._serialize_schema(schema)
+
+        args = parse_non_empty_args(
+            [
+                ("name", name),
+                ("deployment", deployment_dict),
+                ("schema", schema_dict),
+                ("deletion_protection", dp),
+                ("tags", tags_obj),
+            ]
+        )
+
+        from typing import cast
+
+        result = CreateIndexRequest(**args)
+        return cast(CreateIndexRequest, result)
+
+    @staticmethod
     def create_index_request(
         name: str,
         spec: Dict | ServerlessSpec | PodSpec | ByocSpec,

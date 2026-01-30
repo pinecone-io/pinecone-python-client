@@ -21,6 +21,9 @@ if TYPE_CHECKING:
         BackupList,
         RestoreJobModel,
         RestoreJobList,
+        ServerlessDeployment,
+        PodDeployment,
+        ByocDeployment,
     )
     from pinecone.db_control.enums import (
         Metric,
@@ -271,13 +274,15 @@ class PineconeAsyncioDBControlInterface(ABC):
     async def create_index(
         self,
         name: str,
-        spec: Dict | "ServerlessSpec" | "PodSpec" | "ByocSpec",
-        dimension: int | None,
+        spec: Dict | "ServerlessSpec" | "PodSpec" | "ByocSpec" | None = None,
+        dimension: int | None = None,
         metric: ("Metric" | str) | None = "cosine",
         timeout: int | None = None,
         deletion_protection: ("DeletionProtection" | str) | None = "disabled",
         vector_type: ("VectorType" | str) | None = "dense",
         tags: dict[str, str] | None = None,
+        schema: dict[str, Any] | None = None,
+        deployment: ("ServerlessDeployment" | "PodDeployment" | "ByocDeployment" | None) = None,
     ):
         """Creates a Pinecone index.
 
