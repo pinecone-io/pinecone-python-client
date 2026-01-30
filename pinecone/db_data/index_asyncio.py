@@ -16,6 +16,7 @@ from pinecone.config import ConfigBuilder
 
 from pinecone.openapi_support import AsyncioApiClient
 from pinecone.core.openapi.db_data.api.vector_operations_api import AsyncioVectorOperationsApi
+from pinecone.core.openapi.db_data.api.document_operations_api import AsyncioDocumentOperationsApi
 from pinecone.core.openapi.db_data import API_VERSION
 from pinecone.core.openapi.db_data.models import (
     QueryResponse as OpenAPIQueryResponse,
@@ -56,6 +57,10 @@ from .dataclasses import (
     QueryResponse,
     UpsertResponse,
     UpdateResponse,
+    TextQuery,
+    VectorQuery,
+    DocumentSearchResponse,
+    Document,
 )
 
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
@@ -187,6 +192,9 @@ class _IndexAsyncio(IndexAsyncioInterface):
     _namespace_resource: "NamespaceResourceAsyncio" | None
     """ :meta private: """
 
+    _document_api: AsyncioDocumentOperationsApi | None
+    """ :meta private: """
+
     def __init__(
         self,
         api_key: str,
@@ -222,6 +230,9 @@ class _IndexAsyncio(IndexAsyncioInterface):
         """ :meta private: """
 
         self._namespace_resource = None
+        """ :meta private: """
+
+        self._document_api = None
         """ :meta private: """
 
     async def __aenter__(self) -> Self:
@@ -303,6 +314,13 @@ class _IndexAsyncio(IndexAsyncioInterface):
 
             self._namespace_resource = NamespaceResourceAsyncio(api_client=self._api_client)
         return self._namespace_resource
+
+    @property
+    def document_api(self) -> AsyncioDocumentOperationsApi:
+        """:meta private:"""
+        if self._document_api is None:
+            self._document_api = AsyncioDocumentOperationsApi(api_client=self._api_client)
+        return self._document_api
 
     @validate_and_convert_errors
     async def upsert(
@@ -794,6 +812,92 @@ class _IndexAsyncio(IndexAsyncioInterface):
         fields: List[str] | None = ["*"],  # Default to returning all fields
     ) -> SearchRecordsResponse:
         return await self.search(namespace, query=query, rerank=rerank, fields=fields)
+
+    @validate_and_convert_errors
+    async def search_documents(
+        self,
+        namespace: str,
+        score_by: TextQuery | VectorQuery,
+        filter: Dict | None = None,
+        include_fields: List[str] | None = None,
+        top_k: int = 10,
+    ) -> DocumentSearchResponse:
+        """Search for documents in a namespace.
+
+        This operation searches a namespace using text or vector queries and returns
+        matching documents with their scores.
+
+        Args:
+            namespace: The namespace to search in.
+            score_by: A :class:`~pinecone.TextQuery` or :class:`~pinecone.VectorQuery`
+                object defining how to rank results.
+            filter: Optional metadata filter. Supports ``$text_match`` for FTS filtering. [optional]
+            include_fields: Optional list of fields to include in results. Use ``["*"]``
+                to return all fields. [optional]
+            top_k: Number of results to return. Defaults to 10.
+
+        Returns:
+            DocumentSearchResponse: Response containing matching documents and usage info.
+
+        Examples:
+
+        .. code-block:: python
+
+            import asyncio
+            from pinecone import Pinecone, text_query, vector_query
+
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-index-host") as index:
+                    # Simple text search
+                    results = await index.search_documents(
+                        namespace="movies",
+                        score_by=text_query("title", 'return "pink panther"'),
+                        filter={"genre": {"$eq": "comedy"}},
+                        top_k=10,
+                    )
+
+                    # Access results
+                    for doc in results.documents:
+                        print(f"{doc.id}: {doc.score}")
+
+            asyncio.run(main())
+
+        """
+        if namespace is None:
+            raise ValueError("Namespace is required when searching documents")
+
+        request = IndexRequestFactory.search_documents_request(
+            score_by=score_by, top_k=top_k, filter=filter, include_fields=include_fields
+        )
+
+        result = await self.document_api.search_documents(namespace, request)
+
+        # Convert OpenAPI response to our dataclass
+        documents: List[Document] = []
+        if hasattr(result, "documents") and result.documents:
+            for doc in result.documents:
+                # Extract id and score, rest goes to fields
+                doc_dict = doc.to_dict() if hasattr(doc, "to_dict") else dict(doc)
+                doc_id = doc_dict.pop("id", doc_dict.pop("_id", ""))
+                score = doc_dict.pop("score", 0.0)
+                documents.append(Document(id=doc_id, score=score, **doc_dict))
+
+        # Extract usage info
+        usage = result.usage if hasattr(result, "usage") else None
+
+        # Extract response info
+        from pinecone.utils.response_info import extract_response_info
+
+        response_info = None
+        if hasattr(result, "_response_info"):
+            response_info = result._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
+
+        return DocumentSearchResponse(
+            documents=documents, usage=usage, _response_info=response_info
+        )
 
     def _openapi_kwargs(self, kwargs: dict[str, Any]) -> dict[str, Any]:
         return filter_dict(kwargs, OPENAPI_ENDPOINT_PARAMS)
