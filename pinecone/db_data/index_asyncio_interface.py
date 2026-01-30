@@ -926,6 +926,59 @@ class IndexAsyncioInterface(ABC):
         pass
 
     @abstractmethod
+    async def upsert_documents(
+        self, namespace: str, documents: List[Dict[str, Any]]
+    ) -> UpsertResponse:
+        """Upsert documents into a namespace.
+
+        This operation upserts flat JSON documents into a namespace. Documents are indexed
+        based on the configured index schema. Each document must have an ``_id`` field.
+
+        Args:
+            namespace: The namespace to upsert documents into.
+            documents: A list of flat JSON documents to upsert. Each document must have an
+                ``_id`` field and fields that match the index's schema configuration.
+
+        Returns:
+            UpsertResponse: Object containing the number of documents upserted.
+
+        Examples:
+
+        .. code-block:: python
+
+            import asyncio
+            from pinecone import Pinecone
+
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-index-host") as index:
+                    # Upsert documents with pre-computed vectors
+                    await index.upsert_documents(
+                        namespace="movies",
+                        documents=[
+                            {
+                                "_id": "movie-1",
+                                "title": "Return of the Pink Panther",
+                                "year": 1986,
+                                "genre": "comedy",
+                                "embedding": [0.1, 0.2, 0.3, ...]
+                            },
+                            {
+                                "_id": "movie-2",
+                                "title": "The Pink Panther Strikes Again",
+                                "year": 1976,
+                                "genre": "comedy",
+                                "embedding": [0.3, 0.4, 0.5, ...]
+                            }
+                        ]
+                    )
+
+            asyncio.run(main())
+
+        """
+        pass
+
+    @abstractmethod
     @require_kwargs
     async def create_namespace(
         self, name: str, schema: dict[str, Any] | None = None, **kwargs

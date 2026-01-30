@@ -899,6 +899,88 @@ class _IndexAsyncio(IndexAsyncioInterface):
             documents=documents, usage=usage, _response_info=response_info
         )
 
+    @validate_and_convert_errors
+    async def upsert_documents(
+        self, namespace: str, documents: List[Dict[str, Any]]
+    ) -> UpsertResponse:
+        """Upsert documents into a namespace.
+
+        This operation upserts flat JSON documents into a namespace. Documents are indexed
+        based on the configured index schema. Each document must have an ``_id`` field.
+
+        Args:
+            namespace: The namespace to upsert documents into.
+            documents: A list of flat JSON documents to upsert. Each document must have an
+                ``_id`` field and fields that match the index's schema configuration.
+
+        Returns:
+            UpsertResponse: Object containing the number of documents upserted.
+
+        Examples:
+
+        .. code-block:: python
+
+            import asyncio
+            from pinecone import Pinecone
+
+            async def main():
+                pc = Pinecone()
+                async with pc.IndexAsyncio(host="example-index-host") as index:
+                    # Upsert documents with pre-computed vectors
+                    await index.upsert_documents(
+                        namespace="movies",
+                        documents=[
+                            {
+                                "_id": "movie-1",
+                                "title": "Return of the Pink Panther",
+                                "year": 1986,
+                                "genre": "comedy",
+                                "embedding": [0.1, 0.2, 0.3, ...]  # matches schema field name
+                            },
+                            {
+                                "_id": "movie-2",
+                                "title": "The Pink Panther Strikes Again",
+                                "year": 1976,
+                                "genre": "comedy",
+                                "embedding": [0.3, 0.4, 0.5, ...]
+                            }
+                        ]
+                    )
+
+            asyncio.run(main())
+
+        """
+        if namespace is None:
+            raise ValueError("Namespace is required when upserting documents")
+        if not documents:
+            raise ValueError("At least one document is required")
+
+        from pinecone.core.openapi.db_data.model.document_upsert_request import (
+            DocumentUpsertRequest,
+        )
+
+        request = DocumentUpsertRequest(value=documents)
+        result = await self.document_api.upsert_documents(namespace, request)
+
+        # Extract response info
+        from pinecone.utils.response_info import extract_response_info
+
+        response_info = None
+        if hasattr(result, "_response_info"):
+            response_info = result._response_info
+        if response_info is None:
+            response_info = extract_response_info({})
+
+        # Extract upserted_count from result
+        upserted_count = 0
+        if hasattr(result, "upserted_count") and result.upserted_count is not None:
+            upserted_count = result.upserted_count
+        else:
+            # Fallback to document count if server doesn't return count
+            upserted_count = len(documents)
+
+        return UpsertResponse(upserted_count=upserted_count, _response_info=response_info)
+
     def _openapi_kwargs(self, kwargs: dict[str, Any]) -> dict[str, Any]:
         return filter_dict(kwargs, OPENAPI_ENDPOINT_PARAMS)
 

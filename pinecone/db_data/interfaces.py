@@ -508,6 +508,54 @@ class IndexInterface(ABC):
         pass
 
     @abstractmethod
+    def upsert_documents(self, namespace: str, documents: list[dict[str, Any]]) -> UpsertResponse:
+        """Upsert documents into a namespace.
+
+        This operation upserts flat JSON documents into a namespace. Documents are indexed
+        based on the configured index schema. Each document must have an ``_id`` field.
+
+        Args:
+            namespace: The namespace to upsert documents into.
+            documents: A list of flat JSON documents to upsert. Each document must have an
+                ``_id`` field and fields that match the index's schema configuration.
+
+        Returns:
+            UpsertResponse: Object containing the number of documents upserted.
+
+        Examples:
+
+        .. code-block:: python
+
+            from pinecone import Pinecone
+
+            pc = Pinecone()
+            index = pc.Index(host="example-index-host")
+
+            # Upsert documents with pre-computed vectors
+            index.upsert_documents(
+                namespace="movies",
+                documents=[
+                    {
+                        "_id": "movie-1",
+                        "title": "Return of the Pink Panther",
+                        "year": 1986,
+                        "genre": "comedy",
+                        "embedding": [0.1, 0.2, 0.3, ...]  # matches schema field name
+                    },
+                    {
+                        "_id": "movie-2",
+                        "title": "The Pink Panther Strikes Again",
+                        "year": 1976,
+                        "genre": "comedy",
+                        "embedding": [0.3, 0.4, 0.5, ...]
+                    }
+                ]
+            )
+
+        """
+        pass
+
+    @abstractmethod
     def delete(
         self,
         ids: list[str] | None = None,
