@@ -5,7 +5,7 @@ import uuid
 import logging
 import dotenv
 from pinecone import Pinecone
-from tests.integration.helpers import delete_indexes_from_run, index_tags, get_environment_var
+from tests.integration.helpers import delete_indexes_from_run, index_tags
 
 dotenv.load_dotenv()
 
@@ -22,29 +22,11 @@ def pc():
 
 
 @pytest.fixture()
-def index_name():
-    """Generate a unique index name for each test."""
-    return f"{str(uuid.uuid4())}"
-
-
-@pytest.fixture()
 def index_name_and_tags(request):
     """Generate a unique index name and tags for each test."""
     name = f"{str(uuid.uuid4())}"
     tags = index_tags(request, RUN_ID)
     return name, tags
-
-
-@pytest.fixture()
-def serverless_cloud():
-    """Get the serverless cloud provider."""
-    return get_environment_var("SERVERLESS_CLOUD", "aws")
-
-
-@pytest.fixture()
-def serverless_region():
-    """Get the serverless region."""
-    return get_environment_var("SERVERLESS_REGION", "us-east-1")
 
 
 def pytest_sessionfinish(session, exitstatus):
