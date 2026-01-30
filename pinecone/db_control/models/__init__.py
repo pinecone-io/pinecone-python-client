@@ -22,6 +22,12 @@ from .schema_fields import (
 )
 from .schema_builder import SchemaBuilder
 from .deployment import ServerlessDeployment, ByocDeployment, PodDeployment, Deployment
+from .compatibility_spec import (
+    CompatibilitySpec,
+    ServerlessSpecCompat,
+    PodSpecCompat,
+    ByocSpecCompat,
+)
 
 
 __all__ = [
@@ -51,4 +57,8 @@ __all__ = [
     "ByocDeployment",
     "PodDeployment",
     "Deployment",
+    "CompatibilitySpec",
+    "ServerlessSpecCompat",
+    "PodSpecCompat",
+    "ByocSpecCompat",
 ]
