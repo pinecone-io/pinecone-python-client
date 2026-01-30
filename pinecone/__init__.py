@@ -47,6 +47,9 @@ _db_data_lazy_imports = {
     "SearchRerank": ("pinecone.db_data.dataclasses", "SearchRerank"),
     "TextQuery": ("pinecone.db_data.dataclasses", "TextQuery"),
     "VectorQuery": ("pinecone.db_data.dataclasses", "VectorQuery"),
+    # Factory functions for query objects
+    "text_query": ("pinecone.db_data.query_helpers", "text_query"),
+    "vector_query": ("pinecone.db_data.query_helpers", "vector_query"),
     "FetchResponse": ("pinecone.db_data.dataclasses", "FetchResponse"),
     "FetchByMetadataResponse": ("pinecone.db_data.dataclasses", "FetchByMetadataResponse"),
     "DeleteRequest": ("pinecone.db_data.models", "DeleteRequest"),
