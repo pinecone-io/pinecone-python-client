@@ -32,6 +32,9 @@ from .dataclasses import (
     UpdateResponse,
     SparseValues,
     Vector,
+    TextQuery,
+    VectorQuery,
+    DocumentSearchResponse,
 )
 from pinecone.utils import require_kwargs
 
@@ -449,6 +452,57 @@ class IndexInterface(ABC):
         """Alias of the search() method.
 
         See :meth:`search` for full documentation and examples.
+
+        """
+        pass
+
+    @abstractmethod
+    def search_documents(
+        self,
+        namespace: str,
+        score_by: TextQuery | VectorQuery,
+        filter: FilterTypedDict | None = None,
+        include_fields: list[str] | None = None,
+        top_k: int = 10,
+    ) -> DocumentSearchResponse:
+        """Search for documents in a namespace.
+
+        This operation searches a namespace using text or vector queries and returns
+        matching documents with their scores.
+
+        Args:
+            namespace: The namespace to search in.
+            score_by: A :class:`~pinecone.TextQuery` or :class:`~pinecone.VectorQuery`
+                object defining how to rank results.
+            filter: Optional metadata filter. Supports ``$text_match`` for FTS filtering. [optional]
+            include_fields: Optional list of fields to include in results. Use ``["*"]``
+                to return all fields. [optional]
+            top_k: Number of results to return. Defaults to 10.
+
+        Returns:
+            DocumentSearchResponse: Response containing matching documents and usage info.
+
+        Examples:
+
+        .. code-block:: python
+
+            from pinecone import Pinecone, text_query, vector_query
+
+            pc = Pinecone()
+            index = pc.Index(host="example-index-host")
+
+            # Simple text search
+            results = index.search_documents(
+                namespace="movies",
+                score_by=text_query("title", 'return "pink panther"'),
+                filter={"genre": {"$eq": "comedy"}},
+                top_k=10,
+            )
+
+            # Access results
+            for doc in results.documents:
+                print(f"{doc.id}: {doc.score}")
+                print(f"Title: {doc.title}")
 
         """
         pass

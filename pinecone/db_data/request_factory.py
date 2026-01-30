@@ -18,6 +18,7 @@ from pinecone.core.openapi.db_data.models import (
     SearchRecordsVector,
     UpsertRecord,
     Vector as OpenApiVector,
+    DocumentSearchRequest,
 )
 from ..utils import parse_non_empty_args, convert_enum_to_string
 from .vector_factory import VectorFactory
@@ -35,7 +36,15 @@ from .types import (
     SearchQueryVectorTypedDict,
 )
 
-from .dataclasses import Vector, SparseValues, SearchQuery, SearchRerank, SearchQueryVector
+from .dataclasses import (
+    Vector,
+    SparseValues,
+    SearchQuery,
+    SearchRerank,
+    SearchQueryVector,
+    TextQuery,
+    VectorQuery,
+)
 
 logger = logging.getLogger(__name__)
 """ :meta private: """
@@ -325,3 +334,36 @@ class IndexRequestFactory:
             )
 
         return {"namespace": namespace, "upsert_record": records_to_upsert}
+
+    @staticmethod
+    def search_documents_request(
+        score_by: TextQuery | VectorQuery,
+        top_k: int = 10,
+        filter: FilterTypedDict | None = None,
+        include_fields: list[str] | None = None,
+    ) -> DocumentSearchRequest:
+        """Build a DocumentSearchRequest for the search_documents API.
+
+        :param score_by: A TextQuery or VectorQuery object defining how to rank results.
+        :param top_k: Number of results to return (default 10).
+        :param filter: Optional metadata filter.
+        :param include_fields: Optional list of fields to include in results.
+        :returns: DocumentSearchRequest object for the API call.
+        """
+        # Convert score_by to the API format
+        score_by_dict = score_by.as_dict()
+
+        request_args: dict[str, Any] = {"top_k": top_k, "score_by": [score_by_dict]}
+
+        if filter is not None:
+            request_args["filter"] = filter
+
+        # Handle include_fields - API accepts "*" string or list of field names
+        if include_fields is not None:
+            if include_fields == ["*"]:
+                request_args["include_fields"] = "*"
+            else:
+                request_args["include_fields"] = include_fields
+
+        result: DocumentSearchRequest = DocumentSearchRequest(**request_args, _check_type=False)
+        return result
