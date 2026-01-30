@@ -12,6 +12,9 @@ from pinecone.db_control.models import (
     IndexModel,
     IndexList,
     IndexEmbed,
+    ServerlessDeployment,
+    PodDeployment,
+    ByocDeployment,
 )
 from pinecone.utils import docslinks
 
@@ -59,23 +62,91 @@ class IndexResourceAsyncio:
         self,
         *,
         name: str,
-        spec: Dict | ServerlessSpec | PodSpec | ByocSpec,
+        spec: Dict | ServerlessSpec | PodSpec | ByocSpec | None = None,
         dimension: int | None = None,
         metric: (Metric | str) | None = Metric.COSINE,
         timeout: int | None = None,
         deletion_protection: (DeletionProtection | str) | None = DeletionProtection.DISABLED,
         vector_type: (VectorType | str) | None = VectorType.DENSE,
         tags: dict[str, str] | None = None,
+        schema: dict[str, Any] | None = None,
+        deployment: ServerlessDeployment | PodDeployment | ByocDeployment | None = None,
     ) -> IndexModel:
-        req = PineconeDBControlRequestFactory.create_index_request(
-            name=name,
-            spec=spec,
-            dimension=dimension,
-            metric=metric,
-            deletion_protection=deletion_protection,
-            vector_type=vector_type,
-            tags=tags,
-        )
+        """Create an index.
+
+        :param name: The name of the index.
+        :param spec: The spec for the index (legacy format). Mutually exclusive with ``schema``.
+        :param dimension: The dimension of vectors for the index (legacy format).
+        :param metric: The distance metric for similarity search (legacy format).
+        :param timeout: Timeout in seconds for waiting for the index to be ready.
+            If -1, returns immediately without waiting. If None, waits indefinitely.
+        :param deletion_protection: Whether to enable deletion protection.
+        :param vector_type: The vector type (dense or sparse) (legacy format).
+        :param tags: Optional tags for the index.
+        :param schema: A dict mapping field names to field configurations. Mutually exclusive with ``spec``.
+        :param deployment: The deployment configuration. Defaults to serverless aws/us-east-1.
+            Only used when ``schema`` is provided.
+        :returns: The created index model.
+        :raises ValueError: If both ``spec`` and ``schema`` are provided or neither is provided.
+
+        **Legacy Usage (spec-based):**
+
+        .. code-block:: python
+
+            from pinecone import ServerlessSpec
+
+            await pc.db.index.create(
+                name="my-index",
+                dimension=1536,
+                metric="cosine",
+                spec=ServerlessSpec(cloud="aws", region="us-east-1")
+            )
+
+        **New Usage (schema-based):**
+
+        .. code-block:: python
+
+            from pinecone import TextField, DenseVectorField
+
+            await pc.db.index.create(
+                name="my-index",
+                schema={
+                    "title": TextField(full_text_searchable=True),
+                    "embedding": DenseVectorField(dimension=1536, metric="cosine"),
+                }
+                # deployment defaults to aws/us-east-1 if omitted
+            )
+        """
+        # Validate mutual exclusion of spec and schema
+        if spec is not None and schema is not None:
+            raise ValueError(
+                "Cannot specify both 'spec' and 'schema'. Use 'spec' for legacy index "
+                "creation or 'schema' for the new schema-based format."
+            )
+        if spec is None and schema is None:
+            raise ValueError("Either 'spec' or 'schema' must be provided.")
+
+        if schema is not None:
+            # New schema-based creation
+            req = PineconeDBControlRequestFactory.create_index_with_schema_request(
+                name=name,
+                schema=schema,
+                deployment=deployment,
+                deletion_protection=deletion_protection,
+                tags=tags,
+            )
+        else:
+            # Legacy spec-based creation
+            req = PineconeDBControlRequestFactory.create_index_request(
+                name=name,
+                spec=spec,
+                dimension=dimension,
+                metric=metric,
+                deletion_protection=deletion_protection,
+                vector_type=vector_type,
+                tags=tags,
+            )
+
         resp = await self._index_api.create_index(create_index_request=req)
 
         if timeout == -1:

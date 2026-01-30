@@ -745,3 +745,165 @@ class TestTranslateEmbedToSemanticText:
         # Verify modifying one doesn't affect the other
         schema["fields"]["title"]["read_parameters"]["extra"] = "value"
         assert "extra" not in schema["fields"]["content"]["read_parameters"]
+
+
+class TestCreateIndexWithSchemaRequest:
+    """Tests for create_index_with_schema_request method."""
+
+    def test_basic_schema_creation(self):
+        """Test basic schema-based index creation request."""
+        from pinecone.db_control.models import DenseVectorField
+
+        req = PineconeDBControlRequestFactory.create_index_with_schema_request(
+            name="test-index",
+            schema={"embedding": DenseVectorField(dimension=1536, metric="cosine")},
+        )
+
+        assert req.name == "test-index"
+        assert req.deployment["deployment_type"] == "serverless"
+        assert req.deployment["cloud"] == "aws"
+        assert req.deployment["region"] == "us-east-1"
+        assert req.schema["fields"]["embedding"]["type"] == "dense_vector"
+        assert req.schema["fields"]["embedding"]["dimension"] == 1536
+        assert req.schema["fields"]["embedding"]["metric"] == "cosine"
+
+    def test_schema_with_dict_format(self):
+        """Test schema creation with dict field definitions."""
+        req = PineconeDBControlRequestFactory.create_index_with_schema_request(
+            name="test-index",
+            schema={
+                "synopsis": {"type": "string", "full_text_searchable": True},
+                "embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"},
+            },
+        )
+
+        assert req.name == "test-index"
+        assert req.schema["fields"]["synopsis"]["type"] == "string"
+        assert req.schema["fields"]["synopsis"]["full_text_searchable"] is True
+        assert req.schema["fields"]["embedding"]["type"] == "dense_vector"
+
+    def test_schema_with_custom_deployment(self):
+        """Test schema creation with custom deployment configuration."""
+        from pinecone.db_control.models import ServerlessDeployment, TextField
+
+        deployment = ServerlessDeployment(cloud="gcp", region="us-central1")
+        req = PineconeDBControlRequestFactory.create_index_with_schema_request(
+            name="test-index",
+            schema={"title": TextField(full_text_searchable=True)},
+            deployment=deployment,
+        )
+
+        assert req.deployment["deployment_type"] == "serverless"
+        assert req.deployment["cloud"] == "gcp"
+        assert req.deployment["region"] == "us-central1"
+
+    def test_schema_with_pod_deployment(self):
+        """Test schema creation with pod deployment."""
+        from pinecone.db_control.models import PodDeployment, DenseVectorField
+
+        deployment = PodDeployment(
+            environment="us-east-1-aws", pod_type="p1.x1", replicas=2, shards=1
+        )
+        req = PineconeDBControlRequestFactory.create_index_with_schema_request(
+            name="test-index",
+            schema={"embedding": DenseVectorField(dimension=1536, metric="cosine")},
+            deployment=deployment,
+        )
+
+        assert req.deployment["deployment_type"] == "pod"
+        assert req.deployment["environment"] == "us-east-1-aws"
+        assert req.deployment["pod_type"] == "p1.x1"
+        assert req.deployment["replicas"] == 2
+
+    def test_schema_with_byoc_deployment(self):
+        """Test schema creation with BYOC deployment."""
+        from pinecone.db_control.models import ByocDeployment, DenseVectorField
+
+        deployment = ByocDeployment(environment="my-byoc-env")
+        req = PineconeDBControlRequestFactory.create_index_with_schema_request(
+            name="test-index",
+            schema={"embedding": DenseVectorField(dimension=1536, metric="cosine")},
+            deployment=deployment,
+        )
+
+        assert req.deployment["deployment_type"] == "byoc"
+        assert req.deployment["environment"] == "my-byoc-env"
+
+    def test_schema_with_tags(self):
+        """Test schema creation with tags."""
+        from pinecone.db_control.models import DenseVectorField
+
+        req = PineconeDBControlRequestFactory.create_index_with_schema_request(
+            name="test-index",
+            schema={"embedding": DenseVectorField(dimension=1536, metric="cosine")},
+            tags={"env": "production", "team": "ml"},
+        )
+
+        assert req.tags["env"] == "production"
+        assert req.tags["team"] == "ml"
+
+    def test_schema_with_deletion_protection(self):
+        """Test schema creation with deletion protection enabled."""
+        from pinecone.db_control.models import DenseVectorField
+
+        req = PineconeDBControlRequestFactory.create_index_with_schema_request(
+            name="test-index",
+            schema={"embedding": DenseVectorField(dimension=1536, metric="cosine")},
+            deletion_protection="enabled",
+        )
+
+        assert req.deletion_protection == "enabled"
+
+    def test_schema_with_multiple_fields(self):
+        """Test schema creation with multiple field types."""
+        from pinecone.db_control.models import TextField, IntegerField, DenseVectorField
+
+        req = PineconeDBControlRequestFactory.create_index_with_schema_request(
+            name="test-index",
+            schema={
+                "title": TextField(full_text_searchable=True),
+                "year": IntegerField(filterable=True),
+                "embedding": DenseVectorField(dimension=1536, metric="cosine"),
+            },
+        )
+
+        assert req.schema["fields"]["title"]["type"] == "string"
+        assert req.schema["fields"]["year"]["type"] == "integer"
+        assert req.schema["fields"]["embedding"]["type"] == "dense_vector"
+
+    def test_schema_invalid_field_type_raises_error(self):
+        """Test that invalid field type raises TypeError."""
+        with pytest.raises(TypeError, match="Invalid schema field type"):
+            PineconeDBControlRequestFactory.create_index_with_schema_request(
+                name="test-index", schema={"invalid": "not a field type"}
+            )
+
+
+class TestSerializeSchema:
+    """Tests for _serialize_schema method."""
+
+    def test_serialize_field_objects(self):
+        """Test serializing field type objects to dicts."""
+        from pinecone.db_control.models import TextField, DenseVectorField
+
+        schema = {
+            "title": TextField(full_text_searchable=True),
+            "embedding": DenseVectorField(dimension=1536, metric="cosine"),
+        }
+        result = PineconeDBControlRequestFactory._serialize_schema(schema)
+
+        assert result["fields"]["title"]["type"] == "string"
+        assert result["fields"]["title"]["full_text_searchable"] is True
+        assert result["fields"]["embedding"]["type"] == "dense_vector"
+        assert result["fields"]["embedding"]["dimension"] == 1536
+
+    def test_serialize_dict_format(self):
+        """Test serializing dict field definitions."""
+        schema = {
+            "synopsis": {"type": "string", "full_text_searchable": True},
+            "embedding": {"type": "dense_vector", "dimension": 1536},
+        }
+        result = PineconeDBControlRequestFactory._serialize_schema(schema)
+
+        assert result["fields"]["synopsis"]["type"] == "string"
+        assert result["fields"]["embedding"]["type"] == "dense_vector"

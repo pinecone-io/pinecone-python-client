@@ -39,6 +39,9 @@ if TYPE_CHECKING:
         BackupList,
         RestoreJobModel,
         RestoreJobList,
+        ServerlessDeployment,
+        PodDeployment,
+        ByocDeployment,
     )
     from pinecone.db_control.models.serverless_spec import (
         ReadCapacityDict,
@@ -244,13 +247,15 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
     async def create_index(
         self,
         name: str,
-        spec: Dict | "ServerlessSpec" | "PodSpec" | "ByocSpec",
+        spec: Dict | "ServerlessSpec" | "PodSpec" | "ByocSpec" | None = None,
         dimension: int | None = None,
         metric: ("Metric" | str) | None = "cosine",
         timeout: int | None = None,
         deletion_protection: ("DeletionProtection" | str) | None = "disabled",
         vector_type: ("VectorType" | str) | None = "dense",
         tags: dict[str, str] | None = None,
+        schema: dict[str, Any] | None = None,
+        deployment: ("ServerlessDeployment" | "PodDeployment" | "ByocDeployment" | None) = None,
     ) -> "IndexModel":
         resp = await self.db.index.create(
             name=name,
@@ -261,6 +266,8 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
             vector_type=vector_type,
             tags=tags,
             timeout=timeout,
+            schema=schema,
+            deployment=deployment,
         )
         return resp
 
