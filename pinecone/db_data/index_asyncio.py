@@ -875,13 +875,13 @@ class _IndexAsyncio(IndexAsyncioInterface):
 
         # Convert OpenAPI response to our dataclass
         documents: List[Document] = []
-        if hasattr(result, "hits") and result.hits:
-            for hit in result.hits:
+        if hasattr(result, "documents") and result.documents:
+            for doc in result.documents:
                 # Extract id and score, rest goes to fields
-                hit_dict = hit.to_dict() if hasattr(hit, "to_dict") else dict(hit)
-                doc_id = hit_dict.pop("id", hit_dict.pop("_id", ""))
-                score = hit_dict.pop("score", 0.0)
-                documents.append(Document(id=doc_id, score=score, **hit_dict))
+                doc_dict = doc.to_dict() if hasattr(doc, "to_dict") else dict(doc)
+                doc_id = doc_dict.pop("id", doc_dict.pop("_id", ""))
+                score = doc_dict.pop("score", 0.0)
+                documents.append(Document(id=doc_id, score=score, **doc_dict))
 
         # Extract usage info
         usage = result.usage if hasattr(result, "usage") else None
