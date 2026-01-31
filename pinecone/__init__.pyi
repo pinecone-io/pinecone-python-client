@@ -37,7 +37,12 @@ from pinecone.db_data.dataclasses import (
     QueryResponse,
     UpsertResponse,
     UpdateResponse,
+    TextQuery,
+    VectorQuery,
+    Document,
+    DocumentSearchResponse,
 )
+from pinecone.db_data.query_helpers import text_query, vector_query
 from pinecone.db_data.models import (
     DeleteRequest,
     DescribeIndexStatsRequest,
@@ -84,6 +89,20 @@ from pinecone.db_control.models import (
     BackupList,
     RestoreJobModel,
     RestoreJobList,
+    # Schema field types
+    TextField,
+    IntegerField,
+    FloatField,
+    DenseVectorField,
+    SparseVectorField,
+    SemanticTextField,
+    SchemaField,
+    SchemaBuilder,
+    # Deployment classes
+    ServerlessDeployment,
+    ByocDeployment,
+    PodDeployment,
+    Deployment,
 )
 from pinecone.db_control.models.serverless_spec import (
     ScalingConfigManualDict,
@@ -165,6 +184,13 @@ __all__ = [
     "SearchQuery",
     "SearchQueryVector",
     "SearchRerank",
+    "TextQuery",
+    "VectorQuery",
+    "Document",
+    "DocumentSearchResponse",
+    # Query helper functions
+    "text_query",
+    "vector_query",
     # Data response classes
     "FetchResponse",
     "FetchByMetadataResponse",
@@ -215,6 +241,20 @@ __all__ = [
     "BackupList",
     "RestoreJobModel",
     "RestoreJobList",
+    # Schema field types
+    "TextField",
+    "IntegerField",
+    "FloatField",
+    "DenseVectorField",
+    "SparseVectorField",
+    "SemanticTextField",
+    "SchemaField",
+    "SchemaBuilder",
+    # Deployment classes
+    "ServerlessDeployment",
+    "ByocDeployment",
+    "PodDeployment",
+    "Deployment",
     # Control plane types
     "ConfigureIndexEmbed",
     "CreateIndexForModelEmbedTypedDict",
