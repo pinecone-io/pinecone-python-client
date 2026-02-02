@@ -26,6 +26,12 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.core.openapi.db_control.model.index_tags import IndexTags
+    from pinecone.core.openapi.db_control.model.schema import Schema
+
 
 def lazy_import():
     from pinecone.core.openapi.db_control.model.index_tags import IndexTags

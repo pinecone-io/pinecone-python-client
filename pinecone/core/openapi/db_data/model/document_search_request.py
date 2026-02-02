@@ -26,6 +26,12 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.core.openapi.db_data.model.filter_expression import FilterExpression
+    from pinecone.core.openapi.db_data.model.score_by_query import ScoreByQuery
+
 
 def lazy_import():
     from pinecone.core.openapi.db_data.model.filter_expression import FilterExpression

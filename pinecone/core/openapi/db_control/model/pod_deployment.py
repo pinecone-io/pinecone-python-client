@@ -26,6 +26,13 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.core.openapi.db_control.model.pod_deployment_metadata_config import (
+        PodDeploymentMetadataConfig,
+    )
+
 
 def lazy_import():
     from pinecone.core.openapi.db_control.model.pod_deployment_metadata_config import (

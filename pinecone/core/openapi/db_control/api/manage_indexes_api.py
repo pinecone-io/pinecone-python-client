@@ -11,7 +11,7 @@ Contact: support@pinecone.io
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, cast
 from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
@@ -111,7 +111,7 @@ class ManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
             kwargs["configure_index_request"] = configure_index_request
-            return self.call_with_http_info(**kwargs)
+            return cast(IndexModel | ApplyResult[IndexModel], self.call_with_http_info(**kwargs))
 
         self.configure_index = _Endpoint(
             settings={
@@ -201,7 +201,7 @@ class ManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
             kwargs["create_backup_request"] = create_backup_request
-            return self.call_with_http_info(**kwargs)
+            return cast(BackupModel | ApplyResult[BackupModel], self.call_with_http_info(**kwargs))
 
         self.create_backup = _Endpoint(
             settings={
@@ -288,7 +288,9 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_collection_request"] = create_collection_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                CollectionModel | ApplyResult[CollectionModel], self.call_with_http_info(**kwargs)
+            )
 
         self.create_collection = _Endpoint(
             settings={
@@ -370,7 +372,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_index_request"] = create_index_request
-            return self.call_with_http_info(**kwargs)
+            return cast(IndexModel | ApplyResult[IndexModel], self.call_with_http_info(**kwargs))
 
         self.create_index = _Endpoint(
             settings={
@@ -452,7 +454,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_index_for_model_request"] = create_index_for_model_request
-            return self.call_with_http_info(**kwargs)
+            return cast(IndexModel | ApplyResult[IndexModel], self.call_with_http_info(**kwargs))
 
         self.create_index_for_model = _Endpoint(
             settings={
@@ -537,7 +539,10 @@ class ManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
             kwargs["create_index_from_backup_request"] = create_index_from_backup_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                CreateIndexFromBackupResponse | ApplyResult[CreateIndexFromBackupResponse],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.create_index_from_backup_operation = _Endpoint(
             settings={
@@ -628,7 +633,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
-            return self.call_with_http_info(**kwargs)
+            return cast(None, self.call_with_http_info(**kwargs))
 
         self.delete_backup = _Endpoint(
             settings={
@@ -707,7 +712,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["collection_name"] = collection_name
-            return self.call_with_http_info(**kwargs)
+            return cast(None, self.call_with_http_info(**kwargs))
 
         self.delete_collection = _Endpoint(
             settings={
@@ -786,7 +791,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return self.call_with_http_info(**kwargs)
+            return cast(None, self.call_with_http_info(**kwargs))
 
         self.delete_index = _Endpoint(
             settings={
@@ -865,7 +870,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
-            return self.call_with_http_info(**kwargs)
+            return cast(BackupModel | ApplyResult[BackupModel], self.call_with_http_info(**kwargs))
 
         self.describe_backup = _Endpoint(
             settings={
@@ -944,7 +949,9 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["collection_name"] = collection_name
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                CollectionModel | ApplyResult[CollectionModel], self.call_with_http_info(**kwargs)
+            )
 
         self.describe_collection = _Endpoint(
             settings={
@@ -1023,7 +1030,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return self.call_with_http_info(**kwargs)
+            return cast(IndexModel | ApplyResult[IndexModel], self.call_with_http_info(**kwargs))
 
         self.describe_index = _Endpoint(
             settings={
@@ -1102,7 +1109,9 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["job_id"] = job_id
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                RestoreJobModel | ApplyResult[RestoreJobModel], self.call_with_http_info(**kwargs)
+            )
 
         self.describe_restore_job = _Endpoint(
             settings={
@@ -1176,7 +1185,9 @@ class ManageIndexesApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                CollectionList | ApplyResult[CollectionList], self.call_with_http_info(**kwargs)
+            )
 
         self.list_collections = _Endpoint(
             settings={
@@ -1254,7 +1265,7 @@ class ManageIndexesApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return self.call_with_http_info(**kwargs)
+            return cast(BackupList | ApplyResult[BackupList], self.call_with_http_info(**kwargs))
 
         self.list_index_backups = _Endpoint(
             settings={
@@ -1340,7 +1351,7 @@ class ManageIndexesApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(IndexList | ApplyResult[IndexList], self.call_with_http_info(**kwargs))
 
         self.list_indexes = _Endpoint(
             settings={
@@ -1413,7 +1424,7 @@ class ManageIndexesApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(BackupList | ApplyResult[BackupList], self.call_with_http_info(**kwargs))
 
         self.list_project_backups = _Endpoint(
             settings={
@@ -1498,7 +1509,9 @@ class ManageIndexesApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                RestoreJobList | ApplyResult[RestoreJobList], self.call_with_http_info(**kwargs)
+            )
 
         self.list_restore_jobs = _Endpoint(
             settings={
@@ -1594,7 +1607,7 @@ class AsyncioManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
             kwargs["configure_index_request"] = configure_index_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(IndexModel, await self.call_with_http_info(**kwargs))
 
         self.configure_index = _AsyncioEndpoint(
             settings={
@@ -1677,7 +1690,7 @@ class AsyncioManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
             kwargs["create_backup_request"] = create_backup_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(BackupModel, await self.call_with_http_info(**kwargs))
 
         self.create_backup = _AsyncioEndpoint(
             settings={
@@ -1754,7 +1767,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_collection_request"] = create_collection_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(CollectionModel, await self.call_with_http_info(**kwargs))
 
         self.create_collection = _AsyncioEndpoint(
             settings={
@@ -1826,7 +1839,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_index_request"] = create_index_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(IndexModel, await self.call_with_http_info(**kwargs))
 
         self.create_index = _AsyncioEndpoint(
             settings={
@@ -1898,7 +1911,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_index_for_model_request"] = create_index_for_model_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(IndexModel, await self.call_with_http_info(**kwargs))
 
         self.create_index_for_model = _AsyncioEndpoint(
             settings={
@@ -1976,7 +1989,7 @@ class AsyncioManageIndexesApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
             kwargs["create_index_from_backup_request"] = create_index_from_backup_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(CreateIndexFromBackupResponse, await self.call_with_http_info(**kwargs))
 
         self.create_index_from_backup_operation = _AsyncioEndpoint(
             settings={
@@ -2057,7 +2070,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(None, await self.call_with_http_info(**kwargs))
 
         self.delete_backup = _AsyncioEndpoint(
             settings={
@@ -2126,7 +2139,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["collection_name"] = collection_name
-            return await self.call_with_http_info(**kwargs)
+            return cast(None, await self.call_with_http_info(**kwargs))
 
         self.delete_collection = _AsyncioEndpoint(
             settings={
@@ -2195,7 +2208,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return await self.call_with_http_info(**kwargs)
+            return cast(None, await self.call_with_http_info(**kwargs))
 
         self.delete_index = _AsyncioEndpoint(
             settings={
@@ -2264,7 +2277,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["backup_id"] = backup_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(BackupModel, await self.call_with_http_info(**kwargs))
 
         self.describe_backup = _AsyncioEndpoint(
             settings={
@@ -2333,7 +2346,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["collection_name"] = collection_name
-            return await self.call_with_http_info(**kwargs)
+            return cast(CollectionModel, await self.call_with_http_info(**kwargs))
 
         self.describe_collection = _AsyncioEndpoint(
             settings={
@@ -2402,7 +2415,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return await self.call_with_http_info(**kwargs)
+            return cast(IndexModel, await self.call_with_http_info(**kwargs))
 
         self.describe_index = _AsyncioEndpoint(
             settings={
@@ -2471,7 +2484,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["job_id"] = job_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(RestoreJobModel, await self.call_with_http_info(**kwargs))
 
         self.describe_restore_job = _AsyncioEndpoint(
             settings={
@@ -2538,7 +2551,7 @@ class AsyncioManageIndexesApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(CollectionList, await self.call_with_http_info(**kwargs))
 
         self.list_collections = _AsyncioEndpoint(
             settings={
@@ -2606,7 +2619,7 @@ class AsyncioManageIndexesApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["index_name"] = index_name
-            return await self.call_with_http_info(**kwargs)
+            return cast(BackupList, await self.call_with_http_info(**kwargs))
 
         self.list_index_backups = _AsyncioEndpoint(
             settings={
@@ -2685,7 +2698,7 @@ class AsyncioManageIndexesApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(IndexList, await self.call_with_http_info(**kwargs))
 
         self.list_indexes = _AsyncioEndpoint(
             settings={
@@ -2751,7 +2764,7 @@ class AsyncioManageIndexesApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(BackupList, await self.call_with_http_info(**kwargs))
 
         self.list_project_backups = _AsyncioEndpoint(
             settings={
@@ -2829,7 +2842,7 @@ class AsyncioManageIndexesApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(RestoreJobList, await self.call_with_http_info(**kwargs))
 
         self.list_restore_jobs = _AsyncioEndpoint(
             settings={

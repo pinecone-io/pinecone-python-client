@@ -11,7 +11,7 @@ Contact: support@pinecone.io
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, cast
 from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
@@ -88,7 +88,9 @@ class BulkOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["id"] = id
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                Dict[str, Any] | ApplyResult[Dict[str, Any]], self.call_with_http_info(**kwargs)
+            )
 
         self.cancel_bulk_import = _Endpoint(
             settings={
@@ -161,7 +163,7 @@ class BulkOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["id"] = id
-            return self.call_with_http_info(**kwargs)
+            return cast(ImportModel | ApplyResult[ImportModel], self.call_with_http_info(**kwargs))
 
         self.describe_bulk_import = _Endpoint(
             settings={
@@ -234,7 +236,10 @@ class BulkOperationsApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                ListImportsResponse | ApplyResult[ListImportsResponse],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.list_bulk_imports = _Endpoint(
             settings={
@@ -322,7 +327,10 @@ class BulkOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["start_import_request"] = start_import_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                StartImportResponse | ApplyResult[StartImportResponse],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.start_bulk_import = _Endpoint(
             settings={
@@ -406,7 +414,7 @@ class AsyncioBulkOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["id"] = id
-            return await self.call_with_http_info(**kwargs)
+            return cast(Dict[str, Any], await self.call_with_http_info(**kwargs))
 
         self.cancel_bulk_import = _AsyncioEndpoint(
             settings={
@@ -472,7 +480,7 @@ class AsyncioBulkOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["id"] = id
-            return await self.call_with_http_info(**kwargs)
+            return cast(ImportModel, await self.call_with_http_info(**kwargs))
 
         self.describe_bulk_import = _AsyncioEndpoint(
             settings={
@@ -538,7 +546,7 @@ class AsyncioBulkOperationsApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(ListImportsResponse, await self.call_with_http_info(**kwargs))
 
         self.list_bulk_imports = _AsyncioEndpoint(
             settings={
@@ -616,7 +624,7 @@ class AsyncioBulkOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["start_import_request"] = start_import_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(StartImportResponse, await self.call_with_http_info(**kwargs))
 
         self.start_bulk_import = _AsyncioEndpoint(
             settings={

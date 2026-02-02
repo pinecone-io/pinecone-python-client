@@ -11,7 +11,7 @@ Contact: support@pinecone.io
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, cast
 from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
@@ -94,7 +94,10 @@ class DocumentOperationsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
             kwargs["document_search_request"] = document_search_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                DocumentSearchResponse | ApplyResult[DocumentSearchResponse],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.search_documents = _Endpoint(
             settings={
@@ -184,7 +187,10 @@ class DocumentOperationsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
             kwargs["document_upsert_request"] = document_upsert_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                DocumentUpsertResponse | ApplyResult[DocumentUpsertResponse],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.upsert_documents = _Endpoint(
             settings={
@@ -279,7 +285,7 @@ class AsyncioDocumentOperationsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
             kwargs["document_search_request"] = document_search_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(DocumentSearchResponse, await self.call_with_http_info(**kwargs))
 
         self.search_documents = _AsyncioEndpoint(
             settings={
@@ -362,7 +368,7 @@ class AsyncioDocumentOperationsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
             kwargs["document_upsert_request"] = document_upsert_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(DocumentUpsertResponse, await self.call_with_http_info(**kwargs))
 
         self.upsert_documents = _AsyncioEndpoint(
             settings={
