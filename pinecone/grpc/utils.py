@@ -482,6 +482,35 @@ def parse_stats_response(
         return cast(DescribeIndexStatsResponse, result)
 
 
+def _parse_proto_schema_to_openapi(proto_schema: Any) -> CreateNamespaceRequestSchema | None:
+    """Convert a proto schema to an OpenAPI CreateNamespaceRequestSchema model.
+
+    :param proto_schema: A protobuf schema object with a fields attribute.
+    :returns: OpenAPI schema model or None if no fields present.
+    """
+    from pinecone.core.openapi.db_data.model.create_namespace_request_schema_fields import (
+        CreateNamespaceRequestSchemaFields,
+    )
+
+    if not proto_schema or not proto_schema.fields:
+        return None
+
+    fields_dict = {}
+    for field_name, field_config in proto_schema.fields.items():
+        fields_dict[field_name] = {"type": getattr(field_config, "type", "string")}
+
+    if not fields_dict:
+        return None
+
+    return CreateNamespaceRequestSchema(
+        fields={
+            k: CreateNamespaceRequestSchemaFields(type=v.get("type", "string"), _check_type=False)
+            for k, v in fields_dict.items()
+        },
+        _check_type=False,
+    )
+
+
 def parse_namespace_description(
     response: "ProtoNamespaceDescription", initial_metadata: dict[str, str] | None = None
 ) -> NamespaceDescription:
@@ -498,25 +527,7 @@ def parse_namespace_description(
     # Extract schema if present (replaces indexed_fields in alpha API)
     schema = None
     if response.HasField("schema") and response.schema:
-        # Convert proto schema to OpenAPI model
-        fields_dict = {}
-        if response.schema.fields:
-            for field_name, field_config in response.schema.fields.items():
-                fields_dict[field_name] = {"type": getattr(field_config, "type", "string")}
-        if fields_dict:
-            from pinecone.core.openapi.db_data.model.create_namespace_request_schema_fields import (
-                CreateNamespaceRequestSchemaFields,
-            )
-
-            schema = CreateNamespaceRequestSchema(
-                fields={
-                    k: CreateNamespaceRequestSchemaFields(
-                        type=v.get("type", "string"), _check_type=False
-                    )
-                    for k, v in fields_dict.items()
-                },
-                _check_type=False,
-            )
+        schema = _parse_proto_schema_to_openapi(response.schema)
 
     namespace_desc = NamespaceDescription(
         name=name, record_count=record_count, schema=schema, _check_type=False
@@ -539,10 +550,6 @@ def parse_list_namespaces_response(
 
     This optimized version directly accesses protobuf fields for better performance.
     """
-    from pinecone.core.openapi.db_data.model.create_namespace_request_schema_fields import (
-        CreateNamespaceRequestSchemaFields,
-    )
-
     # Directly iterate over namespaces
     # Pre-allocate namespaces list with known size for better performance
     namespaces_proto = response.namespaces
@@ -553,20 +560,7 @@ def parse_list_namespaces_response(
         # Extract schema if present (replaces indexed_fields in alpha API)
         schema = None
         if ns.HasField("schema") and ns.schema:
-            fields_dict = {}
-            if ns.schema.fields:
-                for field_name, field_config in ns.schema.fields.items():
-                    fields_dict[field_name] = {"type": getattr(field_config, "type", "string")}
-            if fields_dict:
-                schema = CreateNamespaceRequestSchema(
-                    fields={
-                        k: CreateNamespaceRequestSchemaFields(
-                            type=v.get("type", "string"), _check_type=False
-                        )
-                        for k, v in fields_dict.items()
-                    },
-                    _check_type=False,
-                )
+            schema = _parse_proto_schema_to_openapi(ns.schema)
 
         namespaces[idx] = NamespaceDescription(
             name=ns.name, record_count=ns.record_count, schema=schema, _check_type=False

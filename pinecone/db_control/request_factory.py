@@ -121,6 +121,11 @@ class PineconeDBControlRequestFactory:
                 # Handle scaling configuration
                 scaling_strategy = dedicated_dict.get("scaling", "Manual")
                 manual_dict = dedicated_dict.get("manual", {})
+                # Validate manual_dict type
+                if manual_dict and not isinstance(manual_dict, dict):
+                    raise ValueError(
+                        "The 'manual' field must be a dictionary with 'shards' and 'replicas' keys."
+                    )
                 replicas = manual_dict.get("replicas", 1) if manual_dict else 1
                 shards = manual_dict.get("shards", 1) if manual_dict else 1
 
@@ -144,6 +149,24 @@ class PineconeDBControlRequestFactory:
         else:
             # Already a ReadCapacity model instance
             return read_capacity
+
+    @staticmethod
+    def __schema_dict_to_openapi_schema(schema_dict: dict[str, Any]) -> OpenAPISchema:
+        """Convert a schema dict to an OpenAPI Schema object.
+
+        :param schema_dict: Dict with 'fields' key containing field configurations.
+        :returns: OpenAPI Schema object.
+        """
+        schema_fields: dict[str, OpenAPISchemaFields] = {}
+        for field_name, field_config in schema_dict.get("fields", {}).items():
+            if isinstance(field_config, dict):
+                field_type = field_config.get("type", "string")
+                schema_fields[field_name] = OpenAPISchemaFields(
+                    type=field_type,
+                    **{k: v for k, v in field_config.items() if k != "type"},
+                    _check_type=False,
+                )
+        return OpenAPISchema(fields=schema_fields, _check_type=False)
 
     @staticmethod
     def __parse_schema(
@@ -509,18 +532,7 @@ class PineconeDBControlRequestFactory:
 
         deployment_dict = deployment.to_dict()
         schema_dict = PineconeDBControlRequestFactory._serialize_schema(schema)
-
-        # Convert schema_dict to proper Schema OpenAPI object
-        schema_fields = {}
-        for field_name, field_config in schema_dict.get("fields", {}).items():
-            if isinstance(field_config, dict):
-                field_type = field_config.get("type", "string")
-                schema_fields[field_name] = OpenAPISchemaFields(
-                    type=field_type,
-                    **{k: v for k, v in field_config.items() if k != "type"},
-                    _check_type=False,
-                )
-        schema_obj = OpenAPISchema(fields=schema_fields, _check_type=False)
+        schema_obj = PineconeDBControlRequestFactory.__schema_dict_to_openapi_schema(schema_dict)
 
         args = parse_non_empty_args(
             [
@@ -565,18 +577,7 @@ class PineconeDBControlRequestFactory:
         deployment_dict, schema_dict = PineconeDBControlRequestFactory._translate_legacy_request(
             spec=spec, dimension=dimension, metric=metric, vector_type=vector_type
         )
-
-        # Convert schema_dict to proper Schema OpenAPI object
-        schema_fields = {}
-        for field_name, field_config in schema_dict.get("fields", {}).items():
-            if isinstance(field_config, dict):
-                field_type = field_config.get("type", "string")
-                schema_fields[field_name] = OpenAPISchemaFields(
-                    type=field_type,
-                    **{k: v for k, v in field_config.items() if k != "type"},
-                    _check_type=False,
-                )
-        schema_obj = OpenAPISchema(fields=schema_fields, _check_type=False)
+        schema_obj = PineconeDBControlRequestFactory.__schema_dict_to_openapi_schema(schema_dict)
 
         # Deployment dict is passed directly - OpenAPI model accepts dicts with _check_type=False
         args = parse_non_empty_args(
