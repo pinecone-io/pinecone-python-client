@@ -4,16 +4,15 @@ import pytest
 
 from pinecone.db_data.vector_factory import VectorFactory
 from pinecone import Vector, SparseValues, ListConversionException
-from pinecone.core.openapi.db_data.models import (
-    Vector as OpenApiVector,
-    SparseValues as OpenApiSparseValues,
-)
+from pinecone.core.openapi.db_data.models import Vector as OpenApiVector
+
+from tests.fixtures import make_vector, make_sparse_values
 
 
 class TestVectorFactory_DenseVectors:
     def test_build_when_returns_vector_unmodified(self):
         vec = Vector(id="1", values=[0.1, 0.2, 0.3])
-        assert VectorFactory.build(vec) == OpenApiVector(id="1", values=[0.1, 0.2, 0.3])
+        assert VectorFactory.build(vec) == make_vector(id="1", values=[0.1, 0.2, 0.3])
         assert VectorFactory.build(vec).__class__ == OpenApiVector
 
     @pytest.mark.parametrize(
@@ -22,7 +21,7 @@ class TestVectorFactory_DenseVectors:
     def test_build_when_tuple_with_two_values(self, values_array):
         tup = ("1", values_array)
         actual = VectorFactory.build(tup)
-        expected = OpenApiVector(id="1", values=[0.1, 0.2, 0.3], metadata={})
+        expected = make_vector(id="1", values=[0.1, 0.2, 0.3], metadata={})
         assert actual == expected
 
     @pytest.mark.parametrize(
@@ -31,7 +30,7 @@ class TestVectorFactory_DenseVectors:
     def test_build_when_tuple_with_three_values(self, values_array):
         tup = ("1", values_array, {"genre": "comedy"})
         actual = VectorFactory.build(tup)
-        expected = OpenApiVector(id="1", values=[0.1, 0.2, 0.3], metadata={"genre": "comedy"})
+        expected = make_vector(id="1", values=[0.1, 0.2, 0.3], metadata={"genre": "comedy"})
         assert actual == expected
 
     @pytest.mark.parametrize(
@@ -67,7 +66,7 @@ class TestVectorFactory_DenseVectors:
     def test_build_when_dict(self, values_array):
         d = {"id": "1", "values": values_array, "metadata": {"genre": "comedy"}}
         actual = VectorFactory.build(d)
-        expected = OpenApiVector(id="1", values=[0.1, 0.2, 0.3], metadata={"genre": "comedy"})
+        expected = make_vector(id="1", values=[0.1, 0.2, 0.3], metadata={"genre": "comedy"})
         assert actual == expected
 
     def test_build_when_dict_missing_required_fields(self):
@@ -95,11 +94,11 @@ class TestVectorFactory_HybridVectors:
             "sparse_values": {"indices": [0, 2], "values": [0.1, 0.3]},
         }
         actual = VectorFactory.build(d)
-        expected = OpenApiVector(
+        expected = make_vector(
             id="1",
             values=[0.1, 0.2, 0.3],
             metadata={"genre": "comedy"},
-            sparse_values=OpenApiSparseValues(indices=[0, 2], values=[0.1, 0.3]),
+            sparse_values=make_sparse_values(indices=[0, 2], values=[0.1, 0.3]),
         )
         assert actual == expected
 
@@ -111,11 +110,11 @@ class TestVectorFactory_HybridVectors:
             "sparse_values": SparseValues(indices=[0, 2], values=[0.1, 0.3]),
         }
         actual = VectorFactory.build(d)
-        expected = OpenApiVector(
+        expected = make_vector(
             id="1",
             values=[0.1, 0.2, 0.3],
             metadata={"genre": "comedy"},
-            sparse_values=OpenApiSparseValues(indices=[0, 2], values=[0.1, 0.3]),
+            sparse_values=make_sparse_values(indices=[0, 2], values=[0.1, 0.3]),
         )
         assert actual == expected
 
@@ -183,11 +182,11 @@ class TestVectorFactory_HybridVectors:
             "sparse_values": {"indices": [0, 2], "values": np.array([0.1, 0.3])},
         }
         actual = VectorFactory.build(d)
-        expected = OpenApiVector(
+        expected = make_vector(
             id="1",
             values=[0.1, 0.2, 0.3],
             metadata={"genre": "comedy"},
-            sparse_values=OpenApiSparseValues(indices=[0, 2], values=[0.1, 0.3]),
+            sparse_values=make_sparse_values(indices=[0, 2], values=[0.1, 0.3]),
         )
         assert actual == expected
 
@@ -199,11 +198,11 @@ class TestVectorFactory_HybridVectors:
             "sparse_values": {"indices": pd.array([0, 2]), "values": [0.1, 0.3]},
         }
         actual = VectorFactory.build(d)
-        expected = OpenApiVector(
+        expected = make_vector(
             id="1",
             values=[0.1, 0.2, 0.3],
             metadata={"genre": "comedy"},
-            sparse_values=OpenApiSparseValues(indices=[0, 2], values=[0.1, 0.3]),
+            sparse_values=make_sparse_values(indices=[0, 2], values=[0.1, 0.3]),
         )
         assert actual == expected
 
@@ -215,11 +214,11 @@ class TestVectorFactory_HybridVectors:
             "sparse_values": {"indices": [0, 2], "values": pd.array([0.1, 0.3])},
         }
         actual = VectorFactory.build(d)
-        expected = OpenApiVector(
+        expected = make_vector(
             id="1",
             values=[0.1, 0.2, 0.3],
             metadata={"genre": "comedy"},
-            sparse_values=OpenApiSparseValues(indices=[0, 2], values=[0.1, 0.3]),
+            sparse_values=make_sparse_values(indices=[0, 2], values=[0.1, 0.3]),
         )
         assert actual == expected
 
@@ -231,11 +230,11 @@ class TestVectorFactory_HybridVectors:
             "sparse_values": {"indices": np.array([0, 2]), "values": [0.1, 0.3]},
         }
         actual = VectorFactory.build(d)
-        expected = OpenApiVector(
+        expected = make_vector(
             id="1",
             values=[0.1, 0.2, 0.3],
             metadata={"genre": "comedy"},
-            sparse_values=OpenApiSparseValues(indices=[0, 2], values=[0.1, 0.3]),
+            sparse_values=make_sparse_values(indices=[0, 2], values=[0.1, 0.3]),
         )
         assert actual == expected
 
@@ -251,7 +250,7 @@ class TestVectorFactory_HybridVectors:
             "sparse_values": None,
         }
         actual = VectorFactory.build(d)
-        expected = OpenApiVector(id="1", values=[0.1, 0.2, 0.3], metadata={"genre": "comedy"})
+        expected = make_vector(id="1", values=[0.1, 0.2, 0.3], metadata={"genre": "comedy"})
         assert actual == expected
 
 
@@ -259,40 +258,40 @@ class TestVectorFactory_SparseVectors:
     def test_when_sparse_only_it_sets_empty_values_obj(self):
         o = Vector(id="1", sparse_values=SparseValues(indices=[0, 2], values=[0.1, 0.3]))
         actual = VectorFactory.build(o)
-        expected = OpenApiVector(
-            id="1", values=[], sparse_values=OpenApiSparseValues(indices=[0, 2], values=[0.1, 0.3])
+        expected = make_vector(
+            id="1", values=[], sparse_values=make_sparse_values(indices=[0, 2], values=[0.1, 0.3])
         )
         assert actual == expected
 
     def test_sparse_when_dict(self):
         d = {"id": "1", "sparse_values": {"indices": [0, 2], "values": [0.1, 0.3]}}
         actual = VectorFactory.build(d)
-        expected = OpenApiVector(
-            id="1", values=[], sparse_values=OpenApiSparseValues(indices=[0, 2], values=[0.1, 0.3])
+        expected = make_vector(
+            id="1", values=[], sparse_values=make_sparse_values(indices=[0, 2], values=[0.1, 0.3])
         )
         assert actual == expected
 
     def test_sparse_when_dict_with_object(self):
         d = {"id": "1", "sparse_values": SparseValues(indices=[0, 2], values=[0.1, 0.3])}
         actual = VectorFactory.build(d)
-        expected = OpenApiVector(
-            id="1", values=[], sparse_values=OpenApiSparseValues(indices=[0, 2], values=[0.1, 0.3])
+        expected = make_vector(
+            id="1", values=[], sparse_values=make_sparse_values(indices=[0, 2], values=[0.1, 0.3])
         )
         assert actual == expected
 
     def test_sparse_when_object_with_dict(self):
         o = Vector(id="1", sparse_values={"indices": [0, 2], "values": [0.1, 0.3]})
         actual = VectorFactory.build(o)
-        expected = OpenApiVector(
-            id="1", values=[], sparse_values=OpenApiSparseValues(indices=[0, 2], values=[0.1, 0.3])
+        expected = make_vector(
+            id="1", values=[], sparse_values=make_sparse_values(indices=[0, 2], values=[0.1, 0.3])
         )
         assert actual == expected
 
     def test_when_passing_openapi_objects_should_be_unmodified(self):
         """Not really expecting this, but it's possible somebody could do it."""
-        o = OpenApiVector(id="1", values=[0.1, 0.2, 0.3])
+        o = make_vector(id="1", values=[0.1, 0.2, 0.3])
         actual = VectorFactory.build(o)
-        expected = OpenApiVector(id="1", values=[0.1, 0.2, 0.3])
+        expected = make_vector(id="1", values=[0.1, 0.2, 0.3])
         assert actual == expected
 
     def test_sparse_dict_when_missing_keys(self):

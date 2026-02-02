@@ -8,7 +8,8 @@ logic directly without requiring API access.
 import pytest
 
 from pinecone.db_data import _Index, _IndexAsyncio
-import pinecone.core.openapi.db_data.models as oai
+
+from tests.fixtures import make_list_response, make_list_item, make_pagination
 
 
 class TestIndexListPaginated:
@@ -21,11 +22,10 @@ class TestIndexListPaginated:
         """Test list_paginated with all parameters"""
         mocker.patch.object(self.index._vector_api, "list_vectors", autospec=True)
 
-        mock_response = oai.ListResponse(
-            vectors=[oai.ListItem(id="vec1"), oai.ListItem(id="vec2")],
+        mock_response = make_list_response(
+            vectors=[make_list_item(id="vec1"), make_list_item(id="vec2")],
             namespace="test-ns",
             pagination=None,
-            _check_type=False,
         )
         self.index._vector_api.list_vectors.return_value = mock_response
 
@@ -43,11 +43,8 @@ class TestIndexListPaginated:
         """Test list_paginated with only prefix and namespace"""
         mocker.patch.object(self.index._vector_api, "list_vectors", autospec=True)
 
-        mock_response = oai.ListResponse(
-            vectors=[oai.ListItem(id="vec1")],
-            namespace="test-ns",
-            pagination=None,
-            _check_type=False,
+        mock_response = make_list_response(
+            vectors=[make_list_item(id="vec1")], namespace="test-ns", pagination=None
         )
         self.index._vector_api.list_vectors.return_value = mock_response
 
@@ -63,8 +60,8 @@ class TestIndexListPaginated:
         """Test list_paginated with no parameters"""
         mocker.patch.object(self.index._vector_api, "list_vectors", autospec=True)
 
-        mock_response = oai.ListResponse(
-            vectors=[oai.ListItem(id="vec1")], namespace="", pagination=None, _check_type=False
+        mock_response = make_list_response(
+            vectors=[make_list_item(id="vec1")], namespace="", pagination=None
         )
         self.index._vector_api.list_vectors.return_value = mock_response
 
@@ -78,9 +75,7 @@ class TestIndexListPaginated:
         """Test that None values are filtered out by parse_non_empty_args"""
         mocker.patch.object(self.index._vector_api, "list_vectors", autospec=True)
 
-        mock_response = oai.ListResponse(
-            vectors=[], namespace="test-ns", pagination=None, _check_type=False
-        )
+        mock_response = make_list_response(vectors=[], namespace="test-ns", pagination=None)
         self.index._vector_api.list_vectors.return_value = mock_response
 
         self.index.list_paginated(
@@ -94,12 +89,11 @@ class TestIndexListPaginated:
         """Test list_paginated returns response with pagination"""
         mocker.patch.object(self.index._vector_api, "list_vectors", autospec=True)
 
-        mock_pagination = oai.Pagination(next="next-token-123", _check_type=False)
-        mock_response = oai.ListResponse(
-            vectors=[oai.ListItem(id="vec1"), oai.ListItem(id="vec2")],
+        mock_pagination = make_pagination(next="next-token-123")
+        mock_response = make_list_response(
+            vectors=[make_list_item(id="vec1"), make_list_item(id="vec2")],
             namespace="test-ns",
             pagination=mock_pagination,
-            _check_type=False,
         )
         self.index._vector_api.list_vectors.return_value = mock_response
 
@@ -120,11 +114,14 @@ class TestIndexList:
         """Test list with single page (no pagination)"""
         mocker.patch.object(self.index._vector_api, "list_vectors", autospec=True)
 
-        mock_response = oai.ListResponse(
-            vectors=[oai.ListItem(id="vec1"), oai.ListItem(id="vec2"), oai.ListItem(id="vec3")],
+        mock_response = make_list_response(
+            vectors=[
+                make_list_item(id="vec1"),
+                make_list_item(id="vec2"),
+                make_list_item(id="vec3"),
+            ],
             namespace="test-ns",
             pagination=None,
-            _check_type=False,
         )
         self.index._vector_api.list_vectors.return_value = mock_response
 
@@ -142,29 +139,24 @@ class TestIndexList:
         mocker.patch.object(self.index._vector_api, "list_vectors", autospec=True)
 
         # First page response
-        mock_pagination1 = oai.Pagination(next="token-page2", _check_type=False)
-        mock_response1 = oai.ListResponse(
-            vectors=[oai.ListItem(id="vec1"), oai.ListItem(id="vec2")],
+        mock_pagination1 = make_pagination(next="token-page2")
+        mock_response1 = make_list_response(
+            vectors=[make_list_item(id="vec1"), make_list_item(id="vec2")],
             namespace="test-ns",
             pagination=mock_pagination1,
-            _check_type=False,
         )
 
         # Second page response
-        mock_pagination2 = oai.Pagination(next="token-page3", _check_type=False)
-        mock_response2 = oai.ListResponse(
-            vectors=[oai.ListItem(id="vec3"), oai.ListItem(id="vec4")],
+        mock_pagination2 = make_pagination(next="token-page3")
+        mock_response2 = make_list_response(
+            vectors=[make_list_item(id="vec3"), make_list_item(id="vec4")],
             namespace="test-ns",
             pagination=mock_pagination2,
-            _check_type=False,
         )
 
         # Third page response (no pagination - last page)
-        mock_response3 = oai.ListResponse(
-            vectors=[oai.ListItem(id="vec5")],
-            namespace="test-ns",
-            pagination=None,
-            _check_type=False,
+        mock_response3 = make_list_response(
+            vectors=[make_list_item(id="vec5")], namespace="test-ns", pagination=None
         )
 
         self.index._vector_api.list_vectors.side_effect = [
@@ -197,9 +189,7 @@ class TestIndexList:
         """Test list with empty results"""
         mocker.patch.object(self.index._vector_api, "list_vectors", autospec=True)
 
-        mock_response = oai.ListResponse(
-            vectors=[], namespace="test-ns", pagination=None, _check_type=False
-        )
+        mock_response = make_list_response(vectors=[], namespace="test-ns", pagination=None)
         self.index._vector_api.list_vectors.return_value = mock_response
 
         results = list(self.index.list(prefix="pref", namespace="test-ns"))
@@ -215,17 +205,14 @@ class TestIndexList:
         mocker.patch.object(self.index._vector_api, "list_vectors", autospec=True)
 
         # First page: empty but has pagination
-        mock_pagination1 = oai.Pagination(next="token-page2", _check_type=False)
-        mock_response1 = oai.ListResponse(
-            vectors=[], namespace="test-ns", pagination=mock_pagination1, _check_type=False
+        mock_pagination1 = make_pagination(next="token-page2")
+        mock_response1 = make_list_response(
+            vectors=[], namespace="test-ns", pagination=mock_pagination1
         )
 
         # Second page: has results
-        mock_response2 = oai.ListResponse(
-            vectors=[oai.ListItem(id="vec1")],
-            namespace="test-ns",
-            pagination=None,
-            _check_type=False,
+        mock_response2 = make_list_response(
+            vectors=[make_list_item(id="vec1")], namespace="test-ns", pagination=None
         )
 
         self.index._vector_api.list_vectors.side_effect = [mock_response1, mock_response2]
@@ -261,11 +248,10 @@ class TestIndexAsyncioListPaginated:
         """Test list_paginated with all parameters"""
         index = self._create_index(mocker)
 
-        mock_response = oai.ListResponse(
-            vectors=[oai.ListItem(id="vec1"), oai.ListItem(id="vec2")],
+        mock_response = make_list_response(
+            vectors=[make_list_item(id="vec1"), make_list_item(id="vec2")],
             namespace="test-ns",
             pagination=None,
-            _check_type=False,
         )
         index._vector_api.list_vectors.return_value = mock_response
 
@@ -283,11 +269,8 @@ class TestIndexAsyncioListPaginated:
         """Test list_paginated with only prefix and namespace"""
         index = self._create_index(mocker)
 
-        mock_response = oai.ListResponse(
-            vectors=[oai.ListItem(id="vec1")],
-            namespace="test-ns",
-            pagination=None,
-            _check_type=False,
+        mock_response = make_list_response(
+            vectors=[make_list_item(id="vec1")], namespace="test-ns", pagination=None
         )
         index._vector_api.list_vectors.return_value = mock_response
 
@@ -301,8 +284,8 @@ class TestIndexAsyncioListPaginated:
         """Test list_paginated with no parameters"""
         index = self._create_index(mocker)
 
-        mock_response = oai.ListResponse(
-            vectors=[oai.ListItem(id="vec1")], namespace="", pagination=None, _check_type=False
+        mock_response = make_list_response(
+            vectors=[make_list_item(id="vec1")], namespace="", pagination=None
         )
         index._vector_api.list_vectors.return_value = mock_response
 
@@ -316,9 +299,7 @@ class TestIndexAsyncioListPaginated:
         """Test that None values are filtered out"""
         index = self._create_index(mocker)
 
-        mock_response = oai.ListResponse(
-            vectors=[], namespace="test-ns", pagination=None, _check_type=False
-        )
+        mock_response = make_list_response(vectors=[], namespace="test-ns", pagination=None)
         index._vector_api.list_vectors.return_value = mock_response
 
         await index.list_paginated(
@@ -352,11 +333,14 @@ class TestIndexAsyncioList:
         """Test list with single page (no pagination)"""
         index = self._create_index(mocker)
 
-        mock_response = oai.ListResponse(
-            vectors=[oai.ListItem(id="vec1"), oai.ListItem(id="vec2"), oai.ListItem(id="vec3")],
+        mock_response = make_list_response(
+            vectors=[
+                make_list_item(id="vec1"),
+                make_list_item(id="vec2"),
+                make_list_item(id="vec3"),
+            ],
             namespace="test-ns",
             pagination=None,
-            _check_type=False,
         )
         index._vector_api.list_vectors.return_value = mock_response
 
@@ -372,29 +356,24 @@ class TestIndexAsyncioList:
         index = self._create_index(mocker)
 
         # First page response
-        mock_pagination1 = oai.Pagination(next="token-page2", _check_type=False)
-        mock_response1 = oai.ListResponse(
-            vectors=[oai.ListItem(id="vec1"), oai.ListItem(id="vec2")],
+        mock_pagination1 = make_pagination(next="token-page2")
+        mock_response1 = make_list_response(
+            vectors=[make_list_item(id="vec1"), make_list_item(id="vec2")],
             namespace="test-ns",
             pagination=mock_pagination1,
-            _check_type=False,
         )
 
         # Second page response
-        mock_pagination2 = oai.Pagination(next="token-page3", _check_type=False)
-        mock_response2 = oai.ListResponse(
-            vectors=[oai.ListItem(id="vec3"), oai.ListItem(id="vec4")],
+        mock_pagination2 = make_pagination(next="token-page3")
+        mock_response2 = make_list_response(
+            vectors=[make_list_item(id="vec3"), make_list_item(id="vec4")],
             namespace="test-ns",
             pagination=mock_pagination2,
-            _check_type=False,
         )
 
         # Third page response (no pagination - last page)
-        mock_response3 = oai.ListResponse(
-            vectors=[oai.ListItem(id="vec5")],
-            namespace="test-ns",
-            pagination=None,
-            _check_type=False,
+        mock_response3 = make_list_response(
+            vectors=[make_list_item(id="vec5")], namespace="test-ns", pagination=None
         )
 
         index._vector_api.list_vectors.side_effect = [
@@ -425,9 +404,7 @@ class TestIndexAsyncioList:
         """Test list with empty results"""
         index = self._create_index(mocker)
 
-        mock_response = oai.ListResponse(
-            vectors=[], namespace="test-ns", pagination=None, _check_type=False
-        )
+        mock_response = make_list_response(vectors=[], namespace="test-ns", pagination=None)
         index._vector_api.list_vectors.return_value = mock_response
 
         results = [page async for page in index.list(prefix="pref", namespace="test-ns")]
