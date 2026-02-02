@@ -1,19 +1,17 @@
-from pinecone.core.openapi.db_control.models import (
-    IndexModel as OpenApiIndexModel,
-    IndexModelStatus,
-)
 from pinecone.db_control.models import IndexModel
 from pinecone import CloudProvider, AwsRegion
+
+from tests.fixtures import make_index_model, make_index_status
 
 
 class TestIndexModel:
     def test_index_model(self):
-        openapi_model = OpenApiIndexModel(
+        openapi_model = make_index_model(
             name="test-index-1",
             dimension=2,
             metric="cosine",
             host="https://test-index-1.pinecone.io",
-            status=IndexModelStatus(ready=True, state="Ready"),
+            status=make_index_status(ready=True, state="Ready"),
             deletion_protection="enabled",
             spec={
                 "serverless": {

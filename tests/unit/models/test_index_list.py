@@ -1,22 +1,18 @@
 import pytest
 from pinecone import IndexList
-from pinecone.core.openapi.db_control.models import (
-    IndexList as OpenApiIndexList,
-    IndexModel as OpenApiIndexModel,
-    IndexModelStatus,
-)
+
+from tests.fixtures import make_index_model, make_index_list
 
 
 @pytest.fixture
 def index_list_response():
-    return OpenApiIndexList(
+    return make_index_list(
         indexes=[
-            OpenApiIndexModel(
+            make_index_model(
                 name="test-index-1",
                 dimension=2,
                 metric="cosine",
                 host="https://test-index-1.pinecone.io",
-                status=IndexModelStatus(ready=True, state="Ready"),
                 deletion_protection="enabled",
                 spec={
                     "pod": {
@@ -28,12 +24,11 @@ def index_list_response():
                     }
                 },
             ),
-            OpenApiIndexModel(
+            make_index_model(
                 name="test-index-2",
                 dimension=3,
                 metric="cosine",
                 host="https://test-index-2.pinecone.io",
-                status=IndexModelStatus(ready=True, state="Ready"),
                 deletion_protection="disabled",
                 spec={
                     "pod": {
@@ -45,8 +40,7 @@ def index_list_response():
                     }
                 },
             ),
-        ],
-        _check_type=False,
+        ]
     )
 
 
@@ -81,7 +75,7 @@ class TestIndexList:
         assert IndexList(index_list_response).indexes[0].name == index_list_response.indexes[0].name
 
     def test_when_results_are_empty(self):
-        iil = IndexList(OpenApiIndexList(indexes=[]))
+        iil = IndexList(make_index_list(indexes=[]))
         assert len(iil) == 0
         assert iil.index_list.indexes == []
         assert iil.indexes == []

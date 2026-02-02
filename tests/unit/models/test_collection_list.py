@@ -1,16 +1,14 @@
 import pytest
 from pinecone import CollectionList
-from pinecone.core.openapi.db_control.models import (
-    CollectionList as OpenApiCollectionList,
-    CollectionModel,
-)
+
+from tests.fixtures import make_collection_model, make_collection_list
 
 
 @pytest.fixture
 def collection_list_response():
-    return OpenApiCollectionList(
+    return make_collection_list(
         collections=[
-            CollectionModel(
+            make_collection_model(
                 name="collection1",
                 size=10000,
                 status="Ready",
@@ -18,7 +16,7 @@ def collection_list_response():
                 record_count=1000,
                 environment="us-west1-gcp",
             ),
-            CollectionModel(
+            make_collection_model(
                 name="collection2",
                 size=20000,
                 status="Ready",
@@ -52,7 +50,7 @@ class TestCollectionList:
         )
 
     def test_when_results_are_empty(self):
-        assert len(CollectionList(OpenApiCollectionList(collections=[]))) == 0
+        assert len(CollectionList(make_collection_list(collections=[]))) == 0
 
     def test_collection_list_names_syntactic_sugar(self, collection_list_response):
         icl = CollectionList(collection_list_response)

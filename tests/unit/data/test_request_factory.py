@@ -6,16 +6,15 @@ from pinecone.db_data.request_factory import (
     SearchRerank,
 )
 
-from pinecone.core.openapi.db_data.models import (
-    SearchRecordsRequestQuery,
-    SearchRecordsRequestRerank,
-    SearchRecordsVector,
-    VectorValues,
-    SearchRecordsRequest,
-    FetchByMetadataRequest,
-)
-
+from pinecone.core.openapi.db_data.models import FetchByMetadataRequest
 from pinecone import RerankModel
+
+from tests.fixtures import (
+    make_search_records_vector,
+    make_search_records_request_query,
+    make_search_records_request_rerank,
+    make_search_records_request,
+)
 
 
 class TestIndexRequestFactory:
@@ -24,7 +23,7 @@ class TestIndexRequestFactory:
         assert vector1 is None
 
         vector2 = IndexRequestFactory._parse_search_vector({"values": [0.1, 0.2, 0.3]})
-        assert vector2 == SearchRecordsVector(values=VectorValues([0.1, 0.2, 0.3]))
+        assert vector2 == make_search_records_vector(values=[0.1, 0.2, 0.3])
 
         vector3 = IndexRequestFactory._parse_search_vector(
             {
@@ -33,84 +32,78 @@ class TestIndexRequestFactory:
                 "sparse_indices": [1, 2, 3],
             }
         )
-        assert vector3 == SearchRecordsVector(
-            values=VectorValues([0.1, 0.2, 0.3]),
-            sparse_indices=[1, 2, 3],
-            sparse_values=[0.4, 0.5, 0.6],
+        assert vector3 == make_search_records_vector(
+            values=[0.1, 0.2, 0.3], sparse_indices=[1, 2, 3], sparse_values=[0.4, 0.5, 0.6]
         )
 
         vector4 = IndexRequestFactory._parse_search_vector(
             {"values": [], "sparse_values": [0.4, 0.5, 0.6], "sparse_indices": [1, 2, 3]}
         )
-        assert vector4 == SearchRecordsVector(
-            values=VectorValues([]), sparse_indices=[1, 2, 3], sparse_values=[0.4, 0.5, 0.6]
+        assert vector4 == make_search_records_vector(
+            values=[], sparse_indices=[1, 2, 3], sparse_values=[0.4, 0.5, 0.6]
         )
 
         vector5 = IndexRequestFactory._parse_search_vector(
             {"values": [0.1, 0.2, 0.3], "sparse_values": [], "sparse_indices": []}
         )
-        assert vector5 == SearchRecordsVector(
-            values=VectorValues([0.1, 0.2, 0.3]), sparse_indices=[], sparse_values=[]
+        assert vector5 == make_search_records_vector(
+            values=[0.1, 0.2, 0.3], sparse_indices=[], sparse_values=[]
         )
 
         vector6 = IndexRequestFactory._parse_search_vector(
             {"values": [], "sparse_values": [], "sparse_indices": []}
         )
-        assert vector6 == SearchRecordsVector(
-            values=VectorValues([]), sparse_indices=[], sparse_values=[]
-        )
+        assert vector6 == make_search_records_vector(values=[], sparse_indices=[], sparse_values=[])
 
         vector7 = IndexRequestFactory._parse_search_vector({})
         assert vector7 is None
 
         vector8 = IndexRequestFactory._parse_search_vector({"values": []})
-        assert vector8 == SearchRecordsVector(values=VectorValues([]))
+        assert vector8 == make_search_records_vector(values=[])
 
         vector9 = IndexRequestFactory._parse_search_vector(
             {"sparse_values": [0.8], "sparse_indices": [100]}
         )
-        assert vector9 == SearchRecordsVector(sparse_indices=[100], sparse_values=[0.8])
+        assert vector9 == make_search_records_vector(
+            values=None, sparse_indices=[100], sparse_values=[0.8]
+        )
 
     def test_parsing_search_query_vector_object(self):
         vector2 = IndexRequestFactory._parse_search_vector(
             SearchQueryVector(values=[0.1, 0.2, 0.3])
         )
-        assert vector2 == SearchRecordsVector(values=VectorValues([0.1, 0.2, 0.3]))
+        assert vector2 == make_search_records_vector(values=[0.1, 0.2, 0.3])
 
         vector3 = IndexRequestFactory._parse_search_vector(
             SearchQueryVector(
                 values=[0.1, 0.2, 0.3], sparse_values=[0.4, 0.5, 0.6], sparse_indices=[1, 2, 3]
             )
         )
-        assert vector3 == SearchRecordsVector(
-            values=VectorValues([0.1, 0.2, 0.3]),
-            sparse_indices=[1, 2, 3],
-            sparse_values=[0.4, 0.5, 0.6],
+        assert vector3 == make_search_records_vector(
+            values=[0.1, 0.2, 0.3], sparse_indices=[1, 2, 3], sparse_values=[0.4, 0.5, 0.6]
         )
 
         vector4 = IndexRequestFactory._parse_search_vector(
             SearchQueryVector(values=[], sparse_values=[0.4, 0.5, 0.6], sparse_indices=[1, 2, 3])
         )
-        assert vector4 == SearchRecordsVector(
-            values=VectorValues([]), sparse_indices=[1, 2, 3], sparse_values=[0.4, 0.5, 0.6]
+        assert vector4 == make_search_records_vector(
+            values=[], sparse_indices=[1, 2, 3], sparse_values=[0.4, 0.5, 0.6]
         )
 
         vector5 = IndexRequestFactory._parse_search_vector(
             SearchQueryVector(values=[0.1, 0.2, 0.3], sparse_values=[], sparse_indices=[])
         )
-        assert vector5 == SearchRecordsVector(
-            values=VectorValues([0.1, 0.2, 0.3]), sparse_indices=[], sparse_values=[]
+        assert vector5 == make_search_records_vector(
+            values=[0.1, 0.2, 0.3], sparse_indices=[], sparse_values=[]
         )
 
         vector6 = IndexRequestFactory._parse_search_vector(
             SearchQueryVector(values=[], sparse_values=[], sparse_indices=[])
         )
-        assert vector6 == SearchRecordsVector(
-            values=VectorValues([]), sparse_indices=[], sparse_values=[]
-        )
+        assert vector6 == make_search_records_vector(values=[], sparse_indices=[], sparse_values=[])
 
         vector7 = IndexRequestFactory._parse_search_vector(SearchQueryVector(values=[]))
-        assert vector7 == SearchRecordsVector(values=VectorValues([]))
+        assert vector7 == make_search_records_vector(values=[])
 
     def test_parse_search_query_dict(self):
         query1 = IndexRequestFactory._parse_search_query(
@@ -120,10 +113,10 @@ class TestIndexRequestFactory:
                 "vector": {"values": [0.1, 0.2, 0.3]},
             }
         )
-        assert query1 == SearchRecordsRequestQuery(
+        assert query1 == make_search_records_request_query(
             inputs={"text": "Apple corporation"},
             top_k=3,
-            vector=SearchRecordsVector(values=VectorValues([0.1, 0.2, 0.3])),
+            vector=make_search_records_vector(values=[0.1, 0.2, 0.3]),
         )
 
         query2 = IndexRequestFactory._parse_search_query(
@@ -137,13 +130,11 @@ class TestIndexRequestFactory:
                 },
             }
         )
-        assert query2 == SearchRecordsRequestQuery(
+        assert query2 == make_search_records_request_query(
             inputs={"text": "Apple corporation"},
             top_k=3,
-            vector=SearchRecordsVector(
-                values=VectorValues([0.1, 0.2, 0.3]),
-                sparse_indices=[1, 2, 3],
-                sparse_values=[0.4, 0.5, 0.6],
+            vector=make_search_records_vector(
+                values=[0.1, 0.2, 0.3], sparse_indices=[1, 2, 3], sparse_values=[0.4, 0.5, 0.6]
             ),
         )
 
@@ -155,7 +146,7 @@ class TestIndexRequestFactory:
                 "filter": {"genre": {"$in": ["action"]}},
             }
         )
-        assert query3 == SearchRecordsRequestQuery(
+        assert query3 == make_search_records_request_query(
             inputs={"text": "Apple corporation"},
             top_k=3,
             id="test_id",
@@ -179,15 +170,13 @@ class TestIndexRequestFactory:
                 ),
             )
         )
-        assert query == SearchRecordsRequestQuery(
+        assert query == make_search_records_request_query(
             inputs={"text": "Apple corporation"},
             top_k=3,
             id="test_id",
             filter={"genre": {"$in": ["action"]}},
-            vector=SearchRecordsVector(
-                values=VectorValues([0.1, 0.2, 0.3]),
-                sparse_indices=[1, 2, 3],
-                sparse_values=[0.4, 0.5, 0.6],
+            vector=make_search_records_vector(
+                values=[0.1, 0.2, 0.3], sparse_indices=[1, 2, 3], sparse_values=[0.4, 0.5, 0.6]
             ),
         )
 
@@ -205,15 +194,13 @@ class TestIndexRequestFactory:
                 },
             )
         )
-        assert query == SearchRecordsRequestQuery(
+        assert query == make_search_records_request_query(
             inputs={"text": "Apple corporation"},
             top_k=3,
             id="test_id",
             filter={"genre": {"$in": ["action"]}},
-            vector=SearchRecordsVector(
-                values=VectorValues([0.1, 0.2, 0.3]),
-                sparse_indices=[1, 2, 3],
-                sparse_values=[0.4, 0.5, 0.6],
+            vector=make_search_records_vector(
+                values=[0.1, 0.2, 0.3], sparse_indices=[1, 2, 3], sparse_values=[0.4, 0.5, 0.6]
             ),
         )
 
@@ -221,7 +208,7 @@ class TestIndexRequestFactory:
         rerank = IndexRequestFactory._parse_search_rerank(
             {"model": "bge-reranker-v2-m3", "rank_fields": ["my_text_field"], "top_n": 3}
         )
-        assert rerank == SearchRecordsRequestRerank(
+        assert rerank == make_search_records_request_rerank(
             model="bge-reranker-v2-m3", rank_fields=["my_text_field"], top_n=3
         )
 
@@ -229,7 +216,7 @@ class TestIndexRequestFactory:
         rerank2 = IndexRequestFactory._parse_search_rerank(
             {"model": RerankModel.Bge_Reranker_V2_M3, "rank_fields": ["my_text_field"], "top_n": 3}
         )
-        assert rerank2 == SearchRecordsRequestRerank(
+        assert rerank2 == make_search_records_request_rerank(
             model="bge-reranker-v2-m3", rank_fields=["my_text_field"], top_n=3
         )
 
@@ -242,7 +229,7 @@ class TestIndexRequestFactory:
                 "query": "foo",
             }
         )
-        assert rerank3 == SearchRecordsRequestRerank(
+        assert rerank3 == make_search_records_request_rerank(
             model="bge-reranker-v2-m3",
             rank_fields=["my_text_field"],
             top_n=3,
@@ -281,7 +268,7 @@ class TestIndexRequestFactory:
                 model=RerankModel.Bge_Reranker_V2_M3, rank_fields=["my_text_field"], top_n=3
             )
         )
-        assert rerank == SearchRecordsRequestRerank(
+        assert rerank == make_search_records_request_rerank(
             model="bge-reranker-v2-m3", rank_fields=["my_text_field"], top_n=3
         )
 
@@ -294,7 +281,7 @@ class TestIndexRequestFactory:
                 query="foo",
             )
         )
-        assert rerank2 == SearchRecordsRequestRerank(
+        assert rerank2 == make_search_records_request_rerank(
             model="bge-reranker-v2-m3",
             rank_fields=["my_text_field"],
             top_n=3,
@@ -305,7 +292,7 @@ class TestIndexRequestFactory:
         rerank3 = IndexRequestFactory._parse_search_rerank(
             SearchRerank(model="unknown-model", rank_fields=["my_text_field"])
         )
-        assert rerank3 == SearchRecordsRequestRerank(
+        assert rerank3 == make_search_records_request_rerank(
             model="unknown-model", rank_fields=["my_text_field"]
         )
 
@@ -321,7 +308,7 @@ class TestIndexRequestFactory:
         )
 
         assert request is not None
-        assert request.query.vector == SearchRecordsVector(values=VectorValues([0.1, 0.2, 0.3]))
+        assert request.query.vector == make_search_records_vector(values=[0.1, 0.2, 0.3])
 
     def test_search_request_with_objects_and_enums(self):
         factory = IndexRequestFactory()
@@ -343,16 +330,16 @@ class TestIndexRequestFactory:
             ),
         )
 
-        assert request == SearchRecordsRequest(
-            query=SearchRecordsRequestQuery(
+        assert request == make_search_records_request(
+            query=make_search_records_request_query(
                 inputs={"text": "Apple corporation"},
                 top_k=3,
-                vector=SearchRecordsVector(values=VectorValues([0.1, 0.2, 0.3])),
+                vector=make_search_records_vector(values=[0.1, 0.2, 0.3]),
                 filter={"genre": {"$in": ["action"]}},
                 id="test_id",
             ),
             fields=["more_stuff"],
-            rerank=SearchRecordsRequestRerank(
+            rerank=make_search_records_request_rerank(
                 model="bge-reranker-v2-m3",
                 rank_fields=["my_text_field"],
                 top_n=3,
@@ -374,11 +361,11 @@ class TestIndexRequestFactory:
             fields=["more_stuff"],
         )
 
-        assert request == SearchRecordsRequest(
-            query=SearchRecordsRequestQuery(
+        assert request == make_search_records_request(
+            query=make_search_records_request_query(
                 inputs={"text": "Apple corporation"},
                 top_k=3,
-                vector=SearchRecordsVector(values=VectorValues([0.1, 0.2, 0.3])),
+                vector=make_search_records_vector(values=[0.1, 0.2, 0.3]),
                 filter={"genre": {"$in": ["action"]}},
                 id="test_id",
             ),
@@ -392,11 +379,11 @@ class TestIndexRequestFactory:
                 "vector": {"values": [0.1, 0.2, 0.3]},
             }
         )
-        assert request2 == SearchRecordsRequest(
-            query=SearchRecordsRequestQuery(
+        assert request2 == make_search_records_request(
+            query=make_search_records_request_query(
                 inputs={"text": "Apple corporation"},
                 top_k=3,
-                vector=SearchRecordsVector(values=VectorValues([0.1, 0.2, 0.3])),
+                vector=make_search_records_vector(values=[0.1, 0.2, 0.3]),
             ),
             fields=["*"],
         )

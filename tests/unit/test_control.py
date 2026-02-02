@@ -11,8 +11,9 @@ from pinecone import (
     PodIndexEnvironment,
     PodType,
 )
-from pinecone.core.openapi.db_control.models import IndexList, IndexModel, IndexModelStatus
 from pinecone.utils import PluginAware
+
+from tests.fixtures import make_index_model, make_index_status, make_index_list
 
 
 import time
@@ -20,9 +21,9 @@ import time
 
 def description_with_status(status: bool):
     state = "Ready" if status else "Initializing"
-    return IndexModel(
+    return make_index_model(
         name="foo",
-        status=IndexModelStatus(ready=status, state=state),
+        status=make_index_status(ready=status, state=state),
         dimension=10,
         deletion_protection="enabled",
         host="https://foo.pinecone.io",
@@ -33,37 +34,31 @@ def description_with_status(status: bool):
 
 @pytest.fixture
 def index_list_response():
-    return IndexList(
+    return make_index_list(
         indexes=[
-            IndexModel(
+            make_index_model(
                 name="index1",
                 dimension=10,
                 metric="euclidean",
                 host="asdf.pinecone.io",
-                status={"ready": True},
                 spec={},
                 deletion_protection="enabled",
-                _check_type=False,
             ),
-            IndexModel(
+            make_index_model(
                 name="index2",
                 dimension=10,
                 metric="euclidean",
                 host="asdf.pinecone.io",
-                status={"ready": True},
                 spec={},
                 deletion_protection="enabled",
-                _check_type=False,
             ),
-            IndexModel(
+            make_index_model(
                 name="index3",
                 dimension=10,
                 metric="euclidean",
                 host="asdf.pinecone.io",
-                status={"ready": True},
                 spec={},
                 deletion_protection="disabled",
-                _check_type=False,
             ),
         ]
     )
