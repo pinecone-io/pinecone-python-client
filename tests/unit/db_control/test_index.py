@@ -32,18 +32,23 @@ def build_client_w_faked_response(mocker, body: str, status: int = 200):
 
 class TestIndexResource:
     def test_describe_index(self, mocker):
+        # Alpha API response format uses schema + deployment instead of spec + dimension + metric
         body = """
         {
             "name": "test-index",
-            "description": "test-description",
-            "dimension": 1024,
-            "metric": "cosine",
-            "spec": {
-                "byoc": {
-                    "environment": "test-environment"
+            "schema": {
+                "fields": {
+                    "_values": {
+                        "type": "dense_vector",
+                        "dimension": 1024,
+                        "metric": "cosine"
+                    }
                 }
             },
-            "vector_type": "dense",
+            "deployment": {
+                "deployment_type": "byoc",
+                "environment": "test-environment"
+            },
             "status": {
                 "ready": true,
                 "state": "Ready"
@@ -59,10 +64,10 @@ class TestIndexResource:
 
         desc = index_resource.describe(name="test-index")
         assert desc.name == "test-index"
-        assert desc.description == "test-description"
+        # Access through compatibility shim
         assert desc.dimension == 1024
         assert desc.metric == "cosine"
-        assert desc.spec["byoc"]["environment"] == "test-environment"
+        assert desc.spec.byoc.environment == "test-environment"
         assert desc.vector_type == "dense"
         assert desc.status.ready == True
         assert desc.deletion_protection == "disabled"
@@ -101,12 +106,12 @@ class TestIndexResourceCreateValidation:
             )
 
     def test_create_with_spec_uses_legacy_path(self, mocker):
-        """Test that create() with spec uses the legacy request factory method."""
+        """Test that create() with spec translates to alpha API schema+deployment format."""
+        # Alpha API response uses schema + deployment instead of spec + dimension + metric
         body = """{
             "name": "test-index",
-            "dimension": 1536,
-            "metric": "cosine",
-            "spec": {"serverless": {"cloud": "aws", "region": "us-east-1"}},
+            "schema": {"fields": {"_values": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
+            "deployment": {"deployment_type": "serverless", "cloud": "aws", "region": "us-east-1"},
             "status": {"ready": true, "state": "Ready"},
             "host": "test.pinecone.io"
         }"""
@@ -122,6 +127,8 @@ class TestIndexResourceCreateValidation:
         )
 
         assert result.name == "test-index"
+        # Access dimension/metric through compatibility layer
+        assert result.dimension == 1536
         # Verify the request was made
         assert mock_request.call_count == 1
 

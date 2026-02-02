@@ -1,9 +1,20 @@
 import pandas as pd
 import pytest
 
-from pinecone.db_data import _Index, _IndexAsyncio
+from pinecone.db_data import _Index
 import pinecone.core.openapi.db_data.models as oai
 from pinecone import QueryResponse, UpsertResponse, Vector
+
+# Optional asyncio support - may not be installed
+# Check for aiohttp since _IndexAsyncio import succeeds but actual usage requires aiohttp
+try:
+    import aiohttp  # noqa: F401
+    from pinecone.db_data import _IndexAsyncio
+
+    HAS_ASYNCIO = True
+except ImportError:
+    _IndexAsyncio = None  # type: ignore
+    HAS_ASYNCIO = False
 
 
 class TestRestIndex:
@@ -633,6 +644,7 @@ class TestRestIndex:
 
     # region: asyncio update tests
 
+    @pytest.mark.skipif(not HAS_ASYNCIO, reason="asyncio dependencies not installed")
     @pytest.mark.asyncio
     async def test_asyncio_update_withDryRun_updateWithDryRun(self, mocker):
         """Test asyncio update with dry_run parameter."""
@@ -649,6 +661,7 @@ class TestRestIndex:
             oai.UpdateRequest(filter=self.filter1, dry_run=True, namespace="ns")
         )
 
+    @pytest.mark.skipif(not HAS_ASYNCIO, reason="asyncio dependencies not installed")
     @pytest.mark.asyncio
     async def test_asyncio_update_withDryRunAndSetMetadata_updateWithDryRunAndSetMetadata(
         self, mocker
@@ -671,6 +684,7 @@ class TestRestIndex:
             )
         )
 
+    @pytest.mark.skipif(not HAS_ASYNCIO, reason="asyncio dependencies not installed")
     @pytest.mark.asyncio
     async def test_asyncio_update_withDryRunFalse_updateWithDryRunFalse(self, mocker):
         """Test asyncio update with dry_run=False."""
@@ -687,6 +701,7 @@ class TestRestIndex:
             oai.UpdateRequest(filter=self.filter1, dry_run=False, namespace="ns")
         )
 
+    @pytest.mark.skipif(not HAS_ASYNCIO, reason="asyncio dependencies not installed")
     @pytest.mark.asyncio
     async def test_asyncio_update_withDryRunAndAllParams_updateWithDryRunAndAllParams(self, mocker):
         """Test asyncio update with dry_run and all parameters."""

@@ -17,7 +17,8 @@ class _DeleteableIndex(_DeleteableResource):
 
     def get_state(self, name):
         desc = self.pc.db.index.describe(name=name)
-        return desc["status"]["state"]
+        status = desc.status
+        return getattr(status, "state", None)
 
     def list(self):
         return self.pc.db.index.list()

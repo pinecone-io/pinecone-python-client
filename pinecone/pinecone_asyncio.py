@@ -54,7 +54,7 @@ if TYPE_CHECKING:
     from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
         ReadCapacityDedicatedSpec,
     )
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
+    from pinecone.core.openapi.db_control.model.schema import Schema
     from pinecone.core.openapi.db_control.api.manage_indexes_api import AsyncioManageIndexesApi
     from pinecone.db_control.index_host_store import IndexHostStore
 
@@ -293,7 +293,7 @@ class PineconeAsyncio(PineconeAsyncioDBControlInterface):
             | dict[
                 str, dict[str, Any]
             ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-            | "BackupModelSchema"  # OpenAPI model instance
+            | "Schema"  # OpenAPI model instance
         )
         | None = None,
         timeout: int | None = None,
