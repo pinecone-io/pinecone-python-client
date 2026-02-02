@@ -54,8 +54,8 @@ from .query_results_aggregator import QueryResultsAggregator, QueryNamespacesRes
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
 from pinecone.adapters.response_adapters import (
     adapt_query_response,
-    adapt_upsert_response,
     adapt_fetch_response,
+    UpsertResponseTransformer,
 )
 
 from multiprocessing.pool import ApplyResult
@@ -87,28 +87,6 @@ def parse_query_response(response: OpenAPIQueryResponse) -> QueryResponse:
     This function is kept for backward compatibility.
     """
     return adapt_query_response(response)
-
-
-class UpsertResponseTransformer:
-    """Transformer for converting ApplyResult[OpenAPIUpsertResponse] to UpsertResponse.
-
-    This wrapper transforms the OpenAPI response to our dataclass when .get() is called,
-    while delegating other methods to the underlying ApplyResult.
-    """
-
-    _apply_result: ApplyResult
-    """ :meta private: """
-
-    def __init__(self, apply_result: ApplyResult) -> None:
-        self._apply_result = apply_result
-
-    def get(self, timeout: float | None = None) -> UpsertResponse:
-        openapi_response = self._apply_result.get(timeout)
-        return adapt_upsert_response(openapi_response)
-
-    def __getattr__(self, name: str) -> Any:
-        # Delegate other methods to the underlying ApplyResult
-        return getattr(self._apply_result, name)
 
 
 class Index(PluginAware):

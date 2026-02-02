@@ -10,6 +10,7 @@ scattered across multiple modules.
 
 from __future__ import annotations
 
+from multiprocessing.pool import ApplyResult
 from typing import TYPE_CHECKING, Any
 
 from pinecone.adapters.utils import extract_response_metadata
@@ -114,3 +115,37 @@ def adapt_fetch_response(openapi_response: Any) -> FetchResponse:
         usage=openapi_response.usage,
         _response_info=response_info,
     )
+
+
+class UpsertResponseTransformer:
+    """Transformer for converting ApplyResult[OpenAPIUpsertResponse] to UpsertResponse.
+
+    This wrapper transforms the OpenAPI response to our dataclass when .get() is called,
+    while delegating other methods to the underlying ApplyResult.
+
+    Example:
+        >>> transformer = UpsertResponseTransformer(async_result)
+        >>> response = transformer.get()  # Returns UpsertResponse
+    """
+
+    _apply_result: ApplyResult
+    """ :meta private: """
+
+    def __init__(self, apply_result: ApplyResult) -> None:
+        self._apply_result = apply_result
+
+    def get(self, timeout: float | None = None) -> UpsertResponse:
+        """Get the transformed UpsertResponse.
+
+        Args:
+            timeout: Optional timeout in seconds for the underlying result.
+
+        Returns:
+            The SDK UpsertResponse dataclass.
+        """
+        openapi_response = self._apply_result.get(timeout)
+        return adapt_upsert_response(openapi_response)
+
+    def __getattr__(self, name: str) -> Any:
+        # Delegate other methods to the underlying ApplyResult
+        return getattr(self._apply_result, name)
