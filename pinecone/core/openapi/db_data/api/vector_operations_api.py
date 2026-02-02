@@ -11,7 +11,7 @@ Contact: support@pinecone.io
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, cast
 from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
@@ -105,7 +105,9 @@ class VectorOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["delete_request"] = delete_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                Dict[str, Any] | ApplyResult[Dict[str, Any]], self.call_with_http_info(**kwargs)
+            )
 
         self.delete_vectors = _Endpoint(
             settings={
@@ -184,7 +186,9 @@ class VectorOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["describe_index_stats_request"] = describe_index_stats_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                IndexDescription | ApplyResult[IndexDescription], self.call_with_http_info(**kwargs)
+            )
 
         self.describe_index_stats = _Endpoint(
             settings={
@@ -264,7 +268,9 @@ class VectorOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["ids"] = ids
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                FetchResponse | ApplyResult[FetchResponse], self.call_with_http_info(**kwargs)
+            )
 
         self.fetch_vectors = _Endpoint(
             settings={
@@ -352,7 +358,10 @@ class VectorOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["fetch_by_metadata_request"] = fetch_by_metadata_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                FetchByMetadataResponse | ApplyResult[FetchByMetadataResponse],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.fetch_vectors_by_metadata = _Endpoint(
             settings={
@@ -433,7 +442,9 @@ class VectorOperationsApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                ListResponse | ApplyResult[ListResponse], self.call_with_http_info(**kwargs)
+            )
 
         self.list_vectors = _Endpoint(
             settings={
@@ -533,7 +544,9 @@ class VectorOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["query_request"] = query_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                QueryResponse | ApplyResult[QueryResponse], self.call_with_http_info(**kwargs)
+            )
 
         self.query_vectors = _Endpoint(
             settings={
@@ -615,7 +628,10 @@ class VectorOperationsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
             kwargs["search_records_request"] = search_records_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                SearchRecordsResponse | ApplyResult[SearchRecordsResponse],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.search_records_namespace = _Endpoint(
             settings={
@@ -702,7 +718,9 @@ class VectorOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["update_request"] = update_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                UpdateResponse | ApplyResult[UpdateResponse], self.call_with_http_info(**kwargs)
+            )
 
         self.update_vector = _Endpoint(
             settings={
@@ -784,7 +802,7 @@ class VectorOperationsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
             kwargs["upsert_record"] = upsert_record
-            return self.call_with_http_info(**kwargs)
+            return cast(None, self.call_with_http_info(**kwargs))
 
         self.upsert_records_namespace = _Endpoint(
             settings={
@@ -871,7 +889,9 @@ class VectorOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["upsert_request"] = upsert_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                UpsertResponse | ApplyResult[UpsertResponse], self.call_with_http_info(**kwargs)
+            )
 
         self.upsert_vectors = _Endpoint(
             settings={
@@ -952,7 +972,7 @@ class AsyncioVectorOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["delete_request"] = delete_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(Dict[str, Any], await self.call_with_http_info(**kwargs))
 
         self.delete_vectors = _AsyncioEndpoint(
             settings={
@@ -1021,7 +1041,7 @@ class AsyncioVectorOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["describe_index_stats_request"] = describe_index_stats_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(IndexDescription, await self.call_with_http_info(**kwargs))
 
         self.describe_index_stats = _AsyncioEndpoint(
             settings={
@@ -1094,7 +1114,7 @@ class AsyncioVectorOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["ids"] = ids
-            return await self.call_with_http_info(**kwargs)
+            return cast(FetchResponse, await self.call_with_http_info(**kwargs))
 
         self.fetch_vectors = _AsyncioEndpoint(
             settings={
@@ -1172,7 +1192,7 @@ class AsyncioVectorOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["fetch_by_metadata_request"] = fetch_by_metadata_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(FetchByMetadataResponse, await self.call_with_http_info(**kwargs))
 
         self.fetch_vectors_by_metadata = _AsyncioEndpoint(
             settings={
@@ -1246,7 +1266,7 @@ class AsyncioVectorOperationsApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(ListResponse, await self.call_with_http_info(**kwargs))
 
         self.list_vectors = _AsyncioEndpoint(
             settings={
@@ -1336,7 +1356,7 @@ class AsyncioVectorOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["query_request"] = query_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(QueryResponse, await self.call_with_http_info(**kwargs))
 
         self.query_vectors = _AsyncioEndpoint(
             settings={
@@ -1411,7 +1431,7 @@ class AsyncioVectorOperationsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
             kwargs["search_records_request"] = search_records_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(SearchRecordsResponse, await self.call_with_http_info(**kwargs))
 
         self.search_records_namespace = _AsyncioEndpoint(
             settings={
@@ -1488,7 +1508,7 @@ class AsyncioVectorOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["update_request"] = update_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(UpdateResponse, await self.call_with_http_info(**kwargs))
 
         self.update_vector = _AsyncioEndpoint(
             settings={
@@ -1559,7 +1579,7 @@ class AsyncioVectorOperationsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
             kwargs["upsert_record"] = upsert_record
-            return await self.call_with_http_info(**kwargs)
+            return cast(None, await self.call_with_http_info(**kwargs))
 
         self.upsert_records_namespace = _AsyncioEndpoint(
             settings={
@@ -1636,7 +1656,7 @@ class AsyncioVectorOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["upsert_request"] = upsert_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(UpsertResponse, await self.call_with_http_info(**kwargs))
 
         self.upsert_vectors = _AsyncioEndpoint(
             settings={

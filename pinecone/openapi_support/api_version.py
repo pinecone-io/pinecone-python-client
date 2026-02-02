@@ -4,4 +4,4 @@
 # This version is used by gRPC clients (data plane only)
 
 API_VERSION = "2026-01.alpha"
-APIS_REPO_SHA = "d5ac93191def1d9666946d2c0e67edd3140b0f0d"
+APIS_REPO_SHA = "4eac4da9fe2083c9cce5e3cf494b582d637cd8a3"

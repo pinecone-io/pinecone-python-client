@@ -11,7 +11,7 @@ Contact: support@pinecone.io
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, cast
 from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
@@ -89,7 +89,9 @@ class InferenceApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                EmbeddingsList | ApplyResult[EmbeddingsList], self.call_with_http_info(**kwargs)
+            )
 
         self.embed = _Endpoint(
             settings={
@@ -168,7 +170,7 @@ class InferenceApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["model_name"] = model_name
-            return self.call_with_http_info(**kwargs)
+            return cast(ModelInfo | ApplyResult[ModelInfo], self.call_with_http_info(**kwargs))
 
         self.get_model = _Endpoint(
             settings={
@@ -244,7 +246,9 @@ class InferenceApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                ModelInfoList | ApplyResult[ModelInfoList], self.call_with_http_info(**kwargs)
+            )
 
         self.list_models = _Endpoint(
             settings={
@@ -328,7 +332,9 @@ class InferenceApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                RerankResult | ApplyResult[RerankResult], self.call_with_http_info(**kwargs)
+            )
 
         self.rerank = _Endpoint(
             settings={
@@ -406,7 +412,7 @@ class AsyncioInferenceApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(EmbeddingsList, await self.call_with_http_info(**kwargs))
 
         self.embed = _AsyncioEndpoint(
             settings={
@@ -475,7 +481,7 @@ class AsyncioInferenceApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["model_name"] = model_name
-            return await self.call_with_http_info(**kwargs)
+            return cast(ModelInfo, await self.call_with_http_info(**kwargs))
 
         self.get_model = _AsyncioEndpoint(
             settings={
@@ -542,7 +548,7 @@ class AsyncioInferenceApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(ModelInfoList, await self.call_with_http_info(**kwargs))
 
         self.list_models = _AsyncioEndpoint(
             settings={
@@ -617,7 +623,7 @@ class AsyncioInferenceApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(RerankResult, await self.call_with_http_info(**kwargs))
 
         self.rerank = _AsyncioEndpoint(
             settings={

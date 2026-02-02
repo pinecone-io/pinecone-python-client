@@ -11,7 +11,7 @@ Contact: support@pinecone.io
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, cast
 from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
@@ -91,7 +91,7 @@ class ProjectsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_project_request"] = create_project_request
-            return self.call_with_http_info(**kwargs)
+            return cast(Project | ApplyResult[Project], self.call_with_http_info(**kwargs))
 
         self.create_project = _Endpoint(
             settings={
@@ -173,7 +173,7 @@ class ProjectsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
-            return self.call_with_http_info(**kwargs)
+            return cast(None, self.call_with_http_info(**kwargs))
 
         self.delete_project = _Endpoint(
             settings={
@@ -252,7 +252,7 @@ class ProjectsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
-            return self.call_with_http_info(**kwargs)
+            return cast(Project | ApplyResult[Project], self.call_with_http_info(**kwargs))
 
         self.fetch_project = _Endpoint(
             settings={
@@ -326,7 +326,7 @@ class ProjectsApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(ProjectList | ApplyResult[ProjectList], self.call_with_http_info(**kwargs))
 
         self.list_projects = _Endpoint(
             settings={
@@ -405,7 +405,7 @@ class ProjectsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
             kwargs["update_project_request"] = update_project_request
-            return self.call_with_http_info(**kwargs)
+            return cast(Project | ApplyResult[Project], self.call_with_http_info(**kwargs))
 
         self.update_project = _Endpoint(
             settings={
@@ -494,7 +494,7 @@ class AsyncioProjectsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_project_request"] = create_project_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(Project, await self.call_with_http_info(**kwargs))
 
         self.create_project = _AsyncioEndpoint(
             settings={
@@ -566,7 +566,7 @@ class AsyncioProjectsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(None, await self.call_with_http_info(**kwargs))
 
         self.delete_project = _AsyncioEndpoint(
             settings={
@@ -635,7 +635,7 @@ class AsyncioProjectsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
-            return await self.call_with_http_info(**kwargs)
+            return cast(Project, await self.call_with_http_info(**kwargs))
 
         self.fetch_project = _AsyncioEndpoint(
             settings={
@@ -700,7 +700,7 @@ class AsyncioProjectsApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(ProjectList, await self.call_with_http_info(**kwargs))
 
         self.list_projects = _AsyncioEndpoint(
             settings={
@@ -768,7 +768,7 @@ class AsyncioProjectsApi:
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["project_id"] = project_id
             kwargs["update_project_request"] = update_project_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(Project, await self.call_with_http_info(**kwargs))
 
         self.update_project = _AsyncioEndpoint(
             settings={

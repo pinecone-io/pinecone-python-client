@@ -26,6 +26,13 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pinecone.core.openapi.db_data.model.scored_vector import ScoredVector
+    from pinecone.core.openapi.db_data.model.single_query_results import SingleQueryResults
+    from pinecone.core.openapi.db_data.model.usage import Usage
+
 
 def lazy_import():
     from pinecone.core.openapi.db_data.model.scored_vector import ScoredVector

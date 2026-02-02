@@ -11,7 +11,7 @@ Contact: support@pinecone.io
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, cast
 from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
@@ -89,7 +89,9 @@ class OAuthApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["token_request"] = token_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                TokenResponse | ApplyResult[TokenResponse], self.call_with_http_info(**kwargs)
+            )
 
         self.get_token = _Endpoint(
             settings={
@@ -173,7 +175,7 @@ class AsyncioOAuthApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["token_request"] = token_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(TokenResponse, await self.call_with_http_info(**kwargs))
 
         self.get_token = _AsyncioEndpoint(
             settings={

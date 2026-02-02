@@ -11,7 +11,7 @@ Contact: support@pinecone.io
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, cast
 from multiprocessing.pool import ApplyResult
 
 from pinecone.openapi_support import ApiClient, AsyncioApiClient
@@ -90,7 +90,10 @@ class NamespaceOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_namespace_request"] = create_namespace_request
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                NamespaceDescription | ApplyResult[NamespaceDescription],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.create_namespace = _Endpoint(
             settings={
@@ -172,7 +175,9 @@ class NamespaceOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                Dict[str, Any] | ApplyResult[Dict[str, Any]], self.call_with_http_info(**kwargs)
+            )
 
         self.delete_namespace = _Endpoint(
             settings={
@@ -251,7 +256,10 @@ class NamespaceOperationsApi:
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                NamespaceDescription | ApplyResult[NamespaceDescription],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.describe_namespace = _Endpoint(
             settings={
@@ -328,7 +336,10 @@ class NamespaceOperationsApi:
             """
             kwargs = self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return self.call_with_http_info(**kwargs)
+            return cast(
+                ListNamespacesResponse | ApplyResult[ListNamespacesResponse],
+                self.call_with_http_info(**kwargs),
+            )
 
         self.list_namespaces_operation = _Endpoint(
             settings={
@@ -421,7 +432,7 @@ class AsyncioNamespaceOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["create_namespace_request"] = create_namespace_request
-            return await self.call_with_http_info(**kwargs)
+            return cast(NamespaceDescription, await self.call_with_http_info(**kwargs))
 
         self.create_namespace = _AsyncioEndpoint(
             settings={
@@ -493,7 +504,7 @@ class AsyncioNamespaceOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
-            return await self.call_with_http_info(**kwargs)
+            return cast(Dict[str, Any], await self.call_with_http_info(**kwargs))
 
         self.delete_namespace = _AsyncioEndpoint(
             settings={
@@ -562,7 +573,7 @@ class AsyncioNamespaceOperationsApi:
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
             kwargs["namespace"] = namespace
-            return await self.call_with_http_info(**kwargs)
+            return cast(NamespaceDescription, await self.call_with_http_info(**kwargs))
 
         self.describe_namespace = _AsyncioEndpoint(
             settings={
@@ -632,7 +643,7 @@ class AsyncioNamespaceOperationsApi:
             """
             self._process_openapi_kwargs(kwargs)
             kwargs["x_pinecone_api_version"] = x_pinecone_api_version
-            return await self.call_with_http_info(**kwargs)
+            return cast(ListNamespacesResponse, await self.call_with_http_info(**kwargs))
 
         self.list_namespaces_operation = _AsyncioEndpoint(
             settings={
