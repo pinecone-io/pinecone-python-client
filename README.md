@@ -1,5 +1,5 @@
 # Pinecone Python SDK
-![License](https://img.shields.io/github/license/pinecone-io/pinecone-python-client?color=orange) [![CI](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/pr.yaml/badge.svg)](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/pr.yaml) [![PyPI version](https://img.shields.io/pypi/v/pinecone.svg)](https://pypi.org/project/pinecone/) [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+![License](https://img.shields.io/github/license/pinecone-io/pinecone-python-client?color=orange) [![CI](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/on-merge.yaml/badge.svg)](https://github.com/pinecone-io/pinecone-python-client/actions/workflows/on-merge.yaml) [![PyPI version](https://img.shields.io/pypi/v/pinecone.svg)](https://pypi.org/project/pinecone/) [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 
 The official Pinecone Python SDK for building vector search applications with AI/ML.
 
