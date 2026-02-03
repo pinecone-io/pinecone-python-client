@@ -19,12 +19,10 @@ from pinecone.adapters.response_adapters import (
     adapt_upsert_response,
     UpsertResponseTransformer,
 )
-from pinecone.adapters.utils import extract_response_metadata
 
 __all__ = [
     "adapt_fetch_response",
     "adapt_query_response",
     "adapt_upsert_response",
-    "extract_response_metadata",
     "UpsertResponseTransformer",
 ]
