@@ -1,17 +1,14 @@
 import pytest
 from pinecone import IndexList
-from pinecone.core.openapi.db_control.models import (
-    IndexList as OpenApiIndexList,
-    IndexModel as OpenApiIndexModel,
-    IndexModelStatus,
-)
+from pinecone.core.openapi.db_control.models import IndexList as OpenApiIndexList, IndexModelStatus
+from tests.fixtures import make_index_model
 
 
 @pytest.fixture
 def index_list_response():
     return OpenApiIndexList(
         indexes=[
-            OpenApiIndexModel(
+            make_index_model(
                 name="test-index-1",
                 dimension=2,
                 metric="cosine",
@@ -27,8 +24,8 @@ def index_list_response():
                         "shards": 1,
                     }
                 },
-            ),
-            OpenApiIndexModel(
+            ).index,
+            make_index_model(
                 name="test-index-2",
                 dimension=3,
                 metric="cosine",
@@ -44,7 +41,7 @@ def index_list_response():
                         "shards": 1,
                     }
                 },
-            ),
+            ).index,
         ],
         _check_type=False,
     )
@@ -68,8 +65,9 @@ class TestIndexList:
         iil = IndexList(index_list_response)
         input = index_list_response
         assert input.indexes[0].name == iil[0].name
-        assert input.indexes[0].dimension == iil[0].dimension
-        assert input.indexes[0].metric == iil[0].metric
+        # Test wrapped IndexModel compatibility properties
+        assert iil[0].dimension == 2
+        assert iil[0].metric == "cosine"
         assert input.indexes[0].host == iil[0].host
         assert input.indexes[0].deletion_protection == iil[0].deletion_protection
         assert iil[0].deletion_protection == "enabled"

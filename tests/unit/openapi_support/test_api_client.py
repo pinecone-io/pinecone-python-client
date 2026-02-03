@@ -1,4 +1,4 @@
-from pinecone.core.openapi.db_control.models import IndexModel, IndexModelStatus
+from pinecone.core.openapi.db_control.models import IndexModelStatus
 from pinecone.core.openapi.db_data.models import VectorValues
 from pinecone.openapi_support.serializer import Serializer
 from pinecone.openapi_support.api_client_utils import parameters_to_tuples
@@ -55,43 +55,40 @@ class TestSanitization:
         assert Serializer.sanitize_for_serialization(io.BytesIO(b"test")) == b"test"
 
     def test_sanitize_for_serialization_serializes_model_normal(self):
-        m = IndexModel(
+        from tests.fixtures import make_index_model
+
+        m = make_index_model(
             name="myindex",
             dimension=10,
             metric="cosine",
             host="localhost",
-            spec={},
             status=IndexModelStatus(ready=True, state="Ready"),
-            vector_type="dense",
-        )
-        assert Serializer.sanitize_for_serialization(m) == {
-            "name": "myindex",
-            "dimension": 10,
-            "metric": "cosine",
-            "host": "localhost",
-            "spec": {},
-            "status": {"ready": True, "state": "Ready"},
-            "vector_type": "dense",
-        }
+        ).index  # Get the underlying OpenAPI model
 
-        m2 = IndexModel(
+        serialized = Serializer.sanitize_for_serialization(m)
+        # New API format: uses schema and deployment
+        assert serialized["name"] == "myindex"
+        assert serialized["schema"]["fields"]["_values"]["dimension"] == 10
+        assert serialized["schema"]["fields"]["_values"]["metric"] == "cosine"
+        assert serialized["host"] == "localhost"
+        assert serialized["deployment"]["deployment_type"] == "serverless"
+        assert serialized["status"] == {"ready": True, "state": "Ready"}
+
+        m2 = make_index_model(
             name="myindex2",
             metric="cosine",
             host="localhost",
-            spec={},
             status=IndexModelStatus(ready=True, state="Ready"),
-            vector_type="sparse",
             deletion_protection="enabled",
-        )
-        assert Serializer.sanitize_for_serialization(m2) == {
-            "name": "myindex2",
-            "metric": "cosine",
-            "host": "localhost",
-            "spec": {},
-            "status": {"ready": True, "state": "Ready"},
-            "vector_type": "sparse",
-            "deletion_protection": "enabled",
-        }
+        ).index
+
+        serialized2 = Serializer.sanitize_for_serialization(m2)
+        assert serialized2["name"] == "myindex2"
+        assert serialized2["schema"]["fields"] == {}  # No dimension means empty schema
+        assert serialized2["host"] == "localhost"
+        assert serialized2["deployment"]["deployment_type"] == "serverless"
+        assert serialized2["status"] == {"ready": True, "state": "Ready"}
+        assert serialized2["deletion_protection"] == "enabled"
 
     def test_sanitize_for_serialization_serializes_model_simple(self):
         # ModelSimple is used to model named values which are not objects

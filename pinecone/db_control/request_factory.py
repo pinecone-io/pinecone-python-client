@@ -15,39 +15,30 @@ from pinecone.core.openapi.db_control.model.create_index_for_model_request_embed
 )
 from pinecone.core.openapi.db_control.model.create_index_request import CreateIndexRequest
 from pinecone.core.openapi.db_control.model.configure_index_request import ConfigureIndexRequest
-from pinecone.core.openapi.db_control.model.configure_index_request_embed import (
-    ConfigureIndexRequestEmbed,
-)
-from pinecone.core.openapi.db_control.model.index_spec import IndexSpec
 from pinecone.core.openapi.db_control.model.index_tags import IndexTags
-from pinecone.core.openapi.db_control.model.serverless_spec import (
-    ServerlessSpec as ServerlessSpecModel,
-)
 from pinecone.core.openapi.db_control.model.read_capacity_on_demand_spec import (
     ReadCapacityOnDemandSpec,
 )
 from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
     ReadCapacityDedicatedSpec,
 )
-from pinecone.core.openapi.db_control.model.read_capacity_dedicated_config import (
-    ReadCapacityDedicatedConfig,
+from pinecone.core.openapi.db_control.model.schema import Schema
+from pinecone.core.openapi.db_control.model.schema_fields import SchemaFields
+from pinecone.core.openapi.db_control.model.pod_deployment_metadata_config import (
+    PodDeploymentMetadataConfig,
 )
-from pinecone.core.openapi.db_control.model.scaling_config_manual import ScalingConfigManual
-from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
-from pinecone.core.openapi.db_control.model.backup_model_schema_fields import (
-    BackupModelSchemaFields,
-)
-from pinecone.core.openapi.db_control.model.byoc_spec import ByocSpec as ByocSpecModel
-from pinecone.core.openapi.db_control.model.pod_spec import PodSpec as PodSpecModel
-from pinecone.core.openapi.db_control.model.pod_spec_metadata_config import PodSpecMetadataConfig
 from pinecone.core.openapi.db_control.model.create_index_from_backup_request import (
     CreateIndexFromBackupRequest,
 )
 from pinecone.db_control.models import ServerlessSpec, PodSpec, ByocSpec, IndexModel, IndexEmbed
-from pinecone.db_control.models.deployment import (
-    ServerlessDeployment,
-    PodDeployment,
-    ByocDeployment,
+from pinecone.core.openapi.db_control.model.serverless_deployment import (
+    ServerlessDeployment as ServerlessDeploymentModel,
+)
+from pinecone.core.openapi.db_control.model.pod_deployment import (
+    PodDeployment as PodDeploymentModel,
+)
+from pinecone.core.openapi.db_control.model.byoc_deployment import (
+    ByocDeployment as ByocDeploymentModel,
 )
 from pinecone.db_control.models.schema_fields import DenseVectorField, SparseVectorField
 
@@ -61,7 +52,7 @@ from pinecone.db_control.enums import (
     GcpRegion,
     AzureRegion,
 )
-from .types import CreateIndexForModelEmbedTypedDict, ConfigureIndexEmbed
+from .types import CreateIndexForModelEmbedTypedDict
 
 if TYPE_CHECKING:
     from pinecone.db_control.models.serverless_spec import (
@@ -69,6 +60,11 @@ if TYPE_CHECKING:
         MetadataSchemaFieldConfig,
     )
     from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
+    from pinecone.db_control.models.deployment import (
+        ServerlessDeployment,
+        PodDeployment,
+        ByocDeployment,
+    )
 
 logger = logging.getLogger(__name__)
 """ :meta private: """
@@ -122,9 +118,9 @@ class PineconeDBControlRequestFactory:
                 result = ReadCapacityOnDemandSpec(mode="OnDemand")
                 return cast(ReadCapacityOnDemandSpec, result)
             elif mode == "Dedicated":
+                # New API structure: ReadCapacityDedicatedSpec has node_type, scaling (object with strategy, replicas, shards)
                 dedicated_dict: dict[str, Any] = read_capacity.get("dedicated", {})  # type: ignore
-                # Construct ReadCapacityDedicatedConfig
-                # node_type and scaling are required fields
+
                 if "node_type" not in dedicated_dict or dedicated_dict.get("node_type") is None:
                     raise ValueError(
                         "node_type is required when using Dedicated read capacity mode. "
@@ -135,42 +131,56 @@ class PineconeDBControlRequestFactory:
                         "scaling is required when using Dedicated read capacity mode. "
                         "Please specify 'scaling' (e.g., 'Manual') in the 'dedicated' configuration."
                     )
+
                 node_type = dedicated_dict["node_type"]
-                scaling = dedicated_dict["scaling"]
-                dedicated_config_kwargs = {"node_type": node_type, "scaling": scaling}
+                scaling_value = dedicated_dict["scaling"]
 
-                # Validate that manual scaling configuration is provided when scaling is "Manual"
-                if scaling == "Manual":
-                    if "manual" not in dedicated_dict or dedicated_dict.get("manual") is None:
-                        raise ValueError(
-                            "When using 'Manual' scaling with Dedicated read capacity mode, "
-                            "the 'manual' field with 'shards' and 'replicas' is required. "
-                            "Please specify 'manual': {'shards': <number>, 'replicas': <number>} "
-                            "in the 'dedicated' configuration."
-                        )
-                    manual_dict = dedicated_dict["manual"]
-                    if not isinstance(manual_dict, dict):
-                        raise ValueError(
-                            "The 'manual' field must be a dictionary with 'shards' and 'replicas' keys."
-                        )
-                    if "shards" not in manual_dict or "replicas" not in manual_dict:
-                        missing = []
-                        if "shards" not in manual_dict:
-                            missing.append("shards")
-                        if "replicas" not in manual_dict:
-                            missing.append("replicas")
-                        raise ValueError(
-                            f"The 'manual' configuration is missing required fields: {', '.join(missing)}. "
-                            "Please provide both 'shards' and 'replicas' in the 'manual' configuration."
-                        )
-                    dedicated_config_kwargs["manual"] = ScalingConfigManual(**manual_dict)
-                elif "manual" in dedicated_dict:
-                    # Allow manual to be provided for other scaling types (future compatibility)
-                    manual_dict = dedicated_dict["manual"]
-                    dedicated_config_kwargs["manual"] = ScalingConfigManual(**manual_dict)
+                # Handle manual scaling configuration
+                from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec_response_scaling import (
+                    ReadCapacityDedicatedSpecResponseScaling,
+                )
 
-                dedicated_config = ReadCapacityDedicatedConfig(**dedicated_config_kwargs)
-                result = ReadCapacityDedicatedSpec(mode="Dedicated", dedicated=dedicated_config)
+                if isinstance(scaling_value, str):
+                    # Old format: scaling is a string like "Manual", manual dict has shards/replicas
+                    if scaling_value == "Manual":
+                        if "manual" not in dedicated_dict or dedicated_dict.get("manual") is None:
+                            raise ValueError(
+                                "When using 'Manual' scaling with Dedicated read capacity mode, "
+                                "the 'manual' field with 'shards' and 'replicas' is required."
+                            )
+                        manual_dict = dedicated_dict["manual"]
+                        if not isinstance(manual_dict, dict):
+                            raise ValueError(
+                                "The 'manual' field must be a dictionary with 'shards' and 'replicas' keys."
+                            )
+                        if "shards" not in manual_dict or "replicas" not in manual_dict:
+                            missing = []
+                            if "shards" not in manual_dict:
+                                missing.append("shards")
+                            if "replicas" not in manual_dict:
+                                missing.append("replicas")
+                            raise ValueError(
+                                f"The 'manual' configuration is missing required fields: {', '.join(missing)}."
+                            )
+
+                        # Create scaling object with strategy, replicas, shards
+                        scaling_obj = ReadCapacityDedicatedSpecResponseScaling(
+                            strategy=scaling_value,
+                            replicas=manual_dict["replicas"],
+                            shards=manual_dict["shards"],
+                        )
+                    else:
+                        # Other scaling strategies might not need manual config
+                        scaling_obj = ReadCapacityDedicatedSpecResponseScaling(
+                            strategy=scaling_value, replicas=1, shards=1
+                        )
+                else:
+                    # Already a scaling object
+                    scaling_obj = scaling_value
+
+                result = ReadCapacityDedicatedSpec(
+                    mode="Dedicated", node_type=node_type, scaling=scaling_obj
+                )
                 return cast(ReadCapacityDedicatedSpec, result)
             else:
                 # Fallback: let OpenAPI handle it
@@ -193,14 +203,14 @@ class PineconeDBControlRequestFactory:
             | dict[
                 str, dict[str, Any]
             ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-            | BackupModelSchema  # OpenAPI model instance
+            | Schema  # OpenAPI model instance
         ),
-    ) -> BackupModelSchema:
-        """Parse schema dict into BackupModelSchema instance.
+    ) -> Schema:
+        """Parse schema dict into Schema instance.
 
         :param schema: Dict with schema configuration (either {field_name: {filterable: bool, ...}} or
-            {"fields": {field_name: {filterable: bool, ...}}, ...}) or existing BackupModelSchema instance
-        :return: BackupModelSchema instance
+            {"fields": {field_name: {filterable: bool, ...}}, ...}) or existing Schema instance
+        :return: Schema instance
         """
         if isinstance(schema, dict):
             schema_kwargs: dict[str, Any] = {}
@@ -213,10 +223,10 @@ class PineconeDBControlRequestFactory:
                 for field_name, field_config in schema["fields"].items():
                     if isinstance(field_config, dict):
                         # Pass through the entire field_config dict to allow future API fields
-                        fields[field_name] = BackupModelSchemaFields(**field_config)
+                        fields[field_name] = SchemaFields(**field_config)
                     else:
                         # If not a dict, create with default filterable=True
-                        fields[field_name] = BackupModelSchemaFields(filterable=True)
+                        fields[field_name] = SchemaFields(filterable=True)
                 schema_kwargs["fields"] = fields
 
                 # Pass through any other fields in schema_dict to allow future API fields
@@ -230,14 +240,14 @@ class PineconeDBControlRequestFactory:
                 for field_name, field_config in schema.items():
                     if isinstance(field_config, dict):
                         # Pass through the entire field_config dict to allow future API fields
-                        fields[field_name] = BackupModelSchemaFields(**field_config)
+                        fields[field_name] = SchemaFields(**field_config)
                     else:
                         # If not a dict, create with default filterable=True
-                        fields[field_name] = BackupModelSchemaFields(filterable=True)
+                        fields[field_name] = SchemaFields(filterable=True)
                 # Ensure fields is always set, even if empty
                 schema_kwargs["fields"] = fields
 
-            # Validate that fields is present before constructing BackupModelSchema
+            # Validate that fields is present before constructing Schema
             if "fields" not in schema_kwargs:
                 raise ValueError(
                     "Schema dict must contain field definitions. "
@@ -247,125 +257,11 @@ class PineconeDBControlRequestFactory:
 
             from typing import cast
 
-            result = BackupModelSchema(**schema_kwargs)
-            return cast(BackupModelSchema, result)
+            result = Schema(**schema_kwargs)
+            return cast(Schema, result)
         else:
-            # Already a BackupModelSchema instance
+            # Already a Schema instance
             return schema
-
-    @staticmethod
-    def __parse_index_spec(spec: Dict | ServerlessSpec | PodSpec | ByocSpec) -> IndexSpec:
-        if isinstance(spec, dict):
-            if "serverless" in spec:
-                spec["serverless"]["cloud"] = convert_enum_to_string(spec["serverless"]["cloud"])
-                spec["serverless"]["region"] = convert_enum_to_string(spec["serverless"]["region"])
-
-                # Handle read_capacity if present
-                if "read_capacity" in spec["serverless"]:
-                    spec["serverless"]["read_capacity"] = (
-                        PineconeDBControlRequestFactory.__parse_read_capacity(
-                            spec["serverless"]["read_capacity"]
-                        )
-                    )
-
-                # Handle schema if present - convert to BackupModelSchema
-                if "schema" in spec["serverless"]:
-                    schema_dict = spec["serverless"]["schema"]
-                    if isinstance(schema_dict, dict):
-                        # Process fields if present, otherwise pass through as-is
-                        schema_kwargs = {}
-                        if "fields" in schema_dict:
-                            fields = {}
-                            for field_name, field_config in schema_dict["fields"].items():
-                                if isinstance(field_config, dict):
-                                    # Pass through the entire field_config dict to allow future API fields
-                                    fields[field_name] = BackupModelSchemaFields(**field_config)
-                                else:
-                                    # If not a dict, create with default filterable=True
-                                    fields[field_name] = BackupModelSchemaFields(filterable=True)
-                            schema_kwargs["fields"] = fields
-
-                        # Pass through any other fields in schema_dict to allow future API fields
-                        for key, value in schema_dict.items():
-                            if key != "fields":
-                                schema_kwargs[key] = value
-
-                        spec["serverless"]["schema"] = BackupModelSchema(**schema_kwargs)
-
-                index_spec = IndexSpec(serverless=ServerlessSpecModel(**spec["serverless"]))
-            elif "pod" in spec:
-                spec["pod"]["environment"] = convert_enum_to_string(spec["pod"]["environment"])
-                args_dict = parse_non_empty_args(
-                    [
-                        ("environment", spec["pod"].get("environment")),
-                        ("metadata_config", spec["pod"].get("metadata_config")),
-                        ("replicas", spec["pod"].get("replicas")),
-                        ("shards", spec["pod"].get("shards")),
-                        ("pods", spec["pod"].get("pods")),
-                        ("source_collection", spec["pod"].get("source_collection")),
-                    ]
-                )
-                if args_dict.get("metadata_config"):
-                    args_dict["metadata_config"] = PodSpecMetadataConfig(
-                        indexed=args_dict["metadata_config"].get("indexed", None)
-                    )
-                index_spec = IndexSpec(pod=PodSpecModel(**args_dict))
-            elif "byoc" in spec:
-                index_spec = IndexSpec(byoc=ByocSpecModel(**spec["byoc"]))
-            else:
-                raise ValueError("spec must contain either 'serverless', 'pod', or 'byoc' key")
-        elif isinstance(spec, ServerlessSpec):
-            # Build args dict for ServerlessSpecModel
-            serverless_args: dict[str, Any] = {"cloud": spec.cloud, "region": spec.region}
-
-            # Handle read_capacity
-            if spec.read_capacity is not None:
-                serverless_args["read_capacity"] = (
-                    PineconeDBControlRequestFactory.__parse_read_capacity(spec.read_capacity)
-                )
-
-            # Handle schema
-            if spec.schema is not None:
-                # Convert dict to BackupModelSchema
-                # schema is {field_name: {filterable: bool, ...}}
-                # Pass through the entire field_config to allow future API fields
-                fields = {}
-                for field_name, field_config in spec.schema.items():
-                    if isinstance(field_config, dict):
-                        # Pass through the entire field_config dict to allow future API fields
-                        fields[field_name] = BackupModelSchemaFields(**field_config)
-                    else:
-                        # If not a dict, create with default filterable=True
-                        fields[field_name] = BackupModelSchemaFields(filterable=True)
-                serverless_args["schema"] = BackupModelSchema(fields=fields)
-
-            index_spec = IndexSpec(serverless=ServerlessSpecModel(**serverless_args))
-        elif isinstance(spec, PodSpec):
-            args_dict = parse_non_empty_args(
-                [
-                    ("replicas", spec.replicas),
-                    ("shards", spec.shards),
-                    ("pods", spec.pods),
-                    ("source_collection", spec.source_collection),
-                ]
-            )
-            if spec.metadata_config:
-                args_dict["metadata_config"] = PodSpecMetadataConfig(
-                    indexed=spec.metadata_config.get("indexed", None)
-                )
-
-            index_spec = IndexSpec(
-                pod=PodSpecModel(environment=spec.environment, pod_type=spec.pod_type, **args_dict)
-            )
-        elif isinstance(spec, ByocSpec):
-            args_dict = parse_non_empty_args([("environment", spec.environment)])
-            index_spec = IndexSpec(byoc=ByocSpecModel(**args_dict))
-        else:
-            raise TypeError("spec must be of type dict, ServerlessSpec, PodSpec, or ByocSpec")
-
-        from typing import cast
-
-        return cast(IndexSpec, index_spec)
 
     @staticmethod
     def _translate_legacy_request(
@@ -415,37 +311,54 @@ class PineconeDBControlRequestFactory:
 
         # Translate spec to deployment
         deployment_dict: dict[str, Any]
+        deployment: ServerlessDeploymentModel | PodDeploymentModel | ByocDeploymentModel
         if isinstance(spec, dict):
             if "serverless" in spec:
                 serverless_spec = spec["serverless"]
                 # Convert enum values to strings for consistency with __parse_index_spec
                 cloud = convert_enum_to_string(serverless_spec.get("cloud", ""))
                 region = convert_enum_to_string(serverless_spec.get("region", ""))
-                deployment = ServerlessDeployment(cloud=cloud, region=region)
+                deployment = ServerlessDeploymentModel(
+                    deployment_type="serverless", cloud=cloud, region=region
+                )
                 deployment_dict = deployment.to_dict()
             elif "pod" in spec:
                 pod_spec = spec["pod"]
                 # Convert enum values to strings for consistency with __parse_index_spec
                 environment = convert_enum_to_string(pod_spec.get("environment", ""))
                 pod_type = convert_enum_to_string(pod_spec.get("pod_type", "p1.x1"))
-                deployment = PodDeployment(
-                    environment=environment,
-                    pod_type=pod_type,
-                    replicas=pod_spec.get("replicas", 1),
-                    shards=pod_spec.get("shards", 1),
-                    pods=pod_spec.get("pods"),
-                )
+                pod_kwargs: dict[str, Any] = {
+                    "deployment_type": "pod",
+                    "environment": environment,
+                    "pod_type": pod_type,
+                    "replicas": pod_spec.get("replicas") or 1,  # Use default 1 if None or missing
+                    "shards": pod_spec.get("shards") or 1,  # Use default 1 if None or missing
+                }
+                # Only include pods if it's explicitly provided and not None
+                pods_value = pod_spec.get("pods")
+                if pods_value is not None:
+                    pod_kwargs["pods"] = pods_value
+                # Handle metadata_config if present - convert to PodDeploymentMetadataConfig
+                if pod_spec.get("metadata_config"):
+                    metadata_config_dict = pod_spec["metadata_config"]
+                    if isinstance(metadata_config_dict, dict) and metadata_config_dict:
+                        pod_kwargs["metadata_config"] = PodDeploymentMetadataConfig(
+                            **metadata_config_dict
+                        )
+                deployment = PodDeploymentModel(**pod_kwargs)
                 deployment_dict = deployment.to_dict()
             elif "byoc" in spec:
                 byoc_spec = spec["byoc"]
                 # Convert enum values to strings for consistency with __parse_index_spec
                 environment = convert_enum_to_string(byoc_spec.get("environment", ""))
-                deployment = ByocDeployment(environment=environment)
+                deployment = ByocDeploymentModel(deployment_type="byoc", environment=environment)
                 deployment_dict = deployment.to_dict()
             else:
                 raise ValueError("spec must contain either 'serverless', 'pod', or 'byoc' key")
         elif isinstance(spec, ServerlessSpec):
-            deployment = ServerlessDeployment(cloud=spec.cloud, region=spec.region)
+            deployment = ServerlessDeploymentModel(
+                deployment_type="serverless", cloud=spec.cloud, region=spec.region
+            )
             deployment_dict = deployment.to_dict()
         elif isinstance(spec, PodSpec):
             # PodDeployment requires pod_type, but PodSpec defaults to "p1.x1"
@@ -453,16 +366,25 @@ class PineconeDBControlRequestFactory:
             # Use explicit None check to preserve 0 values (consistent with dict handling)
             replicas = spec.replicas if spec.replicas is not None else 1
             shards = spec.shards if spec.shards is not None else 1
-            deployment = PodDeployment(
-                environment=spec.environment,
-                pod_type=pod_type,
-                replicas=replicas,
-                shards=shards,
-                pods=spec.pods,
-            )
+            pod_obj_kwargs: dict[str, Any] = {
+                "deployment_type": "pod",
+                "environment": spec.environment,
+                "pod_type": pod_type,
+                "replicas": replicas,
+                "shards": shards,
+            }
+            # Only include pods if it's not None
+            if spec.pods is not None:
+                pod_obj_kwargs["pods"] = spec.pods
+            # Handle metadata_config if present - convert to PodDeploymentMetadataConfig
+            if spec.metadata_config:
+                pod_obj_kwargs["metadata_config"] = PodDeploymentMetadataConfig(
+                    **spec.metadata_config
+                )
+            deployment = PodDeploymentModel(**pod_obj_kwargs)
             deployment_dict = deployment.to_dict()
         elif isinstance(spec, ByocSpec):
-            deployment = ByocDeployment(environment=spec.environment)
+            deployment = ByocDeploymentModel(deployment_type="byoc", environment=spec.environment)
             deployment_dict = deployment.to_dict()
         else:
             raise TypeError("spec must be of type dict, ServerlessSpec, PodSpec, or ByocSpec")
@@ -533,7 +455,9 @@ class PineconeDBControlRequestFactory:
         region = convert_enum_to_string(region)
 
         # Create ServerlessDeployment for cloud/region
-        deployment = ServerlessDeployment(cloud=cloud, region=region)
+        deployment = ServerlessDeploymentModel(
+            deployment_type="serverless", cloud=cloud, region=region
+        )
         deployment_dict = deployment.to_dict()
 
         # Parse embed configuration
@@ -624,7 +548,7 @@ class PineconeDBControlRequestFactory:
     def create_index_with_schema_request(
         name: str,
         schema: dict[str, Any],
-        deployment: ServerlessDeployment | PodDeployment | ByocDeployment | None = None,
+        deployment: "ServerlessDeployment | PodDeployment | ByocDeployment | None" = None,
         deletion_protection: (DeletionProtection | str) | None = DeletionProtection.DISABLED,
         tags: dict[str, str] | None = None,
     ) -> CreateIndexRequest:
@@ -649,16 +573,31 @@ class PineconeDBControlRequestFactory:
 
         # Default deployment to aws/us-east-1 serverless
         if deployment is None:
-            deployment = ServerlessDeployment(cloud="aws", region="us-east-1")
+            from pinecone.db_control.models.deployment import (
+                ServerlessDeployment as SDKServerlessDeployment,
+            )
 
+            deployment = SDKServerlessDeployment(cloud="aws", region="us-east-1")
+
+        # Convert SDK deployment to dict, then let CreateIndexRequest deserialize it
         deployment_dict = deployment.to_dict()
+
+        # Import the Deployment union class and use it to properly deserialize
+        from pinecone.core.openapi.db_control.model.deployment import Deployment
+
+        parsed_deployment = Deployment(**deployment_dict)
+
+        # Parse schema
         schema_dict = PineconeDBControlRequestFactory._serialize_schema(schema)
+        parsed_schema = None
+        if schema_dict and schema_dict.get("fields"):
+            parsed_schema = PineconeDBControlRequestFactory.__parse_schema(schema_dict)
 
         args = parse_non_empty_args(
             [
                 ("name", name),
-                ("deployment", deployment_dict),
-                ("schema", schema_dict),
+                ("deployment", parsed_deployment),
+                ("schema", parsed_schema),
                 ("deletion_protection", dp),
                 ("tags", tags_obj),
             ]
@@ -679,6 +618,11 @@ class PineconeDBControlRequestFactory:
         vector_type: (VectorType | str) | None = VectorType.DENSE,
         tags: dict[str, str] | None = None,
     ) -> CreateIndexRequest:
+        """Create a CreateIndexRequest using legacy parameters.
+
+        This method translates legacy spec/dimension/metric parameters to the new
+        deployment/schema format required by the current API.
+        """
         if metric is not None:
             metric = convert_enum_to_string(metric)
         if vector_type is not None:
@@ -689,19 +633,39 @@ class PineconeDBControlRequestFactory:
             dp = None
 
         tags_obj = PineconeDBControlRequestFactory.__parse_tags(tags)
-        index_spec = PineconeDBControlRequestFactory.__parse_index_spec(spec)
 
         if vector_type == VectorType.SPARSE.value and dimension is not None:
             raise ValueError("dimension should not be specified for sparse indexes")
 
+        # Translate legacy parameters to new deployment + schema format
+        deployment_dict, schema_dict = PineconeDBControlRequestFactory._translate_legacy_request(
+            spec=spec, dimension=dimension, metric=metric, vector_type=vector_type
+        )
+
+        # Convert metadata_config dict to PodDeploymentMetadataConfig if present
+        if deployment_dict.get("deployment_type") == "pod" and "metadata_config" in deployment_dict:
+            metadata_config_dict = deployment_dict["metadata_config"]
+            if isinstance(metadata_config_dict, dict):
+                deployment_dict["metadata_config"] = PodDeploymentMetadataConfig(
+                    **metadata_config_dict
+                )
+
+        # Convert deployment_dict to Deployment object using the discriminator
+        from pinecone.core.openapi.db_control.model.deployment import Deployment
+
+        parsed_deployment = Deployment(**deployment_dict)
+
+        # Convert schema_dict to Schema object if present
+        parsed_schema = None
+        if schema_dict and schema_dict.get("fields"):
+            parsed_schema = PineconeDBControlRequestFactory.__parse_schema(schema_dict)
+
         args = parse_non_empty_args(
             [
                 ("name", name),
-                ("dimension", dimension),
-                ("metric", metric),
-                ("spec", index_spec),
+                ("deployment", parsed_deployment),
+                ("schema", parsed_schema),
                 ("deletion_protection", dp),
-                ("vector_type", vector_type),
                 ("tags", tags_obj),
             ]
         )
@@ -733,7 +697,7 @@ class PineconeDBControlRequestFactory:
             | dict[
                 str, dict[str, Any]
             ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-            | BackupModelSchema  # OpenAPI model instance
+            | Schema  # OpenAPI model instance
         )
         | None = None,
     ) -> CreateIndexForModelRequest:
@@ -816,7 +780,6 @@ class PineconeDBControlRequestFactory:
         pod_type: (PodType | str) | None = None,
         deletion_protection: (DeletionProtection | str) | None = None,
         tags: dict[str, str] | None = None,
-        embed: (ConfigureIndexEmbed | Dict) | None = None,
         read_capacity: (
             "ReadCapacityDict"
             | "ReadCapacity"
@@ -835,10 +798,11 @@ class PineconeDBControlRequestFactory:
             raise ValueError("deletion_protection must be either 'enabled' or 'disabled'")
 
         fetched_tags = description.tags
+        starting_tags: dict[str, str]
         if fetched_tags is None:
             starting_tags = {}
         else:
-            starting_tags = fetched_tags.to_dict()
+            starting_tags = fetched_tags.to_dict() if hasattr(fetched_tags, "to_dict") else {}
 
         if tags is None:
             # Do not modify tags if none are provided
@@ -853,10 +817,6 @@ class PineconeDBControlRequestFactory:
             pod_config_args.update(pod_type=new_pod_type)
         if replicas:
             pod_config_args.update(replicas=replicas)
-
-        embed_config = None
-        if embed is not None:
-            embed_config = ConfigureIndexRequestEmbed(**dict(embed))
 
         # Parse read_capacity if provided
         parsed_read_capacity = None
@@ -873,12 +833,7 @@ class PineconeDBControlRequestFactory:
             spec = {"serverless": {"read_capacity": parsed_read_capacity}}
 
         args_dict = parse_non_empty_args(
-            [
-                ("deletion_protection", dp),
-                ("tags", IndexTags(**tags)),
-                ("spec", spec),
-                ("embed", embed_config),
-            ]
+            [("deletion_protection", dp), ("tags", IndexTags(**tags)), ("spec", spec)]
         )
 
         from typing import cast
