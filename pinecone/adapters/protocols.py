@@ -72,13 +72,13 @@ class FetchResponseAdapter(Protocol):
     adapting an OpenAPI FetchResponse to the SDK FetchResponse dataclass.
 
     Attributes:
-        namespace: The namespace from which vectors were fetched.
+        namespace: The namespace from which vectors were fetched (optional).
         vectors: Dictionary mapping vector IDs to Vector objects.
         usage: Optional usage statistics for the fetch operation.
         _response_info: Response metadata including headers.
     """
 
-    namespace: str
+    namespace: str | None
     vectors: dict[str, Any]
     usage: Usage | None
     _response_info: Any

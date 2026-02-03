@@ -115,7 +115,7 @@ def adapt_fetch_response(openapi_response: FetchResponseAdapter) -> FetchRespons
     response_info = extract_response_metadata(openapi_response)
 
     return FR(
-        namespace=openapi_response.namespace,
+        namespace=openapi_response.namespace or "",
         vectors={k: Vector.from_dict(v) for k, v in openapi_response.vectors.items()},
         usage=openapi_response.usage,
         _response_info=response_info,
