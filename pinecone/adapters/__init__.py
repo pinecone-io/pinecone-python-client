@@ -26,9 +26,11 @@ from pinecone.adapters.response_adapters import (
     adapt_upsert_response,
     UpsertResponseTransformer,
 )
+from pinecone.adapters.index_adapter import adapt_index_spec
 
 __all__ = [
     "adapt_fetch_response",
+    "adapt_index_spec",
     "adapt_query_response",
     "adapt_upsert_response",
     "UpsertResponseTransformer",

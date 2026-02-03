@@ -345,8 +345,8 @@ def make_scored_vector(
 
 
 def make_openapi_query_response(
-    matches: Optional[List[OpenApiScoredVector]] = None,
-    namespace: str = "",
+    matches: Optional[List[OpenApiScoredVector]] = _UNSET,  # type: ignore[assignment]
+    namespace: Optional[str] = _UNSET,  # type: ignore[assignment]
     usage: Optional[OpenApiUsage] = None,
     _check_type: bool = False,
     **overrides: Any,
@@ -354,8 +354,8 @@ def make_openapi_query_response(
     """Create an OpenApiQueryResponse instance.
 
     Args:
-        matches: List of scored vectors
-        namespace: Query namespace
+        matches: List of scored vectors. Defaults to []. Pass None to omit.
+        namespace: Query namespace. Defaults to "". Pass None to omit.
         usage: Usage information
         _check_type: Whether to enable type checking
         **overrides: Additional fields to override
@@ -363,14 +363,17 @@ def make_openapi_query_response(
     Returns:
         An OpenApiQueryResponse instance
     """
-    if matches is None:
-        matches = []
+    kwargs: Dict[str, Any] = {"_check_type": _check_type}
 
-    kwargs: Dict[str, Any] = {
-        "matches": matches,
-        "namespace": namespace,
-        "_check_type": _check_type,
-    }
+    if matches is _UNSET:
+        kwargs["matches"] = []
+    else:
+        kwargs["matches"] = matches
+
+    if namespace is _UNSET:
+        kwargs["namespace"] = ""
+    else:
+        kwargs["namespace"] = namespace
 
     if usage is not None:
         kwargs["usage"] = usage
@@ -380,26 +383,34 @@ def make_openapi_query_response(
 
 
 def make_openapi_upsert_response(
-    upserted_count: int = 10, _check_type: bool = False, **overrides: Any
+    upserted_count: Optional[int] = _UNSET,  # type: ignore[assignment]
+    _check_type: bool = False,
+    **overrides: Any,
 ) -> OpenApiUpsertResponse:
     """Create an OpenApiUpsertResponse instance.
 
     Args:
-        upserted_count: Number of vectors upserted
+        upserted_count: Number of vectors upserted. Defaults to 10. Pass None to omit.
         _check_type: Whether to enable type checking
         **overrides: Additional fields to override
 
     Returns:
         An OpenApiUpsertResponse instance
     """
-    kwargs: Dict[str, Any] = {"upserted_count": upserted_count, "_check_type": _check_type}
+    kwargs: Dict[str, Any] = {"_check_type": _check_type}
+
+    if upserted_count is _UNSET:
+        kwargs["upserted_count"] = 10
+    else:
+        kwargs["upserted_count"] = upserted_count
+
     kwargs.update(overrides)
     return OpenApiUpsertResponse(**kwargs)
 
 
 def make_openapi_fetch_response(
-    vectors: Optional[Dict[str, Dict[str, Any]]] = None,
-    namespace: str = "",
+    vectors: Optional[Dict[str, Dict[str, Any]]] = _UNSET,  # type: ignore[assignment]
+    namespace: Optional[str] = _UNSET,  # type: ignore[assignment]
     usage: Optional[OpenApiUsage] = None,
     _check_type: bool = False,
     **overrides: Any,
@@ -407,8 +418,8 @@ def make_openapi_fetch_response(
     """Create an OpenApiFetchResponse instance.
 
     Args:
-        vectors: Dictionary mapping vector IDs to vector data
-        namespace: Fetch namespace
+        vectors: Dictionary mapping vector IDs to vector data. Defaults to {}. Pass None to omit.
+        namespace: Fetch namespace. Defaults to "". Pass None to omit.
         usage: Usage information
         _check_type: Whether to enable type checking
         **overrides: Additional fields to override
@@ -416,14 +427,17 @@ def make_openapi_fetch_response(
     Returns:
         An OpenApiFetchResponse instance
     """
-    if vectors is None:
-        vectors = {}
+    kwargs: Dict[str, Any] = {"_check_type": _check_type}
 
-    kwargs: Dict[str, Any] = {
-        "vectors": vectors,
-        "namespace": namespace,
-        "_check_type": _check_type,
-    }
+    if vectors is _UNSET:
+        kwargs["vectors"] = {}
+    else:
+        kwargs["vectors"] = vectors
+
+    if namespace is _UNSET:
+        kwargs["namespace"] = ""
+    else:
+        kwargs["namespace"] = namespace
 
     if usage is not None:
         kwargs["usage"] = usage

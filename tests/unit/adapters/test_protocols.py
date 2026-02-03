@@ -12,6 +12,11 @@ from pinecone.adapters.protocols import (
     IndexModelAdapter,
     IndexStatusAdapter,
 )
+from pinecone.adapters.response_adapters import (
+    adapt_query_response,
+    adapt_upsert_response,
+    adapt_fetch_response,
+)
 from tests.fixtures import (
     make_openapi_query_response,
     make_openapi_upsert_response,
@@ -154,3 +159,54 @@ class TestIndexStatusProtocolCompliance:
         assert hasattr(status, "state")
         assert status.ready is True
         assert status.state == "Ready"
+
+
+class TestAdapterNoneHandling:
+    """Tests that adapters handle None/optional fields correctly."""
+
+    def test_adapt_query_response_with_none_matches(self):
+        """Test that adapt_query_response handles None matches gracefully."""
+        openapi_response = make_openapi_query_response(matches=None, namespace="test")
+        sdk_response = adapt_query_response(openapi_response)
+
+        assert sdk_response.matches == []
+        assert sdk_response.namespace == "test"
+
+    def test_adapt_query_response_with_none_namespace(self):
+        """Test that adapt_query_response handles None namespace gracefully."""
+        openapi_response = make_openapi_query_response(matches=[], namespace=None)
+        sdk_response = adapt_query_response(openapi_response)
+
+        assert sdk_response.matches == []
+        assert sdk_response.namespace == ""
+
+    def test_adapt_upsert_response_with_none_upserted_count(self):
+        """Test that adapt_upsert_response handles None upserted_count gracefully."""
+        openapi_response = make_openapi_upsert_response(upserted_count=None)
+        sdk_response = adapt_upsert_response(openapi_response)
+
+        assert sdk_response.upserted_count == 0
+
+    def test_adapt_fetch_response_with_none_namespace(self):
+        """Test that adapt_fetch_response handles None namespace gracefully."""
+        openapi_response = make_openapi_fetch_response(vectors={}, namespace=None)
+        sdk_response = adapt_fetch_response(openapi_response)
+
+        assert sdk_response.namespace == ""
+        assert sdk_response.vectors == {}
+
+    def test_adapt_fetch_response_with_none_vectors(self):
+        """Test that adapt_fetch_response handles None vectors gracefully."""
+        openapi_response = make_openapi_fetch_response(vectors=None, namespace="test")
+        sdk_response = adapt_fetch_response(openapi_response)
+
+        assert sdk_response.namespace == "test"
+        assert sdk_response.vectors == {}
+
+    def test_adapt_fetch_response_with_all_none_optionals(self):
+        """Test that adapt_fetch_response handles all None optional fields."""
+        openapi_response = make_openapi_fetch_response(vectors=None, namespace=None)
+        sdk_response = adapt_fetch_response(openapi_response)
+
+        assert sdk_response.namespace == ""
+        assert sdk_response.vectors == {}

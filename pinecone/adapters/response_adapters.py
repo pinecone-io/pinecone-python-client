@@ -57,7 +57,7 @@ def adapt_query_response(openapi_response: QueryResponseAdapter) -> QueryRespons
         openapi_response._data_store.pop("results", None)
 
     return QR(
-        matches=openapi_response.matches,
+        matches=openapi_response.matches or [],
         namespace=openapi_response.namespace or "",
         usage=openapi_response.usage
         if hasattr(openapi_response, "usage") and openapi_response.usage
@@ -85,7 +85,12 @@ def adapt_upsert_response(openapi_response: UpsertResponseAdapter) -> UpsertResp
 
     response_info = extract_response_metadata(openapi_response)
 
-    return UR(upserted_count=openapi_response.upserted_count, _response_info=response_info)
+    return UR(
+        upserted_count=openapi_response.upserted_count
+        if openapi_response.upserted_count is not None
+        else 0,
+        _response_info=response_info,
+    )
 
 
 def adapt_fetch_response(openapi_response: FetchResponseAdapter) -> FetchResponse:
@@ -116,7 +121,9 @@ def adapt_fetch_response(openapi_response: FetchResponseAdapter) -> FetchRespons
 
     return FR(
         namespace=openapi_response.namespace or "",
-        vectors={k: Vector.from_dict(v) for k, v in openapi_response.vectors.items()},
+        vectors={k: Vector.from_dict(v) for k, v in openapi_response.vectors.items()}
+        if openapi_response.vectors is not None
+        else {},
         usage=openapi_response.usage,
         _response_info=response_info,
     )

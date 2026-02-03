@@ -36,14 +36,14 @@ class QueryResponseAdapter(Protocol):
     adapting an OpenAPI QueryResponse to the SDK QueryResponse dataclass.
 
     Attributes:
-        matches: List of scored vectors returned by the query.
-        namespace: The namespace that was queried.
+        matches: List of scored vectors returned by the query (optional).
+        namespace: The namespace that was queried (optional).
         usage: Optional usage statistics for the query operation.
         _data_store: Internal data storage (for accessing raw response data).
         _response_info: Response metadata including headers.
     """
 
-    matches: list[ScoredVector]
+    matches: list[ScoredVector] | None
     namespace: str | None
     usage: Usage | None
     _data_store: dict[str, Any]
@@ -57,11 +57,11 @@ class UpsertResponseAdapter(Protocol):
     adapting an OpenAPI UpsertResponse to the SDK UpsertResponse dataclass.
 
     Attributes:
-        upserted_count: Number of vectors that were successfully upserted.
+        upserted_count: Number of vectors that were successfully upserted (optional).
         _response_info: Response metadata including headers.
     """
 
-    upserted_count: int
+    upserted_count: int | None
     _response_info: Any
 
 
@@ -73,13 +73,13 @@ class FetchResponseAdapter(Protocol):
 
     Attributes:
         namespace: The namespace from which vectors were fetched (optional).
-        vectors: Dictionary mapping vector IDs to Vector objects.
+        vectors: Dictionary mapping vector IDs to Vector objects (optional).
         usage: Optional usage statistics for the fetch operation.
         _response_info: Response metadata including headers.
     """
 
     namespace: str | None
-    vectors: dict[str, Any]
+    vectors: dict[str, Any] | None
     usage: Usage | None
     _response_info: Any
 
