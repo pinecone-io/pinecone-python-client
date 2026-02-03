@@ -174,3 +174,13 @@ class TestAdaptFetchResponse:
 
         assert hasattr(result, "_response_info")
         assert "raw_headers" in result._response_info
+
+    def test_fetch_response_with_none_namespace(self):
+        """Test that None namespace is converted to empty string."""
+        openapi_response = make_openapi_fetch_response(vectors={})
+        # Manually set namespace to None to simulate API response
+        openapi_response._data_store["namespace"] = None
+
+        result = adapt_fetch_response(openapi_response)
+
+        assert result.namespace == ""
