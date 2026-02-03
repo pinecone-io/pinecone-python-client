@@ -16,7 +16,6 @@ Usage:
 from pinecone.adapters.protocols import (
     FetchResponseAdapter,
     IndexModelAdapter,
-    IndexStatusAdapter,
     QueryResponseAdapter,
     UpsertResponseAdapter,
 )
@@ -36,7 +35,6 @@ __all__ = [
     "UpsertResponseTransformer",
     "FetchResponseAdapter",
     "IndexModelAdapter",
-    "IndexStatusAdapter",
     "QueryResponseAdapter",
     "UpsertResponseAdapter",
 ]

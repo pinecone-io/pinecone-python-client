@@ -112,8 +112,8 @@ def _adapt_serverless_spec(spec_value: dict[str, Any], spec_path: list[str], con
     serverless_dict = dict(spec_value["serverless"])
 
     # Handle nested read_capacity if present (it's also a oneOf with discriminator)
-    # Set to None if not present, as it's optional in the OpenAPI spec
-    read_capacity_spec = None
+    # Preserve already-deserialized values, only deserialize dicts
+    read_capacity_spec = serverless_dict.get("read_capacity")
     if "read_capacity" in serverless_dict and isinstance(serverless_dict["read_capacity"], dict):
         read_capacity_dict = serverless_dict["read_capacity"]
         mode = read_capacity_dict.get("mode")
