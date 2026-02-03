@@ -13,6 +13,11 @@ from __future__ import annotations
 from multiprocessing.pool import ApplyResult
 from typing import TYPE_CHECKING, Any
 
+from pinecone.adapters.protocols import (
+    FetchResponseAdapter,
+    QueryResponseAdapter,
+    UpsertResponseAdapter,
+)
 from pinecone.adapters.utils import extract_response_metadata
 
 if TYPE_CHECKING:
@@ -21,7 +26,7 @@ if TYPE_CHECKING:
     from pinecone.db_data.dataclasses.upsert_response import UpsertResponse
 
 
-def adapt_query_response(openapi_response: Any) -> QueryResponse:
+def adapt_query_response(openapi_response: QueryResponseAdapter) -> QueryResponse:
     """Adapt an OpenAPI QueryResponse to the SDK QueryResponse dataclass.
 
     This function extracts fields from the OpenAPI response object and
@@ -61,7 +66,7 @@ def adapt_query_response(openapi_response: Any) -> QueryResponse:
     )
 
 
-def adapt_upsert_response(openapi_response: Any) -> UpsertResponse:
+def adapt_upsert_response(openapi_response: UpsertResponseAdapter) -> UpsertResponse:
     """Adapt an OpenAPI UpsertResponse to the SDK UpsertResponse dataclass.
 
     Args:
@@ -83,7 +88,7 @@ def adapt_upsert_response(openapi_response: Any) -> UpsertResponse:
     return UR(upserted_count=openapi_response.upserted_count, _response_info=response_info)
 
 
-def adapt_fetch_response(openapi_response: Any) -> FetchResponse:
+def adapt_fetch_response(openapi_response: FetchResponseAdapter) -> FetchResponse:
     """Adapt an OpenAPI FetchResponse to the SDK FetchResponse dataclass.
 
     This function extracts fields from the OpenAPI response object and

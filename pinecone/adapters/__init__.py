@@ -13,6 +13,13 @@ Usage:
     >>> sdk_response = adapt_query_response(openapi_response)
 """
 
+from pinecone.adapters.protocols import (
+    FetchResponseAdapter,
+    IndexModelAdapter,
+    IndexStatusAdapter,
+    QueryResponseAdapter,
+    UpsertResponseAdapter,
+)
 from pinecone.adapters.response_adapters import (
     adapt_fetch_response,
     adapt_query_response,
@@ -25,4 +32,9 @@ __all__ = [
     "adapt_query_response",
     "adapt_upsert_response",
     "UpsertResponseTransformer",
+    "FetchResponseAdapter",
+    "IndexModelAdapter",
+    "IndexStatusAdapter",
+    "QueryResponseAdapter",
+    "UpsertResponseAdapter",
 ]
