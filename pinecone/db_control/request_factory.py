@@ -331,13 +331,19 @@ class PineconeDBControlRequestFactory:
                     "deployment_type": "pod",
                     "environment": environment,
                     "pod_type": pod_type,
-                    "replicas": pod_spec.get("replicas") or 1,  # Use default 1 if None or missing
-                    "shards": pod_spec.get("shards") or 1,  # Use default 1 if None or missing
+                    "replicas": pod_spec.get("replicas")
+                    if pod_spec.get("replicas") is not None
+                    else 1,
+                    "shards": pod_spec.get("shards") if pod_spec.get("shards") is not None else 1,
                 }
                 # Only include pods if it's explicitly provided and not None
                 pods_value = pod_spec.get("pods")
                 if pods_value is not None:
                     pod_kwargs["pods"] = pods_value
+                # Handle source_collection if present
+                source_collection_value = pod_spec.get("source_collection")
+                if source_collection_value is not None:
+                    pod_kwargs["source_collection"] = source_collection_value
                 # Handle metadata_config if present - convert to PodDeploymentMetadataConfig
                 if pod_spec.get("metadata_config"):
                     metadata_config_dict = pod_spec["metadata_config"]
@@ -376,6 +382,9 @@ class PineconeDBControlRequestFactory:
             # Only include pods if it's not None
             if spec.pods is not None:
                 pod_obj_kwargs["pods"] = spec.pods
+            # Handle source_collection if present
+            if spec.source_collection is not None:
+                pod_obj_kwargs["source_collection"] = spec.source_collection
             # Handle metadata_config if present - convert to PodDeploymentMetadataConfig
             if spec.metadata_config:
                 pod_obj_kwargs["metadata_config"] = PodDeploymentMetadataConfig(
