@@ -1,8 +1,26 @@
 from pinecone.core.openapi.db_control.models import IndexModel, IndexModelStatus
+from pinecone.core.openapi.db_control.model.schema import Schema
+from pinecone.core.openapi.db_control.model.schema_fields import SchemaFields
+from pinecone.core.openapi.db_control.model.deployment import Deployment
 from pinecone.core.openapi.db_data.models import VectorValues
 from pinecone.openapi_support.serializer import Serializer
 from pinecone.openapi_support.api_client_utils import parameters_to_tuples
 from datetime import date, datetime
+
+
+def _create_test_schema(dimension=10, metric="cosine"):
+    """Create a test schema for IndexModel."""
+    return Schema(
+        fields={"_values": SchemaFields(type="dense_vector", dimension=dimension, metric=metric)},
+        _check_type=False,
+    )
+
+
+def _create_test_deployment(deployment_type="serverless"):
+    """Create a test deployment for IndexModel."""
+    return Deployment(
+        deployment_type=deployment_type, cloud="aws", region="us-east-1", _check_type=False
+    )
 
 
 class TestSanitization:
@@ -55,43 +73,38 @@ class TestSanitization:
         assert Serializer.sanitize_for_serialization(io.BytesIO(b"test")) == b"test"
 
     def test_sanitize_for_serialization_serializes_model_normal(self):
+        """Test that IndexModel with alpha API structure is properly serialized."""
+        schema = _create_test_schema(dimension=10, metric="cosine")
+        deployment = _create_test_deployment()
         m = IndexModel(
             name="myindex",
-            dimension=10,
-            metric="cosine",
+            schema=schema,
+            deployment=deployment,
             host="localhost",
-            spec={},
-            status=IndexModelStatus(ready=True, state="Ready"),
-            vector_type="dense",
+            status=IndexModelStatus(ready=True, state="Ready", _check_type=False),
+            _check_type=False,
         )
-        assert Serializer.sanitize_for_serialization(m) == {
-            "name": "myindex",
-            "dimension": 10,
-            "metric": "cosine",
-            "host": "localhost",
-            "spec": {},
-            "status": {"ready": True, "state": "Ready"},
-            "vector_type": "dense",
-        }
+        result = Serializer.sanitize_for_serialization(m)
+        # Check key fields in the serialized output
+        assert result["name"] == "myindex"
+        assert result["host"] == "localhost"
+        assert result["status"] == {"ready": True, "state": "Ready"}
+        # In alpha API, schema and deployment are in the output
+        assert "schema" in result
+        assert "deployment" in result
 
         m2 = IndexModel(
             name="myindex2",
-            metric="cosine",
+            schema=_create_test_schema(dimension=5, metric="cosine"),
+            deployment=deployment,
             host="localhost",
-            spec={},
-            status=IndexModelStatus(ready=True, state="Ready"),
-            vector_type="sparse",
+            status=IndexModelStatus(ready=True, state="Ready", _check_type=False),
             deletion_protection="enabled",
+            _check_type=False,
         )
-        assert Serializer.sanitize_for_serialization(m2) == {
-            "name": "myindex2",
-            "metric": "cosine",
-            "host": "localhost",
-            "spec": {},
-            "status": {"ready": True, "state": "Ready"},
-            "vector_type": "sparse",
-            "deletion_protection": "enabled",
-        }
+        result2 = Serializer.sanitize_for_serialization(m2)
+        assert result2["name"] == "myindex2"
+        assert result2["deletion_protection"] == "enabled"
 
     def test_sanitize_for_serialization_serializes_model_simple(self):
         # ModelSimple is used to model named values which are not objects

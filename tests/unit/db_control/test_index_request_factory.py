@@ -13,8 +13,17 @@ from pinecone import (
 from pinecone.db_control.request_factory import PineconeDBControlRequestFactory
 
 
+def _get_schema_field(req, field_name="_values"):
+    """Helper to access schema fields from CreateIndexRequest."""
+    schema = req.schema
+    if hasattr(schema, "fields"):
+        return schema.fields.get(field_name)
+    return None
+
+
 class TestIndexRequestFactory:
     def test_create_index_request_with_spec_byoc(self):
+        """Test create_index_request translates legacy spec to schema+deployment format."""
         req = PineconeDBControlRequestFactory.create_index_request(
             name="test-index",
             metric="cosine",
@@ -22,13 +31,19 @@ class TestIndexRequestFactory:
             spec=ByocSpec(environment="test-byoc-spec-id"),
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.byoc.environment == "test-byoc-spec-id"
-        assert req.vector_type == "dense"
+        # In alpha API, metric/dimension are in schema.fields._values
+        field = _get_schema_field(req)
+        assert field is not None
+        assert field.metric == "cosine"
+        assert field.dimension == 1024
+        assert field.type == "dense_vector"
+        # deployment has deployment_type instead of spec
+        assert req.deployment["deployment_type"] == "byoc"
+        assert req.deployment["environment"] == "test-byoc-spec-id"
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_serverless(self):
+        """Test create_index_request with ServerlessSpec."""
         req = PineconeDBControlRequestFactory.create_index_request(
             name="test-index",
             metric="cosine",
@@ -36,14 +51,17 @@ class TestIndexRequestFactory:
             spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.serverless.cloud == "aws"
-        assert req.spec.serverless.region == "us-east-1"
-        assert req.vector_type == "dense"
+        field = _get_schema_field(req)
+        assert field is not None
+        assert field.metric == "cosine"
+        assert field.dimension == 1024
+        assert req.deployment["deployment_type"] == "serverless"
+        assert req.deployment["cloud"] == "aws"
+        assert req.deployment["region"] == "us-east-1"
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_serverless_dict(self):
+        """Test create_index_request with serverless spec as dict."""
         req = PineconeDBControlRequestFactory.create_index_request(
             name="test-index",
             metric="cosine",
@@ -51,11 +69,13 @@ class TestIndexRequestFactory:
             spec={"serverless": {"cloud": "aws", "region": "us-east-1"}},
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.serverless.cloud == "aws"
-        assert req.spec.serverless.region == "us-east-1"
-        assert req.vector_type == "dense"
+        field = _get_schema_field(req)
+        assert field is not None
+        assert field.metric == "cosine"
+        assert field.dimension == 1024
+        assert req.deployment["deployment_type"] == "serverless"
+        assert req.deployment["cloud"] == "aws"
+        assert req.deployment["region"] == "us-east-1"
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_serverless_dict_enums(self):
@@ -67,14 +87,17 @@ class TestIndexRequestFactory:
             spec={"serverless": {"cloud": CloudProvider.AWS, "region": AwsRegion.US_EAST_1}},
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.serverless.cloud == "aws"
-        assert req.spec.serverless.region == "us-east-1"
-        assert req.vector_type == "dense"
+        field = _get_schema_field(req)
+        assert field is not None
+        assert field.metric == "cosine"
+        assert field.dimension == 1024
+        assert req.deployment["deployment_type"] == "serverless"
+        assert req.deployment["cloud"] == "aws"
+        assert req.deployment["region"] == "us-east-1"
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_byoc_dict(self):
+        """Test create_index_request with byoc spec as dict."""
         req = PineconeDBControlRequestFactory.create_index_request(
             name="test-index",
             metric="cosine",
@@ -82,10 +105,12 @@ class TestIndexRequestFactory:
             spec={"byoc": {"environment": "test-byoc-spec-id"}},
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.byoc.environment == "test-byoc-spec-id"
-        assert req.vector_type == "dense"
+        field = _get_schema_field(req)
+        assert field is not None
+        assert field.metric == "cosine"
+        assert field.dimension == 1024
+        assert req.deployment["deployment_type"] == "byoc"
+        assert req.deployment["environment"] == "test-byoc-spec-id"
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_pod(self):
@@ -97,11 +122,13 @@ class TestIndexRequestFactory:
             spec=PodSpec(environment="us-west1-gcp", pod_type="p1.x1"),
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.pod.environment == "us-west1-gcp"
-        assert req.spec.pod.pod_type == "p1.x1"
-        assert req.vector_type == "dense"
+        field = _get_schema_field(req)
+        assert field is not None
+        assert field.metric == "cosine"
+        assert field.dimension == 1024
+        assert req.deployment["deployment_type"] == "pod"
+        assert req.deployment["environment"] == "us-west1-gcp"
+        assert req.deployment["pod_type"] == "p1.x1"
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_pod_all_fields(self):
@@ -121,16 +148,17 @@ class TestIndexRequestFactory:
             ),
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.pod.environment == "us-west1-gcp"
-        assert req.spec.pod.pod_type == "p1.x1"
-        assert req.spec.pod.pods == 2
-        assert req.spec.pod.replicas == 1
-        assert req.spec.pod.shards == 1
-        assert req.spec.pod.metadata_config.indexed == ["field1", "field2"]
-        assert req.spec.pod.source_collection == "my-collection"
-        assert req.vector_type == "dense"
+        field = _get_schema_field(req)
+        assert field is not None
+        assert field.metric == "cosine"
+        assert field.dimension == 1024
+        assert req.deployment["deployment_type"] == "pod"
+        assert req.deployment["environment"] == "us-west1-gcp"
+        assert req.deployment["pod_type"] == "p1.x1"
+        assert req.deployment["pods"] == 2
+        assert req.deployment["replicas"] == 1
+        assert req.deployment["shards"] == 1
+        # Note: metadata_config and source_collection not yet supported in alpha deployment
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_pod_dict(self):
@@ -142,11 +170,13 @@ class TestIndexRequestFactory:
             spec={"pod": {"environment": "us-west1-gcp", "pod_type": "p1.x1"}},
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.pod.environment == "us-west1-gcp"
-        assert req.spec.pod.pod_type == "p1.x1"
-        assert req.vector_type == "dense"
+        field = _get_schema_field(req)
+        assert field is not None
+        assert field.metric == "cosine"
+        assert field.dimension == 1024
+        assert req.deployment["deployment_type"] == "pod"
+        assert req.deployment["environment"] == "us-west1-gcp"
+        assert req.deployment["pod_type"] == "p1.x1"
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_pod_dict_enums(self):
@@ -160,11 +190,13 @@ class TestIndexRequestFactory:
             },
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.pod.environment == "us-west1-gcp"
-        assert req.spec.pod.pod_type == "p1.x1"
-        assert req.vector_type == "dense"
+        field = _get_schema_field(req)
+        assert field is not None
+        assert field.metric == "cosine"
+        assert field.dimension == 1024
+        assert req.deployment["deployment_type"] == "pod"
+        assert req.deployment["environment"] == "us-west1-gcp"
+        assert req.deployment["pod_type"] == "p1.x1"
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_pod_with_metadata_config(self):
@@ -180,12 +212,14 @@ class TestIndexRequestFactory:
             ),
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.pod.environment == "us-west1-gcp"
-        assert req.spec.pod.pod_type == "p1.x1"
-        assert req.spec.pod.metadata_config.indexed == ["genre", "year"]
-        assert req.vector_type == "dense"
+        field = _get_schema_field(req)
+        assert field is not None
+        assert field.metric == "cosine"
+        assert field.dimension == 1024
+        assert req.deployment["deployment_type"] == "pod"
+        assert req.deployment["environment"] == "us-west1-gcp"
+        assert req.deployment["pod_type"] == "p1.x1"
+        # Note: metadata_config not yet supported in alpha deployment
         assert req.deletion_protection == "disabled"
 
     def test_parse_read_capacity_ondemand(self):
@@ -199,7 +233,11 @@ class TestIndexRequestFactory:
         assert result.mode == "OnDemand"
 
     def test_parse_read_capacity_dedicated_with_manual(self):
-        """Test parsing Dedicated read capacity with manual scaling configuration."""
+        """Test parsing Dedicated read capacity with manual scaling configuration.
+
+        In alpha API, scaling is an object with strategy, replicas, and shards fields
+        instead of a string with separate manual object.
+        """
         read_capacity = {
             "mode": "Dedicated",
             "dedicated": {
@@ -214,69 +252,41 @@ class TestIndexRequestFactory:
             )
         )
         assert result.mode == "Dedicated"
-        assert result.dedicated.node_type == "t1"
-        assert result.dedicated.scaling == "Manual"
-        assert result.dedicated.manual.shards == 2
-        assert result.dedicated.manual.replicas == 3
+        # In alpha API, node_type and scaling are top-level on ReadCapacityDedicatedSpec
+        assert result.node_type == "t1"
+        # scaling is now an object with strategy, replicas, shards
+        assert result.scaling.strategy == "Manual"
+        assert result.scaling.shards == 2
+        assert result.scaling.replicas == 3
 
-    def test_parse_read_capacity_dedicated_missing_manual(self):
-        """Test that missing manual configuration raises ValueError when scaling is Manual."""
+    def test_parse_read_capacity_dedicated_with_defaults(self):
+        """Test that missing shards/replicas default to 1 in alpha API."""
         read_capacity = {"mode": "Dedicated", "dedicated": {"node_type": "t1", "scaling": "Manual"}}
-        with pytest.raises(ValueError) as exc_info:
+        result = (
             PineconeDBControlRequestFactory._PineconeDBControlRequestFactory__parse_read_capacity(
                 read_capacity
             )
-        assert "manual" in str(exc_info.value).lower()
-        assert "required" in str(exc_info.value).lower()
+        )
+        assert result.mode == "Dedicated"
+        assert result.node_type == "t1"
+        assert result.scaling.strategy == "Manual"
+        # Alpha API defaults shards and replicas to 1
+        assert result.scaling.shards == 1
+        assert result.scaling.replicas == 1
 
-    def test_parse_read_capacity_dedicated_missing_shards(self):
-        """Test that missing shards in manual configuration raises ValueError."""
+    def test_parse_read_capacity_dedicated_partial_manual(self):
+        """Test that partial manual config uses defaults for missing values."""
         read_capacity = {
             "mode": "Dedicated",
             "dedicated": {"node_type": "t1", "scaling": "Manual", "manual": {"replicas": 3}},
         }
-        with pytest.raises(ValueError) as exc_info:
+        result = (
             PineconeDBControlRequestFactory._PineconeDBControlRequestFactory__parse_read_capacity(
                 read_capacity
             )
-        assert "shards" in str(exc_info.value).lower()
-
-    def test_parse_read_capacity_dedicated_missing_replicas(self):
-        """Test that missing replicas in manual configuration raises ValueError."""
-        read_capacity = {
-            "mode": "Dedicated",
-            "dedicated": {"node_type": "t1", "scaling": "Manual", "manual": {"shards": 2}},
-        }
-        with pytest.raises(ValueError) as exc_info:
-            PineconeDBControlRequestFactory._PineconeDBControlRequestFactory__parse_read_capacity(
-                read_capacity
-            )
-        assert "replicas" in str(exc_info.value).lower()
-
-    def test_parse_read_capacity_dedicated_missing_both_shards_and_replicas(self):
-        """Test that missing both shards and replicas raises appropriate error."""
-        read_capacity = {
-            "mode": "Dedicated",
-            "dedicated": {"node_type": "t1", "scaling": "Manual", "manual": {}},
-        }
-        with pytest.raises(ValueError) as exc_info:
-            PineconeDBControlRequestFactory._PineconeDBControlRequestFactory__parse_read_capacity(
-                read_capacity
-            )
-        assert "shards" in str(exc_info.value).lower()
-        assert "replicas" in str(exc_info.value).lower()
-
-    def test_parse_read_capacity_dedicated_invalid_manual_type(self):
-        """Test that invalid manual type (not a dict) raises ValueError."""
-        read_capacity = {
-            "mode": "Dedicated",
-            "dedicated": {"node_type": "t1", "scaling": "Manual", "manual": "invalid"},
-        }
-        with pytest.raises(ValueError) as exc_info:
-            PineconeDBControlRequestFactory._PineconeDBControlRequestFactory__parse_read_capacity(
-                read_capacity
-            )
-        assert "dictionary" in str(exc_info.value).lower()
+        )
+        assert result.scaling.replicas == 3
+        assert result.scaling.shards == 1  # default
 
     def test_parse_read_capacity_dedicated_missing_node_type(self):
         """Test that missing node_type raises ValueError."""
@@ -287,14 +297,18 @@ class TestIndexRequestFactory:
             )
         assert "node_type" in str(exc_info.value).lower()
 
-    def test_parse_read_capacity_dedicated_missing_scaling(self):
-        """Test that missing scaling raises ValueError."""
+    def test_parse_read_capacity_dedicated_default_scaling(self):
+        """Test that missing scaling defaults to Manual."""
         read_capacity = {"mode": "Dedicated", "dedicated": {"node_type": "t1"}}
-        with pytest.raises(ValueError) as exc_info:
+        result = (
             PineconeDBControlRequestFactory._PineconeDBControlRequestFactory__parse_read_capacity(
                 read_capacity
             )
-        assert "scaling" in str(exc_info.value).lower()
+        )
+        assert result.mode == "Dedicated"
+        assert result.node_type == "t1"
+        # Alpha API defaults scaling strategy to "Manual"
+        assert result.scaling.strategy == "Manual"
 
 
 class TestTranslateLegacyRequest:

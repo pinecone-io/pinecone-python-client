@@ -12,56 +12,74 @@ from pinecone import (
     PodType,
 )
 from pinecone.core.openapi.db_control.models import IndexList, IndexModel, IndexModelStatus
+from pinecone.core.openapi.db_control.model.schema import Schema
+from pinecone.core.openapi.db_control.model.schema_fields import SchemaFields
+from pinecone.core.openapi.db_control.model.deployment import Deployment
 from pinecone.utils import PluginAware
 
 
 import time
 
 
+def _create_test_schema():
+    """Create a test schema with a dense vector field."""
+    return Schema(
+        fields={"_values": SchemaFields(type="dense_vector", dimension=10, metric="euclidean")},
+        _check_type=False,
+    )
+
+
+def _create_test_deployment():
+    """Create a test serverless deployment."""
+    return Deployment(
+        deployment_type="serverless", cloud="aws", region="us-west-1", _check_type=False
+    )
+
+
 def description_with_status(status: bool):
     state = "Ready" if status else "Initializing"
     return IndexModel(
         name="foo",
-        status=IndexModelStatus(ready=status, state=state),
-        dimension=10,
-        deletion_protection="enabled",
+        schema=_create_test_schema(),
+        deployment=_create_test_deployment(),
         host="https://foo.pinecone.io",
-        metric="euclidean",
-        spec={"serverless": {"cloud": "aws", "region": "us-west1"}},
+        status=IndexModelStatus(ready=status, state=state, _check_type=False),
+        deletion_protection="enabled",
+        _check_type=False,
     )
 
 
 @pytest.fixture
 def index_list_response():
+    schema = _create_test_schema()
+    deployment = _create_test_deployment()
+    status = IndexModelStatus(ready=True, state="Ready", _check_type=False)
     return IndexList(
         indexes=[
             IndexModel(
                 name="index1",
-                dimension=10,
-                metric="euclidean",
+                schema=schema,
+                deployment=deployment,
                 host="asdf.pinecone.io",
-                status={"ready": True},
-                spec={},
+                status=status,
                 deletion_protection="enabled",
                 _check_type=False,
             ),
             IndexModel(
                 name="index2",
-                dimension=10,
-                metric="euclidean",
+                schema=schema,
+                deployment=deployment,
                 host="asdf.pinecone.io",
-                status={"ready": True},
-                spec={},
+                status=status,
                 deletion_protection="enabled",
                 _check_type=False,
             ),
             IndexModel(
                 name="index3",
-                dimension=10,
-                metric="euclidean",
+                schema=schema,
+                deployment=deployment,
                 host="asdf.pinecone.io",
-                status={"ready": True},
-                spec={},
+                status=status,
                 deletion_protection="disabled",
                 _check_type=False,
             ),

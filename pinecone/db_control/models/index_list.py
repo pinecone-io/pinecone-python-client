@@ -10,7 +10,7 @@ class IndexList:
         self.current = 0
 
     def names(self) -> list[str]:
-        return [i.name for i in self.indexes]
+        return [str(i.name) for i in self.indexes]
 
     def __getitem__(self, key):
         return self.indexes[key]

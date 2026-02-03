@@ -13,7 +13,7 @@ from pinecone.core.openapi.db_data.models import (
     IndexDescription as DescribeIndexStatsResponse,
     NamespaceSummary,
     NamespaceDescription,
-    NamespaceDescriptionIndexedFields,
+    CreateNamespaceRequestSchema,
     ListNamespacesResponse,
     Pagination as OpenApiPagination,
 )
@@ -482,6 +482,35 @@ def parse_stats_response(
         return cast(DescribeIndexStatsResponse, result)
 
 
+def _parse_proto_schema_to_openapi(proto_schema: Any) -> CreateNamespaceRequestSchema | None:
+    """Convert a proto schema to an OpenAPI CreateNamespaceRequestSchema model.
+
+    :param proto_schema: A protobuf schema object with a fields attribute.
+    :returns: OpenAPI schema model or None if no fields present.
+    """
+    from pinecone.core.openapi.db_data.model.create_namespace_request_schema_fields import (
+        CreateNamespaceRequestSchemaFields,
+    )
+
+    if not proto_schema or not proto_schema.fields:
+        return None
+
+    fields_dict = {}
+    for field_name, field_config in proto_schema.fields.items():
+        fields_dict[field_name] = {"type": getattr(field_config, "type", "string")}
+
+    if not fields_dict:
+        return None
+
+    return CreateNamespaceRequestSchema(
+        fields={
+            k: CreateNamespaceRequestSchemaFields(type=v.get("type", "string"), _check_type=False)
+            for k, v in fields_dict.items()
+        },
+        _check_type=False,
+    )
+
+
 def parse_namespace_description(
     response: "ProtoNamespaceDescription", initial_metadata: dict[str, str] | None = None
 ) -> NamespaceDescription:
@@ -495,18 +524,13 @@ def parse_namespace_description(
     name = response.name
     record_count = response.record_count
 
-    # Extract indexed_fields if present
-    indexed_fields = None
-    if response.HasField("indexed_fields") and response.indexed_fields:
-        # Access indexed_fields.fields directly (RepeatedScalarFieldContainer)
-        fields_list = list(response.indexed_fields.fields) if response.indexed_fields.fields else []
-        if fields_list:
-            indexed_fields = NamespaceDescriptionIndexedFields(
-                fields=fields_list, _check_type=False
-            )
+    # Extract schema if present (replaces indexed_fields in alpha API)
+    schema = None
+    if response.HasField("schema") and response.schema:
+        schema = _parse_proto_schema_to_openapi(response.schema)
 
     namespace_desc = NamespaceDescription(
-        name=name, record_count=record_count, indexed_fields=indexed_fields, _check_type=False
+        name=name, record_count=record_count, schema=schema, _check_type=False
     )
 
     # Attach _response_info as an attribute (NamespaceDescription is an OpenAPI model)
@@ -529,23 +553,17 @@ def parse_list_namespaces_response(
     # Directly iterate over namespaces
     # Pre-allocate namespaces list with known size for better performance
     namespaces_proto = response.namespaces
-    namespaces = [None] * len(namespaces_proto) if namespaces_proto else []
+    namespaces: list[NamespaceDescription] = (
+        [None] * len(namespaces_proto) if namespaces_proto else []
+    )  # type: ignore[list-item]
     for idx, ns in enumerate(namespaces_proto):
-        # Extract indexed_fields if present
-        indexed_fields = None
-        if ns.HasField("indexed_fields") and ns.indexed_fields:
-            # Access indexed_fields.fields directly (RepeatedScalarFieldContainer)
-            fields_list = list(ns.indexed_fields.fields) if ns.indexed_fields.fields else []
-            if fields_list:
-                indexed_fields = NamespaceDescriptionIndexedFields(
-                    fields=fields_list, _check_type=False
-                )
+        # Extract schema if present (replaces indexed_fields in alpha API)
+        schema = None
+        if ns.HasField("schema") and ns.schema:
+            schema = _parse_proto_schema_to_openapi(ns.schema)
 
         namespaces[idx] = NamespaceDescription(
-            name=ns.name,
-            record_count=ns.record_count,
-            indexed_fields=indexed_fields,
-            _check_type=False,
+            name=ns.name, record_count=ns.record_count, schema=schema, _check_type=False
         )
 
     # Parse pagination if present

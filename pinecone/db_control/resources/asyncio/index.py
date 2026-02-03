@@ -49,7 +49,7 @@ if TYPE_CHECKING:
     from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
         ReadCapacityDedicatedSpec,
     )
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
+    from pinecone.core.openapi.db_control.model.schema import Schema
 
 
 class IndexResourceAsyncio:
@@ -137,6 +137,8 @@ class IndexResourceAsyncio:
             )
         else:
             # Legacy spec-based creation
+            # spec is guaranteed to be non-None here because we checked above
+            assert spec is not None
             req = PineconeDBControlRequestFactory.create_index_request(
                 name=name,
                 spec=spec,
@@ -179,7 +181,7 @@ class IndexResourceAsyncio:
             | dict[
                 str, dict[str, Any]
             ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-            | "BackupModelSchema"  # OpenAPI model instance
+            | "Schema"  # OpenAPI model instance
         )
         | None = None,
         timeout: int | None = None,
@@ -226,9 +228,12 @@ class IndexResourceAsyncio:
         total_wait_time = 0
         while True:
             description = await self.describe(name=name)
-            if description.status.state == "InitializationFailed":
+            status = description.status
+            state = getattr(status, "state", None)
+            ready = getattr(status, "ready", False)
+            if state == "InitializationFailed":
                 raise Exception(f"Index {name} failed to initialize.")
-            if description.status.ready:
+            if ready:
                 return description
 
             if timeout is not None and total_wait_time >= timeout:
