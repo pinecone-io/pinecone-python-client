@@ -112,11 +112,11 @@ class TestAdminApiKey:
 
             # Fetch the API key using the aliases
             key_response_by_id = admin.api_key.fetch(api_key_id=key_response.key.id)
-            logger.info(f"API key by id: {key_response_by_id}")
+            logger.info(f"API key fetched with id: {key_response_by_id.id}")
             assert key_response_by_id.id == key_response.key.id
 
             get_key_response = admin.api_key.get(api_key_id=key_response.key.id)
-            logger.info(f"API key by name: {get_key_response}")
+            logger.info(f"API key fetched with id: {get_key_response.id}")
             assert get_key_response.id == key_response.key.id
 
             described_key_response = admin.api_key.describe(api_key_id=key_response.key.id)
