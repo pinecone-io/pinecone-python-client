@@ -43,13 +43,13 @@ if TYPE_CHECKING:
         MetadataSchemaFieldConfig,
     )
     from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
+    from pinecone.core.openapi.db_control.model.schema import Schema
     from pinecone.core.openapi.db_control.model.read_capacity_on_demand_spec import (
         ReadCapacityOnDemandSpec,
     )
     from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
         ReadCapacityDedicatedSpec,
     )
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
 
 
 class IndexResourceAsyncio:
@@ -137,6 +137,8 @@ class IndexResourceAsyncio:
             )
         else:
             # Legacy spec-based creation
+            # spec is guaranteed to be non-None here due to validation above
+            assert spec is not None, "spec must be provided when schema is not specified"
             req = PineconeDBControlRequestFactory.create_index_request(
                 name=name,
                 spec=spec,
@@ -179,7 +181,7 @@ class IndexResourceAsyncio:
             | dict[
                 str, dict[str, Any]
             ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-            | "BackupModelSchema"  # OpenAPI model instance
+            | "Schema"  # OpenAPI model instance
         )
         | None = None,
         timeout: int | None = None,
@@ -226,9 +228,10 @@ class IndexResourceAsyncio:
         total_wait_time = 0
         while True:
             description = await self.describe(name=name)
-            if description.status.state == "InitializationFailed":
+            status = description.status
+            if hasattr(status, "state") and status.state == "InitializationFailed":
                 raise Exception(f"Index {name} failed to initialize.")
-            if description.status.ready:
+            if hasattr(status, "ready") and status.ready:
                 return description
 
             if timeout is not None and total_wait_time >= timeout:
@@ -313,7 +316,6 @@ class IndexResourceAsyncio:
             pod_type=pod_type,
             deletion_protection=deletion_protection,
             tags=tags,
-            embed=embed,
             read_capacity=read_capacity,
         )
         await self._index_api.configure_index(name, configure_index_request=req)

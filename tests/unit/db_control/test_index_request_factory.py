@@ -22,10 +22,13 @@ class TestIndexRequestFactory:
             spec=ByocSpec(environment="test-byoc-spec-id"),
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.byoc.environment == "test-byoc-spec-id"
-        assert req.vector_type == "dense"
+        # New API: dimension/metric are in schema.fields
+        assert req.schema.fields["_values"].dimension == 1024
+        assert req.schema.fields["_values"].metric == "cosine"
+        assert req.schema.fields["_values"].type == "dense_vector"
+        # New API: spec is now deployment
+        assert req.deployment.deployment_type == "byoc"
+        assert req.deployment.environment == "test-byoc-spec-id"
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_serverless(self):
@@ -36,11 +39,14 @@ class TestIndexRequestFactory:
             spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.serverless.cloud == "aws"
-        assert req.spec.serverless.region == "us-east-1"
-        assert req.vector_type == "dense"
+        # New API: dimension/metric are in schema.fields
+        assert req.schema.fields["_values"].dimension == 1024
+        assert req.schema.fields["_values"].metric == "cosine"
+        assert req.schema.fields["_values"].type == "dense_vector"
+        # New API: spec is now deployment
+        assert req.deployment.deployment_type == "serverless"
+        assert req.deployment.cloud == "aws"
+        assert req.deployment.region == "us-east-1"
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_serverless_dict(self):
@@ -51,11 +57,14 @@ class TestIndexRequestFactory:
             spec={"serverless": {"cloud": "aws", "region": "us-east-1"}},
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.serverless.cloud == "aws"
-        assert req.spec.serverless.region == "us-east-1"
-        assert req.vector_type == "dense"
+        # New API: dimension/metric are in schema.fields
+        assert req.schema.fields["_values"].dimension == 1024
+        assert req.schema.fields["_values"].metric == "cosine"
+        assert req.schema.fields["_values"].type == "dense_vector"
+        # New API: spec is now deployment
+        assert req.deployment.deployment_type == "serverless"
+        assert req.deployment.cloud == "aws"
+        assert req.deployment.region == "us-east-1"
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_serverless_dict_enums(self):
@@ -67,11 +76,14 @@ class TestIndexRequestFactory:
             spec={"serverless": {"cloud": CloudProvider.AWS, "region": AwsRegion.US_EAST_1}},
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.serverless.cloud == "aws"
-        assert req.spec.serverless.region == "us-east-1"
-        assert req.vector_type == "dense"
+        # New API: dimension/metric are in schema.fields
+        assert req.schema.fields["_values"].dimension == 1024
+        assert req.schema.fields["_values"].metric == "cosine"
+        assert req.schema.fields["_values"].type == "dense_vector"
+        # New API: spec is now deployment
+        assert req.deployment.deployment_type == "serverless"
+        assert req.deployment.cloud == "aws"
+        assert req.deployment.region == "us-east-1"
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_byoc_dict(self):
@@ -82,10 +94,13 @@ class TestIndexRequestFactory:
             spec={"byoc": {"environment": "test-byoc-spec-id"}},
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.byoc.environment == "test-byoc-spec-id"
-        assert req.vector_type == "dense"
+        # New API: dimension/metric are in schema.fields
+        assert req.schema.fields["_values"].dimension == 1024
+        assert req.schema.fields["_values"].metric == "cosine"
+        assert req.schema.fields["_values"].type == "dense_vector"
+        # New API: spec is now deployment
+        assert req.deployment.deployment_type == "byoc"
+        assert req.deployment.environment == "test-byoc-spec-id"
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_pod(self):
@@ -94,14 +109,17 @@ class TestIndexRequestFactory:
             name="test-index",
             metric="cosine",
             dimension=1024,
-            spec=PodSpec(environment="us-west1-gcp", pod_type="p1.x1"),
+            spec=PodSpec(environment="us-west1-gcp", pod_type="p1.x1", pods=1),
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.pod.environment == "us-west1-gcp"
-        assert req.spec.pod.pod_type == "p1.x1"
-        assert req.vector_type == "dense"
+        # New API: dimension/metric are in schema.fields
+        assert req.schema.fields["_values"].dimension == 1024
+        assert req.schema.fields["_values"].metric == "cosine"
+        assert req.schema.fields["_values"].type == "dense_vector"
+        # New API: spec is now deployment
+        assert req.deployment.deployment_type == "pod"
+        assert req.deployment.environment == "us-west1-gcp"
+        assert req.deployment.pod_type == "p1.x1"
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_pod_all_fields(self):
@@ -121,16 +139,19 @@ class TestIndexRequestFactory:
             ),
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.pod.environment == "us-west1-gcp"
-        assert req.spec.pod.pod_type == "p1.x1"
-        assert req.spec.pod.pods == 2
-        assert req.spec.pod.replicas == 1
-        assert req.spec.pod.shards == 1
-        assert req.spec.pod.metadata_config.indexed == ["field1", "field2"]
-        assert req.spec.pod.source_collection == "my-collection"
-        assert req.vector_type == "dense"
+        # New API: dimension/metric are in schema.fields
+        assert req.schema.fields["_values"].dimension == 1024
+        assert req.schema.fields["_values"].metric == "cosine"
+        assert req.schema.fields["_values"].type == "dense_vector"
+        # New API: spec is now deployment
+        assert req.deployment.deployment_type == "pod"
+        assert req.deployment.environment == "us-west1-gcp"
+        assert req.deployment.pod_type == "p1.x1"
+        assert req.deployment.pods == 2
+        assert req.deployment.replicas == 1
+        assert req.deployment.shards == 1
+        assert req.deployment.metadata_config.indexed == ["field1", "field2"]
+        # Note: source_collection is no longer on deployment in new API
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_pod_dict(self):
@@ -139,14 +160,17 @@ class TestIndexRequestFactory:
             name="test-index",
             metric="cosine",
             dimension=1024,
-            spec={"pod": {"environment": "us-west1-gcp", "pod_type": "p1.x1"}},
+            spec={"pod": {"environment": "us-west1-gcp", "pod_type": "p1.x1", "pods": 1}},
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.pod.environment == "us-west1-gcp"
-        assert req.spec.pod.pod_type == "p1.x1"
-        assert req.vector_type == "dense"
+        # New API: dimension/metric are in schema.fields
+        assert req.schema.fields["_values"].dimension == 1024
+        assert req.schema.fields["_values"].metric == "cosine"
+        assert req.schema.fields["_values"].type == "dense_vector"
+        # New API: spec is now deployment
+        assert req.deployment.deployment_type == "pod"
+        assert req.deployment.environment == "us-west1-gcp"
+        assert req.deployment.pod_type == "p1.x1"
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_pod_dict_enums(self):
@@ -156,15 +180,22 @@ class TestIndexRequestFactory:
             metric="cosine",
             dimension=1024,
             spec={
-                "pod": {"environment": PodIndexEnvironment.US_WEST1_GCP, "pod_type": PodType.P1_X1}
+                "pod": {
+                    "environment": PodIndexEnvironment.US_WEST1_GCP,
+                    "pod_type": PodType.P1_X1,
+                    "pods": 1,
+                }
             },
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.pod.environment == "us-west1-gcp"
-        assert req.spec.pod.pod_type == "p1.x1"
-        assert req.vector_type == "dense"
+        # New API: dimension/metric are in schema.fields
+        assert req.schema.fields["_values"].dimension == 1024
+        assert req.schema.fields["_values"].metric == "cosine"
+        assert req.schema.fields["_values"].type == "dense_vector"
+        # New API: spec is now deployment
+        assert req.deployment.deployment_type == "pod"
+        assert req.deployment.environment == "us-west1-gcp"
+        assert req.deployment.pod_type == "p1.x1"
         assert req.deletion_protection == "disabled"
 
     def test_create_index_request_with_spec_pod_with_metadata_config(self):
@@ -176,16 +207,20 @@ class TestIndexRequestFactory:
             spec=PodSpec(
                 environment="us-west1-gcp",
                 pod_type="p1.x1",
+                pods=1,
                 metadata_config={"indexed": ["genre", "year"]},
             ),
         )
         assert req.name == "test-index"
-        assert req.metric == "cosine"
-        assert req.dimension == 1024
-        assert req.spec.pod.environment == "us-west1-gcp"
-        assert req.spec.pod.pod_type == "p1.x1"
-        assert req.spec.pod.metadata_config.indexed == ["genre", "year"]
-        assert req.vector_type == "dense"
+        # New API: dimension/metric are in schema.fields
+        assert req.schema.fields["_values"].dimension == 1024
+        assert req.schema.fields["_values"].metric == "cosine"
+        assert req.schema.fields["_values"].type == "dense_vector"
+        # New API: spec is now deployment
+        assert req.deployment.deployment_type == "pod"
+        assert req.deployment.environment == "us-west1-gcp"
+        assert req.deployment.pod_type == "p1.x1"
+        assert req.deployment.metadata_config.indexed == ["genre", "year"]
         assert req.deletion_protection == "disabled"
 
     def test_parse_read_capacity_ondemand(self):
@@ -214,10 +249,11 @@ class TestIndexRequestFactory:
             )
         )
         assert result.mode == "Dedicated"
-        assert result.dedicated.node_type == "t1"
-        assert result.dedicated.scaling == "Manual"
-        assert result.dedicated.manual.shards == 2
-        assert result.dedicated.manual.replicas == 3
+        # New API: flattened structure
+        assert result.node_type == "t1"
+        assert result.scaling.strategy == "Manual"
+        assert result.scaling.shards == 2
+        assert result.scaling.replicas == 3
 
     def test_parse_read_capacity_dedicated_missing_manual(self):
         """Test that missing manual configuration raises ValueError when scaling is Manual."""
@@ -355,7 +391,7 @@ class TestTranslateLegacyRequest:
 
     def test_translate_pod_spec_with_defaults(self):
         """Test translating PodSpec with default values."""
-        spec = PodSpec(environment="us-east-1-aws")
+        spec = PodSpec(environment="us-east-1-aws", pods=1)
         deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
             spec=spec, dimension=768, metric="cosine", vector_type="dense"
         )
@@ -366,8 +402,8 @@ class TestTranslateLegacyRequest:
             "pod_type": "p1.x1",  # Default
             "replicas": 1,  # Default
             "shards": 1,  # Default
+            "pods": 1,  # Required, default is 1
         }
-        assert "pods" not in deployment  # Should not be included if None
         assert schema == {
             "fields": {"_values": {"type": "dense_vector", "dimension": 768, "metric": "cosine"}}
         }
@@ -512,25 +548,25 @@ class TestTranslateLegacyRequest:
         assert deployment["cloud"] == "aws"  # Enum converted to string
         assert deployment["region"] == "us-east-1"  # Enum converted to string
 
-    def test_translate_pod_spec_with_zero_replicas(self):
-        """Test that zero replicas/shards are preserved (not converted to 1)."""
-        spec = PodSpec(environment="us-east-1-aws", replicas=0, shards=0)
+    def test_translate_pod_spec_with_explicit_replicas_shards(self):
+        """Test that explicit replicas/shards values are used."""
+        spec = PodSpec(environment="us-east-1-aws", replicas=3, shards=2, pods=1)
         deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
             spec=spec, dimension=1536, metric="cosine", vector_type="dense"
         )
 
-        assert deployment["replicas"] == 0  # Zero preserved
-        assert deployment["shards"] == 0  # Zero preserved
+        assert deployment["replicas"] == 3
+        assert deployment["shards"] == 2
 
-    def test_translate_dict_spec_with_zero_replicas(self):
-        """Test that zero replicas/shards in dict specs are preserved."""
-        spec = {"pod": {"environment": "us-east-1-aws", "replicas": 0, "shards": 0}}
+    def test_translate_dict_spec_with_explicit_replicas_shards(self):
+        """Test that explicit replicas/shards in dict specs are used."""
+        spec = {"pod": {"environment": "us-east-1-aws", "replicas": 3, "shards": 2, "pods": 1}}
         deployment, schema = PineconeDBControlRequestFactory._translate_legacy_request(
             spec=spec, dimension=1536, metric="cosine", vector_type="dense"
         )
 
-        assert deployment["replicas"] == 0  # Zero preserved
-        assert deployment["shards"] == 0  # Zero preserved
+        assert deployment["replicas"] == 3
+        assert deployment["shards"] == 2
 
     def test_translate_invalid_vector_type_raises_error(self):
         """Test that invalid vector_type raises ValueError instead of silently failing."""

@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from pinecone.config import Config, OpenApiConfiguration
     from pinecone.core.openapi.db_control.api.manage_indexes_api import ManageIndexesApi
+    from pinecone.core.openapi.db_control.model.schema import Schema
     from pinecone.db_control.enums import (
         Metric,
         VectorType,
@@ -49,7 +50,6 @@ if TYPE_CHECKING:
     from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
         ReadCapacityDedicatedSpec,
     )
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
 
 
 class IndexResource(PluginAware):
@@ -157,6 +157,8 @@ class IndexResource(PluginAware):
             )
         else:
             # Legacy spec-based creation
+            # spec is guaranteed to be non-None here due to validation above
+            assert spec is not None, "spec must be provided when schema is not specified"
             req = PineconeDBControlRequestFactory.create_index_request(
                 name=name,
                 spec=spec,
@@ -199,7 +201,7 @@ class IndexResource(PluginAware):
             | dict[
                 str, dict[str, Any]
             ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-            | "BackupModelSchema"  # OpenAPI model instance
+            | "Schema"  # OpenAPI model instance
         )
         | None = None,
         timeout: int | None = None,
@@ -263,11 +265,12 @@ class IndexResource(PluginAware):
         total_wait_time = 0
         while True:
             description = self.describe(name=name)
-            if description.status.state == "InitializationFailed":
+            status = description.status
+            if hasattr(status, "state") and status.state == "InitializationFailed":
                 raise Exception(
-                    f"Index {name} failed to initialize. The index status is {description.status.state}."
+                    f"Index {name} failed to initialize. The index status is {status.state}."
                 )
-            if description.status.ready:
+            if hasattr(status, "ready") and status.ready:
                 return description
 
             if timeout is not None and total_wait_time >= timeout:
@@ -357,7 +360,6 @@ class IndexResource(PluginAware):
             pod_type=pod_type,
             deletion_protection=deletion_protection,
             tags=tags,
-            embed=embed,
             read_capacity=read_capacity,
         )
         api_instance.configure_index(name, configure_index_request=req)
