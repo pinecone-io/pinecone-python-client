@@ -17,6 +17,11 @@ from pinecone.core.openapi.db_data.models import (
     SearchRecordsRequestQuery,
     SearchRecordsRequestRerank,
     SearchRecordsRequest,
+    QueryResponse as OpenApiQueryResponse,
+    UpsertResponse as OpenApiUpsertResponse,
+    FetchResponse as OpenApiFetchResponse,
+    ScoredVector as OpenApiScoredVector,
+    Usage as OpenApiUsage,
 )
 
 
@@ -288,3 +293,140 @@ def make_search_records_request(
 
     kwargs.update(overrides)
     return SearchRecordsRequest(**kwargs)
+
+
+def make_usage(read_units: int = 5, **overrides: Any) -> OpenApiUsage:
+    """Create an OpenApiUsage instance.
+
+    Args:
+        read_units: Number of read units consumed
+        **overrides: Additional fields to override
+
+    Returns:
+        An OpenApiUsage instance
+    """
+    kwargs: Dict[str, Any] = {"read_units": read_units}
+    kwargs.update(overrides)
+    return OpenApiUsage(**kwargs, _check_type=False)
+
+
+def make_scored_vector(
+    id: str = "vec1",
+    score: float = 0.95,
+    values: Optional[List[float]] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+    sparse_values: Optional[OpenApiSparseValues] = None,
+    **overrides: Any,
+) -> OpenApiScoredVector:
+    """Create an OpenApiScoredVector instance.
+
+    Args:
+        id: Vector ID
+        score: Similarity score
+        values: Dense vector values
+        metadata: Vector metadata
+        sparse_values: Sparse vector values
+        **overrides: Additional fields to override
+
+    Returns:
+        An OpenApiScoredVector instance
+    """
+    kwargs: Dict[str, Any] = {"id": id, "score": score}
+
+    if values is not None:
+        kwargs["values"] = values
+    if metadata is not None:
+        kwargs["metadata"] = metadata
+    if sparse_values is not None:
+        kwargs["sparse_values"] = sparse_values
+
+    kwargs.update(overrides)
+    return OpenApiScoredVector(**kwargs, _check_type=False)
+
+
+def make_openapi_query_response(
+    matches: Optional[List[OpenApiScoredVector]] = None,
+    namespace: str = "",
+    usage: Optional[OpenApiUsage] = None,
+    _check_type: bool = False,
+    **overrides: Any,
+) -> OpenApiQueryResponse:
+    """Create an OpenApiQueryResponse instance.
+
+    Args:
+        matches: List of scored vectors
+        namespace: Query namespace
+        usage: Usage information
+        _check_type: Whether to enable type checking
+        **overrides: Additional fields to override
+
+    Returns:
+        An OpenApiQueryResponse instance
+    """
+    if matches is None:
+        matches = []
+
+    kwargs: Dict[str, Any] = {
+        "matches": matches,
+        "namespace": namespace,
+        "_check_type": _check_type,
+    }
+
+    if usage is not None:
+        kwargs["usage"] = usage
+
+    kwargs.update(overrides)
+    return OpenApiQueryResponse(**kwargs)
+
+
+def make_openapi_upsert_response(
+    upserted_count: int = 10, _check_type: bool = False, **overrides: Any
+) -> OpenApiUpsertResponse:
+    """Create an OpenApiUpsertResponse instance.
+
+    Args:
+        upserted_count: Number of vectors upserted
+        _check_type: Whether to enable type checking
+        **overrides: Additional fields to override
+
+    Returns:
+        An OpenApiUpsertResponse instance
+    """
+    kwargs: Dict[str, Any] = {"upserted_count": upserted_count, "_check_type": _check_type}
+    kwargs.update(overrides)
+    return OpenApiUpsertResponse(**kwargs)
+
+
+def make_openapi_fetch_response(
+    vectors: Optional[Dict[str, Dict[str, Any]]] = None,
+    namespace: str = "",
+    usage: Optional[OpenApiUsage] = None,
+    _check_type: bool = False,
+    **overrides: Any,
+) -> OpenApiFetchResponse:
+    """Create an OpenApiFetchResponse instance.
+
+    Args:
+        vectors: Dictionary mapping vector IDs to vector data
+        namespace: Fetch namespace
+        usage: Usage information
+        _check_type: Whether to enable type checking
+        **overrides: Additional fields to override
+
+    Returns:
+        An OpenApiFetchResponse instance
+    """
+    if vectors is None:
+        vectors = {}
+
+    kwargs: Dict[str, Any] = {
+        "vectors": vectors,
+        "namespace": namespace,
+        "_check_type": _check_type,
+    }
+
+    if usage is not None:
+        kwargs["usage"] = usage
+
+    kwargs.update(overrides)
+    return OpenApiFetchResponse(**kwargs)

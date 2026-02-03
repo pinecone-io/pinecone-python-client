@@ -58,6 +58,7 @@ from .dataclasses import (
 )
 
 from pinecone.openapi_support import OPENAPI_ENDPOINT_PARAMS
+from pinecone.adapters.response_adapters import adapt_query_response, adapt_fetch_response
 from .index import IndexRequestFactory
 
 from .vector_factory import VectorFactory
@@ -91,27 +92,12 @@ _OPENAPI_ENDPOINT_PARAMS = (
 
 
 def parse_query_response(response: OpenAPIQueryResponse) -> QueryResponse:
-    """:meta private:"""
-    # Convert OpenAPI QueryResponse to dataclass QueryResponse
-    from pinecone.utils.response_info import extract_response_info
+    """:meta private:
 
-    response_info = None
-    if hasattr(response, "_response_info"):
-        response_info = response._response_info
-
-    if response_info is None:
-        response_info = extract_response_info({})
-
-    # Remove deprecated 'results' field if present
-    if hasattr(response, "_data_store"):
-        response._data_store.pop("results", None)
-
-    return QueryResponse(
-        matches=response.matches,
-        namespace=response.namespace or "",
-        usage=response.usage if hasattr(response, "usage") and response.usage else None,
-        _response_info=response_info,
-    )
+    Deprecated: Use adapt_query_response from pinecone.adapters instead.
+    This function is kept for backward compatibility.
+    """
+    return adapt_query_response(response)
 
 
 class _IndexAsyncio:
@@ -647,22 +633,7 @@ class _IndexAsyncio:
         """
         args_dict = parse_non_empty_args([("namespace", namespace)])
         result = await self._vector_api.fetch_vectors(ids=ids, **args_dict, **kwargs)
-        # Copy response info from OpenAPI response if present
-        from pinecone.utils.response_info import extract_response_info
-
-        response_info = None
-        if hasattr(result, "_response_info"):
-            response_info = result._response_info
-        if response_info is None:
-            response_info = extract_response_info({})
-
-        fetch_response = FetchResponse(
-            namespace=result.namespace,
-            vectors={k: Vector.from_dict(v) for k, v in result.vectors.items()},
-            usage=result.usage,
-            _response_info=response_info,
-        )
-        return fetch_response
+        return adapt_fetch_response(result)
 
     @validate_and_convert_errors
     async def fetch_by_metadata(

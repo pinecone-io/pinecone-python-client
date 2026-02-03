@@ -33,6 +33,11 @@ from tests.fixtures.db_data_models import (
     make_search_records_request_query,
     make_search_records_request_rerank,
     make_search_records_request,
+    make_usage,
+    make_scored_vector,
+    make_openapi_query_response,
+    make_openapi_upsert_response,
+    make_openapi_fetch_response,
 )
 
 __all__ = [
@@ -53,4 +58,10 @@ __all__ = [
     "make_search_records_request_query",
     "make_search_records_request_rerank",
     "make_search_records_request",
+    # OpenAPI response models
+    "make_usage",
+    "make_scored_vector",
+    "make_openapi_query_response",
+    "make_openapi_upsert_response",
+    "make_openapi_fetch_response",
 ]
