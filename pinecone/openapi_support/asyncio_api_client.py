@@ -177,9 +177,14 @@ class AsyncioApiClient(object):
                 response_info = extract_response_info(headers)
                 if isinstance(return_data, dict):
                     return_data["_response_info"] = response_info
-                else:
+                elif not isinstance(return_data, (str, int, float, bool, bytes, type(None))):
                     # Dynamic attribute assignment on OpenAPI models
-                    setattr(return_data, "_response_info", response_info)
+                    # Skip primitive types that don't support attribute assignment
+                    try:
+                        setattr(return_data, "_response_info", response_info)
+                    except (AttributeError, TypeError):
+                        # If setattr fails (e.g., on immutable types), skip silently
+                        pass
 
         if _return_http_data_only:
             return return_data
