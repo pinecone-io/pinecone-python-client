@@ -1662,7 +1662,7 @@ requires-dist = [
     { name = "pinecone-plugin-assistant", specifier = ">=3.0.1,<4.0.0" },
     { name = "pinecone-plugin-interface", specifier = ">=0.0.7,<0.1.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.0.0,<4.0.0" },
-    { name = "protobuf", marker = "extra == 'grpc'", specifier = ">=6.31.1,<7.0.0" },
+    { name = "protobuf", marker = "extra == 'grpc'", specifier = ">=6.33.0,<7.0.0" },
     { name = "protoc-gen-openapiv2", marker = "extra == 'grpc'", specifier = ">=0.0.1,<0.1.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = "==8.2.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.25.2,<0.26.0" },
