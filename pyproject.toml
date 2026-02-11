@@ -1,6 +1,6 @@
 [project]
 name = "pinecone"
-version = "8.0.0"
+version = "8.0.1"
 description = "Pinecone client and SDK"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -122,7 +122,7 @@ exclude = [
 
 line-length = 100
 indent-width = 4
-target-version = "py310"
+target-version = "8.0.1"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
