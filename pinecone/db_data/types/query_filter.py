@@ -32,4 +32,4 @@ SimpleFilter = (
 AndFilter = dict[Literal["$and"], list[SimpleFilter]]
 OrFilter = dict[Literal["$or"], list[SimpleFilter]]
 
-FilterTypedDict = SimpleFilter | AndFilter | OrFilter
+FilterTypedDict = dict[str, SimpleFilter | AndFilter | OrFilter]
