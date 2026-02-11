@@ -117,12 +117,8 @@ class ScalingConfigManual(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], replicas, shards, *args, **kwargs) -> T:  # noqa: E501
+    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
         """ScalingConfigManual - a model defined in OpenAPI
-
-        Args:
-            replicas (int): The number of replicas to use. Replicas duplicate the compute resources and data of an index, allowing higher query throughput and availability. Setting replicas to 0 disables the index but can be used to reduce costs while usage is paused.
-            shards (int): The number of shards to use. Shards determine the storage capacity of an index, with each shard providing 250 GB of storage.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -155,6 +151,8 @@ class ScalingConfigManual(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            replicas (int): The number of replicas to use. Replicas duplicate the compute resources and data of an index, allowing higher query throughput and availability. Setting replicas to 0 disables the index but can be used to reduce costs while usage is paused. [optional]  # noqa: E501
+            shards (int): The number of shards to use. Shards determine the storage capacity of an index, with each shard providing 250 GB of storage. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -184,8 +182,6 @@ class ScalingConfigManual(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.replicas = replicas
-        self.shards = shards
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -212,12 +208,8 @@ class ScalingConfigManual(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, replicas, shards, *args, **kwargs) -> None:  # noqa: E501
+    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
         """ScalingConfigManual - a model defined in OpenAPI
-
-        Args:
-            replicas (int): The number of replicas to use. Replicas duplicate the compute resources and data of an index, allowing higher query throughput and availability. Setting replicas to 0 disables the index but can be used to reduce costs while usage is paused.
-            shards (int): The number of shards to use. Shards determine the storage capacity of an index, with each shard providing 250 GB of storage.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -250,6 +242,8 @@ class ScalingConfigManual(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            replicas (int): The number of replicas to use. Replicas duplicate the compute resources and data of an index, allowing higher query throughput and availability. Setting replicas to 0 disables the index but can be used to reduce costs while usage is paused. [optional]  # noqa: E501
+            shards (int): The number of shards to use. Shards determine the storage capacity of an index, with each shard providing 250 GB of storage. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -277,8 +271,6 @@ class ScalingConfigManual(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.replicas = replicas
-        self.shards = shards
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

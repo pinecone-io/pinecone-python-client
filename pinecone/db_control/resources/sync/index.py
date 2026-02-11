@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
         ReadCapacityDedicatedSpec,
     )
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
+    from pinecone.core.openapi.db_control.model.metadata_schema import MetadataSchema
 
 
 class IndexResource(PluginAware):
@@ -124,7 +124,7 @@ class IndexResource(PluginAware):
             | dict[
                 str, dict[str, Any]
             ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-            | "BackupModelSchema"  # OpenAPI model instance
+            | "MetadataSchema"  # OpenAPI model instance
         )
         | None = None,
         timeout: int | None = None,

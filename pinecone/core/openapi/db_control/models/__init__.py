@@ -12,11 +12,8 @@
 from pinecone.core.openapi.db_control.model.byoc import BYOC
 from pinecone.core.openapi.db_control.model.backup_list import BackupList
 from pinecone.core.openapi.db_control.model.backup_model import BackupModel
-from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
-from pinecone.core.openapi.db_control.model.backup_model_schema_fields import (
-    BackupModelSchemaFields,
-)
 from pinecone.core.openapi.db_control.model.byoc_spec import ByocSpec
+from pinecone.core.openapi.db_control.model.byoc_spec_response import ByocSpecResponse
 from pinecone.core.openapi.db_control.model.collection_list import CollectionList
 from pinecone.core.openapi.db_control.model.collection_model import CollectionModel
 from pinecone.core.openapi.db_control.model.configure_index_request import ConfigureIndexRequest
@@ -45,6 +42,8 @@ from pinecone.core.openapi.db_control.model.index_model import IndexModel
 from pinecone.core.openapi.db_control.model.index_model_status import IndexModelStatus
 from pinecone.core.openapi.db_control.model.index_spec import IndexSpec
 from pinecone.core.openapi.db_control.model.index_tags import IndexTags
+from pinecone.core.openapi.db_control.model.metadata_schema import MetadataSchema
+from pinecone.core.openapi.db_control.model.metadata_schema_fields import MetadataSchemaFields
 from pinecone.core.openapi.db_control.model.model_index_embed import ModelIndexEmbed
 from pinecone.core.openapi.db_control.model.pagination_response import PaginationResponse
 from pinecone.core.openapi.db_control.model.pod_based import PodBased

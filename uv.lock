@@ -1580,7 +1580,7 @@ wheels = [
 
 [[package]]
 name = "pinecone"
-version = "8.0.0"
+version = "8.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "certifi" },

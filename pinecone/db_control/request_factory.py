@@ -33,10 +33,8 @@ from pinecone.core.openapi.db_control.model.read_capacity_dedicated_config impor
     ReadCapacityDedicatedConfig,
 )
 from pinecone.core.openapi.db_control.model.scaling_config_manual import ScalingConfigManual
-from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
-from pinecone.core.openapi.db_control.model.backup_model_schema_fields import (
-    BackupModelSchemaFields,
-)
+from pinecone.core.openapi.db_control.model.metadata_schema import MetadataSchema
+from pinecone.core.openapi.db_control.model.metadata_schema_fields import MetadataSchemaFields
 from pinecone.core.openapi.db_control.model.byoc_spec import ByocSpec as ByocSpecModel
 from pinecone.core.openapi.db_control.model.pod_spec import PodSpec as PodSpecModel
 from pinecone.core.openapi.db_control.model.pod_spec_metadata_config import PodSpecMetadataConfig
@@ -187,14 +185,14 @@ class PineconeDBControlRequestFactory:
             | dict[
                 str, dict[str, Any]
             ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-            | BackupModelSchema  # OpenAPI model instance
+            | MetadataSchema  # OpenAPI model instance
         ),
-    ) -> BackupModelSchema:
-        """Parse schema dict into BackupModelSchema instance.
+    ) -> MetadataSchema:
+        """Parse schema dict into MetadataSchema instance.
 
         :param schema: Dict with schema configuration (either {field_name: {filterable: bool, ...}} or
-            {"fields": {field_name: {filterable: bool, ...}}, ...}) or existing BackupModelSchema instance
-        :return: BackupModelSchema instance
+            {"fields": {field_name: {filterable: bool, ...}}, ...}) or existing MetadataSchema instance
+        :return: MetadataSchema instance
         """
         if isinstance(schema, dict):
             schema_kwargs: dict[str, Any] = {}
@@ -207,10 +205,10 @@ class PineconeDBControlRequestFactory:
                 for field_name, field_config in schema["fields"].items():
                     if isinstance(field_config, dict):
                         # Pass through the entire field_config dict to allow future API fields
-                        fields[field_name] = BackupModelSchemaFields(**field_config)
+                        fields[field_name] = MetadataSchemaFields(**field_config)
                     else:
                         # If not a dict, create with default filterable=True
-                        fields[field_name] = BackupModelSchemaFields(filterable=True)
+                        fields[field_name] = MetadataSchemaFields(filterable=True)
                 schema_kwargs["fields"] = fields
 
                 # Pass through any other fields in schema_dict to allow future API fields
@@ -224,14 +222,14 @@ class PineconeDBControlRequestFactory:
                 for field_name, field_config in schema.items():
                     if isinstance(field_config, dict):
                         # Pass through the entire field_config dict to allow future API fields
-                        fields[field_name] = BackupModelSchemaFields(**field_config)
+                        fields[field_name] = MetadataSchemaFields(**field_config)
                     else:
                         # If not a dict, create with default filterable=True
-                        fields[field_name] = BackupModelSchemaFields(filterable=True)
+                        fields[field_name] = MetadataSchemaFields(filterable=True)
                 # Ensure fields is always set, even if empty
                 schema_kwargs["fields"] = fields
 
-            # Validate that fields is present before constructing BackupModelSchema
+            # Validate that fields is present before constructing MetadataSchema
             if "fields" not in schema_kwargs:
                 raise ValueError(
                     "Schema dict must contain field definitions. "
@@ -241,10 +239,10 @@ class PineconeDBControlRequestFactory:
 
             from typing import cast
 
-            result = BackupModelSchema(**schema_kwargs)
-            return cast(BackupModelSchema, result)
+            result = MetadataSchema(**schema_kwargs)
+            return cast(MetadataSchema, result)
         else:
-            # Already a BackupModelSchema instance
+            # Already a MetadataSchema instance
             return schema
 
     @staticmethod
@@ -262,7 +260,7 @@ class PineconeDBControlRequestFactory:
                         )
                     )
 
-                # Handle schema if present - convert to BackupModelSchema
+                # Handle schema if present - convert to MetadataSchema
                 if "schema" in spec["serverless"]:
                     schema_dict = spec["serverless"]["schema"]
                     if isinstance(schema_dict, dict):
@@ -273,10 +271,10 @@ class PineconeDBControlRequestFactory:
                             for field_name, field_config in schema_dict["fields"].items():
                                 if isinstance(field_config, dict):
                                     # Pass through the entire field_config dict to allow future API fields
-                                    fields[field_name] = BackupModelSchemaFields(**field_config)
+                                    fields[field_name] = MetadataSchemaFields(**field_config)
                                 else:
                                     # If not a dict, create with default filterable=True
-                                    fields[field_name] = BackupModelSchemaFields(filterable=True)
+                                    fields[field_name] = MetadataSchemaFields(filterable=True)
                             schema_kwargs["fields"] = fields
 
                         # Pass through any other fields in schema_dict to allow future API fields
@@ -284,7 +282,7 @@ class PineconeDBControlRequestFactory:
                             if key != "fields":
                                 schema_kwargs[key] = value
 
-                        spec["serverless"]["schema"] = BackupModelSchema(**schema_kwargs)
+                        spec["serverless"]["schema"] = MetadataSchema(**schema_kwargs)
 
                 index_spec = IndexSpec(serverless=ServerlessSpecModel(**spec["serverless"]))
             elif "pod" in spec:
@@ -305,6 +303,38 @@ class PineconeDBControlRequestFactory:
                     )
                 index_spec = IndexSpec(pod=PodSpecModel(**args_dict))
             elif "byoc" in spec:
+                # Handle read_capacity if present
+                if "read_capacity" in spec["byoc"]:
+                    spec["byoc"]["read_capacity"] = (
+                        PineconeDBControlRequestFactory.__parse_read_capacity(
+                            spec["byoc"]["read_capacity"]
+                        )
+                    )
+
+                # Handle schema if present - convert to MetadataSchema
+                if "schema" in spec["byoc"]:
+                    schema_dict = spec["byoc"]["schema"]
+                    if isinstance(schema_dict, dict):
+                        # Process fields if present, otherwise pass through as-is
+                        schema_kwargs = {}
+                        if "fields" in schema_dict:
+                            fields = {}
+                            for field_name, field_config in schema_dict["fields"].items():
+                                if isinstance(field_config, dict):
+                                    # Pass through the entire field_config dict to allow future API fields
+                                    fields[field_name] = MetadataSchemaFields(**field_config)
+                                else:
+                                    # If not a dict, create with default filterable=True
+                                    fields[field_name] = MetadataSchemaFields(filterable=True)
+                            schema_kwargs["fields"] = fields
+
+                        # Pass through any other fields in schema_dict to allow future API fields
+                        for key, value in schema_dict.items():
+                            if key != "fields":
+                                schema_kwargs[key] = value
+
+                        spec["byoc"]["schema"] = MetadataSchema(**schema_kwargs)
+
                 index_spec = IndexSpec(byoc=ByocSpecModel(**spec["byoc"]))
             else:
                 raise ValueError("spec must contain either 'serverless', 'pod', or 'byoc' key")
@@ -320,18 +350,18 @@ class PineconeDBControlRequestFactory:
 
             # Handle schema
             if spec.schema is not None:
-                # Convert dict to BackupModelSchema
+                # Convert dict to MetadataSchema
                 # schema is {field_name: {filterable: bool, ...}}
                 # Pass through the entire field_config to allow future API fields
                 fields = {}
                 for field_name, field_config in spec.schema.items():
                     if isinstance(field_config, dict):
                         # Pass through the entire field_config dict to allow future API fields
-                        fields[field_name] = BackupModelSchemaFields(**field_config)
+                        fields[field_name] = MetadataSchemaFields(**field_config)
                     else:
                         # If not a dict, create with default filterable=True
-                        fields[field_name] = BackupModelSchemaFields(filterable=True)
-                serverless_args["schema"] = BackupModelSchema(fields=fields)
+                        fields[field_name] = MetadataSchemaFields(filterable=True)
+                serverless_args["schema"] = MetadataSchema(fields=fields)
 
             index_spec = IndexSpec(serverless=ServerlessSpecModel(**serverless_args))
         elif isinstance(spec, PodSpec):
@@ -352,8 +382,31 @@ class PineconeDBControlRequestFactory:
                 pod=PodSpecModel(environment=spec.environment, pod_type=spec.pod_type, **args_dict)
             )
         elif isinstance(spec, ByocSpec):
-            args_dict = parse_non_empty_args([("environment", spec.environment)])
-            index_spec = IndexSpec(byoc=ByocSpecModel(**args_dict))
+            # Build args dict for ByocSpecModel
+            byoc_args: dict[str, Any] = {"environment": spec.environment}
+
+            # Handle read_capacity
+            if spec.read_capacity is not None:
+                byoc_args["read_capacity"] = PineconeDBControlRequestFactory.__parse_read_capacity(
+                    spec.read_capacity
+                )
+
+            # Handle schema
+            if spec.schema is not None:
+                # Convert dict to MetadataSchema
+                # schema is {field_name: {filterable: bool, ...}}
+                # Pass through the entire field_config to allow future API fields
+                fields = {}
+                for field_name, field_config in spec.schema.items():
+                    if isinstance(field_config, dict):
+                        # Pass through the entire field_config dict to allow future API fields
+                        fields[field_name] = MetadataSchemaFields(**field_config)
+                    else:
+                        # If not a dict, create with default filterable=True
+                        fields[field_name] = MetadataSchemaFields(filterable=True)
+                byoc_args["schema"] = MetadataSchema(fields=fields)
+
+            index_spec = IndexSpec(byoc=ByocSpecModel(**byoc_args))
         else:
             raise TypeError("spec must be of type dict, ServerlessSpec, PodSpec, or ByocSpec")
 
@@ -425,7 +478,7 @@ class PineconeDBControlRequestFactory:
             | dict[
                 str, dict[str, Any]
             ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-            | BackupModelSchema  # OpenAPI model instance
+            | MetadataSchema  # OpenAPI model instance
         )
         | None = None,
     ) -> CreateIndexForModelRequest:

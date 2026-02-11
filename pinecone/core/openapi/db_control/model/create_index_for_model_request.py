@@ -29,25 +29,25 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
     from pinecone.core.openapi.db_control.model.create_index_for_model_request_embed import (
         CreateIndexForModelRequestEmbed,
     )
     from pinecone.core.openapi.db_control.model.index_tags import IndexTags
+    from pinecone.core.openapi.db_control.model.metadata_schema import MetadataSchema
     from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
 
 
 def lazy_import():
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
     from pinecone.core.openapi.db_control.model.create_index_for_model_request_embed import (
         CreateIndexForModelRequestEmbed,
     )
     from pinecone.core.openapi.db_control.model.index_tags import IndexTags
+    from pinecone.core.openapi.db_control.model.metadata_schema import MetadataSchema
     from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
 
-    globals()["BackupModelSchema"] = BackupModelSchema
     globals()["CreateIndexForModelRequestEmbed"] = CreateIndexForModelRequestEmbed
     globals()["IndexTags"] = IndexTags
+    globals()["MetadataSchema"] = MetadataSchema
     globals()["ReadCapacity"] = ReadCapacity
 
 
@@ -118,7 +118,7 @@ class CreateIndexForModelRequest(ModelNormal):
             "embed": (CreateIndexForModelRequestEmbed,),  # noqa: E501
             "deletion_protection": (str,),  # noqa: E501
             "tags": (IndexTags,),  # noqa: E501
-            "schema": (BackupModelSchema,),  # noqa: E501
+            "schema": (MetadataSchema,),  # noqa: E501
             "read_capacity": (ReadCapacity,),  # noqa: E501
         }
 
@@ -196,7 +196,7 @@ class CreateIndexForModelRequest(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. [optional] if omitted the server will use the default value of "disabled".  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
-            schema (BackupModelSchema): [optional]  # noqa: E501
+            schema (MetadataSchema): [optional]  # noqa: E501
             read_capacity (ReadCapacity): [optional]  # noqa: E501
         """
 
@@ -299,7 +299,7 @@ class CreateIndexForModelRequest(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             deletion_protection (str): Whether [deletion protection](http://docs.pinecone.io/guides/manage-data/manage-indexes#configure-deletion-protection) is enabled/disabled for the index. Possible values: `disabled` or `enabled`. [optional] if omitted the server will use the default value of "disabled".  # noqa: E501
             tags (IndexTags): [optional]  # noqa: E501
-            schema (BackupModelSchema): [optional]  # noqa: E501
+            schema (MetadataSchema): [optional]  # noqa: E501
             read_capacity (ReadCapacity): [optional]  # noqa: E501
         """
 

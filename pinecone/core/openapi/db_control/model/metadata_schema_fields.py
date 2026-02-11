@@ -26,28 +26,14 @@ from pinecone.openapi_support.model_utils import (  # noqa: F401
 )
 from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.metadata_schema import MetadataSchema
-    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
-
-
-def lazy_import():
-    from pinecone.core.openapi.db_control.model.metadata_schema import MetadataSchema
-    from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
-
-    globals()["MetadataSchema"] = MetadataSchema
-    globals()["ReadCapacity"] = ReadCapacity
-
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="ByocSpec")
+T = TypeVar("T", bound="MetadataSchemaFields")
 
 
-class ByocSpec(ModelNormal):
+class MetadataSchemaFields(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -83,7 +69,6 @@ class ByocSpec(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
-        lazy_import()
         return (bool, dict, float, int, list, str, none_type)  # noqa: E501
 
     _nullable = False
@@ -98,11 +83,8 @@ class ByocSpec(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
-        lazy_import()
         return {
-            "environment": (str,),  # noqa: E501
-            "read_capacity": (ReadCapacity,),  # noqa: E501
-            "schema": (MetadataSchema,),  # noqa: E501
+            "filterable": (bool,)  # noqa: E501
         }
 
     @cached_class_property
@@ -110,9 +92,7 @@ class ByocSpec(ModelNormal):
         return None
 
     attribute_map: Dict[str, str] = {
-        "environment": "environment",  # noqa: E501
-        "read_capacity": "read_capacity",  # noqa: E501
-        "schema": "schema",  # noqa: E501
+        "filterable": "filterable"  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -120,7 +100,7 @@ class ByocSpec(ModelNormal):
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
-        """Create a new instance of ByocSpec.
+        """Create a new instance of MetadataSchemaFields.
 
         This method is overridden to provide proper type inference for mypy.
         The actual instance creation logic (including discriminator handling)
@@ -132,11 +112,8 @@ class ByocSpec(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], environment, *args, **kwargs) -> T:  # noqa: E501
-        """ByocSpec - a model defined in OpenAPI
-
-        Args:
-            environment (str): The environment where the index is hosted.
+    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
+        """MetadataSchemaFields - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -169,8 +146,7 @@ class ByocSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            read_capacity (ReadCapacity): [optional]  # noqa: E501
-            schema (MetadataSchema): [optional]  # noqa: E501
+            filterable (bool): Whether the field is filterable. If true, the field is indexed and can be used in filters. Only true values are allowed. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -200,7 +176,6 @@ class ByocSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.environment = environment
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -227,11 +202,8 @@ class ByocSpec(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, environment, *args, **kwargs) -> None:  # noqa: E501
-        """ByocSpec - a model defined in OpenAPI
-
-        Args:
-            environment (str): The environment where the index is hosted.
+    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
+        """MetadataSchemaFields - a model defined in OpenAPI
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -264,8 +236,7 @@ class ByocSpec(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            read_capacity (ReadCapacity): [optional]  # noqa: E501
-            schema (MetadataSchema): [optional]  # noqa: E501
+            filterable (bool): Whether the field is filterable. If true, the field is indexed and can be used in filters. Only true values are allowed. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)
@@ -293,7 +264,6 @@ class ByocSpec(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.environment = environment
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
