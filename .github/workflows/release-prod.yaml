@@ -17,6 +17,11 @@ on:
           - 'patch' # bug fixes
           - 'minor' # new features, backwards compatible
           - 'major' # breaking changes
+      disableIntegrationTests:
+        description: 'Skip integration and dependency tests (keeps unit tests and linting)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -29,12 +34,14 @@ jobs:
       python_versions_json: '["3.10"]'
 
   create-project:
+    if: ${{ !inputs.disableIntegrationTests }}
     uses: './.github/workflows/project-setup.yaml'
     secrets: inherit
     needs:
       - unit-tests
 
   integration-tests:
+    if: ${{ !inputs.disableIntegrationTests }}
     uses: './.github/workflows/testing-integration.yaml'
     secrets: inherit
     needs:
@@ -47,6 +54,7 @@ jobs:
       sparse_index_host: ${{ needs.create-project.outputs.index_host_sparse }}
 
   dependency-tests:
+    if: ${{ !inputs.disableIntegrationTests }}
     uses: './.github/workflows/testing-dependency.yaml'
     secrets: inherit
     needs:
@@ -66,6 +74,7 @@ jobs:
       - integration-tests
       - dependency-tests
       - install-tests
+    if: ${{ !failure() && !cancelled() }}
     with:
       isPrerelease: false
       ref: ${{ inputs.ref }}
@@ -83,7 +92,7 @@ jobs:
       - pypi
 
   cleanup-project:
-    if: ${{ always() }}
+    if: ${{ always() && !inputs.disableIntegrationTests }}
     needs:
       - create-project
       - integration-tests
