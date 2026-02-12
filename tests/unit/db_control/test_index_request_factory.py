@@ -293,3 +293,120 @@ class TestIndexRequestFactory:
                 read_capacity
             )
         assert "scaling" in str(exc_info.value).lower()
+
+    def test_parse_schema_direct_field_mapping(self):
+        """Test __parse_schema with direct field mapping: {field_name: {filterable: bool}}."""
+        schema = {"field1": {"filterable": True}, "field2": {"filterable": False}}
+        result = PineconeDBControlRequestFactory._PineconeDBControlRequestFactory__parse_schema(
+            schema
+        )
+        assert result.fields["field1"].filterable is True
+        assert result.fields["field2"].filterable is False
+
+    def test_parse_schema_with_fields_wrapper(self):
+        """Test __parse_schema with fields wrapper: {'fields': {field_name: {...}}}."""
+        schema = {"fields": {"field1": {"filterable": True}, "field2": {"filterable": False}}}
+        result = PineconeDBControlRequestFactory._PineconeDBControlRequestFactory__parse_schema(
+            schema
+        )
+        assert result.fields["field1"].filterable is True
+        assert result.fields["field2"].filterable is False
+
+    def test_serverless_dict_spec_schema_direct_field_mapping(self):
+        """Test serverless dict spec with direct field mapping schema."""
+        req = PineconeDBControlRequestFactory.create_index_request(
+            name="test-index",
+            metric="cosine",
+            dimension=1024,
+            spec={
+                "serverless": {
+                    "cloud": "aws",
+                    "region": "us-east-1",
+                    "schema": {"field1": {"filterable": True}, "field2": {"filterable": False}},
+                }
+            },
+        )
+        assert req.spec.serverless.schema.fields["field1"].filterable is True
+        assert req.spec.serverless.schema.fields["field2"].filterable is False
+
+    def test_serverless_dict_spec_schema_with_fields_wrapper(self):
+        """Test serverless dict spec with fields wrapper schema."""
+        req = PineconeDBControlRequestFactory.create_index_request(
+            name="test-index",
+            metric="cosine",
+            dimension=1024,
+            spec={
+                "serverless": {
+                    "cloud": "aws",
+                    "region": "us-east-1",
+                    "schema": {
+                        "fields": {"field1": {"filterable": True}, "field2": {"filterable": False}}
+                    },
+                }
+            },
+        )
+        assert req.spec.serverless.schema.fields["field1"].filterable is True
+        assert req.spec.serverless.schema.fields["field2"].filterable is False
+
+    def test_byoc_dict_spec_schema_direct_field_mapping(self):
+        """Test BYOC dict spec with direct field mapping schema."""
+        req = PineconeDBControlRequestFactory.create_index_request(
+            name="test-index",
+            metric="cosine",
+            dimension=1024,
+            spec={
+                "byoc": {
+                    "environment": "test-byoc-spec-id",
+                    "schema": {"field1": {"filterable": True}, "field2": {"filterable": False}},
+                }
+            },
+        )
+        assert req.spec.byoc.schema.fields["field1"].filterable is True
+        assert req.spec.byoc.schema.fields["field2"].filterable is False
+
+    def test_byoc_dict_spec_schema_with_fields_wrapper(self):
+        """Test BYOC dict spec with fields wrapper schema."""
+        req = PineconeDBControlRequestFactory.create_index_request(
+            name="test-index",
+            metric="cosine",
+            dimension=1024,
+            spec={
+                "byoc": {
+                    "environment": "test-byoc-spec-id",
+                    "schema": {
+                        "fields": {"field1": {"filterable": True}, "field2": {"filterable": False}}
+                    },
+                }
+            },
+        )
+        assert req.spec.byoc.schema.fields["field1"].filterable is True
+        assert req.spec.byoc.schema.fields["field2"].filterable is False
+
+    def test_serverless_spec_object_schema_direct_field_mapping(self):
+        """Test ServerlessSpec object with direct field mapping schema."""
+        req = PineconeDBControlRequestFactory.create_index_request(
+            name="test-index",
+            metric="cosine",
+            dimension=1024,
+            spec=ServerlessSpec(
+                cloud="aws",
+                region="us-east-1",
+                schema={"field1": {"filterable": True}, "field2": {"filterable": False}},
+            ),
+        )
+        assert req.spec.serverless.schema.fields["field1"].filterable is True
+        assert req.spec.serverless.schema.fields["field2"].filterable is False
+
+    def test_byoc_spec_object_schema_direct_field_mapping(self):
+        """Test ByocSpec object with direct field mapping schema."""
+        req = PineconeDBControlRequestFactory.create_index_request(
+            name="test-index",
+            metric="cosine",
+            dimension=1024,
+            spec=ByocSpec(
+                environment="test-byoc-spec-id",
+                schema={"field1": {"filterable": True}, "field2": {"filterable": False}},
+            ),
+        )
+        assert req.spec.byoc.schema.fields["field1"].filterable is True
+        assert req.spec.byoc.schema.fields["field2"].filterable is False
