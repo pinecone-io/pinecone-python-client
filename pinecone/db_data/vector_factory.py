@@ -65,12 +65,13 @@ class VectorFactory:
                 "Sparse values are not supported in tuples. Please use either dicts or OpenApiVector objects as inputs."
             )
         else:
-            return OpenApiVector(
+            result: OpenApiVector = OpenApiVector(
                 id=id,
                 values=convert_to_list(values),
                 metadata=metadata or {},
                 _check_type=check_type,
             )
+            return result
 
     @staticmethod
     def _dict_to_vector(item, check_type: bool) -> OpenApiVector:
