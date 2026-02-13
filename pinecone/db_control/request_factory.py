@@ -314,18 +314,9 @@ class PineconeDBControlRequestFactory:
 
             # Handle schema
             if spec.schema is not None:
-                # Convert dict to MetadataSchema
-                # schema is {field_name: {filterable: bool, ...}}
-                # Pass through the entire field_config to allow future API fields
-                fields = {}
-                for field_name, field_config in spec.schema.items():
-                    if isinstance(field_config, dict):
-                        # Pass through the entire field_config dict to allow future API fields
-                        fields[field_name] = MetadataSchemaFields(**field_config)
-                    else:
-                        # If not a dict, create with default filterable=True
-                        fields[field_name] = MetadataSchemaFields(filterable=True)
-                serverless_args["schema"] = MetadataSchema(fields=fields)
+                serverless_args["schema"] = PineconeDBControlRequestFactory.__parse_schema(
+                    spec.schema
+                )
 
             index_spec = IndexSpec(serverless=ServerlessSpecModel(**serverless_args))
         elif isinstance(spec, PodSpec):
@@ -357,18 +348,7 @@ class PineconeDBControlRequestFactory:
 
             # Handle schema
             if spec.schema is not None:
-                # Convert dict to MetadataSchema
-                # schema is {field_name: {filterable: bool, ...}}
-                # Pass through the entire field_config to allow future API fields
-                fields = {}
-                for field_name, field_config in spec.schema.items():
-                    if isinstance(field_config, dict):
-                        # Pass through the entire field_config dict to allow future API fields
-                        fields[field_name] = MetadataSchemaFields(**field_config)
-                    else:
-                        # If not a dict, create with default filterable=True
-                        fields[field_name] = MetadataSchemaFields(filterable=True)
-                byoc_args["schema"] = MetadataSchema(fields=fields)
+                byoc_args["schema"] = PineconeDBControlRequestFactory.__parse_schema(spec.schema)
 
             index_spec = IndexSpec(byoc=ByocSpecModel(**byoc_args))
         else:

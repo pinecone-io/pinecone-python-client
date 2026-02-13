@@ -12,6 +12,11 @@ from pinecone.core.openapi.db_control.models import (
     IndexModelStatus,
     CollectionList as OpenApiCollectionList,
     CollectionModel,
+    ReadCapacityStatus,
+    ReadCapacityOnDemandSpecResponse,
+    ReadCapacityDedicatedSpecResponse,
+    ReadCapacityDedicatedConfig,
+    ScalingConfigManual,
 )
 
 
@@ -29,6 +34,69 @@ def make_index_status(
         An IndexModelStatus instance
     """
     return IndexModelStatus(ready=ready, state=state, **overrides)
+
+
+def make_read_capacity_status(state: str = "Ready", **overrides: Any) -> ReadCapacityStatus:
+    """Create a ReadCapacityStatus instance.
+
+    Args:
+        state: The read capacity state (Ready, Initializing, etc.)
+        **overrides: Additional fields to override
+
+    Returns:
+        A ReadCapacityStatus instance
+    """
+    return ReadCapacityStatus(state=state, **overrides)
+
+
+def make_read_capacity_on_demand(
+    status: Optional[ReadCapacityStatus] = None, **overrides: Any
+) -> ReadCapacityOnDemandSpecResponse:
+    """Create a ReadCapacityOnDemandSpecResponse instance.
+
+    Args:
+        status: The read capacity status. Defaults to Ready state.
+        **overrides: Additional fields to override
+
+    Returns:
+        A ReadCapacityOnDemandSpecResponse instance
+    """
+    if status is None:
+        status = make_read_capacity_status()
+
+    return ReadCapacityOnDemandSpecResponse(mode="OnDemand", status=status, **overrides)
+
+
+def make_read_capacity_dedicated(
+    node_type: str = "t1",
+    scaling: str = "Manual",
+    shards: int = 1,
+    replicas: int = 1,
+    status: Optional[ReadCapacityStatus] = None,
+    **overrides: Any,
+) -> ReadCapacityDedicatedSpecResponse:
+    """Create a ReadCapacityDedicatedSpecResponse instance.
+
+    Args:
+        node_type: The node type (t1, b1)
+        scaling: The scaling type (Manual)
+        shards: Number of shards
+        replicas: Number of replicas
+        status: The read capacity status. Defaults to Ready state.
+        **overrides: Additional fields to override
+
+    Returns:
+        A ReadCapacityDedicatedSpecResponse instance
+    """
+    if status is None:
+        status = make_read_capacity_status()
+
+    manual = ScalingConfigManual(shards=shards, replicas=replicas)
+    dedicated = ReadCapacityDedicatedConfig(node_type=node_type, scaling=scaling, manual=manual)
+
+    return ReadCapacityDedicatedSpecResponse(
+        mode="Dedicated", status=status, dedicated=dedicated, **overrides
+    )
 
 
 def make_index_model(
