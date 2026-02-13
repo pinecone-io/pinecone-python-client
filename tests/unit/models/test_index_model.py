@@ -1,5 +1,6 @@
 from pinecone.db_control.models import IndexModel
 from pinecone import CloudProvider, AwsRegion
+from pinecone.config import OpenApiConfiguration
 
 from tests.fixtures import make_index_model, make_index_status
 
@@ -17,8 +18,18 @@ class TestIndexModel:
                 "serverless": {
                     "cloud": CloudProvider.AWS.value,
                     "region": AwsRegion.US_EAST_1.value,
+                    "read_capacity": {
+                        "mode": "Dedicated",
+                        "status": {"state": "Ready"},
+                        "dedicated": {
+                            "node_type": "t1",
+                            "scaling": "Manual",
+                            "manual": {"shards": 1, "replicas": 1},
+                        },
+                    },
                 }
             },
+            _configuration=OpenApiConfiguration(),
         )
 
         wrapped = IndexModel(openapi_model)
@@ -31,4 +42,8 @@ class TestIndexModel:
         assert wrapped.status.state == "Ready"
         assert wrapped.deletion_protection == "enabled"
 
-        assert wrapped["name"] == "test-index-1"
+        assert wrapped.spec.serverless.read_capacity.mode == "Dedicated"
+        assert wrapped.spec.serverless.read_capacity.dedicated.node_type == "t1"
+        assert wrapped.spec.serverless.read_capacity.dedicated.scaling == "Manual"
+        assert wrapped.spec.serverless.read_capacity.dedicated.manual.shards == 1
+        assert wrapped.spec.serverless.read_capacity.dedicated.manual.replicas == 1

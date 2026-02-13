@@ -106,7 +106,7 @@ class IndexModel:
                 # Instantiate Serverless wrapper, which IS the IndexSpec (oneOf union)
                 self._spec_cache = Serverless._new_from_openapi_data(
                     serverless=serverless_spec,
-                    _check_type=True,
+                    _check_type=False,
                     _path_to_item=spec_path,
                     _configuration=config,
                     _spec_property_naming=False,
@@ -124,7 +124,7 @@ class IndexModel:
                 # Instantiate PodBased wrapper, which IS the IndexSpec (oneOf union)
                 self._spec_cache = PodBased._new_from_openapi_data(
                     pod=pod_spec,
-                    _check_type=True,
+                    _check_type=False,
                     _path_to_item=spec_path,
                     _configuration=config,
                     _spec_property_naming=False,
@@ -142,7 +142,7 @@ class IndexModel:
                 # Instantiate BYOC wrapper, which IS the IndexSpec (oneOf union)
                 self._spec_cache = BYOC._new_from_openapi_data(
                     byoc=byoc_spec,
-                    _check_type=True,
+                    _check_type=False,
                     _path_to_item=spec_path,
                     _configuration=config,
                     _spec_property_naming=False,
