@@ -39,7 +39,16 @@ class TestIndexResource:
             "metric": "cosine",
             "spec": {
                 "byoc": {
-                    "environment": "test-environment"
+                    "environment": "test-environment",
+                    "read_capacity": {
+                        "mode": "Dedicated",
+                        "status": {"state": "Ready"},
+                        "dedicated": {
+                            "node_type": "t1",
+                            "scaling": "Manual",
+                            "manual": {"shards": 1, "replicas": 1}
+                        }
+                    }
                 }
             },
             "vector_type": "dense",
