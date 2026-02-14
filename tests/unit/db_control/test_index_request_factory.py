@@ -9,6 +9,9 @@ from pinecone import (
     PodIndexEnvironment,
 )  # type: ignore[attr-defined]
 from pinecone.db_control.request_factory import PineconeDBControlRequestFactory
+from pinecone.db_control.models import IndexModel
+from pinecone.config import OpenApiConfiguration
+from tests.fixtures import make_index_model, make_index_status
 
 
 class TestIndexRequestFactory:
@@ -410,3 +413,200 @@ class TestIndexRequestFactory:
         )
         assert req.spec.byoc.schema.fields["field1"].filterable is True
         assert req.spec.byoc.schema.fields["field2"].filterable is False
+
+    def test_configure_index_request_serverless_with_read_capacity(self):
+        """Test configure_index_request for serverless index with read_capacity."""
+        # Create a serverless index description
+        openapi_model = make_index_model(
+            name="test-serverless-index",
+            dimension=1536,
+            metric="cosine",
+            host="https://test-serverless-index.pinecone.io",
+            status=make_index_status(ready=True, state="Ready"),
+            spec={
+                "serverless": {
+                    "cloud": "aws",
+                    "region": "us-east-1",
+                    "read_capacity": {"mode": "OnDemand", "status": {"state": "Ready"}},
+                }
+            },
+            _configuration=OpenApiConfiguration(),
+        )
+        description = IndexModel(openapi_model)
+
+        # Configure with OnDemand read capacity
+        read_capacity = {"mode": "OnDemand"}
+        req = PineconeDBControlRequestFactory.configure_index_request(
+            description=description, read_capacity=read_capacity
+        )
+
+        assert req.spec is not None
+        assert "serverless" in req.spec
+        assert req.spec["serverless"]["read_capacity"].mode == "OnDemand"
+
+    def test_configure_index_request_serverless_with_dedicated_read_capacity(self):
+        """Test configure_index_request for serverless index with Dedicated read_capacity."""
+        # Create a serverless index description
+        openapi_model = make_index_model(
+            name="test-serverless-index",
+            dimension=1536,
+            metric="cosine",
+            host="https://test-serverless-index.pinecone.io",
+            status=make_index_status(ready=True, state="Ready"),
+            spec={
+                "serverless": {
+                    "cloud": "aws",
+                    "region": "us-east-1",
+                    "read_capacity": {"mode": "OnDemand", "status": {"state": "Ready"}},
+                }
+            },
+            _configuration=OpenApiConfiguration(),
+        )
+        description = IndexModel(openapi_model)
+
+        # Configure with Dedicated read capacity
+        read_capacity = {
+            "mode": "Dedicated",
+            "dedicated": {
+                "node_type": "t1",
+                "scaling": "Manual",
+                "manual": {"shards": 2, "replicas": 3},
+            },
+        }
+        req = PineconeDBControlRequestFactory.configure_index_request(
+            description=description, read_capacity=read_capacity
+        )
+
+        assert req.spec is not None
+        assert "serverless" in req.spec
+        assert req.spec["serverless"]["read_capacity"].mode == "Dedicated"
+        assert req.spec["serverless"]["read_capacity"].dedicated.node_type == "t1"
+        assert req.spec["serverless"]["read_capacity"].dedicated.scaling == "Manual"
+        assert req.spec["serverless"]["read_capacity"].dedicated.manual.shards == 2
+        assert req.spec["serverless"]["read_capacity"].dedicated.manual.replicas == 3
+
+    def test_configure_index_request_byoc_with_read_capacity(self):
+        """Test configure_index_request for BYOC index with read_capacity."""
+        # Create a BYOC index description
+        openapi_model = make_index_model(
+            name="test-byoc-index",
+            dimension=1536,
+            metric="cosine",
+            host="https://test-byoc-index.pinecone.io",
+            status=make_index_status(ready=True, state="Ready"),
+            spec={
+                "byoc": {
+                    "environment": "us-east-1-aws",
+                    "read_capacity": {"mode": "OnDemand", "status": {"state": "Ready"}},
+                }
+            },
+            _configuration=OpenApiConfiguration(),
+        )
+        description = IndexModel(openapi_model)
+
+        # Configure with OnDemand read capacity
+        read_capacity = {"mode": "OnDemand"}
+        req = PineconeDBControlRequestFactory.configure_index_request(
+            description=description, read_capacity=read_capacity
+        )
+
+        assert req.spec is not None
+        assert "byoc" in req.spec
+        assert req.spec["byoc"]["read_capacity"].mode == "OnDemand"
+
+    def test_configure_index_request_byoc_with_dedicated_read_capacity(self):
+        """Test configure_index_request for BYOC index with Dedicated read_capacity."""
+        # Create a BYOC index description
+        openapi_model = make_index_model(
+            name="test-byoc-index",
+            dimension=1536,
+            metric="cosine",
+            host="https://test-byoc-index.pinecone.io",
+            status=make_index_status(ready=True, state="Ready"),
+            spec={
+                "byoc": {
+                    "environment": "us-east-1-aws",
+                    "read_capacity": {"mode": "OnDemand", "status": {"state": "Ready"}},
+                }
+            },
+            _configuration=OpenApiConfiguration(),
+        )
+        description = IndexModel(openapi_model)
+
+        # Configure with Dedicated read capacity
+        read_capacity = {
+            "mode": "Dedicated",
+            "dedicated": {
+                "node_type": "b1",
+                "scaling": "Manual",
+                "manual": {"shards": 4, "replicas": 2},
+            },
+        }
+        req = PineconeDBControlRequestFactory.configure_index_request(
+            description=description, read_capacity=read_capacity
+        )
+
+        assert req.spec is not None
+        assert "byoc" in req.spec
+        assert req.spec["byoc"]["read_capacity"].mode == "Dedicated"
+        assert req.spec["byoc"]["read_capacity"].dedicated.node_type == "b1"
+        assert req.spec["byoc"]["read_capacity"].dedicated.scaling == "Manual"
+        assert req.spec["byoc"]["read_capacity"].dedicated.manual.shards == 4
+        assert req.spec["byoc"]["read_capacity"].dedicated.manual.replicas == 2
+
+    def test_configure_index_request_serverless_without_read_capacity(self):
+        """Test configure_index_request for serverless index without read_capacity."""
+        # Create a serverless index description
+        openapi_model = make_index_model(
+            name="test-serverless-index",
+            dimension=1536,
+            metric="cosine",
+            host="https://test-serverless-index.pinecone.io",
+            status=make_index_status(ready=True, state="Ready"),
+            spec={
+                "serverless": {
+                    "cloud": "aws",
+                    "region": "us-east-1",
+                    "read_capacity": {"mode": "OnDemand", "status": {"state": "Ready"}},
+                }
+            },
+            _configuration=OpenApiConfiguration(),
+        )
+        description = IndexModel(openapi_model)
+
+        # Configure without read_capacity (only tags)
+        req = PineconeDBControlRequestFactory.configure_index_request(
+            description=description, tags={"new-tag": "new-value"}
+        )
+
+        # spec should be None when no configuration changes are being made
+        assert req.spec is None
+        assert req.tags is not None
+
+    def test_configure_index_request_byoc_without_read_capacity(self):
+        """Test configure_index_request for BYOC index without read_capacity."""
+        # Create a BYOC index description
+        openapi_model = make_index_model(
+            name="test-byoc-index",
+            dimension=1536,
+            metric="cosine",
+            host="https://test-byoc-index.pinecone.io",
+            status=make_index_status(ready=True, state="Ready"),
+            spec={
+                "byoc": {
+                    "environment": "us-east-1-aws",
+                    "read_capacity": {"mode": "OnDemand", "status": {"state": "Ready"}},
+                }
+            },
+            _configuration=OpenApiConfiguration(),
+        )
+        description = IndexModel(openapi_model)
+
+        # Configure without read_capacity (only tags)
+        req = PineconeDBControlRequestFactory.configure_index_request(
+            description=description, tags={"new-tag": "new-value"}
+        )
+
+        # spec should be None when no configuration changes are being made
+        assert req.spec is None
+        assert req.tags is not None

@@ -543,6 +543,9 @@ class PineconeDBControlRequestFactory:
         if replicas:
             pod_config_args.update(replicas=replicas)
 
+        is_byoc_index = description.spec.byoc is not None
+        is_serverless_index = description.spec.serverless is not None
+
         embed_config = None
         if embed is not None:
             embed_config = ConfigureIndexRequestEmbed(**dict(embed))
@@ -556,10 +559,15 @@ class PineconeDBControlRequestFactory:
 
         spec = None
         if pod_config_args:
+            # Pod index configuration
             spec = {"pod": pod_config_args}
         elif parsed_read_capacity is not None:
-            # Serverless index configuration
-            spec = {"serverless": {"read_capacity": parsed_read_capacity}}
+            if is_serverless_index:
+                # Serverless index configuration
+                spec = {"serverless": {"read_capacity": parsed_read_capacity}}
+            elif is_byoc_index:
+                # Byoc index configuration
+                spec = {"byoc": {"read_capacity": parsed_read_capacity}}
 
         args_dict = parse_non_empty_args(
             [
