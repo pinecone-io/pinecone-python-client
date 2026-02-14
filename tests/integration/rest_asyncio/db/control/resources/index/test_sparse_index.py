@@ -84,5 +84,5 @@ class TestSparseIndexErrorCases:
 
         with pytest.raises(PineconeApiException) as e:
             await pc.create_index(**create_sl_index_params)
-        assert "Sparse vector indexes must use the metric dotproduct." in str(e.value)
+        assert "Sparse vector indexes must use the metric dotproduct" in str(e.value)
         await pc.close()
