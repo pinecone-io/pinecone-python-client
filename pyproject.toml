@@ -122,7 +122,7 @@ exclude = [
 
 line-length = 100
 indent-width = 4
-target-version = "8.0.1"
+target-version = "py310"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.

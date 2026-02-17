@@ -6,7 +6,7 @@ from pinecone.core.openapi.db_control.model.backup_model import BackupModel as O
 from pinecone.utils.repr_overrides import custom_serializer
 
 if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
+    from pinecone.core.openapi.db_control.model.metadata_schema import MetadataSchema
 
 
 class BackupModel:
@@ -21,7 +21,7 @@ class BackupModel:
         self._backup = backup
 
     @property
-    def schema(self) -> "BackupModelSchema" | None:
+    def schema(self) -> "MetadataSchema" | None:
         """Schema for the behavior of Pinecone's internal metadata index.
 
         This property defines which metadata fields are indexed and filterable
@@ -32,7 +32,7 @@ class BackupModel:
         The schema is a map of metadata field names to their configuration,
         where each field configuration specifies whether the field is filterable.
 
-        :type: BackupModelSchema, optional
+        :type: MetadataSchema, optional
         :returns: The metadata schema configuration, or None if not set.
         """
         return getattr(self._backup, "schema", None)

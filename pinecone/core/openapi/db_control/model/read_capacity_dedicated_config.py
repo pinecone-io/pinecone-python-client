@@ -129,12 +129,8 @@ class ReadCapacityDedicatedConfig(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls: Type[T], node_type, scaling, *args, **kwargs) -> T:  # noqa: E501
+    def _from_openapi_data(cls: Type[T], *args, **kwargs) -> T:  # noqa: E501
         """ReadCapacityDedicatedConfig - a model defined in OpenAPI
-
-        Args:
-            node_type (str): The type of machines to use. Available options: `b1` and `t1`. `t1` includes increased processing power and memory.
-            scaling (str): The type of scaling strategy to use.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -167,6 +163,8 @@ class ReadCapacityDedicatedConfig(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            node_type (str): The type of machines to use. Available options: `b1` and `t1`. `t1` includes increased processing power and memory. [optional]  # noqa: E501
+            scaling (str): The type of scaling strategy to use. [optional]  # noqa: E501
             manual (ScalingConfigManual): [optional]  # noqa: E501
         """
 
@@ -197,8 +195,6 @@ class ReadCapacityDedicatedConfig(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.node_type = node_type
-        self.scaling = scaling
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map
@@ -225,12 +221,8 @@ class ReadCapacityDedicatedConfig(ModelNormal):
     )
 
     @convert_js_args_to_python_args
-    def __init__(self, node_type, scaling, *args, **kwargs) -> None:  # noqa: E501
+    def __init__(self, *args, **kwargs) -> None:  # noqa: E501
         """ReadCapacityDedicatedConfig - a model defined in OpenAPI
-
-        Args:
-            node_type (str): The type of machines to use. Available options: `b1` and `t1`. `t1` includes increased processing power and memory.
-            scaling (str): The type of scaling strategy to use.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -263,6 +255,8 @@ class ReadCapacityDedicatedConfig(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
+            node_type (str): The type of machines to use. Available options: `b1` and `t1`. `t1` includes increased processing power and memory. [optional]  # noqa: E501
+            scaling (str): The type of scaling strategy to use. [optional]  # noqa: E501
             manual (ScalingConfigManual): [optional]  # noqa: E501
         """
 
@@ -291,8 +285,6 @@ class ReadCapacityDedicatedConfig(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.node_type = node_type
-        self.scaling = scaling
         for var_name, var_value in kwargs.items():
             if (
                 var_name not in self.attribute_map

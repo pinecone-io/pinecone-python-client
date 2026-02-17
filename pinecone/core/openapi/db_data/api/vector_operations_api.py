@@ -230,7 +230,7 @@ class VectorOperationsApi:
         ) -> FetchResponse | ApplyResult[FetchResponse]:
             """Fetch vectors  # noqa: E501
 
-            Look up and return vectors by ID from a single namespace. The returned vectors include the vector data and/or metadata.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
+            Look up and return vectors by ID from a single namespace. The returned vectors include the vector data and/or metadata.  For on-demand indexes, since vector values are retrieved from object storage, fetch operations may have increased latency. If you only need metadata or IDs, consider using the query operation with `includeValues` set to `false` instead.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
             This method makes a synchronous HTTP request by default. To make an
             asynchronous HTTP request, please pass async_req=True
 
@@ -772,7 +772,7 @@ class VectorOperationsApi:
 
             Args:
                 namespace (str): The namespace to upsert records into.
-                upsert_record ([UpsertRecord]):
+                upsert_record ([UpsertRecord]): Each record in the request body must include an `_id` field and a field that matches your index's `field_map` configuration (such as `chunk_text` or `data`). All other fields are stored as metadata.
                 x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:
@@ -1083,7 +1083,7 @@ class AsyncioVectorOperationsApi:
         ) -> FetchResponse:
             """Fetch vectors  # noqa: E501
 
-            Look up and return vectors by ID from a single namespace. The returned vectors include the vector data and/or metadata.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
+            Look up and return vectors by ID from a single namespace. The returned vectors include the vector data and/or metadata.  For on-demand indexes, since vector values are retrieved from object storage, fetch operations may have increased latency. If you only need metadata or IDs, consider using the query operation with `includeValues` set to `false` instead.  For guidance and examples, see [Fetch data](https://docs.pinecone.io/guides/manage-data/fetch-data).  # noqa: E501
 
 
             Args:
@@ -1546,7 +1546,7 @@ class AsyncioVectorOperationsApi:
 
             Args:
                 namespace (str): The namespace to upsert records into.
-                upsert_record ([UpsertRecord]):
+                upsert_record ([UpsertRecord]): Each record in the request body must include an `_id` field and a field that matches your index's `field_map` configuration (such as `chunk_text` or `data`). All other fields are stored as metadata.
                 x_pinecone_api_version (str): Required date-based version header Defaults to "2025-10", must be one of ["2025-10"]
 
             Keyword Args:

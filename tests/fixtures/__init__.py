@@ -20,6 +20,9 @@ from tests.fixtures.db_control_models import (
     make_index_list,
     make_collection_model,
     make_collection_list,
+    make_read_capacity_status,
+    make_read_capacity_on_demand,
+    make_read_capacity_dedicated,
 )
 
 from tests.fixtures.db_data_models import (
@@ -47,6 +50,9 @@ __all__ = [
     "make_index_list",
     "make_collection_model",
     "make_collection_list",
+    "make_read_capacity_status",
+    "make_read_capacity_on_demand",
+    "make_read_capacity_dedicated",
     # db_data models
     "make_vector",
     "make_sparse_values",

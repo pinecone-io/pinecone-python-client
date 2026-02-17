@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from pinecone.core.openapi.db_control.model.read_capacity_dedicated_spec import (
         ReadCapacityDedicatedSpec,
     )
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
+    from pinecone.core.openapi.db_control.model.metadata_schema import MetadataSchema
     from pinecone.db_control.enums import (
         Metric,
         VectorType,
@@ -529,7 +529,7 @@ class Pinecone(PluginAware):
             | dict[
                 str, dict[str, Any]
             ]  # Dict with "fields" wrapper: {"fields": {field_name: {...}}, ...}
-            | "BackupModelSchema"  # OpenAPI model instance
+            | "MetadataSchema"  # OpenAPI model instance
         )
         | None = None,
         timeout: int | None = None,
@@ -556,7 +556,7 @@ class Pinecone(PluginAware):
         :param schema: Optional metadata schema configuration. You can specify ``schema`` to configure which metadata fields are filterable.
             The schema can be provided as a dictionary mapping field names to their configurations (e.g., ``{"genre": {"filterable": True}}``)
             or as a dictionary with a ``fields`` key (e.g., ``{"fields": {"genre": {"filterable": True}}}``).
-        :type schema: Optional[Union[dict[str, MetadataSchemaFieldConfig], dict[str, dict[str, Any]], BackupModelSchema]]
+        :type schema: Optional[Union[dict[str, MetadataSchemaFieldConfig], dict[str, dict[str, Any]], MetadataSchema]]
         :type timeout: Optional[int]
         :param timeout: Specify the number of seconds to wait until index is ready to receive data. If None, wait indefinitely; if >=0, time out after this many seconds;
             if -1, return immediately and do not wait.

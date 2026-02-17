@@ -25,7 +25,7 @@ type-check:
 	uv run mypy pinecone --exclude pinecone/core
 
 generate-oas:
-	./codegen/build-oas.sh "2024-07"
+	./codegen/build-oas.sh "2025-10"
 
 version:
 	@python -c "import re; print(re.search(r'version = \"([^\"]+)\"', open('pyproject.toml').read()).group(1))"

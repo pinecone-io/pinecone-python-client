@@ -29,16 +29,16 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
     from pinecone.core.openapi.db_control.model.index_tags import IndexTags
+    from pinecone.core.openapi.db_control.model.metadata_schema import MetadataSchema
 
 
 def lazy_import():
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
     from pinecone.core.openapi.db_control.model.index_tags import IndexTags
+    from pinecone.core.openapi.db_control.model.metadata_schema import MetadataSchema
 
-    globals()["BackupModelSchema"] = BackupModelSchema
     globals()["IndexTags"] = IndexTags
+    globals()["MetadataSchema"] = MetadataSchema
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
@@ -112,7 +112,7 @@ class BackupModel(ModelNormal):
             "description": (str,),  # noqa: E501
             "dimension": (int,),  # noqa: E501
             "metric": (str,),  # noqa: E501
-            "schema": (BackupModelSchema,),  # noqa: E501
+            "schema": (MetadataSchema,),  # noqa: E501
             "record_count": (int,),  # noqa: E501
             "namespace_count": (int,),  # noqa: E501
             "size_bytes": (int,),  # noqa: E501
@@ -216,7 +216,7 @@ class BackupModel(ModelNormal):
             description (str): Optional description providing context for the backup. [optional]  # noqa: E501
             dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
             metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'. Possible values: `cosine`, `euclidean`, or `dotproduct`. [optional]  # noqa: E501
-            schema (BackupModelSchema): [optional]  # noqa: E501
+            schema (MetadataSchema): [optional]  # noqa: E501
             record_count (int): Total number of records in the backup. [optional]  # noqa: E501
             namespace_count (int): Number of namespaces in the backup. [optional]  # noqa: E501
             size_bytes (int): Size of the backup in bytes. [optional]  # noqa: E501
@@ -331,7 +331,7 @@ class BackupModel(ModelNormal):
             description (str): Optional description providing context for the backup. [optional]  # noqa: E501
             dimension (int): The dimensions of the vectors to be inserted in the index. [optional]  # noqa: E501
             metric (str): The distance metric to be used for similarity search. You can use 'euclidean', 'cosine', or 'dotproduct'. If the 'vector_type' is 'sparse', the metric must be 'dotproduct'. If the `vector_type` is `dense`, the metric defaults to 'cosine'. Possible values: `cosine`, `euclidean`, or `dotproduct`. [optional]  # noqa: E501
-            schema (BackupModelSchema): [optional]  # noqa: E501
+            schema (MetadataSchema): [optional]  # noqa: E501
             record_count (int): Total number of records in the backup. [optional]  # noqa: E501
             namespace_count (int): Number of namespaces in the backup. [optional]  # noqa: E501
             size_bytes (int): Size of the backup in bytes. [optional]  # noqa: E501

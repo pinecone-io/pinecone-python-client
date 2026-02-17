@@ -188,7 +188,7 @@ class QueryRequest(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             namespace (str): The namespace to query. [optional]  # noqa: E501
             filter (Dict[str, Any]): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
-            include_values (bool): Indicates whether vector values are included in the response. [optional] if omitted the server will use the default value of False.  # noqa: E501
+            include_values (bool): Indicates whether vector values are included in the response. For on-demand indexes, setting this to `true` may increase latency, especially with higher `topK` values, because vector values are retrieved from object storage. Unless you need vector values, set this to `false` for better performance. [optional] if omitted the server will use the default value of False.  # noqa: E501
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids. [optional] if omitted the server will use the default value of False.  # noqa: E501
             queries ([QueryVector]): DEPRECATED. Use `vector` or `id` instead. [optional]  # noqa: E501
             vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query` request can contain only one of the parameters `id` or `vector`. [optional]  # noqa: E501
@@ -289,7 +289,7 @@ class QueryRequest(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             namespace (str): The namespace to query. [optional]  # noqa: E501
             filter (Dict[str, Any]): The filter to apply. You can use vector metadata to limit your search. See [Understanding metadata](https://docs.pinecone.io/guides/index-data/indexing-overview#metadata). [optional]  # noqa: E501
-            include_values (bool): Indicates whether vector values are included in the response. [optional] if omitted the server will use the default value of False.  # noqa: E501
+            include_values (bool): Indicates whether vector values are included in the response. For on-demand indexes, setting this to `true` may increase latency, especially with higher `topK` values, because vector values are retrieved from object storage. Unless you need vector values, set this to `false` for better performance. [optional] if omitted the server will use the default value of False.  # noqa: E501
             include_metadata (bool): Indicates whether metadata is included in the response as well as the ids. [optional] if omitted the server will use the default value of False.  # noqa: E501
             queries ([QueryVector]): DEPRECATED. Use `vector` or `id` instead. [optional]  # noqa: E501
             vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query` request can contain only one of the parameters `id` or `vector`. [optional]  # noqa: E501

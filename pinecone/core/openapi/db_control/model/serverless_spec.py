@@ -29,15 +29,15 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
+    from pinecone.core.openapi.db_control.model.metadata_schema import MetadataSchema
     from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
 
 
 def lazy_import():
-    from pinecone.core.openapi.db_control.model.backup_model_schema import BackupModelSchema
+    from pinecone.core.openapi.db_control.model.metadata_schema import MetadataSchema
     from pinecone.core.openapi.db_control.model.read_capacity import ReadCapacity
 
-    globals()["BackupModelSchema"] = BackupModelSchema
+    globals()["MetadataSchema"] = MetadataSchema
     globals()["ReadCapacity"] = ReadCapacity
 
 
@@ -104,7 +104,7 @@ class ServerlessSpec(ModelNormal):
             "region": (str,),  # noqa: E501
             "read_capacity": (ReadCapacity,),  # noqa: E501
             "source_collection": (str,),  # noqa: E501
-            "schema": (BackupModelSchema,),  # noqa: E501
+            "schema": (MetadataSchema,),  # noqa: E501
         }
 
     @cached_class_property
@@ -176,7 +176,7 @@ class ServerlessSpec(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             read_capacity (ReadCapacity): [optional]  # noqa: E501
             source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
-            schema (BackupModelSchema): [optional]  # noqa: E501
+            schema (MetadataSchema): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -274,7 +274,7 @@ class ServerlessSpec(ModelNormal):
                                 _visited_composed_classes = (Animal,)
             read_capacity (ReadCapacity): [optional]  # noqa: E501
             source_collection (str): The name of the collection to be used as the source for the index. [optional]  # noqa: E501
-            schema (BackupModelSchema): [optional]  # noqa: E501
+            schema (MetadataSchema): [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

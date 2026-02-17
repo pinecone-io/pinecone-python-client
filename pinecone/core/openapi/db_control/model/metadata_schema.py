@@ -29,26 +29,22 @@ from pinecone.openapi_support.exceptions import PineconeApiAttributeError
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pinecone.core.openapi.db_control.model.backup_model_schema_fields import (
-        BackupModelSchemaFields,
-    )
+    from pinecone.core.openapi.db_control.model.metadata_schema_fields import MetadataSchemaFields
 
 
 def lazy_import():
-    from pinecone.core.openapi.db_control.model.backup_model_schema_fields import (
-        BackupModelSchemaFields,
-    )
+    from pinecone.core.openapi.db_control.model.metadata_schema_fields import MetadataSchemaFields
 
-    globals()["BackupModelSchemaFields"] = BackupModelSchemaFields
+    globals()["MetadataSchemaFields"] = MetadataSchemaFields
 
 
 from typing import Dict, Literal, Tuple, Set, Any, Type, TypeVar
 from pinecone.openapi_support import PropertyValidationTypedDict, cached_class_property
 
-T = TypeVar("T", bound="BackupModelSchema")
+T = TypeVar("T", bound="MetadataSchema")
 
 
-class BackupModelSchema(ModelNormal):
+class MetadataSchema(ModelNormal):
     """NOTE: This class is @generated using OpenAPI.
 
     Do not edit the class manually.
@@ -101,7 +97,7 @@ class BackupModelSchema(ModelNormal):
         """
         lazy_import()
         return {
-            "fields": ({str: (BackupModelSchemaFields,)},)  # noqa: E501
+            "fields": ({str: (MetadataSchemaFields,)},)  # noqa: E501
         }
 
     @cached_class_property
@@ -117,7 +113,7 @@ class BackupModelSchema(ModelNormal):
     _composed_schemas: Dict[Literal["allOf", "oneOf", "anyOf"], Any] = {}
 
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
-        """Create a new instance of BackupModelSchema.
+        """Create a new instance of MetadataSchema.
 
         This method is overridden to provide proper type inference for mypy.
         The actual instance creation logic (including discriminator handling)
@@ -130,10 +126,10 @@ class BackupModelSchema(ModelNormal):
     @classmethod
     @convert_js_args_to_python_args
     def _from_openapi_data(cls: Type[T], fields, *args, **kwargs) -> T:  # noqa: E501
-        """BackupModelSchema - a model defined in OpenAPI
+        """MetadataSchema - a model defined in OpenAPI
 
         Args:
-            fields ({str: (BackupModelSchemaFields,)}): A map of metadata field names to their configuration. The field name must be a valid metadata field name. The field name must be unique.
+            fields ({str: (MetadataSchemaFields,)}): A map of metadata field names to their configuration. The field name must be a valid metadata field name. The field name must be unique.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -223,10 +219,10 @@ class BackupModelSchema(ModelNormal):
 
     @convert_js_args_to_python_args
     def __init__(self, fields, *args, **kwargs) -> None:  # noqa: E501
-        """BackupModelSchema - a model defined in OpenAPI
+        """MetadataSchema - a model defined in OpenAPI
 
         Args:
-            fields ({str: (BackupModelSchemaFields,)}): A map of metadata field names to their configuration. The field name must be a valid metadata field name. The field name must be unique.
+            fields ({str: (MetadataSchemaFields,)}): A map of metadata field names to their configuration. The field name must be a valid metadata field name. The field name must be unique.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
