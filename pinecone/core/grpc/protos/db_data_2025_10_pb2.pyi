@@ -200,6 +200,8 @@ class QueryRequest(_message.Message):
     VECTOR_FIELD_NUMBER: _ClassVar[int]
     SPARSE_VECTOR_FIELD_NUMBER: _ClassVar[int]
     ID_FIELD_NUMBER: _ClassVar[int]
+    SCAN_FACTOR_FIELD_NUMBER: _ClassVar[int]
+    MAX_CANDIDATES_FIELD_NUMBER: _ClassVar[int]
     namespace: str
     top_k: int
     filter: _struct_pb2.Struct
@@ -209,7 +211,9 @@ class QueryRequest(_message.Message):
     vector: _containers.RepeatedScalarFieldContainer[float]
     sparse_vector: SparseValues
     id: str
-    def __init__(self, namespace: _Optional[str] = ..., top_k: _Optional[int] = ..., filter: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., include_values: _Optional[bool] = ..., include_metadata: _Optional[bool] = ..., queries: _Optional[_Iterable[_Union[QueryVector, _Mapping]]] = ..., vector: _Optional[_Iterable[float]] = ..., sparse_vector: _Optional[_Union[SparseValues, _Mapping]] = ..., id: _Optional[str] = ...) -> None: ...
+    scan_factor: float
+    max_candidates: int
+    def __init__(self, namespace: _Optional[str] = ..., top_k: _Optional[int] = ..., filter: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., include_values: _Optional[bool] = ..., include_metadata: _Optional[bool] = ..., queries: _Optional[_Iterable[_Union[QueryVector, _Mapping]]] = ..., vector: _Optional[_Iterable[float]] = ..., sparse_vector: _Optional[_Union[SparseValues, _Mapping]] = ..., id: _Optional[str] = ..., scan_factor: _Optional[float] = ..., max_candidates: _Optional[int] = ...) -> None: ...
 
 class SingleQueryResults(_message.Message):
     __slots__ = ()
