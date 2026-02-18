@@ -372,6 +372,8 @@ class VectorResourceAsyncio(PluginAware):
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> QueryResponse:
         """Query the index.
@@ -423,6 +425,8 @@ class VectorResourceAsyncio(PluginAware):
             include_values=include_values,
             include_metadata=include_metadata,
             sparse_vector=sparse_vector,
+            scan_factor=scan_factor,
+            max_candidates=max_candidates,
             **kwargs,
         )
         # parse_query_response already returns QueryResponse
@@ -439,6 +443,8 @@ class VectorResourceAsyncio(PluginAware):
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> OpenAPIQueryResponse:
         if len(args) > 0:
@@ -455,6 +461,8 @@ class VectorResourceAsyncio(PluginAware):
             include_values=include_values,
             include_metadata=include_metadata,
             sparse_vector=sparse_vector,
+            scan_factor=scan_factor,
+            max_candidates=max_candidates,
             **kwargs,
         )
         from typing import cast
@@ -475,6 +483,8 @@ class VectorResourceAsyncio(PluginAware):
         include_metadata: bool | None = None,
         vector: list[float] | None = None,
         sparse_vector: (SparseValues | dict[str, list[float] | list[int]]) | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         """Query across multiple namespaces.
@@ -530,6 +540,8 @@ class VectorResourceAsyncio(PluginAware):
                 include_values=include_values,
                 include_metadata=include_metadata,
                 sparse_vector=sparse_vector,  # type: ignore[arg-type]
+                scan_factor=scan_factor,
+                max_candidates=max_candidates,
                 async_threadpool_executor=True,
                 _preload_content=False,
                 **kwargs,

@@ -728,6 +728,8 @@ class _IndexAsyncio:
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> QueryResponse:
         """
@@ -846,6 +848,8 @@ class _IndexAsyncio:
             include_values=include_values,
             include_metadata=include_metadata,
             sparse_vector=sparse_vector,
+            scan_factor=scan_factor,
+            max_candidates=max_candidates,
             **kwargs,
         )
         return parse_query_response(response)
@@ -861,6 +865,8 @@ class _IndexAsyncio:
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> OpenAPIQueryResponse:
         if len(args) > 0:
@@ -877,6 +883,8 @@ class _IndexAsyncio:
             include_values=include_values,
             include_metadata=include_metadata,
             sparse_vector=sparse_vector,
+            scan_factor=scan_factor,
+            max_candidates=max_candidates,
             **kwargs,
         )
         from typing import cast
@@ -897,6 +905,8 @@ class _IndexAsyncio:
         include_metadata: bool | None = None,
         vector: list[float] | None = None,
         sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         """The query_namespaces() method is used to make a query to multiple namespaces in parallel and combine the results into one result set.
@@ -965,6 +975,8 @@ class _IndexAsyncio:
                 sparse_vector=sparse_vector,
                 async_threadpool_executor=True,
                 _preload_content=False,
+                scan_factor=scan_factor,
+                max_candidates=max_candidates,
                 **kwargs,
             )
             for ns in target_namespaces

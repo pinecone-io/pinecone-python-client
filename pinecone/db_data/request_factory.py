@@ -56,6 +56,8 @@ class IndexRequestFactory:
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: SparseValues | SparseVectorTypedDict | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> QueryRequest:
         if vector is not None and id is not None:
@@ -73,6 +75,8 @@ class IndexRequestFactory:
                 ("include_values", include_values),
                 ("include_metadata", include_metadata),
                 ("sparse_vector", sparse_vector_normalized),
+                ("scan_factor", scan_factor),
+                ("max_candidates", max_candidates),
             ]
         )
 

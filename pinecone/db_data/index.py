@@ -945,6 +945,8 @@ class Index(PluginAware):
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: SparseValues | SparseVectorTypedDict | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> QueryResponse | ApplyResult:
         """Query a namespace using a query vector.
@@ -1033,6 +1035,8 @@ class Index(PluginAware):
             include_values=include_values,
             include_metadata=include_metadata,
             sparse_vector=sparse_vector,
+            scan_factor=scan_factor,
+            max_candidates=max_candidates,
             **kwargs,
         )
 
@@ -1054,6 +1058,8 @@ class Index(PluginAware):
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: SparseValues | SparseVectorTypedDict | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> OpenAPIQueryResponse:
         if len(args) > 0:
@@ -1073,6 +1079,8 @@ class Index(PluginAware):
             include_values=include_values,
             include_metadata=include_metadata,
             sparse_vector=sparse_vector,
+            scan_factor=scan_factor,
+            max_candidates=max_candidates,
             **kwargs,
         )
         from typing import cast
@@ -1092,6 +1100,8 @@ class Index(PluginAware):
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: SparseValues | SparseVectorTypedDict | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         """Query multiple namespaces in parallel and combine the results.
@@ -1171,6 +1181,8 @@ class Index(PluginAware):
                 include_values=include_values,
                 include_metadata=include_metadata,
                 sparse_vector=sparse_vector,
+                scan_factor=scan_factor,
+                max_candidates=max_candidates,
                 async_threadpool_executor=True,
                 _preload_content=False,
                 **kwargs,
