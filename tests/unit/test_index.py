@@ -410,6 +410,60 @@ class TestRestIndex:
             in str(e.value)
         )
 
+    def test_query_with_scan_factor_and_max_candidates(self, mocker):
+        mocker.patch.object(self.index._vector_api, "query_vectors", autospec=True)
+        self.index.query(top_k=10, vector=self.vals1, scan_factor=2.0, max_candidates=500)
+        self.index._vector_api.query_vectors.assert_called_once_with(
+            oai.QueryRequest(top_k=10, vector=self.vals1, scan_factor=2.0, max_candidates=500)
+        )
+
+    def test_query_with_scan_factor_only(self, mocker):
+        mocker.patch.object(self.index._vector_api, "query_vectors", autospec=True)
+        self.index.query(top_k=10, vector=self.vals1, scan_factor=0.5)
+        request = self.index._vector_api.query_vectors.call_args[0][0]
+        assert request.scan_factor == 0.5
+        assert "max_candidates" not in request._data_store
+
+    def test_query_with_max_candidates_only(self, mocker):
+        mocker.patch.object(self.index._vector_api, "query_vectors", autospec=True)
+        self.index.query(top_k=10, vector=self.vals1, max_candidates=1000)
+        request = self.index._vector_api.query_vectors.call_args[0][0]
+        assert request.max_candidates == 1000
+        assert "scan_factor" not in request._data_store
+
+    # endregion
+
+    # region: query_namespaces tests
+
+    def test_query_namespaces_forwards_scan_factor_and_max_candidates(self, mocker):
+        import json
+        from concurrent.futures import Future
+        from unittest.mock import MagicMock
+
+        def make_future(**kwargs):
+            raw = MagicMock()
+            raw.data = json.dumps(
+                {"matches": [], "namespace": kwargs.get("namespace", ""), "usage": {"readUnits": 0}}
+            ).encode()
+            f = Future()
+            f.set_result(raw)
+            return f
+
+        mock_query = mocker.patch.object(self.index, "query", side_effect=make_future)
+        self.index.query_namespaces(
+            vector=self.vals1,
+            namespaces=["ns1", "ns2"],
+            metric="cosine",
+            top_k=5,
+            scan_factor=3.0,
+            max_candidates=750,
+        )
+        calls = mock_query.call_args_list
+        assert len(calls) == 2
+        for call in calls:
+            assert call.kwargs["scan_factor"] == 3.0
+            assert call.kwargs["max_candidates"] == 750
+
     # endregion
 
     # region: delete tests
@@ -716,6 +770,57 @@ class TestRestIndex:
                 namespace="ns",
             )
         )
+
+    # endregion
+
+    # region: asyncio query tests
+
+    @pytest.mark.asyncio
+    async def test_asyncio_query_with_scan_factor_and_max_candidates(self, mocker):
+        asyncio_index = _IndexAsyncio(api_key="asdf", host="https://test.pinecone.io")
+        mock_response = oai.QueryResponse(matches=[], namespace="test", _check_type=False)
+        mocker.patch.object(
+            asyncio_index._vector_api,
+            "query_vectors",
+            return_value=mock_response,
+            new_callable=mocker.AsyncMock,
+        )
+        await asyncio_index.query(top_k=10, vector=self.vals1, scan_factor=2.0, max_candidates=500)
+        asyncio_index._vector_api.query_vectors.assert_called_once_with(
+            oai.QueryRequest(top_k=10, vector=self.vals1, scan_factor=2.0, max_candidates=500)
+        )
+
+    @pytest.mark.asyncio
+    async def test_asyncio_query_namespaces_forwards_scan_factor_and_max_candidates(self, mocker):
+        import json
+        from unittest.mock import MagicMock
+        from pinecone.openapi_support.rest_utils import RESTResponse
+
+        asyncio_index = _IndexAsyncio(api_key="asdf", host="https://test.pinecone.io")
+
+        async def async_query_side_effect(**kwargs):
+            raw = MagicMock(spec=RESTResponse)
+            raw.data = json.dumps(
+                {"matches": [], "namespace": kwargs.get("namespace", ""), "usage": {"readUnits": 0}}
+            ).encode()
+            return raw
+
+        mock_query = mocker.patch.object(
+            asyncio_index, "_query", side_effect=async_query_side_effect
+        )
+        await asyncio_index.query_namespaces(
+            vector=self.vals1,
+            namespaces=["ns1", "ns2"],
+            metric="cosine",
+            top_k=5,
+            scan_factor=3.0,
+            max_candidates=750,
+        )
+        calls = mock_query.call_args_list
+        assert len(calls) == 2
+        for call in calls:
+            assert call.kwargs["scan_factor"] == 3.0
+            assert call.kwargs["max_candidates"] == 750
 
     # endregion
 

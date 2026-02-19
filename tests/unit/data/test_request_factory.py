@@ -7,6 +7,7 @@ from pinecone.db_data.request_factory import (
 )
 
 from pinecone.core.openapi.db_data.models import FetchByMetadataRequest
+from pinecone.core.openapi.db_data.model.query_request import QueryRequest
 from pinecone import RerankModel
 
 from tests.fixtures import (
@@ -623,3 +624,37 @@ class TestIndexRequestFactory:
         assert "dry_run" not in request._data_store
 
     # endregion
+
+
+class TestQueryRequest:
+    def test_query_request_basic(self):
+        request = IndexRequestFactory.query_request(top_k=10, vector=[0.1, 0.2, 0.3])
+        assert isinstance(request, QueryRequest)
+        assert request.top_k == 10
+        assert request.vector == [0.1, 0.2, 0.3]
+
+    def test_query_request_with_scan_factor(self):
+        request = IndexRequestFactory.query_request(
+            top_k=10, vector=[0.1, 0.2, 0.3], scan_factor=2.0
+        )
+        assert request.scan_factor == 2.0
+        assert "max_candidates" not in request._data_store
+
+    def test_query_request_with_max_candidates(self):
+        request = IndexRequestFactory.query_request(
+            top_k=10, vector=[0.1, 0.2, 0.3], max_candidates=500
+        )
+        assert request.max_candidates == 500
+        assert "scan_factor" not in request._data_store
+
+    def test_query_request_with_scan_factor_and_max_candidates(self):
+        request = IndexRequestFactory.query_request(
+            top_k=10, vector=[0.1, 0.2, 0.3], scan_factor=1.5, max_candidates=1000
+        )
+        assert request.scan_factor == 1.5
+        assert request.max_candidates == 1000
+
+    def test_query_request_omits_scan_factor_and_max_candidates_when_none(self):
+        request = IndexRequestFactory.query_request(top_k=10, vector=[0.1, 0.2, 0.3])
+        assert "scan_factor" not in request._data_store
+        assert "max_candidates" not in request._data_store
