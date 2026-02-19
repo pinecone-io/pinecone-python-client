@@ -80,6 +80,8 @@ class QueryRequest(ModelNormal):
         ("queries",): {},
         ("vector",): {},
         ("id",): {"max_length": 512},
+        ("scan_factor",): {"inclusive_maximum": 4.0, "inclusive_minimum": 0.5},
+        ("max_candidates",): {"inclusive_maximum": 100000, "inclusive_minimum": 1},
     }
 
     @cached_class_property
@@ -114,6 +116,8 @@ class QueryRequest(ModelNormal):
             "vector": ([float],),  # noqa: E501
             "sparse_vector": (SparseValues,),  # noqa: E501
             "id": (str,),  # noqa: E501
+            "scan_factor": (float,),  # noqa: E501
+            "max_candidates": (int,),  # noqa: E501
         }
 
     @cached_class_property
@@ -130,6 +134,8 @@ class QueryRequest(ModelNormal):
         "vector": "vector",  # noqa: E501
         "sparse_vector": "sparseVector",  # noqa: E501
         "id": "id",  # noqa: E501
+        "scan_factor": "scanFactor",  # noqa: E501
+        "max_candidates": "maxCandidates",  # noqa: E501
     }
 
     read_only_vars: Set[str] = set([])
@@ -194,6 +200,8 @@ class QueryRequest(ModelNormal):
             vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query` request can contain only one of the parameters `id` or `vector`. [optional]  # noqa: E501
             sparse_vector (SparseValues): [optional]  # noqa: E501
             id (str): The unique ID of the vector to be used as a query vector. Each request  can contain either the `vector` or `id` parameter. [optional]  # noqa: E501
+            scan_factor (float): An optimization parameter for IVF dense indexes in dedicated read node indexes. It adjusts how much of the index is scanned to find vector candidates. Range: 0.5 – 4 (default). Keep the default (4.0) for the best search results. If query latency is too high, try lowering this value incrementally (minimum 0.5) to speed up the search at the cost of slightly lower accuracy. This parameter is only supported for dedicated (DRN) dense indexes.  [optional]  # noqa: E501
+            max_candidates (int): An optimization parameter that controls the maximum number of candidate dense vectors to rerank. Reranking computes exact distances to improve recall but increases query latency. Range: top_k – 100000. Keep the default for a balance of recall and latency. Increase this value if recall is too low, or decrease it to reduce latency at the cost of accuracy. This parameter is only supported for dedicated (DRN) dense indexes. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", False)
@@ -295,6 +303,8 @@ class QueryRequest(ModelNormal):
             vector ([float]): The query vector. This should be the same length as the dimension of the index being queried. Each `query` request can contain only one of the parameters `id` or `vector`. [optional]  # noqa: E501
             sparse_vector (SparseValues): [optional]  # noqa: E501
             id (str): The unique ID of the vector to be used as a query vector. Each request  can contain either the `vector` or `id` parameter. [optional]  # noqa: E501
+            scan_factor (float): An optimization parameter for IVF dense indexes in dedicated read node indexes. It adjusts how much of the index is scanned to find vector candidates. Range: 0.5 – 4 (default). Keep the default (4.0) for the best search results. If query latency is too high, try lowering this value incrementally (minimum 0.5) to speed up the search at the cost of slightly lower accuracy. This parameter is only supported for dedicated (DRN) dense indexes.  [optional]  # noqa: E501
+            max_candidates (int): An optimization parameter that controls the maximum number of candidate dense vectors to rerank. Reranking computes exact distances to improve recall but increases query latency. Range: top_k – 100000. Keep the default for a balance of recall and latency. Increase this value if recall is too low, or decrease it to reduce latency at the cost of accuracy. This parameter is only supported for dedicated (DRN) dense indexes. [optional]  # noqa: E501
         """
 
         _enforce_allowed_values = kwargs.pop("_enforce_allowed_values", True)

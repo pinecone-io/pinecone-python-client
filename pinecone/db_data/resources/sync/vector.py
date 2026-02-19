@@ -416,6 +416,8 @@ class VectorResource(PluginAware):
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> QueryResponse | ApplyResult:
         """Query the index.
@@ -445,6 +447,14 @@ class VectorResource(PluginAware):
                 SparseValues object or a dict of the form {'indices': list[int],
                 'values': list[float]}, where the lists each have the same length.
                 [optional]
+            scan_factor: An optimization parameter for the IVF dense indexes in dedicated
+                read node indexes. It adjusts how much of the index is scanned  to find
+                vector candidates. Range: 0.5 - 4 (default). This parameters is only
+                supported for dedicated (DRN) dense indexes. [optional]
+            max_candidates: An optimization parameter that controls the maximum number of
+                candidate dense vectors to rerank. Reranking computes exact distances to
+                improve recall but increases query latency. Range: top_k - 100000. This
+                parameter is only supported for dedicated (DRN) dense indexes. [optional]
             **kwargs: Additional keyword arguments.
 
         Returns:
@@ -467,6 +477,8 @@ class VectorResource(PluginAware):
             include_values=include_values,
             include_metadata=include_metadata,
             sparse_vector=sparse_vector,
+            scan_factor=scan_factor,
+            max_candidates=max_candidates,
             **kwargs,
         )
 
@@ -489,6 +501,8 @@ class VectorResource(PluginAware):
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> OpenAPIQueryResponse:
         if len(args) > 0:
@@ -508,6 +522,8 @@ class VectorResource(PluginAware):
             include_values=include_values,
             include_metadata=include_metadata,
             sparse_vector=sparse_vector,
+            scan_factor=scan_factor,
+            max_candidates=max_candidates,
             **kwargs,
         )
         from typing import cast
@@ -526,6 +542,8 @@ class VectorResource(PluginAware):
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: (SparseValues | SparseVectorTypedDict) | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         """Query across multiple namespaces.
@@ -546,6 +564,14 @@ class VectorResource(PluginAware):
             include_metadata: Indicates whether metadata is included in the response.
                 [optional]
             sparse_vector: Sparse values of the query vector. [optional]
+            scan_factor: An optimization parameter for the IVF dense indexes in dedicated
+                read node indexes. It adjusts how much of the index is scanned  to find
+                vector candidates. Range: 0.5 - 4 (default). This parameters is only
+                supported for dedicated (DRN) dense indexes. [optional]
+            max_candidates: An optimization parameter that controls the maximum number of
+                candidate dense vectors to rerank. Reranking computes exact distances to
+                improve recall but increases query latency. Range: top_k - 100000. This
+                parameter is only supported for dedicated (DRN) dense indexes. [optional]
             **kwargs: Additional keyword arguments.
 
         Returns:
@@ -581,6 +607,8 @@ class VectorResource(PluginAware):
                 include_values=include_values,
                 include_metadata=include_metadata,
                 sparse_vector=sparse_vector,
+                scan_factor=scan_factor,
+                max_candidates=max_candidates,
                 async_threadpool_executor=True,
                 _preload_content=False,
                 **kwargs,

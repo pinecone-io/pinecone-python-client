@@ -945,6 +945,8 @@ class Index(PluginAware):
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: SparseValues | SparseVectorTypedDict | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> QueryResponse | ApplyResult:
         """Query a namespace using a query vector.
@@ -970,6 +972,14 @@ class Index(PluginAware):
             sparse_vector: Sparse values of the query vector. Expected to be either a SparseValues object or a dict
                           of the form: ``{'indices': list[int], 'values': list[float]}``, where the lists each have
                           the same length. [optional]
+            scan_factor: An optimization parameter for the IVF dense indexes in dedicated
+                        read node indexes. It adjusts how much of the index is scanned to find
+                        vector candidates. Range: 0.5 - 4 (default). This parameter is only
+                        supported for dedicated (DRN) dense indexes. [optional]
+            max_candidates: An optimization parameter that controls the maximum number of
+                           candidate dense vectors to rerank. Reranking computes exact distances to
+                           improve recall but increases query latency. Range: top_k - 100000. This
+                           parameter is only supported for dedicated (DRN) dense indexes. [optional]
             **kwargs: Additional keyword arguments for the API call.
 
         Returns:
@@ -1033,6 +1043,8 @@ class Index(PluginAware):
             include_values=include_values,
             include_metadata=include_metadata,
             sparse_vector=sparse_vector,
+            scan_factor=scan_factor,
+            max_candidates=max_candidates,
             **kwargs,
         )
 
@@ -1054,6 +1066,8 @@ class Index(PluginAware):
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: SparseValues | SparseVectorTypedDict | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> OpenAPIQueryResponse:
         if len(args) > 0:
@@ -1073,6 +1087,8 @@ class Index(PluginAware):
             include_values=include_values,
             include_metadata=include_metadata,
             sparse_vector=sparse_vector,
+            scan_factor=scan_factor,
+            max_candidates=max_candidates,
             **kwargs,
         )
         from typing import cast
@@ -1092,6 +1108,8 @@ class Index(PluginAware):
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: SparseValues | SparseVectorTypedDict | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         """Query multiple namespaces in parallel and combine the results.
@@ -1116,6 +1134,14 @@ class Index(PluginAware):
             include_values: Boolean field indicating whether vector values should be included with results. Defaults to None. [optional]
             include_metadata: Boolean field indicating whether vector metadata should be included with results. Defaults to None. [optional]
             sparse_vector: If you are working with a dotproduct index, you can pass a sparse vector as part of your hybrid search. Defaults to None. [optional]
+            scan_factor: An optimization parameter for the IVF dense indexes in dedicated
+                        read node indexes. It adjusts how much of the index is scanned to find
+                        vector candidates. Range: 0.5 - 4 (default). This parameter is only
+                        supported for dedicated (DRN) dense indexes. [optional]
+            max_candidates: An optimization parameter that controls the maximum number of
+                           candidate dense vectors to rerank. Reranking computes exact distances to
+                           improve recall but increases query latency. Range: top_k - 100000. This
+                           parameter is only supported for dedicated (DRN) dense indexes. [optional]
             **kwargs: Additional keyword arguments for the API call.
 
         Returns:
@@ -1171,6 +1197,8 @@ class Index(PluginAware):
                 include_values=include_values,
                 include_metadata=include_metadata,
                 sparse_vector=sparse_vector,
+                scan_factor=scan_factor,
+                max_candidates=max_candidates,
                 async_threadpool_executor=True,
                 _preload_content=False,
                 **kwargs,

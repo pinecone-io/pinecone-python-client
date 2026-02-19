@@ -501,6 +501,8 @@ class GRPCIndex(GRPCIndexBase):
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: (SparseValues | GRPCSparseValues | SparseVectorTypedDict) | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> tuple[ProtoQueryResponse, dict[str, str] | None]:
         """
@@ -529,6 +531,8 @@ class GRPCIndex(GRPCIndexBase):
                 ("include_values", include_values),
                 ("include_metadata", include_metadata),
                 ("sparse_vector", sparse_vector),
+                ("scan_factor", scan_factor),
+                ("max_candidates", max_candidates),
             ]
         )
 
@@ -548,6 +552,8 @@ class GRPCIndex(GRPCIndexBase):
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: (SparseValues | GRPCSparseValues | SparseVectorTypedDict) | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         async_req: bool | None = False,
         **kwargs,
     ) -> "QueryResponse" | PineconeGrpcFuture:
@@ -588,6 +594,13 @@ class GRPCIndex(GRPCIndexBase):
             sparse_vector: (Union[SparseValues, dict[str, Union[list[float], list[int]]]]): sparse values of the query vector.
                             Expected to be either a SparseValues object or a dict of the form:
                              {'indices': list[int], 'values': list[float]}, where the lists each have the same length.
+            scan_factor (float): An optimization parameter for IVF dense indexes in dedicated
+                                 read node indexes. Adjusts how much of the index is scanned to find
+                                 vector candidates. Range: 0.5 - 4 (default). Only supported for
+                                 dedicated (DRN) dense indexes. [optional]
+            max_candidates (int): An optimization parameter that controls the maximum number of
+                                  candidate dense vectors to rerank. Range: top_k - 100000. Only
+                                  supported for dedicated (DRN) dense indexes. [optional]
 
         Returns: QueryResponse object which contains the list of the closest vectors as ScoredVector objects,
                  and namespace name.
@@ -616,6 +629,8 @@ class GRPCIndex(GRPCIndexBase):
                     ("include_values", include_values),
                     ("include_metadata", include_metadata),
                     ("sparse_vector", sparse_vector),
+                    ("scan_factor", scan_factor),
+                    ("max_candidates", max_candidates),
                 ]
             )
 
@@ -637,6 +652,8 @@ class GRPCIndex(GRPCIndexBase):
                 include_values=include_values,
                 include_metadata=include_metadata,
                 sparse_vector=sparse_vector,
+                scan_factor=scan_factor,
+                max_candidates=max_candidates,
                 timeout=timeout,
                 **kwargs,
             )
@@ -654,6 +671,8 @@ class GRPCIndex(GRPCIndexBase):
         include_values: bool | None = None,
         include_metadata: bool | None = None,
         sparse_vector: (GRPCSparseValues | SparseVectorTypedDict) | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
         **kwargs,
     ) -> QueryNamespacesResults:
         if namespaces is None or len(namespaces) == 0:
@@ -675,6 +694,8 @@ class GRPCIndex(GRPCIndexBase):
                 include_values=include_values,
                 include_metadata=include_metadata,
                 sparse_vector=sparse_vector,
+                scan_factor=scan_factor,
+                max_candidates=max_candidates,
                 **kwargs,
             )
             for ns in target_namespaces
