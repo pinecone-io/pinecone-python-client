@@ -973,13 +973,13 @@ class Index(PluginAware):
                           of the form: ``{'indices': list[int], 'values': list[float]}``, where the lists each have
                           the same length. [optional]
             scan_factor: An optimization parameter for the IVF dense indexes in dedicated
-                read node indexes. It adjusts how much of the index is scanned  to find
-                vector candidates. Range: 0.5 - 4 (default). This parameters is only
-                supported for dedicated (DRN) dense indexes. [optional]
+                        read node indexes. It adjusts how much of the index is scanned to find
+                        vector candidates. Range: 0.5 - 4 (default). This parameter is only
+                        supported for dedicated (DRN) dense indexes. [optional]
             max_candidates: An optimization parameter that controls the maximum number of
-                candidate dense vectors to rerank. Reranking computes exact distances to
-                improve recall but increases query latency. Range: top_k - 100000. This
-                parameter is only supported for dedicated (DRN) dense indexes. [optional]
+                           candidate dense vectors to rerank. Reranking computes exact distances to
+                           improve recall but increases query latency. Range: top_k - 100000. This
+                           parameter is only supported for dedicated (DRN) dense indexes. [optional]
             **kwargs: Additional keyword arguments for the API call.
 
         Returns:
@@ -1135,13 +1135,13 @@ class Index(PluginAware):
             include_metadata: Boolean field indicating whether vector metadata should be included with results. Defaults to None. [optional]
             sparse_vector: If you are working with a dotproduct index, you can pass a sparse vector as part of your hybrid search. Defaults to None. [optional]
             scan_factor: An optimization parameter for the IVF dense indexes in dedicated
-                read node indexes. It adjusts how much of the index is scanned  to find
-                vector candidates. Range: 0.5 - 4 (default). This parameters is only
-                supported for dedicated (DRN) dense indexes. [optional]
+                        read node indexes. It adjusts how much of the index is scanned to find
+                        vector candidates. Range: 0.5 - 4 (default). This parameter is only
+                        supported for dedicated (DRN) dense indexes. [optional]
             max_candidates: An optimization parameter that controls the maximum number of
-                candidate dense vectors to rerank. Reranking computes exact distances to
-                improve recall but increases query latency. Range: top_k - 100000. This
-                parameter is only supported for dedicated (DRN) dense indexes. [optional]
+                           candidate dense vectors to rerank. Reranking computes exact distances to
+                           improve recall but increases query latency. Range: top_k - 100000. This
+                           parameter is only supported for dedicated (DRN) dense indexes. [optional]
             **kwargs: Additional keyword arguments for the API call.
 
         Returns:
