@@ -17,14 +17,16 @@ class AiohttpRestClient(RestClientInterface):
                 "Additional dependencies are required to use Pinecone with asyncio. Include these extra dependencies in your project by installing `pinecone[asyncio]`."
             ) from None
 
-        if configuration.ssl_ca_cert is not None:
-            ca_certs = configuration.ssl_ca_cert
+        if configuration.verify_ssl:
+            if configuration.ssl_ca_cert is not None:
+                ca_certs = configuration.ssl_ca_cert
+            else:
+                ca_certs = certifi.where()
+
+            ssl_context = ssl.create_default_context(cafile=ca_certs)
+            conn = aiohttp.TCPConnector(ssl=ssl_context)
         else:
-            ca_certs = certifi.where()
-
-        ssl_context = ssl.create_default_context(cafile=ca_certs)
-
-        conn = aiohttp.TCPConnector(verify_ssl=configuration.verify_ssl, ssl=ssl_context)
+            conn = aiohttp.TCPConnector(verify_ssl=False)
 
         if configuration.proxy:
             self._session = aiohttp.ClientSession(connector=conn, proxy=configuration.proxy)
