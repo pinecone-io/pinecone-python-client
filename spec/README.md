@@ -27,3 +27,9 @@ Documents all collection management operations on the Pinecone and PineconeAsync
 Documents all project management operations on the Admin client: creating, listing, retrieving, updating, and deleting projects for Pinecone organizations.
 
 → [`spec/interfaces/sdk/admin_project_operations.md`](interfaces/sdk/admin_project_operations.md)
+
+### interfaces/sdk/backup_and_restore_operations
+
+Documents all backup and restore management operations on the Pinecone and PineconeAsyncio clients: creating backups, listing and describing backups, deleting backups, and monitoring restore jobs.
+
+→ [`spec/interfaces/sdk/backup_and_restore_operations.md`](interfaces/sdk/backup_and_restore_operations.md)
