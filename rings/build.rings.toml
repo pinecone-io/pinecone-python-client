@@ -1,0 +1,15 @@
+[workflow]
+completion_signal = "RINGS_DONE"
+completion_signal_mode = "line"
+completion_signal_phases = ["builder"]
+context_dir = "."
+max_cycles = 50
+
+[executor]
+binary = "claude"
+args = ["--dangerously-skip-permissions", "--output-format", "json", "--model", "claude-haiku-4-5-20251001", "-p", "-"]
+
+[[phases]]
+name = "builder"
+prompt = "rings/prompts/spec-extract.md"
+runs_per_cycle = 1
