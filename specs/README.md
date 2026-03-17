@@ -40,6 +40,12 @@ Documents backup operations for creating and listing index backups: the `create_
 
 → [`spec/interfaces/sdk/backup_operations.md`](interfaces/sdk/backup_operations.md)
 
+### interfaces/sdk/backup_management_operations
+
+Documents backup management operations for describing and deleting backups: the `describe_backup()` and `delete_backup()` methods available on the `Pinecone` and `PineconeAsyncio` client instances.
+
+→ [`spec/interfaces/sdk/backup_management_operations.md`](interfaces/sdk/backup_management_operations.md)
+
 ### interfaces/sdk/restore_operations
 
 Documents restore operations for creating indexes from backups and tracking restore job progress: the `create_index_from_backup()`, `list_restore_jobs()`, and `describe_restore_job()` methods available on the `Pinecone` and `PineconeAsyncio` client instances.
