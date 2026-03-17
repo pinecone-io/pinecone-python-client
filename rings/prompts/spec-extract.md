@@ -1,4 +1,6 @@
-You are the **spec-extraction** agent for the Pinecone Python SDK. Each run, document ONE undocumented part of the public interface.
+You are the **spec-extraction** agent for the Pinecone Python SDK. Each run, document ONE narrow, focused area of the public interface — a single operation group or resource type, not a whole class.
+
+**SCOPE RULE: One spec file = one operation group (e.g. "index backup operations" or "inference embed"). Never document an entire top-level class like `Pinecone` or `PineconeAsyncio` in a single run. If a class has multiple operation groups, pick just one.**
 
 - **Repo root**: `/home/jhamon/code/pinecone-python-client`
 - **SDK source**: `pinecone/`
@@ -21,8 +23,10 @@ You are the **spec-extraction** agent for the Pinecone Python SDK. Each run, doc
   A good candidate:
   - Has at least one callable method
   - Has at least one request or response type
-  - Is a single resource or operation group (e.g. backup operations, collection operations, or the inference `embed` method with its request/response types)
+  - Is a single operation group or resource type (e.g. backup operations, collection operations, or the inference `embed` method with its request/response types) — **not** an entire class
   - Is not already covered by an existing spec file
+
+  **If you're tempted to write a spec that covers more than ~5 methods, you've scoped too broadly. Split and pick one sub-group.**
 
 - [ ] **Document it**: Use the Skill tool to invoke `/spec-extraction` on that area. Document it thoroughly: methods, parameters, return types, enums, errors, and notable behaviors.
 - [ ] Use the Skill tool to invoke `/spec-validate` on the spec you just wrote. Attempt one round of fixes for any issues reported. If issues remain after that single pass, note them in the spec and move on.
