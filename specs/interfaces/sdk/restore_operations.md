@@ -8,7 +8,7 @@ Restore operations enable you to create new indexes from previously created back
 
 Creates a new index by restoring data from a backup.
 
-**Source:** `pinecone/pinecone.py:658-709`, `pinecone/db_control/resources/sync/index.py:151-183`
+**Source:** `pinecone/pinecone.py:658-709`, `pinecone/db_control/resources/sync/index.py:151-183`, `pinecone/pinecone_asyncio.py:722-755` (async equivalent)
 
 **Added:** v1.0
 **Deprecated:** No
@@ -31,13 +31,13 @@ def create_index_from_backup(
 
 ### Parameters
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `name` | `string` | Yes | — | The name for the new index to create. Must be unique within the project. |
-| `backup_id` | `string` | Yes | — | The ID of the backup to restore. Obtain this from `list_backups()` or `describe_backup()`. |
-| `deletion_protection` | `string (enum: enabled, disabled)` | No | `"disabled"` | Whether the index can be deleted. When `"enabled"`, `delete_index()` will fail unless deletion protection is first disabled with `configure_index()`. |
-| `tags` | `dict[str, str]` | No | `None` | Key-value pairs to attach to the index for organization and identification. When omitted, the index is created with no tags. |
-| `timeout` | `integer (int32)` | No | `None` | Number of seconds to wait for the index to reach `"ready"` status. If `None`, wait indefinitely. If `-1`, return immediately without polling and caller must use `describe_index()` to check readiness. If `>= 0`, raise `TimeoutError` if the index is not ready within this duration. Polls every 5 seconds. |
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `name` | `string` | Yes | — | v1.0 | No | The name for the new index to create. Must be unique within the project. |
+| `backup_id` | `string` | Yes | — | v1.0 | No | The ID of the backup to restore. Obtain this from `list_backups()` or `describe_backup()`. |
+| `deletion_protection` | `string (enum: enabled, disabled)` | No | `"disabled"` | v1.0 | No | Whether the index can be deleted. When `"enabled"`, `delete_index()` will fail unless deletion protection is first disabled with `configure_index()`. |
+| `tags` | `dict[str, str]` | No | `None` | v1.0 | No | Key-value pairs to attach to the index for organization and identification. When omitted, the index is created with no tags. |
+| `timeout` | `integer (int32)` | No | `None` | v1.0 | No | Number of seconds to wait for the index to reach `"ready"` status. If `None`, wait indefinitely. If `-1`, return immediately without polling and caller must use `describe_index()` to check readiness. If `>= 0`, raise `TimeoutError` if the index is not ready within this duration. Polls every 5 seconds. |
 
 ### Returns
 
@@ -99,7 +99,7 @@ if backups:
 
 Lists all restore jobs in the project, with pagination support.
 
-**Source:** `pinecone/pinecone.py:1231-1253`, `pinecone/db_control/resources/sync/restore_job.py:58-74`
+**Source:** `pinecone/pinecone.py:1231-1253`, `pinecone/db_control/resources/sync/restore_job.py:58-74`, `pinecone/pinecone_asyncio.py:1251-1260` (async equivalent)
 
 **Added:** v1.0
 **Deprecated:** No
@@ -119,10 +119,10 @@ def list_restore_jobs(
 
 ### Parameters
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `limit` | `integer (int32, 1–100)` | No | `10` | Maximum number of restore jobs to return in a single page. Requests with `limit > 100` are clamped to `100`. |
-| `pagination_token` | `string` | No | `None` | The pagination token from the previous page. When omitted, returns the first page of restore jobs ordered by most recent creation first. |
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `limit` | `integer (int32, 1–100)` | No | `10` | v1.0 | No | Maximum number of restore jobs to return in a single page. Requests with `limit > 100` are clamped to `100`. |
+| `pagination_token` | `string` | No | `None` | v1.0 | No | The pagination token from the previous page. When omitted, returns the first page of restore jobs ordered by most recent creation first. |
 
 ### Returns
 
@@ -163,7 +163,7 @@ pagination_token = None
 
 while True:
     job_list = pc.list_restore_jobs(limit=20, pagination_token=pagination_token)
-    all_jobs.extend(job_list)
+    all_jobs.extend(job_list.data)
 
     # Check if there are more pages
     if job_list.pagination and job_list.pagination.next:
@@ -187,7 +187,7 @@ for job in all_jobs:
 
 Retrieves detailed information about a specific restore job by ID.
 
-**Source:** `pinecone/pinecone.py:1256-1274`, `pinecone/db_control/resources/sync/restore_job.py:46-56`
+**Source:** `pinecone/pinecone.py:1256-1274`, `pinecone/db_control/resources/sync/restore_job.py:46-56`, `pinecone/pinecone_asyncio.py:1263-1269` (async equivalent)
 
 **Added:** v1.0
 **Deprecated:** No
@@ -202,9 +202,9 @@ def describe_restore_job(self, *, job_id: str) -> RestoreJobModel
 
 ### Parameters
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `job_id` | `string` | Yes | — | The ID of the restore job to describe. Obtain this from `list_restore_jobs()` or a previous `create_index_from_backup()` call. |
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `job_id` | `string` | Yes | — | v1.0 | No | The ID of the restore job to describe. Obtain this from `list_restore_jobs()` or a previous `create_index_from_backup()` call. |
 
 ### Returns
 
@@ -260,14 +260,14 @@ Represents a restore job that has been initiated or completed.
 
 | Field | Type | Nullable | Since | Deprecated | Description |
 |-------|------|----------|-------|------------|-------------|
-| `restore_job_id` | `string` | No | — | No | Unique identifier for the restore job. |
-| `backup_id` | `string` | No | — | No | The ID of the backup being restored. |
-| `target_index_name` | `string` | No | — | No | The name of the index into which data is being restored. |
-| `target_index_id` | `string` | No | — | No | The internal ID of the target index. |
-| `status` | `string (enum: initialized, in_progress, completed, failed)` | No | — | No | Current status of the restore job. Transitions from `initialized` → `in_progress` → (`completed` or `failed`). |
-| `created_at` | `string (date-time)` | No | — | No | ISO 8601 timestamp when the restore job was initiated. |
-| `completed_at` | `string (date-time)` | Yes | — | No | ISO 8601 timestamp when the restore job finished (either successfully or with failure). Omitted from response when the job is still `in_progress` or `initialized`. |
-| `percent_complete` | `number (double, 0–100)` | Yes | — | No | Progress of the restore as a percentage. Omitted when the job status is `initialized` or `failed`. |
+| `restore_job_id` | `string` | No | v1.0 | No | Unique identifier for the restore job. |
+| `backup_id` | `string` | No | v1.0 | No | The ID of the backup being restored. |
+| `target_index_name` | `string` | No | v1.0 | No | The name of the index into which data is being restored. |
+| `target_index_id` | `string` | No | v1.0 | No | The internal ID of the target index. |
+| `status` | `string (enum: initialized, in_progress, completed, failed)` | No | v1.0 | No | Current status of the restore job. Transitions from `initialized` → `in_progress` → (`completed` or `failed`). |
+| `created_at` | `string (date-time)` | No | v1.0 | No | ISO 8601 timestamp when the restore job was initiated. |
+| `completed_at` | `string (date-time)` | Yes | v1.0 | No | ISO 8601 timestamp when the restore job finished (either successfully or with failure). Omitted from response when the job is still `in_progress` or `initialized`. |
+| `percent_complete` | `number (double, 0–100)` | Yes | v1.0 | No | Progress of the restore as a percentage. Omitted when the job status is `initialized` or `failed`. |
 
 #### `to_dict()`
 
@@ -276,6 +276,30 @@ Converts the RestoreJobModel to a dictionary representation.
 **Source:** `pinecone/db_control/models/restore_job_model.py:24-25`
 
 **Returns:** `dict` — A dictionary containing all fields and values of the restore job.
+
+**Example**
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone()
+
+# Get a restore job and convert to dictionary
+job = pc.describe_restore_job(job_id="job-abc123")
+job_dict = job.to_dict()
+
+print(job_dict)
+# Output: {
+#   "restore_job_id": "job-abc123",
+#   "backup_id": "backup-xyz789",
+#   "target_index_name": "my-restored-index",
+#   "target_index_id": "idx-def456",
+#   "status": "in_progress",
+#   "created_at": "2025-03-17T10:30:00Z",
+#   "completed_at": None,
+#   "percent_complete": 45.5
+# }
+```
 
 ### `RestoreJobList`
 
