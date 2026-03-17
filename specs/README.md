@@ -1,0 +1,17 @@
+# Spec
+
+This directory contains structured specifications of the Pinecone Python SDK's public interfaces, behaviors, and limits. Each spec documents methods, parameters, return types, error codes, and notable behaviors with exact values and source attributions.
+
+## Interfaces
+
+### interfaces/sdk
+
+Documents the public Python SDK surface: classes, methods, types, and functions exported at the top level or via submodules.
+
+→ [`spec/interfaces/sdk.md`](interfaces/sdk.md)
+
+### interfaces/sdk/index_operations
+
+Documents index creation and configuration operations: the `create()` and `configure()` methods of the `IndexResource` class, plus the enumerations and data models they use.
+
+→ [`spec/interfaces/sdk/index_operations.md`](interfaces/sdk/index_operations.md)
