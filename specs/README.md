@@ -27,3 +27,9 @@ Documents inference operations for generating embeddings and reranking documents
 Documents collection operations for creating and querying collections: the `create_collection()` and `describe_collection()` methods available on the `Pinecone` and `PineconeAsyncio` client instances.
 
 → [`spec/interfaces/sdk/collection_operations.md`](interfaces/sdk/collection_operations.md)
+
+### interfaces/sdk/backup_operations
+
+Documents backup operations for creating and listing index backups: the `create_backup()` and `list_backups()` methods available on the `Pinecone` and `PineconeAsyncio` client instances.
+
+→ [`spec/interfaces/sdk/backup_operations.md`](interfaces/sdk/backup_operations.md)
