@@ -2,7 +2,18 @@
 
 Documents index creation methods on the Pinecone and PineconeAsyncio clients: `create_index()` for general purpose indexes with serverless, pod, or BYOC configurations, and `create_index_for_model()` for serverless indexes with integrated inference.
 
-## `Pinecone.create_index(name: str, spec: Dict | ServerlessSpec | PodSpec | ByocSpec, dimension: int | None = None, metric: Metric | str = "cosine", timeout: int | None = None, deletion_protection: DeletionProtection | str = "disabled", vector_type: VectorType | str = "dense", tags: dict[str, str] | None = None) -> IndexModel`
+## Overview
+
+**Language / runtime:** Python 3.8+
+**Package:** `pinecone`
+**Module:** `pinecone`
+**Classes:** `Pinecone` and `PineconeAsyncio`
+**Version:** v3.0.0+
+**Breaking change definition:** Removing a method, changing a method's return type, or changing a method signature in a backward-incompatible way (e.g., making a previously optional parameter required without a deprecation period).
+
+## Methods
+
+### `Pinecone.create_index(name: str, spec: Dict | ServerlessSpec | PodSpec | ByocSpec, dimension: int | None = None, metric: Metric | str = "cosine", timeout: int | None = None, deletion_protection: DeletionProtection | str = "disabled", vector_type: VectorType | str = "dense", tags: dict[str, str] | None = None) -> IndexModel`
 
 Creates a Pinecone index with the specified configuration.
 
@@ -96,7 +107,7 @@ print(f"Host: {index_description.host}")
 
 ---
 
-## `PineconeAsyncio.create_index(name: str, spec: Dict | ServerlessSpec | PodSpec | ByocSpec, dimension: int | None = None, metric: Metric | str = "cosine", timeout: int | None = None, deletion_protection: DeletionProtection | str = "disabled", vector_type: VectorType | str = "dense", tags: dict[str, str] | None = None) -> Awaitable[IndexModel]`
+### `PineconeAsyncio.create_index(name: str, spec: Dict | ServerlessSpec | PodSpec | ByocSpec, dimension: int | None = None, metric: Metric | str = "cosine", timeout: int | None = None, deletion_protection: DeletionProtection | str = "disabled", vector_type: VectorType | str = "dense", tags: dict[str, str] | None = None) -> Awaitable[IndexModel]`
 
 Asynchronous version of `Pinecone.create_index()`. Creates a Pinecone index with the specified configuration.
 
@@ -171,7 +182,7 @@ asyncio.run(main())
 
 ---
 
-## `Pinecone.create_index_for_model(name: str, cloud: CloudProvider | str, region: AwsRegion | GcpRegion | AzureRegion | str, embed: IndexEmbed | CreateIndexForModelEmbedTypedDict, tags: dict[str, str] | None = None, deletion_protection: DeletionProtection | str = "disabled", read_capacity: ReadCapacityDict | ReadCapacity | ReadCapacityOnDemandSpec | ReadCapacityDedicatedSpec | None = None, schema: dict[str, MetadataSchemaFieldConfig] | dict[str, dict[str, Any]] | MetadataSchema | None = None, timeout: int | None = None) -> IndexModel`
+### `Pinecone.create_index_for_model(name: str, cloud: CloudProvider | str, region: AwsRegion | GcpRegion | AzureRegion | str, embed: IndexEmbed | CreateIndexForModelEmbedTypedDict, tags: dict[str, str] | None = None, deletion_protection: DeletionProtection | str = "disabled", read_capacity: ReadCapacityDict | ReadCapacity | ReadCapacityOnDemandSpec | ReadCapacityDedicatedSpec | None = None, schema: dict[str, MetadataSchemaFieldConfig] | dict[str, dict[str, Any]] | MetadataSchema | None = None, timeout: int | None = None) -> IndexModel`
 
 Creates a serverless index optimized for use with Pinecone's integrated inference models. The index is automatically configured with an embedding model that transforms input data before indexing and querying.
 
@@ -298,7 +309,7 @@ print(f"Index created with dedicated read capacity")
 
 ---
 
-## `PineconeAsyncio.create_index_for_model(name: str, cloud: CloudProvider | str, region: AwsRegion | GcpRegion | AzureRegion | str, embed: IndexEmbed | CreateIndexForModelEmbedTypedDict, tags: dict[str, str] | None = None, deletion_protection: DeletionProtection | str = "disabled", read_capacity: ReadCapacityDict | ReadCapacity | ReadCapacityOnDemandSpec | ReadCapacityDedicatedSpec | None = None, schema: dict[str, MetadataSchemaFieldConfig] | dict[str, dict[str, Any]] | MetadataSchema | None = None, timeout: int | None = None) -> Awaitable[IndexModel]`
+### `PineconeAsyncio.create_index_for_model(name: str, cloud: CloudProvider | str, region: AwsRegion | GcpRegion | AzureRegion | str, embed: IndexEmbed | CreateIndexForModelEmbedTypedDict, tags: dict[str, str] | None = None, deletion_protection: DeletionProtection | str = "disabled", read_capacity: ReadCapacityDict | ReadCapacity | ReadCapacityOnDemandSpec | ReadCapacityDedicatedSpec | None = None, schema: dict[str, MetadataSchemaFieldConfig] | dict[str, dict[str, Any]] | MetadataSchema | None = None, timeout: int | None = None) -> Awaitable[IndexModel]`
 
 Asynchronous version of `Pinecone.create_index_for_model()`. Creates a serverless index optimized for use with Pinecone's integrated inference models.
 
