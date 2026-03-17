@@ -28,6 +28,12 @@ Documents vector write operations on the Index and AsyncIndex clients: `upsert()
 
 → [`spec/interfaces/sdk/index_data_operations.md`](interfaces/sdk/index_data_operations.md)
 
+### interfaces/sdk/index_read_operations
+
+Documents vector read operations on the Index and AsyncIndex clients: `fetch()` for retrieving vectors by ID and `fetch_by_metadata()` for retrieving vectors matching a metadata filter.
+
+→ [`spec/interfaces/sdk/index_read_operations.md`](interfaces/sdk/index_read_operations.md)
+
 ### interfaces/sdk/collection_operations
 
 Documents all collection management operations on the Pinecone and PineconeAsyncio clients: creating, listing, deleting, and describing collections.
@@ -63,3 +69,9 @@ Documents inference operations on the Pinecone client for embedding and rerankin
 Documents organization management operations on the Admin client: listing, retrieving, updating, and deleting organizations within a Pinecone account.
 
 → [`spec/interfaces/sdk/admin_organization_operations.md`](interfaces/sdk/admin_organization_operations.md)
+
+### interfaces/sdk/index_namespace_operations
+
+Documents namespace management operations on the Index and AsyncIndex clients: creating, describing, deleting, and listing namespaces.
+
+→ [`spec/interfaces/sdk/index_namespace_operations.md`](interfaces/sdk/index_namespace_operations.md)
