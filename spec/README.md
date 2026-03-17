@@ -16,6 +16,12 @@ Documents all index management methods on the Pinecone and PineconeAsyncio clien
 
 → [`spec/interfaces/sdk/index_management_operations.md`](interfaces/sdk/index_management_operations.md)
 
+### interfaces/sdk/index_creation_operations
+
+Documents index creation methods on the Pinecone and PineconeAsyncio clients: `create_index()` for general purpose indexes with serverless, pod, or BYOC configurations, and `create_index_for_model()` for serverless indexes with integrated inference.
+
+→ [`spec/interfaces/sdk/index_creation_operations.md`](interfaces/sdk/index_creation_operations.md)
+
 ### interfaces/sdk/collection_operations
 
 Documents all collection management operations on the Pinecone and PineconeAsyncio clients: creating, listing, deleting, and describing collections.
