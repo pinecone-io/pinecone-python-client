@@ -21,3 +21,9 @@ Documents all index management methods on the Pinecone and PineconeAsyncio clien
 Documents all collection management operations on the Pinecone and PineconeAsyncio clients: creating, listing, deleting, and describing collections.
 
 → [`spec/interfaces/sdk/collection_operations.md`](interfaces/sdk/collection_operations.md)
+
+### interfaces/sdk/admin_project_operations
+
+Documents all project management operations on the Admin client: creating, listing, retrieving, updating, and deleting projects for Pinecone organizations.
+
+→ [`spec/interfaces/sdk/admin_project_operations.md`](interfaces/sdk/admin_project_operations.md)
