@@ -44,11 +44,12 @@ def create_backup(
 |-----------|-----------|
 | `PineconeApiException` | The request failed. May occur if the `index_name` is invalid, if the index does not exist, if a backup with the same `backup_name` already exists, or if the API call fails. Returns `400 (validation_error)` if `index_name` does not reference an existing index. Returns `409 (conflict)` if `backup_name` is not unique within the project. |
 | `UnauthorizedException` | The API key is invalid or missing. |
+| `ForbiddenException` | The API key does not have permission to create backups. |
 | `TypeError` | Arguments are passed as positional arguments instead of keyword arguments (all arguments except `self` must be keyword-only). |
 
 ### Behavior
 
-- The backup process initiates immediately upon calling this method. The returned `BackupModel` initially has a status of `"Initialized"` and transitions to `"Ready"` when ready for restoration.
+- The backup process initiates immediately upon calling this method. The returned `BackupModel` initially has a status of `"Initializing"` and transitions to `"Ready"` when ready for restoration.
 - The backup is stored on Pinecone's infrastructure and is retained according to your account's retention policy.
 - Creating a backup does not block index operations — the source index remains fully operational during backup creation.
 - The backup captures the index state at the time the API call is made.
@@ -75,7 +76,7 @@ print(f"Records: {backup.record_count}")
 ### Notes
 
 - All arguments must be passed as keyword arguments (keyword-only).
-- Backup creation is asynchronous; the `status` will initially be `"Initialized"` and will transition to `"Ready"` when the backup completes.
+- Backup creation is asynchronous; the `status` will initially be `"Initializing"` and will transition to `"Ready"` when the backup completes.
 
 ---
 
@@ -119,6 +120,7 @@ async def create_backup(
 |-----------|-----------|
 | `PineconeApiException` | The request failed. May occur if the index does not exist or if a backup with the same name already exists. |
 | `UnauthorizedException` | The API key is invalid or missing. |
+| `ForbiddenException` | The API key does not have permission to create backups. |
 | `TypeError` | Arguments are passed as positional arguments instead of keyword arguments. |
 
 ### Example
@@ -372,14 +374,14 @@ Represents a Pinecone backup with its configuration, status, and metadata.
 | Field | Type | Nullable | Since | Deprecated | Description |
 |-------|------|----------|-------|------------|-------------|
 | `backup_id` | `string (uuid)` | No | v1.0 | No | The unique identifier of the backup. Assigned by the system. |
-| `name` | `string` | No | v1.0 | No | The human-readable name of the backup. Set during `create_backup()`. |
+| `name` | `string` | Yes | v1.0 | No | The human-readable name of the backup. Set during `create_backup()`. |
 | `source_index_name` | `string` | No | v1.0 | No | The name of the index that was backed up. |
 | `source_index_id` | `string (uuid)` | No | v1.0 | No | The unique identifier of the source index. |
-| `status` | `string` | No | v1.0 | No | The current status of the backup. Possible values: `"Initialized"` (backup is being created), `"Ready"` (backup is ready for restoration), `"Failed"`. |
-| `description` | `string` | No | v1.0 | No | Optional description provided during backup creation. Empty string if not provided. |
-| `created_at` | `string (date-time)` | No | v1.0 | No | ISO 8601 timestamp of when the backup was created. |
-| `dimension` | `integer (int32, 1–20000)` | No | v1.0 | No | The vector dimension of the backup. Matches the source index. |
-| `metric` | `string` | No | v1.0 | No | The distance metric used by the backup (e.g., `"cosine"`, `"euclidean"`, `"dotproduct"`). |
+| `status` | `string` | No | v1.0 | No | The current status of the backup. Possible values: `"Initializing"` (backup is being created), `"Ready"` (backup is ready for restoration), `"Failed"`. |
+| `description` | `string` | Yes | v1.0 | No | Optional description provided during backup creation. Empty string if not provided. |
+| `created_at` | `string (date-time)` | Yes | v1.0 | No | ISO 8601 timestamp of when the backup was created. |
+| `dimension` | `integer (int32, 1–20000)` | Yes | v1.0 | No | The vector dimension of the backup. Matches the source index. |
+| `metric` | `string` | Yes | v1.0 | No | The distance metric used by the backup (e.g., `"cosine"`, `"euclidean"`, `"dotproduct"`). |
 | `record_count` | `integer (int64)` | Yes | v1.0 | No | The total number of records in the backed up index. `null` or zero until status is `"Ready"`. |
 | `namespace_count` | `integer (int32)` | Yes | v1.0 | No | The number of namespaces in the backed up index. |
 | `size_bytes` | `integer (int64)` | Yes | v1.0 | No | The size of the backup in bytes. `null` or zero until status is `"Ready"`. |

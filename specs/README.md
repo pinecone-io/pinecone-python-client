@@ -35,4 +35,4 @@ Structured specifications of the Pinecone Python SDK's public interfaces (v8.1.0
 
 ### Inference
 
-- [inference_operations](interfaces/sdk/inference_operations.md) — Embed and rerank operations
+- [inference_operations](interfaces/sdk/inference_operations.md) — Embed, rerank, list_models, and get_model operations

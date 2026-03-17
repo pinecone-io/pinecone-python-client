@@ -20,14 +20,13 @@ Creates a Pinecone index with the specified configuration.
 ```python
 def create_index(
     self,
-    *,
     name: str,
     spec: Dict | ServerlessSpec | PodSpec | ByocSpec,
     dimension: int | None = None,
-    metric: Metric | str = "cosine",
+    metric: (Metric | str) | None = "cosine",
     timeout: int | None = None,
-    deletion_protection: DeletionProtection | str = "disabled",
-    vector_type: VectorType | str = "dense",
+    deletion_protection: (DeletionProtection | str) | None = "disabled",
+    vector_type: (VectorType | str) | None = "dense",
     tags: dict[str, str] | None = None,
 ) -> IndexModel
 ```
@@ -39,10 +38,10 @@ def create_index(
 | `name` | `string (1–45 chars)` | Yes | — | v1.0 | No | The name of the index to create. Must be unique within your project and cannot be changed once created. Names must contain only lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen (validated by the API). |
 | `spec` | `Dict \| ServerlessSpec \| PodSpec \| ByocSpec` | Yes | — | v1.0 | No | Configuration describing how the index should be deployed. For serverless, provide region and cloud; optionally specify `read_capacity` (OnDemand or Dedicated) and `schema` for filterable metadata fields. For pod, specify replicas, shards, pods, pod_type, metadata_config, and source_collection. |
 | `dimension` | `integer (int32, 1–20000)` | No (Required for `vector_type="dense"`) | — | v1.0 | No | The dimensionality of vectors in the index. Must match the embeddings you will insert. Examples: 1536 for OpenAI's text-embedding-3-small, 768 for open-source models. Required when `vector_type="dense"`. Omit when `vector_type="sparse"`. |
-| `metric` | `string (enum: cosine, dotproduct, euclidean)` | No | `"cosine"` | v1.0 | No | The similarity metric used when querying vectors. Affects which queries are most efficient and how similarity scores are computed. |
+| `metric` | `(Metric \| string) \| None` | No | `"cosine"` | v1.0 | No | The similarity metric used when querying vectors. Affects which queries are most efficient and how similarity scores are computed. |
 | `timeout` | `integer (int32) \| None` | No | `None` | v1.0 | No | The number of seconds to wait for the index to reach ready state. When `None`, wait indefinitely. When `>= 0`, time out after this many seconds and raise `TimeoutError`. When `-1`, return immediately without waiting. |
-| `deletion_protection` | `string (enum: enabled, disabled) \| DeletionProtection` | No | `"disabled"` | v1.0 | No | If `"enabled"`, the index cannot be deleted. If `"disabled"`, the index can be deleted. This setting can later be changed with `configure_index()`. |
-| `vector_type` | `string (enum: dense, sparse) \| VectorType` | No | `"dense"` | v2.0 | No | The type of vectors stored in the index. `"dense"` for fixed-dimension embeddings, `"sparse"` for variable-length sparse vectors (requires `dimension` to be omitted). |
+| `deletion_protection` | `(DeletionProtection \| string) \| None` | No | `"disabled"` | v1.0 | No | If `"enabled"`, the index cannot be deleted. If `"disabled"`, the index can be deleted. This setting can later be changed with `configure_index()`. |
+| `vector_type` | `(VectorType \| string) \| None` | No | `"dense"` | v2.0 | No | The type of vectors stored in the index. `"dense"` for fixed-dimension embeddings, `"sparse"` for variable-length sparse vectors (requires `dimension` to be omitted). |
 | `tags` | `dict[str, str] \| None` | No | `None` | v1.0 | No | Key-value pairs to organize and identify the index. Example use cases: tag with model name (`model: text-embedding-3-small`), creation date (`created: 2024-03-15`), or purpose (`env: production`). |
 
 ### Returns
@@ -144,14 +143,13 @@ Asynchronous version of `Pinecone.create_index()`. Creates a Pinecone index with
 ```python
 async def create_index(
     self,
-    *,
     name: str,
     spec: Dict | ServerlessSpec | PodSpec | ByocSpec,
     dimension: int | None = None,
-    metric: Metric | str = "cosine",
+    metric: (Metric | str) | None = "cosine",
     timeout: int | None = None,
-    deletion_protection: DeletionProtection | str = "disabled",
-    vector_type: VectorType | str = "dense",
+    deletion_protection: (DeletionProtection | str) | None = "disabled",
+    vector_type: (VectorType | str) | None = "dense",
     tags: dict[str, str] | None = None,
 ) -> IndexModel
 ```
@@ -163,10 +161,10 @@ async def create_index(
 | `name` | `string (1–45 chars)` | Yes | — | v1.0 | No | The name of the index to create. Must be unique within your project and cannot be changed once created. Names must contain only lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen (validated by the API). |
 | `spec` | `Dict \| ServerlessSpec \| PodSpec \| ByocSpec` | Yes | — | v1.0 | No | Configuration describing how the index should be deployed. For serverless, provide region and cloud; optionally specify `read_capacity` (OnDemand or Dedicated) and `schema` for filterable metadata fields. For pod, specify replicas, shards, pods, pod_type, metadata_config, and source_collection. |
 | `dimension` | `integer (int32, 1–20000)` | No (Required for `vector_type="dense"`) | — | v1.0 | No | The dimensionality of vectors in the index. Must match the embeddings you will insert. Required when `vector_type="dense"`. Omit when `vector_type="sparse"`. |
-| `metric` | `string (enum: cosine, dotproduct, euclidean)` | No | `"cosine"` | v1.0 | No | The similarity metric used when querying vectors. Affects which queries are most efficient and how similarity scores are computed. |
+| `metric` | `(Metric \| string) \| None` | No | `"cosine"` | v1.0 | No | The similarity metric used when querying vectors. Affects which queries are most efficient and how similarity scores are computed. |
 | `timeout` | `integer (int32) \| None` | No | `None` | v1.0 | No | The number of seconds to wait for the index to reach ready state. When `None`, wait indefinitely. When `>= 0`, time out after this many seconds and raise `TimeoutError`. When `-1`, return immediately without waiting. |
-| `deletion_protection` | `string (enum: enabled, disabled) \| DeletionProtection` | No | `"disabled"` | v1.0 | No | If `"enabled"`, the index cannot be deleted. If `"disabled"`, the index can be deleted. This setting can later be changed with `configure_index()`. |
-| `vector_type` | `string (enum: dense, sparse) \| VectorType` | No | `"dense"` | v2.0 | No | The type of vectors stored in the index. `"dense"` for fixed-dimension embeddings, `"sparse"` for variable-length sparse vectors. |
+| `deletion_protection` | `(DeletionProtection \| string) \| None` | No | `"disabled"` | v1.0 | No | If `"enabled"`, the index cannot be deleted. If `"disabled"`, the index can be deleted. This setting can later be changed with `configure_index()`. |
+| `vector_type` | `(VectorType \| string) \| None` | No | `"dense"` | v2.0 | No | The type of vectors stored in the index. `"dense"` for fixed-dimension embeddings, `"sparse"` for variable-length sparse vectors. |
 | `tags` | `dict[str, str] \| None` | No | `None` | v1.0 | No | Key-value pairs to organize and identify the index. |
 
 ### Returns
@@ -242,13 +240,12 @@ Creates a serverless index optimized for use with Pinecone's integrated inferenc
 ```python
 def create_index_for_model(
     self,
-    *,
     name: str,
     cloud: CloudProvider | str,
     region: AwsRegion | GcpRegion | AzureRegion | str,
     embed: IndexEmbed | CreateIndexForModelEmbedTypedDict,
     tags: dict[str, str] | None = None,
-    deletion_protection: DeletionProtection | str = "disabled",
+    deletion_protection: (DeletionProtection | str) | None = "disabled",
     read_capacity: ReadCapacityDict | ReadCapacity | ReadCapacityOnDemandSpec | ReadCapacityDedicatedSpec | None = None,
     schema: dict[str, MetadataSchemaFieldConfig] | dict[str, dict[str, Any]] | MetadataSchema | None = None,
     timeout: int | None = None,
@@ -264,7 +261,7 @@ def create_index_for_model(
 | `region` | `AwsRegion \| GcpRegion \| AzureRegion \| string` | Yes | — | v1.5 | No | The cloud region for the index. Enum classes `AwsRegion`, `GcpRegion`, and `AzureRegion` provide region constants. Alternatively, pass region names as strings (e.g., `"us-east-1"` for AWS). |
 | `embed` | `IndexEmbed \| CreateIndexForModelEmbedTypedDict` | Yes | — | v1.5 | No | The embedding configuration. Specify `model` (e.g., `EmbedModel.Multilingual_E5_Large`), `field_map` to map input field names to the fields your embedding model expects (required), and optionally `metric` (e.g., `Metric.COSINE`). |
 | `tags` | `dict[str, str] \| None` | No | `None` | v1.5 | No | Key-value pairs to organize and identify the index (e.g., `{"model": "e5-large", "app": "search"}`). |
-| `deletion_protection` | `string (enum: enabled, disabled) \| DeletionProtection` | No | `"disabled"` | v1.5 | No | If `"enabled"`, the index cannot be deleted. If `"disabled"`, the index can be deleted. Can be changed later with `configure_index()`. |
+| `deletion_protection` | `(DeletionProtection \| string) \| None` | No | `"disabled"` | v1.5 | No | If `"enabled"`, the index cannot be deleted. If `"disabled"`, the index can be deleted. Can be changed later with `configure_index()`. |
 | `read_capacity` | `ReadCapacityDict \| ReadCapacity \| ReadCapacityOnDemandSpec \| ReadCapacityDedicatedSpec \| None` | No | `None` (on-demand) | v1.5 | No | Optional read capacity configuration. Omit for on-demand scaling, or provide a dictionary/object with mode (`"OnDemand"` or `"Dedicated"`) and associated settings (node_type, scaling mode, shards, replicas). |
 | `schema` | `dict[str, MetadataSchemaFieldConfig] \| dict[str, dict[str, Any]] \| MetadataSchema \| None` | No | `None` | v1.5 | No | Optional metadata schema defining which fields are filterable during queries. Provide as a dictionary mapping field names to their configuration (e.g., `{"genre": {"filterable": True}}`), optionally with a `"fields"` wrapper. |
 | `timeout` | `integer (int32) \| None` | No | `None` | v1.5 | No | The number of seconds to wait for the index to reach ready state. When `None`, wait indefinitely. When `>= 0`, time out after this many seconds. When `-1`, return immediately. |
@@ -391,13 +388,12 @@ Asynchronous version of `Pinecone.create_index_for_model()`. Creates a serverles
 ```python
 async def create_index_for_model(
     self,
-    *,
     name: str,
     cloud: CloudProvider | str,
     region: AwsRegion | GcpRegion | AzureRegion | str,
     embed: IndexEmbed | CreateIndexForModelEmbedTypedDict,
     tags: dict[str, str] | None = None,
-    deletion_protection: DeletionProtection | str = "disabled",
+    deletion_protection: (DeletionProtection | str) | None = "disabled",
     read_capacity: ReadCapacityDict | ReadCapacity | ReadCapacityOnDemandSpec | ReadCapacityDedicatedSpec | None = None,
     schema: dict[str, MetadataSchemaFieldConfig] | dict[str, dict[str, Any]] | MetadataSchema | None = None,
     timeout: int | None = None,
@@ -413,7 +409,7 @@ async def create_index_for_model(
 | `region` | `AwsRegion \| GcpRegion \| AzureRegion \| string` | Yes | — | v1.5 | No | The cloud region for the index. Use enum classes or pass region names as strings. |
 | `embed` | `IndexEmbed \| CreateIndexForModelEmbedTypedDict` | Yes | — | v1.5 | No | The embedding configuration. Specify `model` (required), `field_map` to map input field names to the fields your embedding model expects (required), and optionally `metric`. |
 | `tags` | `dict[str, str] \| None` | No | `None` | v1.5 | No | Key-value pairs to organize and identify the index. |
-| `deletion_protection` | `string (enum: enabled, disabled) \| DeletionProtection` | No | `"disabled"` | v1.5 | No | If `"enabled"`, the index cannot be deleted. |
+| `deletion_protection` | `(DeletionProtection \| string) \| None` | No | `"disabled"` | v1.5 | No | If `"enabled"`, the index cannot be deleted. |
 | `read_capacity` | `ReadCapacityDict \| ReadCapacity \| ReadCapacityOnDemandSpec \| ReadCapacityDedicatedSpec \| None` | No | `None` (on-demand) | v1.5 | No | Optional read capacity configuration (OnDemand or Dedicated with node settings). |
 | `schema` | `dict[str, MetadataSchemaFieldConfig] \| dict[str, dict[str, Any]] \| MetadataSchema \| None` | No | `None` | v1.5 | No | Optional metadata schema defining which fields are filterable. |
 | `timeout` | `integer (int32) \| None` | No | `None` | v1.5 | No | The number of seconds to wait for the index to reach ready state. |
@@ -492,14 +488,13 @@ Modifies the configuration of an existing index without waiting for the operatio
 ```python
 def configure_index(
     self,
-    *,
     name: str,
     replicas: int | None = None,
-    pod_type: PodType | str | None = None,
-    deletion_protection: DeletionProtection | str | None = None,
+    pod_type: (PodType | str) | None = None,
+    deletion_protection: (DeletionProtection | str) | None = None,
     tags: dict[str, str] | None = None,
-    embed: ConfigureIndexEmbed | Dict | None = None,
-    read_capacity: dict | None = None,
+    embed: (ConfigureIndexEmbed | Dict) | None = None,
+    read_capacity: ReadCapacityDict | ReadCapacity | ReadCapacityOnDemandSpec | ReadCapacityDedicatedSpec | None = None,
 ) -> None
 ```
 
@@ -513,7 +508,7 @@ def configure_index(
 | `deletion_protection` | `string (enum: enabled, disabled) \| DeletionProtection` | No | `None` | v3.0 | No | Whether the index is protected from deletion. When set to `"enabled"` or `DeletionProtection.ENABLED`, the index cannot be deleted via `delete_index()`. When set to `"disabled"` or `DeletionProtection.DISABLED`, deletion protection is removed. When omitted, deletion protection status is not modified. |
 | `tags` | `dict[str, str]` | No | `None` | v3.0 | No | Tags to add, update, or remove from the index. Tag updates are merged with existing tags; to remove a tag, set its value to an empty string `""`. When omitted, tags are not modified. |
 | `embed` | `ConfigureIndexEmbed \| dict` | No | `None` | v3.0 | No | Enables or updates integrated inference embeddings on the index, specifying the embedding model and configuring field mapping and read/write parameters. Once set, the embedding model cannot be changed. Only applies to serverless indexes. When omitted, embedding configuration is not modified. |
-| `read_capacity` | `dict` | No | `None` | v3.0 | No | Read capacity configuration for serverless indexes, specifying whether to use on-demand or dedicated mode. When omitted, read capacity configuration is not modified. Only applies to serverless indexes. See examples for detailed structure. |
+| `read_capacity` | `ReadCapacityDict \| ReadCapacity \| ReadCapacityOnDemandSpec \| ReadCapacityDedicatedSpec \| None` | No | `None` | v3.0 | No | Read capacity configuration for serverless indexes, specifying whether to use on-demand or dedicated mode. When omitted, read capacity configuration is not modified. Only applies to serverless indexes. See examples for detailed structure. |
 
 ### Returns
 
@@ -630,14 +625,13 @@ Asynchronous version of `Pinecone.configure_index()`. Modifies the configuration
 ```python
 async def configure_index(
     self,
-    *,
     name: str,
     replicas: int | None = None,
-    pod_type: PodType | str | None = None,
-    deletion_protection: DeletionProtection | str | None = None,
+    pod_type: (PodType | str) | None = None,
+    deletion_protection: (DeletionProtection | str) | None = None,
     tags: dict[str, str] | None = None,
-    embed: ConfigureIndexEmbed | Dict | None = None,
-    read_capacity: dict | None = None,
+    embed: (ConfigureIndexEmbed | Dict) | None = None,
+    read_capacity: ReadCapacityDict | ReadCapacity | ReadCapacityOnDemandSpec | ReadCapacityDedicatedSpec | None = None,
 ) -> None
 ```
 
@@ -651,7 +645,7 @@ async def configure_index(
 | `deletion_protection` | `string (enum: enabled, disabled) \| DeletionProtection` | No | `None` | v3.0 | No | Whether the index is protected from deletion. When set to `"enabled"` or `DeletionProtection.ENABLED`, the index cannot be deleted via `delete_index()`. When set to `"disabled"` or `DeletionProtection.DISABLED`, deletion protection is removed. When omitted, deletion protection status is not modified. |
 | `tags` | `dict[str, str]` | No | `None` | v3.0 | No | Tags to add, update, or remove from the index. Tag updates are merged with existing tags; to remove a tag, set its value to an empty string `""`. When omitted, tags are not modified. |
 | `embed` | `ConfigureIndexEmbed \| dict` | No | `None` | v3.0 | No | Enables or updates integrated inference embeddings on the index, specifying the embedding model and configuring field mapping and read/write parameters. Once set, the embedding model cannot be changed. Only applies to serverless indexes. When omitted, embedding configuration is not modified. |
-| `read_capacity` | `dict` | No | `None` | v3.0 | No | Read capacity configuration for serverless indexes, specifying whether to use on-demand or dedicated mode. When omitted, read capacity configuration is not modified. Only applies to serverless indexes. See examples for detailed structure. |
+| `read_capacity` | `ReadCapacityDict \| ReadCapacity \| ReadCapacityOnDemandSpec \| ReadCapacityDedicatedSpec \| None` | No | `None` | v3.0 | No | Read capacity configuration for serverless indexes, specifying whether to use on-demand or dedicated mode. When omitted, read capacity configuration is not modified. Only applies to serverless indexes. See examples for detailed structure. |
 
 ### Returns
 

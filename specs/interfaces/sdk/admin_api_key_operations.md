@@ -31,7 +31,6 @@ Creates a new API key for a specified project.
 ```python
 def create(
     self,
-    *,
     project_id: str,
     name: str,
     description: str | None = None,
@@ -58,7 +57,6 @@ def create(
 
 | Exception | Condition |
 |-----------|-----------|
-| `ValueError` | The `name` parameter is missing or empty, or exceeds 80 characters. |
 | `BadRequestException` | Invalid `project_id`, invalid role names, or malformed request. |
 | `UnauthorizedException` | The service account credentials are invalid or missing. |
 | `NotFoundException` | The specified `project_id` does not exist. |
@@ -115,7 +113,7 @@ Lists all API keys for a specified project.
 ### Signature
 
 ```python
-def list(self, *, project_id: str) -> ListApiKeysResponse
+def list(self, project_id: str) -> ListApiKeysResponse
 ```
 
 ### Parameters
@@ -196,7 +194,7 @@ Fetches a specific API key by its ID.
 ### Signature
 
 ```python
-def fetch(self, *, api_key_id: str) -> APIKey
+def fetch(self, api_key_id: str) -> APIKey
 ```
 
 ### Parameters
@@ -257,7 +255,7 @@ Alias for `fetch()`. Retrieves a specific API key by its ID.
 ### Signature
 
 ```python
-def get(self, *, api_key_id: str) -> APIKey
+def get(self, api_key_id: str) -> APIKey
 ```
 
 ### Parameters
@@ -269,6 +267,15 @@ def get(self, *, api_key_id: str) -> APIKey
 ### Returns
 
 **Type:** `APIKey` — An object with `id`, `name`, `project_id`, and `roles` properties.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `BadRequestException` | Invalid or missing `api_key_id`. |
+| `UnauthorizedException` | The service account credentials are invalid or missing. |
+| `NotFoundException` | The specified API key does not exist. |
+| `PineconeApiException` | Unexpected server error. |
 
 ### Example
 
@@ -297,7 +304,7 @@ Alias for `fetch()`. Describes a specific API key by its ID.
 ### Signature
 
 ```python
-def describe(self, *, api_key_id: str) -> APIKey
+def describe(self, api_key_id: str) -> APIKey
 ```
 
 ### Parameters
@@ -309,6 +316,15 @@ def describe(self, *, api_key_id: str) -> APIKey
 ### Returns
 
 **Type:** `APIKey` — An object with `id`, `name`, `project_id`, and `roles` properties.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `BadRequestException` | Invalid or missing `api_key_id`. |
+| `UnauthorizedException` | The service account credentials are invalid or missing. |
+| `NotFoundException` | The specified API key does not exist. |
+| `PineconeApiException` | Unexpected server error. |
 
 ### Example
 
@@ -339,7 +355,6 @@ Updates an existing API key's name and/or roles.
 ```python
 def update(
     self,
-    *,
     api_key_id: str,
     name: str | None = None,
     roles: list[str] | None = None
@@ -362,7 +377,6 @@ def update(
 
 | Exception | Condition |
 |-----------|-----------|
-| `ValueError` | The `name` parameter exceeds 80 characters or is empty (if provided). |
 | `BadRequestException` | Invalid `api_key_id`, invalid role names, or malformed request. |
 | `UnauthorizedException` | The service account credentials are invalid or missing. |
 | `NotFoundException` | The specified API key does not exist. |
@@ -421,7 +435,7 @@ Deletes an API key.
 ### Signature
 
 ```python
-def delete(self, *, api_key_id: str) -> None
+def delete(self, api_key_id: str) -> None
 ```
 
 ### Parameters
@@ -570,7 +584,7 @@ Represents an API key resource with its metadata and roles.
 
 | Field | Type | Nullable | Since | Deprecated | Description |
 |-------|------|----------|-------|------------|-------------|
-| `id` | `str` | No | v8.0 | No | The unique identifier of the API key. Format: `pckey_<public-label>_<unique-key>` (for secret key values returned at creation) or a simple ID string. |
+| `id` | `str` | No | v8.0 | No | The unique identifier of the API key. |
 | `name` | `str` | No | v8.0 | No | The name of the API key. 1-80 characters. |
 | `project_id` | `str` | No | v8.0 | No | The ID of the project that owns this API key. |
 | `roles` | `list[str]` | No | v8.0 | No | A list of role strings assigned to this API key. See **Available Roles** section. Example: `["ProjectEditor", "DataPlaneEditor"]`. |

@@ -20,7 +20,8 @@ Returns a client for performing data operations on a Pinecone index. Targets an 
 def Index(
     self,
     name: str = "",
-    host: str = ""
+    host: str = "",
+    **kwargs
 ) -> Index
 ```
 
@@ -30,6 +31,8 @@ def Index(
 |-----------|------|----------|---------|-------|------------|-------------|
 | `name` | `string (1-45 chars)` | No | `""` | v1.0 | No | The name of the index to target. If specified, the client performs a control plane lookup to obtain the index host URL. If both `name` and `host` are omitted, raises `ValueError`. Not recommended for production due to added control plane dependency. |
 | `host` | `string (uri)` | No | `""` | v1.0 | No | The host URL of the index to target (e.g., `index-abc123.svc.pinecone.io`). If specified, the client uses the host directly without making any additional control plane calls. Recommended for production. Raises `ValueError` if the host appears invalid (contains no `.` and is not `localhost`). |
+| `pool_threads` | `int` | No | — | v1.0 | No | The number of threads to use when making parallel requests by calling index methods with `async_req=True`, or using methods that make use of thread-based parallelism automatically such as `query_namespaces()`. Passed via `**kwargs`. |
+| `connection_pool_maxsize` | `int` | No | — | v1.0 | No | The maximum number of connections to keep in the connection pool. Passed via `**kwargs`. |
 
 ### Returns
 

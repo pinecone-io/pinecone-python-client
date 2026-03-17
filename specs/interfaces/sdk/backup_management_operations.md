@@ -33,7 +33,7 @@ def describe_backup(self, *, backup_id: str) -> BackupModel
 - `name`: The human-readable name of the backup
 - `source_index_name`: The name of the index that was backed up
 - `source_index_id`: The unique identifier of the source index
-- `status`: The current status of the backup (e.g., `"Initialized"`, `"Ready"`, `"Failed"`)
+- `status`: The current status of the backup (e.g., `"Initializing"`, `"Ready"`, `"Failed"`)
 - `created_at`: ISO 8601 timestamp of when the backup was created
 - `record_count`: The number of vectors stored in the backup
 - `namespace_count`: The number of namespaces in the backup
@@ -55,10 +55,10 @@ def describe_backup(self, *, backup_id: str) -> BackupModel
 ### Behavior
 
 - The backup must exist; returns `404 (not_found)` if `backup_id` does not reference an existing backup.
-- The returned status field indicates whether the backup is still being created (`"Initialized"`), ready for restoration (`"Ready"`), or has failed (`"Failed"`).
-- The `status` field is useful for polling: call this method repeatedly to check when a backup transitions from `"Initialized"` to `"Ready"` before attempting to restore from it.
+- The returned status field indicates whether the backup is still being created (`"Initializing"`), ready for restoration (`"Ready"`), or has failed (`"Failed"`).
+- The `status` field is useful for polling: call this method repeatedly to check when a backup transitions from `"Initializing"` to `"Ready"` before attempting to restore from it.
 - This method is read-only and does not modify the backup.
-- Status transitions: `"Initialized"` -> `"Ready"` or `"Failed"`.
+- Status transitions: `"Initializing"` -> `"Ready"` or `"Failed"`.
 
 ### Example
 
@@ -124,6 +124,7 @@ async def describe_backup(self, *, backup_id: str) -> BackupModel
 | Exception | Condition |
 |-----------|-----------|
 | `NotFoundException` | The backup does not exist. |
+| `ForbiddenException` | The API key does not have permission to describe this backup. |
 | `PineconeApiException` | The request failed. |
 | `UnauthorizedException` | The API key is invalid or missing. |
 | `TypeError` | Arguments are passed as positional arguments. |
@@ -156,7 +157,7 @@ Deletes a backup permanently, freeing its storage.
 **Source:** `pinecone/pinecone.py:1212-1228`
 **Added:** v1.0
 **Deprecated:** No
-**Idempotency:** Idempotent — repeated calls do not raise an error if the backup is already deleted
+**Idempotency:** Non-idempotent — raises `NotFoundException` if the backup has already been deleted
 **Side effects:** Permanently deletes the backup resource and all associated data
 
 ### Signature
@@ -179,7 +180,7 @@ def delete_backup(self, *, backup_id: str) -> None
 
 | Exception | Condition |
 |-----------|-----------|
-| `NotFoundException` | The `backup_id` does not reference an existing backup. Returns `404 (not_found)`. May only occur on first call; subsequent calls are idempotent. |
+| `NotFoundException` | The `backup_id` does not reference an existing backup. Returns `404 (not_found)`. |
 | `UnauthorizedException` | The API key is missing, invalid, or has expired. |
 | `ForbiddenException` | The API key does not have permission to delete this backup. |
 | `PineconeApiException` | An error occurs communicating with the Pinecone API (e.g., server error). |
@@ -192,7 +193,7 @@ def delete_backup(self, *, backup_id: str) -> None
 - Deleting a backup does not affect the source index — the index remains fully operational.
 - Calling `describe_backup()` with the same `backup_id` after deletion will return `404 (not_found)`.
 - Calling `list_backups()` after deletion will no longer include the deleted backup in the results.
-- Repeated calls to delete the same backup are safe (idempotent).
+- Repeated calls to delete the same backup will raise `NotFoundException`.
 
 ### Example
 
@@ -227,7 +228,7 @@ Asynchronous version of `delete_backup()`. Deletes a backup permanently.
 **Source:** `pinecone/pinecone_asyncio.py:1241-1248`
 **Added:** v1.0
 **Deprecated:** No
-**Idempotency:** Idempotent
+**Idempotency:** Non-idempotent — raises `NotFoundException` if the backup has already been deleted
 **Side effects:** Permanently deletes the backup resource
 
 ### Signature
@@ -251,6 +252,7 @@ async def delete_backup(self, *, backup_id: str) -> None
 | Exception | Condition |
 |-----------|-----------|
 | `NotFoundException` | The backup does not exist. |
+| `ForbiddenException` | The API key does not have permission to delete this backup. |
 | `PineconeApiException` | The request failed. |
 | `UnauthorizedException` | The API key is invalid or missing. |
 | `TypeError` | Arguments are passed as positional arguments. |

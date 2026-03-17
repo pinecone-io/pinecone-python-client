@@ -81,7 +81,7 @@ Retrieves a single organization by ID.
 ### Signature
 
 ```python
-def fetch(self, *, organization_id: str) -> Organization:
+def fetch(self, organization_id: str) -> Organization:
 ```
 
 ### Parameters
@@ -133,7 +133,7 @@ Alias for `fetch()`. Retrieves a single organization by ID.
 ### Signature
 
 ```python
-def get(self, *, organization_id: str) -> Organization:
+def get(self, organization_id: str) -> Organization:
 ```
 
 ### Parameters
@@ -186,7 +186,7 @@ Alias for `fetch()`. Retrieves a single organization by ID.
 ### Signature
 
 ```python
-def describe(self, *, organization_id: str) -> Organization:
+def describe(self, organization_id: str) -> Organization:
 ```
 
 ### Parameters
@@ -233,7 +233,7 @@ Updates an organization's details.
 
 **Added:** v8.0
 **Deprecated:** No
-**Idempotency:** Not idempotent — if the exact request is retried, it may produce different results if the organization state changed between calls.
+**Idempotency:** Idempotent — repeated calls with the same parameters produce the same result.
 **Side effects:** Modifies the organization resource in the Pinecone API. At minimum, persists changes to the organization name.
 
 ### Signature
@@ -241,7 +241,6 @@ Updates an organization's details.
 ```python
 def update(
     self,
-    *,
     organization_id: str,
     name: str | None = None
 ) -> Organization:
@@ -302,7 +301,7 @@ Deletes an organization permanently.
 ### Signature
 
 ```python
-def delete(self, *, organization_id: str) -> None:
+def delete(self, organization_id: str) -> None:
 ```
 
 ### Parameters
@@ -357,7 +356,7 @@ Represents a single organization in Pinecone.
 | `name` | `string (1-512 chars)` | No | v8.0 | No | The name of the organization. Can be updated via `admin.organization.update()`. Must be between 1 and 512 characters in length. |
 | `plan` | `string` | No | v8.0 | No | The current billing plan the organization is on. |
 | `payment_status` | `string` | No | v8.0 | No | The current payment status of the organization (e.g., "active", "past_due"). |
-| `created_at` | `string (date-time)` | No | v8.0 | No | The ISO 8601 timestamp when the organization was created. |
+| `created_at` | `datetime` | No | v8.0 | No | The ISO 8601 timestamp when the organization was created. |
 | `support_tier` | `string` | No | v8.0 | No | The support tier level of the organization. |
 
 ### `OrganizationList`

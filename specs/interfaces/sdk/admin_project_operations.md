@@ -47,6 +47,7 @@ None.
 |-----------|-----------|
 | `UnauthorizedException` | The API credentials are invalid or missing. |
 | `ForbiddenException` | The API key lacks the required permissions to list projects. |
+| `PineconeApiException` | Unexpected server error. |
 
 ### Example
 
@@ -82,7 +83,6 @@ Retrieves a single project by project ID or by name.
 ```python
 def fetch(
     self,
-    *,
     project_id: str | None = None,
     name: str | None = None
 ) -> Project:
@@ -92,8 +92,8 @@ def fetch(
 
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| `project_id` | `str` | No | — | v8.0 | No | The unique identifier of the project to fetch. Either `project_id` or `name` must be provided, but not both. |
-| `name` | `str` | No | — | v8.0 | No | The name of the project to fetch. Either `project_id` or `name` must be provided, but not both. When provided, searches all projects in the organization to find a match. Raises `NotFoundException` if no matching project is found. Raises `PineconeException` if multiple projects with the same name are found. |
+| `project_id` | `str` | No | `None` | v8.0 | No | The unique identifier of the project to fetch. Either `project_id` or `name` must be provided, but not both. |
+| `name` | `str` | No | `None` | v8.0 | No | The name of the project to fetch. Either `project_id` or `name` must be provided, but not both. When provided, searches all projects in the organization to find a match. Raises `NotFoundException` if no matching project is found. Raises `PineconeException` if multiple projects with the same name are found. |
 
 ### Returns
 
@@ -150,7 +150,6 @@ Alias for `fetch()`. Retrieves a single project by project ID or by name.
 ```python
 def get(
     self,
-    *,
     project_id: str | None = None,
     name: str | None = None
 ) -> Project:
@@ -160,8 +159,8 @@ def get(
 
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| `project_id` | `str` | No | — | v8.0 | No | The unique identifier of the project to get. Either `project_id` or `name` must be provided, but not both. |
-| `name` | `str` | No | — | v8.0 | No | The name of the project to get. Either `project_id` or `name` must be provided, but not both. |
+| `project_id` | `str` | No | `None` | v8.0 | No | The unique identifier of the project to get. Either `project_id` or `name` must be provided, but not both. |
+| `name` | `str` | No | `None` | v8.0 | No | The name of the project to get. Either `project_id` or `name` must be provided, but not both. |
 
 ### Returns
 
@@ -207,7 +206,6 @@ Alias for `fetch()`. Retrieves a single project by project ID or by name.
 ```python
 def describe(
     self,
-    *,
     project_id: str | None = None,
     name: str | None = None
 ) -> Project:
@@ -217,8 +215,8 @@ def describe(
 
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| `project_id` | `str` | No | — | v8.0 | No | The unique identifier of the project to describe. Either `project_id` or `name` must be provided, but not both. |
-| `name` | `str` | No | — | v8.0 | No | The name of the project to describe. Either `project_id` or `name` must be provided, but not both. |
+| `project_id` | `str` | No | `None` | v8.0 | No | The unique identifier of the project to describe. Either `project_id` or `name` must be provided, but not both. |
+| `name` | `str` | No | `None` | v8.0 | No | The name of the project to describe. Either `project_id` or `name` must be provided, but not both. |
 
 ### Returns
 
@@ -265,7 +263,6 @@ Checks whether a project exists by project ID or by name.
 ```python
 def exists(
     self,
-    *,
     project_id: str | None = None,
     name: str | None = None
 ) -> bool:
@@ -275,8 +272,8 @@ def exists(
 
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| `project_id` | `str` | No | — | v8.0 | No | The unique identifier of the project to check. Either `project_id` or `name` must be provided, but not both. |
-| `name` | `str` | No | — | v8.0 | No | The name of the project to check. Either `project_id` or `name` must be provided, but not both. |
+| `project_id` | `str` | No | `None` | v8.0 | No | The unique identifier of the project to check. Either `project_id` or `name` must be provided, but not both. |
+| `name` | `str` | No | `None` | v8.0 | No | The name of the project to check. Either `project_id` or `name` must be provided, but not both. |
 
 ### Returns
 
@@ -329,7 +326,6 @@ Creates a new project in the organization.
 ```python
 def create(
     self,
-    *,
     name: str,
     max_pods: int | None = None,
     force_encryption_with_cmek: bool | None = None
@@ -352,7 +348,6 @@ def create(
 
 | Exception | Condition |
 |-----------|-----------|
-| `ValueError` | The `name` is empty or exceeds 512 characters. |
 | `UnauthorizedException` | The API credentials are invalid or missing. |
 | `ForbiddenException` | The API key lacks the required permissions to create projects. |
 
@@ -397,7 +392,6 @@ Updates an existing project.
 ```python
 def update(
     self,
-    *,
     project_id: str,
     name: str | None = None,
     max_pods: int | None = None,
@@ -422,7 +416,6 @@ def update(
 
 | Exception | Condition |
 |-----------|-----------|
-| `ValueError` | The `name` is empty or exceeds 512 characters. |
 | `NotFoundException` | The project with the given `project_id` does not exist. |
 | `UnauthorizedException` | The API credentials are invalid or missing. |
 | `ForbiddenException` | The API key lacks the required permissions to update projects. |
@@ -475,7 +468,6 @@ Deletes a project from the organization. Projects can only be deleted if they ar
 ```python
 def delete(
     self,
-    *,
     project_id: str,
     delete_all_indexes: bool = False,
     delete_all_collections: bool = False,
@@ -556,7 +548,7 @@ Represents a project in the Pinecone organization.
 | `max_pods` | `integer (int32)` | No | v8.0 | No | The maximum number of pods that can be created in the project. |
 | `force_encryption_with_cmek` | `boolean` | No | v8.0 | No | Whether encryption with a customer-managed encryption key (CMEK) is enforced for this project. |
 | `organization_id` | `string (uuid)` | No | v8.0 | No | The unique identifier of the organization that owns this project. |
-| `created_at` | `string (date-time)` | No | v8.0 | No | The date and time when the project was created, in ISO 8601 format. |
+| `created_at` | `datetime` | No | v8.0 | No | The date and time when the project was created, in ISO 8601 format. |
 
 **Example**
 

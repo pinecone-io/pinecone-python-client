@@ -362,6 +362,250 @@ asyncio.run(rerank_documents())
 
 ---
 
+## `Inference.list_models()`
+
+Lists all available inference models, with optional filtering by model type and vector type.
+
+**Source:** `pinecone/inference/inference.py:348-384`
+**Added:** v3.0.0
+**Deprecated:** No
+**Idempotency:** Safe to retry
+**Side effects:** None
+
+### Signature
+
+```python
+def list_models(
+    self,
+    *,
+    type: str | None = None,
+    vector_type: str | None = None
+) -> ModelInfoList
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `type` | `str` | No | `None` | v3.0.0 | No | Filter by model type. Accepted values: `"embed"`, `"rerank"`. When `None`, returns all model types. |
+| `vector_type` | `str` | No | `None` | v3.0.0 | No | Filter by vector type. Accepted values: `"dense"`, `"sparse"`. When `None`, returns all vector types. |
+
+### Returns
+
+**Type:** `ModelInfoList` -- An iterable collection of `ModelInfo` objects. Supports `len()`, iteration, and integer indexing. Has a `.names()` method that returns a list of model name strings.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `PineconeApiException` | The request failed due to a server error. |
+| `UnauthorizedException` | The API key is invalid or missing. |
+
+### Example
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone(api_key="sk-example-key-do-not-use")
+
+# List all models
+models = pc.inference.list_models()
+print(f"Available models: {models.names()}")
+
+# Filter by model type
+embed_models = pc.inference.list_models(type="embed")
+rerank_models = pc.inference.list_models(type="rerank")
+
+# Filter by vector type
+sparse_models = pc.inference.list_models(vector_type="sparse")
+
+# Combine filters
+dense_embed_models = pc.inference.list_models(type="embed", vector_type="dense")
+
+# Iterate over models
+for model in models:
+    print(f"{model.model}: {model.short_description}")
+```
+
+### Notes
+
+- All parameters are keyword-only (enforced by the `*` separator in the signature)
+- Filtering is performed server-side; only matching models are returned
+- The returned `ModelInfoList` supports integer indexing (`models[0]`) and iteration
+
+---
+
+## `Inference.get_model()`
+
+Gets detailed information about a specific model by name.
+
+**Source:** `pinecone/inference/inference.py:386-429`
+**Added:** v3.0.0
+**Deprecated:** No
+**Idempotency:** Safe to retry
+**Side effects:** None
+
+### Signature
+
+```python
+def get_model(self, model_name: str) -> ModelInfo
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `model_name` | `str` | Yes | -- | v3.0.0 | No | The name of the model to retrieve (e.g., `"pinecone-rerank-v0"`, `"multilingual-e5-large"`). Must be passed as a keyword argument. |
+
+### Returns
+
+**Type:** `ModelInfo` -- An object containing model details including name, description, type, supported parameters, dimensions, sequence length limits, and supported metrics. See the `ModelInfo` data model below.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `PineconeApiException` | The request failed or the model name was not found. |
+| `UnauthorizedException` | The API key is invalid or missing. |
+| `TypeError` | `model_name` was passed as a positional argument (keyword-only enforcement via `@require_kwargs`). |
+
+### Example
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone(api_key="sk-example-key-do-not-use")
+
+model_info = pc.inference.get_model(model_name="pinecone-rerank-v0")
+print(f"Model: {model_info.model}")
+print(f"Type: {model_info.type}")
+print(f"Description: {model_info.short_description}")
+print(f"Max batch size: {model_info.max_batch_size}")
+print(f"Max sequence length: {model_info.max_sequence_length}")
+print(f"Supported metrics: {model_info.supported_metrics}")
+```
+
+### Notes
+
+- The `model_name` parameter must be passed as a keyword argument; positional arguments raise `TypeError` due to the `@require_kwargs` decorator
+- The returned `ModelInfo` object supports both attribute access (`model_info.model`) and dictionary-style access (`model_info["model"]`)
+- Use `model_info.to_dict()` to convert the result to a plain dictionary
+
+---
+
+## `AsyncioInference.list_models()`
+
+Asynchronous version of `list_models()`. Lists all available inference models with optional filtering.
+
+**Source:** `pinecone/inference/inference_asyncio.py:312-353`
+**Added:** v3.0.0
+**Deprecated:** No
+**Idempotency:** Safe to retry
+**Side effects:** None
+
+### Signature
+
+```python
+async def list_models(
+    self,
+    *,
+    type: str | None = None,
+    vector_type: str | None = None
+) -> ModelInfoList
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `type` | `str` | No | `None` | v3.0.0 | No | Filter by model type. Accepted values: `"embed"`, `"rerank"`. |
+| `vector_type` | `str` | No | `None` | v3.0.0 | No | Filter by vector type. Accepted values: `"dense"`, `"sparse"`. |
+
+### Returns
+
+**Type:** `ModelInfoList` -- A `ModelInfoList` object (when awaited).
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `PineconeApiException` | The request failed. |
+| `UnauthorizedException` | The API key is invalid or missing. |
+
+### Example
+
+```python
+import asyncio
+from pinecone import PineconeAsyncio
+
+async def list_available_models():
+    async with PineconeAsyncio(api_key="sk-example-key-do-not-use") as pc:
+        # List all models
+        models = await pc.inference.list_models()
+        print(f"Available models: {models.names()}")
+
+        # Filter to embedding models only
+        embed_models = await pc.inference.list_models(type="embed")
+        for model in embed_models:
+            print(f"{model.model}: {model.type}")
+
+asyncio.run(list_available_models())
+```
+
+---
+
+## `AsyncioInference.get_model()`
+
+Asynchronous version of `get_model()`. Gets detailed information about a specific model.
+
+**Source:** `pinecone/inference/inference_asyncio.py:355-385`
+**Added:** v3.0.0
+**Deprecated:** No
+**Idempotency:** Safe to retry
+**Side effects:** None
+
+### Signature
+
+```python
+async def get_model(self, model_name: str) -> ModelInfo
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `model_name` | `str` | Yes | -- | v3.0.0 | No | The name of the model to retrieve. Must be passed as a keyword argument. |
+
+### Returns
+
+**Type:** `ModelInfo` -- A `ModelInfo` object (when awaited).
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `PineconeApiException` | The request failed or the model name was not found. |
+| `UnauthorizedException` | The API key is invalid or missing. |
+| `TypeError` | `model_name` was passed as a positional argument. |
+
+### Example
+
+```python
+import asyncio
+from pinecone import PineconeAsyncio
+
+async def get_model_details():
+    async with PineconeAsyncio(api_key="sk-example-key-do-not-use") as pc:
+        model_info = await pc.inference.get_model(model_name="multilingual-e5-large")
+        print(f"Model: {model_info.model}")
+        print(f"Type: {model_info.type}")
+        print(f"Supported metrics: {model_info.supported_metrics}")
+
+asyncio.run(get_model_details())
+```
+
+---
+
 ## Error Handling
 
 All inference operations may raise the following exceptions:
@@ -544,34 +788,27 @@ result = pc.inference.rerank(
 
 ### `EmbeddingsList`
 
-An iterable collection of embeddings returned by the `embed()` method.
+An iterable collection of embeddings returned by the `embed()` method. Wraps the API response and delegates attribute access to the underlying OpenAPI model.
 
-**Source:** `pinecone/inference/models/embedding_list.py:4-32`
+**Source:** `pinecone/inference/models/embedding_list.py:4-33`
 
-**Structure**
+**Fields**
 
-The `EmbeddingsList` object wraps the following structure:
-```python
-{
-    "model": "text-embedding-3-small",
-    "vector_type": "dense",
-    "data": [
-        {"values": [0.1, 0.2, ..., 0.3]},
-        {"values": [0.4, 0.5, ..., 0.6]},
-    ],
-    "usage": {"total_tokens": 42}
-}
-```
+| Field | Type | Nullable | Since | Deprecated | Description |
+|-------|------|----------|-------|------------|-------------|
+| `model` | `str` | No | v3.0.0 | No | The name of the model used to generate the embeddings. |
+| `vector_type` | `str` | No | v3.0.0 | No | The type of vectors generated (e.g., `"dense"` for dense embeddings, `"sparse"` for sparse). |
+| `data` | `list[dict]` | No | v3.0.0 | No | List of embedding objects. Each contains a `values` key with the embedding vector as a list of floats. |
+| `usage` | `dict` | No | v3.0.0 | No | Usage statistics. Contains `total_tokens` (int) indicating total tokens consumed across all inputs. |
 
-| Property/Method | Type | Description |
-|-----------------|------|-------------|
-| `model` | `str` | The name of the model used to generate the embeddings. |
-| `vector_type` | `str` | The type of vectors generated (e.g., `"dense"` for dense embeddings). |
-| `data` | `list[dict]` | List of embedding objects. Each contains a `values` key with the embedding vector as a list of floats. |
-| `usage` | `dict` | Usage statistics. Contains `total_tokens` (total tokens consumed). |
-| `__len__()` | `int` | Returns the number of embeddings. |
-| `__iter__()` | `Iterator` | Returns an iterator over the embeddings. |
-| `__getitem__(index)` | `dict` | Accesses embedding by index. |
+**Methods**
+
+| Method | Return Type | Description |
+|--------|-------------|-------------|
+| `__len__()` | `int` | Returns the number of embeddings in `data`. |
+| `__iter__()` | `Iterator[dict]` | Returns an iterator over the embedding dictionaries in `data`. |
+| `__getitem__(index)` | `dict` | Accesses an embedding by integer index into `data`. |
+| `__getattr__(attr)` | `Any` | Delegates attribute access to the underlying OpenAPI response object (e.g., `model`, `vector_type`, `usage`). |
 
 **Example**
 
@@ -654,4 +891,109 @@ print(f"Rerank units used: {result.usage['rerank_units']}")
 # Access ranked documents
 for ranked_doc in result.data:
     print(f"Original index: {ranked_doc['index']}, Score: {ranked_doc['score']}")
+```
+
+---
+
+### `ModelInfo`
+
+Detailed information about a single inference model, returned by `get_model()` and contained within `ModelInfoList`. Wraps the OpenAPI-generated `ModelInfo` and normalizes the `supported_metrics` field.
+
+**Source:** `pinecone/inference/models/model_info.py:17-52`
+
+**Fields**
+
+| Field | Type | Nullable | Since | Deprecated | Description |
+|-------|------|----------|-------|------------|-------------|
+| `model` | `str` | No | v3.0.0 | No | The name of the model (e.g., `"multilingual-e5-large"`, `"pinecone-rerank-v0"`). |
+| `short_description` | `str` | No | v3.0.0 | No | A brief summary of what the model does. |
+| `type` | `str` | No | v3.0.0 | No | The model type: `"embed"` or `"rerank"`. |
+| `supported_parameters` | `list[dict]` | No | v3.0.0 | No | List of parameters the model accepts. Each dict contains `parameter` (name), `type` (e.g., `"one_of"`), `value_type` (e.g., `"string"`), `required` (bool), `default` (value), and `allowed_values` (list). |
+| `vector_type` | `str` | Yes | v3.0.0 | No | The vector type produced (e.g., `"dense"`, `"sparse"`). Present only for embedding models. |
+| `default_dimension` | `int` | Yes | v3.0.0 | No | Default embedding dimension. Range: 1--20000. Present only for embedding models. |
+| `supported_dimensions` | `list[int]` | Yes | v3.0.0 | No | List of supported embedding dimensions, if the model allows dimension selection. |
+| `modality` | `str` | Yes | v3.0.0 | No | The input modality (e.g., `"text"`). |
+| `max_sequence_length` | `int` | Yes | v3.0.0 | No | Maximum number of tokens per input. Minimum: 1. |
+| `max_batch_size` | `int` | Yes | v3.0.0 | No | Maximum number of inputs per request. Minimum: 1. |
+| `provider_name` | `str` | Yes | v3.0.0 | No | The provider of the model (e.g., `"Pinecone"`). |
+| `supported_metrics` | `list[str]` | No | v3.0.0 | No | List of distance metrics supported by the model (e.g., `["cosine", "dotproduct"]`). Empty list if none. Normalized from the API response to always be a list of strings. |
+
+**Methods**
+
+| Method | Return Type | Description |
+|--------|-------------|-------------|
+| `to_dict()` | `dict` | Returns a plain dictionary representation of the model info with normalized `supported_metrics`. |
+| `__getattr__(attr)` | `Any` | Delegates attribute access to the underlying OpenAPI object for any field not directly on the wrapper. |
+| `__getitem__(key)` | `Any` | Dictionary-style access; equivalent to attribute access. |
+| `__repr__()` | `str` | Returns a JSON-formatted string representation (pretty-printed with 4-space indent). |
+
+**Example**
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone(api_key="sk-example-key-do-not-use")
+
+model_info = pc.inference.get_model(model_name="pinecone-rerank-v0")
+
+# Attribute access
+print(model_info.model)                # "pinecone-rerank-v0"
+print(model_info.type)                 # "rerank"
+print(model_info.max_batch_size)       # 100
+print(model_info.supported_metrics)    # []
+
+# Dictionary-style access
+print(model_info["short_description"])
+
+# Convert to dict
+data = model_info.to_dict()
+```
+
+---
+
+### `ModelInfoList`
+
+An iterable collection of `ModelInfo` objects returned by `list_models()`. Wraps the API response and provides convenience accessors.
+
+**Source:** `pinecone/inference/models/model_info_list.py:9-56`
+
+**Fields**
+
+| Field | Type | Nullable | Since | Deprecated | Description |
+|-------|------|----------|-------|------------|-------------|
+| `models` | `list[ModelInfo]` | No | v3.0.0 | No | The list of model information objects. Accessible via attribute (`models.models`) or key (`models["models"]`). |
+
+**Methods**
+
+| Method | Return Type | Description |
+|--------|-------------|-------------|
+| `names()` | `list[str]` | Returns a list of model name strings (the `.name` attribute of each `ModelInfo`). |
+| `__len__()` | `int` | Returns the number of models in the list. |
+| `__iter__()` | `Iterator[ModelInfo]` | Returns an iterator over `ModelInfo` objects. |
+| `__getitem__(index)` | `ModelInfo` | Accesses a model by integer index. Also supports `["models"]` key to return the full list. |
+| `__getattr__(attr)` | `Any` | Delegates attribute access to the underlying OpenAPI response for future-proofing. |
+| `__repr__()` | `str` | Returns a JSON-formatted string representation (pretty-printed, `None` values removed). |
+
+**Example**
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone(api_key="sk-example-key-do-not-use")
+
+models = pc.inference.list_models(type="embed")
+
+# Get all model names
+print(models.names())  # ["multilingual-e5-large", "pinecone-sparse-english-v0", ...]
+
+# Iterate
+for model in models:
+    print(f"{model.model} ({model.type}): {model.short_description}")
+
+# Access by index
+first_model = models[0]
+print(f"First model: {first_model.model}")
+
+# Check count
+print(f"Total embedding models: {len(models)}")
 ```

@@ -700,7 +700,7 @@ Represents a reranking configuration for search results.
 
 | Field | Type | Nullable | Since | Deprecated | Description |
 |-------|------|----------|-------|------------|-------------|
-| `model` | `str \| RerankModel` | No | v8.1 | No | Name of the reranking model to use. |
+| `model` | `str` | No | v8.1 | No | Name of the reranking model to use. |
 | `rank_fields` | `list[str]` | No | v8.1 | No | Fields to use for reranking. |
 | `top_n` | `int \| None` | Yes | v8.1 | No | Number of top results after reranking (defaults to top_k). |
 | `parameters` | `dict[str, Any] \| None` | Yes | v8.1 | No | Additional model-specific parameters. |

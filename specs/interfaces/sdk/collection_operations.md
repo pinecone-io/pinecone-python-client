@@ -17,7 +17,7 @@ Creates a collection from a pod-based index.
 ### Signature
 
 ```python
-def create_collection(self, *, name: str, source: str) -> None
+def create_collection(self, name: str, source: str) -> None
 ```
 
 ### Parameters
@@ -35,7 +35,6 @@ def create_collection(self, *, name: str, source: str) -> None
 
 | Exception | Condition |
 |-----------|-----------|
-| `ValueError` | `name` is an empty string. |
 | `UnauthorizedException` | The API key is invalid or missing. |
 | `ForbiddenException` | The user lacks permission to create collections. |
 | `NotFoundException` | The source index does not exist. |
@@ -75,7 +74,7 @@ Asynchronous version of `create_collection()`. Creates a collection from a pod-b
 ### Signature
 
 ```python
-async def create_collection(self, *, name: str, source: str) -> None
+async def create_collection(self, name: str, source: str) -> None
 ```
 
 ### Parameters
@@ -233,7 +232,7 @@ Deletes a collection. This is an irreversible operation.
 ### Signature
 
 ```python
-def delete_collection(self, *, name: str) -> None
+def delete_collection(self, name: str) -> None
 ```
 
 ### Parameters
@@ -250,7 +249,6 @@ def delete_collection(self, *, name: str) -> None
 
 | Exception | Condition |
 |-----------|-----------|
-| `ValueError` | `name` is an empty string. |
 | `UnauthorizedException` | The API key is missing or invalid. |
 | `ForbiddenException` | The user lacks permission to delete collections. |
 | `NotFoundException` | The collection does not exist. |
@@ -297,7 +295,7 @@ Asynchronous version of `delete_collection()`. Deletes a collection.
 ### Signature
 
 ```python
-async def delete_collection(self, *, name: str) -> None
+async def delete_collection(self, name: str) -> None
 ```
 
 ### Parameters
@@ -352,7 +350,7 @@ Describes a specific collection by name.
 ### Signature
 
 ```python
-def describe_collection(self, *, name: str) -> dict[str, Any]
+def describe_collection(self, name: str) -> dict[str, Any]
 ```
 
 ### Parameters
@@ -378,7 +376,6 @@ def describe_collection(self, *, name: str) -> dict[str, Any]
 
 | Exception | Condition |
 |-----------|-----------|
-| `ValueError` | `name` is an empty string. |
 | `UnauthorizedException` | The API key is missing or invalid. |
 | `ForbiddenException` | The user lacks permission to describe collections. |
 | `NotFoundException` | The collection does not exist. |
@@ -424,7 +421,7 @@ Asynchronous version of `describe_collection()`. Describes a specific collection
 ### Signature
 
 ```python
-async def describe_collection(self, *, name: str) -> dict[str, Any]
+async def describe_collection(self, name: str) -> dict[str, Any]
 ```
 
 ### Parameters
@@ -542,6 +539,8 @@ An iterable collection of collections returned by the `list_collections()` metho
 | `__iter__()` | Iterate over individual collection objects. |
 | `__len__()` | Get the number of collections. |
 | `__getitem__(index)` | Access a collection by index. Raises `IndexError` if out of bounds. |
+| `__str__()` | Returns the string representation of the underlying collection list. |
+| `__repr__()` | Returns a JSON-formatted string of all collections with their properties. |
 
 Each collection object has the following fields:
 - `name` (string): The name of the collection

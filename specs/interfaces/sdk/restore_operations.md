@@ -22,7 +22,7 @@ def create_index_from_backup(
     *,
     name: str,
     backup_id: str,
-    deletion_protection: DeletionProtection | str | None = "disabled",
+    deletion_protection: (DeletionProtection | str) | None = "disabled",
     tags: dict[str, str] | None = None,
     timeout: int | None = None
 ) -> IndexModel
@@ -34,7 +34,7 @@ def create_index_from_backup(
 |-----------|------|----------|---------|-------|------------|-------------|
 | `name` | `string` | Yes | — | v1.0 | No | The name for the new index to create. Must be unique within the project. |
 | `backup_id` | `string` | Yes | — | v1.0 | No | The ID of the backup to restore. Obtain this from `list_backups()` or `describe_backup()`. The backup must be in `"Ready"` status. |
-| `deletion_protection` | `string (enum: enabled, disabled)` | No | `"disabled"` | v1.0 | No | Whether the index can be deleted. When `"enabled"`, `delete_index()` will fail unless deletion protection is first disabled with `configure_index()`. |
+| `deletion_protection` | `(DeletionProtection \| string) \| None` | No | `"disabled"` | v1.0 | No | Whether the index can be deleted. When `"enabled"`, `delete_index()` will fail unless deletion protection is first disabled with `configure_index()`. |
 | `tags` | `dict[str, str]` | No | `None` | v1.0 | No | Key-value pairs to attach to the index for organization and identification. When omitted, the index is created with no tags. |
 | `timeout` | `integer (int32)` | No | `None` | v1.0 | No | Number of seconds to wait for the index to reach `"ready"` status. If `None`, wait indefinitely. If `-1`, return immediately without polling and caller must use `describe_index()` to check readiness. If `>= 0`, raise `TimeoutError` if the index is not ready within this duration. Polls every 5 seconds. |
 
@@ -117,7 +117,7 @@ async def create_index_from_backup(
     *,
     name: str,
     backup_id: str,
-    deletion_protection: DeletionProtection | str = "disabled",
+    deletion_protection: (DeletionProtection | str) | None = "disabled",
     tags: dict[str, str] | None = None,
     timeout: int | None = None
 ) -> IndexModel
@@ -129,7 +129,7 @@ async def create_index_from_backup(
 |-----------|------|----------|---------|-------|------------|-------------|
 | `name` | `string` | Yes | — | v1.0 | No | The name for the new index to be created. |
 | `backup_id` | `string` | Yes | — | v1.0 | No | The ID of the backup to restore from. |
-| `deletion_protection` | `string (enum: enabled, disabled)` | No | `"disabled"` | v1.0 | No | Whether the index should be protected from deletion. |
+| `deletion_protection` | `(DeletionProtection \| string) \| None` | No | `"disabled"` | v1.0 | No | Whether the index should be protected from deletion. |
 | `tags` | `dict[str, str]` | No | `None` | v1.0 | No | Optional tags to attach to the index. |
 | `timeout` | `integer (int32)` | No | `None` | v1.0 | No | Seconds to wait for index readiness. |
 

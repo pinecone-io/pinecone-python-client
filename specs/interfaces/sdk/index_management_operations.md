@@ -498,9 +498,9 @@ Represents a single index in Pinecone.
 | `spec` | `object` | No | v1.0 | No | Index configuration spec (serverless, pod-based, or BYOC). The exact structure depends on the index type. |
 | `vector_type` | `string` | No | v1.0 | No | The vector type of the index. One of: `"dense"`, `"sparse"`. |
 | `deletion_protection` | `string` | No | v1.0 | No | Whether deletion protection is enabled. One of: `"enabled"`, `"disabled"`. |
-| `private_host` | `string` | No | v1.0 | No | The private gRPC host URL (only available for BYOC indexes). |
-| `tags` | `object` | No | v1.0 | No | Dictionary of user-defined tags for the index. |
-| `embed` | `object` | No | v1.0 | No | Embedded model configuration (if the index has integrated inference enabled). |
+| `private_host` | `string` | Yes | v1.0 | No | The private gRPC host URL (only available for BYOC indexes). |
+| `tags` | `object` | Yes | v1.0 | No | Dictionary of user-defined tags for the index. |
+| `embed` | `object` | Yes | v1.0 | No | Embedded model configuration (if the index has integrated inference enabled). |
 
 #### `to_dict()`
 
