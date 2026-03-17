@@ -15,3 +15,9 @@ Documents the public Python SDK surface: classes, methods, types, and functions 
 Documents index creation and configuration operations: the `create()` and `configure()` methods of the `IndexResource` class, plus the enumerations and data models they use.
 
 → [`spec/interfaces/sdk/index_operations.md`](interfaces/sdk/index_operations.md)
+
+### interfaces/sdk/inference_operations
+
+Documents inference operations for generating embeddings and reranking documents: the `embed()` and `rerank()` methods of the `Inference` class, plus response models and model enumerations.
+
+→ [`spec/interfaces/sdk/inference_operations.md`](interfaces/sdk/inference_operations.md)
