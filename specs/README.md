@@ -16,6 +16,12 @@ Documents index creation and configuration operations: the `create()` and `confi
 
 → [`spec/interfaces/sdk/index_operations.md`](interfaces/sdk/index_operations.md)
 
+### interfaces/sdk/index_management_operations
+
+Documents index management operations for listing, describing, deleting, and checking the existence of indexes: the `list_indexes()`, `describe_index()`, `delete_index()`, and `has_index()` methods available on the `Pinecone` and `PineconeAsyncio` client instances.
+
+→ [`spec/interfaces/sdk/index_management_operations.md`](interfaces/sdk/index_management_operations.md)
+
 ### interfaces/sdk/inference_operations
 
 Documents inference operations for generating embeddings and reranking documents: the `embed()` and `rerank()` methods of the `Inference` class, plus response models and model enumerations.
