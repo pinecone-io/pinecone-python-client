@@ -57,3 +57,9 @@ Documents restore operations for creating indexes from backups and tracking rest
 Documents project management operations for organizations: the `create()` and `list()` methods available on the `Admin` client's `.project` or `.projects` namespace for managing Pinecone projects.
 
 → [`spec/interfaces/sdk/admin_project_operations.md`](interfaces/sdk/admin_project_operations.md)
+
+### interfaces/sdk/admin_api_key_operations
+
+Documents API key management operations for projects: the `create()`, `list()`, `fetch()`, `get()`, `describe()`, `update()`, and `delete()` methods available on the `Admin` client's `.api_key` or `.api_keys` namespace.
+
+→ [`spec/interfaces/sdk/admin_api_key_operations.md`](interfaces/sdk/admin_api_key_operations.md)
