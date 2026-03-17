@@ -2,36 +2,36 @@
 
 This module documents index management methods on the Pinecone and PineconeAsyncio clients: listing, describing, deleting, and checking the existence of indexes. All four methods provide control plane access to query and manipulate index lifecycle.
 
-## Overview
+---
 
-**Language / runtime:** Python 3.8+
-**Package:** `pinecone`
-**Version:** v8.1.0
-**Breaking change definition:** Changing the return type or return value structure of any method, removing a method, or renaming a parameter.
-
-## Methods
-
-### `Pinecone.list_indexes() -> IndexList`
+## `Pinecone.list_indexes()`
 
 Lists all indexes in your Pinecone project.
 
-**Import:** `from pinecone import Pinecone, IndexList`
 **Source:** `pinecone/pinecone.py:757-787`
 **Added:** v1.0
 **Deprecated:** No
 **Idempotency:** Safe to retry
 **Side effects:** None
 
-**Returns:** `IndexList` — An iterable collection of all indexes in your project. The `IndexList` object wraps a list of `IndexModel` instances and provides a convenience method `names()` to extract just the index names.
+### Signature
 
-**Raises / Throws**
+```python
+def list_indexes(self) -> IndexList
+```
 
-| Exception / Error | Condition |
-|-------------------|-----------|
+### Returns
+
+**Type:** `IndexList` — An iterable collection of all indexes in your project. The `IndexList` object wraps a list of `IndexModel` instances and provides a convenience method `names()` to extract just the index names.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
 | `PineconeApiException` | Failed to retrieve the index list from the API. |
 | `UnauthorizedException` | The API key is invalid or missing. |
 
-**Example**
+### Example
 
 ```python
 from pinecone import Pinecone
@@ -48,7 +48,7 @@ index_names = indexes.names()
 print(f"Available indexes: {index_names}")
 ```
 
-**Notes**
+### Notes
 
 - The `IndexList` object is iterable; use it in a `for` loop to iterate over individual `IndexModel` instances.
 - The `names()` method is a convenience method that returns a list of index names without needing to extract the name from each model.
@@ -56,27 +56,34 @@ print(f"Available indexes: {index_names}")
 
 ---
 
-### `PineconeAsyncio.list_indexes() -> Awaitable[IndexList]`
+## `PineconeAsyncio.list_indexes()`
 
 Asynchronous version of `list_indexes()`. Lists all indexes in your Pinecone project.
 
-**Import:** `from pinecone import PineconeAsyncio, IndexList`
 **Source:** `pinecone/pinecone_asyncio.py:810-849`
 **Added:** v1.0
 **Deprecated:** No
 **Idempotency:** Safe to retry
 **Side effects:** None
 
-**Returns:** `Awaitable[IndexList]` — An awaitable that resolves to an `IndexList` collection.
+### Signature
 
-**Raises / Throws**
+```python
+async def list_indexes(self) -> IndexList
+```
 
-| Exception / Error | Condition |
-|-------------------|-----------|
+### Returns
+
+**Type:** `Awaitable[IndexList]` — An awaitable that resolves to an `IndexList` collection.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
 | `PineconeApiException` | Failed to retrieve the index list from the API. |
 | `UnauthorizedException` | The API key is invalid or missing. |
 
-**Example**
+### Example
 
 ```python
 import asyncio
@@ -96,32 +103,41 @@ asyncio.run(list_all_indexes())
 
 ---
 
-### `Pinecone.describe_index(name: str) -> IndexModel`
+## `Pinecone.describe_index()`
 
 Describes a specific Pinecone index by name.
 
-**Import:** `from pinecone import Pinecone, IndexModel`
 **Source:** `pinecone/pinecone.py:789-843`
 **Added:** v1.0
 **Deprecated:** No
 **Idempotency:** Safe to retry
 **Side effects:** None
 
+### Signature
+
+```python
+def describe_index(self, name: str) -> IndexModel
+```
+
+### Parameters
+
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| name | string | Yes | — | v1.0 | No | The name of the index to describe. |
+| `name` | `string` | Yes | — | v1.0 | No | The name of the index to describe. |
 
-**Returns:** `IndexModel` — An object representing the index with properties including name, dimension, metric, host URL, status, and spec.
+### Returns
 
-**Raises / Throws**
+**Type:** `IndexModel` — An object representing the index with properties including name, dimension, metric, host URL, status, and spec.
 
-| Exception / Error | Condition |
-|-------------------|-----------|
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
 | `NotFoundException` | The specified index does not exist. |
 | `PineconeApiException` | Failed to retrieve the index description from the API. |
 | `UnauthorizedException` | The API key is invalid or missing. |
 
-**Example**
+### Example
 
 ```python
 from pinecone import Pinecone
@@ -144,7 +160,7 @@ index = pc.Index(host=description.host)
 # Now you can call index.upsert(), index.query(), etc.
 ```
 
-**Notes**
+### Notes
 
 - The returned `IndexModel` includes a `spec` property that describes the index's configuration (serverless, pod-based, or BYOC).
 - The `host` property is the gRPC URL used to connect to the index for data plane operations.
@@ -153,32 +169,41 @@ index = pc.Index(host=description.host)
 
 ---
 
-### `PineconeAsyncio.describe_index(name: str) -> Awaitable[IndexModel]`
+## `PineconeAsyncio.describe_index()`
 
 Asynchronous version of `describe_index()`. Describes a specific Pinecone index by name.
 
-**Import:** `from pinecone import PineconeAsyncio, IndexModel`
 **Source:** `pinecone/pinecone_asyncio.py:851-911`
 **Added:** v1.0
 **Deprecated:** No
 **Idempotency:** Safe to retry
 **Side effects:** None
 
+### Signature
+
+```python
+async def describe_index(self, name: str) -> IndexModel
+```
+
+### Parameters
+
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| name | string | Yes | — | v1.0 | No | The name of the index to describe. |
+| `name` | `string` | Yes | — | v1.0 | No | The name of the index to describe. |
 
-**Returns:** `Awaitable[IndexModel]` — An awaitable that resolves to an `IndexModel` object.
+### Returns
 
-**Raises / Throws**
+**Type:** `Awaitable[IndexModel]` — An awaitable that resolves to an `IndexModel` object.
 
-| Exception / Error | Condition |
-|-------------------|-----------|
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
 | `NotFoundException` | The specified index does not exist. |
 | `PineconeApiException` | Failed to retrieve the index description from the API. |
 | `UnauthorizedException` | The API key is invalid or missing. |
 
-**Example**
+### Example
 
 ```python
 import asyncio
@@ -202,33 +227,42 @@ asyncio.run(get_index_host())
 
 ---
 
-### `Pinecone.delete_index(name: str, timeout: int | None = None) -> None`
+## `Pinecone.delete_index()`
 
 Deletes a Pinecone index. This is an irreversible operation.
 
-**Import:** `from pinecone import Pinecone`
 **Source:** `pinecone/pinecone.py:711-755`
 **Added:** v1.0
 **Deprecated:** No
 **Idempotency:** Non-idempotent (idempotent in effect — calling twice will fail the second time if the index is already deleted)
 **Side effects:** Deletes the index and all data it contains. The index transitions to "Terminating" state and is eventually removed.
 
+### Signature
+
+```python
+def delete_index(self, name: str, timeout: int | None = None) -> None
+```
+
+### Parameters
+
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| name | string | Yes | — | v1.0 | No | The name of the index to delete. |
-| timeout | int or None | No | None | v1.0 | No | Number of seconds to wait for the delete operation to complete. If `None`, wait indefinitely. If >= 0, time out after that many seconds. If -1, return immediately without waiting for completion. |
+| `name` | `string` | Yes | — | v1.0 | No | The name of the index to delete. |
+| `timeout` | `int or None` | No | `None` | v1.0 | No | Number of seconds to wait for the delete operation to complete. If `None`, wait indefinitely. If >= 0, time out after that many seconds. If -1, return immediately without waiting for completion. |
 
-**Returns:** `None`
+### Returns
 
-**Raises / Throws**
+**Type:** `None`
 
-| Exception / Error | Condition |
-|-------------------|-----------|
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
 | `NotFoundException` | The specified index does not exist. |
 | `PineconeApiException` | The delete operation failed (e.g., due to deletion protection). |
 | `UnauthorizedException` | The API key is invalid or missing. |
 
-**Example**
+### Example
 
 ```python
 from pinecone import Pinecone
@@ -254,7 +288,7 @@ if pc.has_index(index_name):
 # print("Delete request submitted; index will be removed asynchronously")
 ```
 
-**Notes**
+### Notes
 
 - Deleting an index is irreversible; all data in the index will be lost.
 - By default, the method blocks until the index is fully deleted (polls `describe_index()` to confirm deletion).
@@ -264,33 +298,42 @@ if pc.has_index(index_name):
 
 ---
 
-### `PineconeAsyncio.delete_index(name: str, timeout: int | None = None) -> Awaitable[None]`
+## `PineconeAsyncio.delete_index()`
 
 Asynchronous version of `delete_index()`. Deletes a Pinecone index.
 
-**Import:** `from pinecone import PineconeAsyncio`
 **Source:** `pinecone/pinecone_asyncio.py:757-808`
 **Added:** v1.0
 **Deprecated:** No
 **Idempotency:** Non-idempotent (idempotent in effect)
 **Side effects:** Deletes the index and all data it contains.
 
+### Signature
+
+```python
+async def delete_index(self, name: str, timeout: int | None = None) -> None
+```
+
+### Parameters
+
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| name | string | Yes | — | v1.0 | No | The name of the index to delete. |
-| timeout | int or None | No | None | v1.0 | No | Number of seconds to wait for the delete operation to complete. If `None`, wait indefinitely. If >= 0, time out after that many seconds. If -1, return immediately without waiting. |
+| `name` | `string` | Yes | — | v1.0 | No | The name of the index to delete. |
+| `timeout` | `int or None` | No | `None` | v1.0 | No | Number of seconds to wait for the delete operation to complete. If `None`, wait indefinitely. If >= 0, time out after that many seconds. If -1, return immediately without waiting. |
 
-**Returns:** `Awaitable[None]`
+### Returns
 
-**Raises / Throws**
+**Type:** `Awaitable[None]`
 
-| Exception / Error | Condition |
-|-------------------|-----------|
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
 | `NotFoundException` | The specified index does not exist. |
 | `PineconeApiException` | The delete operation failed (e.g., due to deletion protection). |
 | `UnauthorizedException` | The API key is invalid or missing. |
 
-**Example**
+### Example
 
 ```python
 import asyncio
@@ -315,31 +358,40 @@ asyncio.run(delete_index_safely())
 
 ---
 
-### `Pinecone.has_index(name: str) -> bool`
+## `Pinecone.has_index()`
 
 Checks whether an index with the given name exists in your Pinecone project.
 
-**Import:** `from pinecone import Pinecone`
 **Source:** `pinecone/pinecone.py:845-868`
 **Added:** v1.0
 **Deprecated:** No
 **Idempotency:** Safe to retry
 **Side effects:** None
 
+### Signature
+
+```python
+def has_index(self, name: str) -> bool
+```
+
+### Parameters
+
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| name | string | Yes | — | v1.0 | No | The name of the index to check for. |
+| `name` | `string` | Yes | — | v1.0 | No | The name of the index to check for. |
 
-**Returns:** `bool` — `True` if the index exists, `False` otherwise.
+### Returns
 
-**Raises / Throws**
+**Type:** `bool` — `True` if the index exists, `False` otherwise.
 
-| Exception / Error | Condition |
-|-------------------|-----------|
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
 | `PineconeApiException` | Failed to check index existence due to an API error. |
 | `UnauthorizedException` | The API key is invalid or missing. |
 
-**Example**
+### Example
 
 ```python
 from pinecone import Pinecone, ServerlessSpec
@@ -362,38 +414,47 @@ else:
     print(f"Index '{index_name}' already exists")
 ```
 
-**Notes**
+### Notes
 
 - This is a convenience method that returns a boolean, unlike `describe_index()` which raises `NotFoundException`.
 - Use this method when you only need to check for existence without retrieving the full index description.
 
 ---
 
-### `PineconeAsyncio.has_index(name: str) -> Awaitable[bool]`
+## `PineconeAsyncio.has_index()`
 
 Asynchronous version of `has_index()`. Checks whether an index with the given name exists.
 
-**Import:** `from pinecone import PineconeAsyncio`
 **Source:** `pinecone/pinecone_asyncio.py:913-939`
 **Added:** v1.0
 **Deprecated:** No
 **Idempotency:** Safe to retry
 **Side effects:** None
 
+### Signature
+
+```python
+async def has_index(self, name: str) -> bool
+```
+
+### Parameters
+
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| name | string | Yes | — | v1.0 | No | The name of the index to check for. |
+| `name` | `string` | Yes | — | v1.0 | No | The name of the index to check for. |
 
-**Returns:** `Awaitable[bool]` — An awaitable that resolves to `True` if the index exists, `False` otherwise.
+### Returns
 
-**Raises / Throws**
+**Type:** `Awaitable[bool]` — An awaitable that resolves to `True` if the index exists, `False` otherwise.
 
-| Exception / Error | Condition |
-|-------------------|-----------|
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
 | `PineconeApiException` | Failed to check index existence due to an API error. |
 | `UnauthorizedException` | The API key is invalid or missing. |
 
-**Example**
+### Example
 
 ```python
 import asyncio
@@ -419,32 +480,29 @@ asyncio.run(ensure_index_exists())
 
 ---
 
-## Return Types
+## Data Models
 
 ### `IndexModel`
 
 Represents a single index in Pinecone.
 
-**Import:** `from pinecone import IndexModel`
 **Source:** `pinecone/db_control/models/index_model.py:22-212`
 
-| Property | Type | Readable | Writable | Since | Deprecated | Description |
-|----------|------|----------|----------|-------|------------|-------------|
-| name | string | Yes | No | v1.0 | No | The unique name of the index (1-45 characters). |
-| dimension | integer | Yes | No | v1.0 | No | The vector dimension of the index (1-20000). |
-| metric | string | Yes | No | v1.0 | No | The distance metric used by the index. One of: `"cosine"`, `"euclidean"`, `"dotproduct"`. |
-| host | string | Yes | No | v1.0 | No | The gRPC host URL for connecting to the index for data operations. |
-| status | object | Yes | No | v1.0 | No | Status object with `ready` (bool) and `state` (string) fields indicating readiness. |
-| spec | object | Yes | No | v1.0 | No | Index configuration spec (serverless, pod-based, or BYOC). The exact structure depends on the index type. |
-| vector_type | string | Yes | No | v1.0 | No | The vector type of the index. One of: `"dense"`, `"sparse"`. |
-| deletion_protection | string | Yes | No | v1.0 | No | Whether deletion protection is enabled. One of: `"enabled"`, `"disabled"`. |
-| private_host | string | Yes | No | v1.0 | No | The private gRPC host URL (only available for BYOC indexes). |
-| tags | object | Yes | No | v1.0 | No | Dictionary of user-defined tags for the index. |
-| embed | object | Yes | No | v1.0 | No | Embedded model configuration (if the index has integrated inference enabled). |
+| Field | Type | Nullable | Since | Deprecated | Description |
+|-------|------|----------|-------|------------|-------------|
+| `name` | `string` | No | v1.0 | No | The unique name of the index (1-45 characters). |
+| `dimension` | `integer` | No | v1.0 | No | The vector dimension of the index (1-20000). |
+| `metric` | `string` | No | v1.0 | No | The distance metric used by the index. One of: `"cosine"`, `"euclidean"`, `"dotproduct"`. |
+| `host` | `string` | No | v1.0 | No | The gRPC host URL for connecting to the index for data operations. |
+| `status` | `object` | No | v1.0 | No | Status object with `ready` (bool) and `state` (string) fields indicating readiness. |
+| `spec` | `object` | No | v1.0 | No | Index configuration spec (serverless, pod-based, or BYOC). The exact structure depends on the index type. |
+| `vector_type` | `string` | No | v1.0 | No | The vector type of the index. One of: `"dense"`, `"sparse"`. |
+| `deletion_protection` | `string` | No | v1.0 | No | Whether deletion protection is enabled. One of: `"enabled"`, `"disabled"`. |
+| `private_host` | `string` | No | v1.0 | No | The private gRPC host URL (only available for BYOC indexes). |
+| `tags` | `object` | No | v1.0 | No | Dictionary of user-defined tags for the index. |
+| `embed` | `object` | No | v1.0 | No | Embedded model configuration (if the index has integrated inference enabled). |
 
-**Methods**
-
-#### `IndexModel.to_dict() -> dict[str, Any]`
+#### `to_dict()`
 
 Converts the IndexModel instance to a dictionary representation.
 
@@ -453,12 +511,6 @@ Converts the IndexModel instance to a dictionary representation.
 **Deprecated:** No
 
 **Returns:** `dict[str, Any]` — A dictionary containing all index properties with their current values.
-
-**Raises / Throws**
-
-| Exception / Error | Condition |
-|-------------------|-----------|
-| `AttributeError` | Unexpected model structure (should not occur in normal usage). |
 
 **Example**
 
@@ -474,74 +526,19 @@ print(index_dict)
 # Output: {"name": "my-index", "dimension": 1536, "metric": "cosine", "host": "...", ...}
 ```
 
----
-
 ### `IndexList`
 
 An iterable collection of indexes.
 
-**Import:** `from pinecone import IndexList`
 **Source:** `pinecone/db_control/models/index_list.py:6-31`
-
-**Constructor**
 
 The `IndexList` is created internally by the SDK when calling `list_indexes()`. Users do not instantiate it directly.
 
-**Properties**
+| Field | Type | Nullable | Since | Deprecated | Description |
+|-------|------|----------|-------|------------|-------------|
+| `indexes` | `array of IndexModel` | No | v1.0 | No | The underlying list of `IndexModel` instances. |
 
-| Property | Type | Readable | Writable | Since | Deprecated | Description |
-|----------|------|----------|----------|-------|------------|-------------|
-| indexes | array of IndexModel | Yes | No | v1.0 | No | The underlying list of `IndexModel` instances. |
-
-**Methods**
-
-#### `IndexList.__iter__() -> Iterator[IndexModel]`
-
-Returns an iterator over the indexes in the list, allowing the IndexList to be used in `for` loops.
-
-**Source:** `pinecone/db_control/models/index_list.py:21-22`
-**Added:** v1.0
-**Deprecated:** No
-
-**Returns:** `Iterator[IndexModel]` — An iterator that yields `IndexModel` instances.
-
----
-
-#### `IndexList.__len__() -> int`
-
-Returns the number of indexes in the list.
-
-**Source:** `pinecone/db_control/models/index_list.py:18-19`
-**Added:** v1.0
-**Deprecated:** No
-
-**Returns:** `int` — The count of indexes in the list.
-
----
-
-#### `IndexList.__getitem__(index: int) -> IndexModel`
-
-Accesses a specific index by numeric position (0-based indexing).
-
-**Source:** `pinecone/db_control/models/index_list.py:15-16`
-**Added:** v1.0
-**Deprecated:** No
-
-| Parameter | Type | Required | Default | Since | Deprecated | Description |
-|-----------|------|----------|---------|-------|------------|-------------|
-| index | integer | Yes | — | v1.0 | No | The numeric index (0-based) of the index to retrieve. |
-
-**Returns:** `IndexModel` — The `IndexModel` at the specified position.
-
-**Raises / Throws**
-
-| Exception / Error | Condition |
-|-------------------|-----------|
-| `IndexError` | The numeric index is out of bounds. |
-
----
-
-#### `IndexList.names() -> list[str]`
+#### `names()`
 
 Convenience method that returns a list of index names without needing to extract the `name` property from each `IndexModel`.
 
@@ -551,9 +548,47 @@ Convenience method that returns a list of index names without needing to extract
 
 **Returns:** `list[str]` — A list of index name strings.
 
----
+#### `__iter__()`
 
-#### `IndexList.__str__() -> str`
+Returns an iterator over the indexes in the list, allowing the IndexList to be used in `for` loops.
+
+**Source:** `pinecone/db_control/models/index_list.py:21-22`
+**Added:** v1.0
+**Deprecated:** No
+
+**Returns:** `Iterator[IndexModel]` — An iterator that yields `IndexModel` instances.
+
+#### `__len__()`
+
+Returns the number of indexes in the list.
+
+**Source:** `pinecone/db_control/models/index_list.py:18-19`
+**Added:** v1.0
+**Deprecated:** No
+
+**Returns:** `int` — The count of indexes in the list.
+
+#### `__getitem__()`
+
+Accesses a specific index by numeric position (0-based indexing).
+
+**Source:** `pinecone/db_control/models/index_list.py:15-16`
+**Added:** v1.0
+**Deprecated:** No
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `index` | `integer` | Yes | — | v1.0 | No | The numeric index (0-based) of the index to retrieve. |
+
+**Returns:** `IndexModel` — The `IndexModel` at the specified position.
+
+**Raises**
+
+| Exception | Condition |
+|-----------|-----------|
+| `IndexError` | The numeric index is out of bounds. |
+
+#### `__str__()`
 
 Returns a string representation of the IndexList.
 
@@ -563,9 +598,7 @@ Returns a string representation of the IndexList.
 
 **Returns:** `str` — A string representation of the list of indexes.
 
----
-
-#### `IndexList.__repr__() -> str`
+#### `__repr__()`
 
 Returns a detailed string representation of the IndexList for debugging.
 
@@ -575,7 +608,7 @@ Returns a detailed string representation of the IndexList for debugging.
 
 **Returns:** `str` — A detailed repr string showing the list structure and contained indexes.
 
-**Example Usage**
+**Example**
 
 ```python
 from pinecone import Pinecone

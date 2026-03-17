@@ -2,18 +2,9 @@
 
 Provides factory methods on the Pinecone and PineconeAsyncio clients to obtain Index data plane clients. These methods are the primary entry point for accessing vector data operations (upsert, query, delete, fetch) on a Pinecone index.
 
-## Overview
+---
 
-**Language / runtime:** Python 3.8+
-**Package:** `pinecone`
-**Module:** `pinecone`
-**Classes:** `Pinecone` and `PineconeAsyncio`
-**Version:** v8.0.0+
-**Breaking change definition:** Removing a method, changing a method's return type, or changing a method signature in a backward-incompatible way (e.g., making a previously optional parameter required without a deprecation period).
-
-## Methods
-
-### `Pinecone.Index(name: str = "", host: str = "") -> Index`
+## `Pinecone.Index()`
 
 Returns a client for performing data operations on a Pinecone index. Targets an index by name (control plane lookup) or by host URL (direct access).
 
@@ -23,22 +14,36 @@ Returns a client for performing data operations on a Pinecone index. Targets an 
 **Idempotency:** N/A (no side effects)
 **Side effects:** None (factory method)
 
+### Signature
+
+```python
+def Index(
+    self,
+    name: str = "",
+    host: str = ""
+) -> Index
+```
+
+### Parameters
+
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| name | string (1–45 chars) | No | `""` | v1.0 | No | The name of the index to target. If specified, the client performs a control plane lookup to obtain the index host URL. If both `name` and `host` are omitted, raises `ValueError`. Not recommended for production due to added control plane dependency. |
-| host | string (uri) | No | `""` | v1.0 | No | The host URL of the index to target (e.g., `index-abc123.svc.pinecone.io`). If specified, the client uses the host directly without making any additional control plane calls. Recommended for production. Raises `ValueError` if the host appears invalid (contains no `.` and is not `localhost`). |
+| `name` | `string (1-45 chars)` | No | `""` | v1.0 | No | The name of the index to target. If specified, the client performs a control plane lookup to obtain the index host URL. If both `name` and `host` are omitted, raises `ValueError`. Not recommended for production due to added control plane dependency. |
+| `host` | `string (uri)` | No | `""` | v1.0 | No | The host URL of the index to target (e.g., `index-abc123.svc.pinecone.io`). If specified, the client uses the host directly without making any additional control plane calls. Recommended for production. Raises `ValueError` if the host appears invalid (contains no `.` and is not `localhost`). |
 
-**Returns:** `Index` — A client instance configured to perform vector operations (query, upsert, delete, fetch) on the target index.
+### Returns
 
-**Raises / Throws**
+**Type:** `Index` — A client instance configured to perform vector operations (query, upsert, delete, fetch) on the target index.
 
-| Exception / Error | Condition |
-|-------------------|-----------|
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
 | `ValueError` | Both `name` and `host` are empty strings (required: must provide at least one). |
 | `ValueError` | The `host` does not appear valid (no `.` and is not `localhost`). |
 | `PineconeException` | The specified index `name` does not exist or cannot be resolved to a host. Only raised when using `name` parameter. |
 
-**Example**
+### Example
 
 ```python
 from pinecone import Pinecone, Vector
@@ -54,7 +59,7 @@ index = pc.Index(name="my-index")
 response = index.query(vector=[0.1, 0.2, 0.3], top_k=10)
 ```
 
-**Notes**
+### Notes
 
 - **Host lookup performance:** When using the `name` parameter, the client caches the resolved host for future use, so the control plane call is incurred only once per index name. However, this still introduces a runtime dependency on api.pinecone.io and is not recommended for production.
 - **Host validation:** The host validation is client-side and basic; it checks for a dot (or `localhost`) to prevent accidental use of index names as hosts. The actual connection attempt will occur during the first data operation.
@@ -63,7 +68,7 @@ response = index.query(vector=[0.1, 0.2, 0.3], top_k=10)
 
 ---
 
-### `PineconeAsyncio.IndexAsyncio(host: str) -> IndexAsyncio`
+## `PineconeAsyncio.IndexAsyncio()`
 
 Returns an asyncio-compatible client from an async PineconeAsyncio client. Requires explicit `host` parameter (no name-based lookup for async clients).
 
@@ -73,20 +78,33 @@ Returns an asyncio-compatible client from an async PineconeAsyncio client. Requi
 **Idempotency:** N/A (no side effects)
 **Side effects:** None (factory method)
 
+### Signature
+
+```python
+def IndexAsyncio(
+    self,
+    host: str
+) -> IndexAsyncio
+```
+
+### Parameters
+
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| host | string (uri) | Yes | — | v1.0 | No | The host URL of the index to target. Required; name-based lookup is not supported via this method. Raises `ValueError` if empty or invalid. |
+| `host` | `string (uri)` | Yes | — | v1.0 | No | The host URL of the index to target. Required; name-based lookup is not supported via this method. Raises `ValueError` if empty or invalid. |
 
-**Returns:** `IndexAsyncio` — An asyncio-compatible client instance.
+### Returns
 
-**Raises / Throws**
+**Type:** `IndexAsyncio` — An asyncio-compatible client instance.
 
-| Exception / Error | Condition |
-|-------------------|-----------|
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
 | `ValueError` | `host` is `None` or empty string. |
 | `ValueError` | The `host` does not appear valid. |
 
-**Example**
+### Example
 
 ```python
 import asyncio
@@ -100,7 +118,7 @@ async def main():
 asyncio.run(main())
 ```
 
-**Notes**
+### Notes
 
 - **Context manager:** The returned IndexAsyncio instance should be used as an async context manager (via `async with`) for proper cleanup. Manual `close()` can be called if a context manager is not used.
 - **Concurrency:** All async methods on the Index client are safe for concurrent use.
@@ -108,7 +126,7 @@ asyncio.run(main())
 
 ---
 
-### `Pinecone.IndexAsyncio(host: str) -> IndexAsyncio`
+## `Pinecone.IndexAsyncio()`
 
 Returns an asyncio-compatible client from a synchronous Pinecone client. Requires explicit `host` parameter (no name-based lookup for async clients).
 
@@ -118,20 +136,33 @@ Returns an asyncio-compatible client from a synchronous Pinecone client. Require
 **Idempotency:** N/A (no side effects)
 **Side effects:** None (factory method)
 
+### Signature
+
+```python
+def IndexAsyncio(
+    self,
+    host: str
+) -> IndexAsyncio
+```
+
+### Parameters
+
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| host | string (uri) | Yes | — | v1.0 | No | The host URL of the index to target. Required; name-based lookup is not supported via this method. Raises `ValueError` if empty or invalid. |
+| `host` | `string (uri)` | Yes | — | v1.0 | No | The host URL of the index to target. Required; name-based lookup is not supported via this method. Raises `ValueError` if empty or invalid. |
 
-**Returns:** `IndexAsyncio` — An asyncio-compatible client instance.
+### Returns
 
-**Raises / Throws**
+**Type:** `IndexAsyncio` — An asyncio-compatible client instance.
 
-| Exception / Error | Condition |
-|-------------------|-----------|
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
 | `ValueError` | `host` is `None` or empty string. |
 | `ValueError` | The `host` does not appear valid. |
 
-**Example**
+### Example
 
 ```python
 import asyncio
@@ -147,7 +178,7 @@ async def main():
 asyncio.run(main())
 ```
 
-**Notes**
+### Notes
 
 - **Sync vs Async factories:** `Pinecone.Index()` returns a sync client and `Pinecone.IndexAsyncio()` returns an async client. Both can be obtained from the same `Pinecone` instance, but they maintain separate connections.
 - **Alternative:** `PineconeAsyncio` is the recommended entry point for async workloads. Use `Pinecone.IndexAsyncio()` only when you already have a sync Pinecone client and need async index access.

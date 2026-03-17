@@ -1,22 +1,24 @@
 # Index Creation and Configuration
 
-Methods for creating and configuring Pinecone indexes via the `IndexResource` class (available on `Pinecone` and `PineconeAsyncio` client instances as `.indexes`).
+Operations for creating and configuring Pinecone indexes. The `create_index()` method supports serverless, pod, and BYOC configurations, while `create_index_for_model()` creates serverless indexes with integrated inference. The `configure_index()` method enables modification of pod count, pod type, deletion protection, tags, integrated inference settings, and serverless read capacity.
 
 ---
 
-## IndexResource.create
+## `Pinecone.create_index()`
 
-Creates a new index with the specified configuration.
+Creates a Pinecone index with the specified configuration.
 
-**Source:** `pinecone/db_control/resources/sync/index.py:74-101`, `pinecone/db_control/resources/asyncio/index.py:58-85` (async equivalent)
+**Source:** `pinecone/pinecone.py:378-508`
 
 **Added:** v1.0
 **Deprecated:** No
+**Idempotency:** Non-idempotent. Calling with the same parameters when an index with that name already exists raises a `PineconeApiException` with HTTP status 409 (Conflict).
+**Side effects:** Creates a new index. The index is immediately available for configuration but may take time to be ready for data operations.
 
 ### Signature
 
 ```python
-def create(
+def create_index(
     self,
     *,
     name: str,
@@ -27,89 +29,468 @@ def create(
     deletion_protection: DeletionProtection | str = "disabled",
     vector_type: VectorType | str = "dense",
     tags: dict[str, str] | None = None,
-) -> IndexModel:
+) -> IndexModel
 ```
 
 ### Parameters
 
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
-|-----------|------|----------|---------|-------|-----------|-------------|
-| `name` | `string` | Yes | — | v1.0 | No | The name of the index. Must be unique within the workspace and match the pattern `[a-z0-9_-]{1,45}`. |
-| `spec` | `dict \| ServerlessSpec \| PodSpec \| ByocSpec` | Yes | — | v1.0 | No | The infrastructure specification for the index. Defines deployment mode (serverless, pod-based, or BYOC), compute resources, and region. Pass a dict or use the provided spec classes. |
-| `dimension` | `int \| None` | No | `None` | v1.0 | No | The number of dimensions for vectors in the index. Required when creating serverless indexes unless embedding is configured via the spec. Must be between 1 and 20,000. |
-| `metric` | `Metric \| str` | No | `"cosine"` | v1.0 | No | The distance metric used for similarity search. One of `cosine`, `euclidean`, or `dotproduct`. Cannot be changed after index creation. |
-| `deletion_protection` | `DeletionProtection \| str` | No | `"disabled"` | v1.0 | No | Whether the index is protected from deletion. One of `enabled` or `disabled`. When enabled, calling `delete()` raises an error. Can be changed later via `configure()`. |
-| `vector_type` | `VectorType \| str` | No | `"dense"` | v1.0 | No | The type of vectors to store in the index. One of `dense` or `sparse`. Cannot be changed after index creation. |
-| `tags` | `dict[str, str] \| None` | No | `None` | v1.0 | No | Key-value tags to attach to the index for organization and filtering. User-defined; no validation or auto-generation. |
-| `timeout` | `int \| None` | No | `None` | v1.0 | No | Seconds to wait for the index to reach `ready` status. `None` polls indefinitely; `-1` returns immediately without polling; positive integer polls for that many seconds then raises `TimeoutError`. |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `name` | `string (1–45 chars)` | Yes | — | v1.0 | No | The name of the index to create. Must be unique within your project and cannot be changed once created. Names must contain only lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen (validated by the API). |
+| `spec` | `Dict \| ServerlessSpec \| PodSpec \| ByocSpec` | Yes | — | v1.0 | No | Configuration describing how the index should be deployed. For serverless, provide region and cloud; optionally specify `read_capacity` (OnDemand or Dedicated) and `schema` for filterable metadata fields. For pod, specify replicas, shards, pods, pod_type, metadata_config, and source_collection. |
+| `dimension` | `integer (int32, 1–20000)` | No (Required for `vector_type="dense"`) | — | v1.0 | No | The dimensionality of vectors in the index. Must match the embeddings you will insert. Examples: 1536 for OpenAI's text-embedding-3-small, 768 for open-source models. Required when `vector_type="dense"`. Omit when `vector_type="sparse"`. |
+| `metric` | `string (enum: cosine, dotproduct, euclidean)` | No | `"cosine"` | v1.0 | No | The similarity metric used when querying vectors. Affects which queries are most efficient and how similarity scores are computed. |
+| `timeout` | `integer (int32) \| None` | No | `None` | v1.0 | No | The number of seconds to wait for the index to reach ready state. When `None`, wait indefinitely. When `>= 0`, time out after this many seconds and raise `TimeoutError`. When `-1`, return immediately without waiting. |
+| `deletion_protection` | `string (enum: enabled, disabled) \| DeletionProtection` | No | `"disabled"` | v1.0 | No | If `"enabled"`, the index cannot be deleted. If `"disabled"`, the index can be deleted. This setting can later be changed with `configure_index()`. |
+| `vector_type` | `string (enum: dense, sparse) \| VectorType` | No | `"dense"` | v2.0 | No | The type of vectors stored in the index. `"dense"` for fixed-dimension embeddings, `"sparse"` for variable-length sparse vectors (requires `dimension` to be omitted). |
+| `tags` | `dict[str, str] \| None` | No | `None` | v1.0 | No | Key-value pairs to organize and identify the index. Example use cases: tag with model name (`model: text-embedding-3-small`), creation date (`created: 2024-03-15`), or purpose (`env: production`). |
 
 ### Returns
 
-**Type:** `IndexModel`
-
-The created index with metadata: name, dimension, metric, host endpoint, status, spec, tags, vector type, and deletion protection.
+**Type:** `IndexModel` — A description of the newly created index, containing fields like `name`, `dimension`, `metric`, `host`, `status`, `spec`, and `deletion_protection`.
 
 ### Raises
 
 | Exception | Condition |
 |-----------|-----------|
-| `pinecone.PineconeApiException` | Index name already exists, or invalid parameters (spec, dimension out of range, invalid metric, unsupported region, etc.). |
-| `ValueError` | Invalid parameter values (e.g., deletion_protection not "enabled"/"disabled", spec missing required keys, dimension specified for sparse vectors). |
-| `TypeError` | Invalid parameter type (e.g., `spec` is not dict, ServerlessSpec, PodSpec, or ByocSpec). |
-| `TimeoutError` | Index was not ready within the specified `timeout` seconds. Message includes elapsed time. Only raised if `timeout` is a positive integer. |
+| `PineconeApiException` (409 Conflict) | An index with the given `name` already exists. |
+| `ValueError` | `dimension` is provided with `vector_type="sparse"`. |
+| `PineconeApiException` (400 Bad Request) | Input validation failed. May occur if `name` exceeds 45 characters, contains invalid characters, or starts/ends with hyphens; if `dimension` is outside the valid range; if `metric` is invalid; or if other parameters are malformed. |
+| `PineconeApiException` (401 Unauthorized) | The API key is missing or invalid. |
+| `PineconeApiException` (403 Forbidden) | The API key lacks permission to create indexes. |
+| `TimeoutError` | The index did not reach ready state within the specified `timeout`. |
 | `Exception` | Index initialization failed with status `InitializationFailed`. |
 
-### Idempotency
+### Behavior
 
-Non-idempotent. Repeated identical calls with the same name raise an error (name conflict). Use the index name as a uniqueness key if you need idempotent behavior.
-
-### Side Effects
-
-- Creates a new index in the Pinecone service
-- Allocates compute resources according to the `spec`
-- Caches the index endpoint address locally for use by subsequent operations
-- If `timeout >= 0`, polls `describe()` every 5 seconds until ready or timeout
+- The index is marked as "Initializing" in the response and transitions to "Ready" state asynchronously. Use `describe_index()` to poll the status.
+- By default (`timeout=None`), the method polls `describe_index()` every 5 seconds until the index status is `ready`. This is blocking.
+- When `timeout=-1`, returns the API response without polling. When `timeout` is a positive integer, polls for that many seconds then raises `TimeoutError`.
+- The index name is case-insensitive for uniqueness checks, but the returned `IndexModel` preserves the case you provided.
+- When using metadata schema, only fields listed in the schema with `filterable: True` can be used in filter expressions during queries.
+- Caches the index endpoint address locally for use by subsequent operations.
 
 ### Example
 
 ```python
-from pinecone import Pinecone, ServerlessSpec
-
-pc = Pinecone(api_key="your-api-key")
-
-# Create a serverless index
-index = pc.indexes.create(
-    name="my-index",
-    dimension=1536,
-    metric="cosine",
-    spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-    timeout=120
+import os
+from pinecone import (
+    Pinecone,
+    ServerlessSpec,
+    CloudProvider,
+    AwsRegion,
+    Metric,
+    DeletionProtection,
+    VectorType
 )
 
-print(f"Index '{index.name}' is ready: {index.status.ready}")
+pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
+
+# Create a serverless index with dedicated read capacity and metadata schema
+index_description = pc.create_index(
+    name="movie-index",
+    dimension=512,
+    metric=Metric.COSINE,
+    spec=ServerlessSpec(
+        cloud=CloudProvider.AWS,
+        region=AwsRegion.US_WEST_2,
+        read_capacity={
+            "mode": "Dedicated",
+            "dedicated": {
+                "node_type": "t1",
+                "scaling": "Manual",
+                "manual": {"shards": 2, "replicas": 2},
+            },
+        },
+        schema={
+            "genre": {"filterable": True},
+            "year": {"filterable": True},
+            "rating": {"filterable": True},
+        },
+    ),
+    deletion_protection=DeletionProtection.DISABLED,
+    vector_type=VectorType.DENSE,
+    tags={
+        "app": "movie-recommendations",
+        "env": "production"
+    }
+)
+
+print(f"Index '{index_description.name}' created successfully")
+print(f"Status: {index_description.status}")
+print(f"Host: {index_description.host}")
 ```
 
-### Notable Behavior
+### Notes
 
-- **Polling:** By default, the method polls `describe()` every 5 seconds until the index status is `ready`. This is blocking.
-- **Timeout behavior:** When `timeout=-1`, returns the API response without polling. When `timeout=None`, polls indefinitely. When `timeout` is a positive integer, polls for that many seconds then raises `TimeoutError`.
-- **Async default types:** The async version (`PineconeAsyncio.indexes.create()`) uses Enum defaults instead of string defaults: `metric=Metric.COSINE`, `deletion_protection=DeletionProtection.DISABLED`, `vector_type=VectorType.DENSE`. Both formats (strings and Enum values) are accepted by the API.
+- When `timeout=None`, the method waits indefinitely. For production code, consider setting an explicit timeout to avoid unbounded waits.
+- Repeated identical calls with the same name raise an error (name conflict). Use `has_index()` if you need idempotent behavior.
 
 ---
 
-## IndexResource.configure
+## `PineconeAsyncio.create_index()`
 
-Updates the configuration of an existing index without interrupting running queries.
+Asynchronous version of `Pinecone.create_index()`. Creates a Pinecone index with the specified configuration.
 
-**Source:** `pinecone/db_control/resources/sync/index.py:259-289`, `pinecone/db_control/resources/asyncio/index.py:220-248` (async equivalent)
+**Source:** `pinecone/pinecone_asyncio.py:423-563`
 
 **Added:** v1.0
 **Deprecated:** No
+**Idempotency:** Non-idempotent. Calling with the same parameters when an index with that name already exists raises a `PineconeApiException` with HTTP status 409 (Conflict).
+**Side effects:** Creates a new index. The index is immediately available for configuration but may take time to be ready for data operations.
 
 ### Signature
 
 ```python
-def configure(
+async def create_index(
+    self,
+    *,
+    name: str,
+    spec: Dict | ServerlessSpec | PodSpec | ByocSpec,
+    dimension: int | None = None,
+    metric: Metric | str = "cosine",
+    timeout: int | None = None,
+    deletion_protection: DeletionProtection | str = "disabled",
+    vector_type: VectorType | str = "dense",
+    tags: dict[str, str] | None = None,
+) -> IndexModel
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `name` | `string (1–45 chars)` | Yes | — | v1.0 | No | The name of the index to create. Must be unique within your project and cannot be changed once created. Names must contain only lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen (validated by the API). |
+| `spec` | `Dict \| ServerlessSpec \| PodSpec \| ByocSpec` | Yes | — | v1.0 | No | Configuration describing how the index should be deployed. For serverless, provide region and cloud; optionally specify `read_capacity` (OnDemand or Dedicated) and `schema` for filterable metadata fields. For pod, specify replicas, shards, pods, pod_type, metadata_config, and source_collection. |
+| `dimension` | `integer (int32, 1–20000)` | No (Required for `vector_type="dense"`) | — | v1.0 | No | The dimensionality of vectors in the index. Must match the embeddings you will insert. Required when `vector_type="dense"`. Omit when `vector_type="sparse"`. |
+| `metric` | `string (enum: cosine, dotproduct, euclidean)` | No | `"cosine"` | v1.0 | No | The similarity metric used when querying vectors. Affects which queries are most efficient and how similarity scores are computed. |
+| `timeout` | `integer (int32) \| None` | No | `None` | v1.0 | No | The number of seconds to wait for the index to reach ready state. When `None`, wait indefinitely. When `>= 0`, time out after this many seconds and raise `TimeoutError`. When `-1`, return immediately without waiting. |
+| `deletion_protection` | `string (enum: enabled, disabled) \| DeletionProtection` | No | `"disabled"` | v1.0 | No | If `"enabled"`, the index cannot be deleted. If `"disabled"`, the index can be deleted. This setting can later be changed with `configure_index()`. |
+| `vector_type` | `string (enum: dense, sparse) \| VectorType` | No | `"dense"` | v2.0 | No | The type of vectors stored in the index. `"dense"` for fixed-dimension embeddings, `"sparse"` for variable-length sparse vectors. |
+| `tags` | `dict[str, str] \| None` | No | `None` | v1.0 | No | Key-value pairs to organize and identify the index. |
+
+### Returns
+
+**Type:** `IndexModel` — Awaitable that resolves to a description of the newly created index.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `PineconeApiException` (409 Conflict) | An index with the given `name` already exists. |
+| `ValueError` | `dimension` is provided with `vector_type="sparse"`. |
+| `PineconeApiException` (400 Bad Request) | Input validation failed (invalid name, dimension, metric, or other parameters). |
+| `PineconeApiException` (401 Unauthorized) | The API key is missing or invalid. |
+| `PineconeApiException` (403 Forbidden) | The API key lacks permission to create indexes. |
+| `TimeoutError` | The index did not reach ready state within the specified `timeout`. |
+
+### Example
+
+```python
+import os
+import asyncio
+from pinecone import (
+    PineconeAsyncio,
+    ServerlessSpec,
+    CloudProvider,
+    AwsRegion,
+    Metric,
+)
+
+async def main():
+    async with PineconeAsyncio(api_key=os.environ.get("PINECONE_API_KEY")) as pc:
+        # Create a serverless index
+        index_description = await pc.create_index(
+            name="async-movie-index",
+            dimension=768,
+            metric=Metric.COSINE,
+            spec=ServerlessSpec(
+                cloud=CloudProvider.AWS,
+                region=AwsRegion.US_EAST_1,
+            ),
+            tags={"app": "async-movies"}
+        )
+
+        print(f"Index created: {index_description.name}")
+
+asyncio.run(main())
+```
+
+### Notes
+
+- The index name is case-insensitive for uniqueness checks, but the returned `IndexModel` preserves the case you provided.
+- When `timeout=None`, the method waits indefinitely. For production code, consider setting an explicit timeout to avoid unbounded waits.
+- The index is marked as "Initializing" in the response and transitions to "Ready" state asynchronously. Use `describe_index()` to poll the status.
+- When using metadata schema, only fields listed in the schema with `filterable: True` can be used in filter expressions during queries.
+- The async version uses Enum defaults instead of string defaults: `metric=Metric.COSINE`, `deletion_protection=DeletionProtection.DISABLED`, `vector_type=VectorType.DENSE`. Both formats (strings and Enum values) are accepted by the API.
+
+---
+
+## `Pinecone.create_index_for_model()`
+
+Creates a serverless index optimized for use with Pinecone's integrated inference models. The index is automatically configured with an embedding model that transforms input data before indexing and querying.
+
+**Source:** `pinecone/pinecone.py:510-655`
+
+**Added:** v1.5
+**Deprecated:** No
+**Idempotency:** Non-idempotent. Calling with the same parameters when an index with that name already exists raises a `PineconeApiException` with HTTP status 409 (Conflict).
+**Side effects:** Creates a serverless index with integrated inference enabled. The specified embedding model becomes the default for upsert and query operations on this index.
+
+### Signature
+
+```python
+def create_index_for_model(
+    self,
+    *,
+    name: str,
+    cloud: CloudProvider | str,
+    region: AwsRegion | GcpRegion | AzureRegion | str,
+    embed: IndexEmbed | CreateIndexForModelEmbedTypedDict,
+    tags: dict[str, str] | None = None,
+    deletion_protection: DeletionProtection | str = "disabled",
+    read_capacity: ReadCapacityDict | ReadCapacity | ReadCapacityOnDemandSpec | ReadCapacityDedicatedSpec | None = None,
+    schema: dict[str, MetadataSchemaFieldConfig] | dict[str, dict[str, Any]] | MetadataSchema | None = None,
+    timeout: int | None = None,
+) -> IndexModel
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `name` | `string (1–45 chars)` | Yes | — | v1.5 | No | The name of the index to create. Must be unique within your project. |
+| `cloud` | `CloudProvider \| string (enum: aws, gcp, azure)` | Yes | — | v1.5 | No | The cloud provider for the serverless index. Use `CloudProvider.AWS`, `CloudProvider.GCP`, or `CloudProvider.AZURE`, or pass the string value directly. |
+| `region` | `AwsRegion \| GcpRegion \| AzureRegion \| string` | Yes | — | v1.5 | No | The cloud region for the index. Enum classes `AwsRegion`, `GcpRegion`, and `AzureRegion` provide region constants. Alternatively, pass region names as strings (e.g., `"us-east-1"` for AWS). |
+| `embed` | `IndexEmbed \| CreateIndexForModelEmbedTypedDict` | Yes | — | v1.5 | No | The embedding configuration. Specify `model` (e.g., `EmbedModel.Multilingual_E5_Large`), `field_map` to map input field names to the fields your embedding model expects (required), and optionally `metric` (e.g., `Metric.COSINE`). |
+| `tags` | `dict[str, str] \| None` | No | `None` | v1.5 | No | Key-value pairs to organize and identify the index (e.g., `{"model": "e5-large", "app": "search"}`). |
+| `deletion_protection` | `string (enum: enabled, disabled) \| DeletionProtection` | No | `"disabled"` | v1.5 | No | If `"enabled"`, the index cannot be deleted. If `"disabled"`, the index can be deleted. Can be changed later with `configure_index()`. |
+| `read_capacity` | `ReadCapacityDict \| ReadCapacity \| ReadCapacityOnDemandSpec \| ReadCapacityDedicatedSpec \| None` | No | `None` (on-demand) | v1.5 | No | Optional read capacity configuration. Omit for on-demand scaling, or provide a dictionary/object with mode (`"OnDemand"` or `"Dedicated"`) and associated settings (node_type, scaling mode, shards, replicas). |
+| `schema` | `dict[str, MetadataSchemaFieldConfig] \| dict[str, dict[str, Any]] \| MetadataSchema \| None` | No | `None` | v1.5 | No | Optional metadata schema defining which fields are filterable during queries. Provide as a dictionary mapping field names to their configuration (e.g., `{"genre": {"filterable": True}}`), optionally with a `"fields"` wrapper. |
+| `timeout` | `integer (int32) \| None` | No | `None` | v1.5 | No | The number of seconds to wait for the index to reach ready state. When `None`, wait indefinitely. When `>= 0`, time out after this many seconds. When `-1`, return immediately. |
+
+### Returns
+
+**Type:** `IndexModel` — A description of the newly created index, including name, dimension (inferred from the model), metric, host, status, and spec.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `PineconeApiException` (409 Conflict) | An index with the given `name` already exists. |
+| `ValueError` | `field_map` is not provided in the `embed` argument. |
+| `PineconeApiException` (400 Bad Request) | Input validation failed. May occur if `cloud` is invalid, `region` is not valid for the specified cloud, `embed.model` is not recognized, or other parameters are malformed. |
+| `PineconeApiException` (401 Unauthorized) | The API key is missing or invalid. |
+| `PineconeApiException` (403 Forbidden) | The API key lacks permission to create indexes or access the specified embedding model. |
+| `TimeoutError` | The index did not reach ready state within the specified `timeout`. |
+
+### Example
+
+```python
+from pinecone import (
+    Pinecone,
+    IndexEmbed,
+    EmbedModel,
+    CloudProvider,
+    AwsRegion,
+    Metric,
+    DeletionProtection,
+)
+
+pc = Pinecone()
+
+# Create a serverless index with integrated inference (multilingual E5 embeddings)
+if not pc.has_index("book-search"):
+    index_description = pc.create_index_for_model(
+        name="book-search",
+        cloud=CloudProvider.AWS,
+        region=AwsRegion.US_EAST_1,
+        embed=IndexEmbed(
+            model=EmbedModel.Multilingual_E5_Large,
+            metric=Metric.COSINE,
+            field_map={
+                "text": "description",  # Map input field 'description' to 'text' for the model
+            },
+        ),
+        tags={
+            "model": "e5-large",
+            "app": "book-search",
+            "env": "production"
+        }
+    )
+
+    print(f"Index '{index_description.name}' created with inference enabled")
+    print(f"Host: {index_description.host}")
+```
+
+```python
+# Example with dedicated read capacity and metadata schema
+from pinecone import (
+    Pinecone,
+    IndexEmbed,
+    EmbedModel,
+    CloudProvider,
+    AwsRegion,
+    Metric,
+)
+
+pc = Pinecone()
+
+index_description = pc.create_index_for_model(
+    name="product-search",
+    cloud=CloudProvider.AWS,
+    region=AwsRegion.US_EAST_1,
+    embed=IndexEmbed(
+        model=EmbedModel.Multilingual_E5_Large,
+        metric=Metric.COSINE,
+        field_map={
+            "text": "description",
+        },
+    ),
+    read_capacity={
+        "mode": "Dedicated",
+        "dedicated": {
+            "node_type": "t1",
+            "scaling": "Manual",
+            "manual": {"shards": 2, "replicas": 2},
+        },
+    },
+    schema={
+        "product_category": {"filterable": True},
+        "brand": {"filterable": True},
+        "price": {"filterable": True},
+    },
+)
+
+print(f"Index created with dedicated read capacity")
+```
+
+### Notes
+
+- The resulting index is always a serverless index. Pod and BYOC indexes are not supported with integrated inference.
+- The embedding model's dimension is automatically set and cannot be overridden.
+- The `field_map` is required and must map input field names to the fields your embedding model expects.
+- After creation, interact with the index using `Pinecone.Index()` to get an index client for upsert, query, and delete operations.
+- For a list of available embedding models, call `pc.inference.list_models()` or visit the [Model Gallery](https://docs.pinecone.io/models/overview).
+
+---
+
+## `PineconeAsyncio.create_index_for_model()`
+
+Asynchronous version of `Pinecone.create_index_for_model()`. Creates a serverless index optimized for use with Pinecone's integrated inference models.
+
+**Source:** `pinecone/pinecone_asyncio.py:565-720`
+
+**Added:** v1.5
+**Deprecated:** No
+**Idempotency:** Non-idempotent. Calling with the same parameters when an index with that name already exists raises a `PineconeApiException` with HTTP status 409 (Conflict).
+**Side effects:** Creates a serverless index with integrated inference enabled.
+
+### Signature
+
+```python
+async def create_index_for_model(
+    self,
+    *,
+    name: str,
+    cloud: CloudProvider | str,
+    region: AwsRegion | GcpRegion | AzureRegion | str,
+    embed: IndexEmbed | CreateIndexForModelEmbedTypedDict,
+    tags: dict[str, str] | None = None,
+    deletion_protection: DeletionProtection | str = "disabled",
+    read_capacity: ReadCapacityDict | ReadCapacity | ReadCapacityOnDemandSpec | ReadCapacityDedicatedSpec | None = None,
+    schema: dict[str, MetadataSchemaFieldConfig] | dict[str, dict[str, Any]] | MetadataSchema | None = None,
+    timeout: int | None = None,
+) -> IndexModel
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `name` | `string (1–45 chars)` | Yes | — | v1.5 | No | The name of the index to create. Must be unique within your project. |
+| `cloud` | `CloudProvider \| string (enum: aws, gcp, azure)` | Yes | — | v1.5 | No | The cloud provider for the serverless index. |
+| `region` | `AwsRegion \| GcpRegion \| AzureRegion \| string` | Yes | — | v1.5 | No | The cloud region for the index. Use enum classes or pass region names as strings. |
+| `embed` | `IndexEmbed \| CreateIndexForModelEmbedTypedDict` | Yes | — | v1.5 | No | The embedding configuration. Specify `model` (required), `field_map` to map input field names to the fields your embedding model expects (required), and optionally `metric`. |
+| `tags` | `dict[str, str] \| None` | No | `None` | v1.5 | No | Key-value pairs to organize and identify the index. |
+| `deletion_protection` | `string (enum: enabled, disabled) \| DeletionProtection` | No | `"disabled"` | v1.5 | No | If `"enabled"`, the index cannot be deleted. |
+| `read_capacity` | `ReadCapacityDict \| ReadCapacity \| ReadCapacityOnDemandSpec \| ReadCapacityDedicatedSpec \| None` | No | `None` (on-demand) | v1.5 | No | Optional read capacity configuration (OnDemand or Dedicated with node settings). |
+| `schema` | `dict[str, MetadataSchemaFieldConfig] \| dict[str, dict[str, Any]] \| MetadataSchema \| None` | No | `None` | v1.5 | No | Optional metadata schema defining which fields are filterable. |
+| `timeout` | `integer (int32) \| None` | No | `None` | v1.5 | No | The number of seconds to wait for the index to reach ready state. |
+
+### Returns
+
+**Type:** `IndexModel` — Awaitable that resolves to a description of the newly created index.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `PineconeApiException` (409 Conflict) | An index with the given `name` already exists. |
+| `ValueError` | `field_map` is not provided in the `embed` argument. |
+| `PineconeApiException` (400 Bad Request) | Input validation failed (invalid cloud, region, model, or other parameters). |
+| `PineconeApiException` (401 Unauthorized) | The API key is missing or invalid. |
+| `PineconeApiException` (403 Forbidden) | The API key lacks permission. |
+| `TimeoutError` | The index did not reach ready state within the specified `timeout`. |
+
+### Example
+
+```python
+import asyncio
+from pinecone import (
+    PineconeAsyncio,
+    IndexEmbed,
+    EmbedModel,
+    CloudProvider,
+    AwsRegion,
+    Metric,
+)
+
+async def main():
+    async with PineconeAsyncio() as pc:
+        # Create a serverless index with integrated inference
+        index_description = await pc.create_index_for_model(
+            name="async-book-search",
+            cloud=CloudProvider.AWS,
+            region=AwsRegion.US_EAST_1,
+            embed=IndexEmbed(
+                model=EmbedModel.Multilingual_E5_Large,
+                metric=Metric.COSINE,
+                field_map={"text": "description"},
+            ),
+            tags={"app": "async-search"}
+        )
+
+        print(f"Async index created: {index_description.name}")
+
+asyncio.run(main())
+```
+
+### Notes
+
+- The resulting index is always a serverless index. Pod and BYOC indexes are not supported with integrated inference.
+- The embedding model's dimension is automatically set and cannot be overridden.
+- The `field_map` is required and must map input field names to the fields your embedding model expects.
+- After creation, interact with the index using `PineconeAsyncio.Index()` to get an index client for upsert, query, and delete operations.
+- For a list of available embedding models, call `pc.inference.list_models()` or visit the [Model Gallery](https://docs.pinecone.io/models/overview).
+
+---
+
+## `Pinecone.configure_index()`
+
+Modifies the configuration of an existing index without waiting for the operation to complete.
+
+**Source:** `pinecone/pinecone.py:870-1026`
+
+**Added:** v3.0
+**Deprecated:** No
+**Idempotency:** Safe to retry. Repeated calls with identical parameters produce the same final result. Each call is sent to the server; the method does not skip requests if the configuration is already in the desired state.
+**Side effects:** Modifies the index configuration. Changes are applied asynchronously; use `describe_index()` to monitor status.
+
+### Signature
+
+```python
+def configure_index(
     self,
     *,
     name: str,
@@ -118,73 +499,254 @@ def configure(
     deletion_protection: DeletionProtection | str | None = None,
     tags: dict[str, str] | None = None,
     embed: ConfigureIndexEmbed | Dict | None = None,
-    read_capacity: ReadCapacityDict | ReadCapacity | ReadCapacityOnDemandSpec | ReadCapacityDedicatedSpec | None = None,
-) -> None:
+    read_capacity: dict | None = None,
+) -> None
 ```
 
 ### Parameters
 
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
-|-----------|------|----------|---------|-------|-----------|-------------|
-| `name` | `string` | Yes | — | v1.0 | No | The name of the index to configure. |
-| `replicas` | `int \| None` | No | `None` | v1.0 | No | Number of replicas for pod-based indexes only. Ignored for serverless indexes. When `None`, the current replica count is preserved. |
-| `pod_type` | `PodType \| str \| None` | No | `None` | v1.0 | No | Pod type for pod-based indexes (e.g., `p1.x1`, `p2.x4`). Ignored for serverless indexes. When `None`, the current pod type is preserved. |
-| `deletion_protection` | `DeletionProtection \| str \| None` | No | `None` | v1.0 | No | Whether the index is protected from deletion. One of `enabled` or `disabled`. When `None`, the current protection status is preserved. When set, overrides the existing value. |
-| `tags` | `dict[str, str] \| None` | No | `None` | v1.0 | No | Key-value tags for the index. When provided, **replaces all existing tags**. When `None`, existing tags are preserved. Pass `{}` to remove all tags. |
-| `embed` | `ConfigureIndexEmbed \| dict \| None` | No | `None` | v1.0 | No | Embedding API configuration for serverless indexes only. Enables automatic embedding via a specified model. Ignored for pod-based indexes. When `None`, current embed config is preserved. |
-| `read_capacity` | `ReadCapacityDict \| ReadCapacity \| ... \| None` | No | `None` | v1.0 | No | Read capacity configuration for serverless indexes only. Pass a dict with mode specified: `{"mode": "OnDemand"}` for auto-scaling or `{"mode": "Dedicated", "value": N}` for fixed capacity. Ignored for pod-based indexes. When `None`, current read capacity is preserved. |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `name` | `string` | Yes | — | v3.0 | No | The name of the index to configure. |
+| `replicas` | `integer (int32, 0–)` | No | `None` | v3.0 | No | The desired number of replicas for pod-based indexes. When omitted, replicas are not modified. Only applies to pod-based indexes. |
+| `pod_type` | `string (enum: p1.x1, p1.x2, p1.x4, p1.x8, p2.x1, p2.x2, p2.x4, p2.x8, s1.x1, s1.x2, s1.x4, s1.x8) \| PodType` | No | `None` | v3.0 | No | The new pod type for pod-based indexes. When omitted, pod type is not modified. Only applies to pod-based indexes. Valid values depend on the pod-based index environment. |
+| `deletion_protection` | `string (enum: enabled, disabled) \| DeletionProtection` | No | `None` | v3.0 | No | Whether the index is protected from deletion. When set to `"enabled"` or `DeletionProtection.ENABLED`, the index cannot be deleted via `delete_index()`. When set to `"disabled"` or `DeletionProtection.DISABLED`, deletion protection is removed. When omitted, deletion protection status is not modified. |
+| `tags` | `dict[str, str]` | No | `None` | v3.0 | No | Tags to add, update, or remove from the index. Tag updates are merged with existing tags; to remove a tag, set its value to an empty string `""`. When omitted, tags are not modified. |
+| `embed` | `ConfigureIndexEmbed \| dict` | No | `None` | v3.0 | No | Enables or updates integrated inference embeddings on the index, specifying the embedding model and configuring field mapping and read/write parameters. Once set, the embedding model cannot be changed. Only applies to serverless indexes. When omitted, embedding configuration is not modified. |
+| `read_capacity` | `dict` | No | `None` | v3.0 | No | Read capacity configuration for serverless indexes, specifying whether to use on-demand or dedicated mode. When omitted, read capacity configuration is not modified. Only applies to serverless indexes. See examples for detailed structure. |
 
 ### Returns
 
-**Type:** `None`
-
-No return value. Call `describe()` to verify configuration changes took effect.
+**Type:** `None` — Configuration changes are processed asynchronously. The method returns immediately after the server accepts the request, not after changes are applied.
 
 ### Raises
 
 | Exception | Condition |
 |-----------|-----------|
-| `pinecone.NotFoundException` | The index does not exist. |
-| `pinecone.PineconeApiException` | Invalid parameter values (e.g., incompatible pod type, unsupported replica count). |
-| `ValueError` | Invalid parameter values (e.g., deletion_protection not "enabled"/"disabled", invalid read_capacity configuration). |
+| `NotFoundException` | No index with the given `name` exists. |
+| `UnauthorizedException` | The API key is invalid or missing. |
+| `ValueError` | `deletion_protection` has an invalid value, or `read_capacity` configuration is invalid (e.g., missing required fields in dedicated mode). |
+| `PineconeApiException` | The index modification fails on the server side (e.g., incompatible configuration changes). |
 
-### Idempotency
+### Behavior
 
-Idempotent in effect: repeated calls with identical parameters produce the same final result. Each call is sent to the server; the method does not skip requests if the configuration is already in the desired state.
-
-### Side Effects
-
-- Modifies index configuration on the Pinecone service
-- May trigger resource scaling (pods, replicas, read capacity)
-- Queries and mutations are not interrupted during configuration changes
-- Scaling happens in a rolling manner with zero downtime
+- Configuration changes are processed asynchronously. After calling `configure_index()`, call `describe_index()` to check the current status; the status field will show `"initializing"` or `"ready"` as changes are being applied.
+- Multiple parameters can be modified in a single call; all requested changes are batched together.
+- Tag merging: The `tags` parameter merges with existing tags rather than replacing them. To remove a tag, set its value to an empty string.
+- Pod type changes (vertical scaling) may incur a brief period where the index is temporarily unavailable.
+- For serverless indexes, `replicas` and `pod_type` are not applicable; use `read_capacity` instead.
+- For pod-based indexes, `read_capacity` and `embed` are not applicable.
+- Queries and mutations are not interrupted during configuration changes. Scaling happens in a rolling manner with zero downtime.
 
 ### Example
 
 ```python
-from pinecone import Pinecone
+from pinecone import Pinecone, DeletionProtection, PodType
 
-pc = Pinecone(api_key="your-api-key")
+pc = Pinecone(api_key="sk-example-key-do-not-use")
 
-# Update deletion protection and tags
-pc.indexes.configure(
-    name="my-index",
-    deletion_protection="enabled",
-    tags={"environment": "production", "team": "ml"}
-)
-
-# For pod-based indexes, scale up
-pc.indexes.configure(
+# Scale a pod-based index by adding replicas
+pc.configure_index(
     name="my-pod-index",
-    replicas=3,
-    pod_type="p2.x2"
+    replicas=3
 )
 
-# Verify the changes
-index = pc.indexes.describe("my-index")
-print(f"Deletion protection: {index.deletion_protection}")
+# Change pod type (vertical scaling)
+pc.configure_index(
+    name="my-pod-index",
+    pod_type=PodType.P1_X2
+)
+
+# Enable deletion protection
+pc.configure_index(
+    name="my-pod-index",
+    deletion_protection=DeletionProtection.ENABLED
+)
+
+# Disable deletion protection
+pc.configure_index(
+    name="my-pod-index",
+    deletion_protection=DeletionProtection.DISABLED
+)
+
+# Add or update tags
+pc.configure_index(
+    name="my-pod-index",
+    tags={"environment": "production", "team": "search"}
+)
+
+# Remove a tag by setting its value to empty string
+pc.configure_index(
+    name="my-pod-index",
+    tags={"old-tag": ""}
+)
+
+# Configure integrated inference embeddings on a serverless index
+pc.configure_index(
+    name="my-serverless-index",
+    embed={"model": "multilingual-e5-large"}
+)
+
+# Configure serverless read capacity to on-demand mode
+pc.configure_index(
+    name="my-serverless-index",
+    read_capacity={"mode": "OnDemand"}
+)
+
+# Configure serverless read capacity to dedicated mode with manual scaling
+pc.configure_index(
+    name="my-serverless-index",
+    read_capacity={
+        "mode": "Dedicated",
+        "dedicated": {
+            "node_type": "t1",
+            "scaling": "Manual",
+            "manual": {"shards": 1, "replicas": 1}
+        }
+    }
+)
+
+# Verify configuration was accepted (changes apply asynchronously)
+desc = pc.describe_index("my-pod-index")
+print(f"Replicas: {desc.spec.pod.replicas}")  # May not yet reflect new value
+print(f"Deletion protection: {desc.deletion_protection}")
 ```
 
+---
+
+## `PineconeAsyncio.configure_index()`
+
+Asynchronous version of `Pinecone.configure_index()`. Modifies the configuration of an existing index without waiting for the operation to complete.
+
+**Source:** `pinecone/pinecone_asyncio.py:941-1108`
+
+**Added:** v3.0
+**Deprecated:** No
+**Idempotency:** Safe to retry
+**Side effects:** Modifies the index configuration. Changes are applied asynchronously; use `describe_index()` to monitor status.
+
+### Signature
+
+```python
+async def configure_index(
+    self,
+    *,
+    name: str,
+    replicas: int | None = None,
+    pod_type: PodType | str | None = None,
+    deletion_protection: DeletionProtection | str | None = None,
+    tags: dict[str, str] | None = None,
+    embed: ConfigureIndexEmbed | Dict | None = None,
+    read_capacity: dict | None = None,
+) -> None
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `name` | `string` | Yes | — | v3.0 | No | The name of the index to configure. |
+| `replicas` | `integer (int32, 0–)` | No | `None` | v3.0 | No | The desired number of replicas for pod-based indexes. When omitted, replicas are not modified. Only applies to pod-based indexes. |
+| `pod_type` | `string (enum: p1.x1, p1.x2, p1.x4, p1.x8, p2.x1, p2.x2, p2.x4, p2.x8, s1.x1, s1.x2, s1.x4, s1.x8) \| PodType` | No | `None` | v3.0 | No | The new pod type for pod-based indexes. When omitted, pod type is not modified. Only applies to pod-based indexes. Valid values depend on the pod-based index environment. |
+| `deletion_protection` | `string (enum: enabled, disabled) \| DeletionProtection` | No | `None` | v3.0 | No | Whether the index is protected from deletion. When set to `"enabled"` or `DeletionProtection.ENABLED`, the index cannot be deleted via `delete_index()`. When set to `"disabled"` or `DeletionProtection.DISABLED`, deletion protection is removed. When omitted, deletion protection status is not modified. |
+| `tags` | `dict[str, str]` | No | `None` | v3.0 | No | Tags to add, update, or remove from the index. Tag updates are merged with existing tags; to remove a tag, set its value to an empty string `""`. When omitted, tags are not modified. |
+| `embed` | `ConfigureIndexEmbed \| dict` | No | `None` | v3.0 | No | Enables or updates integrated inference embeddings on the index, specifying the embedding model and configuring field mapping and read/write parameters. Once set, the embedding model cannot be changed. Only applies to serverless indexes. When omitted, embedding configuration is not modified. |
+| `read_capacity` | `dict` | No | `None` | v3.0 | No | Read capacity configuration for serverless indexes, specifying whether to use on-demand or dedicated mode. When omitted, read capacity configuration is not modified. Only applies to serverless indexes. See examples for detailed structure. |
+
+### Returns
+
+**Type:** `None` — An awaitable that completes when the server accepts the request. Configuration changes are processed asynchronously after the method returns.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `NotFoundException` | No index with the given `name` exists. |
+| `UnauthorizedException` | The API key is invalid or missing. |
+| `ValueError` | `deletion_protection` has an invalid value, or `read_capacity` configuration is invalid (e.g., missing required fields in dedicated mode). |
+| `PineconeApiException` | The index modification fails on the server side (e.g., incompatible configuration changes). |
+
+### Example
+
+```python
+import asyncio
+from pinecone import PineconeAsyncio, DeletionProtection, PodType
+
+async def main():
+    pc = PineconeAsyncio(api_key="sk-example-key-do-not-use")
+
+    # Scale a pod-based index by adding replicas
+    await pc.configure_index(
+        name="my-pod-index",
+        replicas=3
+    )
+
+    # Change pod type (vertical scaling)
+    await pc.configure_index(
+        name="my-pod-index",
+        pod_type=PodType.P1_X2
+    )
+
+    # Enable deletion protection
+    await pc.configure_index(
+        name="my-pod-index",
+        deletion_protection=DeletionProtection.ENABLED
+    )
+
+    # Disable deletion protection
+    await pc.configure_index(
+        name="my-pod-index",
+        deletion_protection=DeletionProtection.DISABLED
+    )
+
+    # Add or update tags
+    await pc.configure_index(
+        name="my-pod-index",
+        tags={"environment": "production", "team": "search"}
+    )
+
+    # Remove a tag by setting its value to empty string
+    await pc.configure_index(
+        name="my-pod-index",
+        tags={"old-tag": ""}
+    )
+
+    # Configure integrated inference embeddings on a serverless index
+    await pc.configure_index(
+        name="my-serverless-index",
+        embed={"model": "multilingual-e5-large"}
+    )
+
+    # Configure serverless read capacity to on-demand mode
+    await pc.configure_index(
+        name="my-serverless-index",
+        read_capacity={"mode": "OnDemand"}
+    )
+
+    # Configure serverless read capacity to dedicated mode with manual scaling
+    await pc.configure_index(
+        name="my-serverless-index",
+        read_capacity={
+            "mode": "Dedicated",
+            "dedicated": {
+                "node_type": "t1",
+                "scaling": "Manual",
+                "manual": {"shards": 1, "replicas": 1}
+            }
+        }
+    )
+
+    # Verify configuration was accepted
+    desc = await pc.describe_index("my-pod-index")
+    print(f"Replicas: {desc.spec.pod.replicas}")
+
+asyncio.run(main())
+```
+
+### Notes
+
+- Configuration changes are processed asynchronously. After awaiting `configure_index()`, call `describe_index()` to check the current status.
+- All notes from the synchronous version apply equally to the asynchronous version.
 
 ---
 

@@ -1,199 +1,279 @@
 # Admin Organization Operations
 
-Documents organization management operations available through the Admin client: list, fetch, update, and delete organizations in your Pinecone account.
+This module documents organization management operations on the Admin client: listing, retrieving, updating, and deleting organizations within a Pinecone account. All operations require a service account and provide account-scoped control plane access to the organization lifecycle.
 
-**Source:** `pinecone/admin/resources/organization.py:10-232`, `pinecone/admin/admin.py:287-344`
-
-## Overview
-
-**Language / runtime:** Python 3.8+
-**Package:** `pinecone`
-**Module:** `pinecone.admin`
-**Class:** `Admin`
-**Sub-resource:** `admin.organization` (or `admin.organizations` — alias)
-**Breaking change definition:** Changing the return type or return value structure of any method, removing a method, or renaming a parameter.
-
-The `OrganizationResource` class provides a complete organization management interface. Access this class through the `Admin` client's `organization` or `organizations` property:
+Organization operations are accessed through the Admin client's `organization` or `organizations` property:
 
 ```python
 from pinecone import Admin
 
-admin = Admin()
-organizations = admin.organization.list()
+admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+
+# Both are equivalent
+admin.organization.list()
+admin.organizations.list()
 ```
 
-All methods require keyword arguments. The class automatically handles requests and responses using the underlying OpenAPI client.
+---
 
-## Methods
+## `Admin.organization.list()`
 
-### `Admin.organization.list() -> OrganizationList`
-
-List all organizations associated with the account.
+Lists all organizations associated with the account.
 
 **Source:** `pinecone/admin/resources/organization.py:40-69`
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| (none) | — | — | — | This method takes no parameters. |
+**Added:** v8.0
+**Deprecated:** No
+**Idempotency:** Safe to retry
+**Side effects:** None
 
-| Return | Type | Description |
-|--------|------|-------------|
-| `data` | `list[Organization]` | A list of Organization objects for all organizations accessible to the authenticated service account. Each contains `id`, `name`, `plan`, `payment_status`, `created_at`, and `support_tier`. |
+### Signature
 
-| Raises | Condition |
-|--------|-----------|
-| `UnauthorizedException` | Raised when client credentials (client_id/client_secret) are invalid or expired. |
-| `PineconeApiException` | Raised when the organization API service is unavailable. |
+```python
+def list(self) -> OrganizationList:
+```
 
-**Example:**
+### Parameters
+
+None.
+
+### Returns
+
+**Type:** `OrganizationList` — A response object with a `data` field containing a list of all organizations associated with the account. Each organization in the list is an `Organization` instance.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `PineconeApiException` | An unexpected error occurred while retrieving the organization list. |
+| `UnauthorizedException` | The service account credentials are invalid or missing. |
+| `ForbiddenException` | The service account credentials lack the required permissions to list organizations. |
+
+### Example
 
 ```python
 from pinecone import Admin
 
-admin = Admin()
+admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
 
 # List all organizations
 organizations_response = admin.organization.list()
-for org in organizations_response.data:
-    print(f"Organization: {org.name}")
-    print(f"  ID: {org.id}")
-    print(f"  Plan: {org.plan}")
-    print(f"  Payment Status: {org.payment_status}")
-    print(f"  Support Tier: {org.support_tier}")
-    print(f"  Created: {org.created_at}")
+for organization in organizations_response.data:
+    print(f"Organization ID: {organization.id}")
+    print(f"Organization Name: {organization.name}")
+    print(f"Plan: {organization.plan}")
+    print(f"Payment Status: {organization.payment_status}")
 ```
 
-### `Admin.organization.fetch(organization_id: str) -> Organization`
+---
 
-Retrieve details about a specific organization by its ID.
+## `Admin.organization.fetch()`
+
+Retrieves a single organization by ID.
 
 **Source:** `pinecone/admin/resources/organization.py:72-105`
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `organization_id` | `str` | Yes | — | The unique identifier of the organization to retrieve. |
+**Added:** v8.0
+**Deprecated:** No
+**Idempotency:** Safe to retry
+**Side effects:** None
 
-| Return | Type | Description |
-|--------|------|-------------|
-| — | `Organization` | The organization object with `id`, `name`, `plan`, `payment_status`, `created_at`, and `support_tier`. |
+### Signature
 
-| Raises | Condition |
-|--------|-----------|
-| `NotFoundException` | Raised when the organization ID does not exist. |
-| `UnauthorizedException` | Raised when client credentials are invalid or the service account lacks permission to access this organization. |
+```python
+def fetch(self, *, organization_id: str) -> Organization:
+```
 
-**Example:**
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `organization_id` | `string` | Yes | — | v8.0 | No | The unique ID of the organization to retrieve. Obtain this via `admin.organization.list()`. |
+
+### Returns
+
+**Type:** `Organization` — The requested organization object containing its ID, name, plan, payment status, creation timestamp, and support tier.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `PineconeApiException` | An unexpected error occurred while retrieving the organization. |
+| `UnauthorizedException` | The service account credentials are invalid or missing. |
+| `ForbiddenException` | The service account credentials lack the required permissions to describe organizations. |
+| `NotFoundException` | The organization with the specified ID does not exist. |
+
+### Example
 
 ```python
 from pinecone import Admin
 
-admin = Admin()
+admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
 
-# Fetch a specific organization
-organization = admin.organization.fetch(
-    organization_id="42ca341d-43bf-47cb-9f27-e645dbfabea6"
-)
+organization = admin.organization.fetch(organization_id="42ca341d-43bf-47cb-9f27-e645dbfabea6")
 print(f"Organization: {organization.name}")
-print(f"  Plan: {organization.plan}")
-print(f"  Created: {organization.created_at}")
+print(f"Plan: {organization.plan}")
+print(f"Created: {organization.created_at}")
+print(f"Support Tier: {organization.support_tier}")
 ```
 
-### `Admin.organization.get(organization_id: str) -> Organization`
+---
 
-Alias for `fetch()`. Retrieves an organization by its ID with identical behavior.
+## `Admin.organization.get()`
+
+Alias for `fetch()`. Retrieves a single organization by ID.
 
 **Source:** `pinecone/admin/resources/organization.py:108-131`
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `organization_id` | `str` | Yes | — | The unique identifier of the organization to get. |
+**Added:** v8.0
+**Deprecated:** No
+**Idempotency:** Safe to retry
+**Side effects:** None
 
-| Return | Type | Description |
-|--------|------|-------------|
-| — | `Organization` | The organization object with `id`, `name`, `plan`, `payment_status`, `created_at`, and `support_tier`. |
+### Signature
 
-| Raises | Condition |
-|--------|-----------|
-| `NotFoundException` | Raised when the organization ID does not exist. |
-| `UnauthorizedException` | Raised when client credentials are invalid or the service account lacks permission to access this organization. |
+```python
+def get(self, *, organization_id: str) -> Organization:
+```
 
-**Example:**
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `organization_id` | `string` | Yes | — | v8.0 | No | The unique ID of the organization to retrieve. |
+
+### Returns
+
+**Type:** `Organization` — The requested organization object.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `PineconeApiException` | An unexpected error occurred while retrieving the organization. |
+| `UnauthorizedException` | The service account credentials are invalid or missing. |
+| `ForbiddenException` | The service account credentials lack the required permissions to describe organizations. |
+| `NotFoundException` | The organization with the specified ID does not exist. |
+
+### Example
 
 ```python
 from pinecone import Admin
 
-admin = Admin()
+admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
 
-# Get an organization by ID
-organization = admin.organization.get(
-    organization_id="42ca341d-43bf-47cb-9f27-e645dbfabea6"
-)
+organization = admin.organization.get(organization_id="42ca341d-43bf-47cb-9f27-e645dbfabea6")
 print(f"Organization: {organization.name}")
 ```
 
-### `Admin.organization.describe(organization_id: str) -> Organization`
+### Notes
 
-Alias for `fetch()`. Describes an organization by its ID with identical behavior.
+- This method is functionally identical to `fetch()`. Use whichever naming convention you prefer.
+
+---
+
+## `Admin.organization.describe()`
+
+Alias for `fetch()`. Retrieves a single organization by ID.
 
 **Source:** `pinecone/admin/resources/organization.py:134-157`
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `organization_id` | `str` | Yes | — | The unique identifier of the organization to describe. |
+**Added:** v8.0
+**Deprecated:** No
+**Idempotency:** Safe to retry
+**Side effects:** None
 
-| Return | Type | Description |
-|--------|------|-------------|
-| — | `Organization` | The organization object with `id`, `name`, `plan`, `payment_status`, `created_at`, and `support_tier`. |
+### Signature
 
-| Raises | Condition |
-|--------|-----------|
-| `NotFoundException` | Raised when the organization ID does not exist. |
-| `UnauthorizedException` | Raised when client credentials are invalid or the service account lacks permission to access this organization. |
+```python
+def describe(self, *, organization_id: str) -> Organization:
+```
 
-**Example:**
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `organization_id` | `string` | Yes | — | v8.0 | No | The unique ID of the organization to describe. |
+
+### Returns
+
+**Type:** `Organization` — The requested organization object.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `PineconeApiException` | An unexpected error occurred while retrieving the organization. |
+| `UnauthorizedException` | The service account credentials are invalid or missing. |
+| `ForbiddenException` | The service account credentials lack the required permissions to describe organizations. |
+| `NotFoundException` | The organization with the specified ID does not exist. |
+
+### Example
 
 ```python
 from pinecone import Admin
 
-admin = Admin()
+admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
 
-# Describe an organization by ID
-organization = admin.organization.describe(
-    organization_id="42ca341d-43bf-47cb-9f27-e645dbfabea6"
-)
+organization = admin.organization.describe(organization_id="42ca341d-43bf-47cb-9f27-e645dbfabea6")
 print(f"Organization: {organization.name}")
-print(f"  Support Tier: {organization.support_tier}")
 ```
 
-### `Admin.organization.update(organization_id: str, name: str | None = None) -> Organization`
+### Notes
 
-Update an organization's properties.
+- This method is functionally identical to `fetch()`. Use whichever naming convention you prefer.
+
+---
+
+## `Admin.organization.update()`
+
+Updates an organization's details.
 
 **Source:** `pinecone/admin/resources/organization.py:160-195`
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `organization_id` | `str` | Yes | — | The unique identifier of the organization to update. |
-| `name` | `str` | No | `None` | The new display name for the organization. Must be 1–512 characters. If omitted, the name is not updated. |
+**Added:** v8.0
+**Deprecated:** No
+**Idempotency:** Not idempotent — if the exact request is retried, it may produce different results if the organization state changed between calls.
+**Side effects:** Modifies the organization resource in the Pinecone API. At minimum, persists changes to the organization name.
 
-| Return | Type | Description |
-|--------|------|-------------|
-| — | `Organization` | The updated organization object with `id`, `name`, `plan`, `payment_status`, `created_at`, and `support_tier`. |
+### Signature
 
-| Raises | Condition |
-|--------|-----------|
-| `ValueError` | Raised when `name` is empty or exceeds 512 characters. |
-| `NotFoundException` | Raised when the organization ID does not exist. |
-| `UnauthorizedException` | Raised when client credentials are invalid or the service account lacks permission to update this organization. |
+```python
+def update(
+    self,
+    *,
+    organization_id: str,
+    name: str | None = None
+) -> Organization:
+```
 
-**Example:**
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `organization_id` | `string` | Yes | — | v8.0 | No | The unique ID of the organization to update. Obtain this via `admin.organization.list()` or `admin.organization.get()`. |
+| `name` | `string \| None` | No | `None` | v8.0 | No | The new name for the organization. Must be 1-512 characters long. When omitted or `None`, the name will not be updated. |
+
+### Returns
+
+**Type:** `Organization` — The updated organization object with its new state.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `PineconeApiException` | The update failed. Verify that `name` is between 1-512 characters long. |
+| `UnauthorizedException` | The service account credentials are invalid or missing. |
+| `ForbiddenException` | The service account credentials lack the required permissions to update organizations. |
+| `NotFoundException` | The organization with the specified ID does not exist. |
+
+### Example
 
 ```python
 from pinecone import Admin
 
-admin = Admin()
+admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
 
-# Update an organization's name
 organization = admin.organization.update(
     organization_id="42ca341d-43bf-47cb-9f27-e645dbfabea6",
     name="updated-organization-name"
@@ -201,72 +281,91 @@ organization = admin.organization.update(
 print(f"Updated organization name: {organization.name}")
 ```
 
-### `Admin.organization.delete(organization_id: str) -> None`
+### Notes
 
-Delete an organization and all its associated configuration.
+- Only the `name` field can be updated through this method. Other organization properties (ID, plan, payment status, creation timestamp, support tier) are managed by Pinecone and cannot be changed.
+- Passing `None` for `name` (the default) skips the name update entirely — it does not clear the name.
+
+---
+
+## `Admin.organization.delete()`
+
+Deletes an organization permanently.
 
 **Source:** `pinecone/admin/resources/organization.py:198-232`
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `organization_id` | `str` | Yes | — | The unique identifier of the organization to delete. |
+**Added:** v8.0
+**Deprecated:** No
+**Idempotency:** Idempotent — deleting a non-existent organization returns success (no error).
+**Side effects:** Permanently deletes the organization resource and all associated data from the Pinecone API. This operation is irreversible. All projects, indexes, assistants, backups, and collections within the organization must be deleted before the organization itself can be deleted.
 
-| Return | Type | Description |
-|--------|------|-------------|
-| — | `None` | No value is returned. |
+### Signature
 
-| Raises | Condition |
-|--------|-----------|
-| `BadRequestException` | Raised when the organization still contains active projects, indexes, backups, or collections that must be deleted first. |
-| `UnauthorizedException` | Raised when client credentials are invalid or the service account lacks permission to delete this organization. |
+```python
+def delete(self, *, organization_id: str) -> None:
+```
 
-**Example:**
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `organization_id` | `string` | Yes | — | v8.0 | No | The unique ID of the organization to delete. Obtain this via `admin.organization.list()` or `admin.organization.get()`. |
+
+### Returns
+
+**Type:** `None` — This method returns nothing on success.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `PineconeApiException` | The organization cannot be deleted because it still contains associated projects, indexes, assistants, backups, or collections. Delete these first. |
+| `UnauthorizedException` | The service account credentials are invalid or missing. |
+| `ForbiddenException` | The service account credentials lack the required permissions to delete organizations. |
+
+### Example
 
 ```python
 from pinecone import Admin
 
-admin = Admin()
+admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
 
 # Delete an organization
-admin.organization.delete(
-    organization_id="42ca341d-43bf-47cb-9f27-e645dbfabea6"
-)
-print("Organization deleted successfully")
+admin.organization.delete(organization_id="42ca341d-43bf-47cb-9f27-e645dbfabea6")
+print("Organization deleted")
 ```
+
+### Notes
+
+- Deleting an organization is a **permanent and irreversible operation**. All data associated with the organization will be lost.
+- Before deleting an organization, you must delete all projects (including indexes, assistants, backups, and collections) associated with the organization. If you attempt to delete an organization with associated resources, the deletion will fail with a `PineconeApiException`.
+- Use this method with extreme caution.
+
+---
 
 ## Data Models
 
-### Organization
+### `Organization`
 
-Response model returned by `fetch()`, `get()`, `describe()`, `update()`, and `list()` operations.
+Represents a single organization in Pinecone.
 
 **Source:** `pinecone/core/openapi/admin/model/organization.py`
 
-| Field | Type | Nullable | Description |
-|-------|------|----------|-------------|
-| `id` | `string` | No | The unique identifier of the organization. |
-| `name` | `string` | No | The display name of the organization. Must be 1–512 characters. |
-| `plan` | `string` | No | The subscription plan type (e.g., `starter`, `pro`, `enterprise`). |
-| `payment_status` | `string` | No | Current payment status of the organization (e.g., `active`, `overdue`, `unpaid`). |
-| `created_at` | `string (date-time)` | No | ISO 8601 timestamp when the organization was created. |
-| `support_tier` | `string` | No | The support tier level (e.g., `free`, `pro`, `enterprise`). |
+| Field | Type | Nullable | Since | Deprecated | Description |
+|-------|------|----------|-------|------------|-------------|
+| `id` | `string (uuid)` | No | v8.0 | No | The unique identifier of the organization. |
+| `name` | `string (1-512 chars)` | No | v8.0 | No | The name of the organization. Can be updated via `admin.organization.update()`. Must be between 1 and 512 characters in length. |
+| `plan` | `string` | No | v8.0 | No | The current billing plan the organization is on. |
+| `payment_status` | `string` | No | v8.0 | No | The current payment status of the organization (e.g., "active", "past_due"). |
+| `created_at` | `string (date-time)` | No | v8.0 | No | The ISO 8601 timestamp when the organization was created. |
+| `support_tier` | `string` | No | v8.0 | No | The support tier level of the organization. |
 
-### OrganizationList
+### `OrganizationList`
 
-Response model returned by the `list()` operation. Wraps a list of organizations.
+A response wrapper containing a list of organizations.
 
 **Source:** `pinecone/core/openapi/admin/model/organization_list.py`
 
-| Field | Type | Nullable | Description |
-|-------|------|----------|-------------|
-| `data` | `array of Organization` | No | Array of all organizations accessible to the authenticated service account. Empty if no organizations exist. |
-
-### UpdateOrganizationRequest
-
-Request model for the `update()` operation.
-
-**Source:** `pinecone/core/openapi/admin/model/update_organization_request.py`
-
-| Field | Type | Required | Constraints | Description |
-|-------|------|----------|-------------|-------------|
-| `name` | `string` | No | 1–512 characters | The new display name for the organization. Must be between 1 and 512 characters. |
+| Field | Type | Nullable | Since | Deprecated | Description |
+|-------|------|----------|-------|------------|-------------|
+| `data` | `array of Organization` | No | v8.0 | No | The list of organizations associated with the account. Each item is an `Organization` object. |

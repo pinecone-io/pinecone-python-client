@@ -1,437 +1,673 @@
 # Admin API Key Operations
 
-Documents API key management operations available through the Admin client: list, create, fetch, update, and delete API keys for your project.
+This module documents API key management operations on the Admin client: creating, listing, retrieving, updating, and deleting API keys for Pinecone projects. All operations require a service account and provide project-scoped control plane access to the API key lifecycle.
 
-**Source:** `pinecone/admin/resources/api_key.py:10-332`, `pinecone/admin/admin.py:172-288`
-
-## Overview
-
-The `ApiKeyResource` class provides a complete API key management interface. Access this class through the `Admin` client's `api_key` or `api_keys` property:
+API key operations are accessed through the Admin client's `api_key` or `api_keys` property:
 
 ```python
 from pinecone import Admin
 
-admin = Admin()
-api_keys = admin.api_key.list(project_id='my-project-id')
+admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+
+# Both are equivalent
+admin.api_key.list(project_id="my-project-id")
+admin.api_keys.list(project_id="my-project-id")
 ```
 
-All methods require keyword arguments. The class automatically handles requests and responses using the underlying OpenAPI client.
+---
 
-## Methods
+## `Admin.api_key.create()`
 
-### list
+Creates a new API key for a specified project.
 
-List all API keys for a project. The API key secret value is not returned by this method.
+**Source:** `pinecone/admin/resources/api_key.py:195-256`
+**Added:** v8.0
+**Deprecated:** No
+**Idempotency:** Not idempotent — repeated calls will create duplicate keys
+**Side effects:** Creates a new API key resource in the Pinecone API
 
-**Source:** `pinecone/admin/resources/api_key.py:33-72`
+### Signature
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `project_id` | `str` | Yes | — | The project ID to list API keys for. Find this using `admin.project.get()` or `admin.project.list()`. |
+```python
+def create(
+    self,
+    *,
+    project_id: str,
+    name: str,
+    description: str | None = None,
+    roles: list[str] | None = None
+) -> APIKeyWithSecret
+```
 
-| Return | Type | Description |
-|--------|------|-------------|
-| `data` | `list[APIKey]` | A list of APIKey objects for the project. Each contains `id`, `name`, `project_id`, and `roles`. |
+### Parameters
 
-| Raises | Condition |
-|--------|-----------|
-| `UnauthorizedException` | Raised when authentication credentials lack sufficient permissions. |
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `project_id` | `str` | Yes | — | v8.0 | No | The ID of the project in which to create the API key. Obtain this via `admin.project.list()` or `admin.project.get(name="...")`. |
+| `name` | `str` | Yes | — | v8.0 | No | The name of the API key. Must be 1-80 characters long. |
+| `description` | `str \| None` | No | `None` | v8.0 | No | Optional description of the API key's purpose or usage. |
+| `roles` | `list[str] \| None` | No | `None` | v8.0 | No | Optional list of role strings to assign to the key. If omitted, defaults to `["ProjectEditor"]`. See **Available Roles** section below. |
 
-**Example:**
+### Returns
+
+**Type:** `APIKeyWithSecret` — A composite object with two properties:
+- `key` (APIKey) — The created API key object with `id`, `name`, `project_id`, and `roles` fields.
+- `value` (str) — The secret key value in the format `pckey_<public-label>_<unique-key>`. **This value is returned only on creation and cannot be retrieved later.** Store this value securely.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `ValueError` | The `name` parameter is missing or empty, or exceeds 80 characters. |
+| `BadRequestException` | Invalid `project_id`, invalid role names, or malformed request. |
+| `UnauthorizedException` | The service account credentials are invalid or missing. |
+| `NotFoundException` | The specified `project_id` does not exist. |
+| `PineconeApiException` | Unexpected server error. |
+
+### Example
 
 ```python
 from pinecone import Admin
 
 admin = Admin()
-api_keys_response = admin.api_key.list(project_id='my-project-id')
-for api_key in api_keys_response.data:
+
+# Get a project
+project = admin.project.get(name='my-project')
+
+# Create an API key with default role (ProjectEditor)
+response = admin.api_key.create(
+    project_id=project.id,
+    name='ci-automation-key',
+    description='Key for CI/CD pipeline'
+)
+
+print(f"API Key ID: {response.key.id}")
+print(f"API Key Name: {response.key.name}")
+print(f"API Key Roles: {response.key.roles}")
+print(f"Secret Value: {response.value}")  # Store this securely
+
+# Create an API key with custom roles
+response2 = admin.api_key.create(
+    project_id=project.id,
+    name='data-plane-reader',
+    roles=['DataPlaneEditor', 'ProjectViewer']
+)
+```
+
+### Notes
+
+- The secret value is displayed only once at creation time. There is no way to retrieve it later.
+- If no `roles` are specified, the API key defaults to the `ProjectEditor` role.
+- The name parameter is subject to 1-80 character validation at the API level.
+
+---
+
+## `Admin.api_key.list()`
+
+Lists all API keys for a specified project.
+
+**Source:** `pinecone/admin/resources/api_key.py:33-72`
+**Added:** v8.0
+**Deprecated:** No
+**Idempotency:** Safe to retry
+**Side effects:** None
+
+### Signature
+
+```python
+def list(self, *, project_id: str) -> ListApiKeysResponse
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `project_id` | `str` | Yes | — | v8.0 | No | The ID of the project for which to list API keys. |
+
+### Returns
+
+**Type:** `ListApiKeysResponse` — A response object with a `data` property containing a list of `APIKey` objects.
+
+Structure of returned object:
+```python
+{
+    "data": [
+        {
+            "id": "api-key-id-1",
+            "name": "my-api-key",
+            "project_id": "my-project-id",
+            "roles": ["ProjectEditor", "DataPlaneEditor"]
+        },
+        # ... more API keys
+    ]
+}
+```
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `BadRequestException` | Invalid or missing `project_id`. |
+| `UnauthorizedException` | The service account credentials are invalid or missing. |
+| `NotFoundException` | The specified `project_id` does not exist. |
+| `PineconeApiException` | Unexpected server error. |
+
+### Example
+
+```python
+from pinecone import Admin
+
+admin = Admin()
+
+# Get a project
+project = admin.project.get(name='my-project')
+
+# List all API keys for the project
+response = admin.api_key.list(project_id=project.id)
+
+for api_key in response.data:
     print(f"ID: {api_key.id}")
     print(f"Name: {api_key.name}")
     print(f"Roles: {api_key.roles}")
+    print("---")
+
+# Direct iteration is also supported
+for api_key in response.data:
+    print(f"{api_key.name} ({api_key.id})")
 ```
 
-### create
+### Notes
 
-Create a new API key for a project. The API key secret value is returned only in the create response.
+- The `value` (secret) of the API key is **not** returned in list operations. The secret is only available immediately after creation.
+- The response is wrapped in a `data` property; iterate over `response.data` to access the list of keys.
 
-**Source:** `pinecone/admin/resources/api_key.py:195-256`
+---
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `project_id` | `str` | Yes | — | The project ID to create the API key for. Find this using `admin.project.get()` or `admin.project.list()`. |
-| `name` | `str` | Yes | — | The name of the API key. Must be 1–80 characters. |
-| `roles` | `list[str]` | No | `None` | An optional list of roles to assign to the API key. Available roles are: `ProjectEditor`, `ProjectViewer`, `ControlPlaneEditor`, `ControlPlaneViewer`, `DataPlaneEditor`, `DataPlaneViewer`. If omitted, no roles are assigned. |
+## `Admin.api_key.fetch()`
 
-| Return | Type | Description |
-|--------|------|-------------|
-| `key` | `APIKey` | The created API key object with `id`, `name`, `project_id`, and `roles`. |
-| `value` | `str` | The secret value of the API key. **This value is only returned here at creation time and cannot be retrieved later.** Store it securely immediately after creation. |
-
-| Raises | Condition |
-|--------|-----------|
-| `UnauthorizedException` | Raised when authentication credentials lack sufficient permissions. |
-
-**Example:**
-
-```python
-from pinecone import Admin
-
-admin = Admin()
-response = admin.api_key.create(
-    project_id='my-project-id',
-    name='ci-testing-key',
-    roles=['ProjectEditor', 'DataPlaneEditor']
-)
-
-api_key = response.key
-secret_value = response.value
-
-print(f"Created API key: {api_key.id}")
-print(f"Secret (save this!): {secret_value}")
-```
-
-### fetch
-
-Fetch (retrieve) an API key by its ID. This is the primary method for describing an API key. The secret value is not returned.
+Fetches a specific API key by its ID.
 
 **Source:** `pinecone/admin/resources/api_key.py:75-108`
+**Added:** v8.0
+**Deprecated:** No
+**Idempotency:** Safe to retry
+**Side effects:** None
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `api_key_id` | `str` | Yes | — | The ID of the API key to fetch. |
+### Signature
 
-| Return | Type | Description |
-|--------|------|-------------|
-| — | `APIKey` | The API key object with `id`, `name`, `project_id`, and `roles`. |
+```python
+def fetch(self, *, api_key_id: str) -> APIKey
+```
 
-| Raises | Condition |
-|--------|-----------|
-| `NotFoundException` | Raised when the API key ID does not exist. |
-| `UnauthorizedException` | Raised when authentication credentials lack sufficient permissions. |
+### Parameters
 
-**Example:**
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `api_key_id` | `str` | Yes | — | v8.0 | No | The ID of the API key to fetch. |
+
+### Returns
+
+**Type:** `APIKey` — An object representing the API key with the following properties:
+- `id` (str) — The unique identifier of the API key.
+- `name` (str) — The name of the API key.
+- `project_id` (str) — The ID of the project that owns the API key.
+- `roles` (list[str]) — A list of role strings assigned to the API key.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `BadRequestException` | Invalid or missing `api_key_id`. |
+| `UnauthorizedException` | The service account credentials are invalid or missing. |
+| `NotFoundException` | The specified API key does not exist. |
+| `PineconeApiException` | Unexpected server error. |
+
+### Example
 
 ```python
 from pinecone import Admin
 
 admin = Admin()
-api_key = admin.api_key.fetch(api_key_id='my-api-key-id')
+
+# Fetch an API key by ID
+api_key = admin.api_key.fetch(api_key_id='api-key-12345')
+
 print(f"Name: {api_key.name}")
+print(f"Project ID: {api_key.project_id}")
 print(f"Roles: {api_key.roles}")
 ```
 
-### get
+### Notes
 
-Alias for `fetch()`. Retrieves an API key by its ID with identical behavior.
+- The `value` (secret) of the API key is **not** returned. Secrets are only available at creation time.
+- This method follows the @require_kwargs decorator, meaning all parameters must be passed as keyword arguments.
+
+---
+
+## `Admin.api_key.get()`
+
+Alias for `fetch()`. Retrieves a specific API key by its ID.
 
 **Source:** `pinecone/admin/resources/api_key.py:111-134`
+**Added:** v8.0
+**Deprecated:** No
+**Idempotency:** Safe to retry
+**Side effects:** None
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `api_key_id` | `str` | Yes | — | The ID of the API key to get. |
+### Signature
 
-| Return | Type | Description |
-|--------|------|-------------|
-| — | `APIKey` | The API key object with `id`, `name`, `project_id`, and `roles`. |
+```python
+def get(self, *, api_key_id: str) -> APIKey
+```
 
-| Raises | Condition |
-|--------|-----------|
-| `NotFoundException` | Raised when the API key ID does not exist. |
-| `UnauthorizedException` | Raised when authentication credentials lack sufficient permissions. |
+### Parameters
 
-**Example:**
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `api_key_id` | `str` | Yes | — | v8.0 | No | The ID of the API key to retrieve. |
+
+### Returns
+
+**Type:** `APIKey` — An object with `id`, `name`, `project_id`, and `roles` properties.
+
+### Example
 
 ```python
 from pinecone import Admin
 
 admin = Admin()
-api_key = admin.api_key.get(api_key_id='my-api-key-id')
+
+# get() is an alias for fetch()
+api_key = admin.api_key.get(api_key_id='api-key-12345')
+print(f"API Key Name: {api_key.name}")
 ```
 
-### describe
+---
 
-Alias for `fetch()`. Describes an API key by its ID with identical behavior.
+## `Admin.api_key.describe()`
+
+Alias for `fetch()`. Describes a specific API key by its ID.
 
 **Source:** `pinecone/admin/resources/api_key.py:137-160`
+**Added:** v8.0
+**Deprecated:** No
+**Idempotency:** Safe to retry
+**Side effects:** None
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `api_key_id` | `str` | Yes | — | The ID of the API key to describe. |
+### Signature
 
-| Return | Type | Description |
-|--------|------|-------------|
-| — | `APIKey` | The API key object with `id`, `name`, `project_id`, and `roles`. |
+```python
+def describe(self, *, api_key_id: str) -> APIKey
+```
 
-| Raises | Condition |
-|--------|-----------|
-| `NotFoundException` | Raised when the API key ID does not exist. |
-| `UnauthorizedException` | Raised when authentication credentials lack sufficient permissions. |
+### Parameters
 
-**Example:**
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `api_key_id` | `str` | Yes | — | v8.0 | No | The ID of the API key to describe. |
+
+### Returns
+
+**Type:** `APIKey` — An object with `id`, `name`, `project_id`, and `roles` properties.
+
+### Example
 
 ```python
 from pinecone import Admin
 
 admin = Admin()
-api_key = admin.api_key.describe(api_key_id='my-api-key-id')
+
+# describe() is an alias for fetch()
+api_key = admin.api_key.describe(api_key_id='api-key-12345')
+print(f"Described API Key: {api_key.name} with roles {api_key.roles}")
 ```
 
-### update
+---
 
-Update an API key's name and/or roles. At least one parameter must be provided.
+## `Admin.api_key.update()`
+
+Updates an existing API key's name and/or roles.
 
 **Source:** `pinecone/admin/resources/api_key.py:259-331`
+**Added:** v8.0
+**Deprecated:** No
+**Idempotency:** Idempotent — repeated calls with the same parameters produce the same result
+**Side effects:** Modifies the API key resource in the Pinecone API
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `api_key_id` | `str` | Yes | — | The ID of the API key to update. |
-| `name` | `str` | No | `None` | A new name for the API key. Must be 1–80 characters. If omitted, the name is not updated. |
-| `roles` | `list[str]` | No | `None` | A new set of roles for the API key. Available roles are: `ProjectEditor`, `ProjectViewer`, `ControlPlaneEditor`, `ControlPlaneViewer`, `DataPlaneEditor`, `DataPlaneViewer`. Existing roles will be completely replaced with the provided list. If omitted, roles are not updated. |
+### Signature
 
-| Return | Type | Description |
-|--------|------|-------------|
-| — | `APIKey` | The updated API key object with `id`, `name`, `project_id`, and `roles`. |
+```python
+def update(
+    self,
+    *,
+    api_key_id: str,
+    name: str | None = None,
+    roles: list[str] | None = None
+) -> APIKey
+```
 
-| Raises | Condition |
-|--------|-----------|
-| `NotFoundException` | Raised when the API key ID does not exist. |
-| `UnauthorizedException` | Raised when authentication credentials lack sufficient permissions. |
+### Parameters
 
-**Example:**
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `api_key_id` | `str` | Yes | — | v8.0 | No | The ID of the API key to update. |
+| `name` | `str \| None` | No | `None` | v8.0 | No | A new name for the API key. If provided, must be 1-80 characters long. If omitted, the name will not be updated. |
+| `roles` | `list[str] \| None` | No | `None` | v8.0 | No | A new set of role strings for the API key. If provided, existing roles are completely replaced with the new list. If omitted, the roles will not be updated. See **Available Roles** section below. |
+
+### Returns
+
+**Type:** `APIKey` — The updated API key object with `id`, `name`, `project_id`, and `roles` properties.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `ValueError` | The `name` parameter exceeds 80 characters or is empty (if provided). |
+| `BadRequestException` | Invalid `api_key_id`, invalid role names, or malformed request. |
+| `UnauthorizedException` | The service account credentials are invalid or missing. |
+| `NotFoundException` | The specified API key does not exist. |
+| `PineconeApiException` | Unexpected server error. |
+
+### Example
 
 ```python
 from pinecone import Admin
 
 admin = Admin()
 
-# Update the name only
-api_key = admin.api_key.update(
-    api_key_id='my-api-key-id',
+# Update only the name
+updated_key = admin.api_key.update(
+    api_key_id='api-key-12345',
     name='updated-key-name'
 )
-print(f"Updated name: {api_key.name}")
+print(f"Updated name: {updated_key.name}")
+print(f"Roles unchanged: {updated_key.roles}")
 
-# Update roles only (replaces existing roles)
-api_key = admin.api_key.update(
-    api_key_id='my-api-key-id',
-    roles=['ProjectViewer', 'DataPlaneViewer']
+# Update only the roles
+updated_key = admin.api_key.update(
+    api_key_id='api-key-12345',
+    roles=['ProjectViewer', 'DataPlaneEditor']
 )
-print(f"Updated roles: {api_key.roles}")
+print(f"Name unchanged: {updated_key.name}")
+print(f"Updated roles: {updated_key.roles}")
 
 # Update both name and roles
-api_key = admin.api_key.update(
-    api_key_id='my-api-key-id',
+updated_key = admin.api_key.update(
+    api_key_id='api-key-12345',
     name='new-name',
-    roles=['ProjectEditor', 'DataPlaneEditor']
+    roles=['ProjectEditor']
 )
+print(f"Updated: {updated_key.name} with roles {updated_key.roles}")
 ```
 
-### delete
+### Notes
 
-Delete an API key. Once deleted, the API key cannot be used.
+- Either `name`, `roles`, or both may be provided. Omitted fields are not updated.
+- When `roles` is provided, it completely replaces the existing role list. There is no partial role update; you must pass the full desired role list.
+- The name parameter is subject to 1-80 character validation at the API level.
+
+---
+
+## `Admin.api_key.delete()`
+
+Deletes an API key.
 
 **Source:** `pinecone/admin/resources/api_key.py:163-192`
+**Added:** v8.0
+**Deprecated:** No
+**Idempotency:** Idempotent — deleting an already-deleted key raises `NotFoundException`
+**Side effects:** Permanently removes the API key from the Pinecone API
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `api_key_id` | `str` | Yes | — | The ID of the API key to delete. |
+### Signature
 
-| Return | Type | Description |
-|--------|------|-------------|
-| — | `None` | No value is returned. |
+```python
+def delete(self, *, api_key_id: str) -> None
+```
 
-| Raises | Condition |
-|--------|-----------|
-| `NotFoundException` | Raised when the API key ID does not exist. |
-| `UnauthorizedException` | Raised when authentication credentials lack sufficient permissions. |
+### Parameters
 
-**Example:**
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `api_key_id` | `str` | Yes | — | v8.0 | No | The ID of the API key to delete. |
+
+### Returns
+
+**Type:** `None` — This method returns nothing on success.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `BadRequestException` | Invalid or missing `api_key_id`. |
+| `UnauthorizedException` | The service account credentials are invalid or missing. |
+| `NotFoundException` | The specified API key does not exist. |
+| `PineconeApiException` | Unexpected server error. |
+
+### Example
 
 ```python
 from pinecone import Admin
-from pinecone import NotFoundException
+from pinecone.exceptions import NotFoundException
 
 admin = Admin()
 
 # Delete an API key
-admin.api_key.delete(api_key_id='my-api-key-id')
+admin.api_key.delete(api_key_id='api-key-12345')
+print("API key deleted")
 
-# Verify it's deleted
+# Verify deletion by trying to fetch the deleted key
 try:
-    admin.api_key.fetch(api_key_id='my-api-key-id')
+    admin.api_key.fetch(api_key_id='api-key-12345')
 except NotFoundException:
-    print("API key deleted successfully")
+    print("API key is confirmed deleted")
 ```
 
-## Data Models
+### Notes
 
-### APIKey
+- Deletion is permanent and cannot be undone.
+- Attempting to delete a non-existent key raises `NotFoundException`.
 
-Response model returned by `fetch()`, `get()`, `describe()`, `update()`, and `list()` operations.
-
-**Source:** `pinecone/core/openapi/admin/model/api_key.py`
-
-| Field | Type | Nullable | Description |
-|-------|------|----------|-------------|
-| `id` | `string` | No | The unique identifier of the API key. |
-| `name` | `string` | No | The name of the API key. |
-| `project_id` | `string` | No | The ID of the project this API key belongs to. |
-| `roles` | `array of string` | No | The list of roles assigned to this API key. Each role is one of: `ProjectEditor`, `ProjectViewer`, `ControlPlaneEditor`, `ControlPlaneViewer`, `DataPlaneEditor`, `DataPlaneViewer`. |
-
-### APIKeyWithSecret
-
-Response model returned by the `create()` operation. Contains both the API key metadata and the secret value.
-
-**Source:** `pinecone/core/openapi/admin/model/api_key_with_secret.py`
-
-| Field | Type | Nullable | Description |
-|-------|------|----------|-------------|
-| `key` | `APIKey` | No | The created API key object with `id`, `name`, `project_id`, and `roles`. |
-| `value` | `string` | No | The secret value of the API key. **This is the only time this value is returned. Store it securely immediately; it cannot be retrieved later.** |
-
-### CreateAPIKeyRequest
-
-Request model for the `create()` operation.
-
-**Source:** `pinecone/core/openapi/admin/model/create_api_key_request.py`
-
-| Field | Type | Required | Constraints | Description |
-|-------|------|----------|-------------|-------------|
-| `name` | `string` | Yes | 1–80 characters | The name of the API key. Must be between 1 and 80 characters. |
-| `roles` | `array of string` | No | Valid values: `ProjectEditor`, `ProjectViewer`, `ControlPlaneEditor`, `ControlPlaneViewer`, `DataPlaneEditor`, `DataPlaneViewer` | An optional list of roles to assign to the API key. |
-
-### UpdateAPIKeyRequest
-
-Request model for the `update()` operation.
-
-**Source:** `pinecone/core/openapi/admin/model/update_api_key_request.py`
-
-| Field | Type | Required | Constraints | Description |
-|-------|------|----------|-------------|-------------|
-| `name` | `string` | No | 1–80 characters | A new name for the API key. If provided, the name must be between 1 and 80 characters. |
-| `roles` | `array of string` | No | Valid values: `ProjectEditor`, `ProjectViewer`, `ControlPlaneEditor`, `ControlPlaneViewer`, `DataPlaneEditor`, `DataPlaneViewer` | A new set of roles for the API key. If provided, existing roles are completely replaced. |
-
-### ListApiKeysResponse
-
-Response model returned by the `list()` operation.
-
-**Source:** `pinecone/core/openapi/admin/model/list_api_keys_response.py`
-
-| Field | Type | Nullable | Description |
-|-------|------|----------|-------------|
-| `data` | `array of APIKey` | No | A list of APIKey objects. Each contains `id`, `name`, `project_id`, and `roles`. |
+---
 
 ## Available Roles
 
-API keys can be assigned the following roles:
+API keys can be assigned one or more of the following roles:
 
 | Role | Description |
 |------|-------------|
-| `ProjectEditor` | Full control over project resources. Can create, update, and delete indexes, collections, and backups. |
-| `ProjectViewer` | Read-only access to project resources. Can list and describe indexes, collections, and backups. |
-| `ControlPlaneEditor` | Can manage organization, project, and API key settings. |
-| `ControlPlaneViewer` | Read-only access to organization and project settings. |
-| `DataPlaneEditor` | Can read and write data to indexes (upsert, query, update, delete vectors). |
-| `DataPlaneViewer` | Read-only access to index data (query vectors only). |
+| `ProjectEditor` | Full access to project resources (indexes, API keys, etc.). Can create, read, update, and delete project resources. |
+| `ProjectViewer` | Read-only access to project resources. Cannot modify or delete. |
+| `ControlPlaneEditor` | Full access to control plane operations (organizations, projects, billing). |
+| `ControlPlaneViewer` | Read-only access to control plane operations. |
+| `DataPlaneEditor` | Full access to data plane operations (upsert, query, delete on indexes). |
+| `DataPlaneViewer` | Read-only access to data plane operations (query, fetch, describe on indexes). |
 
-Multiple roles can be assigned to a single API key. When updating an API key's roles, the entire role list is replaced with the new list (it's not a merge operation).
+**Common Role Combinations**
+
+- **`["ProjectEditor"]`** (default) — Full access to a single project.
+- **`["ProjectViewer"]`** — Read-only access to a project.
+- **`["DataPlaneEditor"]`** — Can upsert and query vectors; used for application data access.
+- **`["DataPlaneViewer"]`** — Can only query; minimal permissions for read-only applications.
+- **`["ProjectEditor", "DataPlaneEditor"]`** — Can manage project and perform all data operations.
+
+---
 
 ## Error Handling
 
-API key operations can raise the following exceptions:
+All API key operations may raise the following exceptions:
 
-| Exception | Condition |
-|-----------|-----------|
-| `NotFoundException` | Raised when attempting to fetch, update, or delete an API key ID that does not exist. |
-| `UnauthorizedException` | Raised when the authentication credentials lack sufficient permissions. |
-| `ForbiddenException` | Raised when the authenticated user is not allowed to perform the operation. |
-| `ServiceException` | Raised when the Pinecone service encounters an unexpected error. |
+| Exception | Cause | Handling |
+|-----------|-------|----------|
+| `PineconeApiException` | Unexpected server error | Implement retry logic with exponential backoff |
+| `BadRequestException` | Malformed request, invalid parameter values | Validate inputs before retrying |
+| `UnauthorizedException` | Invalid or missing credentials | Verify `PINECONE_CLIENT_ID` and `PINECONE_CLIENT_SECRET` environment variables or constructor arguments |
+| `NotFoundException` | Resource (project or API key) does not exist | Confirm resource IDs; list operations to verify existence |
 
-**Example Error Handling:**
+---
 
-```python
-from pinecone import Admin, NotFoundException, UnauthorizedException
+## Usage Patterns
 
-admin = Admin()
-
-try:
-    api_key = admin.api_key.fetch(api_key_id='non-existent-id')
-except NotFoundException:
-    print("API key not found")
-except UnauthorizedException:
-    print("Authentication failed")
-
-try:
-    admin.api_key.delete(api_key_id='my-key-id')
-except NotFoundException:
-    print("API key already deleted")
-```
-
-## Complete Workflow Example
+### Complete Workflow
 
 ```python
-from pinecone import Admin, NotFoundException
+from pinecone import Admin
 
+# Initialize Admin client (reads PINECONE_CLIENT_ID and PINECONE_CLIENT_SECRET)
 admin = Admin()
 
-# Find your project
+# Get a project
 project = admin.project.get(name='my-project')
-print(f"Project ID: {project.id}")
 
-# Create a new API key
-print("\n1. Creating API key...")
+# Create an API key
 response = admin.api_key.create(
     project_id=project.id,
-    name='ci-testing-key',
-    roles=['ProjectEditor', 'DataPlaneEditor']
+    name='app-api-key',
+    description='For my application',
+    roles=['DataPlaneEditor']
 )
-api_key_id = response.key.id
-secret_value = response.value
-print(f"Created API key: {api_key_id}")
-print(f"Secret value: {secret_value}")
+print(f"API Key ID: {response.key.id}")
+print(f"Secret: {response.value}")  # Store this securely
 
-# List all API keys
-print("\n2. Listing all API keys...")
-api_keys_response = admin.api_key.list(project_id=project.id)
-print(f"Total API keys: {len(api_keys_response.data)}")
+# List all API keys for the project
+keys = admin.api_key.list(project_id=project.id)
+for key in keys.data:
+    print(f"{key.name}: {key.roles}")
 
-# Fetch a specific API key
-print("\n3. Fetching specific API key...")
-api_key = admin.api_key.fetch(api_key_id=api_key_id)
-print(f"Name: {api_key.name}")
-print(f"Roles: {api_key.roles}")
-
-# Update the API key
-print("\n4. Updating API key...")
-updated_key = admin.api_key.update(
-    api_key_id=api_key_id,
-    name='ci-testing-key-updated',
-    roles=['ProjectViewer', 'DataPlaneViewer']
+# Update an API key's name
+updated = admin.api_key.update(
+    api_key_id=response.key.id,
+    name='app-api-key-v2'
 )
-print(f"Updated name: {updated_key.name}")
-print(f"Updated roles: {updated_key.roles}")
 
 # Delete the API key
-print("\n5. Deleting API key...")
-admin.api_key.delete(api_key_id=api_key_id)
-
-# Verify deletion
-try:
-    admin.api_key.fetch(api_key_id=api_key_id)
-except NotFoundException:
-    print("API key deleted successfully")
+admin.api_key.delete(api_key_id=response.key.id)
 ```
 
-## Notable Behaviors
+### Error Handling
 
-1. **Secret Value Lifecycle:** The API key secret value is returned only during creation. There is no method to retrieve it later. If the secret is lost, a new API key must be created.
+```python
+from pinecone import Admin
+from pinecone.exceptions import NotFoundException, UnauthorizedException
 
-2. **Role Replacement:** When updating an API key's roles, the entire role list is replaced. There is no mechanism to add or remove individual roles; you must provide the complete desired role list.
+try:
+    admin = Admin()
+    api_key = admin.api_key.fetch(api_key_id='my-key-id')
+except UnauthorizedException:
+    print("Invalid credentials. Check PINECONE_CLIENT_ID and PINECONE_CLIENT_SECRET.")
+except NotFoundException:
+    print("API key not found.")
+```
 
-3. **Method Aliases:** The `get()` and `describe()` methods are exact aliases of `fetch()` with identical behavior and exceptions.
+---
 
-4. **Name Constraints:** When updating an API key, the name must be 1–80 characters if provided. The `create()` method has the same constraint.
+## Data Models
 
-5. **Required Keyword Arguments:** All methods require keyword arguments. Positional arguments are not supported.
+### `APIKey`
 
-6. **No Partial Updates:** The `update()` method does not perform partial updates. Fields omitted from the call are not modified.
+Represents an API key resource with its metadata and roles.
+
+**Source:** `pinecone/core/openapi/admin/model/api_key.py:36-306`
+
+| Field | Type | Nullable | Since | Deprecated | Description |
+|-------|------|----------|-------|------------|-------------|
+| `id` | `str` | No | v8.0 | No | The unique identifier of the API key. Format: `pckey_<public-label>_<unique-key>` (for secret key values returned at creation) or a simple ID string. |
+| `name` | `str` | No | v8.0 | No | The name of the API key. 1-80 characters. |
+| `project_id` | `str` | No | v8.0 | No | The ID of the project that owns this API key. |
+| `roles` | `list[str]` | No | v8.0 | No | A list of role strings assigned to this API key. See **Available Roles** section. Example: `["ProjectEditor", "DataPlaneEditor"]`. |
+
+**Example**
+
+```python
+api_key = {
+    "id": "api-key-id-1",
+    "name": "my-api-key",
+    "project_id": "my-project-id",
+    "roles": ["ProjectEditor", "DataPlaneEditor"]
+}
+```
+
+---
+
+### `APIKeyWithSecret`
+
+Returned only from the `create()` method. Contains the newly created API key metadata plus the secret value.
+
+**Source:** `pinecone/core/openapi/admin/model/api_key_with_secret.py:47-306`
+
+| Field | Type | Nullable | Since | Deprecated | Description |
+|-------|------|----------|-------|------------|-------------|
+| `key` | `APIKey` | No | v8.0 | No | The created API key object with `id`, `name`, `project_id`, and `roles`. |
+| `value` | `str` | No | v8.0 | No | The secret key value in the format `pckey_<public-label>_<unique-key>`. This is the only time this value is returned. **Store this securely.** |
+
+**Example**
+
+```python
+response = admin.api_key.create(
+    project_id="my-project-id",
+    name="my-new-key"
+)
+
+# Access the key metadata and secret
+key_id = response.key.id
+key_name = response.key.name
+secret_value = response.value  # Only available here
+```
+
+---
+
+### `CreateAPIKeyRequest`
+
+Request body sent to the API when creating an API key. This is constructed internally but documented for reference.
+
+**Source:** `pinecone/core/openapi/admin/model/create_api_key_request.py:36-294`
+
+| Field | Type | Nullable | Since | Deprecated | Description |
+|-------|------|----------|-------|------------|-------------|
+| `name` | `str` | No | v8.0 | No | The name of the API key. Must be 1-80 characters long. |
+| `roles` | `list[str]` | Yes | v8.0 | No | Optional list of roles to assign. If omitted, defaults to `["ProjectEditor"]`. |
+
+**Validation Rules**
+
+- `name`: Must be between 1 and 80 characters (inclusive).
+
+---
+
+### `UpdateAPIKeyRequest`
+
+Request body sent to the API when updating an API key. This is constructed internally but documented for reference.
+
+**Source:** `pinecone/core/openapi/admin/model/update_api_key_request.py:36-288`
+
+| Field | Type | Nullable | Since | Deprecated | Description |
+|-------|------|----------|-------|------------|-------------|
+| `name` | `str` | Yes | v8.0 | No | New name for the API key. Must be 1-80 characters if provided. If omitted, name is not updated. |
+| `roles` | `list[str]` | Yes | v8.0 | No | New list of roles for the API key. Existing roles are completely replaced if provided. If omitted, roles are not updated. |
+
+**Validation Rules**
+
+- `name`: Must be between 1 and 80 characters (inclusive) if provided.
+- At least one field must be provided for the update to have an effect.
+
+---
+
+### `ListApiKeysResponse`
+
+Response object returned by the `list()` method. Contains a list of API keys for a project.
+
+**Source:** `pinecone/core/openapi/admin/model/list_api_keys_response.py:47-300`
+
+| Field | Type | Nullable | Since | Deprecated | Description |
+|-------|------|----------|-------|------------|-------------|
+| `data` | `list[APIKey]` | No | v8.0 | No | A list of `APIKey` objects representing all API keys in the project. May be an empty list if the project has no API keys. |
+
+**Example**
+
+```python
+response = admin.api_key.list(project_id="my-project-id")
+
+# Access the list of API keys
+for api_key in response.data:
+    print(f"ID: {api_key.id}")
+    print(f"Name: {api_key.name}")
+    print(f"Roles: {api_key.roles}")
+```

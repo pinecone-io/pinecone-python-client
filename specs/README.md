@@ -1,65 +1,38 @@
-# Spec
+# Specs
 
-This directory contains structured specifications of the Pinecone Python SDK's public interfaces, behaviors, and limits. Each spec documents methods, parameters, return types, error codes, and notable behaviors with exact values and source attributions.
+Structured specifications of the Pinecone Python SDK's public interfaces (v8.1.0). Each spec documents methods, parameters, return types, error codes, and notable behaviors with exact source attributions.
 
 ## Interfaces
 
-### interfaces/sdk
+### Control Plane — Admin
 
-Documents the public Python SDK surface: classes, methods, types, and functions exported at the top level or via submodules.
+- [admin_api_key_operations](interfaces/sdk/admin_api_key_operations.md) — API key CRUD on the Admin client (`admin.api_key`)
+- [admin_organization_operations](interfaces/sdk/admin_organization_operations.md) — Organization management on the Admin client (`admin.organization`)
+- [admin_project_operations](interfaces/sdk/admin_project_operations.md) — Project management on the Admin client (`admin.project`)
 
-→ [`spec/interfaces/sdk.md`](interfaces/sdk.md)
+### Control Plane — Index Lifecycle
 
-### interfaces/sdk/index_operations
+- [index_operations](interfaces/sdk/index_operations.md) — Index creation (`create_index`, `create_index_for_model`) and configuration (`configure_index`)
+- [index_management_operations](interfaces/sdk/index_management_operations.md) — List, describe, delete, and check existence of indexes
 
-Documents index creation and configuration operations: the `create()` and `configure()` methods of the `IndexResource` class, plus the enumerations and data models they use.
+### Control Plane — Backup & Restore
 
-→ [`spec/interfaces/sdk/index_operations.md`](interfaces/sdk/index_operations.md)
+- [backup_operations](interfaces/sdk/backup_operations.md) — Create and list backups
+- [backup_management_operations](interfaces/sdk/backup_management_operations.md) — Describe and delete backups
+- [restore_operations](interfaces/sdk/restore_operations.md) — Create index from backup, monitor restore jobs
 
-### interfaces/sdk/index_management_operations
+### Control Plane — Collections
 
-Documents index management operations for listing, describing, deleting, and checking the existence of indexes: the `list_indexes()`, `describe_index()`, `delete_index()`, and `has_index()` methods available on the `Pinecone` and `PineconeAsyncio` client instances.
+- [collection_operations](interfaces/sdk/collection_operations.md) — Collection CRUD (create, list, describe, delete)
 
-→ [`spec/interfaces/sdk/index_management_operations.md`](interfaces/sdk/index_management_operations.md)
+### Data Plane — Index Client
 
-### interfaces/sdk/inference_operations
+- [index_client_access_operations](interfaces/sdk/index_client_access_operations.md) — Factory methods to obtain Index/IndexAsyncio clients
+- [index_data_operations](interfaces/sdk/index_data_operations.md) — Upsert and delete vectors
+- [index_read_operations](interfaces/sdk/index_read_operations.md) — Fetch vectors by ID or metadata filter
+- [index_search_and_query_operations](interfaces/sdk/index_search_and_query_operations.md) — Search and query vectors (dense, sparse, hybrid, reranking)
+- [index_namespace_operations](interfaces/sdk/index_namespace_operations.md) — Namespace CRUD (create, describe, delete, list)
 
-Documents inference operations for generating embeddings and reranking documents: the `embed()` and `rerank()` methods of the `Inference` class, plus response models and model enumerations.
+### Inference
 
-→ [`spec/interfaces/sdk/inference_operations.md`](interfaces/sdk/inference_operations.md)
-
-### interfaces/sdk/collection_operations
-
-Documents collection operations for creating and querying collections: the `create_collection()` and `describe_collection()` methods available on the `Pinecone` and `PineconeAsyncio` client instances.
-
-→ [`spec/interfaces/sdk/collection_operations.md`](interfaces/sdk/collection_operations.md)
-
-### interfaces/sdk/backup_operations
-
-Documents backup operations for creating and listing index backups: the `create_backup()` and `list_backups()` methods available on the `Pinecone` and `PineconeAsyncio` client instances.
-
-→ [`spec/interfaces/sdk/backup_operations.md`](interfaces/sdk/backup_operations.md)
-
-### interfaces/sdk/backup_management_operations
-
-Documents backup management operations for describing and deleting backups: the `describe_backup()` and `delete_backup()` methods available on the `Pinecone` and `PineconeAsyncio` client instances.
-
-→ [`spec/interfaces/sdk/backup_management_operations.md`](interfaces/sdk/backup_management_operations.md)
-
-### interfaces/sdk/restore_operations
-
-Documents restore operations for creating indexes from backups and tracking restore job progress: the `create_index_from_backup()`, `list_restore_jobs()`, and `describe_restore_job()` methods available on the `Pinecone` and `PineconeAsyncio` client instances.
-
-→ [`spec/interfaces/sdk/restore_operations.md`](interfaces/sdk/restore_operations.md)
-
-### interfaces/sdk/admin_project_operations
-
-Documents project management operations for organizations: the `create()` and `list()` methods available on the `Admin` client's `.project` or `.projects` namespace for managing Pinecone projects.
-
-→ [`spec/interfaces/sdk/admin_project_operations.md`](interfaces/sdk/admin_project_operations.md)
-
-### interfaces/sdk/admin_api_key_operations
-
-Documents API key management operations for projects: the `create()`, `list()`, `fetch()`, `get()`, `describe()`, `update()`, and `delete()` methods available on the `Admin` client's `.api_key` or `.api_keys` namespace.
-
-→ [`spec/interfaces/sdk/admin_api_key_operations.md`](interfaces/sdk/admin_api_key_operations.md)
+- [inference_operations](interfaces/sdk/inference_operations.md) — Embed and rerank operations

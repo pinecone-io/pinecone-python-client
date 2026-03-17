@@ -8,11 +8,10 @@ Restore operations enable you to create new indexes from previously created back
 
 Creates a new index by restoring data from a backup.
 
-**Source:** `pinecone/pinecone.py:658-709`, `pinecone/db_control/resources/sync/index.py:151-183`, `pinecone/pinecone_asyncio.py:722-755` (async equivalent)
-
+**Source:** `pinecone/pinecone.py:658-709`, `pinecone/db_control/resources/sync/index.py:151-183`
 **Added:** v1.0
 **Deprecated:** No
-**Idempotency:** Non-idempotent
+**Idempotency:** Non-idempotent — repeated calls will create duplicate indexes if the index name differs
 **Side effects:** Creates a new index; initiates a restore job that copies data from the backup.
 
 ### Signature
@@ -34,14 +33,14 @@ def create_index_from_backup(
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
 | `name` | `string` | Yes | — | v1.0 | No | The name for the new index to create. Must be unique within the project. |
-| `backup_id` | `string` | Yes | — | v1.0 | No | The ID of the backup to restore. Obtain this from `list_backups()` or `describe_backup()`. |
+| `backup_id` | `string` | Yes | — | v1.0 | No | The ID of the backup to restore. Obtain this from `list_backups()` or `describe_backup()`. The backup must be in `"Ready"` status. |
 | `deletion_protection` | `string (enum: enabled, disabled)` | No | `"disabled"` | v1.0 | No | Whether the index can be deleted. When `"enabled"`, `delete_index()` will fail unless deletion protection is first disabled with `configure_index()`. |
 | `tags` | `dict[str, str]` | No | `None` | v1.0 | No | Key-value pairs to attach to the index for organization and identification. When omitted, the index is created with no tags. |
 | `timeout` | `integer (int32)` | No | `None` | v1.0 | No | Number of seconds to wait for the index to reach `"ready"` status. If `None`, wait indefinitely. If `-1`, return immediately without polling and caller must use `describe_index()` to check readiness. If `>= 0`, raise `TimeoutError` if the index is not ready within this duration. Polls every 5 seconds. |
 
 ### Returns
 
-**Type:** `IndexModel` — The newly created index when ready. The model contains the complete index configuration including name, dimension, metric, status, and spec. When `timeout=-1`, returns the index in its current state (may not be `"ready"` yet).
+**Type:** `IndexModel` — The newly created index when ready. The model contains the complete index configuration including name, dimension, metric, host, status, ready, spec, deletion_protection, tags, and created_at. When `timeout=-1`, returns the index in its current state (may not be `"ready"` yet).
 
 ### Raises
 
@@ -49,9 +48,11 @@ def create_index_from_backup(
 |-----------|-----------|
 | `ValueError` | `name` is an empty string or contains invalid characters. |
 | `NotFoundException` | The backup ID does not exist or is inaccessible. |
-| `pinecone.PineconeApiException` | The backup is in `"initialized"` or `"in_progress"` status and cannot be restored yet. |
+| `PineconeApiException` | The request failed. May occur if the `backup_id` is invalid, if the backup is not in `"Ready"` status, if an index with the same `name` already exists, or if the API call fails. |
+| `UnauthorizedException` | The API key is invalid or missing. |
 | `TimeoutError` | The index did not reach `"ready"` status within the specified `timeout`. |
 | `Exception` | The index fails to initialize (status becomes `InitializationFailed`). |
+| `TypeError` | Arguments are passed as positional arguments instead of keyword arguments. |
 
 ### Behavior
 
@@ -61,18 +62,20 @@ def create_index_from_backup(
 - Index tags from the backup are not automatically carried forward; only the tags explicitly passed in `tags` parameter are set.
 - If the index name is not unique within the project, a conflict error occurs.
 - Repeated calls with the same parameters will create multiple indexes (non-idempotent).
+- The restore operation creates a RestoreJob that can be monitored with `describe_restore_job()`.
+- Data from the backup is restored after the index creation completes.
 
 ### Example
 
 ```python
 from pinecone import Pinecone
 
-pc = Pinecone()
+pc = Pinecone(api_key="sk-example-key-do-not-use")
 
 # List available backups to find one to restore
-backups = pc.list_backups()
-if backups:
-    backup_id = backups[0].backup_id
+backups = pc.list_backups(limit=10)
+if backups.data:
+    backup_id = backups.data[0].backup_id
 
     # Create a new index from the backup
     restored_index = pc.create_index_from_backup(
@@ -83,15 +86,92 @@ if backups:
     )
 
     print(f"Index created: {restored_index.name}")
-    print(f"Status: {restored_index.status.state}")
-    print(f"Ready: {restored_index.status.ready}")
+    print(f"Status: {restored_index.status}")
+    print(f"Ready: {restored_index.ready}")
 ```
 
 ### Notes
 
+- All arguments must be passed as keyword arguments.
 - Creation does not block indefinitely by default. If you need to ensure the index is ready before proceeding, use the default `timeout=None` to wait indefinitely, or specify a timeout value.
 - When `timeout=-1`, the method returns immediately. Check the index status periodically using `describe_index()` until `status.ready` is `true`.
 - The created index starts with no data until the restore job completes, which can take several minutes for large backups.
+
+---
+
+## `PineconeAsyncio.create_index_from_backup()`
+
+Asynchronous version of `create_index_from_backup()`. Creates a new index by restoring data from a backup.
+
+**Source:** `pinecone/pinecone_asyncio.py:722-755`
+**Added:** v1.0
+**Deprecated:** No
+**Idempotency:** Non-idempotent
+**Side effects:** Creates a new index resource in the Pinecone API
+
+### Signature
+
+```python
+async def create_index_from_backup(
+    self,
+    *,
+    name: str,
+    backup_id: str,
+    deletion_protection: DeletionProtection | str = "disabled",
+    tags: dict[str, str] | None = None,
+    timeout: int | None = None
+) -> IndexModel
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `name` | `string` | Yes | — | v1.0 | No | The name for the new index to be created. |
+| `backup_id` | `string` | Yes | — | v1.0 | No | The ID of the backup to restore from. |
+| `deletion_protection` | `string (enum: enabled, disabled)` | No | `"disabled"` | v1.0 | No | Whether the index should be protected from deletion. |
+| `tags` | `dict[str, str]` | No | `None` | v1.0 | No | Optional tags to attach to the index. |
+| `timeout` | `integer (int32)` | No | `None` | v1.0 | No | Seconds to wait for index readiness. |
+
+### Returns
+
+**Type:** `Awaitable[IndexModel]` — An awaitable that resolves to an `IndexModel` object describing the created index.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `PineconeApiException` | The request failed. May occur if the backup does not exist or if an index with the same name already exists. |
+| `UnauthorizedException` | The API key is invalid or missing. |
+| `TypeError` | Arguments are passed as positional arguments. |
+
+### Example
+
+```python
+import asyncio
+from pinecone import PineconeAsyncio
+
+async def restore_from_backup():
+    pc = PineconeAsyncio(api_key="sk-example-key-do-not-use")
+
+    # Get backup ID
+    backups = await pc.list_backups(limit=10)
+    if backups.data:
+        backup_id = backups.data[0].backup_id
+
+        # Restore from backup
+        index = await pc.create_index_from_backup(
+            name="restored_index",
+            backup_id=backup_id
+        )
+        print(f"Index created: {index.name}")
+
+asyncio.run(restore_from_backup())
+```
+
+### Notes
+
+- Same behavior as synchronous version, but returns an awaitable for async/await usage.
 
 ---
 
@@ -99,12 +179,11 @@ if backups:
 
 Lists all restore jobs in the project, with pagination support.
 
-**Source:** `pinecone/pinecone.py:1231-1253`, `pinecone/db_control/resources/sync/restore_job.py:58-74`, `pinecone/pinecone_asyncio.py:1251-1260` (async equivalent)
-
+**Source:** `pinecone/pinecone.py:1230-1253`, `pinecone/db_control/resources/sync/restore_job.py:58-74`
 **Added:** v1.0
 **Deprecated:** No
 **Idempotency:** Idempotent
-**Side effects:** None
+**Side effects:** None — read-only operation
 
 ### Signature
 
@@ -132,7 +211,9 @@ def list_restore_jobs(
 
 | Exception | Condition |
 |-----------|-----------|
-| `pinecone.PineconeApiException` | The `pagination_token` is invalid or expired. |
+| `PineconeApiException` | The request failed. May occur if the `pagination_token` is invalid or expired. |
+| `UnauthorizedException` | The API key is invalid or missing. |
+| `TypeError` | Arguments are passed as positional arguments instead of keyword arguments. |
 
 ### Behavior
 
@@ -144,18 +225,12 @@ def list_restore_jobs(
 - When `limit` is omitted or `None`, defaults to `10`.
 - The `pagination` field is present in every response. When there are no more pages, `pagination.next` is `null` or omitted.
 
-### Pagination
-
-The returned `RestoreJobList` has a `pagination` attribute:
-- If `pagination.next` is a non-empty string, more results are available. Pass this token to a subsequent call to fetch the next page.
-- If `pagination.next` is `None` or omitted, no further pages exist.
-
 ### Example
 
 ```python
 from pinecone import Pinecone
 
-pc = Pinecone()
+pc = Pinecone(api_key="sk-example-key-do-not-use")
 
 # List all restore jobs, starting with the most recent
 all_jobs = []
@@ -173,26 +248,94 @@ while True:
 
 print(f"Total restore jobs: {len(all_jobs)}")
 for job in all_jobs:
-    print(f"Job ID: {job.restore_job_id}, Status: {job.status}")
+    print(f"  - Job ID: {job.restore_job_id}")
+    print(f"    Status: {job.status}")
+    print(f"    Source Backup: {job.backup_id}")
+    print(f"    Target Index: {job.target_index_name}")
+    print(f"    Progress: {job.percent_complete}%")
 ```
 
 ### Notes
 
+- All arguments must be passed as keyword arguments.
+- Default `limit` is 10. Increase to retrieve more jobs per call.
+- This method lists all restore jobs across the entire project, regardless of source backup or target index.
 - Restore jobs are retained for a fixed period after completion or failure; very old jobs may no longer appear in results.
 - The list reflects the current state of jobs at query time; subsequent calls may return different results if jobs complete or fail between calls.
 
 ---
 
-## `Pinecone.describe_restore_job()`
+## `PineconeAsyncio.list_restore_jobs()`
 
-Retrieves detailed information about a specific restore job by ID.
+Asynchronous version of `list_restore_jobs()`. Lists all restore jobs in the project.
 
-**Source:** `pinecone/pinecone.py:1256-1274`, `pinecone/db_control/resources/sync/restore_job.py:46-56`, `pinecone/pinecone_asyncio.py:1263-1269` (async equivalent)
-
+**Source:** `pinecone/pinecone_asyncio.py:1250-1260`
 **Added:** v1.0
 **Deprecated:** No
 **Idempotency:** Idempotent
-**Side effects:** None
+**Side effects:** None — read-only operation
+
+### Signature
+
+```python
+async def list_restore_jobs(
+    self,
+    *,
+    limit: int | None = 10,
+    pagination_token: str | None = None
+) -> RestoreJobList
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `limit` | `integer (int32)` | No | `10` | v1.0 | No | The maximum number of restore jobs to return. |
+| `pagination_token` | `string` | No | `None` | v1.0 | No | Token for pagination. |
+
+### Returns
+
+**Type:** `Awaitable[RestoreJobList]` — An awaitable that resolves to a `RestoreJobList` object.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `PineconeApiException` | The request failed. |
+| `UnauthorizedException` | The API key is invalid or missing. |
+| `TypeError` | Arguments are passed as positional arguments. |
+
+### Example
+
+```python
+import asyncio
+from pinecone import PineconeAsyncio
+
+async def list_restore_jobs_async():
+    pc = PineconeAsyncio(api_key="sk-example-key-do-not-use")
+
+    jobs = await pc.list_restore_jobs(limit=20)
+    for job in jobs.data:
+        print(f"Job {job.restore_job_id}: {job.status} ({job.percent_complete}%)")
+
+asyncio.run(list_restore_jobs_async())
+```
+
+### Notes
+
+- Same behavior as synchronous version.
+
+---
+
+## `Pinecone.describe_restore_job()`
+
+Retrieves detailed information about a specific restore job by ID, including its progress.
+
+**Source:** `pinecone/pinecone.py:1255-1274`, `pinecone/db_control/resources/sync/restore_job.py:46-56`
+**Added:** v1.0
+**Deprecated:** No
+**Idempotency:** Idempotent
+**Side effects:** None — read-only operation
 
 ### Signature
 
@@ -215,19 +358,23 @@ def describe_restore_job(self, *, job_id: str) -> RestoreJobModel
 | Exception | Condition |
 |-----------|-----------|
 | `NotFoundException` | The job ID does not exist or has expired. |
+| `PineconeApiException` | The request failed. |
+| `UnauthorizedException` | The API key is invalid or missing. |
+| `TypeError` | Arguments are passed as positional arguments instead of keyword arguments. |
 
 ### Behavior
 
 - Returns information about the restore job regardless of its current status (running, completed, failed).
-- The `status` field indicates the current state: `"initialized"`, `"in_progress"`, `"completed"`, or `"failed"`.
-- The `percent_complete` field indicates progress as a percentage (0–100). When `status="completed"`, `percent_complete` is `100`. When `status="failed"`, the value indicates how much data was copied before failure.
+- The `status` field indicates the current state: `"Initializing"`, `"Running"`, `"Completed"`, or `"Failed"`.
+- The `percent_complete` field indicates progress as a percentage (0-100). When `status="Completed"`, `percent_complete` is `100`. When `status="Failed"`, the value indicates how much data was copied before failure.
+- `completed_at` is `None` until the job finishes.
 
 ### Example
 
 ```python
 from pinecone import Pinecone
 
-pc = Pinecone()
+pc = Pinecone(api_key="sk-example-key-do-not-use")
 
 # Describe a specific restore job
 job = pc.describe_restore_job(job_id="job-abc123")
@@ -239,14 +386,99 @@ print(f"Target Index: {job.target_index_name}")
 print(f"Progress: {job.percent_complete}%")
 print(f"Created at: {job.created_at}")
 
-if job.status == "completed":
+if job.completed_at:
     print(f"Completed at: {job.completed_at}")
 ```
 
 ### Notes
 
+- All arguments must be passed as keyword arguments.
 - Use this method to monitor the progress of a restore operation initiated by `create_index_from_backup()`.
 - Failed restore jobs retain their status and details for the retention period to allow debugging; the target index may be in an inconsistent state and should not be used.
+
+---
+
+## `PineconeAsyncio.describe_restore_job()`
+
+Asynchronous version of `describe_restore_job()`. Retrieves detailed information about a specific restore job.
+
+**Source:** `pinecone/pinecone_asyncio.py:1262-1269`
+**Added:** v1.0
+**Deprecated:** No
+**Idempotency:** Idempotent
+**Side effects:** None — read-only operation
+
+### Signature
+
+```python
+async def describe_restore_job(self, *, job_id: str) -> RestoreJobModel
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `job_id` | `string` | Yes | — | v1.0 | No | The ID of the restore job to describe. |
+
+### Returns
+
+**Type:** `Awaitable[RestoreJobModel]` — An awaitable that resolves to a `RestoreJobModel` object.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `NotFoundException` | The restore job does not exist. |
+| `PineconeApiException` | The request failed. |
+| `UnauthorizedException` | The API key is invalid or missing. |
+| `TypeError` | Arguments are passed as positional arguments. |
+
+### Example
+
+```python
+import asyncio
+from pinecone import PineconeAsyncio
+
+async def describe_restore_job_async():
+    pc = PineconeAsyncio(api_key="sk-example-key-do-not-use")
+
+    job = await pc.describe_restore_job(job_id="job-123")
+    print(f"{job.restore_job_id}: {job.status} ({job.percent_complete}%)")
+
+asyncio.run(describe_restore_job_async())
+```
+
+### Notes
+
+- Same behavior as synchronous version.
+
+---
+
+## Common Patterns
+
+### Polling for restore job completion
+
+```python
+import time
+from pinecone import Pinecone
+
+pc = Pinecone(api_key="sk-example-key-do-not-use")
+
+# Assume restore job has been created via create_index_from_backup()
+job_id = "job-123"
+
+while True:
+    job = pc.describe_restore_job(job_id=job_id)
+    print(f"Progress: {job.percent_complete}%")
+
+    if job.status == "Completed":
+        print("Restore completed successfully")
+        break
+    elif job.status == "Failed":
+        raise Exception("Restore job failed")
+    else:
+        time.sleep(10)
+```
 
 ---
 
@@ -264,10 +496,10 @@ Represents a restore job that has been initiated or completed.
 | `backup_id` | `string` | No | v1.0 | No | The ID of the backup being restored. |
 | `target_index_name` | `string` | No | v1.0 | No | The name of the index into which data is being restored. |
 | `target_index_id` | `string` | No | v1.0 | No | The internal ID of the target index. |
-| `status` | `string (enum: initialized, in_progress, completed, failed)` | No | v1.0 | No | Current status of the restore job. Transitions from `initialized` → `in_progress` → (`completed` or `failed`). |
+| `status` | `string (enum: Initializing, Running, Completed, Failed)` | No | v1.0 | No | Current status of the restore job. Transitions from `Initializing` -> `Running` -> (`Completed` or `Failed`). |
 | `created_at` | `string (date-time)` | No | v1.0 | No | ISO 8601 timestamp when the restore job was initiated. |
-| `completed_at` | `string (date-time)` | Yes | v1.0 | No | ISO 8601 timestamp when the restore job finished (either successfully or with failure). Omitted from response when the job is still `in_progress` or `initialized`. |
-| `percent_complete` | `number (double, 0–100)` | Yes | v1.0 | No | Progress of the restore as a percentage. Omitted when the job status is `initialized` or `failed`. |
+| `completed_at` | `string (date-time)` | Yes | v1.0 | No | ISO 8601 timestamp when the restore job finished (either successfully or with failure). `null` when the job is still `Running` or `Initializing`. |
+| `percent_complete` | `number (double, 0–100)` | Yes | v1.0 | No | Progress of the restore as a percentage. Valid only when status is `"Running"`. |
 
 #### `to_dict()`
 
@@ -309,12 +541,11 @@ A container for a paginated list of restore jobs.
 
 | Field | Type | Nullable | Since | Deprecated | Description |
 |-------|------|----------|-------|------------|-------------|
-| `data` | `array of RestoreJobModel` | No | — | No | The restore jobs in the current page. |
-| `pagination` | `object (PaginationResponse)` | No | — | No | Pagination metadata including `next` token for fetching the subsequent page. |
+| `data` | `array of RestoreJobModel` | No | v1.0 | No | The restore jobs in the current page. |
+| `pagination` | `object (PaginationResponse)` | No | v1.0 | No | Pagination metadata including `next` token for fetching the subsequent page. |
 
 The `PaginationResponse` object has:
 
 | Field | Type | Nullable | Description |
 |-------|------|----------|-------------|
 | `next` | `string` | Yes | The pagination token to fetch the next page of results. `null` or omitted if there are no more pages. |
-

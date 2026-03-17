@@ -163,3 +163,4 @@ dmypy.json
 
 tests/integration/proxy_config/logs
 benchmark_results.json
+/specs/interfaces/sdk/client.md

@@ -2,71 +2,49 @@
 
 This module documents the Index class methods for reading vectors from a Pinecone index: `fetch()` for retrieving vectors by ID, and `fetch_by_metadata()` for retrieving vectors matching a metadata filter.
 
-## Overview
+---
 
-**Language / runtime:** Python 3.9+
-**Package:** `pinecone`
-**Module:** `pinecone.db_data.index`
-**Class:** `Index` (sync) and `AsyncIndex` (async)
-**Version:** v8.1.0
-**Breaking change definition:** Changing the return type or return value structure of any method, removing a method, or renaming a parameter.
-
-## Access Pattern
-
-Vector read operations are accessed through an Index client, obtained from the Pinecone client:
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key="your-api-key")
-index = pc.Index(host="your-index-host")
-
-# Synchronous read operations
-response = index.fetch(ids=["vec1", "vec2"], namespace="my-namespace")
-for vector_id, vector in response.vectors.items():
-    print(vector.values)
-
-# Fetch by metadata filter
-metadata_response = index.fetch_by_metadata(
-    filter={"genre": {"$in": ["comedy", "drama"]}},
-    namespace="my-namespace"
-)
-
-# Asynchronous read operations
-async_index = pc.IndexAsyncio(host="your-index-host")
-async_response = await async_index.fetch(ids=["vec1", "vec2"])
-```
-
-## Methods
-
-### `Index.fetch(ids: list[str], namespace: str | None = None, **kwargs) -> FetchResponse`
+## `Index.fetch()`
 
 Retrieves vectors by their IDs from a single namespace.
 
-**Source:** `pinecone/db_data/index.py:827-856`
+**Source:** `pinecone/db_data/index.py:827-856`, `pinecone/db_data/index_asyncio.py:601-637` (async equivalent)
+
 **Added:** v8.0
 **Deprecated:** No
-**Idempotency:** Idempotent — fetching the same IDs multiple times returns the same vectors
+**Idempotency:** Idempotent
 **Side effects:** None (read-only operation)
-**Async variant:** `async def fetch(...)` in `pinecone/db_data/index_asyncio.py:601-637`
 
-**Parameters**
+### Signature
+
+```python
+def fetch(
+    self,
+    ids: list[str],
+    namespace: str | None = None,
+    **kwargs
+) -> FetchResponse
+```
+
+### Parameters
 
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| ids | array of string | Yes | — | v8.0 | No | The vector IDs to fetch. |
-| namespace | string \| None | No | None | v8.0 | No | The namespace to fetch vectors from. When `None`, the default namespace is used. |
+| `ids` | `array of string` | Yes | — | v8.0 | No | The vector IDs to fetch. |
+| `namespace` | `string \| None` | No | `None` | v8.0 | No | The namespace to fetch vectors from. When `None`, the default namespace is used. |
 
-**Returns:** `FetchResponse` — An object containing the fetched vectors and the namespace name. The `vectors` field is a dictionary mapping vector IDs to `Vector` objects. If a requested ID does not exist in the index, it is not included in the response.
+### Returns
 
-**Raises / Throws**
+**Type:** `FetchResponse` — An object containing the fetched vectors and the namespace name. The `vectors` field is a dictionary mapping vector IDs to `Vector` objects. If a requested ID does not exist in the index, it is not included in the response.
 
-| Exception / Error | Condition |
-|-------------------|-----------|
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
 | `PineconeException` | The API call fails due to network issues, authentication failure, or server errors. |
 | `ValueError` | The `ids` parameter is empty or not a list of strings. |
 
-**Example**
+### Example
 
 ```python
 from pinecone import Pinecone
@@ -84,7 +62,7 @@ for vector_id, vector in response.vectors.items():
         print(f"  Metadata: {vector.metadata}")
 ```
 
-**Notes**
+### Notes
 
 - Non-existent vector IDs are silently ignored; the response contains only vectors that exist in the index.
 - The returned `Vector` objects include both dense `values` and any `metadata` stored with the vector.
@@ -93,36 +71,51 @@ for vector_id, vector in response.vectors.items():
 
 ---
 
-### `Index.fetch_by_metadata(filter: FilterTypedDict, namespace: str | None = None, limit: int | None = None, pagination_token: str | None = None, **kwargs) -> FetchByMetadataResponse`
+## `Index.fetch_by_metadata()`
 
 Retrieves vectors matching a metadata filter expression from a single namespace.
 
-**Source:** `pinecone/db_data/index.py:859-934`
+**Source:** `pinecone/db_data/index.py:859-934`, `pinecone/db_data/index_asyncio.py:639-726` (async equivalent)
+
 **Added:** v8.1
 **Deprecated:** No
-**Idempotency:** Idempotent — executing the same filter multiple times returns the same vectors (assuming no concurrent writes)
+**Idempotency:** Idempotent
 **Side effects:** None (read-only operation)
-**Async variant:** `async def fetch_by_metadata(...)` in `pinecone/db_data/index_asyncio.py:639-726`
 
-**Parameters**
+### Signature
+
+```python
+def fetch_by_metadata(
+    self,
+    filter: FilterTypedDict,
+    namespace: str | None = None,
+    limit: int | None = None,
+    pagination_token: str | None = None,
+    **kwargs
+) -> FetchByMetadataResponse
+```
+
+### Parameters
 
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| filter | FilterTypedDict | Yes | — | v8.1 | No | A metadata filter expression to select vectors. Supports MongoDB-style query operators such as `$eq`, `$in`, `$gt`, `$lt`, `$ne`, `$and`, `$or`. See [metadata filtering documentation](https://docs.pinecone.io/docs/metadata-filtering). |
-| namespace | string \| None | No | None | v8.1 | No | The namespace to fetch vectors from. When `None`, the default namespace is used. |
-| limit | integer (int32) \| None | No | None | v8.1 | No | The maximum number of vectors to return. Must be a positive integer. When `None`, the server defaults to 100. |
-| pagination_token | string \| None | No | None | v8.1 | No | A pagination token from a previous response's `pagination.next` field. When provided, returns the next page of results matching the filter. |
+| `filter` | `FilterTypedDict` | Yes | — | v8.1 | No | A metadata filter expression to select vectors. Supports MongoDB-style query operators such as `$eq`, `$in`, `$gt`, `$lt`, `$ne`, `$and`, `$or`. See [metadata filtering documentation](https://docs.pinecone.io/docs/metadata-filtering). |
+| `namespace` | `string \| None` | No | `None` | v8.1 | No | The namespace to fetch vectors from. When `None`, the default namespace is used. |
+| `limit` | `integer (int32) \| None` | No | `None` | v8.1 | No | The maximum number of vectors to return. Must be a positive integer. When `None`, the server defaults to 100. |
+| `pagination_token` | `string \| None` | No | `None` | v8.1 | No | A pagination token from a previous response's `pagination.next` field. When provided, returns the next page of results matching the filter. |
 
-**Returns:** `FetchByMetadataResponse` — An object containing the fetched vectors, namespace name, usage statistics, and an optional pagination token for retrieving additional results. The `vectors` field is a dictionary mapping vector IDs to `Vector` objects.
+### Returns
 
-**Raises / Throws**
+**Type:** `FetchByMetadataResponse` — An object containing the fetched vectors, namespace name, usage statistics, and an optional pagination token for retrieving additional results. The `vectors` field is a dictionary mapping vector IDs to `Vector` objects.
 
-| Exception / Error | Condition |
-|-------------------|-----------|
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
 | `PineconeException` | The API call fails due to network issues, authentication failure, or server errors. |
 | `ValueError` | The `filter` is invalid, malformed, or references non-existent metadata fields. |
 
-**Example**
+### Example
 
 ```python
 from pinecone import Pinecone
@@ -155,7 +148,7 @@ if response.pagination:
     print(f"Next page has {len(next_response.vectors)} vectors")
 ```
 
-**Notes**
+### Notes
 
 - The `limit` parameter controls how many vectors are returned per request, not the total number of matches. Use pagination to retrieve all matching vectors.
 - The filter expression uses MongoDB query syntax. Invalid filters result in a `ValueError`.
@@ -166,33 +159,47 @@ if response.pagination:
 
 ---
 
-### `AsyncIndex.fetch(ids: list[str], namespace: str | None = None, **kwargs) -> FetchResponse`
+## `AsyncIndex.fetch()`
 
 Asynchronous version of `fetch()`. Retrieves vectors by their IDs from a single namespace.
 
 **Source:** `pinecone/db_data/index_asyncio.py:601-637`
+
 **Added:** v8.0
 **Deprecated:** No
-**Idempotency:** Idempotent — fetching the same IDs multiple times returns the same vectors
+**Idempotency:** Idempotent
 **Side effects:** None (read-only operation)
 
-**Parameters**
+### Signature
+
+```python
+async def fetch(
+    self,
+    ids: list[str],
+    namespace: str | None = None,
+    **kwargs
+) -> FetchResponse
+```
+
+### Parameters
 
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| ids | array of string | Yes | — | v8.0 | No | The vector IDs to fetch. |
-| namespace | string \| None | No | None | v8.0 | No | The namespace to fetch vectors from. When `None`, the default namespace is used. |
+| `ids` | `array of string` | Yes | — | v8.0 | No | The vector IDs to fetch. |
+| `namespace` | `string \| None` | No | `None` | v8.0 | No | The namespace to fetch vectors from. When `None`, the default namespace is used. |
 
-**Returns:** `FetchResponse` — An object containing the fetched vectors and the namespace name. The `vectors` field is a dictionary mapping vector IDs to `Vector` objects. If a requested ID does not exist in the index, it is not included in the response. This method is asynchronous and must be awaited.
+### Returns
 
-**Raises / Throws**
+**Type:** `FetchResponse` — An object containing the fetched vectors and the namespace name. The `vectors` field is a dictionary mapping vector IDs to `Vector` objects. If a requested ID does not exist in the index, it is not included in the response. This method is asynchronous and must be awaited.
 
-| Exception / Error | Condition |
-|-------------------|-----------|
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
 | `PineconeException` | The API call fails due to network issues, authentication failure, or server errors. |
 | `ValueError` | The `ids` parameter is empty or not a list of strings. |
 
-**Example**
+### Example
 
 ```python
 from pinecone import Pinecone
@@ -214,7 +221,7 @@ async def main():
 asyncio.run(main())
 ```
 
-**Notes**
+### Notes
 
 - Non-existent vector IDs are silently ignored; the response contains only vectors that exist in the index.
 - The returned `Vector` objects include both dense `values` and any `metadata` stored with the vector.
@@ -223,35 +230,51 @@ asyncio.run(main())
 
 ---
 
-### `AsyncIndex.fetch_by_metadata(filter: FilterTypedDict, namespace: str | None = None, limit: int | None = None, pagination_token: str | None = None, **kwargs) -> FetchByMetadataResponse`
+## `AsyncIndex.fetch_by_metadata()`
 
 Asynchronous version of `fetch_by_metadata()`. Retrieves vectors matching a metadata filter expression from a single namespace.
 
 **Source:** `pinecone/db_data/index_asyncio.py:639-717`
+
 **Added:** v8.1
 **Deprecated:** No
-**Idempotency:** Idempotent — executing the same filter multiple times returns the same vectors (assuming no concurrent writes)
+**Idempotency:** Idempotent
 **Side effects:** None (read-only operation)
 
-**Parameters**
+### Signature
+
+```python
+async def fetch_by_metadata(
+    self,
+    filter: FilterTypedDict,
+    namespace: str | None = None,
+    limit: int | None = None,
+    pagination_token: str | None = None,
+    **kwargs
+) -> FetchByMetadataResponse
+```
+
+### Parameters
 
 | Parameter | Type | Required | Default | Since | Deprecated | Description |
 |-----------|------|----------|---------|-------|------------|-------------|
-| filter | FilterTypedDict | Yes | — | v8.1 | No | A metadata filter expression to select vectors. Supports MongoDB-style query operators such as `$eq`, `$in`, `$gt`, `$lt`, `$ne`, `$and`, `$or`. See [metadata filtering documentation](https://docs.pinecone.io/docs/metadata-filtering). |
-| namespace | string \| None | No | None | v8.1 | No | The namespace to fetch vectors from. When `None`, the default namespace is used. |
-| limit | integer (int32) \| None | No | None | v8.1 | No | The maximum number of vectors to return. Must be a positive integer. When `None`, the server defaults to 100. |
-| pagination_token | string \| None | No | None | v8.1 | No | A pagination token from a previous response's `pagination.next` field. When provided, returns the next page of results matching the filter. |
+| `filter` | `FilterTypedDict` | Yes | — | v8.1 | No | A metadata filter expression to select vectors. Supports MongoDB-style query operators such as `$eq`, `$in`, `$gt`, `$lt`, `$ne`, `$and`, `$or`. See [metadata filtering documentation](https://docs.pinecone.io/docs/metadata-filtering). |
+| `namespace` | `string \| None` | No | `None` | v8.1 | No | The namespace to fetch vectors from. When `None`, the default namespace is used. |
+| `limit` | `integer (int32) \| None` | No | `None` | v8.1 | No | The maximum number of vectors to return. Must be a positive integer. When `None`, the server defaults to 100. |
+| `pagination_token` | `string \| None` | No | `None` | v8.1 | No | A pagination token from a previous response's `pagination.next` field. When provided, returns the next page of results matching the filter. |
 
-**Returns:** `FetchByMetadataResponse` — An object containing the fetched vectors, namespace name, usage statistics, and an optional pagination token for retrieving additional results. The `vectors` field is a dictionary mapping vector IDs to `Vector` objects. This method is asynchronous and must be awaited.
+### Returns
 
-**Raises / Throws**
+**Type:** `FetchByMetadataResponse` — An object containing the fetched vectors, namespace name, usage statistics, and an optional pagination token for retrieving additional results. The `vectors` field is a dictionary mapping vector IDs to `Vector` objects. This method is asynchronous and must be awaited.
 
-| Exception / Error | Condition |
-|-------------------|-----------|
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
 | `PineconeException` | The API call fails due to network issues, authentication failure, or server errors. |
 | `ValueError` | The `filter` is invalid, malformed, or references non-existent metadata fields. |
 
-**Example**
+### Example
 
 ```python
 from pinecone import Pinecone
@@ -288,7 +311,7 @@ async def main():
 asyncio.run(main())
 ```
 
-**Notes**
+### Notes
 
 - The `limit` parameter controls how many vectors are returned per request, not the total number of matches. Use pagination to retrieve all matching vectors.
 - The filter expression uses MongoDB query syntax. Invalid filters result in a `ValueError`.
@@ -300,7 +323,7 @@ asyncio.run(main())
 
 ---
 
-## Response Types
+## Data Models
 
 ### `FetchResponse`
 
@@ -311,11 +334,9 @@ The response object returned by `fetch()`.
 
 | Field | Type | Nullable | Since | Deprecated | Description |
 |-------|------|----------|-------|------------|-------------|
-| namespace | string | No | v8.0 | No | The namespace from which vectors were fetched. |
-| vectors | dict[str, Vector] | No | v8.0 | No | A dictionary mapping vector IDs to their corresponding Vector objects. Empty if no matching vectors are found. |
-| usage | Usage \| None | Yes | v8.0 | No | Token usage information for the operation, including read units consumed. |
-
----
+| `namespace` | `string` | No | v8.0 | No | The namespace from which vectors were fetched. |
+| `vectors` | `dict[str, Vector]` | No | v8.0 | No | A dictionary mapping vector IDs to their corresponding Vector objects. Empty if no matching vectors are found. |
+| `usage` | `Usage \| None` | Yes | v8.0 | No | Token usage information for the operation, including read units consumed. |
 
 ### `FetchByMetadataResponse`
 
@@ -326,12 +347,10 @@ The response object returned by `fetch_by_metadata()`.
 
 | Field | Type | Nullable | Since | Deprecated | Description |
 |-------|------|----------|-------|------------|-------------|
-| namespace | string | No | v8.1 | No | The namespace from which vectors were fetched. |
-| vectors | dict[str, Vector] | No | v8.1 | No | A dictionary mapping vector IDs to their corresponding Vector objects. Empty if no vectors match the filter. |
-| usage | Usage \| None | Yes | v8.1 | No | Token usage information for the operation, including read units consumed. |
-| pagination | Pagination \| None | Yes | v8.1 | No | Pagination metadata for retrieving additional results. Contains a `next` field with the token to use for the next request. `None` when all results have been retrieved or when no results match the filter. |
-
----
+| `namespace` | `string` | No | v8.1 | No | The namespace from which vectors were fetched. |
+| `vectors` | `dict[str, Vector]` | No | v8.1 | No | A dictionary mapping vector IDs to their corresponding Vector objects. Empty if no vectors match the filter. |
+| `usage` | `Usage \| None` | Yes | v8.1 | No | Token usage information for the operation, including read units consumed. |
+| `pagination` | `Pagination \| None` | Yes | v8.1 | No | Pagination metadata for retrieving additional results. Contains a `next` field with the token to use for the next request. `None` when all results have been retrieved or when no results match the filter. |
 
 ### `FetchByMetadataResponse.Pagination`
 
@@ -342,9 +361,7 @@ Pagination metadata included in `FetchByMetadataResponse`.
 
 | Field | Type | Nullable | Since | Deprecated | Description |
 |-------|------|----------|-------|------------|-------------|
-| next | string | No | v8.1 | No | The pagination token to pass to the next `fetch_by_metadata()` call to retrieve the next page of results. |
-
----
+| `next` | `string` | No | v8.1 | No | The pagination token to pass to the next `fetch_by_metadata()` call to retrieve the next page of results. |
 
 ### `Vector`
 
@@ -355,12 +372,10 @@ A vector object returned in fetch responses.
 
 | Field | Type | Nullable | Since | Deprecated | Description |
 |-------|------|----------|-------|------------|-------------|
-| id | string | No | v8.0 | No | The unique identifier of the vector. |
-| values | array of number (double) | No | v8.0 | No | The dense vector values. Each element is a floating-point number. |
-| metadata | VectorMetadataTypedDict \| None | Yes | v8.0 | No | Arbitrary metadata associated with the vector. Omitted from the response when `None`. |
-| sparse_values | SparseValues \| None | Yes | v8.0 | No | Sparse vector values, if present. Contains `indices` (array of int) and `values` (array of float). Omitted from the response when `None`. |
-
----
+| `id` | `string` | No | v8.0 | No | The unique identifier of the vector. |
+| `values` | `array of number (double)` | No | v8.0 | No | The dense vector values. Each element is a floating-point number. |
+| `metadata` | `VectorMetadataTypedDict \| None` | Yes | v8.0 | No | Arbitrary metadata associated with the vector. Omitted from the response when `None`. |
+| `sparse_values` | `SparseValues \| None` | Yes | v8.0 | No | Sparse vector values, if present. Contains `indices` (array of int) and `values` (array of float). Omitted from the response when `None`. |
 
 ### `SparseValues`
 
@@ -371,10 +386,8 @@ Sparse vector representation included in `Vector` objects when sparse values are
 
 | Field | Type | Nullable | Since | Deprecated | Description |
 |-------|------|----------|-------|------------|-------------|
-| indices | array of integer (int32) | No | v8.0 | No | The indices of non-zero elements in the sparse vector. Array of non-negative integers in ascending order. |
-| values | array of number (double) | No | v8.0 | No | The values corresponding to the indices. Each element is a floating-point number. Arrays `indices` and `values` must have the same length. |
-
----
+| `indices` | `array of integer (int32)` | No | v8.0 | No | The indices of non-zero elements in the sparse vector. Array of non-negative integers in ascending order. |
+| `values` | `array of number (double)` | No | v8.0 | No | The values corresponding to the indices. Each element is a floating-point number. Arrays `indices` and `values` must have the same length. |
 
 ### `Usage`
 
@@ -385,4 +398,4 @@ Token usage information included in fetch responses.
 
 | Field | Type | Nullable | Since | Deprecated | Description |
 |-------|------|----------|-------|------------|-------------|
-| read_units | integer (int64) | No | v8.0 | No | The number of read units consumed by the operation, used for billing purposes. |
+| `read_units` | `integer (int64)` | No | v8.0 | No | The number of read units consumed by the operation, used for billing purposes. |

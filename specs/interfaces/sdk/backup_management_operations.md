@@ -1,39 +1,39 @@
 # Backup Management Operations
 
-Backup management operations allow you to describe and delete backups of your Pinecone indexes. These operations complement the backup creation and listing operations, enabling full lifecycle management of backups.
+Backup management operations allow you to describe and delete backups of your Pinecone indexes. These operations complement the backup creation and listing operations in [backup_operations.md](backup_operations.md), enabling full lifecycle management of backups.
 
 ---
 
-## `describe_backup()`
+## `Pinecone.describe_backup()`
 
-Retrieve detailed information about a backup.
+Retrieves detailed information about a specific backup.
 
-**Source:** `pinecone/pinecone.py:1191-1210`, `pinecone/pinecone_asyncio.py:1232-1239`
+**Source:** `pinecone/pinecone.py:1191-1210`
+**Added:** v1.0
+**Deprecated:** No
+**Idempotency:** Idempotent
+**Side effects:** None — read-only operation
 
-| Aspect | Details |
-|--------|---------|
-| **Method signature** | `describe_backup(*, backup_id: str) -> BackupModel` |
-| **Async signature** | `async describe_backup(*, backup_id: str) -> BackupModel` |
-| **Available on** | `Pinecone`, `PineconeAsyncio` |
-| **Added** | v1.0 |
-| **Deprecated** | No |
-| **Idempotency** | Idempotent |
-| **Side effects** | None |
+### Signature
+
+```python
+def describe_backup(self, *, backup_id: str) -> BackupModel
+```
 
 ### Parameters
 
-| Name | Type | Required | Default | Since | Deprecated | Description |
-|------|------|----------|---------|-------|------------|-------------|
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
 | `backup_id` | `string` | Yes | — | v1.0 | No | The unique identifier of the backup to describe. Must be a valid backup ID returned by `create_backup()` or `list_backups()`. |
 
-### Return value
+### Returns
 
-Returns a `BackupModel` object containing detailed information about the backup. See the [BackupModel data model section](#backupmodel) for complete field documentation. Key fields include:
+**Type:** `BackupModel` — An object containing detailed information about the backup. See [backup_operations.md](backup_operations.md#backupmodel) for complete field documentation. Key fields include:
 - `backup_id`: The unique identifier of the backup
 - `name`: The human-readable name of the backup
 - `source_index_name`: The name of the index that was backed up
 - `source_index_id`: The unique identifier of the source index
-- `status`: The current status of the backup (e.g., `"Initialized"`, `"Ready"`)
+- `status`: The current status of the backup (e.g., `"Initialized"`, `"Ready"`, `"Failed"`)
 - `created_at`: ISO 8601 timestamp of when the backup was created
 - `record_count`: The number of vectors stored in the backup
 - `namespace_count`: The number of namespaces in the backup
@@ -42,28 +42,30 @@ Returns a `BackupModel` object containing detailed information about the backup.
 - `description`: Optional description provided during backup creation
 - `size_bytes`: The size of the backup in bytes
 
-### Raises / Throws
+### Raises
 
-| Exception / Error | Condition |
-|-------------------|-----------|
-| `NotFoundException` | The `backup_id` does not reference an existing backup. |
+| Exception | Condition |
+|-----------|-----------|
+| `NotFoundException` | The `backup_id` does not reference an existing backup. Returns `404 (not_found)`. |
 | `UnauthorizedException` | The API key is missing, invalid, or has expired. |
 | `ForbiddenException` | The API key does not have permission to describe this backup. |
 | `PineconeApiException` | An error occurs communicating with the Pinecone API (e.g., server error). |
+| `TypeError` | Arguments are passed as positional arguments instead of keyword arguments. |
 
 ### Behavior
 
 - The backup must exist; returns `404 (not_found)` if `backup_id` does not reference an existing backup.
-- The returned status field indicates whether the backup is still being created (`"Initialized"`), ready for restoration (`"Ready"`), or in another transient state.
+- The returned status field indicates whether the backup is still being created (`"Initialized"`), ready for restoration (`"Ready"`), or has failed (`"Failed"`).
 - The `status` field is useful for polling: call this method repeatedly to check when a backup transitions from `"Initialized"` to `"Ready"` before attempting to restore from it.
 - This method is read-only and does not modify the backup.
+- Status transitions: `"Initialized"` -> `"Ready"` or `"Failed"`.
 
 ### Example
 
 ```python
 from pinecone import Pinecone
 
-pc = Pinecone()
+pc = Pinecone(api_key="sk-example-key-do-not-use")
 
 # Describe a backup
 backup = pc.describe_backup(backup_id="550e8400-e29b-41d4-a716-446655440000")
@@ -72,6 +74,9 @@ print(f"Backup name: {backup.name}")
 print(f"Status: {backup.status}")
 print(f"Source index: {backup.source_index_name}")
 print(f"Record count: {backup.record_count}")
+print(f"Created: {backup.created_at}")
+print(f"Size: {backup.size_bytes} bytes")
+print(f"Cloud: {backup.cloud}, Region: {backup.region}")
 
 # Poll until backup is ready
 import time
@@ -81,42 +86,104 @@ while backup.status != "Ready":
     print(f"Backup status: {backup.status}")
 ```
 
+### Notes
+
+- All arguments must be passed as keyword arguments.
+- Use this method to check backup status during the backup creation process.
+
 ---
 
-## `delete_backup()`
+## `PineconeAsyncio.describe_backup()`
 
-Delete a backup, freeing its storage.
+Asynchronous version of `describe_backup()`. Retrieves detailed information about a specific backup.
 
-**Source:** `pinecone/pinecone.py:1212-1228`, `pinecone/pinecone_asyncio.py:1241-1248`
+**Source:** `pinecone/pinecone_asyncio.py:1232-1239`
+**Added:** v1.0
+**Deprecated:** No
+**Idempotency:** Idempotent
+**Side effects:** None — read-only operation
 
-| Aspect | Details |
-|--------|---------|
-| **Method signature** | `delete_backup(*, backup_id: str) -> None` |
-| **Async signature** | `async delete_backup(*, backup_id: str) -> None` |
-| **Available on** | `Pinecone`, `PineconeAsyncio` |
-| **Added** | v1.0 |
-| **Deprecated** | No |
-| **Idempotency** | Non-idempotent |
-| **Side effects** | Deletes the backup; the backup is no longer retrievable via `describe_backup()` or `list_backups()`. |
+### Signature
+
+```python
+async def describe_backup(self, *, backup_id: str) -> BackupModel
+```
 
 ### Parameters
 
-| Name | Type | Required | Default | Since | Deprecated | Description |
-|------|------|----------|---------|-------|------------|-------------|
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `backup_id` | `string` | Yes | — | v1.0 | No | The ID of the backup to describe. |
+
+### Returns
+
+**Type:** `Awaitable[BackupModel]` — An awaitable that resolves to a `BackupModel` object.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `NotFoundException` | The backup does not exist. |
+| `PineconeApiException` | The request failed. |
+| `UnauthorizedException` | The API key is invalid or missing. |
+| `TypeError` | Arguments are passed as positional arguments. |
+
+### Example
+
+```python
+import asyncio
+from pinecone import PineconeAsyncio
+
+async def describe_backup_async():
+    pc = PineconeAsyncio(api_key="sk-example-key-do-not-use")
+
+    backup = await pc.describe_backup(backup_id="backup-123")
+    print(f"{backup.name}: {backup.status}")
+
+asyncio.run(describe_backup_async())
+```
+
+### Notes
+
+- Same behavior as synchronous version, but returns an awaitable for async/await usage.
+
+---
+
+## `Pinecone.delete_backup()`
+
+Deletes a backup permanently, freeing its storage.
+
+**Source:** `pinecone/pinecone.py:1212-1228`
+**Added:** v1.0
+**Deprecated:** No
+**Idempotency:** Idempotent — repeated calls do not raise an error if the backup is already deleted
+**Side effects:** Permanently deletes the backup resource and all associated data
+
+### Signature
+
+```python
+def delete_backup(self, *, backup_id: str) -> None
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
 | `backup_id` | `string` | Yes | — | v1.0 | No | The unique identifier of the backup to delete. Must be a valid backup ID. |
 
-### Return value
+### Returns
 
-Returns `None`. The method completes successfully if the deletion was accepted. The backup is no longer accessible after this call.
+**Type:** `None` — This method returns nothing on success. The backup is no longer accessible after this call.
 
-### Raises / Throws
+### Raises
 
-| Exception / Error | Condition |
-|-------------------|-----------|
-| `NotFoundException` | The `backup_id` does not reference an existing backup. |
+| Exception | Condition |
+|-----------|-----------|
+| `NotFoundException` | The `backup_id` does not reference an existing backup. Returns `404 (not_found)`. May only occur on first call; subsequent calls are idempotent. |
 | `UnauthorizedException` | The API key is missing, invalid, or has expired. |
 | `ForbiddenException` | The API key does not have permission to delete this backup. |
 | `PineconeApiException` | An error occurs communicating with the Pinecone API (e.g., server error). |
+| `TypeError` | Arguments are passed as positional arguments instead of keyword arguments. |
 
 ### Behavior
 
@@ -125,13 +192,14 @@ Returns `None`. The method completes successfully if the deletion was accepted. 
 - Deleting a backup does not affect the source index — the index remains fully operational.
 - Calling `describe_backup()` with the same `backup_id` after deletion will return `404 (not_found)`.
 - Calling `list_backups()` after deletion will no longer include the deleted backup in the results.
+- Repeated calls to delete the same backup are safe (idempotent).
 
 ### Example
 
 ```python
 from pinecone import Pinecone
 
-pc = Pinecone()
+pc = Pinecone(api_key="sk-example-key-do-not-use")
 
 # Delete a backup
 pc.delete_backup(backup_id="550e8400-e29b-41d4-a716-446655440000")
@@ -145,31 +213,70 @@ except Exception as e:
     print(f"Error: Backup no longer exists - {type(e).__name__}")
 ```
 
+### Notes
+
+- All arguments must be passed as keyword arguments.
+- This operation is permanent and cannot be undone.
+
+---
+
+## `PineconeAsyncio.delete_backup()`
+
+Asynchronous version of `delete_backup()`. Deletes a backup permanently.
+
+**Source:** `pinecone/pinecone_asyncio.py:1241-1248`
+**Added:** v1.0
+**Deprecated:** No
+**Idempotency:** Idempotent
+**Side effects:** Permanently deletes the backup resource
+
+### Signature
+
+```python
+async def delete_backup(self, *, backup_id: str) -> None
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Since | Deprecated | Description |
+|-----------|------|----------|---------|-------|------------|-------------|
+| `backup_id` | `string` | Yes | — | v1.0 | No | The ID of the backup to delete. |
+
+### Returns
+
+**Type:** `Awaitable[None]` — An awaitable that resolves to `None` on success.
+
+### Raises
+
+| Exception | Condition |
+|-----------|-----------|
+| `NotFoundException` | The backup does not exist. |
+| `PineconeApiException` | The request failed. |
+| `UnauthorizedException` | The API key is invalid or missing. |
+| `TypeError` | Arguments are passed as positional arguments. |
+
+### Example
+
+```python
+import asyncio
+from pinecone import PineconeAsyncio
+
+async def delete_backup_async():
+    pc = PineconeAsyncio(api_key="sk-example-key-do-not-use")
+    await pc.delete_backup(backup_id="backup-123")
+    print("Backup deleted")
+
+asyncio.run(delete_backup_async())
+```
+
+### Notes
+
+- Same behavior as synchronous version, but returns an awaitable for async/await usage.
+
 ---
 
 ## Data Models
 
-### BackupModel
+### `BackupModel`
 
-Represents a Pinecone backup with its configuration, status, and metadata.
-
-**Source:** `pinecone/db_control/models/backup_model.py:12-53`, `pinecone/core/openapi/db_control/model/backup_model.py:50-144`
-
-| Field | Type | Nullable | Since | Deprecated | Description |
-|-------|------|----------|-------|------------|-------------|
-| `backup_id` | `string (uuid)` | No | v1.0 | No | The unique identifier of the backup. Assigned by the system. |
-| `name` | `string` | No | v1.0 | No | The human-readable name of the backup. Set during `create_backup()`. |
-| `source_index_name` | `string` | No | v1.0 | No | The name of the index that was backed up. |
-| `source_index_id` | `string (uuid)` | No | v1.0 | No | The unique identifier of the source index. |
-| `status` | `string` | No | v1.0 | No | The current status of the backup. Possible values: `"Initialized"` (backup is being created), `"Ready"` (backup is ready for restoration). |
-| `description` | `string` | No | v1.0 | No | Optional description provided during backup creation. Empty string if not provided. |
-| `created_at` | `string (date-time)` | No | v1.0 | No | ISO 8601 timestamp of when the backup was created. |
-| `dimension` | `integer (int32, 1–20000)` | No | v1.0 | No | The vector dimension of the backup. Matches the source index. |
-| `metric` | `string` | No | v1.0 | No | The distance metric used by the backup (e.g., `"cosine"`, `"euclidean"`, `"dotproduct"`). |
-| `record_count` | `integer (int64)` | No | v1.0 | No | The total number of vectors stored in the backup. |
-| `namespace_count` | `integer (int32)` | No | v1.0 | No | The number of namespaces in the backup. |
-| `size_bytes` | `integer (int64)` | No | v1.0 | No | The size of the backup in bytes. |
-| `cloud` | `string` | No | v1.0 | No | The cloud provider of the backup (e.g., `"aws"`, `"gcp"`, `"azure"`). |
-| `region` | `string` | No | v1.0 | No | The region where the backup is stored (e.g., `"us-east-1"`, `"eu-west-1"`). |
-| `tags` | `object` | Yes | v1.0 | No | Optional tags associated with the backup, carried over from the source index. |
-| `schema` | `MetadataSchema` | Yes | v1.0 | No | Optional metadata schema configuration from the source index, defining which metadata fields are indexed and filterable. |
+See [backup_operations.md](backup_operations.md#backupmodel) for the complete `BackupModel` data model definition.
