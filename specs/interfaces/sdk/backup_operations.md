@@ -142,7 +142,7 @@ print(f"Total backups in project: {len(all_backups)}")
 
 ### BackupModel
 
-**Source:** `pinecone/db_control/models/backup_model.py:12-54`, `pinecone/core/openapi/db_control/model/backup_model.py:104-121`
+**Source:** `pinecone/db_control/models/backup_model.py:12-53`, `pinecone/core/openapi/db_control/model/backup_model.py:104-121`
 
 Represents a backup of a Pinecone index.
 
@@ -167,7 +167,7 @@ Represents a backup of a Pinecone index.
 
 ### BackupList
 
-**Source:** `pinecone/db_control/models/backup_list.py:6-49`
+**Source:** `pinecone/db_control/models/backup_list.py:6-48`
 
 A container for a paginated list of backups.
 
