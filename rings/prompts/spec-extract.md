@@ -26,6 +26,7 @@ You are the **spec-extraction** agent for the Pinecone Python SDK. Each run, doc
 
 - [ ] **Document it**: Use the Skill tool to invoke `/spec-extraction` on that area. Document it thoroughly: methods, parameters, return types, enums, errors, and notable behaviors.
 - [ ] Use the Skill tool to invoke `/spec-validate` on the spec you just wrote. Attempt one round of fixes for any issues reported. If issues remain after that single pass, note them in the spec and move on.
+- [ ] Commit the spec file: `git add <spec-file> && git commit -m "spec: document <area>"`
 
 ## Output
 
