@@ -266,6 +266,9 @@ index_description = pc.create_index_for_model(
     embed=IndexEmbed(
         model=EmbedModel.Multilingual_E5_Large,
         metric=Metric.COSINE,
+        field_map={
+            "text": "description",
+        },
     ),
     read_capacity={
         "mode": "Dedicated",
@@ -310,7 +313,7 @@ Asynchronous version of `Pinecone.create_index_for_model()`. Creates a serverles
 | name | string (1–45 chars) | Yes | — | v1.5 | No | The name of the index to create. Must be unique within your project. |
 | cloud | CloudProvider \| string (enum: `aws`, `gcp`, `azure`) | Yes | — | v1.5 | No | The cloud provider for the serverless index. |
 | region | AwsRegion \| GcpRegion \| AzureRegion \| string | Yes | — | v1.5 | No | The cloud region for the index. Use enum classes or pass region names as strings. |
-| embed | IndexEmbed \| CreateIndexForModelEmbedTypedDict | Yes | — | v1.5 | No | The embedding configuration. Specify `model` and `metric`. Optionally provide `field_map`. |
+| embed | IndexEmbed \| CreateIndexForModelEmbedTypedDict | Yes | — | v1.5 | No | The embedding configuration. Specify `model` (required), `field_map` to map input field names to the fields your embedding model expects (required), and optionally `metric`. |
 | tags | dict[str, str] \| None | No | None | v1.5 | No | Key-value pairs to organize and identify the index. |
 | deletion_protection | string (enum: `enabled`, `disabled`) \| DeletionProtection | No | `"disabled"` | v1.5 | No | If `"enabled"`, the index cannot be deleted. |
 | read_capacity | ReadCapacityDict \| ReadCapacity \| ReadCapacityOnDemandSpec \| ReadCapacityDedicatedSpec \| None | No | None (on-demand) | v1.5 | No | Optional read capacity configuration (OnDemand or Dedicated with node settings). |
