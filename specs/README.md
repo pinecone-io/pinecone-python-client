@@ -39,3 +39,9 @@ Documents backup operations for creating and listing index backups: the `create_
 Documents restore operations for creating indexes from backups and tracking restore job progress: the `create_index_from_backup()`, `list_restore_jobs()`, and `describe_restore_job()` methods available on the `Pinecone` and `PineconeAsyncio` client instances.
 
 → [`spec/interfaces/sdk/restore_operations.md`](interfaces/sdk/restore_operations.md)
+
+### interfaces/sdk/admin_project_operations
+
+Documents project management operations for organizations: the `create()` and `list()` methods available on the `Admin` client's `.project` or `.projects` namespace for managing Pinecone projects.
+
+→ [`spec/interfaces/sdk/admin_project_operations.md`](interfaces/sdk/admin_project_operations.md)
