@@ -39,3 +39,9 @@ Documents all project management operations on the Admin client: creating, listi
 Documents all backup and restore management operations on the Pinecone and PineconeAsyncio clients: creating backups, listing and describing backups, deleting backups, and monitoring restore jobs.
 
 → [`spec/interfaces/sdk/backup_and_restore_operations.md`](interfaces/sdk/backup_and_restore_operations.md)
+
+### interfaces/sdk/index_search_and_query_operations
+
+Documents the `search()` and `query()` methods on the Index and AsyncIndex clients for vector similarity search, metadata filtering, hybrid search with sparse vectors, and optional reranking with integrated inference.
+
+→ [`spec/interfaces/sdk/index_search_and_query_operations.md`](interfaces/sdk/index_search_and_query_operations.md)
