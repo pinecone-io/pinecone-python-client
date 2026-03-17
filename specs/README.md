@@ -21,3 +21,9 @@ Documents index creation and configuration operations: the `create()` and `confi
 Documents inference operations for generating embeddings and reranking documents: the `embed()` and `rerank()` methods of the `Inference` class, plus response models and model enumerations.
 
 → [`spec/interfaces/sdk/inference_operations.md`](interfaces/sdk/inference_operations.md)
+
+### interfaces/sdk/collection_operations
+
+Documents collection operations for creating and querying collections: the `create_collection()` and `describe_collection()` methods available on the `Pinecone` and `PineconeAsyncio` client instances.
+
+→ [`spec/interfaces/sdk/collection_operations.md`](interfaces/sdk/collection_operations.md)
