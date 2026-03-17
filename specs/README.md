@@ -33,3 +33,9 @@ Documents collection operations for creating and querying collections: the `crea
 Documents backup operations for creating and listing index backups: the `create_backup()` and `list_backups()` methods available on the `Pinecone` and `PineconeAsyncio` client instances.
 
 → [`spec/interfaces/sdk/backup_operations.md`](interfaces/sdk/backup_operations.md)
+
+### interfaces/sdk/restore_operations
+
+Documents restore operations for creating indexes from backups and tracking restore job progress: the `create_index_from_backup()`, `list_restore_jobs()`, and `describe_restore_job()` methods available on the `Pinecone` and `PineconeAsyncio` client instances.
+
+→ [`spec/interfaces/sdk/restore_operations.md`](interfaces/sdk/restore_operations.md)
