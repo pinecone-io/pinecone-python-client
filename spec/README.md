@@ -75,3 +75,9 @@ Documents organization management operations on the Admin client: listing, retri
 Documents namespace management operations on the Index and AsyncIndex clients: creating, describing, deleting, and listing namespaces.
 
 → [`spec/interfaces/sdk/index_namespace_operations.md`](interfaces/sdk/index_namespace_operations.md)
+
+### interfaces/sdk/index_configuration_operations
+
+Documents index configuration modification operations on the Pinecone and PineconeAsyncio clients: `configure_index()` for modifying replicas, pod type, deletion protection, tags, integrated inference settings, and serverless read capacity.
+
+→ [`spec/interfaces/sdk/index_configuration_operations.md`](interfaces/sdk/index_configuration_operations.md)
