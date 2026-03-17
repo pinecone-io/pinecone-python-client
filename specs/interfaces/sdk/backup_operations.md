@@ -1,14 +1,6 @@
 # Backup Operations
 
-Backup operations allow you to create, list, and manage backups of your Pinecone indexes.
-
-> Parent: [interfaces/sdk](../sdk.md)
-
-## Overview
-
-The `Pinecone` client provides methods to create and manage backups of indexes. Backups capture the complete state of an index and can be used to restore data in new indexes or recover from accidental deletion.
-
-Backup operations are available on the `Pinecone` and `PineconeAsyncio` client instances.
+Backup operations allow you to create, list, and manage backups of your Pinecone indexes. Backups capture the complete state of an index and can be used to restore data in new indexes or recover from accidental deletion.
 
 ---
 
