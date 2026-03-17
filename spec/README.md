@@ -22,6 +22,12 @@ Documents index creation methods on the Pinecone and PineconeAsyncio clients: `c
 
 → [`spec/interfaces/sdk/index_creation_operations.md`](interfaces/sdk/index_creation_operations.md)
 
+### interfaces/sdk/index_data_operations
+
+Documents vector write operations on the Index and AsyncIndex clients: `upsert()` for inserting or updating vectors with dense and sparse values and metadata, and `delete()` for removing vectors by ID, metadata filter, or bulk deletion.
+
+→ [`spec/interfaces/sdk/index_data_operations.md`](interfaces/sdk/index_data_operations.md)
+
 ### interfaces/sdk/collection_operations
 
 Documents all collection management operations on the Pinecone and PineconeAsyncio clients: creating, listing, deleting, and describing collections.
@@ -45,3 +51,15 @@ Documents all backup and restore management operations on the Pinecone and Pinec
 Documents the `search()` and `query()` methods on the Index and AsyncIndex clients for vector similarity search, metadata filtering, hybrid search with sparse vectors, and optional reranking with integrated inference.
 
 → [`spec/interfaces/sdk/index_search_and_query_operations.md`](interfaces/sdk/index_search_and_query_operations.md)
+
+### interfaces/sdk/inference_embed_and_rerank_operations
+
+Documents inference operations on the Pinecone client for embedding and reranking: `embed()` for converting text to embeddings using various embedding models, and `rerank()` for reranking search results using reranking models.
+
+→ [`spec/interfaces/sdk/inference_embed_and_rerank_operations.md`](interfaces/sdk/inference_embed_and_rerank_operations.md)
+
+### interfaces/sdk/admin_organization_operations
+
+Documents organization management operations on the Admin client: listing, retrieving, updating, and deleting organizations within a Pinecone account.
+
+→ [`spec/interfaces/sdk/admin_organization_operations.md`](interfaces/sdk/admin_organization_operations.md)
