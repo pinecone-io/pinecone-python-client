@@ -53,6 +53,9 @@ class Deserializer:
             return deserialize_file(response.data, config, content_disposition=content_disposition)
 
         # fetch data from response object
+        if not response.data or (isinstance(response.data, str) and not response.data.strip()):
+            return None
+
         try:
             received_data = orjson.loads(response.data)
         except ValueError:
