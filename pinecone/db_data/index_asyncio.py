@@ -517,7 +517,7 @@ class _IndexAsyncio:
         namespace: str | None = None,
         filter: FilterTypedDict | None = None,
         **kwargs,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | None:
         """
         Args:
             ids (list[str]): Vector ids to delete [optional]

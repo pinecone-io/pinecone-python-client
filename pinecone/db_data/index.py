@@ -766,7 +766,7 @@ class Index(PluginAware):
         namespace: str | None = None,
         filter: FilterTypedDict | None = None,
         **kwargs,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | None:
         """Delete vectors from the index, from a single namespace.
 
         The Delete operation deletes vectors from the index, from a single namespace.
