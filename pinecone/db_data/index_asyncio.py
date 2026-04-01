@@ -595,7 +595,7 @@ class _IndexAsyncio:
             ),
             **{k: v for k, v in kwargs.items() if k in _OPENAPI_ENDPOINT_PARAMS},
         )
-        return cast(dict[str, Any], result)
+        return cast(dict[str, Any] | None, result)
 
     @validate_and_convert_errors
     async def fetch(self, ids: list[str], namespace: str | None = None, **kwargs) -> FetchResponse:

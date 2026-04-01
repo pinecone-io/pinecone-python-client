@@ -821,7 +821,7 @@ class Index(PluginAware):
             ),
             **self._openapi_kwargs(kwargs),
         )
-        return cast(dict[str, Any], result)
+        return cast(dict[str, Any] | None, result)
 
     @validate_and_convert_errors
     def fetch(self, ids: list[str], namespace: str | None = None, **kwargs) -> FetchResponse:
