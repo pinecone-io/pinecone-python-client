@@ -10,6 +10,9 @@ on:
           required: true
           type: string
 
+permissions:
+  contents: read
+
 jobs:
   dependency-matrix-grpc:
     name: GRPC py3.10/py3.10
