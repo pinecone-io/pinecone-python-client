@@ -1679,19 +1679,19 @@ class _IndexAsyncio:
 
     @validate_and_convert_errors
     @require_kwargs
-    async def delete_namespace(self, namespace: str, **kwargs) -> dict[str, Any]:
+    async def delete_namespace(self, namespace: str, **kwargs) -> dict[str, Any] | None:
         """Delete a namespace from an index.
 
         Args:
             namespace (str): The namespace to delete
 
         Returns:
-            dict[str, Any]: Response from the delete operation
+            dict[str, Any] | None: Response from the delete operation
         """
         from typing import cast
 
         result = await self.namespace.delete(namespace=namespace, **kwargs)
-        return cast(dict[str, Any], result)
+        return cast(dict[str, Any] | None, result)
 
     @validate_and_convert_errors
     @require_kwargs

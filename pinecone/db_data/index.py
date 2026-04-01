@@ -1717,7 +1717,7 @@ class Index(PluginAware):
 
     @validate_and_convert_errors
     @require_kwargs
-    def delete_namespace(self, namespace: str, **kwargs) -> dict[str, Any]:
+    def delete_namespace(self, namespace: str, **kwargs) -> dict[str, Any] | None:
         """Delete a namespace from an index.
 
         Args:
@@ -1725,7 +1725,7 @@ class Index(PluginAware):
             **kwargs: Additional keyword arguments for the API call.
 
         Returns:
-            dict[str, Any]: Response from the delete operation.
+            dict[str, Any] | None: Response from the delete operation.
 
         Examples:
 
@@ -1738,7 +1738,7 @@ class Index(PluginAware):
         from typing import cast
 
         result = self.namespace.delete(namespace=namespace, **kwargs)
-        return cast(dict[str, Any], result)
+        return cast(dict[str, Any] | None, result)
 
     @validate_and_convert_errors
     @require_kwargs
