@@ -27,10 +27,7 @@ def _make_config():
 
 def _make_response(body: bytes):
     return RESTResponse(
-        status=200,
-        data=body,
-        headers={"content-type": "application/json"},
-        reason="OK",
+        status=200, data=body, headers={"content-type": "application/json"}, reason="OK"
     )
 
 
