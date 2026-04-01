@@ -34,6 +34,9 @@ on:
         type: string
         default: 'pypi' # options are: pypi, testpypi
 
+permissions:
+  contents: read
+
 jobs:
   pypi:
     timeout-minutes: 30
