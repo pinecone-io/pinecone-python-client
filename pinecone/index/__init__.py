@@ -20,6 +20,7 @@ from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceD
 from pinecone.models.vectors.query_aggregator import QueryNamespacesResults, QueryResultsAggregator
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
+    FetchByMetadataResponse,
     FetchResponse,
     ListResponse,
     QueryResponse,
@@ -529,6 +530,68 @@ class Index:
         result = self._adapter.to_fetch_response(response.content)
         logger.debug("Fetched %d vectors", len(result.vectors))
         return result
+
+    def fetch_by_metadata(
+        self,
+        *,
+        filter: dict[str, Any],
+        namespace: str = "",
+        limit: int | None = None,
+        pagination_token: str | None = None,
+    ) -> FetchByMetadataResponse:
+        """Fetch vectors matching a metadata filter expression.
+
+        Returns vectors whose metadata satisfies the given filter, with
+        pagination support. The server returns up to 100 vectors per page
+        when no limit is specified.
+
+        Args:
+            filter: Metadata filter expression (required).
+            namespace: Namespace to fetch from. Defaults to the default
+                namespace.
+            limit: Maximum number of vectors to return per page. When
+                ``None``, the server default (100) is used.
+            pagination_token: Token from a previous response to fetch the
+                next page. When ``None``, fetches the first page.
+
+        Returns:
+            FetchByMetadataResponse with matched vectors, namespace, usage,
+            and pagination token for the next page (if any).
+
+        Raises:
+            ApiError: If the API returns an error response (e.g. authentication
+                failure or server error).
+
+        Examples:
+
+            response = idx.fetch_by_metadata(
+                filter={"genre": {"$eq": "comedy"}},
+                namespace="movies",
+            )
+            for vid, vec in response.vectors.items():
+                print(vid, vec.values)
+
+            # Paginate through all results
+            token = response.pagination.next if response.pagination else None
+            while token:
+                response = idx.fetch_by_metadata(
+                    filter={"genre": {"$eq": "comedy"}},
+                    namespace="movies",
+                    pagination_token=token,
+                )
+                token = response.pagination.next if response.pagination else None
+        """
+        body: dict[str, Any] = {"filter": filter}
+        if namespace:
+            body["namespace"] = namespace
+        if limit is not None:
+            body["limit"] = limit
+        if pagination_token is not None:
+            body["paginationToken"] = pagination_token
+
+        logger.info("Fetching vectors by metadata")
+        response = self._http.post("/vectors/fetch_by_metadata", json=body)
+        return self._adapter.to_fetch_by_metadata_response(response.content)
 
     def delete(
         self,
