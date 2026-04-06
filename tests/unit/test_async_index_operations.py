@@ -17,10 +17,13 @@ from pinecone.models.vectors.responses import (
     ListResponse,
     QueryResponse,
     UpdateResponse,
+    UpsertResponse,
 )
+from pinecone.models.vectors.vector import Vector
 
 INDEX_HOST = "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
 INDEX_HOST_HTTPS = f"https://{INDEX_HOST}"
+UPSERT_URL = f"{INDEX_HOST_HTTPS}/vectors/upsert"
 QUERY_URL = f"{INDEX_HOST_HTTPS}/query"
 FETCH_URL = f"{INDEX_HOST_HTTPS}/vectors/fetch"
 DELETE_URL = f"{INDEX_HOST_HTTPS}/vectors/delete"
@@ -59,6 +62,107 @@ def _make_fetch_response(
         "namespace": namespace,
         "usage": usage or {"readUnits": 5},
     }
+
+
+# ---------------------------------------------------------------------------
+# AsyncIndex.upsert()
+# ---------------------------------------------------------------------------
+
+
+class TestAsyncIndexUpsert:
+    """Async upsert operations."""
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_upsert_basic(self) -> None:
+        route = respx.post(UPSERT_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={"upsertedCount": 2},
+            ),
+        )
+        idx = _make_async_index()
+        result = await idx.upsert(
+            vectors=[
+                Vector(id="vec1", values=[0.1, 0.2, 0.3]),
+                Vector(id="vec2", values=[0.4, 0.5, 0.6]),
+            ],
+        )
+
+        assert isinstance(result, UpsertResponse)
+        assert result.upserted_count == 2
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert len(body["vectors"]) == 2
+        assert body["vectors"][0]["id"] == "vec1"
+        assert body["vectors"][1]["id"] == "vec2"
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_upsert_with_namespace(self) -> None:
+        route = respx.post(UPSERT_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={"upsertedCount": 1},
+            ),
+        )
+        idx = _make_async_index()
+        await idx.upsert(
+            vectors=[Vector(id="vec1", values=[0.1, 0.2])],
+            namespace="my-ns",
+        )
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["namespace"] == "my-ns"
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_upsert_tuple_format(self) -> None:
+        route = respx.post(UPSERT_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={"upsertedCount": 2},
+            ),
+        )
+        idx = _make_async_index()
+        result = await idx.upsert(
+            vectors=[
+                ("vec1", [0.1, 0.2, 0.3]),
+                ("vec2", [0.4, 0.5, 0.6]),
+            ],
+        )
+
+        assert isinstance(result, UpsertResponse)
+        assert result.upserted_count == 2
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["vectors"][0]["id"] == "vec1"
+        assert body["vectors"][0]["values"] == [0.1, 0.2, 0.3]
+        assert body["vectors"][1]["id"] == "vec2"
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_upsert_dict_format(self) -> None:
+        route = respx.post(UPSERT_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={"upsertedCount": 2},
+            ),
+        )
+        idx = _make_async_index()
+        result = await idx.upsert(
+            vectors=[
+                {"id": "vec1", "values": [0.1, 0.2]},
+                {"id": "vec2", "values": [0.3, 0.4]},
+            ],
+        )
+
+        assert isinstance(result, UpsertResponse)
+        assert result.upserted_count == 2
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["vectors"][0]["id"] == "vec1"
+        assert body["vectors"][0]["values"] == [0.1, 0.2]
 
 
 # ---------------------------------------------------------------------------

@@ -4,14 +4,15 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from typing import Any
 
 from pinecone._internal.adapters.vectors_adapter import VectorsAdapter
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
+from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import ValidationError
-from pinecone.index import _validate_host
+from pinecone.index import _validate_host, _vector_to_dict
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
     FetchResponse,
@@ -19,9 +20,11 @@ from pinecone.models.vectors.responses import (
     QueryResponse,
     UpdateResponse,
     UpsertRecordsResponse,
+    UpsertResponse,
 )
 from pinecone.models.vectors.search import SearchRecordsResponse
 from pinecone.models.vectors.sparse import SparseValues
+from pinecone.models.vectors.vector import Vector
 
 logger = logging.getLogger(__name__)
 
@@ -151,6 +154,63 @@ class AsyncIndex:
             headers={"Content-Type": "application/x-ndjson"},
         )
         return UpsertRecordsResponse(record_count=len(records))
+
+    async def upsert(
+        self,
+        *,
+        vectors: Sequence[
+            Vector
+            | tuple[str, list[float]]
+            | tuple[str, list[float], dict[str, Any]]
+            | dict[str, Any]
+        ],
+        namespace: str = "",
+    ) -> UpsertResponse:
+        """Upsert a batch of vectors into a namespace.
+
+        If a vector with the same ID already exists in the namespace, it is
+        overwritten.
+
+        Args:
+            vectors: Sequence of vectors to upsert. Each element can be a
+                ``Vector`` instance, a tuple of ``(id, values)`` or
+                ``(id, values, metadata)``, or a dict with ``id``, ``values``,
+                and optional ``sparse_values`` / ``metadata`` keys.
+            namespace (str): Target namespace. Defaults to the default
+                (empty-string) namespace.
+
+        Returns:
+            UpsertResponse with the count of vectors upserted.
+
+        Raises:
+            TypeError: If a vector element is not a recognized format.
+            ValueError: If a vector element is malformed.
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            response = await idx.upsert(
+                vectors=[
+                    Vector(id="vec1", values=[0.1, 0.2, 0.3]),
+                    ("vec2", [0.4, 0.5, 0.6]),
+                    {"id": "vec3", "values": [0.7, 0.8, 0.9]},
+                ],
+                namespace="my-ns",
+            )
+            print(response.upserted_count)
+        """
+        built = [VectorFactory.build(v) for v in vectors]
+        body: dict[str, Any] = {
+            "vectors": [_vector_to_dict(v) for v in built],
+        }
+        if namespace:
+            body["namespace"] = namespace
+
+        logger.info("Upserting %d vectors into namespace %r", len(built), namespace)
+        response = await self._http.post("/vectors/upsert", json=body)
+        result = self._adapter.to_upsert_response(response.content)
+        logger.debug("Upserted %d vectors", result.upserted_count)
+        return result
 
     async def query(
         self,
