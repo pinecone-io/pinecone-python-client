@@ -10,6 +10,7 @@ from pinecone.errors.exceptions import ValidationError
 
 if TYPE_CHECKING:
     from pinecone.async_client.async_index import AsyncIndex
+    from pinecone.async_client.backups import AsyncBackups
     from pinecone.async_client.collections import AsyncCollections
     from pinecone.async_client.indexes import AsyncIndexes
 
@@ -105,6 +106,7 @@ class AsyncPinecone:
         self._http = AsyncHTTPClient(config, CONTROL_PLANE_API_VERSION)
         self._indexes: AsyncIndexes | None = None
         self._collections: AsyncCollections | None = None
+        self._backups: AsyncBackups | None = None
         self._host_cache: dict[str, str] = {}
 
     @property
@@ -148,6 +150,27 @@ class AsyncPinecone:
 
             self._collections = _AsyncCollections(http=self._http)
         return self._collections
+
+    @property
+    def backups(self) -> AsyncBackups:
+        """Access the AsyncBackups namespace for control-plane backup operations.
+
+        Lazily imported and instantiated on first access.
+
+        Returns:
+            AsyncBackups namespace instance.
+
+        Examples:
+
+            async with AsyncPinecone(api_key="your-api-key") as pc:
+                for backup in await pc.backups.list():
+                    print(backup.backup_id)
+        """
+        if self._backups is None:
+            from pinecone.async_client.backups import AsyncBackups as _AsyncBackups
+
+            self._backups = _AsyncBackups(http=self._http)
+        return self._backups
 
     @property
     def config(self) -> PineconeConfig:
