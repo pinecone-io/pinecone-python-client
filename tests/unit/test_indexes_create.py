@@ -252,8 +252,8 @@ def test_create_with_enum_like_values(indexes: Indexes) -> None:
 
 
 @respx.mock
-def test_create_timeout_negative_one(indexes: Indexes) -> None:
-    """With timeout=-1, describe is NOT called after create."""
+def test_create_timeout_none_no_polling(indexes: Indexes) -> None:
+    """With timeout=None (default), describe is NOT called after create."""
     respx.post(f"{BASE_URL}/indexes").mock(
         return_value=httpx.Response(
             201,
@@ -265,7 +265,6 @@ def test_create_timeout_negative_one(indexes: Indexes) -> None:
         name="test-index",
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-        timeout=-1,
     )
 
     # Should return the non-ready model immediately

@@ -135,14 +135,14 @@ class Indexes:
         """Delete an index by name.
 
         After sending the delete request, removes the cached host URL
-        for the index. By default, polls until the index disappears.
+        for the index. By default, returns immediately without polling.
 
         Args:
             name: The name of the index to delete.
             timeout: Seconds to wait for the index to disappear.
-                Use ``-1`` to return immediately without polling.
-                Use ``None`` (default) to poll indefinitely.
-                Use a positive int to poll with a deadline.
+                Use ``None`` (default) to return immediately without polling.
+                Use a positive int to poll until the index is gone or the
+                deadline is reached.
 
         Raises:
             ValidationError: If *name* is empty.
@@ -152,6 +152,9 @@ class Indexes:
         Example::
 
             pc.indexes.delete("my-index")
+
+            # Wait up to 60 seconds for deletion to complete
+            pc.indexes.delete("my-index", timeout=60)
         """
         require_non_empty("name", name)
         logger.info("Deleting index %r", name)
@@ -159,7 +162,7 @@ class Indexes:
         self._host_cache.pop(name, None)
         logger.debug("Deleted index %r", name)
 
-        if timeout == -1:
+        if timeout is None:
             return
 
         start = time.monotonic()
@@ -168,10 +171,9 @@ class Indexes:
                 self.describe(name)
             except NotFoundError:
                 return
-            if timeout is not None:
-                elapsed = time.monotonic() - start
-                if elapsed >= timeout:
-                    raise PineconeError(f"Index {name!r} still exists after {timeout}s")
+            elapsed = time.monotonic() - start
+            if elapsed >= timeout:
+                raise PineconeError(f"Index {name!r} still exists after {timeout}s")
             time.sleep(_POLL_INTERVAL_SECONDS)
 
     def configure(
@@ -257,8 +259,9 @@ class Indexes:
             deletion_protection: Whether deletion protection is enabled.
             tags: Optional key-value tags.
             timeout: Seconds to wait for the index to become ready.
-                Use ``-1`` to return immediately without polling.
-                Use ``None`` (default) to return immediately.
+                Use ``None`` (default) to return immediately without polling.
+                Use a positive int to poll until the index is ready or the
+                deadline is reached.
 
         Returns:
             An IndexModel describing the created index.
@@ -299,7 +302,7 @@ class Indexes:
         model = self._adapter.to_index_model(response.content)
         logger.debug("Created index %r", name)
 
-        if timeout is not None and timeout != -1:
+        if timeout is not None:
             model = self._poll_until_ready(name, timeout)
 
         return model

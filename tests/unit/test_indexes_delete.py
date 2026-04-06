@@ -39,30 +39,27 @@ def no_sleep(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @respx.mock
-def test_delete_index(indexes: Indexes, no_sleep: None) -> None:
-    """DELETE /indexes/test-index -> 202, then describe -> 404. Returns None."""
+def test_delete_index_no_polling(indexes: Indexes) -> None:
+    """DELETE /indexes/test-index -> 202, returns immediately (no polling)."""
     respx.delete(f"{BASE_URL}/indexes/test-index").mock(
         return_value=httpx.Response(202),
     )
-    respx.get(f"{BASE_URL}/indexes/test-index").mock(
-        return_value=httpx.Response(404, json=make_error_response(404, "Not found")),
-    )
+    describe_route = respx.get(f"{BASE_URL}/indexes/test-index")
 
     result = indexes.delete("test-index")
 
     assert result is None
+    # timeout=None means no polling — describe should NOT be called
+    assert describe_route.call_count == 0
 
 
 @respx.mock
-def test_delete_removes_host_cache(indexes: Indexes, no_sleep: None) -> None:
+def test_delete_removes_host_cache(indexes: Indexes) -> None:
     """Deleting an index removes its cached host URL."""
     indexes._host_cache["my-index"] = "my-index-abc.svc.pinecone.io"
 
     respx.delete(f"{BASE_URL}/indexes/my-index").mock(
         return_value=httpx.Response(202),
-    )
-    respx.get(f"{BASE_URL}/indexes/my-index").mock(
-        return_value=httpx.Response(404, json=make_error_response(404, "Not found")),
     )
 
     indexes.delete("my-index")
@@ -72,7 +69,7 @@ def test_delete_removes_host_cache(indexes: Indexes, no_sleep: None) -> None:
 
 @respx.mock
 def test_delete_polls_until_gone(indexes: Indexes, no_sleep: None) -> None:
-    """Poll describe until index disappears — first 200, then 404."""
+    """With explicit timeout, poll describe until index disappears."""
     respx.delete(f"{BASE_URL}/indexes/test-index").mock(
         return_value=httpx.Response(202),
     )
@@ -83,7 +80,7 @@ def test_delete_polls_until_gone(indexes: Indexes, no_sleep: None) -> None:
         ],
     )
 
-    indexes.delete("test-index")
+    indexes.delete("test-index", timeout=300)
 
     assert describe_route.call_count == 2
 
@@ -94,14 +91,14 @@ def test_delete_polls_until_gone(indexes: Indexes, no_sleep: None) -> None:
 
 
 @respx.mock
-def test_delete_timeout_negative_one(indexes: Indexes) -> None:
-    """With timeout=-1, return immediately — describe is NOT called."""
+def test_delete_timeout_none_no_polling(indexes: Indexes) -> None:
+    """With timeout=None (default), return immediately — describe is NOT called."""
     respx.delete(f"{BASE_URL}/indexes/test-index").mock(
         return_value=httpx.Response(202),
     )
     describe_route = respx.get(f"{BASE_URL}/indexes/test-index")
 
-    indexes.delete("test-index", timeout=-1)
+    indexes.delete("test-index", timeout=None)
 
     assert describe_route.call_count == 0
 
@@ -118,6 +115,21 @@ def test_delete_timeout_exceeded(indexes: Indexes, no_sleep: None) -> None:
 
     with pytest.raises(PineconeError, match=r"still exists after 1s"):
         indexes.delete("test-index", timeout=1)
+
+
+@respx.mock
+def test_delete_with_timeout_returns_when_gone(indexes: Indexes, no_sleep: None) -> None:
+    """With explicit timeout, returns successfully once index is gone."""
+    respx.delete(f"{BASE_URL}/indexes/test-index").mock(
+        return_value=httpx.Response(202),
+    )
+    respx.get(f"{BASE_URL}/indexes/test-index").mock(
+        return_value=httpx.Response(404, json=make_error_response(404, "Not found")),
+    )
+
+    result = indexes.delete("test-index", timeout=60)
+
+    assert result is None
 
 
 # ---------------------------------------------------------------------------
