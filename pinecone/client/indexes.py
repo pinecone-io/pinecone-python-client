@@ -488,6 +488,6 @@ class Indexes:
             if idx.status.state == "InitializationFailed":
                 raise IndexInitFailedError(name)
             elapsed = time.monotonic() - start
-            if elapsed + _POLL_INTERVAL_SECONDS > timeout:
+            if elapsed >= timeout:
                 raise PineconeTimeoutError(f"Index '{name}' not ready after {timeout}s")
             time.sleep(_POLL_INTERVAL_SECONDS)
