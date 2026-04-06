@@ -25,6 +25,21 @@ class EmbedConfig(Struct, kw_only=True):
     read_parameters: dict[str, Any] | None = None
     write_parameters: dict[str, Any] | None = None
 
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to a plain dictionary.
+
+        Read and write parameters default to empty dicts when not set.
+        """
+        result: dict[str, Any] = {
+            "model": self.model,
+            "field_map": self.field_map,
+        }
+        if self.metric is not None:
+            result["metric"] = self.metric
+        result["read_parameters"] = self.read_parameters if self.read_parameters is not None else {}
+        result["write_parameters"] = self.write_parameters if self.write_parameters is not None else {}
+        return result
+
 
 class IntegratedSpec(Struct, kw_only=True):
     """Integrated (model-backed) index deployment spec.
