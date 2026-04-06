@@ -1,0 +1,75 @@
+"""API key response models for the Admin API."""
+
+from __future__ import annotations
+
+from collections.abc import Iterator
+from typing import Any
+
+from msgspec import Struct
+
+
+class APIKeyModel(Struct, kw_only=True):
+    """Response model for a Pinecone API key.
+
+    Attributes:
+        id: Unique identifier for the API key.
+        name: Name of the API key.
+        project_id: Identifier of the project the key belongs to.
+        roles: List of roles assigned to the key.
+    """
+
+    id: str
+    name: str
+    project_id: str
+    roles: list[str]
+
+    def __getitem__(self, key: str) -> Any:
+        """Support bracket access (e.g. api_key['name'])."""
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError(key) from None
+
+
+class APIKeyWithSecret(Struct, kw_only=True):
+    """Response model for an API key with its secret value.
+
+    The secret value is only available at creation time.
+
+    Attributes:
+        key: The API key metadata.
+        value: The secret API key string.
+    """
+
+    key: APIKeyModel
+    value: str
+
+    def __getitem__(self, key: str) -> Any:
+        """Support bracket access (e.g. response['value'])."""
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError(key) from None
+
+
+class APIKeyList:
+    """Wrapper around a list of APIKeyModel with convenience methods."""
+
+    def __init__(self, api_keys: list[APIKeyModel]) -> None:
+        self._api_keys = api_keys
+
+    def __iter__(self) -> Iterator[APIKeyModel]:
+        return iter(self._api_keys)
+
+    def __len__(self) -> int:
+        return len(self._api_keys)
+
+    def __getitem__(self, index: int) -> APIKeyModel:
+        return self._api_keys[index]
+
+    def names(self) -> list[str]:
+        """Return a list of API key names."""
+        return [api_key.name for api_key in self._api_keys]
+
+    def __repr__(self) -> str:
+        return f"APIKeyList(api_keys={self._api_keys!r})"
