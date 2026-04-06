@@ -437,6 +437,87 @@ async def test_create_invalid_deletion_protection_raises(async_indexes: AsyncInd
     assert "deletion_protection" in str(exc_info.value)
 
 
+async def test_create_name_too_long_raises(async_indexes: AsyncIndexes) -> None:
+    """Name exceeding 45 characters raises ValidationError."""
+    long_name = "a" * 46
+    with pytest.raises(ValidationError) as exc_info:
+        await async_indexes.create(
+            name=long_name,
+            dimension=1536,
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
+    assert "45 characters" in str(exc_info.value)
+
+
+async def test_create_name_invalid_chars_raises(async_indexes: AsyncIndexes) -> None:
+    """Name with uppercase or special characters raises ValidationError."""
+    with pytest.raises(ValidationError) as exc_info:
+        await async_indexes.create(
+            name="My_Index!",
+            dimension=1536,
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
+    assert "lowercase" in str(exc_info.value)
+
+
+@respx.mock
+async def test_create_name_valid_boundary(async_indexes: AsyncIndexes) -> None:
+    """Name of exactly 45 lowercase chars succeeds."""
+    valid_name = "a" * 45
+    respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(
+            201, json=make_index_response(name=valid_name)
+        ),
+    )
+
+    result = await async_indexes.create(
+        name=valid_name,
+        dimension=1536,
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+    )
+    assert isinstance(result, IndexModel)
+
+
+async def test_create_sparse_with_dimension_raises(async_indexes: AsyncIndexes) -> None:
+    """Sparse index with explicit dimension raises ValidationError."""
+    with pytest.raises(ValidationError) as exc_info:
+        await async_indexes.create(
+            name="test",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            vector_type="sparse",
+            dimension=384,
+        )
+
+    assert "dimension" in str(exc_info.value)
+    assert "sparse" in str(exc_info.value)
+
+
+async def test_create_with_unrecognized_dict_spec_raises(async_indexes: AsyncIndexes) -> None:
+    """Dict spec without a recognized key raises ValidationError."""
+    with pytest.raises(ValidationError) as exc_info:
+        await async_indexes.create(
+            name="test-index",
+            dimension=1536,
+            spec={"unknown": {"foo": "bar"}},
+        )
+
+    assert "serverless" in str(exc_info.value)
+    assert "pod" in str(exc_info.value)
+
+
+async def test_create_with_empty_dict_spec_raises(async_indexes: AsyncIndexes) -> None:
+    """Empty dict spec raises ValidationError."""
+    with pytest.raises(ValidationError) as exc_info:
+        await async_indexes.create(
+            name="test-index",
+            dimension=1536,
+            spec={},
+        )
+
+    assert "serverless" in str(exc_info.value)
+    assert "pod" in str(exc_info.value)
+
+
 @respx.mock
 async def test_create_with_metric_enum(async_indexes: AsyncIndexes) -> None:
     """Accept Metric enum for the metric parameter."""
