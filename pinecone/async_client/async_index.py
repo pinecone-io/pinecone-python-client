@@ -13,7 +13,7 @@ from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import ValidationError
 from pinecone.index import _validate_host, _vector_to_dict
-from pinecone.models.namespaces.models import NamespaceDescription
+from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
     FetchResponse,
@@ -701,6 +701,83 @@ class AsyncIndex:
 
         logger.info("Deleting namespace %r", name)
         await self._http.delete(f"/namespaces/{name}")
+
+    async def list_namespaces_paginated(
+        self,
+        *,
+        prefix: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+    ) -> ListNamespacesResponse:
+        """Fetch a single page of namespace descriptions.
+
+        Args:
+            prefix (str | None): Return only namespaces whose names start with this prefix.
+            limit (int | None): Maximum number of namespaces to return in this page.
+            pagination_token (str | None): Token from a previous response to fetch the next page.
+
+        Returns:
+            ListNamespacesResponse with namespace descriptions, pagination info,
+            and total count.
+
+        Raises:
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            response = await idx.list_namespaces_paginated(prefix="prod-", limit=10)
+            for ns in response.namespaces:
+                print(ns.name, ns.record_count)
+        """
+        params: dict[str, Any] = {}
+        if prefix is not None:
+            params["prefix"] = prefix
+        if limit is not None:
+            params["limit"] = limit
+        if pagination_token is not None:
+            params["paginationToken"] = pagination_token
+
+        logger.info("Listing namespaces")
+        response = await self._http.get("/namespaces", params=params)
+        return self._adapter.to_list_namespaces_response(response.content)
+
+    async def list_namespaces(
+        self,
+        *,
+        prefix: str | None = None,
+        limit: int | None = None,
+    ) -> AsyncIterator[ListNamespacesResponse]:
+        """List namespaces, automatically following pagination.
+
+        Yields one ``ListNamespacesResponse`` per page. The generator
+        automatically follows pagination tokens until all pages have been
+        retrieved.
+
+        Args:
+            prefix (str | None): Return only namespaces whose names start with this prefix.
+            limit (int | None): Maximum number of namespaces to return per page.
+
+        Yields:
+            ListNamespacesResponse for each page of results.
+
+        Examples:
+
+            async for page in idx.list_namespaces(prefix="prod-"):
+                for ns in page.namespaces:
+                    print(ns.name, ns.record_count)
+        """
+        pagination_token: str | None = None
+        while True:
+            page = await self.list_namespaces_paginated(
+                prefix=prefix,
+                limit=limit,
+                pagination_token=pagination_token,
+            )
+            yield page
+            if page.pagination is not None and page.pagination.next is not None:
+                pagination_token = page.pagination.next
+            else:
+                break
 
     async def close(self) -> None:
         """Close the underlying HTTP client and release resources."""
