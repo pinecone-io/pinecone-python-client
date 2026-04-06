@@ -6,8 +6,10 @@ from typing import Any
 
 import httpx
 
+from pinecone import __version__
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import API_VERSION_HEADER, DEFAULT_BASE_URL
+from pinecone._internal.user_agent import build_user_agent
 from pinecone.errors.exceptions import (
     ApiError,
     ConflictError,
@@ -20,7 +22,9 @@ def _build_headers(config: PineconeConfig, api_version: str) -> dict[str, str]:
     headers: dict[str, str] = {
         "Api-Key": config.api_key,
         API_VERSION_HEADER: api_version,
-        "User-Agent": "pinecone-python-sdk/0.1.0",
+        "User-Agent": build_user_agent(
+            __version__, config.source_tag or None
+        ),
     }
     if config.additional_headers:
         headers.update(config.additional_headers)

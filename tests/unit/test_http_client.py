@@ -43,7 +43,7 @@ class TestBuildHeaders:
         config = PineconeConfig(api_key="k")
         headers = _build_headers(config, "2025-10")
         assert "User-Agent" in headers
-        assert "pinecone" in headers["User-Agent"].lower()
+        assert headers["User-Agent"].startswith("python-client-")
 
     def test_merges_additional_headers(self) -> None:
         config = PineconeConfig(api_key="k", additional_headers={"X-Custom": "value"})
