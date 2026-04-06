@@ -231,7 +231,11 @@ class AsyncIndex:
 
         Raises:
             NotImplementedError: Always.
+            ValueError: If *batch_size* is not a positive integer.
         """
+        if not isinstance(batch_size, int) or batch_size <= 0:
+            raise ValueError("batch_size must be a positive integer")
+
         raise NotImplementedError("upsert_from_dataframe is not supported for async clients")
 
     async def query(

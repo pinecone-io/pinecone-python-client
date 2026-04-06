@@ -237,6 +237,9 @@ class Index:
         if not isinstance(df, pd.DataFrame):
             raise ValueError("df must be a pandas DataFrame")
 
+        if not isinstance(batch_size, int) or batch_size <= 0:
+            raise ValueError("batch_size must be a positive integer")
+
         has_sparse = "sparse_values" in df.columns
         has_metadata = "metadata" in df.columns
 

@@ -182,6 +182,30 @@ class TestUpsertFromDataframeErrors:
         with pytest.raises(ValueError, match="df must be a pandas DataFrame"):
             idx.upsert_from_dataframe([1, 2, 3])
 
+    def test_batch_size_zero_raises_value_error(self) -> None:
+        pd = pytest.importorskip("pandas")
+        df = pd.DataFrame({"id": ["v1"], "values": [[0.1, 0.2]]})
+        idx = _make_index()
+
+        with pytest.raises(ValueError, match="batch_size must be a positive integer"):
+            idx.upsert_from_dataframe(df, batch_size=0)
+
+    def test_batch_size_negative_raises_value_error(self) -> None:
+        pd = pytest.importorskip("pandas")
+        df = pd.DataFrame({"id": ["v1"], "values": [[0.1, 0.2]]})
+        idx = _make_index()
+
+        with pytest.raises(ValueError, match="batch_size must be a positive integer"):
+            idx.upsert_from_dataframe(df, batch_size=-5)
+
+    def test_batch_size_float_raises_value_error(self) -> None:
+        pd = pytest.importorskip("pandas")
+        df = pd.DataFrame({"id": ["v1"], "values": [[0.1, 0.2]]})
+        idx = _make_index()
+
+        with pytest.raises(ValueError, match="batch_size must be a positive integer"):
+            idx.upsert_from_dataframe(df, batch_size=3.5)  # type: ignore[arg-type]
+
     def test_upsert_from_dataframe_no_pandas(self, monkeypatch: pytest.MonkeyPatch) -> None:
         idx = _make_index()
 
@@ -208,3 +232,17 @@ class TestAsyncUpsertFromDataframe:
 
         with pytest.raises(NotImplementedError, match="not supported for async"):
             await async_idx.upsert_from_dataframe("dummy")
+
+    @pytest.mark.asyncio
+    async def test_async_upsert_from_dataframe_batch_size_zero(self) -> None:
+        async_idx = AsyncIndex(host=INDEX_HOST, api_key="test-key")
+
+        with pytest.raises(ValueError, match="batch_size must be a positive integer"):
+            await async_idx.upsert_from_dataframe("dummy", batch_size=0)
+
+    @pytest.mark.asyncio
+    async def test_async_upsert_from_dataframe_batch_size_negative(self) -> None:
+        async_idx = AsyncIndex(host=INDEX_HOST, api_key="test-key")
+
+        with pytest.raises(ValueError, match="batch_size must be a positive integer"):
+            await async_idx.upsert_from_dataframe("dummy", batch_size=-1)
