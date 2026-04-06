@@ -14,7 +14,13 @@ from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION
 from pinecone._internal.http_client import AsyncHTTPClient
 from pinecone.async_client.indexes import _POLL_INTERVAL_SECONDS, AsyncIndexes
-from pinecone.errors.exceptions import ConflictError, NotFoundError, PineconeError, ValidationError
+from pinecone.errors.exceptions import (
+    ConflictError,
+    IndexInitFailedError,
+    NotFoundError,
+    PineconeTimeoutError,
+    ValidationError,
+)
 from pinecone.models.enums import DeletionProtection, EmbedModel, Metric, VectorType
 from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.list import IndexList
@@ -221,7 +227,7 @@ async def test_delete_polls_until_gone(async_indexes: AsyncIndexes) -> None:
 
 @respx.mock
 async def test_delete_timeout_exceeded(async_indexes: AsyncIndexes) -> None:
-    """If index still exists after timeout, raise PineconeError."""
+    """If index still exists after timeout, raise PineconeTimeoutError."""
     respx.delete(f"{BASE_URL}/indexes/test-index").mock(
         return_value=httpx.Response(202),
     )
@@ -230,7 +236,7 @@ async def test_delete_timeout_exceeded(async_indexes: AsyncIndexes) -> None:
     )
 
     with patch("pinecone.async_client.indexes.asyncio.sleep"):
-        with pytest.raises(PineconeError, match=r"still exists after 1s"):
+        with pytest.raises(PineconeTimeoutError, match=r"still exists after 1s"):
             await async_indexes.delete("test-index", timeout=1)
 
 
@@ -560,7 +566,7 @@ async def test_create_init_failed_raises(async_indexes: AsyncIndexes) -> None:
     )
 
     with patch("pinecone.async_client.indexes.asyncio.sleep"):
-        with pytest.raises(PineconeError, match="failed to initialize"):
+        with pytest.raises(IndexInitFailedError):
             await async_indexes.create(
                 name="test-index",
                 dimension=1536,
