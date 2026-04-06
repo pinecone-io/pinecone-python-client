@@ -61,7 +61,7 @@ class AsyncIndexes:
         """
         logger.info("Listing indexes")
         response = await self._http.get("/indexes")
-        result = self._adapter.to_index_list(response.json())
+        result = self._adapter.to_index_list(response.content)
         logger.debug("Listed %d indexes", len(result))
         return result
 
@@ -91,7 +91,7 @@ class AsyncIndexes:
         require_non_empty("name", name)
         logger.info("Describing index %r", name)
         response = await self._http.get(f"/indexes/{name}")
-        model = self._adapter.to_index_model(response.json())
+        model = self._adapter.to_index_model(response.content)
         self._host_cache[name] = model.host
         logger.debug("Described index %r (host=%s)", name, model.host)
         return model

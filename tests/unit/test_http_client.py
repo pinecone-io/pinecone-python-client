@@ -46,17 +46,13 @@ class TestBuildHeaders:
         assert "pinecone" in headers["User-Agent"].lower()
 
     def test_merges_additional_headers(self) -> None:
-        config = PineconeConfig(
-            api_key="k", additional_headers={"X-Custom": "value"}
-        )
+        config = PineconeConfig(api_key="k", additional_headers={"X-Custom": "value"})
         headers = _build_headers(config, "2025-10")
         assert headers["X-Custom"] == "value"
 
     def test_additional_headers_override_defaults(self) -> None:
         """User-supplied additional headers can override built-in headers."""
-        config = PineconeConfig(
-            api_key="k", additional_headers={"User-Agent": "custom-agent"}
-        )
+        config = PineconeConfig(api_key="k", additional_headers={"User-Agent": "custom-agent"})
         headers = _build_headers(config, "2025-10")
         assert headers["User-Agent"] == "custom-agent"
 
@@ -185,9 +181,7 @@ class TestHTTPClientPost:
 class TestHTTPClientDelete:
     @respx.mock
     def test_delete_success(self) -> None:
-        respx.delete(f"{BASE_URL}/indexes/foo").mock(
-            return_value=httpx.Response(202, json={})
-        )
+        respx.delete(f"{BASE_URL}/indexes/foo").mock(return_value=httpx.Response(202, json={}))
         client = _make_sync_client()
         resp = client.delete("/indexes/foo")
         assert resp.status_code == 202
@@ -274,9 +268,7 @@ class TestAsyncHTTPClientClose:
     @respx.mock
     @pytest.mark.asyncio
     async def test_close_closes_underlying_client(self) -> None:
-        respx.get(f"{BASE_URL}/ping").mock(
-            return_value=httpx.Response(200)
-        )
+        respx.get(f"{BASE_URL}/ping").mock(return_value=httpx.Response(200))
         client = _make_async_client()
         await client.get("/ping")  # Force client creation
         assert client._client is not None

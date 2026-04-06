@@ -12,7 +12,6 @@ import respx
 from tests.factories import (
     make_backup_response,
     make_collection_response,
-    make_describe_index_stats_response,
     make_embed_response,
     make_fetch_response,
     make_index_list_response,
