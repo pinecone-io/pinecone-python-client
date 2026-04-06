@@ -10,7 +10,7 @@ from pinecone._internal.adapters.vectors_adapter import VectorsAdapter
 from pinecone._internal.config import PineconeConfig, normalize_host
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone.errors.exceptions import ValidationError
-from pinecone.models.vectors.responses import FetchResponse, QueryResponse
+from pinecone.models.vectors.responses import FetchResponse, QueryResponse, UpdateResponse
 
 logger = logging.getLogger(__name__)
 
@@ -260,6 +260,77 @@ class Index:
 
         logger.info("Deleting vectors from namespace %r", namespace)
         self._http.post("/vectors/delete", json=body)
+
+    def update(
+        self,
+        *,
+        id: str | None = None,
+        values: list[float] | None = None,
+        sparse_values: dict[str, Any] | None = None,
+        set_metadata: dict[str, Any] | None = None,
+        namespace: str = "",
+        filter: dict[str, Any] | None = None,
+        dry_run: bool = False,
+    ) -> UpdateResponse:
+        """Update vectors by ID or metadata filter.
+
+        Updates a single vector's dense values, sparse values, or metadata by
+        identifier, or bulk-updates metadata on all vectors matching a filter.
+
+        Exactly one of ``id`` or ``filter`` must be specified.
+
+        Args:
+            id: ID of the vector to update.
+            values: New dense vector values.
+            sparse_values: New sparse vector with ``indices`` and ``values`` keys.
+            set_metadata: Metadata fields to set or overwrite.
+            namespace: Namespace to target. Defaults to the default namespace.
+            filter: Metadata filter expression selecting vectors to update.
+            dry_run: If True, return the count of records that would be
+                affected without applying changes. Only applies to filter-based
+                updates.
+
+        Returns:
+            UpdateResponse with matched_records count (when available).
+
+        Raises:
+            ValidationError: If both or neither of id and filter are provided.
+
+        Example::
+
+            # Update by ID
+            idx.update(id="vec1", values=[0.1, 0.2, 0.3])
+
+            # Bulk-update metadata by filter
+            idx.update(
+                filter={"genre": {"$eq": "drama"}},
+                set_metadata={"year": 2020},
+            )
+        """
+        has_id = id is not None
+        has_filter = filter is not None
+        if has_id and has_filter:
+            raise ValidationError("Exactly one of id or filter must be provided, not both")
+        if not has_id and not has_filter:
+            raise ValidationError("Exactly one of id or filter must be provided, got neither")
+
+        body: dict[str, Any] = {"namespace": namespace}
+        if id is not None:
+            body["id"] = id
+        if values is not None:
+            body["values"] = values
+        if sparse_values is not None:
+            body["sparseValues"] = sparse_values
+        if set_metadata is not None:
+            body["setMetadata"] = set_metadata
+        if filter is not None:
+            body["filter"] = filter
+        if dry_run:
+            body["dryRun"] = True
+
+        logger.info("Updating vectors in namespace %r", namespace)
+        response = self._http.post("/vectors/update", json=body)
+        return self._adapter.to_update_response(response.content)
 
     def close(self) -> None:
         """Close the underlying HTTP client and release resources."""
