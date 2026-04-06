@@ -34,7 +34,7 @@ class AsyncIndexes:
     and ``configure`` methods.
 
     Args:
-        http: Async HTTP client for making API requests.
+        http (AsyncHTTPClient): Async HTTP client for making API requests.
 
     Example::
 
@@ -83,7 +83,7 @@ class AsyncIndexes:
         later data-plane client construction.
 
         Args:
-            name: The name of the index to describe.
+            name (str): The name of the index to describe.
 
         Returns:
             An IndexModel with name, dimension, metric, host, spec,
@@ -114,7 +114,7 @@ class AsyncIndexes:
         ``False`` when a 404 is returned.
 
         Args:
-            name: The name of the index to check.
+            name (str): The name of the index to check.
 
         Returns:
             True if the index exists, False otherwise.
@@ -142,8 +142,8 @@ class AsyncIndexes:
         for the index. By default, returns immediately without polling.
 
         Args:
-            name: The name of the index to delete.
-            timeout: Seconds to wait for the index to disappear.
+            name (str): The name of the index to delete.
+            timeout (int | None): Seconds to wait for the index to disappear.
                 Use ``None`` (default) to return immediately without polling.
                 Use a positive int to poll until the index is gone or the
                 deadline is reached.
@@ -196,11 +196,11 @@ class AsyncIndexes:
         deletion protection, and tags.
 
         Args:
-            name: The name of the index to configure.
-            replicas: Number of replicas for pod-based indexes.
-            pod_type: Pod type for pod-based indexes (e.g. ``"p1.x2"``).
-            deletion_protection: ``"enabled"`` or ``"disabled"``.
-            tags: Key-value tags to merge with existing tags.
+            name (str): The name of the index to configure.
+            replicas (int | None): Number of replicas for pod-based indexes.
+            pod_type (str | None): Pod type for pod-based indexes (e.g. ``"p1.x2"``).
+            deletion_protection (DeletionProtection | str | None): ``"enabled"`` or ``"disabled"``.
+            tags (dict[str, str] | None): Key-value tags to merge with existing tags.
                 Set a value to ``""`` to remove a tag.
 
         Raises:
@@ -257,14 +257,15 @@ class AsyncIndexes:
         Supports serverless and pod-based index creation.
 
         Args:
-            name: Name for the new index.
-            spec: Deployment spec — a ServerlessSpec, PodSpec, or raw dict.
-            dimension: Vector dimension (required for dense indexes).
-            metric: Similarity metric (cosine, euclidean, dotproduct).
-            vector_type: Vector type (dense or sparse).
-            deletion_protection: Whether deletion protection is enabled.
-            tags: Optional key-value tags.
-            timeout: Seconds to wait for the index to become ready.
+            name (str): Name for the new index.
+            spec (ServerlessSpec | PodSpec | dict[str, Any]): Deployment spec —
+                a ServerlessSpec, PodSpec, or raw dict.
+            dimension (int | None): Vector dimension (required for dense indexes).
+            metric (Metric | str): Similarity metric (cosine, euclidean, dotproduct).
+            vector_type (VectorType | str): Vector type (dense or sparse).
+            deletion_protection (DeletionProtection | str): Whether deletion protection is enabled.
+            tags (dict[str, str] | None): Optional key-value tags.
+            timeout (int | None): Seconds to wait for the index to become ready.
                 Use ``None`` (default) or ``-1`` to return immediately
                 without polling. Use a positive int to poll until the
                 index is ready or the deadline is reached. Raises

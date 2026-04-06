@@ -21,10 +21,10 @@ class AsyncIndex:
     :meth:`AsyncPinecone.index` factory method.
 
     Args:
-        host: The index-specific data plane host URL.
-        api_key: Pinecone API key. Falls back to ``PINECONE_API_KEY`` env var.
-        additional_headers: Extra headers included in every request.
-        timeout: Request timeout in seconds. Defaults to ``30.0``.
+        host (str): The index-specific data plane host URL.
+        api_key (str | None): Pinecone API key. Falls back to ``PINECONE_API_KEY`` env var.
+        additional_headers (dict[str, str] | None): Extra headers included in every request.
+        timeout (float): Request timeout in seconds. Defaults to ``30.0``.
 
     Raises:
         ValidationError: If no API key can be resolved or the host is invalid.

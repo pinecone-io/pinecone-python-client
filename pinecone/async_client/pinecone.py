@@ -20,15 +20,15 @@ class AsyncPinecone:
     """Asynchronous Pinecone client for control-plane operations.
 
     Args:
-        api_key: Pinecone API key. Falls back to ``PINECONE_API_KEY`` env var.
-        host: Control-plane API host. Falls back to ``PINECONE_CONTROLLER_HOST``
+        api_key (str | None): Pinecone API key. Falls back to ``PINECONE_API_KEY`` env var.
+        host (str | None): Control-plane API host. Falls back to ``PINECONE_CONTROLLER_HOST``
             env var, then defaults to ``https://api.pinecone.io``.
-        additional_headers: Extra headers included in every request.
-        source_tag: Tag appended to the User-Agent string for request attribution.
-        proxy_url: HTTP proxy URL for outgoing requests.
-        ssl_ca_certs: Path to a CA certificate bundle for SSL verification.
-        ssl_verify: Whether to verify SSL certificates. Defaults to ``True``.
-        timeout: Request timeout in seconds. Defaults to ``30.0``.
+        additional_headers (dict[str, str] | None): Extra headers included in every request.
+        source_tag (str | None): Tag appended to the User-Agent string for request attribution.
+        proxy_url (str | None): HTTP proxy URL for outgoing requests.
+        ssl_ca_certs (str | None): Path to a CA certificate bundle for SSL verification.
+        ssl_verify (bool): Whether to verify SSL certificates. Defaults to ``True``.
+        timeout (float): Request timeout in seconds. Defaults to ``30.0``.
 
     Raises:
         ValidationError: If no API key can be resolved from arguments or
@@ -163,8 +163,8 @@ class AsyncPinecone:
         index name (triggers a describe-index lookup to resolve the host).
 
         Args:
-            name: Name of the index. Triggers a describe call to resolve host.
-            host: Direct host URL of the index. Skips the describe call.
+            name (str): Name of the index. Triggers a describe call to resolve host.
+            host (str): Direct host URL of the index. Skips the describe call.
 
         Returns:
             An async :class:`AsyncIndex` data plane client.

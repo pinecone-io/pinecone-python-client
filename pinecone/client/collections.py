@@ -22,7 +22,7 @@ class Collections:
     Provides methods to create, list, describe, and delete collections.
 
     Args:
-        http: HTTP client for making API requests.
+        http (HTTPClient): HTTP client for making API requests.
 
     Example::
 
@@ -48,8 +48,8 @@ class Collections:
         readiness.
 
         Args:
-            name: Name for the new collection.
-            source: Name of the source index.
+            name (str): Name for the new collection.
+            source (str): Name of the source index.
 
         Returns:
             A CollectionModel describing the created collection.
@@ -97,7 +97,7 @@ class Collections:
         """Get detailed information about a named collection.
 
         Args:
-            name: The name of the collection to describe.
+            name (str): The name of the collection to describe.
 
         Returns:
             A CollectionModel with name, status, size, dimension,
@@ -123,7 +123,7 @@ class Collections:
         """Delete a collection by name.
 
         Args:
-            name: The name of the collection to delete.
+            name (str): The name of the collection to delete.
 
         Raises:
             ValidationError: If *name* is empty.

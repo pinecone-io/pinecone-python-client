@@ -50,10 +50,10 @@ class Index:
     :meth:`Pinecone.index` factory method.
 
     Args:
-        host: The index-specific data plane host URL.
-        api_key: Pinecone API key. Falls back to ``PINECONE_API_KEY`` env var.
-        additional_headers: Extra headers included in every request.
-        timeout: Request timeout in seconds. Defaults to ``30.0``.
+        host (str): The index-specific data plane host URL.
+        api_key (str | None): Pinecone API key. Falls back to ``PINECONE_API_KEY`` env var.
+        additional_headers (dict[str, str] | None): Extra headers included in every request.
+        timeout (float): Request timeout in seconds. Defaults to ``30.0``.
 
     Raises:
         ValidationError: If no API key can be resolved or the host is invalid.
@@ -120,14 +120,14 @@ class Index:
         """Query a namespace for the nearest neighbors of a vector.
 
         Args:
-            top_k: Number of results to return (must be >= 1).
-            vector: Dense query vector values.
-            id: ID of a stored vector to use as the query.
-            namespace: Namespace to query. Defaults to the default namespace.
-            filter: Metadata filter expression.
-            include_values: Whether to include vector values in results.
-            include_metadata: Whether to include metadata in results.
-            sparse_vector: Sparse query vector with indices and values.
+            top_k (int): Number of results to return (must be >= 1).
+            vector (list[float] | None): Dense query vector values.
+            id (str | None): ID of a stored vector to use as the query.
+            namespace (str): Namespace to query. Defaults to the default namespace.
+            filter (dict[str, Any] | None): Metadata filter expression.
+            include_values (bool): Whether to include vector values in results.
+            include_metadata (bool): Whether to include metadata in results.
+            sparse_vector (dict[str, Any] | None): Sparse query vector with indices and values.
 
         Returns:
             QueryResponse with matches, namespace, and usage info.
@@ -182,8 +182,8 @@ class Index:
         """Fetch vectors by their IDs from a namespace.
 
         Args:
-            ids: List of vector IDs to fetch (must be non-empty).
-            namespace: Namespace to fetch from. Defaults to the default namespace.
+            ids (list[str]): List of vector IDs to fetch (must be non-empty).
+            namespace (str): Namespace to fetch from. Defaults to the default namespace.
 
         Returns:
             FetchResponse with a map of vector IDs to Vector objects, namespace,
@@ -226,10 +226,10 @@ class Index:
         Deleting IDs that do not exist does not raise an error.
 
         Args:
-            ids: List of vector IDs to delete.
-            delete_all: If True, delete all vectors in the namespace.
-            filter: Metadata filter expression selecting vectors to delete.
-            namespace: Namespace to delete from. Defaults to the default namespace.
+            ids (list[str] | None): List of vector IDs to delete.
+            delete_all (bool): If True, delete all vectors in the namespace.
+            filter (dict[str, Any] | None): Metadata filter expression selecting vectors to delete.
+            namespace (str): Namespace to delete from. Defaults to the default namespace.
 
         Returns:
             None — a successful delete returns no payload.
@@ -286,13 +286,14 @@ class Index:
         Exactly one of ``id`` or ``filter`` must be specified.
 
         Args:
-            id: ID of the vector to update.
-            values: New dense vector values.
-            sparse_values: New sparse vector with ``indices`` and ``values`` keys.
-            set_metadata: Metadata fields to set or overwrite.
-            namespace: Namespace to target. Defaults to the default namespace.
-            filter: Metadata filter expression selecting vectors to update.
-            dry_run: If True, return the count of records that would be
+            id (str | None): ID of the vector to update.
+            values (list[float] | None): New dense vector values.
+            sparse_values (dict[str, Any] | None): New sparse vector with ``indices``
+                and ``values`` keys.
+            set_metadata (dict[str, Any] | None): Metadata fields to set or overwrite.
+            namespace (str): Namespace to target. Defaults to the default namespace.
+            filter (dict[str, Any] | None): Metadata filter expression selecting vectors to update.
+            dry_run (bool): If True, return the count of records that would be
                 affected without applying changes. Only applies to filter-based
                 updates.
 
@@ -349,10 +350,10 @@ class Index:
         """Fetch a single page of vector IDs from a namespace.
 
         Args:
-            prefix: Return only IDs starting with this prefix.
-            limit: Maximum number of IDs to return in this page.
-            pagination_token: Token from a previous response to fetch the next page.
-            namespace: Namespace to list from. Defaults to the default namespace.
+            prefix (str | None): Return only IDs starting with this prefix.
+            limit (int | None): Maximum number of IDs to return in this page.
+            pagination_token (str | None): Token from a previous response to fetch the next page.
+            namespace (str): Namespace to list from. Defaults to the default namespace.
 
         Returns:
             ListResponse with vector IDs, pagination info, namespace, and usage.
@@ -391,9 +392,9 @@ class Index:
         follows pagination tokens until all pages have been retrieved.
 
         Args:
-            prefix: Return only IDs starting with this prefix.
-            limit: Maximum number of IDs to return per page.
-            namespace: Namespace to list from. Defaults to the default namespace.
+            prefix (str | None): Return only IDs starting with this prefix.
+            limit (int | None): Maximum number of IDs to return per page.
+            namespace (str): Namespace to list from. Defaults to the default namespace.
 
         Yields:
             ListResponse for each page of results.
