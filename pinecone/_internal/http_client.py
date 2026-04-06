@@ -152,6 +152,9 @@ class HTTPClient:
     def __init__(self, config: PineconeConfig, api_version: str) -> None:
         self._config = config
         self._headers = _build_headers(config, api_version)
+        verify: str | bool = (
+            config.ssl_ca_certs if config.ssl_ca_certs else config.ssl_verify
+        )
         transport = _RetryTransport(
             transport=httpx.HTTPTransport(http2=True),
         )
@@ -161,6 +164,8 @@ class HTTPClient:
             timeout=config.timeout,
             transport=transport,
             limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
+            proxy=config.proxy_url or None,
+            verify=verify,
         )
 
     def get(self, path: str, **kwargs: Any) -> httpx.Response:
@@ -209,6 +214,11 @@ class AsyncHTTPClient:
     def _ensure_client(self) -> httpx.AsyncClient:
         """Return the underlying client, creating it on first use."""
         if self._client is None:
+            verify: str | bool = (
+                self._config.ssl_ca_certs
+                if self._config.ssl_ca_certs
+                else self._config.ssl_verify
+            )
             transport = _AsyncRetryTransport(
                 transport=httpx.AsyncHTTPTransport(http2=True),
             )
@@ -218,6 +228,8 @@ class AsyncHTTPClient:
                 timeout=self._config.timeout,
                 transport=transport,
                 limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
+                proxy=self._config.proxy_url or None,
+                verify=verify,
             )
         return self._client
 
