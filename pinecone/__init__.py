@@ -4,6 +4,7 @@ __version__ = "0.1.0"
 
 from pinecone._client import Pinecone
 from pinecone._internal.config import PineconeConfig
+from pinecone.async_client.pinecone import AsyncPinecone
 from pinecone.errors.exceptions import (
     ApiError,
     ConflictError,
@@ -17,6 +18,7 @@ from pinecone.index import Index
 __all__ = [
     "__version__",
     "ApiError",
+    "AsyncPinecone",
     "ConflictError",
     "Index",
     "NotFoundError",
