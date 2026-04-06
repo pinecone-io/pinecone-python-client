@@ -74,6 +74,21 @@ class PineconeConfig:
     ssl_ca_certs: str | None = None
     ssl_verify: bool = True
 
+    def __repr__(self) -> str:
+        masked = f"...{self.api_key[-4:]}" if len(self.api_key) >= 4 else "***"
+        return (
+            f"PineconeConfig("
+            f"api_key='{masked}', "
+            f"host='{self.host}', "
+            f"timeout={self.timeout}, "
+            f"additional_headers={self.additional_headers!r}, "
+            f"source_tag='{self.source_tag}', "
+            f"proxy_url='{self.proxy_url}', "
+            f"ssl_ca_certs={self.ssl_ca_certs!r}, "
+            f"ssl_verify={self.ssl_verify}"
+            f")"
+        )
+
     def __post_init__(self) -> None:
         if not self.api_key:
             env_key = os.environ.get("PINECONE_API_KEY", "")
