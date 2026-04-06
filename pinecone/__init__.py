@@ -79,3 +79,9 @@ def __getattr__(name: str) -> Any:
         globals()[name] = value
         return value
     raise AttributeError(f"module 'pinecone' has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    import builtins
+
+    return builtins.list({*globals(), *__all__, *_LAZY_IMPORTS})

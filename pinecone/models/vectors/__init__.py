@@ -47,3 +47,9 @@ def __getattr__(name: str) -> Any:
         module = import_module(_LAZY_IMPORTS[name])
         return getattr(module, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    import builtins
+
+    return builtins.list({*globals(), *__all__, *_LAZY_IMPORTS})
