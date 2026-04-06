@@ -418,6 +418,47 @@ def test_create_sparse_without_dimension(indexes: Indexes) -> None:
     assert "dimension" not in body
 
 
+def test_create_name_too_long_raises(indexes: Indexes) -> None:
+    """Name exceeding 45 characters raises ValidationError."""
+    long_name = "a" * 46
+    with pytest.raises(ValidationError) as exc_info:
+        indexes.create(
+            name=long_name,
+            dimension=1536,
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
+    assert "45 characters" in str(exc_info.value)
+
+
+def test_create_name_invalid_chars_raises(indexes: Indexes) -> None:
+    """Name with uppercase or special characters raises ValidationError."""
+    with pytest.raises(ValidationError) as exc_info:
+        indexes.create(
+            name="My_Index!",
+            dimension=1536,
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
+    assert "lowercase" in str(exc_info.value)
+
+
+@respx.mock
+def test_create_name_valid_boundary(indexes: Indexes) -> None:
+    """Name of exactly 45 lowercase chars succeeds."""
+    valid_name = "a" * 45
+    respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(
+            201, json=make_index_response(name=valid_name)
+        ),
+    )
+
+    result = indexes.create(
+        name=valid_name,
+        dimension=1536,
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+    )
+    assert isinstance(result, IndexModel)
+
+
 def test_create_sparse_with_dimension_raises(indexes: Indexes) -> None:
     """Sparse index with explicit dimension raises ValidationError."""
     with pytest.raises(ValidationError) as exc_info:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import time
 from typing import TYPE_CHECKING, Any
 
@@ -371,6 +372,12 @@ class Indexes:
     ) -> None:
         """Client-side validation for create() arguments."""
         require_non_empty("name", name)
+        if len(name) > 45:
+            raise ValidationError("index name must not exceed 45 characters")
+        if not re.fullmatch(r"[a-z0-9-]+", name):
+            raise ValidationError(
+                "index name must contain only lowercase letters, digits, and hyphens"
+            )
 
         if spec is None:
             raise ValidationError("spec is required")
