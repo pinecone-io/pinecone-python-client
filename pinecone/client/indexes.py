@@ -174,6 +174,63 @@ class Indexes:
                     raise PineconeError(f"Index {name!r} still exists after {timeout}s")
             time.sleep(_POLL_INTERVAL_SECONDS)
 
+    def configure(
+        self,
+        name: str,
+        *,
+        replicas: int | None = None,
+        pod_type: str | None = None,
+        deletion_protection: str | None = None,
+        tags: dict[str, str] | None = None,
+    ) -> None:
+        """Configure an existing index.
+
+        Updates mutable properties of an index such as replicas, pod type,
+        deletion protection, and tags.
+
+        Args:
+            name: The name of the index to configure.
+            replicas: Number of replicas for pod-based indexes.
+            pod_type: Pod type for pod-based indexes (e.g. ``"p1.x2"``).
+            deletion_protection: ``"enabled"`` or ``"disabled"``.
+            tags: Key-value tags to merge with existing tags.
+                Set a value to ``""`` to remove a tag.
+
+        Raises:
+            ValidationError: If *name* is empty.
+
+        Example::
+
+            pc.indexes.configure("my-index", replicas=4)
+            pc.indexes.configure("my-index", tags={"env": "prod"})
+        """
+        require_non_empty("name", name)
+        logger.info("Configuring index %r", name)
+
+        body: dict[str, Any] = {}
+
+        # Pod spec fields
+        pod_fields: dict[str, Any] = {}
+        if replicas is not None:
+            pod_fields["replicas"] = replicas
+        if pod_type is not None:
+            pod_fields["pod_type"] = pod_type
+        if pod_fields:
+            body["spec"] = {"pod": pod_fields}
+
+        # Deletion protection — only include when explicitly specified
+        if deletion_protection is not None:
+            body["deletion_protection"] = deletion_protection
+
+        # Tag merging — fetch current tags and merge
+        if tags is not None:
+            current = self.describe(name)
+            merged = {**(current.tags or {}), **tags}
+            body["tags"] = merged
+
+        self._http.patch(f"/indexes/{name}", json=body)
+        logger.debug("Configured index %r", name)
+
     def create(
         self,
         *,
