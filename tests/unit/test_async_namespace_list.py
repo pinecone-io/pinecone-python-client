@@ -7,7 +7,7 @@ import pytest
 import respx
 
 from pinecone import AsyncIndex
-from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
+from pinecone.models.namespaces.models import ListNamespacesResponse
 
 INDEX_HOST = "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
 INDEX_HOST_HTTPS = f"https://{INDEX_HOST}"

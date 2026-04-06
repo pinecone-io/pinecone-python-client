@@ -9,6 +9,7 @@ from pinecone._internal.constants import CONTROL_PLANE_API_VERSION, DEFAULT_BASE
 from pinecone.errors.exceptions import ValidationError
 
 if TYPE_CHECKING:
+    from pinecone.client.backups import Backups
     from pinecone.client.collections import Collections
     from pinecone.client.indexes import Indexes
     from pinecone.index import Index
@@ -104,6 +105,7 @@ class Pinecone:
         self._http = HTTPClient(config, CONTROL_PLANE_API_VERSION)
         self._indexes: Indexes | None = None
         self._collections: Collections | None = None
+        self._backups: Backups | None = None
         self._host_cache: dict[str, str] = {}
 
     @property
@@ -147,6 +149,27 @@ class Pinecone:
 
             self._collections = _Collections(http=self._http)
         return self._collections
+
+    @property
+    def backups(self) -> Backups:
+        """Access the Backups namespace for backup operations.
+
+        Lazily imported and instantiated on first access.
+
+        Returns:
+            Backups namespace instance.
+
+        Examples:
+
+            pc = Pinecone(api_key="your-api-key")
+            for backup in pc.backups.list():
+                print(backup.backup_id)
+        """
+        if self._backups is None:
+            from pinecone.client.backups import Backups as _Backups
+
+            self._backups = _Backups(http=self._http)
+        return self._backups
 
     def index(
         self,
