@@ -64,6 +64,7 @@ class HTTPClient:
             headers=self._headers,
             timeout=config.timeout,
             http2=True,
+            limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
         )
 
     def get(self, path: str, **kwargs: Any) -> httpx.Response:
@@ -117,6 +118,7 @@ class AsyncHTTPClient:
                 headers=self._headers,
                 timeout=self._config.timeout,
                 http2=True,
+                limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
             )
         return self._client
 
