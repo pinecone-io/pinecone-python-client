@@ -7,6 +7,43 @@ from typing import Any
 from msgspec import Struct
 
 
+class EmbedConfig(Struct, kw_only=True):
+    """Configuration for integrated (model-backed) embedding.
+
+    Attributes:
+        model: Name of the embedding model (e.g. ``"multilingual-e5-large"``).
+        field_map: Maps document field names to embedding inputs
+            (e.g. ``{"text": "my_text_field"}``).
+        metric: Similarity metric override, or ``None`` to use the model default.
+        read_parameters: Optional read-time model parameters.
+        write_parameters: Optional write-time model parameters.
+    """
+
+    model: str
+    field_map: dict[str, str]
+    metric: str | None = None
+    read_parameters: dict[str, Any] | None = None
+    write_parameters: dict[str, Any] | None = None
+
+
+class IntegratedSpec(Struct, kw_only=True):
+    """Integrated (model-backed) index deployment spec.
+
+    Wraps cloud/region and embed config into a single convenience
+    object. On the wire the ``embed`` config is sent at the top level
+    alongside the serverless spec — serialization handles the split.
+
+    Attributes:
+        cloud: Cloud provider (e.g. ``"aws"``, ``"gcp"``, ``"azure"``).
+        region: Cloud region (e.g. ``"us-east-1"``).
+        embed: Embedding model configuration.
+    """
+
+    cloud: str
+    region: str
+    embed: EmbedConfig
+
+
 class ServerlessSpec(Struct, kw_only=True):
     """Serverless index deployment spec.
 

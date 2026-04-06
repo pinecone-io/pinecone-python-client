@@ -5,13 +5,20 @@ from pinecone.models.collections.model import CollectionModel
 from pinecone.models.enums import (
     CloudProvider,
     DeletionProtection,
+    EmbedModel,
     Metric,
     PodType,
     VectorType,
 )
 from pinecone.models.indexes.index import IndexModel, IndexStatus
 from pinecone.models.indexes.list import IndexList
-from pinecone.models.indexes.specs import ByocSpec, PodSpec, ServerlessSpec
+from pinecone.models.indexes.specs import (
+    ByocSpec,
+    EmbedConfig,
+    IntegratedSpec,
+    PodSpec,
+    ServerlessSpec,
+)
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
     FetchResponse,
@@ -42,6 +49,9 @@ __all__ = [
     "ServerlessSpec",
     "PodSpec",
     "ByocSpec",
+    "EmbedConfig",
+    "EmbedModel",
+    "IntegratedSpec",
     "SparseValues",
     "Usage",
     "Vector",

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from pinecone import __version__
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.http_client import _build_headers
@@ -61,9 +59,7 @@ class TestSourceTagNormalizationIntegration:
         assert config.source_tag == "foo:bar"
 
     def test_mixed_normalization(self) -> None:
-        config = PineconeConfig(
-            api_key="test-key", source_tag="My App:Version 2!"
-        )
+        config = PineconeConfig(api_key="test-key", source_tag="My App:Version 2!")
         assert config.source_tag == "my_app:version_2"
 
 
@@ -78,10 +74,7 @@ class TestBuildHeadersUserAgent:
     def test_user_agent_with_source_tag(self) -> None:
         config = PineconeConfig(api_key="test-key", source_tag="my_tag")
         headers = _build_headers(config, "2025-10")
-        assert (
-            headers["User-Agent"]
-            == f"python-client-{__version__} source_tag=my_tag"
-        )
+        assert headers["User-Agent"] == f"python-client-{__version__} source_tag=my_tag"
 
     def test_user_agent_no_source_tag_suffix_when_empty(self) -> None:
         config = PineconeConfig(api_key="test-key", source_tag="")

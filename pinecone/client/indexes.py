@@ -14,7 +14,7 @@ from pinecone.errors.exceptions import NotFoundError, PineconeError, ValidationE
 from pinecone.models.enums import DeletionProtection, Metric, VectorType
 from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.list import IndexList
-from pinecone.models.indexes.specs import PodSpec, ServerlessSpec
+from pinecone.models.indexes.specs import IntegratedSpec, PodSpec, ServerlessSpec
 
 if TYPE_CHECKING:
     from pinecone._internal.http_client import HTTPClient
@@ -247,7 +247,7 @@ class Indexes:
         self,
         *,
         name: str,
-        spec: ServerlessSpec | PodSpec | dict[str, Any],
+        spec: ServerlessSpec | PodSpec | IntegratedSpec | dict[str, Any],
         dimension: int | None = None,
         metric: Metric | str = "cosine",
         vector_type: VectorType | str = "dense",
@@ -257,14 +257,17 @@ class Indexes:
     ) -> IndexModel:
         """Create a new Pinecone index.
 
-        Supports serverless and pod-based index creation. For integrated
-        (model-backed) indexes, see a future release.
+        Supports serverless, pod-based, and integrated (model-backed) index
+        creation. Integrated indexes use Pinecone's built-in embedding models
+        so dimension and metric are inferred from the model.
 
         Args:
             name (str): Name for the new index.
-            spec (ServerlessSpec | PodSpec | dict[str, Any]): Deployment spec —
-                a ServerlessSpec, PodSpec, or raw dict.
-            dimension (int | None): Vector dimension (required for dense indexes).
+            spec (ServerlessSpec | PodSpec | IntegratedSpec | dict[str, Any]):
+                Deployment spec — a ServerlessSpec, PodSpec, IntegratedSpec,
+                or raw dict.
+            dimension (int | None): Vector dimension (required for dense
+                non-integrated indexes).
             metric (Metric | str): Similarity metric (cosine, euclidean, dotproduct).
             vector_type (VectorType | str): Vector type (dense or sparse).
             deletion_protection (DeletionProtection | str): Whether deletion protection is enabled.
@@ -292,25 +295,45 @@ class Indexes:
                 dimension=1536,
                 spec=ServerlessSpec(cloud="aws", region="us-east-1"),
             )
-        """
-        self._validate_create_inputs(
-            name=name,
-            spec=spec,
-            dimension=dimension,
-            metric=metric,
-            vector_type=vector_type,
-            deletion_protection=deletion_protection,
-        )
 
-        body = self._build_create_body(
-            name=name,
-            spec=spec,
-            dimension=dimension,
-            metric=metric,
-            vector_type=vector_type,
-            deletion_protection=deletion_protection,
-            tags=tags,
-        )
+            pc.indexes.create(
+                name="my-integrated-index",
+                spec=IntegratedSpec(
+                    cloud="aws",
+                    region="us-east-1",
+                    embed=EmbedConfig(
+                        model="multilingual-e5-large",
+                        field_map={"text": "my_text_field"},
+                    ),
+                ),
+            )
+        """
+        if isinstance(spec, IntegratedSpec):
+            self._validate_integrated_inputs(name=name, spec=spec)
+            body = self._build_integrated_body(
+                name=name,
+                spec=spec,
+                deletion_protection=deletion_protection,
+                tags=tags,
+            )
+        else:
+            self._validate_create_inputs(
+                name=name,
+                spec=spec,
+                dimension=dimension,
+                metric=metric,
+                vector_type=vector_type,
+                deletion_protection=deletion_protection,
+            )
+            body = self._build_create_body(
+                name=name,
+                spec=spec,
+                dimension=dimension,
+                metric=metric,
+                vector_type=vector_type,
+                deletion_protection=deletion_protection,
+                tags=tags,
+            )
 
         logger.info("Creating index %r", name)
         response = self._http.post("/indexes", json=body)
@@ -397,6 +420,56 @@ class Indexes:
             body["spec"] = {"pod": msgspec.to_builtins(spec)}
         elif isinstance(spec, dict):
             body["spec"] = spec
+
+        return body
+
+    @staticmethod
+    def _validate_integrated_inputs(
+        *,
+        name: str,
+        spec: IntegratedSpec,
+    ) -> None:
+        """Client-side validation for integrated index creation."""
+        require_non_empty("name", name)
+        if not spec.cloud or not spec.cloud.strip():
+            raise ValidationError("cloud is required for integrated indexes")
+        if not spec.embed.model or not spec.embed.model.strip():
+            raise ValidationError("embed model is required for integrated indexes")
+        if not spec.embed.field_map:
+            raise ValidationError("embed field_map is required for integrated indexes")
+
+    def _build_integrated_body(
+        self,
+        *,
+        name: str,
+        spec: IntegratedSpec,
+        deletion_protection: DeletionProtection | str,
+        tags: dict[str, str] | None,
+    ) -> dict[str, Any]:
+        """Build the JSON body for POST /indexes (integrated/model-backed)."""
+        embed_body: dict[str, Any] = {
+            "model": self._resolve_value(spec.embed.model),
+            "field_map": spec.embed.field_map,
+        }
+        if spec.embed.metric is not None:
+            embed_body["metric"] = self._resolve_value(spec.embed.metric)
+        if spec.embed.read_parameters is not None:
+            embed_body["read_parameters"] = spec.embed.read_parameters
+        if spec.embed.write_parameters is not None:
+            embed_body["write_parameters"] = spec.embed.write_parameters
+
+        body: dict[str, Any] = {
+            "name": name,
+            "cloud": self._resolve_value(spec.cloud),
+            "region": spec.region,
+            "embed": embed_body,
+        }
+
+        resolved_dp = self._resolve_value(deletion_protection)
+        if resolved_dp != "disabled":
+            body["deletion_protection"] = resolved_dp
+        if tags is not None:
+            body["tags"] = tags
 
         return body
 

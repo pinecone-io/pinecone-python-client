@@ -35,6 +35,13 @@ class VectorType(str, Enum):
     SPARSE = "sparse"
 
 
+class EmbedModel(str, Enum):
+    """Known embedding models for integrated indexes."""
+
+    MULTILINGUAL_E5_LARGE = "multilingual-e5-large"
+    PINECONE_SPARSE_ENGLISH_V0 = "pinecone-sparse-english-v0"
+
+
 class PodType(str, Enum):
     """Supported pod type and size combinations."""
 

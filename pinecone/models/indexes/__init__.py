@@ -5,7 +5,13 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from pinecone.models.indexes.index import IndexModel, IndexStatus  # noqa: F401
     from pinecone.models.indexes.list import IndexList  # noqa: F401
-    from pinecone.models.indexes.specs import ByocSpec, PodSpec, ServerlessSpec  # noqa: F401
+    from pinecone.models.indexes.specs import (  # noqa: F401
+        ByocSpec,
+        EmbedConfig,
+        IntegratedSpec,
+        PodSpec,
+        ServerlessSpec,
+    )
 
 _LAZY_IMPORTS: dict[str, str] = {
     "IndexModel": "pinecone.models.indexes.index",
@@ -14,6 +20,8 @@ _LAZY_IMPORTS: dict[str, str] = {
     "ServerlessSpec": "pinecone.models.indexes.specs",
     "PodSpec": "pinecone.models.indexes.specs",
     "ByocSpec": "pinecone.models.indexes.specs",
+    "EmbedConfig": "pinecone.models.indexes.specs",
+    "IntegratedSpec": "pinecone.models.indexes.specs",
 }
 
 __all__ = list(_LAZY_IMPORTS.keys())
