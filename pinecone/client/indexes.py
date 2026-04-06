@@ -10,7 +10,12 @@ import msgspec
 
 from pinecone._internal.adapters.indexes_adapter import IndexesAdapter
 from pinecone._internal.validation import require_non_empty
-from pinecone.errors.exceptions import NotFoundError, PineconeError, ValidationError
+from pinecone.errors.exceptions import (
+    IndexInitFailedError,
+    NotFoundError,
+    PineconeTimeoutError,
+    ValidationError,
+)
 from pinecone.models.enums import DeletionProtection, Metric, VectorType
 from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.list import IndexList
@@ -181,7 +186,7 @@ class Indexes:
                 return
             elapsed = time.monotonic() - start
             if elapsed >= timeout:
-                raise PineconeError(f"Index {name!r} still exists after {timeout}s")
+                raise PineconeTimeoutError(f"Index '{name}' still exists after {timeout}s")
             time.sleep(_POLL_INTERVAL_SECONDS)
 
     def configure(
@@ -340,7 +345,7 @@ class Indexes:
         model = self._adapter.to_index_model(response.content)
         logger.debug("Created index %r", name)
 
-        if timeout is not None:
+        if timeout is not None and timeout != -1:
             model = self._poll_until_ready(name, timeout)
 
         return model
@@ -481,8 +486,8 @@ class Indexes:
             if idx.status.ready:
                 return idx
             if idx.status.state == "InitializationFailed":
-                raise PineconeError(f"Index {name!r} failed to initialize")
+                raise IndexInitFailedError(name)
             elapsed = time.monotonic() - start
-            if elapsed >= timeout:
-                raise PineconeError(f"Index {name!r} not ready after {timeout}s")
+            if elapsed + _POLL_INTERVAL_SECONDS > timeout:
+                raise PineconeTimeoutError(f"Index '{name}' not ready after {timeout}s")
             time.sleep(_POLL_INTERVAL_SECONDS)

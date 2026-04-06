@@ -14,7 +14,7 @@ from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION
 from pinecone._internal.http_client import HTTPClient
 from pinecone.client.indexes import Indexes
-from pinecone.errors.exceptions import PineconeError, ValidationError
+from pinecone.errors.exceptions import IndexInitFailedError, ValidationError
 from pinecone.models.enums import DeletionProtection, Metric, VectorType
 from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.specs import PodSpec, ServerlessSpec
@@ -386,7 +386,7 @@ def test_create_init_failed_raises(indexes: Indexes) -> None:
     )
 
     with patch("pinecone.client.indexes.time.sleep"):
-        with pytest.raises(PineconeError, match="failed to initialize"):
+        with pytest.raises(IndexInitFailedError, match="InitializationFailed"):
             indexes.create(
                 name="test-index",
                 dimension=1536,

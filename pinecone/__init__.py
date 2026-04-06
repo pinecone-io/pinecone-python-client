@@ -11,8 +11,10 @@ from pinecone._internal.config import PineconeConfig
 from pinecone.errors.exceptions import (
     ApiError,
     ConflictError,
+    IndexInitFailedError,
     NotFoundError,
     PineconeError,
+    PineconeTimeoutError,
     UnauthorizedError,
     ValidationError,
 )
@@ -34,6 +36,7 @@ __all__ = [
     "CollectionModel",
     "ConflictError",
     "DeletionProtection",
+    "IndexInitFailedError",
     "Index",
     "IndexList",
     "IndexModel",
@@ -42,6 +45,7 @@ __all__ = [
     "Pinecone",
     "PineconeConfig",
     "PineconeError",
+    "PineconeTimeoutError",
     "PodSpec",
     "PodType",
     "QueryResponse",

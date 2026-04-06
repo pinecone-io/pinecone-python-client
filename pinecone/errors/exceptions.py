@@ -63,6 +63,20 @@ class UnauthorizedError(ApiError):
         super().__init__(message=message, status_code=status_code, body=body)
 
 
+class IndexInitFailedError(PineconeError):
+    """Raised when an index fails to initialize."""
+
+    def __init__(self, index_name: str) -> None:
+        super().__init__(f"Index '{index_name}' entered InitializationFailed state")
+        self.index_name = index_name
+
+
+class PineconeTimeoutError(PineconeError):
+    """Raised when a polling operation exceeds its timeout."""
+
+    pass
+
+
 class ValidationError(PineconeError):
     """Input validation failed."""
 

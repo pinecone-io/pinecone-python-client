@@ -10,7 +10,11 @@ from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION
 from pinecone._internal.http_client import HTTPClient
 from pinecone.client.indexes import Indexes
-from pinecone.errors.exceptions import NotFoundError, PineconeError, ValidationError
+from pinecone.errors.exceptions import (
+    NotFoundError,
+    PineconeTimeoutError,
+    ValidationError,
+)
 from tests.factories import make_error_response, make_index_response
 
 BASE_URL = "https://api.test.pinecone.io"
@@ -113,7 +117,7 @@ def test_delete_timeout_exceeded(indexes: Indexes, no_sleep: None) -> None:
         return_value=httpx.Response(200, json=make_index_response()),
     )
 
-    with pytest.raises(PineconeError, match=r"still exists after 1s"):
+    with pytest.raises(PineconeTimeoutError, match=r"still exists after 1s"):
         indexes.delete("test-index", timeout=1)
 
 
