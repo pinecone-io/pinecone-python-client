@@ -192,6 +192,81 @@ class Index:
         logger.debug("Upserted %d vectors", result.upserted_count)
         return result
 
+    def upsert_from_dataframe(
+        self,
+        df: Any,
+        namespace: str | None = None,
+        batch_size: int = 500,
+        show_progress: bool = True,
+    ) -> UpsertResponse:
+        """Upsert vectors from a pandas DataFrame.
+
+        Convenience method that accepts a DataFrame with columns ``id``,
+        ``values``, and optionally ``sparse_values`` and ``metadata``,
+        batches the rows, and upserts them via :meth:`upsert`.
+
+        Args:
+            df: A ``pandas.DataFrame`` with at least ``id`` and ``values``
+                columns. ``sparse_values`` and ``metadata`` columns are
+                included when present and non-None.
+            namespace: Target namespace. Defaults to the default namespace.
+            batch_size: Number of rows per upsert batch. Defaults to 500.
+            show_progress: If ``True`` and ``tqdm`` is installed, display a
+                progress bar. If ``tqdm`` is not installed, silently falls
+                back to no progress bar.
+
+        Returns:
+            UpsertResponse with the total count of vectors upserted across
+            all batches.
+
+        Raises:
+            RuntimeError: If ``pandas`` is not installed.
+            ValueError: If *df* is not a ``pandas.DataFrame``.
+        """
+        try:
+            import pandas as pd  # type: ignore[import-untyped]
+        except ImportError:
+            raise RuntimeError(
+                "pandas is required for upsert_from_dataframe. "
+                "Install it with: pip install pandas"
+            )
+
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError("df must be a pandas DataFrame")
+
+        has_sparse = "sparse_values" in df.columns
+        has_metadata = "metadata" in df.columns
+
+        records: list[dict[str, Any]] = []
+        for _, row in df.iterrows():
+            record: dict[str, Any] = {"id": row["id"], "values": row["values"]}
+            if has_sparse and row["sparse_values"] is not None:
+                record["sparse_values"] = row["sparse_values"]
+            if has_metadata and row["metadata"] is not None:
+                record["metadata"] = row["metadata"]
+            records.append(record)
+
+        batches: list[list[dict[str, Any]]] = [
+            records[i : i + batch_size] for i in range(0, len(records), batch_size)
+        ]
+
+        batch_iter: Any = batches
+        if show_progress:
+            try:
+                from tqdm.auto import tqdm  # type: ignore[import-untyped]
+
+                batch_iter = tqdm(batches, desc="Upserting")
+            except ImportError:
+                pass
+
+        total_count = 0
+        ns = namespace or ""
+        for batch in batch_iter:
+            result = self.upsert(vectors=batch, namespace=ns)
+            total_count += result.upserted_count
+
+        return UpsertResponse(upserted_count=total_count)
+
     def upsert_records(
         self,
         *,

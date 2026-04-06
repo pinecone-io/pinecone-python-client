@@ -217,6 +217,20 @@ class AsyncIndex:
         logger.debug("Upserted %d vectors", result.upserted_count)
         return result
 
+    async def upsert_from_dataframe(
+        self,
+        df: Any,
+        namespace: str | None = None,
+        batch_size: int = 500,
+        show_progress: bool = True,
+    ) -> UpsertResponse:
+        """Not supported for async clients.
+
+        Raises:
+            NotImplementedError: Always.
+        """
+        raise NotImplementedError("upsert_from_dataframe is not supported for async clients")
+
     async def query(
         self,
         *,

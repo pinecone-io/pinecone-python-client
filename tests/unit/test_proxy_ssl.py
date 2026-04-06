@@ -4,11 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.http_client import AsyncHTTPClient, HTTPClient
-
 
 API_VERSION = "2025-10"
 
