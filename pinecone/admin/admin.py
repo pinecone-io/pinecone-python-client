@@ -1,0 +1,206 @@
+"""Admin client for Pinecone organization and project management."""
+
+from __future__ import annotations
+
+import os
+from typing import TYPE_CHECKING, Any
+
+import httpx
+import orjson
+
+from pinecone._internal.config import PineconeConfig
+from pinecone._internal.constants import ADMIN_API_VERSION, API_VERSION_HEADER, DEFAULT_BASE_URL
+from pinecone._internal.http_client import HTTPClient
+from pinecone.errors.exceptions import ApiError, ValidationError
+
+if TYPE_CHECKING:
+    from pinecone.admin.api_keys import ApiKeys
+    from pinecone.admin.organizations import Organizations
+    from pinecone.admin.projects import Projects
+
+_OAUTH_URL: str = "https://login.pinecone.io/oauth/token"
+_OAUTH_AUDIENCE: str = "https://api.pinecone.io/"
+
+
+class Admin:
+    """Admin client for Pinecone organization and project management.
+
+    Authenticates via OAuth2 client credentials flow to obtain a Bearer
+    token used for all admin API calls.
+
+    Args:
+        client_id: OAuth2 client ID. Falls back to ``PINECONE_CLIENT_ID`` env var.
+        client_secret: OAuth2 client secret. Falls back to ``PINECONE_CLIENT_SECRET`` env var.
+        additional_headers: Extra headers included in every admin API request.
+
+    Raises:
+        ValidationError: If client_id or client_secret cannot be resolved.
+        ApiError: If the OAuth token request fails.
+
+    Examples:
+
+        from pinecone import Admin
+
+        admin = Admin(client_id="my-client-id", client_secret="my-secret")
+        for org in admin.organizations.list():
+            print(org.name)
+    """
+
+    def __init__(
+        self,
+        *,
+        client_id: str | None = None,
+        client_secret: str | None = None,
+        additional_headers: dict[str, str] | None = None,
+    ) -> None:
+        resolved_id = client_id or os.environ.get("PINECONE_CLIENT_ID", "")
+        resolved_secret = client_secret or os.environ.get("PINECONE_CLIENT_SECRET", "")
+
+        if not resolved_id or not resolved_id.strip():
+            raise ValidationError(
+                "No client_id provided. Pass client_id='...' or set the "
+                "PINECONE_CLIENT_ID environment variable."
+            )
+        if not resolved_secret or not resolved_secret.strip():
+            raise ValidationError(
+                "No client_secret provided. Pass client_secret='...' or set the "
+                "PINECONE_CLIENT_SECRET environment variable."
+            )
+
+        token = self._fetch_token(resolved_id, resolved_secret)
+
+        headers: dict[str, str] = {
+            "Authorization": f"Bearer {token}",
+            API_VERSION_HEADER: ADMIN_API_VERSION,
+        }
+        if additional_headers:
+            headers.update(additional_headers)
+
+        config = PineconeConfig(
+            api_key="",
+            host=DEFAULT_BASE_URL,
+            additional_headers=headers,
+        )
+
+        self._http = HTTPClient(config, ADMIN_API_VERSION)
+
+        self._organizations: Organizations | None = None
+        self._projects: Projects | None = None
+        self._api_keys: ApiKeys | None = None
+
+    def _fetch_token(self, client_id: str, client_secret: str) -> str:
+        """Exchange client credentials for a Bearer token.
+
+        Args:
+            client_id: OAuth2 client ID.
+            client_secret: OAuth2 client secret.
+
+        Returns:
+            The access token string.
+
+        Raises:
+            ApiError: If the token request fails.
+        """
+        body = orjson.dumps(
+            {
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "grant_type": "client_credentials",
+                "audience": _OAUTH_AUDIENCE,
+            }
+        )
+
+        with httpx.Client() as client:
+            response = client.post(
+                _OAUTH_URL,
+                content=body,
+                headers={
+                    "Content-Type": "application/json",
+                    API_VERSION_HEADER: ADMIN_API_VERSION,
+                },
+            )
+
+        if not response.is_success:
+            err_body: dict[str, Any] | None = None
+            try:
+                err_body = response.json()
+            except Exception:
+                err_body = None
+
+            message = "OAuth token request failed"
+            if err_body and isinstance(err_body.get("error_description"), str):
+                message = err_body["error_description"]
+            elif err_body and isinstance(err_body.get("error"), str):
+                message = err_body["error"]
+
+            raise ApiError(
+                message=message,
+                status_code=response.status_code,
+                body=err_body,
+            )
+
+        data: dict[str, Any] = response.json()
+        access_token = data.get("access_token", "")
+        if not access_token:
+            raise ApiError(
+                message="OAuth response missing access_token",
+                status_code=response.status_code,
+                body=data,
+            )
+
+        return str(access_token)
+
+    @property
+    def organizations(self) -> Organizations:
+        """Access the Organizations namespace for organization operations.
+
+        Lazily imported and instantiated on first access.
+
+        Returns:
+            Organizations namespace instance.
+        """
+        if self._organizations is None:
+            from pinecone.admin.organizations import Organizations as _Organizations
+
+            self._organizations = _Organizations(http=self._http)
+        return self._organizations
+
+    @property
+    def projects(self) -> Projects:
+        """Access the Projects namespace for project operations.
+
+        Lazily imported and instantiated on first access.
+
+        Returns:
+            Projects namespace instance.
+        """
+        if self._projects is None:
+            from pinecone.admin.projects import Projects as _Projects
+
+            self._projects = _Projects(http=self._http)
+        return self._projects
+
+    @property
+    def api_keys(self) -> ApiKeys:
+        """Access the ApiKeys namespace for API key operations.
+
+        Lazily imported and instantiated on first access.
+
+        Returns:
+            ApiKeys namespace instance.
+        """
+        if self._api_keys is None:
+            from pinecone.admin.api_keys import ApiKeys as _ApiKeys
+
+            self._api_keys = _ApiKeys(http=self._http)
+        return self._api_keys
+
+    def close(self) -> None:
+        """Close the underlying HTTP client."""
+        self._http.close()
+
+    def __enter__(self) -> Admin:
+        return self
+
+    def __exit__(self, *args: Any) -> None:
+        self.close()

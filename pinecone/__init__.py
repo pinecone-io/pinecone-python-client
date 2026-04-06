@@ -28,6 +28,7 @@ from pinecone.models.enums import (
 
 __all__ = [
     "__version__",
+    "Admin",
     "ApiError",
     "AsyncIndex",
     "AsyncPinecone",
@@ -70,6 +71,7 @@ __all__ = [
 # Lazy-load heavy classes to keep cold import under 10ms.
 # Importing Pinecone/AsyncPinecone/Index eagerly pulls in httpx (~120ms).
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
+    "Admin": ("pinecone.admin", "Admin"),
     "Pinecone": ("pinecone._client", "Pinecone"),
     "AsyncIndex": ("pinecone.async_client.async_index", "AsyncIndex"),
     "AsyncPinecone": ("pinecone.async_client.pinecone", "AsyncPinecone"),
