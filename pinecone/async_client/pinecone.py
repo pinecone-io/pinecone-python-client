@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION, DEFAULT_BASE_URL
+from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import ValidationError
 
 if TYPE_CHECKING:
@@ -13,6 +14,9 @@ if TYPE_CHECKING:
     from pinecone.async_client.backups import AsyncBackups
     from pinecone.async_client.collections import AsyncCollections
     from pinecone.async_client.indexes import AsyncIndexes
+    from pinecone.async_client.restore_jobs import AsyncRestoreJobs
+    from pinecone.models.enums import DeletionProtection
+    from pinecone.models.indexes.index import IndexModel
 
 _DEPRECATED_KWARGS: frozenset[str] = frozenset({"openapi_config", "pool_threads", "index_api"})
 
@@ -107,6 +111,7 @@ class AsyncPinecone:
         self._indexes: AsyncIndexes | None = None
         self._collections: AsyncCollections | None = None
         self._backups: AsyncBackups | None = None
+        self._restore_jobs: AsyncRestoreJobs | None = None
         self._host_cache: dict[str, str] = {}
 
     @property
@@ -171,6 +176,91 @@ class AsyncPinecone:
 
             self._backups = _AsyncBackups(http=self._http)
         return self._backups
+
+    @property
+    def restore_jobs(self) -> AsyncRestoreJobs:
+        """Access the AsyncRestoreJobs namespace for restore job operations.
+
+        Lazily imported and instantiated on first access.
+
+        Returns:
+            AsyncRestoreJobs namespace instance.
+
+        Examples:
+
+            async with AsyncPinecone(api_key="your-api-key") as pc:
+                for job in await pc.restore_jobs.list():
+                    print(job.restore_job_id)
+        """
+        if self._restore_jobs is None:
+            from pinecone.async_client.restore_jobs import AsyncRestoreJobs as _AsyncRestoreJobs
+
+            self._restore_jobs = _AsyncRestoreJobs(http=self._http)
+        return self._restore_jobs
+
+    async def create_index_from_backup(
+        self,
+        *,
+        name: str,
+        backup_id: str,
+        deletion_protection: DeletionProtection | str | None = None,
+        tags: dict[str, str] | None = None,
+        timeout: int | None = None,
+    ) -> IndexModel:
+        """Create a new index by restoring from a backup.
+
+        Sends a POST to ``/backups/{backup_id}/create-index`` and then
+        polls until the index is ready (unless *timeout* is ``-1``).
+
+        Args:
+            name (str): Name for the new index.
+            backup_id (str): Identifier of the backup to restore from.
+            deletion_protection (DeletionProtection | str | None): ``"enabled"`` or
+                ``"disabled"``. Defaults to ``"disabled"`` server-side when omitted.
+            tags (dict[str, str] | None): Optional key-value tags for the new index.
+            timeout (int | None): Seconds to wait for readiness. ``None`` (default)
+                blocks up to 300 s. ``-1`` returns immediately without polling.
+
+        Returns:
+            An IndexModel describing the restored index.
+
+        Raises:
+            ValidationError: If *name* or *backup_id* is empty.
+            PineconeTimeoutError: If the index is not ready within the timeout.
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            async with AsyncPinecone(api_key="...") as pc:
+                index = await pc.create_index_from_backup(
+                    name="restored-index",
+                    backup_id="bk-123",
+                )
+        """
+        require_non_empty("name", name)
+        require_non_empty("backup_id", backup_id)
+
+        body: dict[str, Any] = {"name": name}
+        if deletion_protection is not None:
+            dp_val = (
+                deletion_protection.value
+                if hasattr(deletion_protection, "value")
+                else deletion_protection
+            )
+            body["deletion_protection"] = dp_val
+        if tags is not None:
+            body["tags"] = tags
+
+        from pinecone._internal.adapters.backups_adapter import BackupsAdapter
+
+        response = await self._http.post(f"/backups/{backup_id}/create-index", json=body)
+        BackupsAdapter.to_create_index_from_backup_response(response.content)
+
+        if timeout == -1:
+            return await self.indexes.describe(name)
+
+        effective_timeout = timeout if timeout is not None else 300
+        return await self.indexes._poll_until_ready(name, effective_timeout)
 
     @property
     def config(self) -> PineconeConfig:
