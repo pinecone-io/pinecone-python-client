@@ -20,6 +20,7 @@ from pinecone.models.vectors.responses import (
     UpdateResponse,
     UpsertResponse,
 )
+from pinecone.models.vectors.search import SearchRecordsResponse
 from pinecone.models.vectors.sparse import SparseValues
 from pinecone.models.vectors.vector import Vector
 
@@ -440,6 +441,127 @@ class Index:
         response = self._http.post("/vectors/update", json=body)
         return self._adapter.to_update_response(response.content)
 
+    def describe_index_stats(
+        self,
+        *,
+        filter: dict[str, Any] | None = None,
+    ) -> DescribeIndexStatsResponse:
+        """Return statistics for this index.
+
+        Returns aggregate statistics including total vector count,
+        per-namespace vector counts, dimension, and index fullness.
+
+        Args:
+            filter (dict[str, Any] | None): Metadata filter expression. When
+                provided, only vectors matching the filter are counted.
+
+        Returns:
+            DescribeIndexStatsResponse with namespace summaries, dimension,
+            total vector count, and fullness metrics.
+
+        Raises:
+            ApiError: If the API returns an error response (e.g. authentication
+                failure or server error).
+
+        Examples:
+
+            stats = idx.describe_index_stats()
+            print(stats.total_vector_count, stats.dimension)
+
+            # With filter — only count vectors matching the expression
+            stats = idx.describe_index_stats(
+                filter={"genre": {"$eq": "drama"}}
+            )
+        """
+        body: dict[str, Any] = {}
+        if filter is not None:
+            body["filter"] = filter
+
+        logger.info("Describing index stats")
+        response = self._http.post("/describe_index_stats", json=body)
+        return self._adapter.to_stats_response(response.content)
+
+    def search(
+        self,
+        *,
+        namespace: str,
+        top_k: int,
+        inputs: dict[str, Any] | None = None,
+        vector: list[float] | None = None,
+        id: str | None = None,
+        filter: dict[str, Any] | None = None,
+        fields: list[str] | None = None,
+        rerank: dict[str, Any] | None = None,
+    ) -> SearchRecordsResponse:
+        """Search records by text, vector, or ID with optional reranking.
+
+        Searches a namespace using integrated inference (text inputs embedded
+        server-side), a raw vector, or an existing record ID as the query.
+
+        Args:
+            namespace (str): Namespace to search in (required).
+            top_k (int): Number of results to return (must be >= 1).
+            inputs (dict[str, Any] | None): Inputs for server-side embedding
+                (e.g. ``{"text": "query text"}``).
+            vector (list[float] | None): Dense query vector values.
+            id (str | None): ID of an existing record to use as the query.
+            filter (dict[str, Any] | None): Metadata filter expression.
+            fields (list[str] | None): Field names to include in results.
+                When ``None``, the server returns all available fields.
+            rerank (dict[str, Any] | None): Reranking configuration with
+                ``model`` (required), ``rank_fields`` (required), and optional
+                ``top_n``, ``parameters``, ``query`` keys.
+
+        Returns:
+            SearchRecordsResponse with hits and usage statistics.
+
+        Raises:
+            ValidationError: If ``namespace`` is not a string, ``top_k < 1``,
+                or ``rerank`` is missing required keys.
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            response = idx.search(
+                namespace="my-ns",
+                top_k=10,
+                inputs={"text": "semantic search query"},
+            )
+            for hit in response.result.hits:
+                print(hit.id, hit.score)
+        """
+        if not isinstance(namespace, str):
+            raise ValidationError("namespace must be a string")
+        if top_k < 1:
+            raise ValidationError(f"top_k must be a positive integer, got {top_k}")
+        if rerank is not None:
+            if "model" not in rerank:
+                raise ValidationError("rerank requires 'model' to be specified")
+            if "rank_fields" not in rerank:
+                raise ValidationError("rerank requires 'rank_fields' to be specified")
+
+        query_body: dict[str, Any] = {"top_k": top_k}
+        if inputs is not None:
+            query_body["inputs"] = inputs
+        if vector is not None:
+            query_body["vector"] = vector
+        if id is not None:
+            query_body["id"] = id
+        if filter is not None:
+            query_body["filter"] = filter
+
+        body: dict[str, Any] = {"query": query_body}
+        if fields is not None:
+            body["fields"] = fields
+        if rerank is not None:
+            body["rerank"] = rerank
+
+        logger.info("Searching namespace %r with top_k=%d", namespace, top_k)
+        response = self._http.post(
+            f"/records/namespaces/{namespace}/search", json=body
+        )
+        return self._adapter.to_search_response(response.content)
+
     def list_paginated(
         self,
         *,
@@ -521,46 +643,6 @@ class Index:
                 pagination_token = page.pagination.next
             else:
                 break
-
-    def describe_index_stats(
-        self,
-        *,
-        filter: dict[str, Any] | None = None,
-    ) -> DescribeIndexStatsResponse:
-        """Return statistics for this index.
-
-        Returns aggregate statistics including total vector count,
-        per-namespace vector counts, dimension, and index fullness.
-
-        Args:
-            filter (dict[str, Any] | None): Metadata filter expression. When
-                provided, only vectors matching the filter are counted.
-
-        Returns:
-            DescribeIndexStatsResponse with namespace summaries, dimension,
-            total vector count, and fullness metrics.
-
-        Raises:
-            ApiError: If the API returns an error response (e.g. authentication
-                failure or server error).
-
-        Examples:
-
-            stats = idx.describe_index_stats()
-            print(stats.total_vector_count, stats.dimension)
-
-            # With filter — only count vectors matching the expression
-            stats = idx.describe_index_stats(
-                filter={"genre": {"$eq": "drama"}}
-            )
-        """
-        body: dict[str, Any] = {}
-        if filter is not None:
-            body["filter"] = filter
-
-        logger.info("Describing index stats")
-        response = self._http.post("/describe_index_stats", json=body)
-        return self._adapter.to_stats_response(response.content)
 
     def close(self) -> None:
         """Close the underlying HTTP client and release resources."""
