@@ -12,7 +12,7 @@ from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import ADMIN_API_VERSION
 from pinecone._internal.http_client import HTTPClient
 from pinecone.admin.projects import Projects
-from pinecone.errors.exceptions import ValidationError
+from pinecone.errors.exceptions import NotFoundError, PineconeError, ValidationError
 from pinecone.models.admin.project import ProjectList, ProjectModel
 
 BASE_URL = "https://api.test.pinecone.io"
@@ -253,6 +253,125 @@ def test_delete_project(projects: Projects) -> None:
 def test_delete_requires_project_id(projects: Projects) -> None:
     with pytest.raises(ValidationError, match="project_id"):
         projects.delete(project_id="")
+
+
+# ---------------------------------------------------------------------------
+# describe_by_name()
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_describe_by_name_single_match(projects: Projects) -> None:
+    respx.get(f"{BASE_URL}/admin/projects").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "data": [
+                    _project_response(id="p1", name="other"),
+                    _project_response(id="p2", name="target"),
+                ]
+            },
+        ),
+    )
+
+    result = projects.describe_by_name(name="target")
+
+    assert isinstance(result, ProjectModel)
+    assert result.id == "p2"
+    assert result.name == "target"
+
+
+@respx.mock
+def test_describe_by_name_no_match(projects: Projects) -> None:
+    respx.get(f"{BASE_URL}/admin/projects").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "data": [
+                    _project_response(id="p1", name="alpha"),
+                    _project_response(id="p2", name="beta"),
+                ]
+            },
+        ),
+    )
+
+    with pytest.raises(NotFoundError):
+        projects.describe_by_name(name="missing")
+
+
+@respx.mock
+def test_describe_by_name_multiple_matches(projects: Projects) -> None:
+    respx.get(f"{BASE_URL}/admin/projects").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "data": [
+                    _project_response(id="p1", name="dup"),
+                    _project_response(id="p2", name="dup"),
+                ]
+            },
+        ),
+    )
+
+    with pytest.raises(PineconeError, match="Multiple projects"):
+        projects.describe_by_name(name="dup")
+
+
+def test_describe_by_name_empty_name(projects: Projects) -> None:
+    with pytest.raises(ValidationError, match="name"):
+        projects.describe_by_name(name="")
+
+
+# ---------------------------------------------------------------------------
+# exists()
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_exists_by_id_true(projects: Projects) -> None:
+    respx.get(f"{BASE_URL}/admin/projects/proj-abc123").mock(
+        return_value=httpx.Response(200, json=_project_response()),
+    )
+
+    assert projects.exists(project_id="proj-abc123") is True
+
+
+@respx.mock
+def test_exists_by_id_false(projects: Projects) -> None:
+    respx.get(f"{BASE_URL}/admin/projects/proj-gone").mock(
+        return_value=httpx.Response(404, json={"error": {"message": "not found"}}),
+    )
+
+    assert projects.exists(project_id="proj-gone") is False
+
+
+@respx.mock
+def test_exists_by_name_true(projects: Projects) -> None:
+    respx.get(f"{BASE_URL}/admin/projects").mock(
+        return_value=httpx.Response(
+            200,
+            json={"data": [_project_response(name="my-project")]},
+        ),
+    )
+
+    assert projects.exists(name="my-project") is True
+
+
+@respx.mock
+def test_exists_by_name_false(projects: Projects) -> None:
+    respx.get(f"{BASE_URL}/admin/projects").mock(
+        return_value=httpx.Response(200, json={"data": []}),
+    )
+
+    assert projects.exists(name="missing") is False
+
+
+def test_exists_requires_one_param(projects: Projects) -> None:
+    with pytest.raises(ValidationError):
+        projects.exists(project_id="abc", name="xyz")
+
+    with pytest.raises(ValidationError):
+        projects.exists()
 
 
 # ---------------------------------------------------------------------------

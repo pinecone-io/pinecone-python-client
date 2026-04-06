@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.adapters.admin_adapter import AdminAdapter
 from pinecone._internal.validation import require_non_empty
+from pinecone.errors.exceptions import NotFoundError, PineconeError, ValidationError
 from pinecone.models.admin.project import ProjectList, ProjectModel
 
 if TYPE_CHECKING:
@@ -123,6 +124,80 @@ class Projects:
         result = self._adapter.to_project(response.content)
         logger.debug("Described project %r", project_id)
         return result
+
+    def describe_by_name(self, *, name: str) -> ProjectModel:
+        """Get detailed information about a project by name.
+
+        Lists all projects and filters client-side for an exact name match.
+
+        Args:
+            name (str): The name of the project.
+
+        Returns:
+            A :class:`ProjectModel` with full project details.
+
+        Raises:
+            :exc:`ValidationError`: If *name* is empty.
+            :exc:`NotFoundError`: If no project matches *name*.
+            :exc:`PineconeError`: If multiple projects share *name*.
+
+        Examples:
+            >>> project = admin.projects.describe_by_name(name="my-project")
+            >>> project.id
+            'proj-abc123'
+        """
+        require_non_empty("name", name)
+        logger.info("Describing project by name %r", name)
+        projects = self.list()
+        matches = [p for p in projects if p.name == name]
+        if len(matches) == 0:
+            raise NotFoundError(message=f"No project found with name {name!r}")
+        if len(matches) > 1:
+            raise PineconeError(
+                f"Multiple projects found with name {name!r}; use project_id instead"
+            )
+        logger.debug("Found project %r by name %r", matches[0].id, name)
+        return matches[0]
+
+    def exists(
+        self,
+        *,
+        project_id: str | None = None,
+        name: str | None = None,
+    ) -> bool:
+        """Check whether a project exists.
+
+        Exactly one of *project_id* or *name* must be provided.
+
+        Args:
+            project_id (str | None): The identifier of the project.
+            name (str | None): The name of the project.
+
+        Returns:
+            ``True`` if the project exists, ``False`` otherwise.
+
+        Raises:
+            :exc:`ValidationError`: If neither or both arguments are provided.
+
+        Examples:
+            >>> admin.projects.exists(project_id="proj-abc123")
+            True
+            >>> admin.projects.exists(name="nonexistent")
+            False
+        """
+        if (project_id is None) == (name is None):
+            raise ValidationError(
+                "Exactly one of 'project_id' or 'name' must be provided"
+            )
+        try:
+            if project_id is not None:
+                self.describe(project_id=project_id)
+            else:
+                assert name is not None
+                self.describe_by_name(name=name)
+        except NotFoundError:
+            return False
+        return True
 
     def update(
         self,
