@@ -5,6 +5,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import httpx
+import orjson
 import pytest
 import respx
 
@@ -14,6 +15,8 @@ from pinecone._internal.http_client import (
     AsyncHTTPClient,
     HTTPClient,
     _build_headers,
+    _encode_json,
+    _prepare_json_kwargs,
     _raise_for_status,
 )
 from pinecone.errors.exceptions import (
@@ -273,3 +276,136 @@ class TestAsyncHTTPClientClose:
         await client.get("/ping")  # Force client creation
         assert client._client is not None
         await client.close()
+
+
+# ---------------------------------------------------------------------------
+# _encode_json / _prepare_json_kwargs
+# ---------------------------------------------------------------------------
+
+
+class TestEncodeJson:
+    def test_returns_bytes(self) -> None:
+        result = _encode_json({"key": "value"})
+        assert isinstance(result, bytes)
+
+    def test_output_matches_orjson(self) -> None:
+        data = {"vectors": [{"id": "v1", "values": [0.1, 0.2]}]}
+        assert _encode_json(data) == orjson.dumps(data)
+
+    def test_handles_nested_structures(self) -> None:
+        data = {"a": [1, 2, {"b": True, "c": None}]}
+        parsed = orjson.loads(_encode_json(data))
+        assert parsed == data
+
+
+class TestPrepareJsonKwargs:
+    def test_replaces_json_with_content(self) -> None:
+        kwargs: dict[str, object] = {"json": {"name": "idx"}}
+        result = _prepare_json_kwargs(kwargs)
+        assert "json" not in result
+        assert result["content"] == orjson.dumps({"name": "idx"})
+        assert result["headers"]["Content-Type"] == "application/json"  # type: ignore[index]
+
+    def test_preserves_existing_headers(self) -> None:
+        kwargs: dict[str, object] = {
+            "json": {"x": 1},
+            "headers": {"X-Custom": "val"},
+        }
+        result = _prepare_json_kwargs(kwargs)
+        assert result["headers"]["X-Custom"] == "val"  # type: ignore[index]
+        assert result["headers"]["Content-Type"] == "application/json"  # type: ignore[index]
+
+    def test_noop_when_no_json_key(self) -> None:
+        kwargs: dict[str, object] = {"params": {"limit": "10"}}
+        result = _prepare_json_kwargs(kwargs)
+        assert result == {"params": {"limit": "10"}}
+
+
+# ---------------------------------------------------------------------------
+# Sync orjson serialization — verify request body is orjson-encoded
+# ---------------------------------------------------------------------------
+
+
+class TestHTTPClientOrjsonPost:
+    @respx.mock
+    def test_post_sends_orjson_encoded_body(self) -> None:
+        """POST with json= should send orjson-serialized bytes, not stdlib json."""
+        route = respx.post(f"{BASE_URL}/vectors/upsert").mock(
+            return_value=httpx.Response(200, json={"upsertedCount": 1})
+        )
+        client = _make_sync_client()
+        payload = {"vectors": [{"id": "v1", "values": [0.1, 0.2, 0.3]}]}
+        client.post("/vectors/upsert", json=payload)
+
+        request = route.calls[0].request
+        assert request.content == orjson.dumps(payload)
+        assert request.headers["content-type"] == "application/json"
+
+
+class TestHTTPClientOrjsonPut:
+    @respx.mock
+    def test_put_sends_orjson_encoded_body(self) -> None:
+        route = respx.put(f"{BASE_URL}/things/1").mock(
+            return_value=httpx.Response(200, json={"ok": True})
+        )
+        client = _make_sync_client()
+        payload = {"name": "updated"}
+        client.put("/things/1", json=payload)
+
+        request = route.calls[0].request
+        assert request.content == orjson.dumps(payload)
+
+
+class TestHTTPClientOrjsonPatch:
+    @respx.mock
+    def test_patch_sends_orjson_encoded_body(self) -> None:
+        route = respx.patch(f"{BASE_URL}/indexes/idx").mock(
+            return_value=httpx.Response(200, json={"name": "idx"})
+        )
+        client = _make_sync_client()
+        payload = {"replicas": 2}
+        client.patch("/indexes/idx", json=payload)
+
+        request = route.calls[0].request
+        assert request.content == orjson.dumps(payload)
+
+
+# ---------------------------------------------------------------------------
+# Async orjson serialization — verify request body is orjson-encoded
+# ---------------------------------------------------------------------------
+
+
+class TestAsyncHTTPClientOrjsonPost:
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_post_sends_orjson_encoded_body(self) -> None:
+        route = respx.post(f"{BASE_URL}/vectors/upsert").mock(
+            return_value=httpx.Response(200, json={"upsertedCount": 1})
+        )
+        client = _make_async_client()
+        payload = {"vectors": [{"id": "v1", "values": [0.1, 0.2, 0.3]}]}
+        try:
+            await client.post("/vectors/upsert", json=payload)
+        finally:
+            await client.close()
+
+        request = route.calls[0].request
+        assert request.content == orjson.dumps(payload)
+        assert request.headers["content-type"] == "application/json"
+
+
+class TestAsyncHTTPClientOrjsonPatch:
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_patch_sends_orjson_encoded_body(self) -> None:
+        route = respx.patch(f"{BASE_URL}/indexes/idx").mock(
+            return_value=httpx.Response(200, json={"name": "idx"})
+        )
+        client = _make_async_client()
+        try:
+            await client.patch("/indexes/idx", json={"replicas": 2})
+        finally:
+            await client.close()
+
+        request = route.calls[0].request
+        assert request.content == orjson.dumps({"replicas": 2})

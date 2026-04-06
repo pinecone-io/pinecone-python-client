@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import httpx
+import orjson
 
 from pinecone import __version__
 from pinecone._internal.config import PineconeConfig
@@ -16,6 +17,25 @@ from pinecone.errors.exceptions import (
     NotFoundError,
     UnauthorizedError,
 )
+
+
+def _encode_json(body: Any) -> bytes:
+    """Serialize *body* to JSON bytes using orjson (2-3x faster than stdlib json)."""
+    return orjson.dumps(body)
+
+
+def _prepare_json_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
+    """If *kwargs* contains ``json=``, replace it with ``content=`` + Content-Type header.
+
+    This bypasses httpx's default stdlib ``json.dumps`` in favour of orjson.
+    """
+    if "json" in kwargs:
+        data = kwargs.pop("json")
+        kwargs["content"] = _encode_json(data)
+        headers: dict[str, str] = kwargs.pop("headers", {})
+        headers["Content-Type"] = "application/json"
+        kwargs["headers"] = headers
+    return kwargs
 
 
 def _build_headers(config: PineconeConfig, api_version: str) -> dict[str, str]:
@@ -75,17 +95,17 @@ class HTTPClient:
         return response
 
     def post(self, path: str, **kwargs: Any) -> httpx.Response:
-        response = self._client.post(path, **kwargs)
+        response = self._client.post(path, **_prepare_json_kwargs(kwargs))
         _raise_for_status(response)
         return response
 
     def put(self, path: str, **kwargs: Any) -> httpx.Response:
-        response = self._client.put(path, **kwargs)
+        response = self._client.put(path, **_prepare_json_kwargs(kwargs))
         _raise_for_status(response)
         return response
 
     def patch(self, path: str, **kwargs: Any) -> httpx.Response:
-        response = self._client.patch(path, **kwargs)
+        response = self._client.patch(path, **_prepare_json_kwargs(kwargs))
         _raise_for_status(response)
         return response
 
@@ -130,17 +150,17 @@ class AsyncHTTPClient:
         return response
 
     async def post(self, path: str, **kwargs: Any) -> httpx.Response:
-        response = await self._ensure_client().post(path, **kwargs)
+        response = await self._ensure_client().post(path, **_prepare_json_kwargs(kwargs))
         _raise_for_status(response)
         return response
 
     async def put(self, path: str, **kwargs: Any) -> httpx.Response:
-        response = await self._ensure_client().put(path, **kwargs)
+        response = await self._ensure_client().put(path, **_prepare_json_kwargs(kwargs))
         _raise_for_status(response)
         return response
 
     async def patch(self, path: str, **kwargs: Any) -> httpx.Response:
-        response = await self._ensure_client().patch(path, **kwargs)
+        response = await self._ensure_client().patch(path, **_prepare_json_kwargs(kwargs))
         _raise_for_status(response)
         return response
 
