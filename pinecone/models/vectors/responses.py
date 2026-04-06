@@ -179,6 +179,24 @@ class ListResponse(Struct, rename="camel", kw_only=True):
             raise KeyError(key) from None
 
 
+class UpsertRecordsResponse(Struct, kw_only=True):
+    """Response from an upsert_records operation.
+
+    Attributes:
+        record_count: Number of records submitted by the caller. This is a
+            client-side count, not a server-confirmed count.
+    """
+
+    record_count: int
+
+    def __getitem__(self, key: str) -> Any:
+        """Support bracket access (e.g. response['record_count'])."""
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError(key) from None
+
+
 class UpdateResponse(Struct, rename="camel", kw_only=True):
     """Response from an update operation.
 

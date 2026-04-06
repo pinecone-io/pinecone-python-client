@@ -19,6 +19,7 @@ from pinecone.models.vectors.responses import (
     ListResponse,
     QueryResponse,
     UpdateResponse,
+    UpsertRecordsResponse,
     UpsertResponse,
 )
 from pinecone.models.vectors.search import SearchRecordsResponse
@@ -186,6 +187,69 @@ class Index:
         result = self._adapter.to_upsert_response(response.content)
         logger.debug("Upserted %d vectors", result.upserted_count)
         return result
+
+    def upsert_records(
+        self,
+        *,
+        records: list[dict[str, Any]],
+        namespace: str,
+    ) -> UpsertRecordsResponse:
+        """Upsert records for indexes with integrated inference.
+
+        Records are sent as newline-delimited JSON (NDJSON). Embeddings are
+        generated server-side.
+
+        Args:
+            records: List of record dicts. Each must contain an ``_id`` or
+                ``id`` field. Additional fields are passed through for
+                server-side embedding.
+            namespace (str): Target namespace (required).
+
+        Returns:
+            UpsertRecordsResponse with the count of records submitted.
+
+        Raises:
+            ValidationError: If records is empty or a record is missing an
+                identifier field.
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            response = idx.upsert_records(
+                namespace="my-ns",
+                records=[
+                    {"_id": "rec1", "text": "hello world"},
+                    {"_id": "rec2", "text": "goodbye world"},
+                ],
+            )
+            print(response.record_count)
+        """
+        if not records:
+            raise ValidationError("records must be a non-empty list")
+
+        for i, record in enumerate(records):
+            if "_id" not in record and "id" not in record:
+                raise ValidationError(f"Record at index {i} must contain an '_id' or 'id' field")
+
+        import json as _json
+
+        normalized: list[dict[str, Any]] = []
+        for record in records:
+            r = dict(record)  # shallow copy
+            if "_id" not in r and "id" in r:
+                r["_id"] = r.pop("id")
+            normalized.append(r)
+
+        ndjson_lines = [_json.dumps(r, separators=(",", ":")) for r in normalized]
+        ndjson_body = "\n".join(ndjson_lines) + "\n"
+
+        logger.info("Upserting %d records into namespace %r (NDJSON)", len(records), namespace)
+        self._http.post(
+            f"/records/namespaces/{namespace}/upsert",
+            content=ndjson_body.encode("utf-8"),
+            headers={"Content-Type": "application/x-ndjson"},
+        )
+        return UpsertRecordsResponse(record_count=len(records))
 
     def query(
         self,

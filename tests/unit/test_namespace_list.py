@@ -7,7 +7,7 @@ import pytest
 import respx
 
 from pinecone import Index
-from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
+from pinecone.models.namespaces.models import ListNamespacesResponse
 
 INDEX_HOST = "my-index-abc123.svc.pinecone.io"
 INDEX_HOST_HTTPS = f"https://{INDEX_HOST}"
