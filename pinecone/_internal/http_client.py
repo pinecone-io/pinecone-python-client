@@ -20,7 +20,9 @@ from pinecone._internal.user_agent import build_user_agent
 from pinecone.errors.exceptions import (
     ApiError,
     ConflictError,
+    ForbiddenError,
     NotFoundError,
+    ServiceError,
     UnauthorizedError,
 )
 
@@ -166,10 +168,14 @@ def _raise_for_status(response: httpx.Response) -> None:
     status = response.status_code
     if status == 401:
         raise UnauthorizedError(message=message, status_code=status, body=body)
+    if status == 403:
+        raise ForbiddenError(message=message, status_code=status, body=body)
     if status == 404:
         raise NotFoundError(message=message, status_code=status, body=body)
     if status == 409:
         raise ConflictError(message=message, status_code=status, body=body)
+    if 500 <= status <= 599:
+        raise ServiceError(message=message, status_code=status, body=body)
     raise ApiError(message=message, status_code=status, body=body)
 
 

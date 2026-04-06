@@ -22,7 +22,10 @@ from pinecone._internal.http_client import (
 from pinecone.errors.exceptions import (
     ApiError,
     ConflictError,
+    ForbiddenError,
     NotFoundError,
+    PineconeError,
+    ServiceError,
     UnauthorizedError,
 )
 
@@ -76,10 +79,11 @@ class TestRaiseForStatus:
         "status_code,exception_type",
         [
             (401, UnauthorizedError),
+            (403, ForbiddenError),
             (404, NotFoundError),
             (409, ConflictError),
-            (500, ApiError),
-            (502, ApiError),
+            (500, ServiceError),
+            (502, ServiceError),
             (422, ApiError),
         ],
     )
@@ -126,6 +130,44 @@ class TestRaiseForStatus:
     def test_success_response_does_not_raise(self) -> None:
         response = httpx.Response(200, json={"ok": True})
         _raise_for_status(response)  # Should not raise
+
+    def test_raise_for_status_403_forbidden(self) -> None:
+        response = httpx.Response(403, json={"message": "Forbidden"})
+        with pytest.raises(ForbiddenError) as exc_info:
+            _raise_for_status(response)
+        assert exc_info.value.status_code == 403
+
+    def test_raise_for_status_500_service_error(self) -> None:
+        response = httpx.Response(500, json={"message": "Internal error"})
+        with pytest.raises(ServiceError) as exc_info:
+            _raise_for_status(response)
+        assert exc_info.value.status_code == 500
+
+    def test_raise_for_status_502_service_error(self) -> None:
+        response = httpx.Response(502)
+        with pytest.raises(ServiceError) as exc_info:
+            _raise_for_status(response)
+        assert exc_info.value.status_code == 502
+
+    def test_raise_for_status_503_service_error(self) -> None:
+        response = httpx.Response(503)
+        with pytest.raises(ServiceError) as exc_info:
+            _raise_for_status(response)
+        assert exc_info.value.status_code == 503
+
+    def test_raise_for_status_422_generic_api_error(self) -> None:
+        response = httpx.Response(422)
+        with pytest.raises(ApiError) as exc_info:
+            _raise_for_status(response)
+        assert not isinstance(exc_info.value, ServiceError)
+
+    def test_service_error_inherits_from_api_error(self) -> None:
+        assert issubclass(ServiceError, ApiError)
+        assert issubclass(ServiceError, PineconeError)
+
+    def test_forbidden_error_inherits_from_api_error(self) -> None:
+        assert issubclass(ForbiddenError, ApiError)
+        assert issubclass(ForbiddenError, PineconeError)
 
 
 # ---------------------------------------------------------------------------

@@ -63,6 +63,30 @@ class UnauthorizedError(ApiError):
         super().__init__(message=message, status_code=status_code, body=body)
 
 
+class ForbiddenError(ApiError):
+    """403 Forbidden."""
+
+    def __init__(
+        self,
+        message: str = "Forbidden",
+        status_code: int = 403,
+        body: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message=message, status_code=status_code, body=body)
+
+
+class ServiceError(ApiError):
+    """5xx server error."""
+
+    def __init__(
+        self,
+        message: str = "Internal server error",
+        status_code: int = 500,
+        body: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message=message, status_code=status_code, body=body)
+
+
 class IndexInitFailedError(PineconeError):
     """Raised when an index fails to initialize."""
 

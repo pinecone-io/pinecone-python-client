@@ -11,10 +11,12 @@ from pinecone._internal.config import PineconeConfig
 from pinecone.errors.exceptions import (
     ApiError,
     ConflictError,
+    ForbiddenError,
     IndexInitFailedError,
     NotFoundError,
     PineconeError,
     PineconeTimeoutError,
+    ServiceError,
     UnauthorizedError,
     ValidationError,
 )
@@ -38,6 +40,7 @@ __all__ = [
     "CollectionModel",
     "ConflictError",
     "DeletionProtection",
+    "ForbiddenError",
     "DescribeIndexStatsResponse",
     "EmbedConfig",
     "EmbedModel",
@@ -59,6 +62,7 @@ __all__ = [
     "PodType",
     "QueryResponse",
     "ServerlessSpec",
+    "ServiceError",
     "SparseValues",
     "UnauthorizedError",
     "UpdateResponse",
