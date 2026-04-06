@@ -1,21 +1,24 @@
-"""Unit tests for AsyncIndex.query() and AsyncIndex.fetch() methods."""
+"""Unit tests for AsyncIndex data-plane methods."""
 
 from __future__ import annotations
 
 from typing import Any
 
 import httpx
+import orjson
 import pytest
 import respx
 
 from pinecone import AsyncIndex
 from pinecone.errors.exceptions import ValidationError
-from pinecone.models.vectors.responses import FetchResponse, QueryResponse
+from pinecone.models.vectors.responses import FetchResponse, QueryResponse, UpdateResponse
 
 INDEX_HOST = "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
 INDEX_HOST_HTTPS = f"https://{INDEX_HOST}"
 QUERY_URL = f"{INDEX_HOST_HTTPS}/query"
 FETCH_URL = f"{INDEX_HOST_HTTPS}/vectors/fetch"
+DELETE_URL = f"{INDEX_HOST_HTTPS}/vectors/delete"
+UPDATE_URL = f"{INDEX_HOST_HTTPS}/vectors/update"
 
 
 def _make_async_index() -> AsyncIndex:
@@ -180,3 +183,120 @@ class TestAsyncFetch:
 
         assert isinstance(result, FetchResponse)
         assert result.vectors == {}
+
+
+# ---------------------------------------------------------------------------
+# AsyncIndex.delete()
+# ---------------------------------------------------------------------------
+
+
+class TestAsyncDelete:
+    """Async delete operations."""
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_delete_by_ids(self) -> None:
+        route = respx.post(DELETE_URL).mock(
+            return_value=httpx.Response(200, json={}),
+        )
+        idx = _make_async_index()
+        result = await idx.delete(ids=["vec1", "vec2"])
+
+        assert result is None
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["ids"] == ["vec1", "vec2"]
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_delete_all(self) -> None:
+        route = respx.post(DELETE_URL).mock(
+            return_value=httpx.Response(200, json={}),
+        )
+        idx = _make_async_index()
+        await idx.delete(delete_all=True)
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["deleteAll"] is True
+
+    @pytest.mark.asyncio
+    async def test_delete_no_mode_raises(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="Must specify one of"):
+            await idx.delete()
+
+    @pytest.mark.asyncio
+    async def test_delete_multiple_modes_raises(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="Cannot combine"):
+            await idx.delete(ids=["x"], delete_all=True)
+
+
+# ---------------------------------------------------------------------------
+# AsyncIndex.update()
+# ---------------------------------------------------------------------------
+
+
+def _make_update_response(
+    *,
+    matched_records: int | None = None,
+) -> dict[str, object]:
+    """Build a realistic update API response payload."""
+    resp: dict[str, object] = {}
+    if matched_records is not None:
+        resp["matchedRecords"] = matched_records
+    return resp
+
+
+class TestAsyncUpdate:
+    """Async update operations."""
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_update_by_id(self) -> None:
+        route = respx.post(UPDATE_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json=_make_update_response(matched_records=1),
+            ),
+        )
+        idx = _make_async_index()
+        result = await idx.update(id="vec1", values=[0.1, 0.2, 0.3])
+
+        assert isinstance(result, UpdateResponse)
+        assert result.matched_records == 1
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["id"] == "vec1"
+        assert body["values"] == [0.1, 0.2, 0.3]
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_update_by_filter(self) -> None:
+        route = respx.post(UPDATE_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json=_make_update_response(matched_records=5),
+            ),
+        )
+        idx = _make_async_index()
+        result = await idx.update(
+            filter={"genre": {"$eq": "drama"}},
+            set_metadata={"year": 2020},
+        )
+
+        assert isinstance(result, UpdateResponse)
+        assert result.matched_records == 5
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["filter"] == {"genre": {"$eq": "drama"}}
+        assert body["setMetadata"] == {"year": 2020}
+
+    @pytest.mark.asyncio
+    async def test_update_both_id_and_filter_raises(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="not both"):
+            await idx.update(id="vec1", filter={"x": 1})
+
+    @pytest.mark.asyncio
+    async def test_update_neither_id_nor_filter_raises(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="got neither"):
+            await idx.update()

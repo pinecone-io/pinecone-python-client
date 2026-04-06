@@ -11,7 +11,7 @@ from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone.errors.exceptions import ValidationError
 from pinecone.index import _validate_host
-from pinecone.models.vectors.responses import FetchResponse, QueryResponse
+from pinecone.models.vectors.responses import FetchResponse, QueryResponse, UpdateResponse
 from pinecone.models.vectors.sparse import SparseValues
 
 logger = logging.getLogger(__name__)
@@ -183,6 +183,114 @@ class AsyncIndex:
         result = self._adapter.to_fetch_response(response.content)
         logger.debug("Fetched %d vectors", len(result.vectors))
         return result
+
+    async def delete(
+        self,
+        *,
+        ids: list[str] | None = None,
+        delete_all: bool = False,
+        filter: dict[str, Any] | None = None,
+        namespace: str = "",
+    ) -> None:
+        """Delete vectors from a namespace by ID, filter, or delete-all flag.
+
+        Exactly one of ``ids``, ``delete_all``, or ``filter`` must be specified.
+        Deleting IDs that do not exist does not raise an error.
+
+        Args:
+            ids (list[str] | None): List of vector IDs to delete.
+            delete_all (bool): If True, delete all vectors in the namespace.
+            filter (dict[str, Any] | None): Metadata filter expression selecting vectors to delete.
+            namespace (str): Namespace to delete from. Defaults to the default namespace.
+
+        Returns:
+            None — a successful delete returns no payload.
+
+        Raises:
+            ValidationError: If zero or more than one deletion mode is specified.
+            ApiError: If the API returns an error response.
+        """
+        mode_count = sum([ids is not None, delete_all, filter is not None])
+        if mode_count == 0:
+            raise ValidationError("Must specify one of ids, delete_all, or filter")
+        if mode_count > 1:
+            raise ValidationError(
+                "Cannot combine ids, delete_all, and filter — specify exactly one"
+            )
+
+        body: dict[str, Any] = {"namespace": namespace}
+        if ids is not None:
+            body["ids"] = ids
+        if delete_all:
+            body["deleteAll"] = True
+        if filter is not None:
+            body["filter"] = filter
+
+        logger.info("Deleting vectors from namespace %r", namespace)
+        await self._http.post("/vectors/delete", json=body)
+
+    async def update(
+        self,
+        *,
+        id: str | None = None,
+        values: list[float] | None = None,
+        sparse_values: SparseValues | dict[str, Any] | None = None,
+        set_metadata: dict[str, Any] | None = None,
+        namespace: str = "",
+        filter: dict[str, Any] | None = None,
+        dry_run: bool = False,
+    ) -> UpdateResponse:
+        """Update vectors by ID or metadata filter.
+
+        Exactly one of ``id`` or ``filter`` must be specified.
+
+        Args:
+            id (str | None): ID of the vector to update.
+            values (list[float] | None): New dense vector values.
+            sparse_values (SparseValues | dict[str, Any] | None): New sparse vector.
+            set_metadata (dict[str, Any] | None): Metadata fields to set or overwrite.
+            namespace (str): Namespace to target. Defaults to the default namespace.
+            filter (dict[str, Any] | None): Metadata filter expression selecting vectors to update.
+            dry_run (bool): If True, return the count of records that would be
+                affected without applying changes.
+
+        Returns:
+            UpdateResponse with matched_records count (when available).
+
+        Raises:
+            ValidationError: If both or neither of id and filter are provided.
+            ApiError: If the API returns an error response.
+        """
+        has_id = id is not None
+        has_filter = filter is not None
+        if has_id and has_filter:
+            raise ValidationError("Exactly one of id or filter must be provided, not both")
+        if not has_id and not has_filter:
+            raise ValidationError("Exactly one of id or filter must be provided, got neither")
+
+        body: dict[str, Any] = {"namespace": namespace}
+        if id is not None:
+            body["id"] = id
+        if values is not None:
+            body["values"] = values
+        if sparse_values is not None:
+            if isinstance(sparse_values, SparseValues):
+                body["sparseValues"] = {
+                    "indices": sparse_values.indices,
+                    "values": sparse_values.values,
+                }
+            else:
+                body["sparseValues"] = sparse_values
+        if set_metadata is not None:
+            body["setMetadata"] = set_metadata
+        if filter is not None:
+            body["filter"] = filter
+        if dry_run:
+            body["dryRun"] = True
+
+        logger.info("Updating vectors in namespace %r", namespace)
+        response = await self._http.post("/vectors/update", json=body)
+        return self._adapter.to_update_response(response.content)
 
     async def close(self) -> None:
         """Close the underlying HTTP client and release resources."""
