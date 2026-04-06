@@ -416,3 +416,17 @@ def test_create_sparse_without_dimension(indexes: Indexes) -> None:
     body = json.loads(request.content)
     assert body["vector_type"] == "sparse"
     assert "dimension" not in body
+
+
+def test_create_sparse_with_dimension_raises(indexes: Indexes) -> None:
+    """Sparse index with explicit dimension raises ValidationError."""
+    with pytest.raises(ValidationError) as exc_info:
+        indexes.create(
+            name="test",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            vector_type="sparse",
+            dimension=384,
+        )
+
+    assert "dimension" in str(exc_info.value)
+    assert "sparse" in str(exc_info.value)

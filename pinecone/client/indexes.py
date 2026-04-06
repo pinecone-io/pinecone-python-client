@@ -389,6 +389,8 @@ class Indexes:
             )
 
         resolved_vt = self._resolve_value(vector_type)
+        if resolved_vt == "sparse" and dimension is not None:
+            raise ValidationError("dimension must not be provided for sparse indexes")
         if resolved_vt != "sparse" and dimension is None:
             raise ValidationError("dimension is required for dense indexes")
 
