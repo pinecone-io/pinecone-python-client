@@ -704,6 +704,30 @@ class Index:
         response = self._http.post(f"/records/namespaces/{namespace}/search", json=body)
         return self._adapter.to_search_response(response.content)
 
+    def search_records(
+        self,
+        *,
+        namespace: str,
+        top_k: int,
+        inputs: dict[str, Any] | None = None,
+        vector: list[float] | None = None,
+        id: str | None = None,
+        filter: dict[str, Any] | None = None,
+        fields: list[str] | None = None,
+        rerank: dict[str, Any] | None = None,
+    ) -> SearchRecordsResponse:
+        """Alias for :meth:`search` with identical behavior."""
+        return self.search(
+            namespace=namespace,
+            top_k=top_k,
+            inputs=inputs,
+            vector=vector,
+            id=id,
+            filter=filter,
+            fields=fields,
+            rerank=rerank,
+        )
+
     def create_namespace(
         self,
         *,
