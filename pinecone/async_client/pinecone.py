@@ -9,6 +9,7 @@ from pinecone._internal.constants import CONTROL_PLANE_API_VERSION, DEFAULT_BASE
 from pinecone.errors.exceptions import ValidationError
 
 if TYPE_CHECKING:
+    from pinecone.async_client.async_index import AsyncIndex
     from pinecone.async_client.indexes import AsyncIndexes
 
 _DEPRECATED_KWARGS: frozenset[str] = frozenset({"openapi_config", "pool_threads", "index_api"})
@@ -126,6 +127,68 @@ class AsyncPinecone:
     def config(self) -> PineconeConfig:
         """The resolved configuration for this client."""
         return self._config
+
+    async def index(
+        self,
+        name: str = "",
+        *,
+        host: str = "",
+    ) -> AsyncIndex:
+        """Create an async data plane client targeting a specific index.
+
+        Can target by host URL directly (skips the describe call) or by
+        index name (triggers a describe-index lookup to resolve the host).
+
+        Args:
+            name: Name of the index. Triggers a describe call to resolve host.
+            host: Direct host URL of the index. Skips the describe call.
+
+        Returns:
+            An async :class:`AsyncIndex` data plane client.
+
+        Raises:
+            ValidationError: If neither *name* nor *host* is provided.
+
+        Example::
+
+            async with AsyncPinecone(api_key="...") as pc:
+                idx = await pc.index(host="my-index-abc123.svc.pinecone.io")
+                # or
+                idx = await pc.index(name="my-index")
+        """
+        from pinecone.async_client.async_index import AsyncIndex as _AsyncIndex
+
+        if host:
+            return _AsyncIndex(
+                host=host,
+                api_key=self._config.api_key,
+                additional_headers=dict(self._config.additional_headers),
+                timeout=self._config.timeout,
+            )
+
+        if name:
+            # Check cache first
+            cached_host = self._host_cache.get(name)
+            if cached_host:
+                return _AsyncIndex(
+                    host=cached_host,
+                    api_key=self._config.api_key,
+                    additional_headers=dict(self._config.additional_headers),
+                    timeout=self._config.timeout,
+                )
+
+            # Resolve host via describe
+            desc = await self.indexes.describe(name)
+            self._host_cache[name] = desc.host
+
+            return _AsyncIndex(
+                host=desc.host,
+                api_key=self._config.api_key,
+                additional_headers=dict(self._config.additional_headers),
+                timeout=self._config.timeout,
+            )
+
+        raise ValidationError("Either name or host must be provided to create an Index client.")
 
     async def close(self) -> None:
         """Close the underlying HTTP client."""

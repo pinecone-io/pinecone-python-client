@@ -20,6 +20,7 @@ from pinecone.errors.exceptions import (
 __all__ = [
     "__version__",
     "ApiError",
+    "AsyncIndex",
     "AsyncPinecone",
     "ConflictError",
     "Index",
@@ -35,6 +36,7 @@ __all__ = [
 # Importing Pinecone/AsyncPinecone/Index eagerly pulls in httpx (~120ms).
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "Pinecone": ("pinecone._client", "Pinecone"),
+    "AsyncIndex": ("pinecone.async_client.async_index", "AsyncIndex"),
     "AsyncPinecone": ("pinecone.async_client.pinecone", "AsyncPinecone"),
     "Index": ("pinecone.index", "Index"),
 }
