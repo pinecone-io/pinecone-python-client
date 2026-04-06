@@ -264,6 +264,7 @@ class AsyncIndexes:
         vector_type: VectorType | str = "dense",
         deletion_protection: DeletionProtection | str = "disabled",
         tags: dict[str, str] | None = None,
+        schema: dict[str, Any] | None = None,
         timeout: int | None = None,
     ) -> IndexModel:
         """Create a new Pinecone index.
@@ -283,6 +284,10 @@ class AsyncIndexes:
             vector_type (VectorType | str): Vector type (dense or sparse).
             deletion_protection (DeletionProtection | str): Whether deletion protection is enabled.
             tags (dict[str, str] | None): Optional key-value tags.
+            schema (dict[str, Any] | None): Optional metadata schema defining
+                field types for indexing. Accepts both flat format
+                (``{"field": {"type": "str"}}``) and nested format
+                (``{"fields": {"field": {"type": "str"}}}``).
             timeout (int | None): Seconds to wait for the index to become ready.
                 Use ``None`` (default) or ``-1`` to return immediately
                 without polling. Use a positive int to poll until the
@@ -346,6 +351,7 @@ class AsyncIndexes:
                 vector_type=vector_type,
                 deletion_protection=deletion_protection,
                 tags=tags,
+                schema=schema,
             )
 
         logger.info("Creating index %r", name)
@@ -423,11 +429,18 @@ class AsyncIndexes:
         vector_type: VectorType | str,
         deletion_protection: DeletionProtection | str,
         tags: dict[str, str] | None,
+        schema: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Build the JSON body for POST /indexes."""
 
         def _resolve(val: Any) -> Any:
             return val.value if hasattr(val, "value") else val
+
+        def _normalize_schema(raw: dict[str, Any]) -> dict[str, Any]:
+            if "fields" in raw:
+                result: dict[str, Any] = raw["fields"]
+                return result
+            return raw
 
         body: dict[str, Any] = {
             "name": name,
@@ -446,6 +459,12 @@ class AsyncIndexes:
             body["spec"] = {"pod": msgspec.to_builtins(spec)}
         elif isinstance(spec, dict):
             body["spec"] = spec
+
+        if schema is not None:
+            normalized = _normalize_schema(schema)
+            spec_dict = body["spec"]
+            for key in spec_dict:
+                spec_dict[key]["schema"] = normalized
 
         return body
 
