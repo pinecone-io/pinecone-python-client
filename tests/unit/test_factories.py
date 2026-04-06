@@ -5,6 +5,7 @@ from __future__ import annotations
 from tests.factories import (
     make_backup_response,
     make_collection_response,
+    make_describe_index_stats_response,
     make_embed_response,
     make_error_response,
     make_fetch_response,
@@ -61,8 +62,8 @@ def test_make_backup_response_keys() -> None:
 
 def test_make_upsert_response_keys() -> None:
     result = make_upsert_response()
-    assert "upsertedCount" in result
-    assert isinstance(result["upsertedCount"], int)
+    assert "upserted_count" in result
+    assert isinstance(result["upserted_count"], int)
 
 
 def test_make_query_response_keys() -> None:
@@ -110,6 +111,15 @@ def test_make_error_response_default() -> None:
     result = make_error_response()
     assert result["status"] == 500
     assert result["error"]["code"] == "UNKNOWN"
+
+
+def test_make_describe_index_stats_response_keys() -> None:
+    result = make_describe_index_stats_response()
+    assert "namespaces" in result
+    assert isinstance(result["namespaces"], dict)
+    assert "dimension" in result
+    assert "index_fullness" in result
+    assert "total_vector_count" in result
 
 
 def test_factory_overrides() -> None:

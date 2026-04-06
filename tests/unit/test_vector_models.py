@@ -17,6 +17,12 @@ from pinecone.models.vectors.responses import (
 from pinecone.models.vectors.sparse import SparseValues
 from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.vector import ScoredVector, Vector
+from tests.factories import (
+    make_describe_index_stats_response,
+    make_fetch_response,
+    make_query_response,
+    make_upsert_response,
+)
 
 
 class TestSparseValues:
@@ -110,7 +116,7 @@ class TestUpsertResponse:
         assert r.upserted_count == 42
 
     def test_from_dict(self) -> None:
-        data: dict[str, Any] = {"upserted_count": 100}
+        data = make_upsert_response(upserted_count=100)
         r = msgspec.convert(data, UpsertResponse)
         assert r.upserted_count == 100
 
@@ -129,20 +135,13 @@ class TestQueryResponse:
         assert r.namespace == ""
 
     def test_from_dict_with_matches(self) -> None:
-        data: dict[str, Any] = {
-            "matches": [
-                {"id": "v1", "score": 0.99},
-                {"id": "v2", "score": 0.85, "values": [1.0, 2.0]},
-            ],
-            "namespace": "test-ns",
-            "usage": {"read_units": 5},
-        }
+        data = make_query_response()
         r = msgspec.convert(data, QueryResponse)
         assert len(r.matches) == 2
-        assert r.matches[0].id == "v1"
-        assert r.matches[0].score == 0.99
-        assert r.matches[1].values == [1.0, 2.0]
-        assert r.namespace == "test-ns"
+        assert r.matches[0].id == "vec-1"
+        assert r.matches[0].score == 0.95
+        assert r.matches[1].values == [0.4, 0.5, 0.6]
+        assert r.namespace == "test-namespace"
         assert r.usage is not None
         assert r.usage.read_units == 5
 
@@ -155,21 +154,14 @@ class TestFetchResponse:
         assert r.usage is None
 
     def test_from_dict(self) -> None:
-        data: dict[str, Any] = {
-            "vectors": {
-                "vec-1": {"id": "vec-1", "values": [0.1, 0.2]},
-                "vec-2": {"id": "vec-2", "values": [0.3, 0.4]},
-            },
-            "namespace": "my-ns",
-            "usage": {"read_units": 2},
-        }
+        data = make_fetch_response()
         r = msgspec.convert(data, FetchResponse)
         assert len(r.vectors) == 2
-        assert r.vectors["vec-1"].id == "vec-1"
-        assert r.vectors["vec-1"].values == [0.1, 0.2]
-        assert r.namespace == "my-ns"
+        assert r.vectors["id-1"].id == "id-1"
+        assert r.vectors["id-1"].values == [1.0, 1.5]
+        assert r.namespace == "test-namespace"
         assert r.usage is not None
-        assert r.usage.read_units == 2
+        assert r.usage.read_units == 1
 
 
 class TestDescribeIndexStatsResponse:
@@ -181,15 +173,7 @@ class TestDescribeIndexStatsResponse:
         assert r.total_vector_count == 0
 
     def test_from_dict(self) -> None:
-        data: dict[str, Any] = {
-            "namespaces": {
-                "ns1": {"vector_count": 100},
-                "ns2": {"vector_count": 200},
-            },
-            "dimension": 128,
-            "index_fullness": 0.5,
-            "total_vector_count": 300,
-        }
+        data = make_describe_index_stats_response()
         r = msgspec.convert(data, DescribeIndexStatsResponse)
         assert len(r.namespaces) == 2
         assert r.namespaces["ns1"].vector_count == 100
