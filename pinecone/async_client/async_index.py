@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from collections.abc import AsyncIterator, Sequence
@@ -17,6 +18,7 @@ from pinecone.index import _validate_host, _vector_to_dict
 from pinecone.models.imports.list import ImportList
 from pinecone.models.imports.model import ImportModel, StartImportResponse
 from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
+from pinecone.models.vectors.query_aggregator import QueryNamespacesResults, QueryResultsAggregator
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
     FetchResponse,
@@ -300,6 +302,84 @@ class AsyncIndex:
         result = self._adapter.to_query_response(response.content)
         logger.debug("Query returned %d matches", len(result.matches))
         return result
+
+    async def query_namespaces(
+        self,
+        *,
+        vector: list[float],
+        namespaces: list[str],
+        metric: str,
+        top_k: int | None = None,
+        filter: dict[str, Any] | None = None,
+        include_values: bool = False,
+        include_metadata: bool = False,
+        sparse_vector: SparseValues | dict[str, Any] | None = None,
+    ) -> QueryNamespacesResults:
+        """Query multiple namespaces concurrently and return merged top results.
+
+        Fans out individual ``query()`` calls across all given namespaces
+        using ``asyncio.gather``, then merges results via a heap-based
+        aggregator that returns the overall top-k matches ranked by the
+        specified metric.
+
+        Args:
+            vector: Dense query vector values (must be non-empty).
+            namespaces: Namespaces to query (must be non-empty). Duplicates
+                are removed while preserving order.
+            metric: Distance metric — ``"cosine"``, ``"euclidean"``, or
+                ``"dotproduct"``.
+            top_k: Maximum number of results to return. Defaults to 10.
+            filter: Metadata filter expression applied to every namespace.
+            include_values: Whether to include vector values in results.
+            include_metadata: Whether to include metadata in results.
+            sparse_vector: Sparse query vector with indices and values.
+
+        Returns:
+            QueryNamespacesResults with the merged top-k matches, total
+            usage, and per-namespace usage.
+
+        Raises:
+            ValidationError: If *namespaces* or *vector* is empty.
+            ValueError: If *metric* is not a recognized value.
+            ApiError: If any individual namespace query fails.
+
+        Examples:
+
+            results = await idx.query_namespaces(
+                vector=[0.1, 0.2, 0.3],
+                namespaces=["ns1", "ns2", "ns3"],
+                metric="cosine",
+                top_k=10,
+            )
+            for match in results.matches:
+                print(match.id, match.score)
+        """
+        if not namespaces:
+            raise ValidationError("namespaces must be a non-empty list")
+        if not vector:
+            raise ValidationError("vector must be a non-empty list")
+
+        namespaces = list(dict.fromkeys(namespaces))
+        effective_top_k = top_k if top_k is not None else 10
+        aggregator = QueryResultsAggregator(metric=metric, top_k=effective_top_k)
+
+        async def _query_ns(ns: str) -> tuple[str, QueryResponse]:
+            result = await self.query(
+                top_k=effective_top_k,
+                vector=vector,
+                namespace=ns,
+                filter=filter,
+                include_values=include_values,
+                include_metadata=include_metadata,
+                sparse_vector=sparse_vector,
+            )
+            return (ns, result)
+
+        results = await asyncio.gather(*[_query_ns(ns) for ns in namespaces])
+        for ns, response in results:
+            aggregator.add_results(ns, response)
+
+        return aggregator.get_results()
 
     async def fetch(
         self,
