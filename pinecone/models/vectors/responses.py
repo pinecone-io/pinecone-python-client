@@ -75,6 +75,30 @@ class FetchResponse(Struct, rename="camel", kw_only=True):
             raise KeyError(key) from None
 
 
+class FetchByMetadataResponse(Struct, rename="camel", kw_only=True):
+    """Response from a fetch-by-metadata operation.
+
+    Attributes:
+        vectors: Mapping of vector ID to Vector for each fetched vector.
+        namespace: Namespace the vectors were fetched from.
+        usage: Read unit usage, or None if not reported.
+        pagination: Pagination token for the next page, or None if
+            this is the last page.
+    """
+
+    vectors: dict[str, Vector] = {}
+    namespace: str = ""
+    usage: Usage | None = None
+    pagination: Pagination | None = None
+
+    def __getitem__(self, key: str) -> Any:
+        """Support bracket access."""
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError(key) from None
+
+
 class NamespaceSummary(Struct, rename="camel", kw_only=True):
     """Summary statistics for a single namespace.
 

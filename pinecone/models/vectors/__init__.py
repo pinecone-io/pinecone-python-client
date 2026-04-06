@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     )
     from pinecone.models.vectors.responses import (  # noqa: F401
         DescribeIndexStatsResponse,
+        FetchByMetadataResponse,
         FetchResponse,
         ListItem,
         ListResponse,
@@ -39,6 +40,7 @@ _LAZY_IMPORTS: dict[str, str] = {
     "QueryResultsAggregator": "pinecone.models.vectors.query_aggregator",
     "UpsertResponse": "pinecone.models.vectors.responses",
     "QueryResponse": "pinecone.models.vectors.responses",
+    "FetchByMetadataResponse": "pinecone.models.vectors.responses",
     "FetchResponse": "pinecone.models.vectors.responses",
     "NamespaceSummary": "pinecone.models.vectors.responses",
     "DescribeIndexStatsResponse": "pinecone.models.vectors.responses",

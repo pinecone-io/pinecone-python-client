@@ -16,6 +16,7 @@ from pinecone.models.namespaces.models import (
 )
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
+    FetchByMetadataResponse,
     FetchResponse,
     ListResponse,
     QueryResponse,
@@ -87,6 +88,15 @@ class VectorsAdapter:
             - Direct decode; camelCase handled by Struct rename.
         """
         return msgspec.json.decode(data, type=FetchResponse)
+
+    @staticmethod
+    def to_fetch_by_metadata_response(data: bytes) -> FetchByMetadataResponse:
+        """Decode raw JSON bytes into a FetchByMetadataResponse.
+
+        Transformations:
+            - Direct decode; camelCase handled by Struct rename.
+        """
+        return msgspec.json.decode(data, type=FetchByMetadataResponse)
 
     @staticmethod
     def to_stats_response(data: bytes) -> DescribeIndexStatsResponse:
