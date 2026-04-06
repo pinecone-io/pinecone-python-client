@@ -101,8 +101,21 @@ class PineconeTimeoutError(PineconeError):
     pass
 
 
-class ValidationError(PineconeError):
-    """Input validation failed."""
+class PineconeValueError(PineconeError, ValueError):
+    """Input validation failed — invalid value."""
 
-    def __init__(self, message: str) -> None:
+    def __init__(self, message: str, path: str | None = None) -> None:
+        self.path = path
         super().__init__(message)
+
+
+class PineconeTypeError(PineconeError, TypeError):
+    """Input validation failed — wrong type."""
+
+    def __init__(self, message: str, path: str | None = None) -> None:
+        self.path = path
+        super().__init__(message)
+
+
+# Backwards-compatible alias — most validation is value validation
+ValidationError = PineconeValueError
