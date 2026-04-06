@@ -3,12 +3,12 @@
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from pinecone.models.collections.collection_list import CollectionList  # noqa: F401
-    from pinecone.models.collections.collection_model import CollectionModel  # noqa: F401
+    from pinecone.models.collections.list import CollectionList  # noqa: F401
+    from pinecone.models.collections.model import CollectionModel  # noqa: F401
 
 _LAZY_IMPORTS: dict[str, str] = {
-    "CollectionModel": "pinecone.models.collections.collection_model",
-    "CollectionList": "pinecone.models.collections.collection_list",
+    "CollectionModel": "pinecone.models.collections.model",
+    "CollectionList": "pinecone.models.collections.list",
 }
 
 __all__ = list(_LAZY_IMPORTS.keys())

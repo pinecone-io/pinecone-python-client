@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 
-from pinecone.models.collections.collection_model import CollectionModel
+from pinecone.models.collections.model import CollectionModel
 
 
 class CollectionList:

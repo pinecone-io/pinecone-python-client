@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import msgspec
 
-from pinecone.models.collections.collection_list import CollectionList
-from pinecone.models.collections.collection_model import CollectionModel
+from pinecone.models.collections.list import CollectionList
+from pinecone.models.collections.model import CollectionModel
 
 
 class _CollectionListEnvelope(msgspec.Struct, kw_only=True):

@@ -1,7 +1,7 @@
 """msgspec.Struct models for the Pinecone SDK."""
 
-from pinecone.models.collections.collection_list import CollectionList
-from pinecone.models.collections.collection_model import CollectionModel
+from pinecone.models.collections.list import CollectionList
+from pinecone.models.collections.model import CollectionModel
 from pinecone.models.enums import (
     CloudProvider,
     DeletionProtection,

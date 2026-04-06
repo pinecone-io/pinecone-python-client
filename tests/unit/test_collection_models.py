@@ -5,8 +5,8 @@ from __future__ import annotations
 import msgspec
 import pytest
 
-from pinecone.models.collections.collection_list import CollectionList
-from pinecone.models.collections.collection_model import CollectionModel
+from pinecone.models.collections.list import CollectionList
+from pinecone.models.collections.model import CollectionModel
 
 
 class TestCollectionModel:

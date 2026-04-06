@@ -11,8 +11,8 @@ from pinecone._internal.constants import CONTROL_PLANE_API_VERSION
 from pinecone._internal.http_client import HTTPClient
 from pinecone.client.collections import Collections
 from pinecone.errors.exceptions import NotFoundError, ValidationError
-from pinecone.models.collections.collection_list import CollectionList
-from pinecone.models.collections.collection_model import CollectionModel
+from pinecone.models.collections.list import CollectionList
+from pinecone.models.collections.model import CollectionModel
 from tests.factories import make_collection_response, make_error_response
 
 BASE_URL = "https://api.test.pinecone.io"

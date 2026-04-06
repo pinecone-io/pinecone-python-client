@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 
 from pinecone._internal.adapters.collections_adapter import CollectionsAdapter
 from pinecone._internal.validation import require_non_empty
-from pinecone.models.collections.collection_list import CollectionList
-from pinecone.models.collections.collection_model import CollectionModel
+from pinecone.models.collections.list import CollectionList
+from pinecone.models.collections.model import CollectionModel
 
 if TYPE_CHECKING:
     from pinecone._internal.http_client import HTTPClient
