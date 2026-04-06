@@ -19,7 +19,13 @@ from tests.factories import (
 def test_make_index_response_keys() -> None:
     result = make_index_response()
     assert set(result.keys()) >= {
-        "name", "dimension", "metric", "host", "spec", "status", "vector_type",
+        "name",
+        "dimension",
+        "metric",
+        "host",
+        "spec",
+        "status",
+        "vector_type",
     }
 
 
@@ -32,15 +38,24 @@ def test_make_index_list_response_keys() -> None:
 def test_make_collection_response_keys() -> None:
     result = make_collection_response()
     assert set(result.keys()) >= {
-        "name", "size", "status", "dimension", "vector_count", "environment",
+        "name",
+        "size",
+        "status",
+        "dimension",
+        "vector_count",
+        "environment",
     }
 
 
 def test_make_backup_response_keys() -> None:
     result = make_backup_response()
     assert set(result.keys()) >= {
-        "backup_id", "source_index_name", "source_index_id",
-        "status", "cloud", "region",
+        "backup_id",
+        "source_index_name",
+        "source_index_id",
+        "status",
+        "cloud",
+        "region",
     }
 
 

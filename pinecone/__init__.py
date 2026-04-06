@@ -2,6 +2,7 @@
 
 __version__ = "0.1.0"
 
+from pinecone._client import Pinecone
 from pinecone._internal.config import PineconeConfig
 from pinecone.errors.exceptions import (
     ApiError,
@@ -17,6 +18,7 @@ __all__ = [
     "ApiError",
     "ConflictError",
     "NotFoundError",
+    "Pinecone",
     "PineconeConfig",
     "PineconeError",
     "UnauthorizedError",
