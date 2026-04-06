@@ -9,8 +9,6 @@ import pytest
 import respx
 
 from pinecone._internal.config import PineconeConfig
-from pinecone._internal.constants import INFERENCE_API_VERSION
-from pinecone._internal.http_client import HTTPClient
 from pinecone.client.inference import Inference
 from pinecone.errors.exceptions import ValidationError
 from pinecone.models.enums import EmbedModel, RerankModel
