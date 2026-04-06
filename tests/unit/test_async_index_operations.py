@@ -213,10 +213,23 @@ class TestAsyncDelete:
             return_value=httpx.Response(200, json={}),
         )
         idx = _make_async_index()
-        await idx.delete(delete_all=True)
+        await idx.delete(delete_all=True, namespace="ns")
 
         body = orjson.loads(route.calls.last.request.content)
         assert body["deleteAll"] is True
+        assert body["namespace"] == "ns"
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_delete_by_filter(self) -> None:
+        route = respx.post(DELETE_URL).mock(
+            return_value=httpx.Response(200, json={}),
+        )
+        idx = _make_async_index()
+        await idx.delete(filter={"genre": {"$eq": "drama"}})
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["filter"] == {"genre": {"$eq": "drama"}}
 
     @pytest.mark.asyncio
     async def test_delete_no_mode_raises(self) -> None:
@@ -229,6 +242,12 @@ class TestAsyncDelete:
         idx = _make_async_index()
         with pytest.raises(ValidationError, match="Cannot combine"):
             await idx.delete(ids=["x"], delete_all=True)
+
+    @pytest.mark.asyncio
+    async def test_delete_keyword_only(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(TypeError):
+            await idx.delete(["vec1"])  # type: ignore[misc]
 
 
 # ---------------------------------------------------------------------------
@@ -295,8 +314,35 @@ class TestAsyncUpdate:
         with pytest.raises(ValidationError, match="not both"):
             await idx.update(id="vec1", filter={"x": 1})
 
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_update_dry_run(self) -> None:
+        route = respx.post(UPDATE_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json=_make_update_response(matched_records=3),
+            ),
+        )
+        idx = _make_async_index()
+        result = await idx.update(
+            filter={"genre": {"$eq": "drama"}},
+            set_metadata={"year": 2020},
+            dry_run=True,
+        )
+
+        assert isinstance(result, UpdateResponse)
+        assert result.matched_records == 3
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["dryRun"] is True
+
     @pytest.mark.asyncio
     async def test_update_neither_id_nor_filter_raises(self) -> None:
         idx = _make_async_index()
         with pytest.raises(ValidationError, match="got neither"):
             await idx.update()
+
+    @pytest.mark.asyncio
+    async def test_update_keyword_only(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(TypeError):
+            await idx.update("vec1")  # type: ignore[misc]
