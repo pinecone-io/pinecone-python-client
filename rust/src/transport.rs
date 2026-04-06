@@ -153,6 +153,62 @@ fn scored_vector_to_py_dict(py: Python<'_>, sv: &proto::ScoredVector) -> PyResul
     Ok(dict.unbind())
 }
 
+/// Convert a proto `NamespaceDescription` to a Python dict.
+fn namespace_description_to_py_dict(
+    py: Python<'_>,
+    ns: &proto::NamespaceDescription,
+) -> PyResult<Py<PyDict>> {
+    let dict = PyDict::new(py);
+    dict.set_item("name", &ns.name)?;
+    dict.set_item("record_count", ns.record_count)?;
+    if let Some(ref schema) = ns.schema {
+        let schema_dict = metadata_schema_to_py_dict(py, schema)?;
+        dict.set_item("schema", schema_dict)?;
+    }
+    if let Some(ref indexed) = ns.indexed_fields {
+        dict.set_item("indexed_fields", &indexed.fields)?;
+    }
+    Ok(dict.unbind())
+}
+
+/// Convert a proto `MetadataSchema` to a Python dict.
+fn metadata_schema_to_py_dict(
+    py: Python<'_>,
+    schema: &proto::MetadataSchema,
+) -> PyResult<Py<PyDict>> {
+    let fields_dict = PyDict::new(py);
+    for (name, props) in &schema.fields {
+        let props_dict = PyDict::new(py);
+        props_dict.set_item("filterable", props.filterable)?;
+        fields_dict.set_item(name, props_dict)?;
+    }
+    let dict = PyDict::new(py);
+    dict.set_item("fields", fields_dict)?;
+    Ok(dict.unbind())
+}
+
+/// Convert a Python dict to a proto `MetadataSchema`.
+fn py_dict_to_metadata_schema(dict: &Bound<'_, PyDict>) -> PyResult<proto::MetadataSchema> {
+    let fields_obj = dict
+        .get_item("fields")?
+        .ok_or_else(|| PyRuntimeError::new_err("schema missing 'fields'"))?;
+    let fields_dict = fields_obj.downcast::<PyDict>()?;
+    let mut fields = std::collections::HashMap::new();
+    for (key, value) in fields_dict.iter() {
+        let key_str: String = key.extract()?;
+        let props_dict = value.downcast::<PyDict>()?;
+        let filterable: bool = props_dict
+            .get_item("filterable")?
+            .ok_or_else(|| PyRuntimeError::new_err("field properties missing 'filterable'"))?
+            .extract()?;
+        fields.insert(
+            key_str,
+            proto::MetadataFieldProperties { filterable },
+        );
+    }
+    Ok(proto::MetadataSchema { fields })
+}
+
 /// A gRPC channel wrapper exposed to Python.
 #[pyclass]
 pub struct GrpcChannel {
@@ -383,6 +439,367 @@ impl GrpcChannel {
             .map_err(status_to_py_err)?;
 
         let dict = PyDict::new(py);
+        Ok(dict.unbind())
+    }
+
+    /// Update a vector.
+    ///
+    /// Args:
+    ///     id: The unique ID of the vector to update.
+    ///     values: New dense vector values (optional).
+    ///     sparse_values: New sparse vector values dict with "indices" and "values" keys (optional).
+    ///     set_metadata: Metadata dict to set/overwrite (optional).
+    ///     namespace: Namespace (default "").
+    ///     filter: Metadata filter for bulk update (optional).
+    ///     dry_run: If true, return matched count without executing (optional).
+    ///
+    /// Returns:
+    ///     Dict with optional "matched_records" count.
+    #[pyo3(signature = (id, values=None, sparse_values=None, set_metadata=None, namespace=None, filter=None, dry_run=None))]
+    #[allow(clippy::too_many_arguments)]
+    fn update(
+        &self,
+        py: Python<'_>,
+        id: &str,
+        values: Option<Vec<f32>>,
+        sparse_values: Option<Bound<'_, PyDict>>,
+        set_metadata: Option<Bound<'_, PyDict>>,
+        namespace: Option<&str>,
+        filter: Option<Bound<'_, PyDict>>,
+        dry_run: Option<bool>,
+    ) -> PyResult<Py<PyDict>> {
+        let request = proto::UpdateRequest {
+            id: id.to_string(),
+            values: values.unwrap_or_default(),
+            sparse_values: sparse_values
+                .map(|sv| py_dict_to_sparse_values(&sv))
+                .transpose()?,
+            set_metadata: set_metadata
+                .map(|md| py_dict_to_struct(&md))
+                .transpose()?,
+            namespace: namespace.unwrap_or("").to_string(),
+            filter: filter.map(|f| py_dict_to_struct(&f)).transpose()?,
+            dry_run,
+        };
+
+        let mut client = self.client.clone();
+        #[allow(clippy::result_large_err)]
+        let response = py
+            .allow_threads(|| self.runtime.block_on(client.update(request)))
+            .map_err(status_to_py_err)?;
+
+        let inner = response.into_inner();
+        let dict = PyDict::new(py);
+        if let Some(matched) = inner.matched_records {
+            dict.set_item("matched_records", matched)?;
+        }
+        Ok(dict.unbind())
+    }
+
+    /// List vector IDs.
+    ///
+    /// Args:
+    ///     prefix: ID prefix filter (optional).
+    ///     limit: Max number of IDs to return (optional).
+    ///     pagination_token: Token to continue a previous listing (optional).
+    ///     namespace: Namespace (default "").
+    ///
+    /// Returns:
+    ///     Dict with "vectors" (list of dicts with "id"), optional "pagination" dict,
+    ///     "namespace", and optional "usage" dict.
+    #[pyo3(signature = (prefix=None, limit=None, pagination_token=None, namespace=None))]
+    fn list(
+        &self,
+        py: Python<'_>,
+        prefix: Option<&str>,
+        limit: Option<u32>,
+        pagination_token: Option<&str>,
+        namespace: Option<&str>,
+    ) -> PyResult<Py<PyDict>> {
+        let request = proto::ListRequest {
+            prefix: prefix.map(|s| s.to_string()),
+            limit,
+            pagination_token: pagination_token.map(|s| s.to_string()),
+            namespace: namespace.unwrap_or("").to_string(),
+        };
+
+        let mut client = self.client.clone();
+        #[allow(clippy::result_large_err)]
+        let response = py
+            .allow_threads(|| self.runtime.block_on(client.list(request)))
+            .map_err(status_to_py_err)?;
+
+        let inner = response.into_inner();
+        let vectors: Vec<Py<PyDict>> = inner
+            .vectors
+            .iter()
+            .map(|item| {
+                let d = PyDict::new(py);
+                d.set_item("id", &item.id)?;
+                Ok(d.unbind())
+            })
+            .collect::<PyResult<_>>()?;
+
+        let dict = PyDict::new(py);
+        dict.set_item("vectors", vectors)?;
+        if let Some(ref pag) = inner.pagination {
+            let pag_dict = PyDict::new(py);
+            pag_dict.set_item("next", &pag.next)?;
+            dict.set_item("pagination", pag_dict)?;
+        }
+        dict.set_item("namespace", &inner.namespace)?;
+        if let Some(ref usage) = inner.usage {
+            let usage_dict = PyDict::new(py);
+            usage_dict.set_item("read_units", usage.read_units)?;
+            dict.set_item("usage", usage_dict)?;
+        }
+        Ok(dict.unbind())
+    }
+
+    /// Get index statistics.
+    ///
+    /// Args:
+    ///     filter: Metadata filter dict (optional). If present, stats reflect only
+    ///             vectors matching the filter.
+    ///
+    /// Returns:
+    ///     Dict with "namespaces" (map of namespace → {"vector_count"}), "dimension",
+    ///     "index_fullness", "total_vector_count", and optional "metric", "vector_type",
+    ///     "memory_fullness", "storage_fullness".
+    #[pyo3(signature = (filter=None))]
+    fn describe_index_stats(
+        &self,
+        py: Python<'_>,
+        filter: Option<Bound<'_, PyDict>>,
+    ) -> PyResult<Py<PyDict>> {
+        let request = proto::DescribeIndexStatsRequest {
+            filter: filter.map(|f| py_dict_to_struct(&f)).transpose()?,
+        };
+
+        let mut client = self.client.clone();
+        #[allow(clippy::result_large_err)]
+        let response = py
+            .allow_threads(|| self.runtime.block_on(client.describe_index_stats(request)))
+            .map_err(status_to_py_err)?;
+
+        let inner = response.into_inner();
+        let namespaces_dict = PyDict::new(py);
+        for (name, summary) in &inner.namespaces {
+            let ns_dict = PyDict::new(py);
+            ns_dict.set_item("vector_count", summary.vector_count)?;
+            namespaces_dict.set_item(name, ns_dict)?;
+        }
+
+        let dict = PyDict::new(py);
+        dict.set_item("namespaces", namespaces_dict)?;
+        if let Some(dim) = inner.dimension {
+            dict.set_item("dimension", dim)?;
+        }
+        dict.set_item("index_fullness", inner.index_fullness)?;
+        dict.set_item("total_vector_count", inner.total_vector_count)?;
+        if let Some(ref metric) = inner.metric {
+            dict.set_item("metric", metric)?;
+        }
+        if let Some(ref vt) = inner.vector_type {
+            dict.set_item("vector_type", vt)?;
+        }
+        if let Some(mf) = inner.memory_fullness {
+            dict.set_item("memory_fullness", mf)?;
+        }
+        if let Some(sf) = inner.storage_fullness {
+            dict.set_item("storage_fullness", sf)?;
+        }
+        Ok(dict.unbind())
+    }
+
+    /// List namespaces.
+    ///
+    /// Args:
+    ///     pagination_token: Token to continue a previous listing (optional).
+    ///     limit: Max number of namespaces to return (optional).
+    ///     prefix: Namespace prefix filter (optional).
+    ///
+    /// Returns:
+    ///     Dict with "namespaces" (list of namespace description dicts),
+    ///     optional "pagination" dict, and "total_count".
+    #[pyo3(signature = (pagination_token=None, limit=None, prefix=None))]
+    fn list_namespaces(
+        &self,
+        py: Python<'_>,
+        pagination_token: Option<&str>,
+        limit: Option<u32>,
+        prefix: Option<&str>,
+    ) -> PyResult<Py<PyDict>> {
+        let request = proto::ListNamespacesRequest {
+            pagination_token: pagination_token.map(|s| s.to_string()),
+            limit,
+            prefix: prefix.map(|s| s.to_string()),
+        };
+
+        let mut client = self.client.clone();
+        #[allow(clippy::result_large_err)]
+        let response = py
+            .allow_threads(|| self.runtime.block_on(client.list_namespaces(request)))
+            .map_err(status_to_py_err)?;
+
+        let inner = response.into_inner();
+        let namespaces: Vec<Py<PyDict>> = inner
+            .namespaces
+            .iter()
+            .map(|ns| namespace_description_to_py_dict(py, ns))
+            .collect::<PyResult<_>>()?;
+
+        let dict = PyDict::new(py);
+        dict.set_item("namespaces", namespaces)?;
+        if let Some(ref pag) = inner.pagination {
+            let pag_dict = PyDict::new(py);
+            pag_dict.set_item("next", &pag.next)?;
+            dict.set_item("pagination", pag_dict)?;
+        }
+        dict.set_item("total_count", inner.total_count)?;
+        Ok(dict.unbind())
+    }
+
+    /// Describe a namespace.
+    ///
+    /// Args:
+    ///     namespace: The namespace to describe.
+    ///
+    /// Returns:
+    ///     Dict with "name", "record_count", and optional "schema" and "indexed_fields".
+    #[pyo3(signature = (namespace))]
+    fn describe_namespace(
+        &self,
+        py: Python<'_>,
+        namespace: &str,
+    ) -> PyResult<Py<PyDict>> {
+        let request = proto::DescribeNamespaceRequest {
+            namespace: namespace.to_string(),
+        };
+
+        let mut client = self.client.clone();
+        #[allow(clippy::result_large_err)]
+        let response = py
+            .allow_threads(|| self.runtime.block_on(client.describe_namespace(request)))
+            .map_err(status_to_py_err)?;
+
+        let inner = response.into_inner();
+        namespace_description_to_py_dict(py, &inner)
+    }
+
+    /// Delete a namespace.
+    ///
+    /// Args:
+    ///     namespace: The namespace to delete.
+    ///
+    /// Returns:
+    ///     Empty dict.
+    #[pyo3(signature = (namespace))]
+    fn delete_namespace(
+        &self,
+        py: Python<'_>,
+        namespace: &str,
+    ) -> PyResult<Py<PyDict>> {
+        let request = proto::DeleteNamespaceRequest {
+            namespace: namespace.to_string(),
+        };
+
+        let mut client = self.client.clone();
+        #[allow(clippy::result_large_err)]
+        py.allow_threads(|| self.runtime.block_on(client.delete_namespace(request)))
+            .map_err(status_to_py_err)?;
+
+        let dict = PyDict::new(py);
+        Ok(dict.unbind())
+    }
+
+    /// Create a namespace.
+    ///
+    /// Args:
+    ///     name: The name of the namespace to create.
+    ///     schema: Optional metadata schema dict with "fields" mapping field names
+    ///             to {"filterable": bool}.
+    ///
+    /// Returns:
+    ///     Dict with "name", "record_count", and optional "schema" and "indexed_fields".
+    #[pyo3(signature = (name, schema=None))]
+    fn create_namespace(
+        &self,
+        py: Python<'_>,
+        name: &str,
+        schema: Option<Bound<'_, PyDict>>,
+    ) -> PyResult<Py<PyDict>> {
+        let metadata_schema = schema
+            .map(|s| py_dict_to_metadata_schema(&s))
+            .transpose()?;
+
+        let request = proto::CreateNamespaceRequest {
+            name: name.to_string(),
+            schema: metadata_schema,
+        };
+
+        let mut client = self.client.clone();
+        #[allow(clippy::result_large_err)]
+        let response = py
+            .allow_threads(|| self.runtime.block_on(client.create_namespace(request)))
+            .map_err(status_to_py_err)?;
+
+        let inner = response.into_inner();
+        namespace_description_to_py_dict(py, &inner)
+    }
+
+    /// Fetch vectors by metadata filter.
+    ///
+    /// Args:
+    ///     namespace: Namespace to fetch from (default "").
+    ///     filter: Metadata filter dict (optional).
+    ///     limit: Max number of vectors to return (optional).
+    ///     pagination_token: Token to continue a previous listing (optional).
+    ///
+    /// Returns:
+    ///     Dict with "vectors" (map of id → vector dict), "namespace",
+    ///     optional "usage" dict, and optional "pagination" dict.
+    #[pyo3(signature = (namespace=None, filter=None, limit=None, pagination_token=None))]
+    fn fetch_by_metadata(
+        &self,
+        py: Python<'_>,
+        namespace: Option<&str>,
+        filter: Option<Bound<'_, PyDict>>,
+        limit: Option<u32>,
+        pagination_token: Option<&str>,
+    ) -> PyResult<Py<PyDict>> {
+        let request = proto::FetchByMetadataRequest {
+            namespace: namespace.unwrap_or("").to_string(),
+            filter: filter.map(|f| py_dict_to_struct(&f)).transpose()?,
+            limit,
+            pagination_token: pagination_token.map(|s| s.to_string()),
+        };
+
+        let mut client = self.client.clone();
+        #[allow(clippy::result_large_err)]
+        let response = py
+            .allow_threads(|| self.runtime.block_on(client.fetch_by_metadata(request)))
+            .map_err(status_to_py_err)?;
+
+        let inner = response.into_inner();
+        let vectors_dict = PyDict::new(py);
+        for (id, vector) in &inner.vectors {
+            vectors_dict.set_item(id, vector_to_py_dict(py, vector)?)?;
+        }
+
+        let dict = PyDict::new(py);
+        dict.set_item("vectors", vectors_dict)?;
+        dict.set_item("namespace", &inner.namespace)?;
+        if let Some(ref usage) = inner.usage {
+            let usage_dict = PyDict::new(py);
+            usage_dict.set_item("read_units", usage.read_units)?;
+            dict.set_item("usage", usage_dict)?;
+        }
+        if let Some(ref pag) = inner.pagination {
+            let pag_dict = PyDict::new(py);
+            pag_dict.set_item("next", &pag.next)?;
+            dict.set_item("pagination", pag_dict)?;
+        }
         Ok(dict.unbind())
     }
 }
