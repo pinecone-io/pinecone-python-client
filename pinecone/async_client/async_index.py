@@ -34,7 +34,7 @@ class AsyncIndex:
         from pinecone import AsyncIndex
 
         async with AsyncIndex(host="my-index-abc123.svc.pinecone.io", api_key="...") as idx:
-            pass  # data-plane methods will be added in future tasks
+            print(idx.host)
     """
 
     def __init__(

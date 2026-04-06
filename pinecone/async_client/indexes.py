@@ -18,9 +18,11 @@ logger = logging.getLogger(__name__)
 
 
 class AsyncIndexes:
-    """Async control-plane operations for Pinecone indexes.
+    """Async read-only control-plane operations for Pinecone indexes.
 
-    Provides methods to list, describe, and check existence of indexes.
+    Provides ``list``, ``describe``, and ``exists`` methods.
+    Mutating operations (create, delete, configure) are only available
+    on the synchronous :class:`~pinecone.client.indexes.Indexes` client.
 
     Args:
         http: Async HTTP client for making API requests.
