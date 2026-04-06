@@ -11,6 +11,7 @@ import msgspec
 from pinecone._internal.adapters.indexes_adapter import IndexesAdapter
 from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import NotFoundError, PineconeError, ValidationError
+from pinecone.models.enums import DeletionProtection, Metric, VectorType
 from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.list import IndexList
 from pinecone.models.indexes.specs import PodSpec, ServerlessSpec
@@ -182,7 +183,7 @@ class Indexes:
         *,
         replicas: int | None = None,
         pod_type: str | None = None,
-        deletion_protection: str | None = None,
+        deletion_protection: DeletionProtection | str | None = None,
         tags: dict[str, str] | None = None,
     ) -> None:
         """Configure an existing index.
@@ -223,7 +224,7 @@ class Indexes:
 
         # Deletion protection — only include when explicitly specified
         if deletion_protection is not None:
-            body["deletion_protection"] = deletion_protection
+            body["deletion_protection"] = self._resolve_value(deletion_protection)
 
         # Tag merging — fetch current tags and merge
         if tags is not None:
@@ -240,9 +241,9 @@ class Indexes:
         name: str,
         spec: ServerlessSpec | PodSpec | dict[str, Any],
         dimension: int | None = None,
-        metric: str = "cosine",
-        vector_type: str = "dense",
-        deletion_protection: str = "disabled",
+        metric: Metric | str = "cosine",
+        vector_type: VectorType | str = "dense",
+        deletion_protection: DeletionProtection | str = "disabled",
         tags: dict[str, str] | None = None,
         timeout: int | None = None,
     ) -> IndexModel:
@@ -326,9 +327,9 @@ class Indexes:
         name: str,
         spec: ServerlessSpec | PodSpec | dict[str, Any],
         dimension: int | None,
-        metric: str,
-        vector_type: str,
-        deletion_protection: str,
+        metric: Metric | str,
+        vector_type: VectorType | str,
+        deletion_protection: DeletionProtection | str,
     ) -> None:
         """Client-side validation for create() arguments."""
         require_non_empty("name", name)
@@ -359,9 +360,9 @@ class Indexes:
         name: str,
         spec: ServerlessSpec | PodSpec | dict[str, Any],
         dimension: int | None,
-        metric: str,
-        vector_type: str,
-        deletion_protection: str,
+        metric: Metric | str,
+        vector_type: VectorType | str,
+        deletion_protection: DeletionProtection | str,
         tags: dict[str, str] | None,
     ) -> dict[str, Any]:
         """Build the JSON body for POST /indexes."""

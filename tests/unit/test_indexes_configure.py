@@ -13,6 +13,7 @@ from pinecone._internal.constants import CONTROL_PLANE_API_VERSION
 from pinecone._internal.http_client import HTTPClient
 from pinecone.client.indexes import Indexes
 from pinecone.errors.exceptions import ValidationError
+from pinecone.models.enums import DeletionProtection
 from tests.factories import make_index_response
 
 BASE_URL = "https://api.test.pinecone.io"
@@ -161,6 +162,37 @@ def test_configure_multiple_fields(indexes: Indexes) -> None:
     assert payload["spec"]["pod"]["pod_type"] == "p1.x2"
     assert payload["deletion_protection"] == "disabled"
     assert payload["tags"] == {"env": "prod"}
+
+
+# ---------------------------------------------------------------------------
+# Enum handling
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_configure_deletion_protection_enum(indexes: Indexes) -> None:
+    """Accept DeletionProtection enum for deletion_protection param."""
+    route = respx.patch(f"{BASE_URL}/indexes/test-index").mock(
+        return_value=httpx.Response(202, json=make_index_response()),
+    )
+
+    indexes.configure("test-index", deletion_protection=DeletionProtection.ENABLED)
+
+    payload = _request_json(route)
+    assert payload == {"deletion_protection": "enabled"}
+
+
+@respx.mock
+def test_configure_deletion_protection_disabled_enum(indexes: Indexes) -> None:
+    """Accept DeletionProtection.DISABLED enum value."""
+    route = respx.patch(f"{BASE_URL}/indexes/test-index").mock(
+        return_value=httpx.Response(202, json=make_index_response()),
+    )
+
+    indexes.configure("test-index", deletion_protection=DeletionProtection.DISABLED)
+
+    payload = _request_json(route)
+    assert payload == {"deletion_protection": "disabled"}
 
 
 # ---------------------------------------------------------------------------

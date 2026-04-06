@@ -15,6 +15,7 @@ from pinecone._internal.constants import CONTROL_PLANE_API_VERSION
 from pinecone._internal.http_client import HTTPClient
 from pinecone.client.indexes import Indexes
 from pinecone.errors.exceptions import PineconeError, ValidationError
+from pinecone.models.enums import DeletionProtection, Metric, VectorType
 from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.specs import PodSpec, ServerlessSpec
 from tests.factories import make_index_response
@@ -224,12 +225,8 @@ def test_create_invalid_deletion_protection_raises(indexes: Indexes) -> None:
 
 
 @respx.mock
-def test_create_with_enum_like_values(indexes: Indexes) -> None:
-    """Accept objects with .value attribute (e.g. enums)."""
-
-    class FakeMetric:
-        value = "euclidean"
-
+def test_create_with_metric_enum(indexes: Indexes) -> None:
+    """Accept Metric enum for the metric parameter."""
     route = respx.post(f"{BASE_URL}/indexes").mock(
         return_value=httpx.Response(201, json=make_index_response(metric="euclidean")),
     )
@@ -238,12 +235,78 @@ def test_create_with_enum_like_values(indexes: Indexes) -> None:
         name="test-index",
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-        metric=FakeMetric(),  # type: ignore[arg-type]
+        metric=Metric.EUCLIDEAN,
     )
 
     request = route.calls.last.request
     body = json.loads(request.content)
     assert body["metric"] == "euclidean"
+
+
+@respx.mock
+def test_create_with_vector_type_enum(indexes: Indexes) -> None:
+    """Accept VectorType enum for the vector_type parameter."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(
+            201,
+            json=make_index_response(vector_type="sparse", dimension=None),
+        ),
+    )
+
+    indexes.create(
+        name="sparse-enum-index",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        vector_type=VectorType.SPARSE,
+    )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["vector_type"] == "sparse"
+
+
+@respx.mock
+def test_create_with_deletion_protection_enum(indexes: Indexes) -> None:
+    """Accept DeletionProtection enum for the deletion_protection parameter."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=make_index_response()),
+    )
+
+    indexes.create(
+        name="test-index",
+        dimension=1536,
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        deletion_protection=DeletionProtection.ENABLED,
+    )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["deletion_protection"] == "enabled"
+
+
+@respx.mock
+def test_create_with_all_enums(indexes: Indexes) -> None:
+    """Accept all enum types together in create()."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(
+            201,
+            json=make_index_response(metric="dotproduct"),
+        ),
+    )
+
+    indexes.create(
+        name="test-index",
+        dimension=1536,
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        metric=Metric.DOTPRODUCT,
+        vector_type=VectorType.DENSE,
+        deletion_protection=DeletionProtection.DISABLED,
+    )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["metric"] == "dotproduct"
+    assert body["vector_type"] == "dense"
+    assert body["deletion_protection"] == "disabled"
 
 
 # ---------------------------------------------------------------------------
