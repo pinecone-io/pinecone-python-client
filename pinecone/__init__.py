@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+import logging as _logging
+import os as _os
 from typing import Any
 
 __version__ = "0.1.0"
+
+if _os.environ.get("PINECONE_DEBUG"):
+    _logging.getLogger("pinecone").setLevel(_logging.DEBUG)
 
 # Lightweight imports — exception classes and config are small and always needed.
 from pinecone._internal.config import PineconeConfig

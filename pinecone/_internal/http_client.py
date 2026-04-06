@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 import random
 import socket
@@ -25,6 +26,8 @@ from pinecone.errors.exceptions import (
     ServiceError,
     UnauthorizedError,
 )
+
+logger = logging.getLogger(__name__)
 
 _RETRYABLE_STATUS_CODES: frozenset[int] = frozenset({500, 502, 503, 504})
 
@@ -81,6 +84,25 @@ def _build_headers(config: PineconeConfig, api_version: str) -> dict[str, str]:
     if config.additional_headers:
         headers.update(config.additional_headers)
     return headers
+
+
+def _log_curl(
+    method: str,
+    url: str,
+    headers: dict[str, str],
+    body: bytes | None = None,
+) -> None:
+    """Log a curl-equivalent command for debugging when PINECONE_DEBUG_CURL is set."""
+    if not os.environ.get("PINECONE_DEBUG_CURL"):
+        return
+    parts = [f"curl -X {method} '{url}'"]
+    for key, value in headers.items():
+        parts.append(f"-H '{key}: {value}'")
+    if body is not None:
+        parts.append(f"-d '{body.decode('utf-8', errors='replace')}'")
+    curl_cmd = " ".join(parts)
+    logger.debug("curl equivalent: %s", curl_cmd)
+    print(curl_cmd)  # noqa: T201
 
 
 class _RetryTransport(httpx.BaseTransport):
@@ -211,27 +233,50 @@ class HTTPClient:
             verify=verify,
         )
 
+    def _build_url(self, path: str) -> str:
+        return f"{self._client.base_url}{path}"
+
     def get(self, path: str, **kwargs: Any) -> httpx.Response:
+        _log_curl("GET", self._build_url(path), dict(self._headers))
         response = self._client.get(path, **kwargs)
         _raise_for_status(response)
         return response
 
     def post(self, path: str, **kwargs: Any) -> httpx.Response:
+        body: bytes | None = None
+        if "content" in kwargs:
+            body = kwargs["content"] if isinstance(kwargs["content"], bytes) else None
+        elif "json" in kwargs:
+            body = _encode_json(kwargs["json"])
+        _log_curl("POST", self._build_url(path), dict(self._headers), body=body)
         response = self._client.post(path, **_prepare_json_kwargs(kwargs))
         _raise_for_status(response)
         return response
 
     def put(self, path: str, **kwargs: Any) -> httpx.Response:
+        body: bytes | None = None
+        if "content" in kwargs:
+            body = kwargs["content"] if isinstance(kwargs["content"], bytes) else None
+        elif "json" in kwargs:
+            body = _encode_json(kwargs["json"])
+        _log_curl("PUT", self._build_url(path), dict(self._headers), body=body)
         response = self._client.put(path, **_prepare_json_kwargs(kwargs))
         _raise_for_status(response)
         return response
 
     def patch(self, path: str, **kwargs: Any) -> httpx.Response:
+        body: bytes | None = None
+        if "content" in kwargs:
+            body = kwargs["content"] if isinstance(kwargs["content"], bytes) else None
+        elif "json" in kwargs:
+            body = _encode_json(kwargs["json"])
+        _log_curl("PATCH", self._build_url(path), dict(self._headers), body=body)
         response = self._client.patch(path, **_prepare_json_kwargs(kwargs))
         _raise_for_status(response)
         return response
 
     def delete(self, path: str, **kwargs: Any) -> httpx.Response:
+        _log_curl("DELETE", self._build_url(path), dict(self._headers))
         response = self._client.delete(path, **kwargs)
         _raise_for_status(response)
         return response
