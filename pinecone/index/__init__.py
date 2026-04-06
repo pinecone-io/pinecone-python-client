@@ -17,6 +17,7 @@ from pinecone.models.vectors.responses import (
     QueryResponse,
     UpdateResponse,
 )
+from pinecone.models.vectors.sparse import SparseValues
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +116,7 @@ class Index:
         filter: dict[str, Any] | None = None,
         include_values: bool = False,
         include_metadata: bool = False,
-        sparse_vector: dict[str, Any] | None = None,
+        sparse_vector: SparseValues | dict[str, Any] | None = None,
     ) -> QueryResponse:
         """Query a namespace for the nearest neighbors of a vector.
 
@@ -127,7 +128,8 @@ class Index:
             filter (dict[str, Any] | None): Metadata filter expression.
             include_values (bool): Whether to include vector values in results.
             include_metadata (bool): Whether to include metadata in results.
-            sparse_vector (dict[str, Any] | None): Sparse query vector with indices and values.
+            sparse_vector (SparseValues | dict[str, Any] | None): Sparse query vector
+                with indices and values.
 
         Returns:
             QueryResponse with matches, namespace, and usage info.
@@ -165,7 +167,13 @@ class Index:
         if filter is not None:
             body["filter"] = filter
         if sparse_vector is not None:
-            body["sparseVector"] = sparse_vector
+            if isinstance(sparse_vector, SparseValues):
+                body["sparseVector"] = {
+                    "indices": sparse_vector.indices,
+                    "values": sparse_vector.values,
+                }
+            else:
+                body["sparseVector"] = sparse_vector
 
         logger.info("Querying index with top_k=%d", top_k)
         response = self._http.post("/query", json=body)
@@ -272,7 +280,7 @@ class Index:
         *,
         id: str | None = None,
         values: list[float] | None = None,
-        sparse_values: dict[str, Any] | None = None,
+        sparse_values: SparseValues | dict[str, Any] | None = None,
         set_metadata: dict[str, Any] | None = None,
         namespace: str = "",
         filter: dict[str, Any] | None = None,
@@ -288,7 +296,7 @@ class Index:
         Args:
             id (str | None): ID of the vector to update.
             values (list[float] | None): New dense vector values.
-            sparse_values (dict[str, Any] | None): New sparse vector with ``indices``
+            sparse_values (SparseValues | dict[str, Any] | None): New sparse vector with ``indices``
                 and ``values`` keys.
             set_metadata (dict[str, Any] | None): Metadata fields to set or overwrite.
             namespace (str): Namespace to target. Defaults to the default namespace.
@@ -327,7 +335,13 @@ class Index:
         if values is not None:
             body["values"] = values
         if sparse_values is not None:
-            body["sparseValues"] = sparse_values
+            if isinstance(sparse_values, SparseValues):
+                body["sparseValues"] = {
+                    "indices": sparse_values.indices,
+                    "values": sparse_values.values,
+                }
+            else:
+                body["sparseValues"] = sparse_values
         if set_metadata is not None:
             body["setMetadata"] = set_metadata
         if filter is not None:

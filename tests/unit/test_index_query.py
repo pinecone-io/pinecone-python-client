@@ -276,3 +276,19 @@ class TestQuerySparseVector:
 
         body = orjson.loads(route.calls.last.request.content)
         assert body["sparseVector"] == {"indices": [0, 3], "values": [0.5, 0.8]}
+
+    @respx.mock
+    def test_sparse_vector_struct_in_body(self) -> None:
+        from pinecone.models.vectors.sparse import SparseValues
+
+        route = respx.post(QUERY_URL).mock(
+            return_value=httpx.Response(200, json=_make_query_response()),
+        )
+        idx = _make_index()
+        sparse = SparseValues(indices=[0, 1], values=[0.5, 0.5])
+        idx.query(top_k=5, vector=[0.1], sparse_vector=sparse)
+
+        import orjson
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["sparseVector"] == {"indices": [0, 1], "values": [0.5, 0.5]}

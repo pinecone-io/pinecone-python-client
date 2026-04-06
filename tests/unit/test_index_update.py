@@ -73,6 +73,20 @@ class TestUpdateById:
         assert body["sparseValues"] == {"indices": [0, 3], "values": [0.1, 0.2]}
 
     @respx.mock
+    def test_update_sparse_values_struct_by_id(self) -> None:
+        from pinecone.models.vectors.sparse import SparseValues
+
+        route = respx.post(UPDATE_URL).mock(
+            return_value=httpx.Response(200, json=_make_update_response()),
+        )
+        idx = _make_index()
+        sparse = SparseValues(indices=[0, 1], values=[0.5, 0.5])
+        idx.update(id="vec1", sparse_values=sparse)
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["sparseValues"] == {"indices": [0, 1], "values": [0.5, 0.5]}
+
+    @respx.mock
     def test_update_with_namespace(self) -> None:
         route = respx.post(UPDATE_URL).mock(
             return_value=httpx.Response(200, json=_make_update_response()),
