@@ -32,7 +32,10 @@ class Pinecone:
 
     Raises:
         ValidationError: If no API key can be resolved from arguments or
-            environment variables.
+            environment variables, or if deprecated keyword arguments
+            (``openapi_config``, ``pool_threads``, ``index_api``) are passed.
+            These parameters are no longer supported; see the migration guide
+            for updated usage.
 
     Example::
 
