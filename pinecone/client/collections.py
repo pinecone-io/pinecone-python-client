@@ -56,6 +56,8 @@ class Collections:
 
         Raises:
             ValidationError: If *name* or *source* is empty.
+            ApiError: If the API returns an error response (e.g. authentication
+                failure or server error).
 
         Examples:
 
@@ -79,6 +81,10 @@ class Collections:
         Returns:
             A CollectionList supporting iteration, len(), index access,
             and a names() convenience method.
+
+        Raises:
+            ApiError: If the API returns an error response (e.g. authentication
+                failure or server error).
 
         Examples:
 
@@ -106,6 +112,7 @@ class Collections:
         Raises:
             ValidationError: If *name* is empty.
             NotFoundError: If the collection does not exist.
+            ApiError: If the API returns another error response.
 
         Examples:
 
@@ -128,6 +135,7 @@ class Collections:
         Raises:
             ValidationError: If *name* is empty.
             NotFoundError: If the collection does not exist.
+            ApiError: If the API returns another error response.
 
         Examples:
 

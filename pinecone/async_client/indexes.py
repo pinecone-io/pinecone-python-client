@@ -64,6 +64,10 @@ class AsyncIndexes:
             An IndexList supporting iteration, len(), index access,
             and a names() convenience method.
 
+        Raises:
+            ApiError: If the API returns an error response (e.g. authentication
+                failure or server error).
+
         Examples:
 
             async with AsyncPinecone(api_key="your-api-key") as pc:
@@ -92,6 +96,7 @@ class AsyncIndexes:
         Raises:
             ValidationError: If *name* is empty.
             NotFoundError: If the index does not exist.
+            ApiError: If the API returns another error response.
 
         Examples:
 
@@ -121,6 +126,7 @@ class AsyncIndexes:
 
         Raises:
             ValidationError: If *name* is empty.
+            ApiError: If the API returns an error other than 404.
 
         Examples:
 
@@ -152,6 +158,7 @@ class AsyncIndexes:
             ValidationError: If *name* is empty.
             NotFoundError: If the index does not exist.
             PineconeError: If the index still exists after *timeout* seconds.
+            ApiError: If the API returns another error response.
 
         Examples:
 
@@ -206,6 +213,7 @@ class AsyncIndexes:
         Raises:
             ValidationError: If *name* is empty.
             NotFoundError: If the index does not exist.
+            ApiError: If the API returns another error response.
 
         Examples:
 
@@ -279,6 +287,7 @@ class AsyncIndexes:
             ValidationError: If inputs fail client-side validation.
             NotFoundError: If the index disappears during readiness polling.
             PineconeError: If the index fails to initialise or times out.
+            ApiError: If the API returns another error response.
 
         Examples:
 

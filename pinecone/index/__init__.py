@@ -136,6 +136,8 @@ class Index:
 
         Raises:
             ValidationError: If top_k < 1, or both/neither vector and id provided.
+            ApiError: If the API returns an error response (e.g. authentication
+                failure or server error).
 
         Examples:
 
@@ -200,6 +202,8 @@ class Index:
 
         Raises:
             ValidationError: If ids is empty.
+            ApiError: If the API returns an error response (e.g. authentication
+                failure or server error).
 
         Examples:
 
@@ -244,6 +248,8 @@ class Index:
 
         Raises:
             ValidationError: If zero or more than one deletion mode is specified.
+            ApiError: If the API returns an error response (e.g. authentication
+                failure or server error).
 
         Examples:
 
@@ -310,6 +316,8 @@ class Index:
 
         Raises:
             ValidationError: If both or neither of id and filter are provided.
+            ApiError: If the API returns an error response (e.g. authentication
+                failure or server error).
 
         Examples:
 
@@ -374,6 +382,8 @@ class Index:
 
         Raises:
             ValidationError: If inputs are invalid.
+            ApiError: If the API returns an error response (e.g. authentication
+                failure or server error).
 
         Examples:
 
