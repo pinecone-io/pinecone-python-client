@@ -14,7 +14,8 @@ from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION
 from pinecone._internal.http_client import AsyncHTTPClient
 from pinecone.async_client.indexes import AsyncIndexes
-from pinecone.errors.exceptions import NotFoundError, PineconeError, ValidationError
+from pinecone.async_client.indexes import _POLL_INTERVAL_SECONDS
+from pinecone.errors.exceptions import ConflictError, NotFoundError, PineconeError, ValidationError
 from pinecone.models.enums import DeletionProtection, EmbedModel, Metric, VectorType
 from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.list import IndexList
@@ -1029,3 +1030,86 @@ async def test_create_integrated_polls_until_ready(async_indexes: AsyncIndexes) 
         )
 
     assert result.status.ready is True
+
+
+@respx.mock
+async def test_create_integrated_no_polling_without_timeout(async_indexes: AsyncIndexes) -> None:
+    """Without timeout, integrated create returns immediately without polling."""
+    respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(
+            201,
+            json=_integrated_response(status={"ready": False, "state": "Initializing"}),
+        ),
+    )
+
+    result = await async_indexes.create(
+        name="my-integrated-index",
+        spec=IntegratedSpec(
+            cloud="aws",
+            region="us-east-1",
+            embed=EmbedConfig(
+                model="multilingual-e5-large",
+                field_map={"text": "my_text_field"},
+            ),
+        ),
+    )
+
+    assert result.status.ready is False
+    assert len(respx.calls) == 1  # only the POST
+
+
+# ---------------------------------------------------------------------------
+# Polling edge cases
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_create_duplicate_raises_conflict(async_indexes: AsyncIndexes) -> None:
+    """409 response raises ConflictError."""
+    respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(
+            409,
+            json=make_error_response(409, "Index already exists"),
+        ),
+    )
+
+    with pytest.raises(ConflictError):
+        await async_indexes.create(
+            name="existing-index",
+            dimension=1536,
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
+
+
+@respx.mock
+async def test_polling_sleep_interval(async_indexes: AsyncIndexes) -> None:
+    """Verify asyncio.sleep is called with exactly _POLL_INTERVAL_SECONDS (5)."""
+    respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(
+            201,
+            json=make_index_response(status={"ready": False, "state": "Initializing"}),
+        ),
+    )
+    respx.get(f"{BASE_URL}/indexes/test-index").mock(
+        side_effect=[
+            httpx.Response(
+                200,
+                json=make_index_response(status={"ready": False, "state": "Initializing"}),
+            ),
+            httpx.Response(
+                200,
+                json=make_index_response(status={"ready": True, "state": "Ready"}),
+            ),
+        ]
+    )
+
+    with patch("pinecone.async_client.indexes.asyncio.sleep") as mock_sleep:
+        await async_indexes.create(
+            name="test-index",
+            dimension=1536,
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+    assert mock_sleep.call_count == 1
+    mock_sleep.assert_called_with(_POLL_INTERVAL_SECONDS)
