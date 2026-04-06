@@ -3,6 +3,17 @@
 from pinecone.models.indexes.index import IndexModel, IndexStatus
 from pinecone.models.indexes.list import IndexList
 from pinecone.models.indexes.specs import ByocSpec, PodSpec, ServerlessSpec
+from pinecone.models.vectors.responses import (
+    DescribeIndexStatsResponse,
+    FetchResponse,
+    NamespaceSummary,
+    QueryResponse,
+    ResponseInfo,
+    UpsertResponse,
+)
+from pinecone.models.vectors.sparse import SparseValues
+from pinecone.models.vectors.usage import Usage
+from pinecone.models.vectors.vector import ScoredVector, Vector
 
 __all__ = [
     "IndexModel",
@@ -11,4 +22,14 @@ __all__ = [
     "ServerlessSpec",
     "PodSpec",
     "ByocSpec",
+    "SparseValues",
+    "Usage",
+    "Vector",
+    "ScoredVector",
+    "UpsertResponse",
+    "QueryResponse",
+    "FetchResponse",
+    "NamespaceSummary",
+    "DescribeIndexStatsResponse",
+    "ResponseInfo",
 ]
