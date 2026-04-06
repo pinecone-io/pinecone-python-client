@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from pinecone.async_client.backups import AsyncBackups
     from pinecone.async_client.collections import AsyncCollections
     from pinecone.async_client.indexes import AsyncIndexes
+    from pinecone.async_client.inference import AsyncInference
     from pinecone.async_client.restore_jobs import AsyncRestoreJobs
     from pinecone.models.enums import DeletionProtection
     from pinecone.models.indexes.index import IndexModel
@@ -112,6 +113,7 @@ class AsyncPinecone:
         self._collections: AsyncCollections | None = None
         self._backups: AsyncBackups | None = None
         self._restore_jobs: AsyncRestoreJobs | None = None
+        self._inference: AsyncInference | None = None
         self._host_cache: dict[str, str] = {}
 
     @property
@@ -197,6 +199,29 @@ class AsyncPinecone:
 
             self._restore_jobs = _AsyncRestoreJobs(http=self._http)
         return self._restore_jobs
+
+    @property
+    def inference(self) -> AsyncInference:
+        """Access the AsyncInference namespace for inference operations.
+
+        Lazily imported and instantiated on first access.
+
+        Returns:
+            AsyncInference namespace instance.
+
+        Examples:
+
+            async with AsyncPinecone(api_key="your-api-key") as pc:
+                embeddings = await pc.inference.embed(
+                    model="multilingual-e5-large",
+                    inputs=["Hello, world!"],
+                )
+        """
+        if self._inference is None:
+            from pinecone.async_client.inference import AsyncInference as _AsyncInference
+
+            self._inference = _AsyncInference(config=self._config)
+        return self._inference
 
     async def create_index_from_backup(
         self,
