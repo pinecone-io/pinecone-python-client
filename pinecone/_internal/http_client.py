@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
+import random
+import time
 from typing import Any
 
 import httpx
@@ -17,6 +20,8 @@ from pinecone.errors.exceptions import (
     NotFoundError,
     UnauthorizedError,
 )
+
+_RETRYABLE_STATUS_CODES: frozenset[int] = frozenset({500, 502, 503, 504})
 
 
 def _encode_json(body: Any) -> bytes:
@@ -47,6 +52,72 @@ def _build_headers(config: PineconeConfig, api_version: str) -> dict[str, str]:
     if config.additional_headers:
         headers.update(config.additional_headers)
     return headers
+
+
+class _RetryTransport(httpx.BaseTransport):
+    """Sync transport wrapper that retries on transient server errors."""
+
+    def __init__(
+        self,
+        *,
+        transport: httpx.HTTPTransport,
+        max_retries: int = 5,
+        backoff_factor: float = 0.25,
+        jitter_max: float = 0.25,
+    ) -> None:
+        self._transport = transport
+        self._max_retries = max_retries
+        self._backoff_factor = backoff_factor
+        self._jitter_max = jitter_max
+
+    def handle_request(self, request: httpx.Request) -> httpx.Response:
+        response = self._transport.handle_request(request)
+        for attempt in range(self._max_retries):
+            if response.status_code not in _RETRYABLE_STATUS_CODES:
+                return response
+            delay = self._backoff_factor * (2 ** attempt) + random.uniform(
+                0, self._jitter_max
+            )
+            time.sleep(delay)
+            response = self._transport.handle_request(request)
+        return response
+
+    def close(self) -> None:
+        self._transport.close()
+
+
+class _AsyncRetryTransport(httpx.AsyncBaseTransport):
+    """Async transport wrapper that retries on transient server errors."""
+
+    def __init__(
+        self,
+        *,
+        transport: httpx.AsyncHTTPTransport,
+        max_attempts: int = 5,
+        initial_backoff: float = 0.1,
+        max_backoff: float = 3.0,
+        jitter_max: float = 0.1,
+    ) -> None:
+        self._transport = transport
+        self._max_attempts = max_attempts
+        self._initial_backoff = initial_backoff
+        self._max_backoff = max_backoff
+        self._jitter_max = jitter_max
+
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        response = await self._transport.handle_async_request(request)
+        for attempt in range(self._max_attempts - 1):
+            if response.status_code not in _RETRYABLE_STATUS_CODES:
+                return response
+            delay = min(
+                self._initial_backoff * (2 ** attempt), self._max_backoff
+            ) + random.uniform(0, self._jitter_max)
+            await asyncio.sleep(delay)
+            response = await self._transport.handle_async_request(request)
+        return response
+
+    async def aclose(self) -> None:
+        await self._transport.aclose()
 
 
 def _raise_for_status(response: httpx.Response) -> None:
@@ -81,11 +152,14 @@ class HTTPClient:
     def __init__(self, config: PineconeConfig, api_version: str) -> None:
         self._config = config
         self._headers = _build_headers(config, api_version)
+        transport = _RetryTransport(
+            transport=httpx.HTTPTransport(http2=True),
+        )
         self._client = httpx.Client(
             base_url=config.host or DEFAULT_BASE_URL,
             headers=self._headers,
             timeout=config.timeout,
-            http2=True,
+            transport=transport,
             limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
         )
 
@@ -135,11 +209,14 @@ class AsyncHTTPClient:
     def _ensure_client(self) -> httpx.AsyncClient:
         """Return the underlying client, creating it on first use."""
         if self._client is None:
+            transport = _AsyncRetryTransport(
+                transport=httpx.AsyncHTTPTransport(http2=True),
+            )
             self._client = httpx.AsyncClient(
                 base_url=self._config.host or DEFAULT_BASE_URL,
                 headers=self._headers,
                 timeout=self._config.timeout,
-                http2=True,
+                transport=transport,
                 limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
             )
         return self._client
