@@ -7,11 +7,13 @@ import os
 from collections.abc import Iterator, Sequence
 from typing import Any
 
+from pinecone._internal.adapters.imports_adapter import ImportsAdapter
 from pinecone._internal.adapters.vectors_adapter import VectorsAdapter
 from pinecone._internal.config import PineconeConfig, normalize_host
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import ValidationError
+from pinecone.models.imports.model import ImportModel, StartImportResponse
 from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
@@ -118,6 +120,7 @@ class Index:
 
         self._http = HTTPClient(config, DATA_PLANE_API_VERSION)
         self._adapter = VectorsAdapter()
+        self._imports_adapter = ImportsAdapter()
 
         logger.info("Index client created for host %s", self._host)
 
@@ -888,6 +891,116 @@ class Index:
                 pagination_token = page.pagination.next
             else:
                 break
+
+    def _validate_import_id(self, id: str | int) -> str:
+        """Validate and normalize an import operation ID.
+
+        Args:
+            id: Import operation ID. If int, converted to str silently.
+
+        Returns:
+            The validated string ID.
+
+        Raises:
+            ValidationError: If the ID is empty or exceeds 1000 characters.
+        """
+        str_id = str(id) if isinstance(id, int) else id
+        if not str_id or len(str_id) > 1000:
+            raise ValidationError(
+                f"import id must be between 1 and 1000 characters, got {len(str_id) if str_id else 0}"
+            )
+        return str_id
+
+    def start_import(
+        self,
+        uri: str,
+        *,
+        error_mode: str = "continue",
+        integration_id: str | None = None,
+    ) -> StartImportResponse:
+        """Start a bulk import operation from an external data source.
+
+        Args:
+            uri (str): Source URI for the import data.
+            error_mode (str): How to handle errors during import. Must be
+                ``"continue"`` (default) or ``"abort"``. Case-insensitive.
+            integration_id (str | None): Optional integration ID for the import.
+
+        Returns:
+            StartImportResponse with the ID of the created import operation.
+
+        Raises:
+            ValidationError: If ``error_mode`` is not ``"continue"`` or ``"abort"``.
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            response = idx.start_import(
+                uri="s3://my-bucket/my-data/",
+                error_mode="continue",
+            )
+            print(response.id)
+        """
+        error_mode = error_mode.lower()
+        if error_mode not in ("continue", "abort"):
+            raise ValidationError(
+                f"error_mode must be 'continue' or 'abort', got {error_mode!r}"
+            )
+
+        body: dict[str, Any] = {
+            "uri": uri,
+            "errorMode": {"onError": error_mode},
+        }
+        if integration_id is not None:
+            body["integrationId"] = integration_id
+
+        logger.info("Starting bulk import from %s", uri)
+        response = self._http.post("/bulk/imports", json=body)
+        return self._imports_adapter.to_start_import_response(response.content)
+
+    def describe_import(self, id: str | int) -> ImportModel:
+        """Describe a bulk import operation by ID.
+
+        Args:
+            id: Import operation ID. Integers are converted to strings silently.
+
+        Returns:
+            ImportModel with the import operation details.
+
+        Raises:
+            ValidationError: If the ID is empty or exceeds 1000 characters.
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            import_op = idx.describe_import("import-123")
+            print(import_op.status, import_op.percent_complete)
+        """
+        str_id = self._validate_import_id(id)
+        logger.info("Describing import %s", str_id)
+        response = self._http.get(f"/bulk/imports/{str_id}")
+        return self._imports_adapter.to_import_model(response.content)
+
+    def cancel_import(self, id: str | int) -> None:
+        """Cancel a bulk import operation by ID.
+
+        Args:
+            id: Import operation ID. Integers are converted to strings silently.
+
+        Returns:
+            None — a successful cancellation returns no payload.
+
+        Raises:
+            ValidationError: If the ID is empty or exceeds 1000 characters.
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            idx.cancel_import("import-123")
+        """
+        str_id = self._validate_import_id(id)
+        logger.info("Cancelling import %s", str_id)
+        self._http.delete(f"/bulk/imports/{str_id}")
 
     def close(self) -> None:
         """Close the underlying HTTP client and release resources."""
