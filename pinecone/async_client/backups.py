@@ -63,9 +63,23 @@ class AsyncBackups:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            Create a backup of an index:
 
-            backup = await pc.backups.create(index_name="my-index", name="daily-backup")
-            print(backup.backup_id)
+            >>> from pinecone import AsyncPinecone
+            >>> async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...     backup = await pc.backups.create(
+            ...         index_name="product-search",
+            ...     )
+            ...     print(backup.backup_id)
+
+            Create a backup with a name and description:
+
+            >>> async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...     backup = await pc.backups.create(
+            ...         index_name="product-search",
+            ...         name="daily-20240115",
+            ...         description="Scheduled daily backup before reindexing",
+            ...     )
         """
         require_non_empty("index_name", index_name)
         body: dict[str, Any] = {}
@@ -103,9 +117,20 @@ class AsyncBackups:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            List all backups in the project:
 
-            for backup in await pc.backups.list(index_name="my-index"):
-                print(backup.name)
+            >>> from pinecone import AsyncPinecone
+            >>> async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...     for backup in await pc.backups.list():
+            ...         print(backup.backup_id, backup.name)
+
+            List backups for a specific index:
+
+            >>> async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...     for backup in await pc.backups.list(
+            ...         index_name="product-search",
+            ...     ):
+            ...         print(backup.name)
         """
         params: dict[str, Any] = {}
         if limit is not None:
@@ -139,9 +164,12 @@ class AsyncBackups:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
-
-            backup = await pc.backups.describe(backup_id="abc-123")
-            print(backup.status)
+            >>> from pinecone import AsyncPinecone
+            >>> async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...     backup = await pc.backups.describe(
+            ...         backup_id="bk-daily-20240115",
+            ...     )
+            ...     print(backup.status)
         """
         require_non_empty("backup_id", backup_id)
         logger.info("Describing backup %r", backup_id)
@@ -165,9 +193,12 @@ class AsyncBackups:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
-
-            backup = await pc.backups.get(backup_id="abc-123")
-            print(backup.status)
+            >>> from pinecone import AsyncPinecone
+            >>> async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...     backup = await pc.backups.get(
+            ...         backup_id="bk-daily-20240115",
+            ...     )
+            ...     print(backup.status)
         """
         return await self.describe(backup_id=backup_id)
 
@@ -183,8 +214,9 @@ class AsyncBackups:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
-
-            await pc.backups.delete(backup_id="abc-123")
+            >>> from pinecone import AsyncPinecone
+            >>> async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...     await pc.backups.delete(backup_id="bk-daily-20240115")
         """
         require_non_empty("backup_id", backup_id)
         logger.info("Deleting backup %r", backup_id)

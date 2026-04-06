@@ -63,9 +63,21 @@ class Backups:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            Create a backup of an index:
 
-            backup = pc.backups.create(index_name="my-index", name="daily-backup")
-            print(backup.backup_id)
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> backup = pc.backups.create(index_name="product-search")
+            >>> backup.backup_id
+            'bk-abc123'
+
+            Create a backup with a name and description:
+
+            >>> backup = pc.backups.create(
+            ...     index_name="product-search",
+            ...     name="daily-20240115",
+            ...     description="Scheduled daily backup before reindexing",
+            ... )
         """
         require_non_empty("index_name", index_name)
         body: dict[str, Any] = {}
@@ -103,9 +115,17 @@ class Backups:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            List all backups in the project:
 
-            for backup in pc.backups.list(index_name="my-index"):
-                print(backup.name)
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> for backup in pc.backups.list():
+            ...     print(backup.backup_id, backup.name)
+
+            List backups for a specific index:
+
+            >>> for backup in pc.backups.list(index_name="product-search"):
+            ...     print(backup.name)
         """
         params: dict[str, Any] = {}
         if limit is not None:
@@ -139,9 +159,11 @@ class Backups:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
-
-            backup = pc.backups.describe(backup_id="abc-123")
-            print(backup.status)
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> backup = pc.backups.describe(backup_id="bk-daily-20240115")
+            >>> backup.status
+            'Ready'
         """
         require_non_empty("backup_id", backup_id)
         logger.info("Describing backup %r", backup_id)
@@ -165,9 +187,11 @@ class Backups:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
-
-            backup = pc.backups.get(backup_id="abc-123")
-            print(backup.status)
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> backup = pc.backups.get(backup_id="bk-daily-20240115")
+            >>> backup.status
+            'Ready'
         """
         return self.describe(backup_id=backup_id)
 
@@ -183,8 +207,9 @@ class Backups:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
-
-            pc.backups.delete(backup_id="abc-123")
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> pc.backups.delete(backup_id="bk-daily-20240115")
         """
         require_non_empty("backup_id", backup_id)
         logger.info("Deleting backup %r", backup_id)

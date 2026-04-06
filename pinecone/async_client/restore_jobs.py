@@ -63,10 +63,18 @@ class AsyncRestoreJobs:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            List all restore jobs:
 
-            jobs = await pc.restore_jobs.list(limit=5)
-            for job in jobs:
-                print(job.restore_job_id, job.status)
+            >>> from pinecone import AsyncPinecone
+            >>> async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...     for job in await pc.restore_jobs.list():
+            ...         print(job.restore_job_id, job.status)
+
+            List with a page size limit:
+
+            >>> async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...     jobs = await pc.restore_jobs.list(limit=5)
+            ...     print(len(jobs))
         """
         params: dict[str, Any] = {}
         if limit is not None:
@@ -95,9 +103,12 @@ class AsyncRestoreJobs:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
-
-            job = await pc.restore_jobs.describe(job_id="rj-123")
-            print(job.status, job.percent_complete)
+            >>> from pinecone import AsyncPinecone
+            >>> async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...     job = await pc.restore_jobs.describe(
+            ...         job_id="rj-restore-20240115",
+            ...     )
+            ...     print(job.status)
         """
         require_non_empty("job_id", job_id)
         logger.info("Describing restore job %r", job_id)

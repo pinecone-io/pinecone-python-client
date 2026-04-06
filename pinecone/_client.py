@@ -295,12 +295,23 @@ class Pinecone:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            Restore an index from a backup:
 
-            pc = Pinecone(api_key="...")
-            index = pc.create_index_from_backup(
-                name="restored-index",
-                backup_id="bk-123",
-            )
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> index = pc.create_index_from_backup(
+            ...     name="product-search-restored",
+            ...     backup_id="bk-daily-20240115",
+            ... )
+
+            Restore with tags and deletion protection:
+
+            >>> index = pc.create_index_from_backup(
+            ...     name="product-search-restored",
+            ...     backup_id="bk-daily-20240115",
+            ...     deletion_protection="enabled",
+            ...     tags={"env": "production", "team": "search"},
+            ... )
         """
         require_non_empty("name", name)
         require_non_empty("backup_id", backup_id)

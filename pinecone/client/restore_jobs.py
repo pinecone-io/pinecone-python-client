@@ -63,10 +63,18 @@ class RestoreJobs:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            List all restore jobs:
 
-            jobs = pc.restore_jobs.list(limit=5)
-            for job in jobs:
-                print(job.restore_job_id, job.status)
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> for job in pc.restore_jobs.list():
+            ...     print(job.restore_job_id, job.status)
+
+            List with a page size limit:
+
+            >>> jobs = pc.restore_jobs.list(limit=5)
+            >>> len(jobs)
+            5
         """
         params: dict[str, Any] = {}
         if limit is not None:
@@ -95,9 +103,11 @@ class RestoreJobs:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
-
-            job = pc.restore_jobs.describe(job_id="rj-123")
-            print(job.status, job.percent_complete)
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> job = pc.restore_jobs.describe(job_id="rj-restore-20240115")
+            >>> job.status
+            'Completed'
         """
         require_non_empty("job_id", job_id)
         logger.info("Describing restore job %r", job_id)
