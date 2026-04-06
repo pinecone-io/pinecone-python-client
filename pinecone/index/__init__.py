@@ -4,13 +4,19 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import Iterator
 from typing import Any
 
 from pinecone._internal.adapters.vectors_adapter import VectorsAdapter
 from pinecone._internal.config import PineconeConfig, normalize_host
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone.errors.exceptions import ValidationError
-from pinecone.models.vectors.responses import FetchResponse, QueryResponse, UpdateResponse
+from pinecone.models.vectors.responses import (
+    FetchResponse,
+    ListResponse,
+    QueryResponse,
+    UpdateResponse,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -331,6 +337,86 @@ class Index:
         logger.info("Updating vectors in namespace %r", namespace)
         response = self._http.post("/vectors/update", json=body)
         return self._adapter.to_update_response(response.content)
+
+    def list_paginated(
+        self,
+        *,
+        prefix: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        namespace: str = "",
+    ) -> ListResponse:
+        """Fetch a single page of vector IDs from a namespace.
+
+        Args:
+            prefix: Return only IDs starting with this prefix.
+            limit: Maximum number of IDs to return in this page.
+            pagination_token: Token from a previous response to fetch the next page.
+            namespace: Namespace to list from. Defaults to the default namespace.
+
+        Returns:
+            ListResponse with vector IDs, pagination info, namespace, and usage.
+
+        Raises:
+            ValidationError: If inputs are invalid.
+
+        Example::
+
+            response = idx.list_paginated(prefix="doc1#", limit=50)
+            for item in response.vectors:
+                print(item.id)
+        """
+        params: dict[str, Any] = {"namespace": namespace}
+        if prefix is not None:
+            params["prefix"] = prefix
+        if limit is not None:
+            params["limit"] = limit
+        if pagination_token is not None:
+            params["paginationToken"] = pagination_token
+
+        logger.info("Listing vectors in namespace %r", namespace)
+        response = self._http.get("/vectors/list", params=params)
+        return self._adapter.to_list_response(response.content)
+
+    def list(
+        self,
+        *,
+        prefix: str | None = None,
+        limit: int | None = None,
+        namespace: str = "",
+    ) -> Iterator[ListResponse]:
+        """List vector IDs in a namespace, automatically following pagination.
+
+        Yields one ``ListResponse`` per page. The generator automatically
+        follows pagination tokens until all pages have been retrieved.
+
+        Args:
+            prefix: Return only IDs starting with this prefix.
+            limit: Maximum number of IDs to return per page.
+            namespace: Namespace to list from. Defaults to the default namespace.
+
+        Yields:
+            ListResponse for each page of results.
+
+        Example::
+
+            for page in idx.list(prefix="doc1#"):
+                for item in page.vectors:
+                    print(item.id)
+        """
+        pagination_token: str | None = None
+        while True:
+            page = self.list_paginated(
+                prefix=prefix,
+                limit=limit,
+                pagination_token=pagination_token,
+                namespace=namespace,
+            )
+            yield page
+            if page.pagination is not None and page.pagination.next is not None:
+                pagination_token = page.pagination.next
+            else:
+                break
 
     def close(self) -> None:
         """Close the underlying HTTP client and release resources."""
