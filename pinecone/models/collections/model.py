@@ -8,7 +8,20 @@ from msgspec import Struct
 
 
 class CollectionModel(Struct, kw_only=True):
-    """Response model for a Pinecone collection."""
+    """Response model for a Pinecone collection.
+
+    Attributes:
+        name: The name of the collection.
+        status: Current status of the collection (e.g. ``"Ready"``,
+            ``"Initializing"``, ``"Terminating"``).
+        environment: Deployment environment where the collection is hosted.
+        size: Size of the collection in bytes, or ``None`` if not yet
+            available.
+        dimension: Dimensionality of vectors in the collection, or ``None``
+            if not yet available.
+        vector_count: Number of vectors in the collection, or ``None`` if
+            not yet available.
+    """
 
     name: str
     status: str

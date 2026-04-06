@@ -10,7 +10,16 @@ from pinecone.models.vectors.sparse import SparseValues
 
 
 class Vector(Struct, rename="camel", kw_only=True):
-    """A stored vector with optional sparse values and metadata."""
+    """A stored vector with optional sparse values and metadata.
+
+    Attributes:
+        id: Unique identifier for the vector.
+        values: Dense vector values as a list of floats.
+        sparse_values: Sparse vector component, or ``None`` if the vector
+            has no sparse values.
+        metadata: User-defined metadata key-value pairs, or ``None`` if
+            no metadata is attached.
+    """
 
     id: str
     values: list[float] = []
@@ -19,7 +28,18 @@ class Vector(Struct, rename="camel", kw_only=True):
 
 
 class ScoredVector(Struct, rename="camel", kw_only=True):
-    """A vector match with similarity score from a query operation."""
+    """A vector match with similarity score from a query operation.
+
+    Attributes:
+        id: Unique identifier of the matched vector.
+        score: Similarity score for this match.
+        values: Dense vector values, or an empty list if values were not
+            requested.
+        sparse_values: Sparse vector component, or ``None`` if the vector
+            has no sparse values.
+        metadata: User-defined metadata key-value pairs, or ``None`` if
+            metadata was not requested or not attached.
+    """
 
     id: str
     score: float
