@@ -7,8 +7,6 @@ on the target Struct, plus any pre-processing documented in its docstring.
 
 from __future__ import annotations
 
-from typing import Any
-
 import msgspec
 
 from pinecone.models.vectors.responses import (
@@ -38,14 +36,12 @@ class VectorsAdapter:
         """Decode raw JSON bytes into a QueryResponse.
 
         Transformations:
-            - Strips deprecated ``results`` field before decoding (claim unified-rs-0012).
-            - Normalizes null namespace to empty string (claim unified-rs-0013).
+            - Deprecated ``results`` field silently ignored (forbid_unknown_fields
+              is False by default; claim unified-rs-0012).
+            - Null namespace normalized to empty string via ``__post_init__``
+              on QueryResponse (claim unified-rs-0013).
         """
-        raw: dict[str, Any] = msgspec.json.decode(data)
-        raw.pop("results", None)
-        if raw.get("namespace") is None:
-            raw["namespace"] = ""
-        return msgspec.convert(raw, QueryResponse)
+        return msgspec.json.decode(data, type=QueryResponse)
 
     @staticmethod
     def to_fetch_response(data: bytes) -> FetchResponse:

@@ -27,8 +27,13 @@ class QueryResponse(Struct, rename="camel", kw_only=True):
     """Response from a query operation."""
 
     matches: list[ScoredVector] = []
-    namespace: str = ""
+    namespace: str | None = ""
     usage: Usage | None = None
+
+    def __post_init__(self) -> None:
+        """Normalize null namespace to empty string (claim unified-rs-0013)."""
+        if self.namespace is None:
+            self.namespace = ""
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['matches'])."""
