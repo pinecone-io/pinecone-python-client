@@ -1,0 +1,146 @@
+"""Unit tests for AsyncIndex.create_namespace, describe_namespace, delete_namespace."""
+
+from __future__ import annotations
+
+import httpx
+import orjson
+import pytest
+import respx
+
+from pinecone import AsyncIndex
+from pinecone.errors.exceptions import ValidationError
+from pinecone.models.namespaces.models import NamespaceDescription
+
+INDEX_HOST = "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
+INDEX_HOST_HTTPS = f"https://{INDEX_HOST}"
+NS_URL = f"{INDEX_HOST_HTTPS}/namespaces"
+
+
+def _make_async_index() -> AsyncIndex:
+    return AsyncIndex(host=INDEX_HOST, api_key="test-key")
+
+
+# ---------------------------------------------------------------------------
+# create_namespace
+# ---------------------------------------------------------------------------
+
+
+class TestAsyncCreateNamespace:
+    """Async create namespace (unified-ns-0001, unified-ns-0002)."""
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_create_namespace_basic(self) -> None:
+        respx.post(NS_URL).mock(
+            return_value=httpx.Response(200, json={"name": "ns1", "record_count": 0}),
+        )
+        idx = _make_async_index()
+        result = await idx.create_namespace(name="ns1")
+
+        assert isinstance(result, NamespaceDescription)
+        assert result.name == "ns1"
+        assert result.record_count == 0
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_create_namespace_with_schema(self) -> None:
+        respx.post(NS_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "name": "ns1",
+                    "record_count": 0,
+                    "schema": {"fields": {"genre": {"filterable": True}}},
+                },
+            ),
+        )
+        idx = _make_async_index()
+        result = await idx.create_namespace(
+            name="ns1",
+            schema={"fields": {"genre": {"filterable": True}}},
+        )
+
+        assert result.schema is not None
+        assert "genre" in result.schema.fields
+        assert result.schema.fields["genre"].filterable is True
+
+        # Verify schema was included in request body
+        body = orjson.loads(respx.calls.last.request.content)
+        assert body["name"] == "ns1"
+        assert body["schema"] == {"fields": {"genre": {"filterable": True}}}
+
+    @pytest.mark.asyncio
+    async def test_async_create_namespace_empty_name_raises(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="non-empty string"):
+            await idx.create_namespace(name="")
+
+    @pytest.mark.asyncio
+    async def test_async_create_namespace_whitespace_name_raises(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="non-empty string"):
+            await idx.create_namespace(name="  ")
+
+
+# ---------------------------------------------------------------------------
+# describe_namespace
+# ---------------------------------------------------------------------------
+
+
+class TestAsyncDescribeNamespace:
+    """Async describe namespace (unified-ns-0003)."""
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_describe_namespace(self) -> None:
+        respx.get(f"{NS_URL}/ns1").mock(
+            return_value=httpx.Response(200, json={"name": "ns1", "record_count": 500}),
+        )
+        idx = _make_async_index()
+        result = await idx.describe_namespace(name="ns1")
+
+        assert isinstance(result, NamespaceDescription)
+        assert result.name == "ns1"
+        assert result.record_count == 500
+
+
+# ---------------------------------------------------------------------------
+# delete_namespace
+# ---------------------------------------------------------------------------
+
+
+class TestAsyncDeleteNamespace:
+    """Async delete namespace (unified-ns-0004)."""
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_delete_namespace(self) -> None:
+        route = respx.delete(f"{NS_URL}/ns1").mock(
+            return_value=httpx.Response(200, json={}),
+        )
+        idx = _make_async_index()
+        result = await idx.delete_namespace(name="ns1")
+
+        assert result is None
+        assert route.called
+
+
+# ---------------------------------------------------------------------------
+# Validation shared across methods
+# ---------------------------------------------------------------------------
+
+
+class TestAsyncNamespaceValidation:
+    """Validation: name must be a string and non-empty (unified-ns-0010, unified-ns-0011)."""
+
+    @pytest.mark.asyncio
+    async def test_async_namespace_name_not_string_raises(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="must be a string"):
+            await idx.create_namespace(name=123)  # type: ignore[arg-type]
+
+        with pytest.raises(ValidationError, match="must be a string"):
+            await idx.describe_namespace(name=123)  # type: ignore[arg-type]
+
+        with pytest.raises(ValidationError, match="must be a string"):
+            await idx.delete_namespace(name=123)  # type: ignore[arg-type]

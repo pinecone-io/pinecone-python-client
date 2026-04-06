@@ -13,6 +13,7 @@ from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import ValidationError
 from pinecone.index import _validate_host, _vector_to_dict
+from pinecone.models.namespaces.models import NamespaceDescription
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
     FetchResponse,
@@ -600,6 +601,106 @@ class AsyncIndex:
         logger.info("Describing index stats")
         response = await self._http.post("/describe_index_stats", json=body)
         return self._adapter.to_stats_response(response.content)
+
+    async def create_namespace(
+        self,
+        *,
+        name: str,
+        schema: dict[str, Any] | None = None,
+    ) -> NamespaceDescription:
+        """Create a named namespace in the index.
+
+        Args:
+            name (str): Name for the new namespace (must be non-empty).
+            schema (dict[str, Any] | None): Optional schema configuration
+                with metadata field indexing settings.
+
+        Returns:
+            NamespaceDescription with the namespace name and record count.
+
+        Raises:
+            ValidationError: If the name is not a string or is empty/whitespace.
+            ApiError: If the API returns an error response (e.g. 409 conflict
+                when namespace already exists).
+
+        Examples:
+
+            ns = await idx.create_namespace(name="my-ns")
+            print(ns.name, ns.record_count)
+        """
+        if not isinstance(name, str):
+            raise ValidationError("namespace name must be a string")
+        if not name or not name.strip():
+            raise ValidationError("namespace name must be a non-empty string")
+
+        body: dict[str, Any] = {"name": name}
+        if schema is not None:
+            body["schema"] = schema
+
+        logger.info("Creating namespace %r", name)
+        response = await self._http.post("/namespaces", json=body)
+        return self._adapter.to_namespace_description(response.content)
+
+    async def describe_namespace(
+        self,
+        *,
+        name: str,
+    ) -> NamespaceDescription:
+        """Describe a namespace by name.
+
+        Args:
+            name (str): Name of the namespace to describe.
+
+        Returns:
+            NamespaceDescription with the namespace name, record count,
+            and schema information.
+
+        Raises:
+            ValidationError: If the name is not a string or is empty/whitespace.
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            ns = await idx.describe_namespace(name="my-ns")
+            print(ns.name, ns.record_count)
+        """
+        if not isinstance(name, str):
+            raise ValidationError("namespace name must be a string")
+        if not name or not name.strip():
+            raise ValidationError("namespace name must be a non-empty string")
+
+        logger.info("Describing namespace %r", name)
+        response = await self._http.get(f"/namespaces/{name}")
+        return self._adapter.to_namespace_description(response.content)
+
+    async def delete_namespace(
+        self,
+        *,
+        name: str,
+    ) -> None:
+        """Delete a namespace by name, removing all its vectors.
+
+        Args:
+            name (str): Name of the namespace to delete.
+
+        Returns:
+            None — a successful delete returns no payload.
+
+        Raises:
+            ValidationError: If the name is not a string or is empty/whitespace.
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            await idx.delete_namespace(name="old-data")
+        """
+        if not isinstance(name, str):
+            raise ValidationError("namespace name must be a string")
+        if not name or not name.strip():
+            raise ValidationError("namespace name must be a non-empty string")
+
+        logger.info("Deleting namespace %r", name)
+        await self._http.delete(f"/namespaces/{name}")
 
     async def close(self) -> None:
         """Close the underlying HTTP client and release resources."""
