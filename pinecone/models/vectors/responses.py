@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from msgspec import Struct
 
 from pinecone.models.vectors.usage import Usage
@@ -13,6 +15,13 @@ class UpsertResponse(Struct, rename="camel", kw_only=True):
 
     upserted_count: int
 
+    def __getitem__(self, key: str) -> Any:
+        """Support bracket access (e.g. response['upserted_count'])."""
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError(key) from None
+
 
 class QueryResponse(Struct, rename="camel", kw_only=True):
     """Response from a query operation."""
@@ -21,6 +30,13 @@ class QueryResponse(Struct, rename="camel", kw_only=True):
     namespace: str = ""
     usage: Usage | None = None
 
+    def __getitem__(self, key: str) -> Any:
+        """Support bracket access (e.g. response['matches'])."""
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError(key) from None
+
 
 class FetchResponse(Struct, rename="camel", kw_only=True):
     """Response from a fetch operation."""
@@ -28,6 +44,13 @@ class FetchResponse(Struct, rename="camel", kw_only=True):
     vectors: dict[str, Vector] = {}
     namespace: str = ""
     usage: Usage | None = None
+
+    def __getitem__(self, key: str) -> Any:
+        """Support bracket access (e.g. response['vectors'])."""
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError(key) from None
 
 
 class NamespaceSummary(Struct, rename="camel", kw_only=True):
@@ -47,6 +70,13 @@ class DescribeIndexStatsResponse(Struct, rename="camel", kw_only=True):
     vector_type: str | None = None
     memory_fullness: float | None = None
     storage_fullness: float | None = None
+
+    def __getitem__(self, key: str) -> Any:
+        """Support bracket access (e.g. response['dimension'])."""
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError(key) from None
 
 
 class ResponseInfo(Struct, kw_only=True):
@@ -75,8 +105,22 @@ class ListResponse(Struct, rename="camel", kw_only=True):
     namespace: str = ""
     usage: Usage | None = None
 
+    def __getitem__(self, key: str) -> Any:
+        """Support bracket access (e.g. response['vectors'])."""
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError(key) from None
+
 
 class UpdateResponse(Struct, rename="camel", kw_only=True):
     """Response from an update operation."""
 
     matched_records: int | None = None
+
+    def __getitem__(self, key: str) -> Any:
+        """Support bracket access (e.g. response['matched_records'])."""
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError(key) from None

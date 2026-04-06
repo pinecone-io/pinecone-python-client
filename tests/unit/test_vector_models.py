@@ -5,13 +5,16 @@ from __future__ import annotations
 from typing import Any
 
 import msgspec
+import pytest
 
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
     FetchResponse,
+    ListResponse,
     NamespaceSummary,
     QueryResponse,
     ResponseInfo,
+    UpdateResponse,
     UpsertResponse,
 )
 from pinecone.models.vectors.sparse import SparseValues
@@ -201,3 +204,74 @@ class TestNamespaceSummary:
     def test_with_count(self) -> None:
         ns = NamespaceSummary(vector_count=500)
         assert ns.vector_count == 500
+
+
+class TestBracketAccess:
+    """Tests for __getitem__ bracket access on data plane response models."""
+
+    def test_upsert_response_bracket_access(self) -> None:
+        r = UpsertResponse(upserted_count=42)
+        assert r["upserted_count"] == 42
+
+    def test_upsert_response_missing_key(self) -> None:
+        r = UpsertResponse(upserted_count=42)
+        with pytest.raises(KeyError, match="nonexistent"):
+            r["nonexistent"]
+
+    def test_query_response_bracket_access(self) -> None:
+        r = QueryResponse(namespace="ns1")
+        assert r["namespace"] == "ns1"
+        assert r["matches"] == []
+        assert r["usage"] is None
+
+    def test_query_response_missing_key(self) -> None:
+        r = QueryResponse()
+        with pytest.raises(KeyError, match="bad_key"):
+            r["bad_key"]
+
+    def test_fetch_response_bracket_access(self) -> None:
+        r = FetchResponse(namespace="ns1")
+        assert r["namespace"] == "ns1"
+        assert r["vectors"] == {}
+        assert r["usage"] is None
+
+    def test_fetch_response_missing_key(self) -> None:
+        r = FetchResponse()
+        with pytest.raises(KeyError, match="missing"):
+            r["missing"]
+
+    def test_describe_index_stats_response_bracket_access(self) -> None:
+        r = DescribeIndexStatsResponse(dimension=128, total_vector_count=300)
+        assert r["dimension"] == 128
+        assert r["total_vector_count"] == 300
+        assert r["index_fullness"] == 0.0
+        assert r["namespaces"] == {}
+
+    def test_describe_index_stats_response_missing_key(self) -> None:
+        r = DescribeIndexStatsResponse()
+        with pytest.raises(KeyError, match="nope"):
+            r["nope"]
+
+    def test_list_response_bracket_access(self) -> None:
+        r = ListResponse(namespace="ns1")
+        assert r["namespace"] == "ns1"
+        assert r["vectors"] == []
+        assert r["pagination"] is None
+
+    def test_list_response_missing_key(self) -> None:
+        r = ListResponse()
+        with pytest.raises(KeyError, match="bogus"):
+            r["bogus"]
+
+    def test_update_response_bracket_access(self) -> None:
+        r = UpdateResponse(matched_records=5)
+        assert r["matched_records"] == 5
+
+    def test_update_response_bracket_access_none(self) -> None:
+        r = UpdateResponse()
+        assert r["matched_records"] is None
+
+    def test_update_response_missing_key(self) -> None:
+        r = UpdateResponse()
+        with pytest.raises(KeyError, match="invalid"):
+            r["invalid"]
