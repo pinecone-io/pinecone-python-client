@@ -7,6 +7,7 @@ on the target Struct, plus any pre-processing documented in its docstring.
 
 from __future__ import annotations
 
+import httpx
 import msgspec
 
 from pinecone.models.namespaces.models import (
@@ -18,10 +19,40 @@ from pinecone.models.vectors.responses import (
     FetchResponse,
     ListResponse,
     QueryResponse,
+    ResponseInfo,
     UpdateResponse,
     UpsertResponse,
 )
 from pinecone.models.vectors.search import SearchRecordsResponse
+
+
+def _parse_lsn(headers: httpx.Headers, name: str) -> int | None:
+    """Extract an integer LSN value from a response header.
+
+    Returns ``None`` when the header is absent or the value is not a valid
+    integer.  Header lookup is case-insensitive (httpx normalises names).
+    """
+    value = headers.get(name)
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return None
+
+
+def extract_response_info(response: httpx.Response) -> ResponseInfo:
+    """Build a :class:`ResponseInfo` from *response* headers.
+
+    Extracts ``x-pinecone-request-id``, ``x-pinecone-lsn-reconciled``, and
+    ``x-pinecone-lsn-committed`` headers.
+    """
+    headers = response.headers
+    return ResponseInfo(
+        request_id=headers.get("x-pinecone-request-id"),
+        lsn_reconciled=_parse_lsn(headers, "x-pinecone-lsn-reconciled"),
+        lsn_committed=_parse_lsn(headers, "x-pinecone-lsn-committed"),
+    )
 
 
 class VectorsAdapter:
