@@ -206,6 +206,61 @@ class Index:
         logger.debug("Fetched %d vectors", len(result.vectors))
         return result
 
+    def delete(
+        self,
+        *,
+        ids: list[str] | None = None,
+        delete_all: bool = False,
+        filter: dict[str, Any] | None = None,
+        namespace: str = "",
+    ) -> None:
+        """Delete vectors from a namespace by ID, filter, or delete-all flag.
+
+        Exactly one of ``ids``, ``delete_all``, or ``filter`` must be specified.
+        Deleting IDs that do not exist does not raise an error.
+
+        Args:
+            ids: List of vector IDs to delete.
+            delete_all: If True, delete all vectors in the namespace.
+            filter: Metadata filter expression selecting vectors to delete.
+            namespace: Namespace to delete from. Defaults to the default namespace.
+
+        Returns:
+            None — a successful delete returns no payload.
+
+        Raises:
+            ValidationError: If zero or more than one deletion mode is specified.
+
+        Example::
+
+            # Delete by IDs
+            idx.delete(ids=["vec1", "vec2"])
+
+            # Delete all vectors in a namespace
+            idx.delete(delete_all=True, namespace="old-data")
+
+            # Delete by metadata filter
+            idx.delete(filter={"category": {"$eq": "obsolete"}})
+        """
+        mode_count = sum([ids is not None, delete_all, filter is not None])
+        if mode_count == 0:
+            raise ValidationError("Must specify one of ids, delete_all, or filter")
+        if mode_count > 1:
+            raise ValidationError(
+                "Cannot combine ids, delete_all, and filter — specify exactly one"
+            )
+
+        body: dict[str, Any] = {"namespace": namespace}
+        if ids is not None:
+            body["ids"] = ids
+        if delete_all:
+            body["deleteAll"] = True
+        if filter is not None:
+            body["filter"] = filter
+
+        logger.info("Deleting vectors from namespace %r", namespace)
+        self._http.post("/vectors/delete", json=body)
+
     def close(self) -> None:
         """Close the underlying HTTP client and release resources."""
         self._http.close()
