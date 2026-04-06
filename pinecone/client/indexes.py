@@ -259,9 +259,11 @@ class Indexes:
             deletion_protection: Whether deletion protection is enabled.
             tags: Optional key-value tags.
             timeout: Seconds to wait for the index to become ready.
-                Use ``None`` (default) to return immediately without polling.
-                Use a positive int to poll until the index is ready or the
-                deadline is reached.
+                Use ``None`` (default) or ``-1`` to return immediately
+                without polling. Use a positive int to poll until the
+                index is ready or the deadline is reached. Raises
+                ``PineconeError`` if the index is not ready before the
+                deadline or if initialization fails.
 
         Returns:
             An IndexModel describing the created index.
