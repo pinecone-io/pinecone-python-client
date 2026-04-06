@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 import os
 import random
+import socket
+import sys
 import time
 from typing import Any
 
@@ -23,6 +25,25 @@ from pinecone.errors.exceptions import (
 )
 
 _RETRYABLE_STATUS_CODES: frozenset[int] = frozenset({500, 502, 503, 504})
+
+
+def _build_socket_options() -> list[tuple[int, int, int]]:
+    """Build platform-specific TCP socket options.
+
+    Enables TCP keep-alive and disables Nagle's algorithm on all platforms.
+    Adds platform-specific keep-alive tuning on Linux and macOS.
+    """
+    opts: list[tuple[int, int, int]] = [
+        (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),
+        (socket.IPPROTO_TCP, socket.TCP_NODELAY, 1),
+    ]
+    if sys.platform == "linux":
+        opts.append((socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 300))
+        opts.append((socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 60))
+        opts.append((socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 4))
+    elif sys.platform == "darwin":
+        opts.append((socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 60))
+    return opts
 
 
 def _default_pool_size() -> int:
@@ -171,7 +192,9 @@ class HTTPClient:
             max_keepalive_connections=pool_size // 2,
         )
         transport = _RetryTransport(
-            transport=httpx.HTTPTransport(http2=True, limits=limits),
+            transport=httpx.HTTPTransport(
+                http2=True, limits=limits, socket_options=_build_socket_options()
+            ),
         )
         self._client = httpx.Client(
             base_url=config.host or DEFAULT_BASE_URL,
@@ -243,7 +266,9 @@ class AsyncHTTPClient:
                 max_keepalive_connections=pool_size // 2,
             )
             transport = _AsyncRetryTransport(
-                transport=httpx.AsyncHTTPTransport(http2=True, limits=limits),
+                transport=httpx.AsyncHTTPTransport(
+                    http2=True, limits=limits, socket_options=_build_socket_options()
+                ),
             )
             self._client = httpx.AsyncClient(
                 base_url=self._config.host or DEFAULT_BASE_URL,
