@@ -1,4 +1,4 @@
-"""Indexes namespace — list, describe, and exists operations."""
+"""Indexes namespace — list, describe, create, and exists operations."""
 
 from __future__ import annotations
 
@@ -15,6 +15,9 @@ if TYPE_CHECKING:
     from pinecone._internal.http_client import HTTPClient
 
 logger = logging.getLogger(__name__)
+
+_VALID_METRICS = frozenset({"cosine", "euclidean", "dotproduct"})
+_VALID_DELETION_PROTECTION = frozenset({"enabled", "disabled"})
 
 
 class Indexes:

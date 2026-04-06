@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from pinecone import Pinecone
@@ -190,3 +192,101 @@ class TestContextManager:
     def test_close(self) -> None:
         pc = Pinecone(api_key="test-key")
         pc.close()
+
+
+class TestIndexFactory:
+    """Test Pinecone.index() factory method."""
+
+    @patch("pinecone.index.Index")
+    def test_host_based_skips_describe(self, mock_index_cls: MagicMock) -> None:
+        pc = Pinecone(api_key="test-key", additional_headers={"X-Test": "val"}, timeout=45.0)
+        mock_idx = MagicMock()
+        mock_index_cls.return_value = mock_idx
+
+        result = pc.index(host="foo.svc.pinecone.io")
+
+        assert result is mock_idx
+        mock_index_cls.assert_called_once_with(
+            host="foo.svc.pinecone.io",
+            api_key="test-key",
+            additional_headers={"X-Test": "val"},
+            timeout=45.0,
+        )
+
+    @patch("pinecone.index.Index")
+    def test_name_cached_returns_index_without_describe(self, mock_index_cls: MagicMock) -> None:
+        pc = Pinecone(api_key="test-key", timeout=20.0)
+        pc._host_cache["my-index"] = "cached.host.pinecone.io"
+        mock_idx = MagicMock()
+        mock_index_cls.return_value = mock_idx
+
+        result = pc.index(name="my-index")
+
+        assert result is mock_idx
+        mock_index_cls.assert_called_once_with(
+            host="cached.host.pinecone.io",
+            api_key="test-key",
+            additional_headers={},
+            timeout=20.0,
+        )
+
+    @patch("pinecone.index.Index")
+    def test_name_describe_resolves_host_and_caches(self, mock_index_cls: MagicMock) -> None:
+        pc = Pinecone(api_key="test-key")
+        mock_idx = MagicMock()
+        mock_index_cls.return_value = mock_idx
+
+        mock_desc = MagicMock()
+        mock_desc.host = "resolved.host.pinecone.io"
+
+        mock_indexes = MagicMock()
+        mock_indexes.describe.return_value = mock_desc
+        pc._indexes = mock_indexes
+
+        result = pc.index(name="my-index")
+
+        assert result is mock_idx
+        mock_indexes.describe.assert_called_once_with("my-index")
+        assert pc._host_cache["my-index"] == "resolved.host.pinecone.io"
+        mock_index_cls.assert_called_once_with(
+            host="resolved.host.pinecone.io",
+            api_key="test-key",
+            additional_headers={},
+            timeout=30.0,
+        )
+
+    def test_no_name_or_host_raises_validation_error(self) -> None:
+        pc = Pinecone(api_key="test-key")
+        with pytest.raises(ValidationError, match="Either name or host"):
+            pc.index()
+
+    @patch("pinecone.index.Index")
+    def test_host_based_passes_config_fields(self, mock_index_cls: MagicMock) -> None:
+        headers = {"X-Custom": "header-val"}
+        pc = Pinecone(api_key="my-api-key", additional_headers=headers, timeout=99.0)
+        mock_index_cls.return_value = MagicMock()
+
+        pc.index(host="host.svc.pinecone.io")
+
+        mock_index_cls.assert_called_once_with(
+            host="host.svc.pinecone.io",
+            api_key="my-api-key",
+            additional_headers={"X-Custom": "header-val"},
+            timeout=99.0,
+        )
+
+    @patch("pinecone.index.Index")
+    def test_name_cached_passes_config_fields(self, mock_index_cls: MagicMock) -> None:
+        headers = {"X-Custom": "header-val"}
+        pc = Pinecone(api_key="my-api-key", additional_headers=headers, timeout=99.0)
+        pc._host_cache["idx"] = "cached.host"
+        mock_index_cls.return_value = MagicMock()
+
+        pc.index(name="idx")
+
+        mock_index_cls.assert_called_once_with(
+            host="cached.host",
+            api_key="my-api-key",
+            additional_headers={"X-Custom": "header-val"},
+            timeout=99.0,
+        )
