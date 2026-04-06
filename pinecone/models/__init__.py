@@ -1,5 +1,11 @@
 """msgspec.Struct models for the Pinecone SDK."""
 
+from pinecone.models.backups.list import BackupList, RestoreJobList
+from pinecone.models.backups.model import (
+    BackupModel,
+    CreateIndexFromBackupResponse,
+    RestoreJobModel,
+)
 from pinecone.models.collections.list import CollectionList
 from pinecone.models.collections.model import CollectionModel
 from pinecone.models.enums import (
@@ -36,6 +42,11 @@ from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.vector import ScoredVector, Vector
 
 __all__ = [
+    "BackupList",
+    "BackupModel",
+    "CreateIndexFromBackupResponse",
+    "RestoreJobList",
+    "RestoreJobModel",
     "CollectionList",
     "CollectionModel",
     "CloudProvider",
