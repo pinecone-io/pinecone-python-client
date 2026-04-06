@@ -61,6 +61,7 @@ class Pinecone:
         ssl_ca_certs: str | None = None,
         ssl_verify: bool = True,
         timeout: float = 30.0,
+        connection_pool_maxsize: int = 0,
         **kwargs: Any,
     ) -> None:
         # Check for deprecated kwargs
@@ -81,6 +82,7 @@ class Pinecone:
             proxy_url=proxy_url or "",
             ssl_ca_certs=ssl_ca_certs,
             ssl_verify=ssl_verify,
+            connection_pool_maxsize=connection_pool_maxsize,
         )
 
         if not config.api_key:
@@ -101,6 +103,7 @@ class Pinecone:
                 proxy_url=config.proxy_url,
                 ssl_ca_certs=config.ssl_ca_certs,
                 ssl_verify=config.ssl_verify,
+                connection_pool_maxsize=config.connection_pool_maxsize,
             )
 
         self._config = config

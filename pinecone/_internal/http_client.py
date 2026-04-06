@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import random
 import time
 from typing import Any
@@ -22,6 +23,11 @@ from pinecone.errors.exceptions import (
 )
 
 _RETRYABLE_STATUS_CODES: frozenset[int] = frozenset({500, 502, 503, 504})
+
+
+def _default_pool_size() -> int:
+    """Return the default connection pool size: 5x CPU count with a floor of 20."""
+    return max(5 * (os.cpu_count() or 1), 20)
 
 
 def _encode_json(body: Any) -> bytes:
@@ -155,15 +161,23 @@ class HTTPClient:
         verify: str | bool = (
             config.ssl_ca_certs if config.ssl_ca_certs else config.ssl_verify
         )
+        pool_size = (
+            config.connection_pool_maxsize
+            if config.connection_pool_maxsize > 0
+            else _default_pool_size()
+        )
+        limits = httpx.Limits(
+            max_connections=pool_size,
+            max_keepalive_connections=pool_size // 2,
+        )
         transport = _RetryTransport(
-            transport=httpx.HTTPTransport(http2=True),
+            transport=httpx.HTTPTransport(http2=True, limits=limits),
         )
         self._client = httpx.Client(
             base_url=config.host or DEFAULT_BASE_URL,
             headers=self._headers,
             timeout=config.timeout,
             transport=transport,
-            limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
             proxy=config.proxy_url or None,
             verify=verify,
         )
@@ -219,15 +233,23 @@ class AsyncHTTPClient:
                 if self._config.ssl_ca_certs
                 else self._config.ssl_verify
             )
+            pool_size = (
+                self._config.connection_pool_maxsize
+                if self._config.connection_pool_maxsize > 0
+                else _default_pool_size()
+            )
+            limits = httpx.Limits(
+                max_connections=pool_size,
+                max_keepalive_connections=pool_size // 2,
+            )
             transport = _AsyncRetryTransport(
-                transport=httpx.AsyncHTTPTransport(http2=True),
+                transport=httpx.AsyncHTTPTransport(http2=True, limits=limits),
             )
             self._client = httpx.AsyncClient(
                 base_url=self._config.host or DEFAULT_BASE_URL,
                 headers=self._headers,
                 timeout=self._config.timeout,
                 transport=transport,
-                limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
                 proxy=self._config.proxy_url or None,
                 verify=verify,
             )

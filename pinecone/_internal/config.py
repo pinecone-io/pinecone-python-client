@@ -73,6 +73,7 @@ class PineconeConfig:
     proxy_url: str = ""
     ssl_ca_certs: str | None = None
     ssl_verify: bool = True
+    connection_pool_maxsize: int = 0
 
     def __repr__(self) -> str:
         masked = f"...{self.api_key[-4:]}" if len(self.api_key) >= 4 else "***"
@@ -85,7 +86,8 @@ class PineconeConfig:
             f"source_tag='{self.source_tag}', "
             f"proxy_url='{self.proxy_url}', "
             f"ssl_ca_certs={self.ssl_ca_certs!r}, "
-            f"ssl_verify={self.ssl_verify}"
+            f"ssl_verify={self.ssl_verify}, "
+            f"connection_pool_maxsize={self.connection_pool_maxsize}"
             f")"
         )
 
