@@ -13,6 +13,7 @@ from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import ValidationError
 from pinecone.models.vectors.responses import (
+    DescribeIndexStatsResponse,
     FetchResponse,
     ListResponse,
     QueryResponse,
@@ -520,6 +521,46 @@ class Index:
                 pagination_token = page.pagination.next
             else:
                 break
+
+    def describe_index_stats(
+        self,
+        *,
+        filter: dict[str, Any] | None = None,
+    ) -> DescribeIndexStatsResponse:
+        """Return statistics for this index.
+
+        Returns aggregate statistics including total vector count,
+        per-namespace vector counts, dimension, and index fullness.
+
+        Args:
+            filter (dict[str, Any] | None): Metadata filter expression. When
+                provided, only vectors matching the filter are counted.
+
+        Returns:
+            DescribeIndexStatsResponse with namespace summaries, dimension,
+            total vector count, and fullness metrics.
+
+        Raises:
+            ApiError: If the API returns an error response (e.g. authentication
+                failure or server error).
+
+        Examples:
+
+            stats = idx.describe_index_stats()
+            print(stats.total_vector_count, stats.dimension)
+
+            # With filter — only count vectors matching the expression
+            stats = idx.describe_index_stats(
+                filter={"genre": {"$eq": "drama"}}
+            )
+        """
+        body: dict[str, Any] = {}
+        if filter is not None:
+            body["filter"] = filter
+
+        logger.info("Describing index stats")
+        response = self._http.post("/describe_index_stats", json=body)
+        return self._adapter.to_stats_response(response.content)
 
     def close(self) -> None:
         """Close the underlying HTTP client and release resources."""
