@@ -10,6 +10,7 @@ from pinecone.errors.exceptions import ValidationError
 
 if TYPE_CHECKING:
     from pinecone.async_client.async_index import AsyncIndex
+    from pinecone.async_client.collections import AsyncCollections
     from pinecone.async_client.indexes import AsyncIndexes
 
 _DEPRECATED_KWARGS: frozenset[str] = frozenset({"openapi_config", "pool_threads", "index_api"})
@@ -100,6 +101,7 @@ class AsyncPinecone:
 
         self._http = AsyncHTTPClient(config, CONTROL_PLANE_API_VERSION)
         self._indexes: AsyncIndexes | None = None
+        self._collections: AsyncCollections | None = None
         self._host_cache: dict[str, str] = {}
 
     @property
@@ -122,6 +124,27 @@ class AsyncPinecone:
 
             self._indexes = _AsyncIndexes(http=self._http)
         return self._indexes
+
+    @property
+    def collections(self) -> AsyncCollections:
+        """Access the AsyncCollections namespace for control-plane collection operations.
+
+        Lazily imported and instantiated on first access.
+
+        Returns:
+            AsyncCollections namespace instance.
+
+        Example::
+
+            async with AsyncPinecone(api_key="your-api-key") as pc:
+                for col in await pc.collections.list():
+                    print(col.name)
+        """
+        if self._collections is None:
+            from pinecone.async_client.collections import AsyncCollections as _AsyncCollections
+
+            self._collections = _AsyncCollections(http=self._http)
+        return self._collections
 
     @property
     def config(self) -> PineconeConfig:
