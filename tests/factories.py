@@ -209,6 +209,73 @@ def make_rerank_response(**overrides: Any) -> dict[str, Any]:
     return base
 
 
+def make_model_info(**overrides: Any) -> dict[str, Any]:
+    """Return a ModelInfo dict (inference ``GET /models/{model_name}``)."""
+    base: dict[str, Any] = {
+        "model": "multilingual-e5-large",
+        "short_description": "A multilingual embedding model.",
+        "type": "embed",
+        "vector_type": "dense",
+        "default_dimension": 1024,
+        "supported_dimensions": [256, 512, 1024],
+        "modality": "text",
+        "max_sequence_length": 512,
+        "max_batch_size": 96,
+        "provider_name": "Pinecone",
+        "supported_metrics": ["cosine", "euclidean"],
+        "supported_parameters": [
+            {
+                "parameter": "input_type",
+                "type": "one_of",
+                "value_type": "string",
+                "required": True,
+                "allowed_values": ["passage", "query"],
+            },
+            {
+                "parameter": "truncate",
+                "type": "one_of",
+                "value_type": "string",
+                "required": False,
+                "allowed_values": ["END", "NONE"],
+                "default": "END",
+            },
+        ],
+    }
+    base.update(overrides)
+    return base
+
+
+def make_model_list_response(**overrides: Any) -> dict[str, Any]:
+    """Return a ModelInfoList dict (inference ``GET /models``)."""
+    base: dict[str, Any] = {
+        "models": [
+            make_model_info(),
+            make_model_info(
+                model="bge-reranker-v2-m3",
+                short_description="A reranking model.",
+                type="rerank",
+                vector_type=None,
+                default_dimension=None,
+                supported_dimensions=None,
+                supported_metrics=None,
+                max_batch_size=100,
+                max_sequence_length=1024,
+                supported_parameters=[
+                    {
+                        "parameter": "return_documents",
+                        "type": "any",
+                        "value_type": "boolean",
+                        "required": False,
+                        "default": True,
+                    },
+                ],
+            ),
+        ],
+    }
+    base.update(overrides)
+    return base
+
+
 # ---------------------------------------------------------------------------
 # Error factory
 # ---------------------------------------------------------------------------

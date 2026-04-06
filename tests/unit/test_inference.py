@@ -15,8 +15,15 @@ from pinecone.client.inference import Inference
 from pinecone.errors.exceptions import ValidationError
 from pinecone.models.enums import EmbedModel, RerankModel
 from pinecone.models.inference.embed import EmbeddingsList
+from pinecone.models.inference.model_list import ModelInfoList
+from pinecone.models.inference.models import ModelInfo
 from pinecone.models.inference.rerank import RerankResult
-from tests.factories import make_embed_response, make_rerank_response
+from tests.factories import (
+    make_embed_response,
+    make_model_info,
+    make_model_list_response,
+    make_rerank_response,
+)
 
 BASE_URL = "https://api.test.pinecone.io"
 
@@ -251,3 +258,98 @@ def test_inference_class_attributes() -> None:
     """Inference exposes EmbedModel and RerankModel as class attributes."""
     assert Inference.EmbedModel is EmbedModel
     assert Inference.RerankModel is RerankModel
+
+
+# ---------------------------------------------------------------------------
+# list_models()
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_list_models_no_filter(inference: Inference) -> None:
+    route = respx.get(f"{BASE_URL}/models").mock(
+        return_value=httpx.Response(200, json=make_model_list_response()),
+    )
+
+    result = inference.list_models()
+
+    assert isinstance(result, ModelInfoList)
+    assert len(result) == 2
+    assert result.names() == ["multilingual-e5-large", "bge-reranker-v2-m3"]
+    assert route.called
+
+
+@respx.mock
+def test_list_models_filter_by_type(inference: Inference) -> None:
+    route = respx.get(f"{BASE_URL}/models").mock(
+        return_value=httpx.Response(200, json=make_model_list_response()),
+    )
+
+    inference.list_models(type="embed")
+
+    assert route.called
+    request = route.calls[0].request
+    assert request.url.params["type"] == "embed"
+
+
+@respx.mock
+def test_list_models_filter_by_vector_type(inference: Inference) -> None:
+    route = respx.get(f"{BASE_URL}/models").mock(
+        return_value=httpx.Response(200, json=make_model_list_response()),
+    )
+
+    inference.list_models(vector_type="dense")
+
+    assert route.called
+    request = route.calls[0].request
+    assert request.url.params["vector_type"] == "dense"
+
+
+@respx.mock
+def test_list_models_both_filters(inference: Inference) -> None:
+    route = respx.get(f"{BASE_URL}/models").mock(
+        return_value=httpx.Response(200, json=make_model_list_response()),
+    )
+
+    inference.list_models(type="embed", vector_type="sparse")
+
+    request = route.calls[0].request
+    assert request.url.params["type"] == "embed"
+    assert request.url.params["vector_type"] == "sparse"
+
+
+# ---------------------------------------------------------------------------
+# get_model()
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_get_model_success(inference: Inference) -> None:
+    route = respx.get(f"{BASE_URL}/models/multilingual-e5-large").mock(
+        return_value=httpx.Response(200, json=make_model_info()),
+    )
+
+    result = inference.get_model(model_name="multilingual-e5-large")
+
+    assert isinstance(result, ModelInfo)
+    assert result.model == "multilingual-e5-large"
+    assert result.type == "embed"
+    assert result.vector_type == "dense"
+    assert result.default_dimension == 1024
+    assert result.supported_dimensions == [256, 512, 1024]
+    assert result.modality == "text"
+    assert result.max_sequence_length == 512
+    assert result.max_batch_size == 96
+    assert result.provider_name == "Pinecone"
+    assert result.supported_metrics == ["cosine", "euclidean"]
+    assert len(result.supported_parameters) == 2
+    assert result.supported_parameters[0].parameter == "input_type"
+    assert result.supported_parameters[0].required is True
+    assert result.supported_parameters[0].allowed_values == ["passage", "query"]
+    assert result.supported_parameters[1].default == "END"
+    assert route.called
+
+
+def test_get_model_empty_name_raises(inference: Inference) -> None:
+    with pytest.raises(ValidationError, match="non-empty"):
+        inference.get_model(model_name="")

@@ -17,6 +17,8 @@ from pinecone.models import enums as _enums
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
     from pinecone.models.inference.embed import EmbeddingsList
+    from pinecone.models.inference.model_list import ModelInfoList
+    from pinecone.models.inference.models import ModelInfo
     from pinecone.models.inference.rerank import RerankResult
 
 logger = logging.getLogger(__name__)
@@ -172,4 +174,80 @@ class Inference:
         response = self._http.post("/rerank", json=body)
         result = self._adapter.to_rerank_result(response.content)
         logger.debug("Reranked documents, got %d results", len(result.data))
+        return result
+
+    def list_models(
+        self,
+        *,
+        type: str | None = None,
+        vector_type: str | None = None,
+    ) -> ModelInfoList:
+        """List available inference models.
+
+        Args:
+            type (str | None): Filter by model type (``"embed"`` or ``"rerank"``).
+            vector_type (str | None): Filter by vector type
+                (``"dense"`` or ``"sparse"``). Only relevant when ``type="embed"``.
+
+        Returns:
+            A :class:`ModelInfoList` supporting iteration, len(), and ``.names()``.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+            List all models:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> models = pc.inference.list_models()
+            >>> models.names()
+            ['multilingual-e5-large', 'pinecone-sparse-english-v0']
+
+            List only embedding models:
+
+            >>> embed_models = pc.inference.list_models(type="embed")
+        """
+        params: dict[str, Any] = {}
+        if type is not None:
+            params["type"] = type
+        if vector_type is not None:
+            params["vector_type"] = vector_type
+
+        logger.info("Listing models")
+        response = self._http.get("/models", params=params)
+        result = self._adapter.to_model_info_list(response.content)
+        logger.debug("Listed %d models", len(result))
+        return result
+
+    def get_model(
+        self,
+        *,
+        model_name: str,
+    ) -> ModelInfo:
+        """Get detailed information about a specific model.
+
+        Args:
+            model_name (str): The model identifier to look up.
+
+        Returns:
+            A :class:`ModelInfo` with full model details.
+
+        Raises:
+            :exc:`ValidationError`: If *model_name* is empty.
+            :exc:`NotFoundError`: If the model does not exist.
+            :exc:`ApiError`: If the API returns another error response.
+
+        Examples:
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> model = pc.inference.get_model(model_name="multilingual-e5-large")
+            >>> model.type
+            'embed'
+        """
+        require_non_empty("model_name", model_name)
+        logger.info("Describing model %r", model_name)
+        response = self._http.get(f"/models/{model_name}")
+        result = self._adapter.to_model_info(response.content)
+        logger.debug("Described model %r", model_name)
         return result
