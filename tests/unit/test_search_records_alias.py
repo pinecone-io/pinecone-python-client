@@ -5,8 +5,6 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from pinecone.index import Index
 from pinecone.models.vectors.search import (
     Hit,

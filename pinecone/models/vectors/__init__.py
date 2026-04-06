@@ -3,6 +3,10 @@
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from pinecone.models.vectors.query_aggregator import (  # noqa: F401
+        QueryNamespacesResults,
+        QueryResultsAggregator,
+    )
     from pinecone.models.vectors.responses import (  # noqa: F401
         DescribeIndexStatsResponse,
         FetchResponse,
@@ -31,6 +35,8 @@ _LAZY_IMPORTS: dict[str, str] = {
     "Usage": "pinecone.models.vectors.usage",
     "Vector": "pinecone.models.vectors.vector",
     "ScoredVector": "pinecone.models.vectors.vector",
+    "QueryNamespacesResults": "pinecone.models.vectors.query_aggregator",
+    "QueryResultsAggregator": "pinecone.models.vectors.query_aggregator",
     "UpsertResponse": "pinecone.models.vectors.responses",
     "QueryResponse": "pinecone.models.vectors.responses",
     "FetchResponse": "pinecone.models.vectors.responses",
