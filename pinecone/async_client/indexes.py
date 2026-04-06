@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 import time
 from typing import TYPE_CHECKING, Any
 
@@ -378,6 +379,12 @@ class AsyncIndexes:
     ) -> None:
         """Client-side validation for create() arguments."""
         require_non_empty("name", name)
+        if len(name) > 45:
+            raise ValidationError("index name must not exceed 45 characters")
+        if not re.fullmatch(r"[a-z0-9-]+", name):
+            raise ValidationError(
+                "index name must contain only lowercase letters, digits, and hyphens"
+            )
 
         if spec is None:
             raise ValidationError("spec is required")
@@ -395,7 +402,14 @@ class AsyncIndexes:
                 f"got {resolved_dp!r}"
             )
 
+        if isinstance(spec, dict) and not ({"serverless", "pod"} & spec.keys()):
+            raise ValidationError(
+                "spec dict must contain a 'serverless' or 'pod' key"
+            )
+
         resolved_vt = self._resolve_value(vector_type)
+        if resolved_vt == "sparse" and dimension is not None:
+            raise ValidationError("dimension must not be provided for sparse indexes")
         if resolved_vt != "sparse" and dimension is None:
             raise ValidationError("dimension is required for dense indexes")
 
