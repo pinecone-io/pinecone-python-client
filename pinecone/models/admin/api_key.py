@@ -22,6 +22,7 @@ class APIKeyModel(Struct, kw_only=True):
     name: str
     project_id: str
     roles: list[str]
+    description: str | None = None
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. api_key['name'])."""

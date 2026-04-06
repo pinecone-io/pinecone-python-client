@@ -72,6 +72,7 @@ class ApiKeys:
         *,
         project_id: str,
         name: str,
+        description: str | None = None,
         roles: builtins.list[str] | None = None,
     ) -> APIKeyWithSecret:
         """Create a new API key for a project.
@@ -79,6 +80,7 @@ class ApiKeys:
         Args:
             project_id (str): The identifier of the project.
             name (str): Name for the new API key (1-80 characters).
+            description (str | None): Optional description for the API key.
             roles (list[str] | None): Roles to assign to the key. Defaults to
                 ``["ProjectEditor"]`` if omitted.
 
@@ -100,6 +102,8 @@ class ApiKeys:
         require_non_empty("project_id", project_id)
         require_non_empty("name", name)
         body: dict[str, Any] = {"name": name}
+        if description is not None:
+            body["description"] = description
         if roles is not None:
             body["roles"] = roles
         logger.info("Creating API key %r in project %r", name, project_id)

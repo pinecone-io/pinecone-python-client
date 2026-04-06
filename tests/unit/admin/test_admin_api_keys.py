@@ -159,6 +159,44 @@ def test_create_api_key_with_roles(api_keys: ApiKeys) -> None:
     assert request.content == expected_body.content
 
 
+@respx.mock
+def test_create_with_description(api_keys: ApiKeys) -> None:
+    route = respx.post(f"{BASE_URL}/admin/projects/p1/api-keys").mock(
+        return_value=httpx.Response(
+            201,
+            json=_api_key_with_secret_response(
+                key=_api_key_response(id="k1", name="key", project_id="p1"),
+            ),
+        ),
+    )
+
+    api_keys.create(project_id="p1", name="key", description="My key description")
+
+    request = route.calls[0].request
+    expected_body = httpx.Request(
+        "POST", "/", json={"name": "key", "description": "My key description"}
+    )
+    assert request.content == expected_body.content
+
+
+@respx.mock
+def test_create_without_description(api_keys: ApiKeys) -> None:
+    route = respx.post(f"{BASE_URL}/admin/projects/p1/api-keys").mock(
+        return_value=httpx.Response(
+            201,
+            json=_api_key_with_secret_response(
+                key=_api_key_response(id="k1", name="key", project_id="p1"),
+            ),
+        ),
+    )
+
+    api_keys.create(project_id="p1", name="key")
+
+    request = route.calls[0].request
+    expected_body = httpx.Request("POST", "/", json={"name": "key"})
+    assert request.content == expected_body.content
+
+
 # ---------------------------------------------------------------------------
 # describe()
 # ---------------------------------------------------------------------------
