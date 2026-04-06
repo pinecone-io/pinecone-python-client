@@ -195,7 +195,7 @@ impl GrpcChannel {
     ///     Dict with "upserted_count".
     #[pyo3(signature = (vectors, namespace=None))]
     fn upsert(
-        &mut self,
+        &self,
         py: Python<'_>,
         vectors: Vec<Bound<'_, PyDict>>,
         namespace: Option<&str>,
@@ -231,9 +231,10 @@ impl GrpcChannel {
             namespace: namespace.unwrap_or("").to_string(),
         };
 
-        let response = self
-            .runtime
-            .block_on(self.client.upsert(request))
+        let mut client = self.client.clone();
+        #[allow(clippy::result_large_err)]
+        let response = py
+            .allow_threads(|| self.runtime.block_on(client.upsert(request)))
             .map_err(status_to_py_err)?;
 
         let inner = response.into_inner();
@@ -258,7 +259,7 @@ impl GrpcChannel {
     #[pyo3(signature = (top_k, vector=None, id=None, namespace=None, filter=None, include_values=false, include_metadata=false))]
     #[allow(clippy::too_many_arguments)]
     fn query(
-        &mut self,
+        &self,
         py: Python<'_>,
         top_k: u32,
         vector: Option<Vec<f32>>,
@@ -283,9 +284,10 @@ impl GrpcChannel {
             max_candidates: None,
         };
 
-        let response = self
-            .runtime
-            .block_on(self.client.query(request))
+        let mut client = self.client.clone();
+        #[allow(clippy::result_large_err)]
+        let response = py
+            .allow_threads(|| self.runtime.block_on(client.query(request)))
             .map_err(status_to_py_err)?;
 
         let inner = response.into_inner();
@@ -316,7 +318,7 @@ impl GrpcChannel {
     ///     Dict with "vectors" (map of id → vector dict) and "namespace".
     #[pyo3(signature = (ids, namespace=None))]
     fn fetch(
-        &mut self,
+        &self,
         py: Python<'_>,
         ids: Vec<String>,
         namespace: Option<&str>,
@@ -326,9 +328,10 @@ impl GrpcChannel {
             namespace: namespace.unwrap_or("").to_string(),
         };
 
-        let response = self
-            .runtime
-            .block_on(self.client.fetch(request))
+        let mut client = self.client.clone();
+        #[allow(clippy::result_large_err)]
+        let response = py
+            .allow_threads(|| self.runtime.block_on(client.fetch(request)))
             .map_err(status_to_py_err)?;
 
         let inner = response.into_inner();
@@ -360,7 +363,7 @@ impl GrpcChannel {
     ///     Empty dict (delete has no response fields).
     #[pyo3(signature = (ids=None, delete_all=false, namespace=None, filter=None))]
     fn delete(
-        &mut self,
+        &self,
         py: Python<'_>,
         ids: Option<Vec<String>>,
         delete_all: bool,
@@ -374,8 +377,9 @@ impl GrpcChannel {
             filter: filter.map(|f| py_dict_to_struct(&f)).transpose()?,
         };
 
-        self.runtime
-            .block_on(self.client.delete(request))
+        let mut client = self.client.clone();
+        #[allow(clippy::result_large_err)]
+        py.allow_threads(|| self.runtime.block_on(client.delete(request)))
             .map_err(status_to_py_err)?;
 
         let dict = PyDict::new(py);
