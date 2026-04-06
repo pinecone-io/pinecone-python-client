@@ -10,7 +10,7 @@ from pinecone._internal.adapters.vectors_adapter import VectorsAdapter
 from pinecone._internal.config import PineconeConfig, normalize_host
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone.errors.exceptions import ValidationError
-from pinecone.models.vectors.responses import QueryResponse
+from pinecone.models.vectors.responses import FetchResponse, QueryResponse
 
 logger = logging.getLogger(__name__)
 
@@ -165,6 +165,45 @@ class Index:
         response = self._http.post("/query", json=body)
         result = self._adapter.to_query_response(response.content)
         logger.debug("Query returned %d matches", len(result.matches))
+        return result
+
+    def fetch(
+        self,
+        *,
+        ids: list[str],
+        namespace: str = "",
+    ) -> FetchResponse:
+        """Fetch vectors by their IDs from a namespace.
+
+        Args:
+            ids: List of vector IDs to fetch (must be non-empty).
+            namespace: Namespace to fetch from. Defaults to the default namespace.
+
+        Returns:
+            FetchResponse with a map of vector IDs to Vector objects, namespace,
+            and usage info. IDs that do not exist are omitted from the map rather
+            than raising an error.
+
+        Raises:
+            ValidationError: If ids is empty.
+
+        Example::
+
+            response = idx.fetch(ids=["vec1", "vec2"])
+            for vid, vec in response.vectors.items():
+                print(vid, vec.values)
+        """
+        if not ids:
+            raise ValidationError("ids must be a non-empty list")
+
+        params: dict[str, Any] = {"ids": ids}
+        if namespace:
+            params["namespace"] = namespace
+
+        logger.info("Fetching %d vectors", len(ids))
+        response = self._http.get("/vectors/fetch", params=params)
+        result = self._adapter.to_fetch_response(response.content)
+        logger.debug("Fetched %d vectors", len(result.vectors))
         return result
 
     def close(self) -> None:
