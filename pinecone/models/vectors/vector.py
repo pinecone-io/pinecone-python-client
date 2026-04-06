@@ -9,7 +9,7 @@ from msgspec import Struct
 from pinecone.models.vectors.sparse import SparseValues
 
 
-class Vector(Struct, kw_only=True):
+class Vector(Struct, rename="camel", kw_only=True):
     """A stored vector with optional sparse values and metadata."""
 
     id: str
@@ -18,7 +18,7 @@ class Vector(Struct, kw_only=True):
     metadata: dict[str, Any] | None = None
 
 
-class ScoredVector(Struct, kw_only=True):
+class ScoredVector(Struct, rename="camel", kw_only=True):
     """A vector match with similarity score from a query operation."""
 
     id: str

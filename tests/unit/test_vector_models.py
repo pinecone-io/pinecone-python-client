@@ -64,7 +64,7 @@ class TestVector:
         data: dict[str, Any] = {
             "id": "vec-5",
             "values": [0.1, 0.2],
-            "sparse_values": {"indices": [0], "values": [1.0]},
+            "sparseValues": {"indices": [0], "values": [1.0]},
             "metadata": {"key": "val"},
         }
         v = msgspec.convert(data, Vector)
@@ -116,7 +116,7 @@ class TestUpsertResponse:
         assert r.upserted_count == 42
 
     def test_from_dict(self) -> None:
-        data = make_upsert_response(upserted_count=100)
+        data = make_upsert_response(upsertedCount=100)
         r = msgspec.convert(data, UpsertResponse)
         assert r.upserted_count == 100
 
@@ -130,7 +130,7 @@ class TestQueryResponse:
 
     def test_namespace_defaults_to_empty_string(self) -> None:
         """Per unified-rs-0013: null namespace becomes empty string."""
-        data: dict[str, Any] = {"matches": [], "usage": {"read_units": 1}}
+        data: dict[str, Any] = {"matches": [], "usage": {"readUnits": 1}}
         r = msgspec.convert(data, QueryResponse)
         assert r.namespace == ""
 

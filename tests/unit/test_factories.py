@@ -62,8 +62,8 @@ def test_make_backup_response_keys() -> None:
 
 def test_make_upsert_response_keys() -> None:
     result = make_upsert_response()
-    assert "upserted_count" in result
-    assert isinstance(result["upserted_count"], int)
+    assert "upsertedCount" in result
+    assert isinstance(result["upsertedCount"], int)
 
 
 def test_make_query_response_keys() -> None:
@@ -118,8 +118,8 @@ def test_make_describe_index_stats_response_keys() -> None:
     assert "namespaces" in result
     assert isinstance(result["namespaces"], dict)
     assert "dimension" in result
-    assert "index_fullness" in result
-    assert "total_vector_count" in result
+    assert "indexFullness" in result
+    assert "totalVectorCount" in result
 
 
 def test_factory_overrides() -> None:

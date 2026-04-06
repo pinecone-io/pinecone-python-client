@@ -93,7 +93,7 @@ def make_backup_response(**overrides: Any) -> dict[str, Any]:
 def make_upsert_response(**overrides: Any) -> dict[str, Any]:
     """Return an UpsertResponse dict (db_data ``POST /vectors/upsert``)."""
     base: dict[str, Any] = {
-        "upserted_count": 10,
+        "upsertedCount": 10,
     }
     base.update(overrides)
     return base
@@ -117,7 +117,7 @@ def make_query_response(**overrides: Any) -> dict[str, Any]:
             },
         ],
         "namespace": "test-namespace",
-        "usage": {"read_units": 5},
+        "usage": {"readUnits": 5},
     }
     base.update(overrides)
     return base
@@ -131,7 +131,7 @@ def make_fetch_response(**overrides: Any) -> dict[str, Any]:
             "id-2": {"id": "id-2", "values": [2.0, 1.0]},
         },
         "namespace": "test-namespace",
-        "usage": {"read_units": 1},
+        "usage": {"readUnits": 1},
     }
     base.update(overrides)
     return base
@@ -141,12 +141,12 @@ def make_describe_index_stats_response(**overrides: Any) -> dict[str, Any]:
     """Return a DescribeIndexStatsResponse dict (db_data ``POST /describe_index_stats``)."""
     base: dict[str, Any] = {
         "namespaces": {
-            "ns1": {"vector_count": 100},
-            "ns2": {"vector_count": 200},
+            "ns1": {"vectorCount": 100},
+            "ns2": {"vectorCount": 200},
         },
         "dimension": 128,
-        "index_fullness": 0.5,
-        "total_vector_count": 300,
+        "indexFullness": 0.5,
+        "totalVectorCount": 300,
     }
     base.update(overrides)
     return base

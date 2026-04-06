@@ -15,9 +15,13 @@ from pinecone.models.indexes.specs import ByocSpec, PodSpec, ServerlessSpec
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
     FetchResponse,
+    ListItem,
+    ListResponse,
     NamespaceSummary,
+    Pagination,
     QueryResponse,
     ResponseInfo,
+    UpdateResponse,
     UpsertResponse,
 )
 from pinecone.models.vectors.sparse import SparseValues
@@ -48,4 +52,8 @@ __all__ = [
     "NamespaceSummary",
     "DescribeIndexStatsResponse",
     "ResponseInfo",
+    "ListItem",
+    "ListResponse",
+    "Pagination",
+    "UpdateResponse",
 ]

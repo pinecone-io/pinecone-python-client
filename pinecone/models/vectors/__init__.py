@@ -6,9 +6,13 @@ if TYPE_CHECKING:
     from pinecone.models.vectors.responses import (  # noqa: F401
         DescribeIndexStatsResponse,
         FetchResponse,
+        ListItem,
+        ListResponse,
         NamespaceSummary,
+        Pagination,
         QueryResponse,
         ResponseInfo,
+        UpdateResponse,
         UpsertResponse,
     )
     from pinecone.models.vectors.sparse import SparseValues  # noqa: F401
@@ -26,6 +30,10 @@ _LAZY_IMPORTS: dict[str, str] = {
     "NamespaceSummary": "pinecone.models.vectors.responses",
     "DescribeIndexStatsResponse": "pinecone.models.vectors.responses",
     "ResponseInfo": "pinecone.models.vectors.responses",
+    "ListItem": "pinecone.models.vectors.responses",
+    "ListResponse": "pinecone.models.vectors.responses",
+    "Pagination": "pinecone.models.vectors.responses",
+    "UpdateResponse": "pinecone.models.vectors.responses",
 }
 
 __all__ = list(_LAZY_IMPORTS.keys())
