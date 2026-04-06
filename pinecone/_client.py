@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION, DEFAULT_BASE_URL
+from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import ValidationError
 
 if TYPE_CHECKING:
@@ -14,6 +15,8 @@ if TYPE_CHECKING:
     from pinecone.client.indexes import Indexes
     from pinecone.client.restore_jobs import RestoreJobs
     from pinecone.index import Index
+    from pinecone.models.enums import DeletionProtection
+    from pinecone.models.indexes.index import IndexModel
 
 _DEPRECATED_KWARGS: frozenset[str] = frozenset({"openapi_config", "pool_threads", "index_api"})
 
@@ -259,6 +262,70 @@ class Pinecone:
             )
 
         raise ValidationError("Either name or host must be provided to create an Index client.")
+
+    def create_index_from_backup(
+        self,
+        *,
+        name: str,
+        backup_id: str,
+        deletion_protection: DeletionProtection | str | None = None,
+        tags: dict[str, str] | None = None,
+        timeout: int | None = None,
+    ) -> IndexModel:
+        """Create a new index by restoring from a backup.
+
+        Sends a POST to ``/backups/{backup_id}/create-index`` and then
+        polls until the index is ready (unless *timeout* is ``-1``).
+
+        Args:
+            name (str): Name for the new index.
+            backup_id (str): Identifier of the backup to restore from.
+            deletion_protection (DeletionProtection | str | None): ``"enabled"`` or
+                ``"disabled"``. Defaults to ``"disabled"`` server-side when omitted.
+            tags (dict[str, str] | None): Optional key-value tags for the new index.
+            timeout (int | None): Seconds to wait for readiness. ``None`` (default)
+                blocks up to 300 s. ``-1`` returns immediately without polling.
+
+        Returns:
+            An IndexModel describing the restored index.
+
+        Raises:
+            ValidationError: If *name* or *backup_id* is empty.
+            PineconeTimeoutError: If the index is not ready within the timeout.
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            pc = Pinecone(api_key="...")
+            index = pc.create_index_from_backup(
+                name="restored-index",
+                backup_id="bk-123",
+            )
+        """
+        require_non_empty("name", name)
+        require_non_empty("backup_id", backup_id)
+
+        body: dict[str, Any] = {"name": name}
+        if deletion_protection is not None:
+            dp_val = (
+                deletion_protection.value
+                if hasattr(deletion_protection, "value")
+                else deletion_protection
+            )
+            body["deletion_protection"] = dp_val
+        if tags is not None:
+            body["tags"] = tags
+
+        from pinecone._internal.adapters.backups_adapter import BackupsAdapter
+
+        response = self._http.post(f"/backups/{backup_id}/create-index", json=body)
+        BackupsAdapter.to_create_index_from_backup_response(response.content)
+
+        if timeout == -1:
+            return self.indexes.describe(name)
+
+        effective_timeout = timeout if timeout is not None else 300
+        return self.indexes._poll_until_ready(name, effective_timeout)
 
     @property
     def config(self) -> PineconeConfig:
