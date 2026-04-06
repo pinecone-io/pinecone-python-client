@@ -85,6 +85,22 @@ def make_backup_response(**overrides: Any) -> dict[str, Any]:
     return base
 
 
+def make_restore_job_response(**overrides: Any) -> dict[str, Any]:
+    """Return a single RestoreJobModel dict (db_control ``GET /restore-jobs/{id}``)."""
+    base: dict[str, Any] = {
+        "restore_job_id": "rj-670e8400-e29b-41d4-a716-446655440001",
+        "backup_id": "670e8400-e29b-41d4-a716-446655440001",
+        "target_index_name": "restored-index",
+        "target_index_id": "idx-670e8400-e29b-41d4-a716-446655440002",
+        "status": "Completed",
+        "created_at": "2025-02-04T12:00:00Z",
+        "completed_at": "2025-02-04T12:15:00Z",
+        "percent_complete": 100.0,
+    }
+    base.update(overrides)
+    return base
+
+
 # ---------------------------------------------------------------------------
 # Data-plane factories
 # ---------------------------------------------------------------------------

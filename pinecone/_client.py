@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from pinecone.client.backups import Backups
     from pinecone.client.collections import Collections
     from pinecone.client.indexes import Indexes
+    from pinecone.client.restore_jobs import RestoreJobs
     from pinecone.index import Index
 
 _DEPRECATED_KWARGS: frozenset[str] = frozenset({"openapi_config", "pool_threads", "index_api"})
@@ -106,6 +107,7 @@ class Pinecone:
         self._indexes: Indexes | None = None
         self._collections: Collections | None = None
         self._backups: Backups | None = None
+        self._restore_jobs: RestoreJobs | None = None
         self._host_cache: dict[str, str] = {}
 
     @property
@@ -170,6 +172,27 @@ class Pinecone:
 
             self._backups = _Backups(http=self._http)
         return self._backups
+
+    @property
+    def restore_jobs(self) -> RestoreJobs:
+        """Access the RestoreJobs namespace for restore job operations.
+
+        Lazily imported and instantiated on first access.
+
+        Returns:
+            RestoreJobs namespace instance.
+
+        Examples:
+
+            pc = Pinecone(api_key="your-api-key")
+            for job in pc.restore_jobs.list():
+                print(job.restore_job_id)
+        """
+        if self._restore_jobs is None:
+            from pinecone.client.restore_jobs import RestoreJobs as _RestoreJobs
+
+            self._restore_jobs = _RestoreJobs(http=self._http)
+        return self._restore_jobs
 
     def index(
         self,

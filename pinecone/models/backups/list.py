@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
 from pinecone.models.backups.model import BackupModel, RestoreJobModel
+
+if TYPE_CHECKING:
+    from pinecone.models.vectors.responses import Pagination
 
 
 class BackupList:
@@ -33,8 +37,14 @@ class BackupList:
 class RestoreJobList:
     """Wrapper around a list of RestoreJobModel with convenience methods."""
 
-    def __init__(self, restore_jobs: list[RestoreJobModel]) -> None:
+    def __init__(
+        self,
+        restore_jobs: list[RestoreJobModel],
+        *,
+        pagination: Pagination | None = None,
+    ) -> None:
         self._restore_jobs = restore_jobs
+        self.pagination = pagination
 
     def __iter__(self) -> Iterator[RestoreJobModel]:
         return iter(self._restore_jobs)
