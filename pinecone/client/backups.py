@@ -56,11 +56,11 @@ class Backups:
             description (str | None): Optional description for the backup.
 
         Returns:
-            A BackupModel describing the created backup.
+            A :class:`BackupModel` describing the created backup.
 
         Raises:
-            ValidationError: If *index_name* is empty.
-            ApiError: If the API returns an error response.
+            :exc:`ValidationError`: If *index_name* is empty.
+            :exc:`ApiError`: If the API returns an error response.
 
         Examples:
 
@@ -97,10 +97,10 @@ class Backups:
             pagination_token (str | None): Token for cursor-based pagination.
 
         Returns:
-            A BackupList supporting iteration, len(), and index access.
+            A :class:`BackupList` supporting iteration, len(), and index access.
 
         Raises:
-            ApiError: If the API returns an error response.
+            :exc:`ApiError`: If the API returns an error response.
 
         Examples:
 
@@ -131,12 +131,12 @@ class Backups:
             backup_id (str): The identifier of the backup to describe.
 
         Returns:
-            A BackupModel with full backup details.
+            A :class:`BackupModel` with full backup details.
 
         Raises:
-            ValidationError: If *backup_id* is empty.
-            NotFoundError: If the backup does not exist.
-            ApiError: If the API returns another error response.
+            :exc:`ValidationError`: If *backup_id* is empty.
+            :exc:`NotFoundError`: If the backup does not exist.
+            :exc:`ApiError`: If the API returns another error response.
 
         Examples:
 
@@ -157,12 +157,12 @@ class Backups:
             backup_id (str): The identifier of the backup.
 
         Returns:
-            A BackupModel with full backup details.
+            A :class:`BackupModel` with full backup details.
 
         Raises:
-            ValidationError: If *backup_id* is empty.
-            NotFoundError: If the backup does not exist.
-            ApiError: If the API returns another error response.
+            :exc:`ValidationError`: If *backup_id* is empty.
+            :exc:`NotFoundError`: If the backup does not exist.
+            :exc:`ApiError`: If the API returns another error response.
 
         Examples:
 
@@ -178,9 +178,9 @@ class Backups:
             backup_id (str): The identifier of the backup to delete.
 
         Raises:
-            ValidationError: If *backup_id* is empty.
-            NotFoundError: If the backup does not exist.
-            ApiError: If the API returns another error response.
+            :exc:`ValidationError`: If *backup_id* is empty.
+            :exc:`NotFoundError`: If the backup does not exist.
+            :exc:`ApiError`: If the API returns another error response.
 
         Examples:
 

@@ -57,10 +57,10 @@ class AsyncRestoreJobs:
             pagination_token (str | None): Token for cursor-based pagination.
 
         Returns:
-            A RestoreJobList supporting iteration, len(), and index access.
+            A :class:`RestoreJobList` supporting iteration, len(), and index access.
 
         Raises:
-            ApiError: If the API returns an error response.
+            :exc:`ApiError`: If the API returns an error response.
 
         Examples:
 
@@ -87,12 +87,12 @@ class AsyncRestoreJobs:
             job_id (str): The identifier of the restore job to describe.
 
         Returns:
-            A RestoreJobModel with full restore job details.
+            A :class:`RestoreJobModel` with full restore job details.
 
         Raises:
-            ValidationError: If *job_id* is empty.
-            NotFoundError: If the restore job does not exist.
-            ApiError: If the API returns another error response.
+            :exc:`ValidationError`: If *job_id* is empty.
+            :exc:`NotFoundError`: If the restore job does not exist.
+            :exc:`ApiError`: If the API returns another error response.
 
         Examples:
 

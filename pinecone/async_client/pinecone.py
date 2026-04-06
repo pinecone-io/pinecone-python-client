@@ -222,12 +222,12 @@ class AsyncPinecone:
                 blocks up to 300 s. ``-1`` returns immediately without polling.
 
         Returns:
-            An IndexModel describing the restored index.
+            An :class:`IndexModel` describing the restored index.
 
         Raises:
-            ValidationError: If *name* or *backup_id* is empty.
-            PineconeTimeoutError: If the index is not ready within the timeout.
-            ApiError: If the API returns an error response.
+            :exc:`ValidationError`: If *name* or *backup_id* is empty.
+            :exc:`PineconeTimeoutError`: If the index is not ready within the timeout.
+            :exc:`ApiError`: If the API returns an error response.
 
         Examples:
 
