@@ -7,12 +7,15 @@ import os
 from collections.abc import AsyncIterator, Sequence
 from typing import Any
 
+from pinecone._internal.adapters.imports_adapter import ImportsAdapter
 from pinecone._internal.adapters.vectors_adapter import VectorsAdapter
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import ValidationError
 from pinecone.index import _validate_host, _vector_to_dict
+from pinecone.models.imports.list import ImportList
+from pinecone.models.imports.model import ImportModel, StartImportResponse
 from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
@@ -85,6 +88,7 @@ class AsyncIndex:
 
         self._http = AsyncHTTPClient(config, DATA_PLANE_API_VERSION)
         self._adapter = VectorsAdapter()
+        self._imports_adapter = ImportsAdapter()
 
         logger.info("AsyncIndex client created for host %s", self._host)
 
@@ -778,6 +782,198 @@ class AsyncIndex:
                 pagination_token = page.pagination.next
             else:
                 break
+
+    def _validate_import_id(self, id: str | int) -> str:
+        """Validate and normalize an import operation ID.
+
+        Args:
+            id: Import operation ID. If int, converted to str silently.
+
+        Returns:
+            The validated string ID.
+
+        Raises:
+            ValidationError: If the ID is empty or exceeds 1000 characters.
+        """
+        str_id = str(id) if isinstance(id, int) else id
+        if not str_id or len(str_id) > 1000:
+            raise ValidationError(
+                f"import id must be between 1 and 1000 characters, got {len(str_id) if str_id else 0}"
+            )
+        return str_id
+
+    async def start_import(
+        self,
+        uri: str,
+        *,
+        error_mode: str = "continue",
+        integration_id: str | None = None,
+    ) -> StartImportResponse:
+        """Start a bulk import operation from an external data source.
+
+        Args:
+            uri (str): Source URI for the import data.
+            error_mode (str): How to handle errors during import. Must be
+                ``"continue"`` (default) or ``"abort"``. Case-insensitive.
+            integration_id (str | None): Optional integration ID for the import.
+
+        Returns:
+            StartImportResponse with the ID of the created import operation.
+
+        Raises:
+            ValidationError: If ``error_mode`` is not ``"continue"`` or ``"abort"``.
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            response = await idx.start_import(
+                uri="s3://my-bucket/my-data/",
+                error_mode="continue",
+            )
+            print(response.id)
+        """
+        error_mode = error_mode.lower()
+        if error_mode not in ("continue", "abort"):
+            raise ValidationError(
+                f"error_mode must be 'continue' or 'abort', got {error_mode!r}"
+            )
+
+        body: dict[str, Any] = {
+            "uri": uri,
+            "errorMode": {"onError": error_mode},
+        }
+        if integration_id is not None:
+            body["integrationId"] = integration_id
+
+        logger.info("Starting bulk import from %s", uri)
+        response = await self._http.post("/bulk/imports", json=body)
+        return self._imports_adapter.to_start_import_response(response.content)
+
+    async def describe_import(self, id: str | int) -> ImportModel:
+        """Describe a bulk import operation by ID.
+
+        Args:
+            id: Import operation ID. Integers are converted to strings silently.
+
+        Returns:
+            ImportModel with the import operation details.
+
+        Raises:
+            ValidationError: If the ID is empty or exceeds 1000 characters.
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            import_op = await idx.describe_import("import-123")
+            print(import_op.status, import_op.percent_complete)
+        """
+        str_id = self._validate_import_id(id)
+        logger.info("Describing import %s", str_id)
+        response = await self._http.get(f"/bulk/imports/{str_id}")
+        return self._imports_adapter.to_import_model(response.content)
+
+    async def cancel_import(self, id: str | int) -> None:
+        """Cancel a bulk import operation by ID.
+
+        Args:
+            id: Import operation ID. Integers are converted to strings silently.
+
+        Returns:
+            None — a successful cancellation returns no payload.
+
+        Raises:
+            ValidationError: If the ID is empty or exceeds 1000 characters.
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            await idx.cancel_import("import-123")
+        """
+        str_id = self._validate_import_id(id)
+        logger.info("Cancelling import %s", str_id)
+        await self._http.delete(f"/bulk/imports/{str_id}")
+
+    async def list_imports(
+        self,
+        *,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+    ) -> AsyncIterator[ImportModel]:
+        """List bulk import operations, automatically following pagination.
+
+        Yields individual :class:`ImportModel` objects, fetching additional
+        pages transparently until all results have been returned.
+
+        Args:
+            limit (int | None): Maximum number of imports per page
+                (max 100, server default 100).
+            pagination_token (str | None): Token to resume pagination
+                from a previous call.
+
+        Yields:
+            ImportModel for each import operation.
+
+        Raises:
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            async for imp in idx.list_imports():
+                print(imp.id, imp.status)
+        """
+        params: dict[str, Any] = {}
+        if limit is not None:
+            params["limit"] = limit
+        if pagination_token is not None:
+            params["paginationToken"] = pagination_token
+
+        while True:
+            response = await self._http.get("/bulk/imports", params=params)
+            import_list, next_token = self._imports_adapter.to_import_list_with_pagination(
+                response.content
+            )
+            for item in import_list:
+                yield item
+            if next_token is None:
+                break
+            params["paginationToken"] = next_token
+
+    async def list_imports_paginated(
+        self,
+        *,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+    ) -> ImportList:
+        """Fetch a single page of bulk import operations.
+
+        Returns an :class:`ImportList` for one page. The caller is responsible
+        for managing the pagination token.
+
+        Args:
+            limit (int | None): Maximum number of imports to return in this page.
+            pagination_token (str | None): Token from a previous response to
+                fetch the next page.
+
+        Returns:
+            ImportList with the import operations for the requested page.
+
+        Raises:
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            page = await idx.list_imports_paginated(limit=10)
+            for imp in page:
+                print(imp.id, imp.status)
+        """
+        params: dict[str, Any] = {}
+        if limit is not None:
+            params["limit"] = limit
+        if pagination_token is not None:
+            params["paginationToken"] = pagination_token
+
+        response = await self._http.get("/bulk/imports", params=params)
+        return self._imports_adapter.to_import_list(response.content)
 
     async def close(self) -> None:
         """Close the underlying HTTP client and release resources."""
