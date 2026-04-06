@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import AsyncIterator
 from typing import Any
 
 from pinecone._internal.adapters.vectors_adapter import VectorsAdapter
@@ -11,7 +12,13 @@ from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone.errors.exceptions import ValidationError
 from pinecone.index import _validate_host
-from pinecone.models.vectors.responses import FetchResponse, QueryResponse, UpdateResponse
+from pinecone.models.vectors.responses import (
+    DescribeIndexStatsResponse,
+    FetchResponse,
+    ListResponse,
+    QueryResponse,
+    UpdateResponse,
+)
 from pinecone.models.vectors.sparse import SparseValues
 
 logger = logging.getLogger(__name__)
@@ -291,6 +298,104 @@ class AsyncIndex:
         logger.info("Updating vectors in namespace %r", namespace)
         response = await self._http.post("/vectors/update", json=body)
         return self._adapter.to_update_response(response.content)
+
+    async def list_paginated(
+        self,
+        *,
+        prefix: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        namespace: str = "",
+    ) -> ListResponse:
+        """Fetch a single page of vector IDs from a namespace.
+
+        Args:
+            prefix (str | None): Return only IDs starting with this prefix.
+            limit (int | None): Maximum number of IDs to return in this page.
+            pagination_token (str | None): Token from a previous response to fetch the next page.
+            namespace (str): Namespace to list from. Defaults to the default namespace.
+
+        Returns:
+            ListResponse with vector IDs, pagination info, namespace, and usage.
+
+        Raises:
+            ValidationError: If inputs are invalid.
+            ApiError: If the API returns an error response.
+        """
+        params: dict[str, Any] = {"namespace": namespace}
+        if prefix is not None:
+            params["prefix"] = prefix
+        if limit is not None:
+            params["limit"] = limit
+        if pagination_token is not None:
+            params["paginationToken"] = pagination_token
+
+        logger.info("Listing vectors in namespace %r", namespace)
+        response = await self._http.get("/vectors/list", params=params)
+        return self._adapter.to_list_response(response.content)
+
+    async def list(
+        self,
+        *,
+        prefix: str | None = None,
+        limit: int | None = None,
+        namespace: str = "",
+    ) -> AsyncIterator[ListResponse]:
+        """List vector IDs in a namespace, automatically following pagination.
+
+        Yields one ``ListResponse`` per page. The generator automatically
+        follows pagination tokens until all pages have been retrieved.
+
+        Args:
+            prefix (str | None): Return only IDs starting with this prefix.
+            limit (int | None): Maximum number of IDs to return per page.
+            namespace (str): Namespace to list from. Defaults to the default namespace.
+
+        Yields:
+            ListResponse for each page of results.
+        """
+        pagination_token: str | None = None
+        while True:
+            page = await self.list_paginated(
+                prefix=prefix,
+                limit=limit,
+                pagination_token=pagination_token,
+                namespace=namespace,
+            )
+            yield page
+            if page.pagination is not None and page.pagination.next is not None:
+                pagination_token = page.pagination.next
+            else:
+                break
+
+    async def describe_index_stats(
+        self,
+        *,
+        filter: dict[str, Any] | None = None,
+    ) -> DescribeIndexStatsResponse:
+        """Return statistics for this index.
+
+        Returns aggregate statistics including total vector count,
+        per-namespace vector counts, dimension, and index fullness.
+
+        Args:
+            filter (dict[str, Any] | None): Metadata filter expression. When
+                provided, only vectors matching the filter are counted.
+
+        Returns:
+            DescribeIndexStatsResponse with namespace summaries, dimension,
+            total vector count, and fullness metrics.
+
+        Raises:
+            ApiError: If the API returns an error response.
+        """
+        body: dict[str, Any] = {}
+        if filter is not None:
+            body["filter"] = filter
+
+        logger.info("Describing index stats")
+        response = await self._http.post("/describe_index_stats", json=body)
+        return self._adapter.to_stats_response(response.content)
 
     async def close(self) -> None:
         """Close the underlying HTTP client and release resources."""

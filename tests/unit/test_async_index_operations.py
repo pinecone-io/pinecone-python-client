@@ -11,7 +11,13 @@ import respx
 
 from pinecone import AsyncIndex
 from pinecone.errors.exceptions import ValidationError
-from pinecone.models.vectors.responses import FetchResponse, QueryResponse, UpdateResponse
+from pinecone.models.vectors.responses import (
+    DescribeIndexStatsResponse,
+    FetchResponse,
+    ListResponse,
+    QueryResponse,
+    UpdateResponse,
+)
 
 INDEX_HOST = "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
 INDEX_HOST_HTTPS = f"https://{INDEX_HOST}"
@@ -19,6 +25,8 @@ QUERY_URL = f"{INDEX_HOST_HTTPS}/query"
 FETCH_URL = f"{INDEX_HOST_HTTPS}/vectors/fetch"
 DELETE_URL = f"{INDEX_HOST_HTTPS}/vectors/delete"
 UPDATE_URL = f"{INDEX_HOST_HTTPS}/vectors/update"
+LIST_URL = f"{INDEX_HOST_HTTPS}/vectors/list"
+STATS_URL = f"{INDEX_HOST_HTTPS}/describe_index_stats"
 
 
 def _make_async_index() -> AsyncIndex:
@@ -346,3 +354,205 @@ class TestAsyncUpdate:
         idx = _make_async_index()
         with pytest.raises(TypeError):
             await idx.update("vec1")  # type: ignore[misc]
+
+
+# ---------------------------------------------------------------------------
+# AsyncIndex.list_paginated()
+# ---------------------------------------------------------------------------
+
+
+class TestAsyncListPaginated:
+    """Async list_paginated operations."""
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_list_paginated_basic(self) -> None:
+        respx.get(LIST_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "vectors": [{"id": "v1"}],
+                    "pagination": {"next": None},
+                    "namespace": "",
+                    "usage": {"readUnits": 1},
+                },
+            ),
+        )
+        idx = _make_async_index()
+        result = await idx.list_paginated()
+
+        assert isinstance(result, ListResponse)
+        assert len(result.vectors) == 1
+        assert result.vectors[0].id == "v1"
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_list_paginated_with_prefix(self) -> None:
+        route = respx.get(LIST_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "vectors": [{"id": "doc#1"}],
+                    "pagination": {"next": None},
+                    "namespace": "",
+                    "usage": {"readUnits": 1},
+                },
+            ),
+        )
+        idx = _make_async_index()
+        await idx.list_paginated(prefix="doc#")
+
+        request_url = str(route.calls.last.request.url)
+        assert "prefix=doc" in request_url
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_list_paginated_with_pagination_token(self) -> None:
+        route = respx.get(LIST_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "vectors": [{"id": "v2"}],
+                    "pagination": {"next": None},
+                    "namespace": "",
+                    "usage": {"readUnits": 1},
+                },
+            ),
+        )
+        idx = _make_async_index()
+        await idx.list_paginated(pagination_token="abc")
+
+        request_url = str(route.calls.last.request.url)
+        assert "paginationToken=abc" in request_url
+
+    @pytest.mark.asyncio
+    async def test_list_paginated_keyword_only(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(TypeError):
+            await idx.list_paginated("prefix")  # type: ignore[misc]
+
+
+# ---------------------------------------------------------------------------
+# AsyncIndex.list()
+# ---------------------------------------------------------------------------
+
+
+class TestAsyncList:
+    """Async list (auto-paginating) operations."""
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_list_auto_paginates(self) -> None:
+        call_count = 0
+
+        def _side_effect(request: httpx.Request) -> httpx.Response:
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return httpx.Response(
+                    200,
+                    json={
+                        "vectors": [{"id": "v1"}],
+                        "pagination": {"next": "tok2"},
+                        "namespace": "",
+                        "usage": {"readUnits": 1},
+                    },
+                )
+            return httpx.Response(
+                200,
+                json={
+                    "vectors": [{"id": "v2"}],
+                    "pagination": None,
+                    "namespace": "",
+                    "usage": {"readUnits": 1},
+                },
+            )
+
+        respx.get(LIST_URL).mock(side_effect=_side_effect)
+        idx = _make_async_index()
+        pages: list[ListResponse] = []
+        async for page in idx.list():
+            pages.append(page)
+
+        assert len(pages) == 2
+        assert pages[0].vectors[0].id == "v1"
+        assert pages[1].vectors[0].id == "v2"
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_list_single_page(self) -> None:
+        respx.get(LIST_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "vectors": [{"id": "v1"}],
+                    "pagination": None,
+                    "namespace": "",
+                    "usage": {"readUnits": 1},
+                },
+            ),
+        )
+        idx = _make_async_index()
+        pages: list[ListResponse] = []
+        async for page in idx.list():
+            pages.append(page)
+
+        assert len(pages) == 1
+
+
+# ---------------------------------------------------------------------------
+# AsyncIndex.describe_index_stats()
+# ---------------------------------------------------------------------------
+
+
+class TestAsyncDescribeIndexStats:
+    """Async describe_index_stats operations."""
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_stats_without_filter(self) -> None:
+        respx.post(STATS_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "namespaces": {"": {"vectorCount": 100}},
+                    "dimension": 128,
+                    "indexFullness": 0.5,
+                    "totalVectorCount": 100,
+                },
+            ),
+        )
+        idx = _make_async_index()
+        result = await idx.describe_index_stats()
+
+        assert isinstance(result, DescribeIndexStatsResponse)
+        assert result.total_vector_count == 100
+        assert result.dimension == 128
+        assert result.index_fullness == pytest.approx(0.5)
+        assert "" in result.namespaces
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_stats_with_filter(self) -> None:
+        route = respx.post(STATS_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "namespaces": {"": {"vectorCount": 10}},
+                    "dimension": 128,
+                    "indexFullness": 0.5,
+                    "totalVectorCount": 10,
+                },
+            ),
+        )
+        idx = _make_async_index()
+        await idx.describe_index_stats(filter={"genre": {"$eq": "drama"}})
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["filter"] == {"genre": {"$eq": "drama"}}
+
+    @pytest.mark.asyncio
+    async def test_stats_keyword_only(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(TypeError):
+            await idx.describe_index_stats({"genre": {"$eq": "drama"}})  # type: ignore[misc]
