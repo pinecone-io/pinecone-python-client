@@ -1,0 +1,91 @@
+"""Search records response models."""
+
+from __future__ import annotations
+
+from typing import Any
+
+from msgspec import Struct
+
+
+class SearchUsage(Struct, kw_only=True):
+    """Usage statistics for a search operation.
+
+    Attributes:
+        read_units: Number of read units consumed.
+        embed_total_tokens: Total tokens used for embedding, or ``None``
+            if the search did not use integrated embedding.
+        rerank_units: Number of rerank units consumed, or ``None`` if the
+            search did not use reranking.
+    """
+
+    read_units: int
+    embed_total_tokens: int | None = None
+    rerank_units: int | None = None
+
+
+class Hit(Struct, kw_only=True, rename={"id_": "_id", "score_": "_score"}):
+    """A single search result hit.
+
+    The API returns ``_id`` and ``_score`` as field names. These are mapped
+    to ``id_`` and ``score_`` internally (to avoid Python name mangling),
+    with convenience properties ``id`` and ``score`` for clean access.
+
+    Attributes:
+        id_: The record identifier (wire name ``_id``).
+        score_: The similarity score (wire name ``_score``).
+        fields: Record fields included in the result.
+    """
+
+    id_: str
+    score_: float
+    fields: dict[str, Any] = {}
+
+    @property
+    def id(self) -> str:
+        """Alias for ``id_`` to provide a cleaner API."""
+        return self.id_
+
+    @property
+    def score(self) -> float:
+        """Alias for ``score_`` to provide a cleaner API."""
+        return self.score_
+
+    def __getitem__(self, key: str) -> Any:
+        """Support bracket access (e.g. ``hit['id']``)."""
+        if key == "id":
+            return self.id_
+        if key == "score":
+            return self.score_
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError(key) from None
+
+
+class SearchResult(Struct, kw_only=True):
+    """The result wrapper containing hits.
+
+    Attributes:
+        hits: List of search result hits.
+    """
+
+    hits: list[Hit] = []
+
+
+class SearchRecordsResponse(Struct, kw_only=True):
+    """Response from a search records operation.
+
+    Attributes:
+        result: Wrapper containing the list of hits.
+        usage: Usage statistics for the search operation.
+    """
+
+    result: SearchResult
+    usage: SearchUsage
+
+    def __getitem__(self, key: str) -> Any:
+        """Support bracket access (e.g. ``response['result']``)."""
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError(key) from None

@@ -17,6 +17,7 @@ from pinecone.models.vectors.responses import (
     UpdateResponse,
     UpsertResponse,
 )
+from pinecone.models.vectors.search import SearchRecordsResponse
 
 
 class VectorsAdapter:
@@ -78,6 +79,15 @@ class VectorsAdapter:
             - Direct decode; camelCase handled by Struct rename.
         """
         return msgspec.json.decode(data, type=UpdateResponse)
+
+    @staticmethod
+    def to_search_response(data: bytes) -> SearchRecordsResponse:
+        """Decode raw JSON bytes into a SearchRecordsResponse.
+
+        Transformations:
+            - Direct decode; search API uses snake_case natively.
+        """
+        return msgspec.json.decode(data, type=SearchRecordsResponse)
 
     @staticmethod
     def to_delete_response(data: bytes) -> None:
