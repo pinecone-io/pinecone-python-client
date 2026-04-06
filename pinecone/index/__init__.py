@@ -6,9 +6,11 @@ import logging
 import os
 from typing import Any
 
+from pinecone._internal.adapters.vectors_adapter import VectorsAdapter
 from pinecone._internal.config import PineconeConfig, normalize_host
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone.errors.exceptions import ValidationError
+from pinecone.models.vectors.responses import QueryResponse
 
 logger = logging.getLogger(__name__)
 
@@ -88,6 +90,7 @@ class Index:
         from pinecone._internal.http_client import HTTPClient
 
         self._http = HTTPClient(config, DATA_PLANE_API_VERSION)
+        self._adapter = VectorsAdapter()
 
         logger.info("Index client created for host %s", self._host)
 
@@ -95,6 +98,74 @@ class Index:
     def host(self) -> str:
         """The data plane host URL for this index."""
         return self._host
+
+    def query(
+        self,
+        *,
+        top_k: int,
+        vector: list[float] | None = None,
+        id: str | None = None,
+        namespace: str = "",
+        filter: dict[str, Any] | None = None,
+        include_values: bool = False,
+        include_metadata: bool = False,
+        sparse_vector: dict[str, Any] | None = None,
+    ) -> QueryResponse:
+        """Query a namespace for the nearest neighbors of a vector.
+
+        Args:
+            top_k: Number of results to return (must be >= 1).
+            vector: Dense query vector values.
+            id: ID of a stored vector to use as the query.
+            namespace: Namespace to query. Defaults to the default namespace.
+            filter: Metadata filter expression.
+            include_values: Whether to include vector values in results.
+            include_metadata: Whether to include metadata in results.
+            sparse_vector: Sparse query vector with indices and values.
+
+        Returns:
+            QueryResponse with matches, namespace, and usage info.
+
+        Raises:
+            ValidationError: If top_k < 1, or both/neither vector and id provided.
+
+        Example::
+
+            response = idx.query(top_k=10, vector=[0.1, 0.2, 0.3])
+            for match in response.matches:
+                print(match.id, match.score)
+        """
+        if top_k < 1:
+            raise ValidationError(f"top_k must be a positive integer, got {top_k}")
+
+        has_vector = vector is not None
+        has_id = id is not None
+        if has_vector and has_id:
+            raise ValidationError("Exactly one of vector or id must be provided, not both")
+        if not has_vector and not has_id:
+            raise ValidationError("Exactly one of vector or id must be provided, got neither")
+
+        body: dict[str, Any] = {
+            "topK": top_k,
+            "includeValues": include_values,
+            "includeMetadata": include_metadata,
+        }
+        if namespace:
+            body["namespace"] = namespace
+        if vector is not None:
+            body["vector"] = vector
+        if id is not None:
+            body["id"] = id
+        if filter is not None:
+            body["filter"] = filter
+        if sparse_vector is not None:
+            body["sparseVector"] = sparse_vector
+
+        logger.info("Querying index with top_k=%d", top_k)
+        response = self._http.post("/query", json=body)
+        result = self._adapter.to_query_response(response.content)
+        logger.debug("Query returned %d matches", len(result.matches))
+        return result
 
     def close(self) -> None:
         """Close the underlying HTTP client and release resources."""
