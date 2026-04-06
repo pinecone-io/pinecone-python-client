@@ -128,10 +128,15 @@ def normalize_rerank_documents(
         A list of dicts with ``"text"`` keys.
 
     Raises:
+        TypeError: If documents is not a list or contains invalid element types.
         ValueError: If documents is empty.
     """
+    if not isinstance(documents, list):
+        raise TypeError("documents must be a list of strings or list of dictionaries")
     if len(documents) == 0:
         raise ValueError("documents must not be empty")
+    if not all(isinstance(d, (str, dict)) for d in documents):
+        raise TypeError("each document must be a string or dictionary")
     if isinstance(documents[0], str):
         return [{"text": s} for s in documents]
     return documents  # type: ignore[return-value]
