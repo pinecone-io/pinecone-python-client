@@ -131,6 +131,49 @@ class Indexes:
         except NotFoundError:
             return False
 
+    def delete(self, name: str, *, timeout: int | None = None) -> None:
+        """Delete an index by name.
+
+        After sending the delete request, removes the cached host URL
+        for the index. By default, polls until the index disappears.
+
+        Args:
+            name: The name of the index to delete.
+            timeout: Seconds to wait for the index to disappear.
+                Use ``-1`` to return immediately without polling.
+                Use ``None`` (default) to poll indefinitely.
+                Use a positive int to poll with a deadline.
+
+        Raises:
+            ValidationError: If *name* is empty.
+            NotFoundError: If the index does not exist.
+            PineconeError: If the index still exists after *timeout* seconds.
+
+        Example::
+
+            pc.indexes.delete("my-index")
+        """
+        require_non_empty("name", name)
+        logger.info("Deleting index %r", name)
+        self._http.delete(f"/indexes/{name}")
+        self._host_cache.pop(name, None)
+        logger.debug("Deleted index %r", name)
+
+        if timeout == -1:
+            return
+
+        start = time.monotonic()
+        while True:
+            try:
+                self.describe(name)
+            except NotFoundError:
+                return
+            if timeout is not None:
+                elapsed = time.monotonic() - start
+                if elapsed >= timeout:
+                    raise PineconeError(f"Index {name!r} still exists after {timeout}s")
+            time.sleep(_POLL_INTERVAL_SECONDS)
+
     def create(
         self,
         *,
