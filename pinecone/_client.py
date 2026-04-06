@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from pinecone.client.backups import Backups
     from pinecone.client.collections import Collections
     from pinecone.client.indexes import Indexes
+    from pinecone.client.inference import Inference
     from pinecone.client.restore_jobs import RestoreJobs
     from pinecone.index import Index
     from pinecone.models.enums import DeletionProtection
@@ -111,6 +112,7 @@ class Pinecone:
         self._collections: Collections | None = None
         self._backups: Backups | None = None
         self._restore_jobs: RestoreJobs | None = None
+        self._inference: Inference | None = None
         self._host_cache: dict[str, str] = {}
 
     @property
@@ -196,6 +198,29 @@ class Pinecone:
 
             self._restore_jobs = _RestoreJobs(http=self._http)
         return self._restore_jobs
+
+    @property
+    def inference(self) -> Inference:
+        """Access the Inference namespace for embed and rerank operations.
+
+        Lazily imported and instantiated on first access.
+
+        Returns:
+            Inference namespace instance.
+
+        Examples:
+
+            pc = Pinecone(api_key="your-api-key")
+            embeddings = pc.inference.embed(
+                model="multilingual-e5-large",
+                inputs=["Hello, world!"],
+            )
+        """
+        if self._inference is None:
+            from pinecone.client.inference import Inference as _Inference
+
+            self._inference = _Inference(config=self._config)
+        return self._inference
 
     def index(
         self,
