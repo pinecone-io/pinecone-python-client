@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch
-
 import pytest
 
-from pinecone._internal.constants import DEFAULT_BASE_URL
 from pinecone.async_client.pinecone import AsyncPinecone
 from pinecone.errors.exceptions import ValidationError
 

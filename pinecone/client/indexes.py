@@ -3,13 +3,17 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+import time
+from typing import TYPE_CHECKING, Any
+
+import msgspec
 
 from pinecone._internal.adapters.indexes_adapter import IndexesAdapter
 from pinecone._internal.validation import require_non_empty
-from pinecone.errors.exceptions import NotFoundError
+from pinecone.errors.exceptions import NotFoundError, PineconeError, ValidationError
 from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.list import IndexList
+from pinecone.models.indexes.specs import PodSpec, ServerlessSpec
 
 if TYPE_CHECKING:
     from pinecone._internal.http_client import HTTPClient
@@ -18,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 _VALID_METRICS = frozenset({"cosine", "euclidean", "dotproduct"})
 _VALID_DELETION_PROTECTION = frozenset({"enabled", "disabled"})
+_POLL_INTERVAL_SECONDS = 5
 
 
 class Indexes:
@@ -125,3 +130,168 @@ class Indexes:
             return True
         except NotFoundError:
             return False
+
+    def create(
+        self,
+        *,
+        name: str,
+        spec: ServerlessSpec | PodSpec | dict[str, Any],
+        dimension: int | None = None,
+        metric: str = "cosine",
+        vector_type: str = "dense",
+        deletion_protection: str = "disabled",
+        tags: dict[str, str] | None = None,
+        timeout: int | None = None,
+    ) -> IndexModel:
+        """Create a new Pinecone index.
+
+        Supports serverless and pod-based index creation. For integrated
+        (model-backed) indexes, see a future release.
+
+        Args:
+            name: Name for the new index.
+            spec: Deployment spec — a ServerlessSpec, PodSpec, or raw dict.
+            dimension: Vector dimension (required for dense indexes).
+            metric: Similarity metric (cosine, euclidean, dotproduct).
+            vector_type: Vector type (dense or sparse).
+            deletion_protection: Whether deletion protection is enabled.
+            tags: Optional key-value tags.
+            timeout: Seconds to wait for the index to become ready.
+                Use ``-1`` to return immediately without polling.
+                Use ``None`` (default) to return immediately.
+
+        Returns:
+            An IndexModel describing the created index.
+
+        Raises:
+            ValidationError: If inputs fail client-side validation.
+            PineconeError: If the index fails to initialise or times out.
+
+        Example::
+
+            pc.indexes.create(
+                name="my-index",
+                dimension=1536,
+                spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            )
+        """
+        self._validate_create_inputs(
+            name=name,
+            spec=spec,
+            dimension=dimension,
+            metric=metric,
+            vector_type=vector_type,
+            deletion_protection=deletion_protection,
+        )
+
+        body = self._build_create_body(
+            name=name,
+            spec=spec,
+            dimension=dimension,
+            metric=metric,
+            vector_type=vector_type,
+            deletion_protection=deletion_protection,
+            tags=tags,
+        )
+
+        logger.info("Creating index %r", name)
+        response = self._http.post("/indexes", json=body)
+        model = self._adapter.to_index_model(response.content)
+        logger.debug("Created index %r", name)
+
+        if timeout is not None and timeout != -1:
+            model = self._poll_until_ready(name, timeout)
+
+        return model
+
+    # ------------------------------------------------------------------
+    # Private helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _resolve_value(value: Any) -> Any:
+        """Extract .value from enum-like objects, pass through otherwise."""
+        return value.value if hasattr(value, "value") else value
+
+    def _validate_create_inputs(
+        self,
+        *,
+        name: str,
+        spec: ServerlessSpec | PodSpec | dict[str, Any],
+        dimension: int | None,
+        metric: str,
+        vector_type: str,
+        deletion_protection: str,
+    ) -> None:
+        """Client-side validation for create() arguments."""
+        require_non_empty("name", name)
+
+        if spec is None:
+            raise ValidationError("spec is required")
+
+        resolved_metric = self._resolve_value(metric)
+        if resolved_metric not in _VALID_METRICS:
+            raise ValidationError(
+                f"metric must be one of {sorted(_VALID_METRICS)}, got {resolved_metric!r}"
+            )
+
+        resolved_dp = self._resolve_value(deletion_protection)
+        if resolved_dp not in _VALID_DELETION_PROTECTION:
+            raise ValidationError(
+                f"deletion_protection must be one of {sorted(_VALID_DELETION_PROTECTION)}, "
+                f"got {resolved_dp!r}"
+            )
+
+        resolved_vt = self._resolve_value(vector_type)
+        if resolved_vt != "sparse" and dimension is None:
+            raise ValidationError("dimension is required for dense indexes")
+
+    @staticmethod
+    def _build_create_body(
+        *,
+        name: str,
+        spec: ServerlessSpec | PodSpec | dict[str, Any],
+        dimension: int | None,
+        metric: str,
+        vector_type: str,
+        deletion_protection: str,
+        tags: dict[str, str] | None,
+    ) -> dict[str, Any]:
+        """Build the JSON body for POST /indexes."""
+
+        def _resolve(val: Any) -> Any:
+            return val.value if hasattr(val, "value") else val
+
+        body: dict[str, Any] = {
+            "name": name,
+            "metric": _resolve(metric),
+            "vector_type": _resolve(vector_type),
+            "deletion_protection": _resolve(deletion_protection),
+        }
+        if dimension is not None:
+            body["dimension"] = dimension
+        if tags is not None:
+            body["tags"] = tags
+
+        if isinstance(spec, ServerlessSpec):
+            body["spec"] = {"serverless": {"cloud": spec.cloud, "region": spec.region}}
+        elif isinstance(spec, PodSpec):
+            body["spec"] = {"pod": msgspec.to_builtins(spec)}
+        elif isinstance(spec, dict):
+            body["spec"] = spec
+
+        return body
+
+    def _poll_until_ready(self, name: str, timeout: int) -> IndexModel:
+        """Poll describe() until the index is ready or timeout is reached."""
+        start = time.monotonic()
+        while True:
+            idx = self.describe(name)
+            if idx.status.ready:
+                return idx
+            if idx.status.state == "InitializationFailed":
+                raise PineconeError(f"Index {name!r} failed to initialize")
+            elapsed = time.monotonic() - start
+            if elapsed >= timeout:
+                raise PineconeError(f"Index {name!r} not ready after {timeout}s")
+            time.sleep(_POLL_INTERVAL_SECONDS)
