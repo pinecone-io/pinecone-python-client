@@ -395,6 +395,11 @@ class Indexes:
                 f"got {resolved_dp!r}"
             )
 
+        if isinstance(spec, dict) and not ({"serverless", "pod"} & spec.keys()):
+            raise ValidationError(
+                "spec dict must contain a 'serverless' or 'pod' key"
+            )
+
         resolved_vt = self._resolve_value(vector_type)
         if resolved_vt == "sparse" and dimension is not None:
             raise ValidationError("dimension must not be provided for sparse indexes")

@@ -471,3 +471,29 @@ def test_create_sparse_with_dimension_raises(indexes: Indexes) -> None:
 
     assert "dimension" in str(exc_info.value)
     assert "sparse" in str(exc_info.value)
+
+
+def test_create_with_unrecognized_dict_spec_raises(indexes: Indexes) -> None:
+    """Dict spec without a recognized key raises ValidationError."""
+    with pytest.raises(ValidationError) as exc_info:
+        indexes.create(
+            name="test-index",
+            dimension=1536,
+            spec={"unknown": {"foo": "bar"}},
+        )
+
+    assert "serverless" in str(exc_info.value)
+    assert "pod" in str(exc_info.value)
+
+
+def test_create_with_empty_dict_spec_raises(indexes: Indexes) -> None:
+    """Empty dict spec raises ValidationError."""
+    with pytest.raises(ValidationError) as exc_info:
+        indexes.create(
+            name="test-index",
+            dimension=1536,
+            spec={},
+        )
+
+    assert "serverless" in str(exc_info.value)
+    assert "pod" in str(exc_info.value)
