@@ -14,6 +14,7 @@ from pinecone.models.enums import (
     EmbedModel,
     Metric,
     PodType,
+    RerankModel,
     VectorType,
 )
 from pinecone.models.indexes.index import IndexModel, IndexStatus
@@ -24,6 +25,19 @@ from pinecone.models.indexes.specs import (
     IntegratedSpec,
     PodSpec,
     ServerlessSpec,
+)
+from pinecone.models.inference import (
+    DenseEmbedding,
+    Embedding,
+    EmbeddingsList,
+    EmbedUsage,
+    ModelInfo,
+    ModelInfoList,
+    ModelInfoSupportedParameter,
+    RankedDocument,
+    RerankResult,
+    RerankUsage,
+    SparseEmbedding,
 )
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
@@ -61,8 +75,20 @@ __all__ = [
     "PodSpec",
     "ByocSpec",
     "EmbedConfig",
+    "DenseEmbedding",
+    "Embedding",
+    "EmbeddingsList",
     "EmbedModel",
+    "EmbedUsage",
     "IntegratedSpec",
+    "ModelInfo",
+    "ModelInfoList",
+    "ModelInfoSupportedParameter",
+    "RankedDocument",
+    "RerankModel",
+    "RerankResult",
+    "RerankUsage",
+    "SparseEmbedding",
     "SparseValues",
     "Usage",
     "Vector",

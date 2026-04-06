@@ -42,6 +42,14 @@ class EmbedModel(str, Enum):
     PINECONE_SPARSE_ENGLISH_V0 = "pinecone-sparse-english-v0"
 
 
+class RerankModel(str, Enum):
+    """Known reranking models."""
+
+    BGE_RERANKER_V2_M3 = "bge-reranker-v2-m3"
+    COHERE_RERANK_3_5 = "cohere-rerank-3.5"
+    PINECONE_RERANK_V0 = "pinecone-rerank-v0"
+
+
 class PodType(str, Enum):
     """Supported pod type and size combinations."""
 
