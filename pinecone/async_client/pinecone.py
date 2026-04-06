@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION, DEFAULT_BASE_URL
-from pinecone._internal.http_client import AsyncHTTPClient
 from pinecone.errors.exceptions import ValidationError
 
 if TYPE_CHECKING:
@@ -95,6 +94,9 @@ class AsyncPinecone:
             )
 
         self._config = config
+
+        from pinecone._internal.http_client import AsyncHTTPClient
+
         self._http = AsyncHTTPClient(config, CONTROL_PLANE_API_VERSION)
         self._indexes: AsyncIndexes | None = None
         self._host_cache: dict[str, str] = {}

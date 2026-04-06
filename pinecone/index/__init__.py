@@ -8,7 +8,6 @@ from typing import Any
 
 from pinecone._internal.config import PineconeConfig, normalize_host
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
-from pinecone._internal.http_client import HTTPClient
 from pinecone.errors.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
@@ -85,6 +84,9 @@ class Index:
             additional_headers=additional_headers or {},
         )
         self._config = config
+
+        from pinecone._internal.http_client import HTTPClient
+
         self._http = HTTPClient(config, DATA_PLANE_API_VERSION)
 
         logger.info("Index client created for host %s", self._host)
