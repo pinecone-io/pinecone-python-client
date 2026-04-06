@@ -34,7 +34,7 @@ class Indexes:
     Args:
         http (HTTPClient): HTTP client for making API requests.
 
-    Example::
+    Examples:
 
         from pinecone import Pinecone
 
@@ -62,7 +62,7 @@ class Indexes:
             An IndexList supporting iteration, len(), index access,
             and a names() convenience method.
 
-        Example::
+        Examples:
 
             indexes = pc.indexes.list()
             print(indexes.names())
@@ -92,7 +92,7 @@ class Indexes:
             ValidationError: If *name* is empty.
             NotFoundError: If the index does not exist.
 
-        Example::
+        Examples:
 
             desc = pc.indexes.describe("my-index")
             print(desc.host)
@@ -120,7 +120,7 @@ class Indexes:
         Raises:
             ValidationError: If *name* is empty.
 
-        Example::
+        Examples:
 
             if pc.indexes.exists("my-index"):
                 print("Index found")
@@ -150,7 +150,7 @@ class Indexes:
             NotFoundError: If the index does not exist.
             PineconeError: If the index still exists after *timeout* seconds.
 
-        Example::
+        Examples:
 
             pc.indexes.delete("my-index")
 
@@ -203,7 +203,7 @@ class Indexes:
             ValidationError: If *name* is empty.
             NotFoundError: If the index does not exist.
 
-        Example::
+        Examples:
 
             pc.indexes.configure("my-index", replicas=4)
             pc.indexes.configure("my-index", tags={"env": "prod"})
@@ -276,7 +276,7 @@ class Indexes:
             NotFoundError: If the index disappears during readiness polling.
             PineconeError: If the index fails to initialise or times out.
 
-        Example::
+        Examples:
 
             pc.indexes.create(
                 name="my-index",

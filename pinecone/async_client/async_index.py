@@ -29,7 +29,7 @@ class AsyncIndex:
     Raises:
         ValidationError: If no API key can be resolved or the host is invalid.
 
-    Example::
+    Examples:
 
         from pinecone import AsyncIndex
 

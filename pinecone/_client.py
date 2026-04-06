@@ -37,7 +37,7 @@ class Pinecone:
             These parameters are no longer supported; see the migration guide
             for updated usage.
 
-    Example::
+    Examples:
 
         from pinecone import Pinecone
 
@@ -115,7 +115,7 @@ class Pinecone:
         Returns:
             Indexes namespace instance.
 
-        Example::
+        Examples:
 
             pc = Pinecone(api_key="your-api-key")
             for idx in pc.indexes.list():
@@ -136,7 +136,7 @@ class Pinecone:
         Returns:
             Collections namespace instance.
 
-        Example::
+        Examples:
 
             pc = Pinecone(api_key="your-api-key")
             for col in pc.collections.list():
@@ -169,7 +169,7 @@ class Pinecone:
         Raises:
             ValidationError: If neither *name* nor *host* is provided.
 
-        Example::
+        Examples:
 
             pc = Pinecone(api_key="...")
             idx = pc.index(host="my-index-abc123.svc.pinecone.io")

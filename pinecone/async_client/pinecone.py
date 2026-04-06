@@ -37,7 +37,7 @@ class AsyncPinecone:
             These parameters are no longer supported; see the migration guide
             for updated usage.
 
-    Example::
+    Examples:
 
         from pinecone import AsyncPinecone
 
@@ -116,7 +116,7 @@ class AsyncPinecone:
         Returns:
             AsyncIndexes namespace instance.
 
-        Example::
+        Examples:
 
             async with AsyncPinecone(api_key="your-api-key") as pc:
                 for idx in await pc.indexes.list():
@@ -137,7 +137,7 @@ class AsyncPinecone:
         Returns:
             AsyncCollections namespace instance.
 
-        Example::
+        Examples:
 
             async with AsyncPinecone(api_key="your-api-key") as pc:
                 for col in await pc.collections.list():
@@ -175,7 +175,7 @@ class AsyncPinecone:
         Raises:
             ValidationError: If neither *name* nor *host* is provided.
 
-        Example::
+        Examples:
 
             async with AsyncPinecone(api_key="...") as pc:
                 idx = await pc.index(host="my-index-abc123.svc.pinecone.io")

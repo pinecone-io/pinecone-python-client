@@ -24,7 +24,7 @@ class Collections:
     Args:
         http (HTTPClient): HTTP client for making API requests.
 
-    Example::
+    Examples:
 
         from pinecone import Pinecone
 
@@ -57,7 +57,7 @@ class Collections:
         Raises:
             ValidationError: If *name* or *source* is empty.
 
-        Example::
+        Examples:
 
             col = pc.collections.create(name="my-collection", source="my-index")
             print(col.status)
@@ -80,7 +80,7 @@ class Collections:
             A CollectionList supporting iteration, len(), index access,
             and a names() convenience method.
 
-        Example::
+        Examples:
 
             collections = pc.collections.list()
             print(collections.names())
@@ -107,7 +107,7 @@ class Collections:
             ValidationError: If *name* is empty.
             NotFoundError: If the collection does not exist.
 
-        Example::
+        Examples:
 
             desc = pc.collections.describe("my-collection")
             print(desc.size)
@@ -129,7 +129,7 @@ class Collections:
             ValidationError: If *name* is empty.
             NotFoundError: If the collection does not exist.
 
-        Example::
+        Examples:
 
             pc.collections.delete("my-collection")
         """

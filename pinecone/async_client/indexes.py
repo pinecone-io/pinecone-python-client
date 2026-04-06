@@ -36,7 +36,7 @@ class AsyncIndexes:
     Args:
         http (AsyncHTTPClient): Async HTTP client for making API requests.
 
-    Example::
+    Examples:
 
         from pinecone import AsyncPinecone
 
@@ -64,7 +64,7 @@ class AsyncIndexes:
             An IndexList supporting iteration, len(), index access,
             and a names() convenience method.
 
-        Example::
+        Examples:
 
             async with AsyncPinecone(api_key="your-api-key") as pc:
                 indexes = await pc.indexes.list()
@@ -93,7 +93,7 @@ class AsyncIndexes:
             ValidationError: If *name* is empty.
             NotFoundError: If the index does not exist.
 
-        Example::
+        Examples:
 
             async with AsyncPinecone(api_key="your-api-key") as pc:
                 desc = await pc.indexes.describe("my-index")
@@ -122,7 +122,7 @@ class AsyncIndexes:
         Raises:
             ValidationError: If *name* is empty.
 
-        Example::
+        Examples:
 
             async with AsyncPinecone(api_key="your-api-key") as pc:
                 if await pc.indexes.exists("my-index"):
@@ -153,7 +153,7 @@ class AsyncIndexes:
             NotFoundError: If the index does not exist.
             PineconeError: If the index still exists after *timeout* seconds.
 
-        Example::
+        Examples:
 
             async with AsyncPinecone(api_key="your-api-key") as pc:
                 await pc.indexes.delete("my-index")
@@ -207,7 +207,7 @@ class AsyncIndexes:
             ValidationError: If *name* is empty.
             NotFoundError: If the index does not exist.
 
-        Example::
+        Examples:
 
             async with AsyncPinecone(api_key="your-api-key") as pc:
                 await pc.indexes.configure("my-index", replicas=4)
@@ -280,7 +280,7 @@ class AsyncIndexes:
             NotFoundError: If the index disappears during readiness polling.
             PineconeError: If the index fails to initialise or times out.
 
-        Example::
+        Examples:
 
             async with AsyncPinecone(api_key="your-api-key") as pc:
                 await pc.indexes.create(

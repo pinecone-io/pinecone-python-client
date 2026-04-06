@@ -24,7 +24,7 @@ class AsyncCollections:
     Args:
         http (AsyncHTTPClient): Async HTTP client for making API requests.
 
-    Example::
+    Examples:
 
         from pinecone import AsyncPinecone
 
@@ -57,7 +57,7 @@ class AsyncCollections:
         Raises:
             ValidationError: If *name* or *source* is empty.
 
-        Example::
+        Examples:
 
             col = await pc.collections.create(name="my-collection", source="my-index")
             print(col.status)
@@ -80,7 +80,7 @@ class AsyncCollections:
             A CollectionList supporting iteration, len(), index access,
             and a names() convenience method.
 
-        Example::
+        Examples:
 
             collections = await pc.collections.list()
             print(collections.names())
@@ -107,7 +107,7 @@ class AsyncCollections:
             ValidationError: If *name* is empty.
             NotFoundError: If the collection does not exist.
 
-        Example::
+        Examples:
 
             desc = await pc.collections.describe("my-collection")
             print(desc.size)
@@ -129,7 +129,7 @@ class AsyncCollections:
             ValidationError: If *name* is empty.
             NotFoundError: If the collection does not exist.
 
-        Example::
+        Examples:
 
             await pc.collections.delete("my-collection")
         """

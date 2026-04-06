@@ -58,7 +58,7 @@ class Index:
     Raises:
         ValidationError: If no API key can be resolved or the host is invalid.
 
-    Example::
+    Examples:
 
         from pinecone import Index
 
@@ -135,7 +135,7 @@ class Index:
         Raises:
             ValidationError: If top_k < 1, or both/neither vector and id provided.
 
-        Example::
+        Examples:
 
             response = idx.query(top_k=10, vector=[0.1, 0.2, 0.3])
             for match in response.matches:
@@ -193,7 +193,7 @@ class Index:
         Raises:
             ValidationError: If ids is empty.
 
-        Example::
+        Examples:
 
             response = idx.fetch(ids=["vec1", "vec2"])
             for vid, vec in response.vectors.items():
@@ -237,7 +237,7 @@ class Index:
         Raises:
             ValidationError: If zero or more than one deletion mode is specified.
 
-        Example::
+        Examples:
 
             # Delete by IDs
             idx.delete(ids=["vec1", "vec2"])
@@ -303,7 +303,7 @@ class Index:
         Raises:
             ValidationError: If both or neither of id and filter are provided.
 
-        Example::
+        Examples:
 
             # Update by ID
             idx.update(id="vec1", values=[0.1, 0.2, 0.3])
@@ -361,7 +361,7 @@ class Index:
         Raises:
             ValidationError: If inputs are invalid.
 
-        Example::
+        Examples:
 
             response = idx.list_paginated(prefix="doc1#", limit=50)
             for item in response.vectors:
@@ -399,7 +399,7 @@ class Index:
         Yields:
             ListResponse for each page of results.
 
-        Example::
+        Examples:
 
             for page in idx.list(prefix="doc1#"):
                 for item in page.vectors:
