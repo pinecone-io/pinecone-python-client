@@ -11,6 +11,7 @@ from pinecone.errors.exceptions import ValidationError
 
 if TYPE_CHECKING:
     from pinecone.client.indexes import Indexes
+    from pinecone.index import Index
 
 _DEPRECATED_KWARGS: frozenset[str] = frozenset({"openapi_config", "pool_threads", "index_api"})
 
@@ -96,6 +97,7 @@ class Pinecone:
         self._config = config
         self._http = HTTPClient(config, CONTROL_PLANE_API_VERSION)
         self._indexes: Indexes | None = None
+        self._host_cache: dict[str, str] = {}
 
     @property
     def indexes(self) -> Indexes:
@@ -117,6 +119,72 @@ class Pinecone:
 
             self._indexes = _Indexes(http=self._http)
         return self._indexes
+
+    def index(
+        self,
+        name: str = "",
+        *,
+        host: str = "",
+    ) -> Index:
+        """Create a data plane client targeting a specific index.
+
+        Can target by host URL directly (skips the describe call) or by
+        index name (triggers a describe-index lookup to resolve the host).
+
+        Args:
+            name: Name of the index. Triggers a describe call to resolve host.
+            host: Direct host URL of the index. Skips the describe call.
+
+        Returns:
+            A sync :class:`Index` data plane client.
+
+        Raises:
+            ValidationError: If neither *name* nor *host* is provided.
+
+        Example::
+
+            pc = Pinecone(api_key="...")
+            idx = pc.index(host="my-index-abc123.svc.pinecone.io")
+            # or
+            idx = pc.index(name="my-index")
+        """
+        if host:
+            from pinecone.index import Index as _Index
+
+            return _Index(
+                host=host,
+                api_key=self._config.api_key,
+                additional_headers=dict(self._config.additional_headers),
+                timeout=self._config.timeout,
+            )
+
+        if name:
+            # Check cache first
+            cached_host = self._host_cache.get(name)
+            if cached_host:
+                from pinecone.index import Index as _Index
+
+                return _Index(
+                    host=cached_host,
+                    api_key=self._config.api_key,
+                    additional_headers=dict(self._config.additional_headers),
+                    timeout=self._config.timeout,
+                )
+
+            # Resolve host via describe
+            desc = self.indexes.describe(name)
+            self._host_cache[name] = desc.host
+
+            from pinecone.index import Index as _Index
+
+            return _Index(
+                host=desc.host,
+                api_key=self._config.api_key,
+                additional_headers=dict(self._config.additional_headers),
+                timeout=self._config.timeout,
+            )
+
+        raise ValidationError("Either name or host must be provided to create an Index client.")
 
     @property
     def config(self) -> PineconeConfig:

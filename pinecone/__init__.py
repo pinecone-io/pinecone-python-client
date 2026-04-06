@@ -12,11 +12,13 @@ from pinecone.errors.exceptions import (
     UnauthorizedError,
     ValidationError,
 )
+from pinecone.index import Index
 
 __all__ = [
     "__version__",
     "ApiError",
     "ConflictError",
+    "Index",
     "NotFoundError",
     "Pinecone",
     "PineconeConfig",
