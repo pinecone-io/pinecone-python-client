@@ -200,6 +200,7 @@ class Indexes:
 
         Raises:
             ValidationError: If *name* is empty.
+            NotFoundError: If the index does not exist.
 
         Example::
 
@@ -270,6 +271,7 @@ class Indexes:
 
         Raises:
             ValidationError: If inputs fail client-side validation.
+            NotFoundError: If the index disappears during readiness polling.
             PineconeError: If the index fails to initialise or times out.
 
         Example::
