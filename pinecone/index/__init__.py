@@ -557,9 +557,7 @@ class Index:
             body["rerank"] = rerank
 
         logger.info("Searching namespace %r with top_k=%d", namespace, top_k)
-        response = self._http.post(
-            f"/records/namespaces/{namespace}/search", json=body
-        )
+        response = self._http.post(f"/records/namespaces/{namespace}/search", json=body)
         return self._adapter.to_search_response(response.content)
 
     def list_paginated(

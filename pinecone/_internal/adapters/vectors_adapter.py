@@ -9,6 +9,10 @@ from __future__ import annotations
 
 import msgspec
 
+from pinecone.models.namespaces.models import (
+    ListNamespacesResponse,
+    NamespaceDescription,
+)
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
     FetchResponse,
@@ -88,6 +92,24 @@ class VectorsAdapter:
             - Direct decode; search API uses snake_case natively.
         """
         return msgspec.json.decode(data, type=SearchRecordsResponse)
+
+    @staticmethod
+    def to_namespace_description(data: bytes) -> NamespaceDescription:
+        """Decode raw JSON bytes into a NamespaceDescription.
+
+        Transformations:
+            - Direct decode; namespace API uses snake_case natively.
+        """
+        return msgspec.json.decode(data, type=NamespaceDescription)
+
+    @staticmethod
+    def to_list_namespaces_response(data: bytes) -> ListNamespacesResponse:
+        """Decode raw JSON bytes into a ListNamespacesResponse.
+
+        Transformations:
+            - Direct decode; namespace API uses snake_case natively.
+        """
+        return msgspec.json.decode(data, type=ListNamespacesResponse)
 
     @staticmethod
     def to_delete_response(data: bytes) -> None:

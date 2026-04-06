@@ -38,9 +38,7 @@ class TestSearch:
             return_value=httpx.Response(200, json=SEARCH_RESPONSE),
         )
         idx = _make_index()
-        response = idx.search(
-            namespace="test-ns", top_k=10, inputs={"text": "hello"}
-        )
+        response = idx.search(namespace="test-ns", top_k=10, inputs={"text": "hello"})
 
         assert isinstance(response, SearchRecordsResponse)
         assert len(response.result.hits) == 2
