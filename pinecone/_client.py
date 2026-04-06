@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION, DEFAULT_BASE_URL
 from pinecone._internal.http_client import HTTPClient
 from pinecone.errors.exceptions import ValidationError
+
+if TYPE_CHECKING:
+    from pinecone.client.indexes import Indexes
 
 _DEPRECATED_KWARGS: frozenset[str] = frozenset({"openapi_config", "pool_threads", "index_api"})
 
@@ -92,6 +95,28 @@ class Pinecone:
 
         self._config = config
         self._http = HTTPClient(config, CONTROL_PLANE_API_VERSION)
+        self._indexes: Indexes | None = None
+
+    @property
+    def indexes(self) -> Indexes:
+        """Access the Indexes namespace for control-plane index operations.
+
+        Lazily imported and instantiated on first access.
+
+        Returns:
+            Indexes namespace instance.
+
+        Example::
+
+            pc = Pinecone(api_key="your-api-key")
+            for idx in pc.indexes.list():
+                print(idx.name)
+        """
+        if self._indexes is None:
+            from pinecone.client.indexes import Indexes as _Indexes
+
+            self._indexes = _Indexes(http=self._http)
+        return self._indexes
 
     @property
     def config(self) -> PineconeConfig:
