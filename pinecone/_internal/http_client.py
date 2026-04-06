@@ -96,42 +96,55 @@ class HTTPClient:
 
 
 class AsyncHTTPClient:
-    """Asynchronous HTTP client wrapping httpx."""
+    """Asynchronous HTTP client wrapping httpx.
+
+    The underlying ``httpx.AsyncClient`` is created lazily on the first
+    async method call rather than in ``__init__``.  This allows the
+    client to be instantiated in a synchronous context (e.g. module
+    scope) and used later inside an async event loop.
+    """
 
     def __init__(self, config: PineconeConfig, api_version: str) -> None:
         self._config = config
         self._headers = _build_headers(config, api_version)
-        self._client = httpx.AsyncClient(
-            base_url=config.host or DEFAULT_BASE_URL,
-            headers=self._headers,
-            timeout=config.timeout,
-            http2=True,
-        )
+        self._client: httpx.AsyncClient | None = None
+
+    def _ensure_client(self) -> httpx.AsyncClient:
+        """Return the underlying client, creating it on first use."""
+        if self._client is None:
+            self._client = httpx.AsyncClient(
+                base_url=self._config.host or DEFAULT_BASE_URL,
+                headers=self._headers,
+                timeout=self._config.timeout,
+                http2=True,
+            )
+        return self._client
 
     async def get(self, path: str, **kwargs: Any) -> httpx.Response:
-        response = await self._client.get(path, **kwargs)
+        response = await self._ensure_client().get(path, **kwargs)
         _raise_for_status(response)
         return response
 
     async def post(self, path: str, **kwargs: Any) -> httpx.Response:
-        response = await self._client.post(path, **kwargs)
+        response = await self._ensure_client().post(path, **kwargs)
         _raise_for_status(response)
         return response
 
     async def put(self, path: str, **kwargs: Any) -> httpx.Response:
-        response = await self._client.put(path, **kwargs)
+        response = await self._ensure_client().put(path, **kwargs)
         _raise_for_status(response)
         return response
 
     async def patch(self, path: str, **kwargs: Any) -> httpx.Response:
-        response = await self._client.patch(path, **kwargs)
+        response = await self._ensure_client().patch(path, **kwargs)
         _raise_for_status(response)
         return response
 
     async def delete(self, path: str, **kwargs: Any) -> httpx.Response:
-        response = await self._client.delete(path, **kwargs)
+        response = await self._ensure_client().delete(path, **kwargs)
         _raise_for_status(response)
         return response
 
     async def close(self) -> None:
-        await self._client.aclose()
+        if self._client is not None:
+            await self._client.aclose()
