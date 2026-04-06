@@ -225,3 +225,49 @@ class TestListGenerator:
         for call in route.calls:
             assert call.request.url.params["prefix"] == "a"
             assert call.request.url.params["limit"] == "10"
+
+    @respx.mock
+    def test_list_skips_empty_pages(self) -> None:
+        """Generator skips pages with empty vectors (unified-pag-0003)."""
+        respx.get(LIST_URL).mock(
+            side_effect=[
+                httpx.Response(
+                    200,
+                    json=_make_list_response(
+                        vectors=[{"id": "v1"}],
+                        pagination={"next": "tok2"},
+                    ),
+                ),
+                httpx.Response(
+                    200,
+                    json=_make_list_response(
+                        vectors=[],
+                        pagination={"next": "tok3"},
+                    ),
+                ),
+                httpx.Response(
+                    200,
+                    json=_make_list_response(vectors=[{"id": "v2"}]),
+                ),
+            ],
+        )
+        idx = _make_index()
+        pages = list(idx.list())
+
+        assert len(pages) == 2
+        assert pages[0].vectors[0].id == "v1"
+        assert pages[1].vectors[0].id == "v2"
+
+    @respx.mock
+    def test_list_empty_only_pages_yields_nothing(self) -> None:
+        """Generator yields nothing when all pages are empty."""
+        respx.get(LIST_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json=_make_list_response(vectors=[]),
+            ),
+        )
+        idx = _make_index()
+        pages = list(idx.list())
+
+        assert len(pages) == 0

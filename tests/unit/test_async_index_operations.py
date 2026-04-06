@@ -603,6 +603,75 @@ class TestAsyncList:
 
         assert len(pages) == 1
 
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_list_skips_empty_pages(self) -> None:
+        """Generator skips pages with empty vectors (unified-pag-0003)."""
+        call_count = 0
+
+        def _side_effect(request: httpx.Request) -> httpx.Response:
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return httpx.Response(
+                    200,
+                    json={
+                        "vectors": [{"id": "v1"}],
+                        "pagination": {"next": "tok2"},
+                        "namespace": "",
+                        "usage": {"readUnits": 1},
+                    },
+                )
+            if call_count == 2:
+                return httpx.Response(
+                    200,
+                    json={
+                        "vectors": [],
+                        "pagination": {"next": "tok3"},
+                        "namespace": "",
+                        "usage": {"readUnits": 1},
+                    },
+                )
+            return httpx.Response(
+                200,
+                json={
+                    "vectors": [{"id": "v2"}],
+                    "namespace": "",
+                    "usage": {"readUnits": 1},
+                },
+            )
+
+        respx.get(LIST_URL).mock(side_effect=_side_effect)
+        idx = _make_async_index()
+        pages: list[ListResponse] = []
+        async for page in idx.list():
+            pages.append(page)
+
+        assert len(pages) == 2
+        assert pages[0].vectors[0].id == "v1"
+        assert pages[1].vectors[0].id == "v2"
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_list_empty_only_pages_yields_nothing(self) -> None:
+        """Generator yields nothing when all pages are empty."""
+        respx.get(LIST_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "vectors": [],
+                    "namespace": "",
+                    "usage": {"readUnits": 1},
+                },
+            ),
+        )
+        idx = _make_async_index()
+        pages: list[ListResponse] = []
+        async for page in idx.list():
+            pages.append(page)
+
+        assert len(pages) == 0
+
 
 # ---------------------------------------------------------------------------
 # AsyncIndex.describe_index_stats()

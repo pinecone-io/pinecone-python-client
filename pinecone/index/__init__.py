@@ -1131,7 +1131,8 @@ class Index:
                 pagination_token=pagination_token,
                 namespace=namespace,
             )
-            yield page
+            if page.vectors:
+                yield page
             if page.pagination is not None and page.pagination.next is not None:
                 pagination_token = page.pagination.next
             else:
