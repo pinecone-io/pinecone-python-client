@@ -16,20 +16,32 @@ from pinecone.errors.exceptions import (
     UnauthorizedError,
     ValidationError,
 )
+from pinecone.models.enums import (
+    CloudProvider,
+    DeletionProtection,
+    Metric,
+    PodType,
+    VectorType,
+)
 
 __all__ = [
     "__version__",
     "ApiError",
     "AsyncIndex",
     "AsyncPinecone",
+    "CloudProvider",
     "ConflictError",
+    "DeletionProtection",
     "Index",
+    "Metric",
     "NotFoundError",
     "Pinecone",
     "PineconeConfig",
     "PineconeError",
+    "PodType",
     "UnauthorizedError",
     "ValidationError",
+    "VectorType",
 ]
 
 # Lazy-load heavy classes to keep cold import under 10ms.

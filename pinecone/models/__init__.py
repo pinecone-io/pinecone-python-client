@@ -1,5 +1,12 @@
 """msgspec.Struct models for the Pinecone SDK."""
 
+from pinecone.models.enums import (
+    CloudProvider,
+    DeletionProtection,
+    Metric,
+    PodType,
+    VectorType,
+)
 from pinecone.models.indexes.index import IndexModel, IndexStatus
 from pinecone.models.indexes.list import IndexList
 from pinecone.models.indexes.specs import ByocSpec, PodSpec, ServerlessSpec
@@ -16,6 +23,11 @@ from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.vector import ScoredVector, Vector
 
 __all__ = [
+    "CloudProvider",
+    "DeletionProtection",
+    "Metric",
+    "PodType",
+    "VectorType",
     "IndexModel",
     "IndexStatus",
     "IndexList",
