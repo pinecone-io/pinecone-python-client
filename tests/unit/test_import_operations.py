@@ -11,6 +11,7 @@ import respx
 
 from pinecone import Index
 from pinecone.errors.exceptions import ValidationError
+from pinecone.models.imports.list import ImportList
 from pinecone.models.imports.model import ImportModel, StartImportResponse
 
 INDEX_HOST = "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
@@ -229,3 +230,133 @@ class TestValidateImportId:
         idx = _make_index()
         result = idx._validate_import_id(0)
         assert result == "0"
+
+
+# ---------------------------------------------------------------------------
+# list_imports (auto-paginating generator)
+# ---------------------------------------------------------------------------
+
+
+def _make_list_response(
+    imports: list[dict[str, Any]],
+    *,
+    pagination_token: str | None = None,
+) -> dict[str, Any]:
+    """Build a realistic list-imports API response payload."""
+    result: dict[str, Any] = {"data": imports}
+    if pagination_token is not None:
+        result["pagination"] = {"next": pagination_token}
+    return result
+
+
+class TestListImports:
+    """Tests for Index.list_imports()."""
+
+    @respx.mock
+    def test_list_imports_single_page(self) -> None:
+        """Mock GET returning 2 imports with no pagination token, verify yields 2 ImportModel items."""
+        imports = [
+            _make_import_response(id="imp-1", status="Completed"),
+            _make_import_response(id="imp-2", status="Pending"),
+        ]
+        respx.get(IMPORTS_URL).mock(
+            return_value=httpx.Response(200, json=_make_list_response(imports)),
+        )
+        idx = _make_index()
+        results = list(idx.list_imports())
+
+        assert len(results) == 2
+        assert all(isinstance(r, ImportModel) for r in results)
+        assert results[0].id == "imp-1"
+        assert results[1].id == "imp-2"
+
+    @respx.mock
+    def test_list_imports_multi_page(self) -> None:
+        """Mock GET returning page 1 with pagination token, then page 2 without; verify all items yielded in order."""
+        page1_imports = [
+            _make_import_response(id="imp-1"),
+            _make_import_response(id="imp-2"),
+        ]
+        page2_imports = [
+            _make_import_response(id="imp-3"),
+        ]
+        respx.get(IMPORTS_URL).mock(
+            side_effect=[
+                httpx.Response(
+                    200,
+                    json=_make_list_response(page1_imports, pagination_token="tok-abc"),
+                ),
+                httpx.Response(
+                    200,
+                    json=_make_list_response(page2_imports),
+                ),
+            ],
+        )
+        idx = _make_index()
+        results = list(idx.list_imports())
+
+        assert len(results) == 3
+        assert [r.id for r in results] == ["imp-1", "imp-2", "imp-3"]
+
+    @respx.mock
+    def test_list_imports_with_limit(self) -> None:
+        """Verify limit=10 appears in query params."""
+        route = respx.get(IMPORTS_URL).mock(
+            return_value=httpx.Response(200, json=_make_list_response([])),
+        )
+        idx = _make_index()
+        list(idx.list_imports(limit=10))
+
+        request = route.calls.last.request
+        assert request.url.params["limit"] == "10"
+
+    @respx.mock
+    def test_list_imports_empty(self) -> None:
+        """Mock empty response, verify yields nothing."""
+        respx.get(IMPORTS_URL).mock(
+            return_value=httpx.Response(200, json=_make_list_response([])),
+        )
+        idx = _make_index()
+        results = list(idx.list_imports())
+
+        assert results == []
+
+
+# ---------------------------------------------------------------------------
+# list_imports_paginated (single page)
+# ---------------------------------------------------------------------------
+
+
+class TestListImportsPaginated:
+    """Tests for Index.list_imports_paginated()."""
+
+    @respx.mock
+    def test_list_imports_paginated(self) -> None:
+        """Verify returns ImportList (not a generator)."""
+        imports = [
+            _make_import_response(id="imp-1"),
+            _make_import_response(id="imp-2"),
+        ]
+        respx.get(IMPORTS_URL).mock(
+            return_value=httpx.Response(200, json=_make_list_response(imports)),
+        )
+        idx = _make_index()
+        result = idx.list_imports_paginated()
+
+        assert isinstance(result, ImportList)
+        assert len(result) == 2
+        assert result[0].id == "imp-1"
+        assert result[1].id == "imp-2"
+
+    @respx.mock
+    def test_list_imports_paginated_with_params(self) -> None:
+        """Verify limit and paginationToken appear in query params."""
+        route = respx.get(IMPORTS_URL).mock(
+            return_value=httpx.Response(200, json=_make_list_response([])),
+        )
+        idx = _make_index()
+        idx.list_imports_paginated(limit=5, pagination_token="tok-xyz")
+
+        request = route.calls.last.request
+        assert request.url.params["limit"] == "5"
+        assert request.url.params["paginationToken"] == "tok-xyz"

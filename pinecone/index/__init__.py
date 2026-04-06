@@ -13,6 +13,7 @@ from pinecone._internal.config import PineconeConfig, normalize_host
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import ValidationError
+from pinecone.models.imports.list import ImportList
 from pinecone.models.imports.model import ImportModel, StartImportResponse
 from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
 from pinecone.models.vectors.responses import (
@@ -1001,6 +1002,87 @@ class Index:
         str_id = self._validate_import_id(id)
         logger.info("Cancelling import %s", str_id)
         self._http.delete(f"/bulk/imports/{str_id}")
+
+    def list_imports(
+        self,
+        *,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+    ) -> Iterator[ImportModel]:
+        """List bulk import operations, automatically following pagination.
+
+        Yields individual :class:`ImportModel` objects, fetching additional
+        pages transparently until all results have been returned.
+
+        Args:
+            limit (int | None): Maximum number of imports per page
+                (max 100, server default 100).
+            pagination_token (str | None): Token to resume pagination
+                from a previous call.
+
+        Yields:
+            ImportModel for each import operation.
+
+        Raises:
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            for imp in idx.list_imports():
+                print(imp.id, imp.status)
+        """
+        params: dict[str, Any] = {}
+        if limit is not None:
+            params["limit"] = limit
+        if pagination_token is not None:
+            params["paginationToken"] = pagination_token
+
+        while True:
+            response = self._http.get("/bulk/imports", params=params)
+            import_list, next_token = self._imports_adapter.to_import_list_with_pagination(
+                response.content
+            )
+            yield from import_list
+            if next_token is None:
+                break
+            params["paginationToken"] = next_token
+
+    def list_imports_paginated(
+        self,
+        *,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+    ) -> ImportList:
+        """Fetch a single page of bulk import operations.
+
+        Returns an :class:`ImportList` for one page. The caller is responsible
+        for managing the pagination token.
+
+        Args:
+            limit (int | None): Maximum number of imports to return in this page.
+            pagination_token (str | None): Token from a previous response to
+                fetch the next page.
+
+        Returns:
+            ImportList with the import operations for the requested page.
+
+        Raises:
+            ApiError: If the API returns an error response.
+
+        Examples:
+
+            page = idx.list_imports_paginated(limit=10)
+            for imp in page:
+                print(imp.id, imp.status)
+        """
+        params: dict[str, Any] = {}
+        if limit is not None:
+            params["limit"] = limit
+        if pagination_token is not None:
+            params["paginationToken"] = pagination_token
+
+        response = self._http.get("/bulk/imports", params=params)
+        return self._imports_adapter.to_import_list(response.content)
 
     def close(self) -> None:
         """Close the underlying HTTP client and release resources."""
