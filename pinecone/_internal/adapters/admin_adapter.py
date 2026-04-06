@@ -5,6 +5,7 @@ from __future__ import annotations
 import msgspec
 from msgspec import Struct
 
+from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, APIKeyWithSecret
 from pinecone.models.admin.organization import OrganizationList, OrganizationModel
 from pinecone.models.admin.project import ProjectList, ProjectModel
 
@@ -13,6 +14,12 @@ class _OrganizationListEnvelope(Struct, kw_only=True):
     """Internal envelope for the list-organizations response."""
 
     data: list[OrganizationModel] = []
+
+
+class _APIKeyListEnvelope(Struct, kw_only=True):
+    """Internal envelope for the list-api-keys response."""
+
+    data: list[APIKeyModel] = []
 
 
 class _ProjectListEnvelope(Struct, kw_only=True):
@@ -45,3 +52,19 @@ class AdminAdapter:
         """Decode raw JSON bytes from a list-projects response into a ProjectList."""
         envelope = msgspec.json.decode(data, type=_ProjectListEnvelope)
         return ProjectList(envelope.data)
+
+    @staticmethod
+    def to_api_key(data: bytes) -> APIKeyModel:
+        """Decode raw JSON bytes into an APIKeyModel."""
+        return msgspec.json.decode(data, type=APIKeyModel)
+
+    @staticmethod
+    def to_api_key_with_secret(data: bytes) -> APIKeyWithSecret:
+        """Decode raw JSON bytes into an APIKeyWithSecret."""
+        return msgspec.json.decode(data, type=APIKeyWithSecret)
+
+    @staticmethod
+    def to_api_key_list(data: bytes) -> APIKeyList:
+        """Decode raw JSON bytes from a list-api-keys response into an APIKeyList."""
+        envelope = msgspec.json.decode(data, type=_APIKeyListEnvelope)
+        return APIKeyList(envelope.data)
