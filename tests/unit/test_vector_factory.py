@@ -82,10 +82,12 @@ class TestDictFormat:
 
     def test_dict_with_sparse_only(self) -> None:
         """unified-vecfmt-0005: sparse without dense."""
-        result = VectorFactory.build({
-            "id": "v1",
-            "sparse_values": {"indices": [0, 2], "values": [1.0, 0.5]},
-        })
+        result = VectorFactory.build(
+            {
+                "id": "v1",
+                "sparse_values": {"indices": [0, 2], "values": [1.0, 0.5]},
+            }
+        )
         assert result.id == "v1"
         assert result.values == []
         assert result.sparse_values is not None
@@ -93,12 +95,14 @@ class TestDictFormat:
         assert result.sparse_values.values == [1.0, 0.5]
 
     def test_dict_with_all_fields(self) -> None:
-        result = VectorFactory.build({
-            "id": "v1",
-            "values": [0.1],
-            "sparse_values": {"indices": [0], "values": [1.0]},
-            "metadata": {"key": "val"},
-        })
+        result = VectorFactory.build(
+            {
+                "id": "v1",
+                "values": [0.1],
+                "sparse_values": {"indices": [0], "values": [1.0]},
+                "metadata": {"key": "val"},
+            }
+        )
         assert result.id == "v1"
         assert result.values == [0.1]
         assert result.sparse_values is not None
@@ -131,50 +135,62 @@ class TestSparseValuesValidation:
     def test_sparse_mismatched_lengths(self) -> None:
         """unified-vecfmt-0012."""
         with pytest.raises(ValueError, match="same length"):
-            VectorFactory.build({
-                "id": "v1",
-                "sparse_values": {"indices": [0, 1], "values": [1.0]},
-            })
+            VectorFactory.build(
+                {
+                    "id": "v1",
+                    "sparse_values": {"indices": [0, 1], "values": [1.0]},
+                }
+            )
 
     def test_sparse_missing_indices(self) -> None:
         """unified-vecfmt-0013."""
         with pytest.raises(ValueError, match="missing required keys"):
-            VectorFactory.build({
-                "id": "v1",
-                "sparse_values": {"values": [1.0]},
-            })
+            VectorFactory.build(
+                {
+                    "id": "v1",
+                    "sparse_values": {"values": [1.0]},
+                }
+            )
 
     def test_sparse_missing_values(self) -> None:
         """unified-vecfmt-0013."""
         with pytest.raises(ValueError, match="missing required keys"):
-            VectorFactory.build({
-                "id": "v1",
-                "sparse_values": {"indices": [0]},
-            })
+            VectorFactory.build(
+                {
+                    "id": "v1",
+                    "sparse_values": {"indices": [0]},
+                }
+            )
 
     def test_sparse_non_dict_rejected(self) -> None:
         """unified-vecfmt-0014."""
         with pytest.raises(TypeError, match="sparse_values must be a dict"):
-            VectorFactory.build({
-                "id": "v1",
-                "sparse_values": [0, 1.0],
-            })
+            VectorFactory.build(
+                {
+                    "id": "v1",
+                    "sparse_values": [0, 1.0],
+                }
+            )
 
     def test_sparse_string_index_rejected(self) -> None:
         """unified-vecfmt-0015: first-element type check."""
         with pytest.raises(TypeError, match="indices must be integers"):
-            VectorFactory.build({
-                "id": "v1",
-                "sparse_values": {"indices": ["a"], "values": [1.0]},
-            })
+            VectorFactory.build(
+                {
+                    "id": "v1",
+                    "sparse_values": {"indices": ["a"], "values": [1.0]},
+                }
+            )
 
     def test_sparse_string_value_rejected(self) -> None:
         """unified-vecfmt-0015: first-element type check on values."""
         with pytest.raises(TypeError, match="values must be floats"):
-            VectorFactory.build({
-                "id": "v1",
-                "sparse_values": {"indices": [0], "values": ["bad"]},
-            })
+            VectorFactory.build(
+                {
+                    "id": "v1",
+                    "sparse_values": {"indices": [0], "values": ["bad"]},
+                }
+            )
 
 
 class TestGeneralValidation:

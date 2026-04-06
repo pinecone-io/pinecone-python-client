@@ -4,20 +4,23 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from typing import Any
 
 from pinecone._internal.adapters.vectors_adapter import VectorsAdapter
 from pinecone._internal.config import PineconeConfig, normalize_host
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
+from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import ValidationError
 from pinecone.models.vectors.responses import (
     FetchResponse,
     ListResponse,
     QueryResponse,
     UpdateResponse,
+    UpsertResponse,
 )
 from pinecone.models.vectors.sparse import SparseValues
+from pinecone.models.vectors.vector import Vector
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +45,19 @@ def _validate_host(host: str) -> str:
             f"host {host!r} does not appear to be a valid URL (must contain a dot or 'localhost')"
         )
     return normalized
+
+
+def _vector_to_dict(v: Vector) -> dict[str, Any]:
+    """Serialize a Vector to a dict matching the API wire format."""
+    d: dict[str, Any] = {"id": v.id, "values": v.values}
+    if v.sparse_values is not None:
+        d["sparseValues"] = {
+            "indices": v.sparse_values.indices,
+            "values": v.sparse_values.values,
+        }
+    if v.metadata is not None:
+        d["metadata"] = v.metadata
+    return d
 
 
 class Index:
@@ -105,6 +121,68 @@ class Index:
     def host(self) -> str:
         """The data plane host URL for this index."""
         return self._host
+
+    def upsert(
+        self,
+        *,
+        vectors: Sequence[
+            Vector
+            | tuple[str, list[float]]
+            | tuple[str, list[float], dict[str, Any]]
+            | dict[str, Any]
+        ],
+        namespace: str = "",
+    ) -> UpsertResponse:
+        """Upsert a batch of vectors into a namespace.
+
+        If a vector with the same ID already exists in the namespace, it is
+        overwritten.
+
+        Args:
+            vectors: Sequence of vectors to upsert. Each element can be a
+                ``Vector`` instance, a tuple of ``(id, values)`` or
+                ``(id, values, metadata)``, or a dict with ``id``, ``values``,
+                and optional ``sparse_values`` / ``metadata`` keys.
+            namespace (str): Target namespace. Defaults to the default
+                (empty-string) namespace.
+
+        Returns:
+            UpsertResponse with the count of vectors upserted.
+
+        Raises:
+            TypeError: If a vector element is not a recognized format.
+            ValueError: If a vector element is malformed.
+            ApiError: If the API returns an error response (e.g. authentication
+                failure or server error).
+
+        Examples:
+
+            from pinecone import Index
+            from pinecone.models.vectors.vector import Vector
+
+            idx = Index(host="my-index-abc123.svc.pinecone.io", api_key="...")
+            response = idx.upsert(
+                vectors=[
+                    Vector(id="vec1", values=[0.1, 0.2, 0.3]),
+                    ("vec2", [0.4, 0.5, 0.6]),
+                    {"id": "vec3", "values": [0.7, 0.8, 0.9]},
+                ],
+                namespace="my-ns",
+            )
+            print(response.upserted_count)
+        """
+        built = [VectorFactory.build(v) for v in vectors]
+        body: dict[str, Any] = {
+            "vectors": [_vector_to_dict(v) for v in built],
+        }
+        if namespace:
+            body["namespace"] = namespace
+
+        logger.info("Upserting %d vectors into namespace %r", len(built), namespace)
+        response = self._http.post("/vectors/upsert", json=body)
+        result = self._adapter.to_upsert_response(response.content)
+        logger.debug("Upserted %d vectors", result.upserted_count)
+        return result
 
     def query(
         self,
