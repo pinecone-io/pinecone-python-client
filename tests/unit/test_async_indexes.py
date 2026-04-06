@@ -15,10 +15,10 @@ from pinecone._internal.constants import CONTROL_PLANE_API_VERSION
 from pinecone._internal.http_client import AsyncHTTPClient
 from pinecone.async_client.indexes import AsyncIndexes
 from pinecone.errors.exceptions import NotFoundError, PineconeError, ValidationError
-from pinecone.models.enums import DeletionProtection, Metric, VectorType
+from pinecone.models.enums import DeletionProtection, EmbedModel, Metric, VectorType
 from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.list import IndexList
-from pinecone.models.indexes.specs import PodSpec, ServerlessSpec
+from pinecone.models.indexes.specs import EmbedConfig, IntegratedSpec, PodSpec, ServerlessSpec
 from tests.factories import (
     make_error_response,
     make_index_list_response,
@@ -744,3 +744,288 @@ def _request_json(route: respx.Route) -> dict[str, Any]:
 
     request = route.calls.last.request
     return orjson.loads(request.content)  # type: ignore[no-any-return]
+
+
+def _integrated_response(**overrides: object) -> dict[str, object]:
+    """Return a realistic response for an integrated index."""
+    return make_index_response(
+        name="my-integrated-index",
+        embed={
+            "model": "multilingual-e5-large",
+            "metric": "cosine",
+            "dimension": 1024,
+            "field_map": {"text": "my_text_field"},
+        },
+        **overrides,  # type: ignore[arg-type]
+    )
+
+
+# ---------------------------------------------------------------------------
+# create() — IntegratedSpec
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_create_integrated_index(async_indexes: AsyncIndexes) -> None:
+    """Create with IntegratedSpec — verify correct wire format."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=_integrated_response()),
+    )
+
+    result = await async_indexes.create(
+        name="my-integrated-index",
+        spec=IntegratedSpec(
+            cloud="aws",
+            region="us-east-1",
+            embed=EmbedConfig(
+                model="multilingual-e5-large",
+                field_map={"text": "my_text_field"},
+            ),
+        ),
+    )
+
+    assert isinstance(result, IndexModel)
+    assert result.name == "my-integrated-index"
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["name"] == "my-integrated-index"
+    assert body["cloud"] == "aws"
+    assert body["region"] == "us-east-1"
+    assert body["embed"]["model"] == "multilingual-e5-large"
+    assert body["embed"]["field_map"] == {"text": "my_text_field"}
+    # dimension and metric should NOT be in body (inferred by server)
+    assert "dimension" not in body
+    assert "metric" not in body
+    # spec should NOT be in body (integrated uses flat structure)
+    assert "spec" not in body
+
+
+@respx.mock
+async def test_create_integrated_with_metric(async_indexes: AsyncIndexes) -> None:
+    """Metric override in embed config is included in request."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=_integrated_response()),
+    )
+
+    await async_indexes.create(
+        name="my-integrated-index",
+        spec=IntegratedSpec(
+            cloud="aws",
+            region="us-east-1",
+            embed=EmbedConfig(
+                model="multilingual-e5-large",
+                field_map={"text": "my_text_field"},
+                metric="dotproduct",
+            ),
+        ),
+    )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["embed"]["metric"] == "dotproduct"
+
+
+@respx.mock
+async def test_create_integrated_with_parameters(async_indexes: AsyncIndexes) -> None:
+    """Read and write parameters are passed through."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=_integrated_response()),
+    )
+
+    await async_indexes.create(
+        name="my-integrated-index",
+        spec=IntegratedSpec(
+            cloud="aws",
+            region="us-east-1",
+            embed=EmbedConfig(
+                model="multilingual-e5-large",
+                field_map={"text": "my_text_field"},
+                read_parameters={"input_type": "query", "truncate": "NONE"},
+                write_parameters={"input_type": "passage"},
+            ),
+        ),
+    )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["embed"]["read_parameters"] == {"input_type": "query", "truncate": "NONE"}
+    assert body["embed"]["write_parameters"] == {"input_type": "passage"}
+
+
+@respx.mock
+async def test_create_integrated_with_tags(async_indexes: AsyncIndexes) -> None:
+    """Tags are included in the request body."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=_integrated_response()),
+    )
+
+    await async_indexes.create(
+        name="my-integrated-index",
+        spec=IntegratedSpec(
+            cloud="aws",
+            region="us-east-1",
+            embed=EmbedConfig(
+                model="multilingual-e5-large",
+                field_map={"text": "my_text_field"},
+            ),
+        ),
+        tags={"env": "test"},
+    )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["tags"] == {"env": "test"}
+
+
+@respx.mock
+async def test_create_integrated_with_embed_model_enum(async_indexes: AsyncIndexes) -> None:
+    """EmbedModel enum values are accepted for model parameter."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=_integrated_response()),
+    )
+
+    await async_indexes.create(
+        name="my-integrated-index",
+        spec=IntegratedSpec(
+            cloud="aws",
+            region="us-east-1",
+            embed=EmbedConfig(
+                model=EmbedModel.MULTILINGUAL_E5_LARGE,
+                field_map={"text": "my_text_field"},
+            ),
+        ),
+    )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["embed"]["model"] == "multilingual-e5-large"
+
+
+async def test_create_integrated_missing_cloud_raises(async_indexes: AsyncIndexes) -> None:
+    """Empty cloud raises ValidationError."""
+    with pytest.raises(ValidationError, match="cloud"):
+        await async_indexes.create(
+            name="my-integrated-index",
+            spec=IntegratedSpec(
+                cloud="",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "my_text_field"},
+                ),
+            ),
+        )
+
+
+async def test_create_integrated_missing_model_raises(async_indexes: AsyncIndexes) -> None:
+    """Empty model raises ValidationError."""
+    with pytest.raises(ValidationError, match="model"):
+        await async_indexes.create(
+            name="my-integrated-index",
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="",
+                    field_map={"text": "my_text_field"},
+                ),
+            ),
+        )
+
+
+async def test_create_integrated_missing_field_map_raises(async_indexes: AsyncIndexes) -> None:
+    """Empty field_map raises ValidationError."""
+    with pytest.raises(ValidationError, match="field_map"):
+        await async_indexes.create(
+            name="my-integrated-index",
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={},
+                ),
+            ),
+        )
+
+
+async def test_create_integrated_missing_name_raises(async_indexes: AsyncIndexes) -> None:
+    """Empty name raises ValidationError."""
+    with pytest.raises(ValidationError, match="name"):
+        await async_indexes.create(
+            name="",
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "my_text_field"},
+                ),
+            ),
+        )
+
+
+# ---------------------------------------------------------------------------
+# create() — timeout=-1 sentinel (no polling)
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_create_timeout_minus_one_no_polling(async_indexes: AsyncIndexes) -> None:
+    """timeout=-1 should skip polling, same as timeout=None."""
+    respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(
+            201,
+            json=make_index_response(status={"ready": False, "state": "Initializing"}),
+        ),
+    )
+
+    result = await async_indexes.create(
+        name="test-index",
+        dimension=1536,
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        timeout=-1,
+    )
+
+    assert result.status.ready is False
+    assert len(respx.calls) == 1  # only the POST, no describe polling
+
+
+@respx.mock
+async def test_create_integrated_polls_until_ready(async_indexes: AsyncIndexes) -> None:
+    """Integrated indexes use the same readiness polling."""
+    respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(
+            201,
+            json=_integrated_response(status={"ready": False, "state": "Initializing"}),
+        ),
+    )
+    respx.get(f"{BASE_URL}/indexes/my-integrated-index").mock(
+        side_effect=[
+            httpx.Response(
+                200,
+                json=_integrated_response(status={"ready": False, "state": "Initializing"}),
+            ),
+            httpx.Response(
+                200,
+                json=_integrated_response(status={"ready": True, "state": "Ready"}),
+            ),
+        ]
+    )
+
+    with patch("pinecone.async_client.indexes.asyncio.sleep"):
+        result = await async_indexes.create(
+            name="my-integrated-index",
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "my_text_field"},
+                ),
+            ),
+            timeout=300,
+        )
+
+    assert result.status.ready is True
