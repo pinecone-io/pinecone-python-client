@@ -1,0 +1,70 @@
+"""Pinecone SDK exception hierarchy."""
+
+from __future__ import annotations
+
+from typing import Any
+
+
+class PineconeError(Exception):
+    """Base exception for all Pinecone SDK errors."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+        super().__init__(message)
+
+
+class ApiError(PineconeError):
+    """Server returned an error response."""
+
+    def __init__(
+        self,
+        message: str,
+        status_code: int,
+        body: dict[str, Any] | None = None,
+    ) -> None:
+        self.status_code = status_code
+        self.body = body
+        super().__init__(message)
+
+
+class NotFoundError(ApiError):
+    """404 Not Found."""
+
+    def __init__(
+        self,
+        message: str = "Resource not found",
+        status_code: int = 404,
+        body: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message=message, status_code=status_code, body=body)
+
+
+class ConflictError(ApiError):
+    """409 Conflict."""
+
+    def __init__(
+        self,
+        message: str = "Resource conflict",
+        status_code: int = 409,
+        body: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message=message, status_code=status_code, body=body)
+
+
+class UnauthorizedError(ApiError):
+    """401 Unauthorized."""
+
+    def __init__(
+        self,
+        message: str = "Invalid or missing API key",
+        status_code: int = 401,
+        body: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message=message, status_code=status_code, body=body)
+
+
+class ValidationError(PineconeError):
+    """Input validation failed."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message)

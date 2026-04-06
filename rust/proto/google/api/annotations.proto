@@ -1,0 +1,20 @@
+// Minimal stub — only the import is needed; tonic-build ignores HTTP annotations.
+syntax = "proto3";
+
+package google.api;
+
+import "google/protobuf/descriptor.proto";
+
+extend google.protobuf.MethodOptions {
+  HttpRule http = 72295728;
+}
+
+message HttpRule {
+  string get = 2;
+  string put = 3;
+  string post = 4;
+  string delete = 5;
+  string patch = 6;
+  string body = 7;
+  repeated HttpRule additional_bindings = 11;
+}

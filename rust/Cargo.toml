@@ -1,0 +1,19 @@
+[package]
+name = "pinecone-grpc"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "pinecone_grpc"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.23", features = ["extension-module"] }
+tonic = "0.13"
+prost = "0.13"
+prost-types = "0.13"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+
+[build-dependencies]
+tonic-build = "0.13"
+prost-build = "0.13"

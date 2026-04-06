@@ -1,0 +1,19 @@
+// Minimal stub — field_behavior annotations are not used at runtime.
+syntax = "proto3";
+
+package google.api;
+
+import "google/protobuf/descriptor.proto";
+
+enum FieldBehavior {
+  FIELD_BEHAVIOR_UNSPECIFIED = 0;
+  OPTIONAL = 1;
+  REQUIRED = 2;
+  OUTPUT_ONLY = 3;
+  INPUT_ONLY = 4;
+  IMMUTABLE = 5;
+}
+
+extend google.protobuf.FieldOptions {
+  repeated FieldBehavior field_behavior = 1052;
+}
