@@ -160,7 +160,7 @@ class Indexes:
         Raises:
             ValidationError: If *name* is empty.
             NotFoundError: If the index does not exist.
-            PineconeError: If the index still exists after *timeout* seconds.
+            PineconeTimeoutError: If the index still exists after *timeout* seconds.
             ApiError: If the API returns another error response.
 
         Examples:
@@ -287,8 +287,8 @@ class Indexes:
                 Use ``None`` (default) or ``-1`` to return immediately
                 without polling. Use a positive int to poll until the
                 index is ready or the deadline is reached. Raises
-                ``PineconeError`` if the index is not ready before the
-                deadline or if initialization fails.
+                ``PineconeTimeoutError`` if the index is not ready before the
+                deadline. ``IndexInitFailedError`` if initialization fails.
 
         Returns:
             An IndexModel describing the created index.
@@ -296,7 +296,8 @@ class Indexes:
         Raises:
             ValidationError: If inputs fail client-side validation.
             NotFoundError: If the index disappears during readiness polling.
-            PineconeError: If the index fails to initialise or times out.
+            IndexInitFailedError: If the index fails to initialise.
+            PineconeTimeoutError: If the index is not ready before the deadline.
             ApiError: If the API returns another error response.
 
         Examples:
