@@ -7,8 +7,8 @@ Quick Start::
     pc = Pinecone(api_key="your-api-key")  # or set PINECONE_API_KEY env var
 
     # Control plane: manage indexes
-    pc.create_index(
-        "movie-recommendations",
+    pc.indexes.create(
+        name="movie-recommendations",
         dimension=1536,
         metric="cosine",
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
