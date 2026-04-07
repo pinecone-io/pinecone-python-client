@@ -307,7 +307,7 @@ class AsyncPinecone:
         """The resolved configuration for this client."""
         return self._config
 
-    async def index(
+    def index(
         self,
         name: str = "",
         *,
@@ -315,25 +315,33 @@ class AsyncPinecone:
     ) -> AsyncIndex:
         """Create an async data plane client targeting a specific index.
 
-        Can target by host URL directly (skips the describe call) or by
-        index name (triggers a describe-index lookup to resolve the host).
+        This is a synchronous factory method (not a coroutine). It can target
+        an index by host URL directly, or by name if the host has already been
+        cached from a prior call or an explicit describe lookup.
+
+        To resolve an index host from its name, use
+        ``await pc.indexes.describe(name)`` first, then pass the ``host``.
 
         Args:
-            name (str): Name of the index. Triggers a describe call to resolve host.
-            host (str): Direct host URL of the index. Skips the describe call.
+            name (str): Name of the index. Uses cached host from a prior
+                describe call; raises if the host is not yet cached.
+            host (str): Direct host URL of the index. Preferred path — no
+                describe call needed.
 
         Returns:
             An async :class:`AsyncIndex` data plane client.
 
         Raises:
-            ValidationError: If neither *name* nor *host* is provided.
+            ValidationError: If neither *name* nor *host* is provided, or if
+                *name* is given but the host has not been cached yet.
 
         Examples:
 
             async with AsyncPinecone(api_key="...") as pc:
-                idx = await pc.index(host="my-index-abc123.svc.pinecone.io")
-                # or
-                idx = await pc.index(name="my-index")
+                idx = pc.index(host="my-index-abc123.svc.pinecone.io")
+                # or resolve name first, then use cached host:
+                await pc.indexes.describe("my-index")
+                idx = pc.index(name="my-index")
         """
         from pinecone.async_client.async_index import AsyncIndex as _AsyncIndex
 
@@ -356,15 +364,10 @@ class AsyncPinecone:
                     timeout=self._config.timeout,
                 )
 
-            # Resolve host via describe
-            desc = await self.indexes.describe(name)
-            self._host_cache[name] = desc.host
-
-            return _AsyncIndex(
-                host=desc.host,
-                api_key=self._config.api_key,
-                additional_headers=dict(self._config.additional_headers),
-                timeout=self._config.timeout,
+            raise ValidationError(
+                f"Host for index '{name}' is not cached. Resolve the host first with "
+                "'desc = await pc.indexes.describe(name)', then call "
+                "'pc.index(host=desc.host)' or 'pc.index(name=name)' (cached after describe)."
             )
 
         raise ValidationError("Either name or host must be provided to create an Index client.")

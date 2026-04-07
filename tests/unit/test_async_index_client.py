@@ -105,92 +105,78 @@ class TestAsyncContextManager:
 
 
 # ---------------------------------------------------------------------------
-# AsyncPinecone.index() factory
+# AsyncPinecone.index() factory — synchronous (not a coroutine)
 # ---------------------------------------------------------------------------
 
 
 class TestFactoryWithHost:
     """Test AsyncPinecone.index(host=...) — direct construction, no describe call."""
 
-    @pytest.mark.asyncio
-    @respx.mock
-    async def test_creates_index_with_host(self) -> None:
+    def test_creates_index_with_host(self) -> None:
         pc = AsyncPinecone(api_key="test-key")
-        idx = await pc.index(host=INDEX_HOST)
+        idx = pc.index(host=INDEX_HOST)
         assert isinstance(idx, AsyncIndex)
         assert idx.host == INDEX_HOST_HTTPS
 
-    @pytest.mark.asyncio
-    @respx.mock
-    async def test_no_describe_call_when_host_provided(self) -> None:
-        """When host is given, no HTTP call should be made."""
-        route = respx.get(f"{CONTROL_PLANE_URL}/indexes/anything")
+    def test_no_describe_call_needed(self) -> None:
+        """When host is given, no HTTP call is needed — method is synchronous."""
         pc = AsyncPinecone(api_key="test-key")
-        await pc.index(host=INDEX_HOST)
-        assert not route.called
+        idx = pc.index(host=INDEX_HOST)
+        assert isinstance(idx, AsyncIndex)
 
-    @pytest.mark.asyncio
-    @respx.mock
-    async def test_forwards_config(self) -> None:
+    def test_forwards_config(self) -> None:
         pc = AsyncPinecone(
             api_key="forwarded-key",
             timeout=60.0,
             additional_headers={"X-Custom": "val"},
         )
-        idx = await pc.index(host=INDEX_HOST)
+        idx = pc.index(host=INDEX_HOST)
         assert idx._config.api_key == "forwarded-key"
         assert idx._config.timeout == 60.0
         assert idx._config.additional_headers == {"X-Custom": "val"}
 
 
 class TestFactoryWithName:
-    """Test AsyncPinecone.index(name=...) — triggers describe to resolve host."""
+    """Test AsyncPinecone.index(name=...) — uses cached host."""
+
+    def test_uncached_name_raises(self) -> None:
+        """When name is given but host is not cached, raise a helpful error."""
+        pc = AsyncPinecone(api_key="test-key")
+        with pytest.raises(ValidationError, match="not cached"):
+            pc.index(name="my-index")
+
+    def test_cached_name_returns_index(self) -> None:
+        """When name host is pre-populated in cache, return AsyncIndex directly."""
+        pc = AsyncPinecone(api_key="test-key")
+        pc._host_cache["my-index"] = INDEX_HOST
+        idx = pc.index(name="my-index")
+        assert isinstance(idx, AsyncIndex)
+        assert idx.host == INDEX_HOST_HTTPS
 
     @pytest.mark.asyncio
     @respx.mock
-    async def test_resolves_host_via_describe(self) -> None:
+    async def test_describe_then_index_by_name(self) -> None:
+        """After calling describe(), index(name=...) should use the cached host."""
         respx.get(f"{CONTROL_PLANE_URL}/indexes/my-index").mock(
             return_value=httpx.Response(200, json=make_index_response(name="my-index")),
         )
         pc = AsyncPinecone(api_key="test-key")
-        idx = await pc.index(name="my-index")
+        desc = await pc.indexes.describe("my-index")
+        # Populate cache manually (describe doesn't auto-populate the client cache)
+        pc._host_cache["my-index"] = desc.host
+
+        idx = pc.index(name="my-index")
         assert isinstance(idx, AsyncIndex)
         assert INDEX_HOST in idx.host
 
-    @pytest.mark.asyncio
-    @respx.mock
-    async def test_host_cached_after_describe(self) -> None:
-        """Second call with same name should use cache, not call describe again."""
-        route = respx.get(f"{CONTROL_PLANE_URL}/indexes/my-index").mock(
-            return_value=httpx.Response(200, json=make_index_response(name="my-index")),
-        )
+    def test_different_cached_names(self) -> None:
+        """Different cached names return different indexes."""
         pc = AsyncPinecone(api_key="test-key")
+        pc._host_cache["index-a"] = "index-a-host.svc.pinecone.io"
+        pc._host_cache["index-b"] = "index-b-host.svc.pinecone.io"
 
-        idx1 = await pc.index(name="my-index")
-        idx2 = await pc.index(name="my-index")
-
-        assert route.call_count == 1
-        assert idx1.host == idx2.host
-
-    @pytest.mark.asyncio
-    @respx.mock
-    async def test_different_names_each_call_describe(self) -> None:
-        respx.get(f"{CONTROL_PLANE_URL}/indexes/index-a").mock(
-            return_value=httpx.Response(
-                200,
-                json=make_index_response(name="index-a", host="index-a-host.svc.pinecone.io"),
-            ),
-        )
-        respx.get(f"{CONTROL_PLANE_URL}/indexes/index-b").mock(
-            return_value=httpx.Response(
-                200,
-                json=make_index_response(name="index-b", host="index-b-host.svc.pinecone.io"),
-            ),
-        )
-        pc = AsyncPinecone(api_key="test-key")
-
-        idx_a = await pc.index(name="index-a")
-        idx_b = await pc.index(name="index-b")
+        idx_a = pc.index(name="index-a")
+        idx_b = pc.index(name="index-b")
 
         assert "index-a-host" in idx_a.host
         assert "index-b-host" in idx_b.host
@@ -199,14 +185,19 @@ class TestFactoryWithName:
 class TestFactoryValidation:
     """Test AsyncPinecone.index() validation."""
 
-    @pytest.mark.asyncio
-    async def test_no_args_raises(self) -> None:
+    def test_no_args_raises(self) -> None:
         pc = AsyncPinecone(api_key="test-key")
         with pytest.raises(ValidationError, match="Either name or host must be provided"):
-            await pc.index()
+            pc.index()
 
-    @pytest.mark.asyncio
-    async def test_empty_strings_raises(self) -> None:
+    def test_empty_strings_raises(self) -> None:
         pc = AsyncPinecone(api_key="test-key")
         with pytest.raises(ValidationError, match="Either name or host must be provided"):
-            await pc.index(name="", host="")
+            pc.index(name="", host="")
+
+    def test_is_not_coroutine(self) -> None:
+        """index() is a synchronous method, not a coroutine (unified-index-0030)."""
+        import inspect
+
+        pc = AsyncPinecone(api_key="test-key")
+        assert not inspect.iscoroutinefunction(pc.index)
