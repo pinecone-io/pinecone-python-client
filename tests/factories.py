@@ -325,3 +325,23 @@ def make_assistant_response(**overrides: Any) -> dict[str, Any]:
     }
     base.update(overrides)
     return base
+
+
+def make_assistant_file_response(**overrides: Any) -> dict[str, Any]:
+    """Return a single AssistantFileModel dict (assistant_data ``POST /files/{name}``)."""
+    base: dict[str, Any] = {
+        "name": "test-file.pdf",
+        "id": "file-abc123",
+        "metadata": None,
+        "created_on": "2025-01-15T12:00:00Z",
+        "updated_on": "2025-01-15T12:00:00Z",
+        "status": "Available",
+        "size": 1024,
+        "multimodal": False,
+        "signed_url": None,
+        "content_hash": None,
+        "percent_done": None,
+        "error_message": None,
+    }
+    base.update(overrides)
+    return base

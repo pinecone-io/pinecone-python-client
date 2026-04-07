@@ -37,6 +37,8 @@ class AssistantFileModel(Struct, kw_only=True):
     multimodal: bool | None = None
     signed_url: str | None = None
     content_hash: str | None = None
+    percent_done: float | None = None
+    error_message: str | None = None
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. ``file['name']``)."""
