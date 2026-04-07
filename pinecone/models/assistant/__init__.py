@@ -10,11 +10,24 @@ from pinecone.models.assistant.chat import (
     ChatResponse,
     ChatUsage,
 )
+from pinecone.models.assistant.context import (
+    ContextContentBlock,
+    ContextImageBlock,
+    ContextImageData,
+    ContextReference,
+    ContextResponse,
+    ContextSnippet,
+    ContextTextBlock,
+    FileReference,
+    MultimodalSnippet,
+    PageReference,
+    TextSnippet,
+)
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.model import AssistantModel
 from pinecone.models.assistant.streaming import (
-    ChatCompletionStreamChunk,
     ChatCompletionStreamChoice,
+    ChatCompletionStreamChunk,
     ChatCompletionStreamDelta,
     ChatStreamChunk,
     StreamCitationChunk,
@@ -39,9 +52,20 @@ __all__ = [
     "ChatResponse",
     "ChatStreamChunk",
     "ChatUsage",
+    "ContextContentBlock",
+    "ContextImageBlock",
+    "ContextImageData",
+    "ContextReference",
+    "ContextResponse",
+    "ContextSnippet",
+    "ContextTextBlock",
+    "FileReference",
+    "MultimodalSnippet",
+    "PageReference",
     "StreamCitationChunk",
     "StreamContentChunk",
     "StreamContentDelta",
     "StreamMessageEnd",
     "StreamMessageStart",
+    "TextSnippet",
 ]
