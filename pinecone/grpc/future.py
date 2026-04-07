@@ -106,11 +106,7 @@ class PineconeFuture(Future["_T"]):
         Returns ``True`` if the call was successfully cancelled, ``False``
         if the call has already completed or is running.
         """
-        result = self._underlying.cancel()
-        if result:
-            super().cancel()
-            super().set_running_or_notify_cancel()
-        return result
+        return self._underlying.cancel()
 
     def cancelled(self) -> bool:
         """Return ``True`` if the call was successfully cancelled."""
