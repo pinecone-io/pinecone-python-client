@@ -250,6 +250,56 @@ class TestAdminApiKeyNotLeaked:
         admin.close()
 
 
+class TestAdminOAuthUserAgent:
+    """Test that the OAuth token request includes a User-Agent header."""
+
+    @respx.mock
+    def test_oauth_request_includes_user_agent(self) -> None:
+        route = respx.post(_OAUTH_URL).mock(
+            return_value=Response(200, json=_token_response())
+        )
+
+        admin = Admin(client_id="test-id", client_secret="test-secret")
+
+        request = route.calls.last.request
+        ua = request.headers.get("User-Agent", "")
+        assert ua.startswith("python-client-")
+
+        admin.close()
+
+
+class TestAdminProxyAndSsl:
+    """Test that proxy_url and ssl_verify are accepted and forwarded."""
+
+    @respx.mock
+    def test_admin_accepts_proxy_url(self) -> None:
+        respx.post(_OAUTH_URL).mock(
+            return_value=Response(200, json=_token_response())
+        )
+
+        admin = Admin(
+            client_id="test-id",
+            client_secret="test-secret",
+            proxy_url="http://proxy.example.com:8080",
+        )
+        assert admin._http._config.proxy_url == "http://proxy.example.com:8080"
+        admin.close()
+
+    @respx.mock
+    def test_admin_accepts_ssl_verify_false(self) -> None:
+        respx.post(_OAUTH_URL).mock(
+            return_value=Response(200, json=_token_response())
+        )
+
+        admin = Admin(
+            client_id="test-id",
+            client_secret="test-secret",
+            ssl_verify=False,
+        )
+        assert admin._http._config.ssl_verify is False
+        admin.close()
+
+
 class TestAdminContextManager:
     """Test context manager support."""
 

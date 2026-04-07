@@ -8,9 +8,11 @@ from typing import TYPE_CHECKING, Any
 import httpx
 import orjson
 
+from pinecone import __version__
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import ADMIN_API_VERSION, API_VERSION_HEADER, DEFAULT_BASE_URL
-from pinecone._internal.http_client import HTTPClient
+from pinecone._internal.http_client import HTTPClient, _RetryTransport, _build_socket_options
+from pinecone._internal.user_agent import build_user_agent
 from pinecone.errors.exceptions import ApiError, ValidationError
 
 if TYPE_CHECKING:
@@ -52,6 +54,8 @@ class Admin:
         client_id: str | None = None,
         client_secret: str | None = None,
         additional_headers: dict[str, str] | None = None,
+        proxy_url: str | None = None,
+        ssl_verify: bool = True,
     ) -> None:
         resolved_id = client_id or os.environ.get("PINECONE_CLIENT_ID", "")
         resolved_secret = client_secret or os.environ.get("PINECONE_CLIENT_SECRET", "")
@@ -67,7 +71,12 @@ class Admin:
                 "PINECONE_CLIENT_SECRET environment variable."
             )
 
-        token = self._fetch_token(resolved_id, resolved_secret)
+        token = self._fetch_token(
+            resolved_id,
+            resolved_secret,
+            proxy_url=proxy_url,
+            ssl_verify=ssl_verify,
+        )
 
         headers: dict[str, str] = {
             "Authorization": f"Bearer {token}",
@@ -80,6 +89,8 @@ class Admin:
             api_key="",
             host=DEFAULT_BASE_URL,
             additional_headers=headers,
+            proxy_url=proxy_url or "",
+            ssl_verify=ssl_verify,
         )
         # Prevent __post_init__ from falling back to PINECONE_API_KEY env var.
         # The Admin client authenticates via OAuth Bearer token, not Api-Key.
@@ -91,12 +102,21 @@ class Admin:
         self._projects: Projects | None = None
         self._api_keys: ApiKeys | None = None
 
-    def _fetch_token(self, client_id: str, client_secret: str) -> str:
+    def _fetch_token(
+        self,
+        client_id: str,
+        client_secret: str,
+        *,
+        proxy_url: str | None = None,
+        ssl_verify: bool = True,
+    ) -> str:
         """Exchange client credentials for a Bearer token.
 
         Args:
             client_id: OAuth2 client ID.
             client_secret: OAuth2 client secret.
+            proxy_url: Optional HTTP proxy URL.
+            ssl_verify: Whether to verify SSL certificates.
 
         Returns:
             The access token string.
@@ -113,12 +133,22 @@ class Admin:
             }
         )
 
-        with httpx.Client() as client:
+        transport = _RetryTransport(
+            transport=httpx.HTTPTransport(
+                http2=True, socket_options=_build_socket_options()
+            ),
+        )
+        with httpx.Client(
+            transport=transport,
+            proxy=proxy_url or None,
+            verify=ssl_verify,
+        ) as client:
             response = client.post(
                 _OAUTH_URL,
                 content=body,
                 headers={
                     "Content-Type": "application/json",
+                    "User-Agent": build_user_agent(__version__, None),
                     API_VERSION_HEADER: ADMIN_API_VERSION,
                 },
             )
