@@ -278,14 +278,11 @@ class HTTPClient:
         return response
 
     def post(self, path: str, **kwargs: Any) -> httpx.Response:
-        body: bytes | None = None
-        if "content" in kwargs:
-            body = kwargs["content"] if isinstance(kwargs["content"], bytes) else None
-        elif "json" in kwargs:
-            body = _encode_json(kwargs["json"])
+        kwargs = _prepare_json_kwargs(kwargs)
+        body = kwargs.get("content") if isinstance(kwargs.get("content"), bytes) else None
         _log_curl("POST", self._build_url(path), dict(self._headers), body=body)
         try:
-            response = self._client.post(path, **_prepare_json_kwargs(kwargs))
+            response = self._client.post(path, **kwargs)
         except httpx.TimeoutException as exc:
             raise PineconeTimeoutError(str(exc)) from exc
         except httpx.TransportError as exc:
@@ -294,14 +291,11 @@ class HTTPClient:
         return response
 
     def put(self, path: str, **kwargs: Any) -> httpx.Response:
-        body: bytes | None = None
-        if "content" in kwargs:
-            body = kwargs["content"] if isinstance(kwargs["content"], bytes) else None
-        elif "json" in kwargs:
-            body = _encode_json(kwargs["json"])
+        kwargs = _prepare_json_kwargs(kwargs)
+        body = kwargs.get("content") if isinstance(kwargs.get("content"), bytes) else None
         _log_curl("PUT", self._build_url(path), dict(self._headers), body=body)
         try:
-            response = self._client.put(path, **_prepare_json_kwargs(kwargs))
+            response = self._client.put(path, **kwargs)
         except httpx.TimeoutException as exc:
             raise PineconeTimeoutError(str(exc)) from exc
         except httpx.TransportError as exc:
@@ -310,14 +304,11 @@ class HTTPClient:
         return response
 
     def patch(self, path: str, **kwargs: Any) -> httpx.Response:
-        body: bytes | None = None
-        if "content" in kwargs:
-            body = kwargs["content"] if isinstance(kwargs["content"], bytes) else None
-        elif "json" in kwargs:
-            body = _encode_json(kwargs["json"])
+        kwargs = _prepare_json_kwargs(kwargs)
+        body = kwargs.get("content") if isinstance(kwargs.get("content"), bytes) else None
         _log_curl("PATCH", self._build_url(path), dict(self._headers), body=body)
         try:
-            response = self._client.patch(path, **_prepare_json_kwargs(kwargs))
+            response = self._client.patch(path, **kwargs)
         except httpx.TimeoutException as exc:
             raise PineconeTimeoutError(str(exc)) from exc
         except httpx.TransportError as exc:
