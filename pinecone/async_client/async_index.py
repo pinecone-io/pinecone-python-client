@@ -704,6 +704,10 @@ class AsyncIndex:
                 raise ValidationError("rerank requires 'model' to be specified")
             if "rank_fields" not in rerank:
                 raise ValidationError("rerank requires 'rank_fields' to be specified")
+        if inputs is None and vector is None and id is None:
+            raise ValidationError(
+                "At least one of inputs, vector, or id must be provided as a query source"
+            )
 
         query_body: dict[str, Any] = {"top_k": top_k}
         if inputs is not None:

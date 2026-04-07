@@ -166,6 +166,12 @@ class TestAsyncSearch:
                 rerank={"model": "bge-reranker-v2-m3"},
             )
 
+    @pytest.mark.anyio
+    async def test_async_search_no_query_source_raises(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="At least one of inputs, vector, or id"):
+            await idx.search(namespace="test-ns", top_k=5)
+
     def test_async_search_keyword_only(self) -> None:
         idx = _make_async_index()
         with pytest.raises(TypeError):
