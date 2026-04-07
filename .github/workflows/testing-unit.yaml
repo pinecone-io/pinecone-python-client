@@ -20,7 +20,7 @@ jobs:
           - true
           - false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup uv
         uses: ./.github/actions/setup-uv
         with:
@@ -39,7 +39,7 @@ jobs:
       matrix:
         python-version: ${{ fromJson(inputs.python_versions_json) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup uv
         uses: ./.github/actions/setup-uv
         with:
@@ -58,7 +58,7 @@ jobs:
       matrix:
         python-version: ${{ fromJson(inputs.python_versions_json) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup uv
         uses: ./.github/actions/setup-uv
         with:

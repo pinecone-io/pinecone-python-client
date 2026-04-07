@@ -27,7 +27,7 @@ jobs:
           - 3.10.0
           - 3.11.5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/secret-decrypt
         id: decrypt-secret
         with:

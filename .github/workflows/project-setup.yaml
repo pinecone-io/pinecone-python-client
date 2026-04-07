@@ -29,7 +29,7 @@ jobs:
       index_host_dense: ${{ steps.create-index-dense.outputs.index_host }}
       index_host_sparse: ${{ steps.create-index-sparse.outputs.index_host }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-uv
         with:
           python_version: '3.10'

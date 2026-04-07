@@ -53,7 +53,7 @@ jobs:
         googleapis_common_protos_version:
           - 1.72.0
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/secret-decrypt
         id: decrypt-secret
         with:
@@ -92,7 +92,7 @@ jobs:
         googleapis_common_protos_version:
           - 1.72.0
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/secret-decrypt
         id: decrypt-secret
         with:
@@ -130,7 +130,7 @@ jobs:
         googleapis_common_protos_version:
           - 1.72.0
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/secret-decrypt
         id: decrypt-secret
         with:
