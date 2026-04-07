@@ -21,9 +21,9 @@ def test_async_pinecone_accepts_api_key() -> None:
     assert pc.config.api_key == "test-key"
 
 
-def test_async_pinecone_deprecated_kwargs() -> None:
-    with pytest.raises(ValidationError, match="no longer supported"):
-        AsyncPinecone(api_key="test-key", openapi_config={})
+def test_async_pinecone_unrecognized_kwargs() -> None:
+    with pytest.raises(TypeError, match="unexpected keyword argument"):
+        AsyncPinecone(api_key="test-key", openapi_config={})  # type: ignore[call-arg]
 
 
 def test_async_pinecone_default_host() -> None:

@@ -76,7 +76,6 @@ class Index:
         ssl_verify: bool = True,
         source_tag: str | None = None,
         connection_pool_maxsize: int = 0,
-        **kwargs: Any,
     ) -> None:
         # Resolve API key: explicit arg > env var (check BEFORE host per unified-ord-0001)
         resolved_key = api_key or os.environ.get("PINECONE_API_KEY", "")

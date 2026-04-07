@@ -20,9 +20,6 @@ if TYPE_CHECKING:
     from pinecone.models.enums import DeletionProtection
     from pinecone.models.indexes.index import IndexModel
 
-_DEPRECATED_KWARGS: frozenset[str] = frozenset({"openapi_config", "pool_threads", "index_api"})
-
-
 class AsyncPinecone:
     """Asynchronous Pinecone client for control-plane operations.
 
@@ -69,19 +66,9 @@ class AsyncPinecone:
         ssl_verify: bool = True,
         timeout: float = 30.0,
         connection_pool_maxsize: int = 0,
-        **kwargs: Any,
     ) -> None:
         if proxy_headers:
             raise NotImplementedError("proxy_headers is not yet supported for the async client")
-
-        # Check for deprecated kwargs
-        deprecated_used = _DEPRECATED_KWARGS & set(kwargs)
-        if deprecated_used:
-            names = ", ".join(sorted(deprecated_used))
-            raise ValidationError(
-                f"The following parameters are no longer supported: {names}. "
-                "See the migration guide for updated usage."
-            )
 
         config = PineconeConfig(
             api_key=api_key or "",
