@@ -21,6 +21,7 @@ from pinecone.errors.exceptions import (
     PineconeValueError,
 )
 from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
+from pinecone.models.assistant.context import ContextResponse
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
 from pinecone.models.assistant.message import Message
@@ -427,22 +428,16 @@ class Assistants:
         start = time.monotonic()
         while True:
             try:
-                file_model = self.describe_file(
-                    assistant_name=assistant_name, file_id=file_id
-                )
+                file_model = self.describe_file(assistant_name=assistant_name, file_id=file_id)
             except NotFoundError:
                 return
             if file_model.status not in ("Deleting", None):
                 error_msg = file_model.error_message or "Unknown deletion error"
-                raise PineconeError(
-                    f"File deletion failed for '{file_id}': {error_msg}"
-                )
+                raise PineconeError(f"File deletion failed for '{file_id}': {error_msg}")
             if timeout is not None:
                 elapsed = time.monotonic() - start
                 if elapsed >= timeout:
-                    raise PineconeTimeoutError(
-                        f"File '{file_id}' still exists after {timeout}s"
-                    )
+                    raise PineconeTimeoutError(f"File '{file_id}' still exists after {timeout}s")
             time.sleep(_DELETE_POLL_INTERVAL_SECONDS)
 
     def create(
@@ -727,6 +722,95 @@ class Assistants:
                     raise PineconeTimeoutError(f"Assistant '{name}' still exists after {timeout}s")
             time.sleep(_DELETE_POLL_INTERVAL_SECONDS)
 
+    def context(
+        self,
+        *,
+        assistant_name: str,
+        query: str | None = None,
+        messages: List[Message | dict[str, str]] | None = None,
+        filter: dict[str, Any] | None = None,
+        top_k: int | None = None,
+        snippet_size: int | None = None,
+        multimodal: bool | None = None,
+        include_binary_content: bool | None = None,
+    ) -> ContextResponse:
+        """Retrieve relevant context snippets from a Pinecone assistant.
+
+        Retrieves context snippets matching a text query or conversation
+        history. Exactly one of *query* or *messages* must be provided
+        and non-empty.
+
+        Args:
+            assistant_name: Name of the assistant to retrieve context from.
+            query: Text query to use for context retrieval. Mutually exclusive
+                with *messages*. Empty string is treated as not provided.
+            messages: Conversation messages to use for context retrieval.
+                Mutually exclusive with *query*. Empty list is treated as not
+                provided. Dicts are converted to :class:`Message` objects.
+            filter: Metadata filter restricting which documents contribute
+                context. Omitted from request when ``None``.
+            top_k: Maximum number of context snippets to return. Omitted
+                from request when ``None``.
+            snippet_size: Maximum snippet size in tokens. Omitted from
+                request when ``None``.
+            multimodal: Whether to include image-related context snippets.
+                Omitted from request when ``None``.
+            include_binary_content: Whether image snippets include base64
+                image data. Only meaningful when *multimodal* is ``True``.
+                Omitted from request when ``None``.
+
+        Returns:
+            :class:`ContextResponse` containing the matching context snippets.
+
+        Raises:
+            :exc:`PineconeValueError`: If both or neither of *query* and
+                *messages* are provided (or if they are empty).
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+            Retrieve context using a text query:
+
+            >>> response = pc.assistants.context(
+            ...     assistant_name="my-assistant",
+            ...     query="What is Pinecone?",
+            ... )
+            >>> for snippet in response.snippets:
+            ...     print(snippet.content)
+        """
+        query_truthy = query is not None and query != ""
+        messages_truthy = messages is not None and len(messages) > 0
+
+        if query_truthy and messages_truthy:
+            raise PineconeValueError("Exactly one of query or messages must be provided, not both.")
+        if not query_truthy and not messages_truthy:
+            raise PineconeValueError("Exactly one of query or messages must be provided.")
+
+        body: dict[str, Any] = {}
+
+        if query_truthy:
+            body["query"] = query
+        else:
+            assert messages is not None
+            parsed: List[Message] = [
+                m if isinstance(m, Message) else Message.from_dict(m) for m in messages
+            ]
+            body["messages"] = [{"role": m.role, "content": m.content} for m in parsed]
+
+        if filter is not None:
+            body["filter"] = filter
+        if top_k is not None:
+            body["top_k"] = top_k
+        if snippet_size is not None:
+            body["snippet_size"] = snippet_size
+        if multimodal is not None:
+            body["multimodal"] = multimodal
+        if include_binary_content is not None:
+            body["include_binary_content"] = include_binary_content
+
+        http = self._data_plane_http(assistant_name)
+        response = http.post(f"/chat/{assistant_name}/context", json=body)
+        return self._adapter.to_context_response(response.content)
+
     def chat(
         self,
         *,
@@ -781,9 +865,7 @@ class Assistants:
             ... )
         """
         if stream and json_response:
-            raise PineconeValueError(
-                "json_response cannot be used with stream=True"
-            )
+            raise PineconeValueError("json_response cannot be used with stream=True")
 
         parsed: List[Message] = [
             m if isinstance(m, Message) else Message.from_dict(m) for m in messages

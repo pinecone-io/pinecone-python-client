@@ -29,7 +29,11 @@ from pinecone.errors.exceptions import (
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListAssistantsResponse
 from pinecone.models.assistant.model import AssistantModel
-from tests.factories import make_assistant_file_response, make_assistant_response
+from tests.factories import (
+    make_assistant_file_response,
+    make_assistant_response,
+    make_context_response,
+)
 
 BASE_URL = "https://api.test.pinecone.io"
 
@@ -1236,9 +1240,7 @@ def test_describe_file_with_url(assistants: Assistants) -> None:
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
         return_value=httpx.Response(
             200,
-            json=make_assistant_file_response(
-                signed_url="https://storage.example.com/file-abc123"
-            ),
+            json=make_assistant_file_response(signed_url="https://storage.example.com/file-abc123"),
         ),
     )
 
@@ -1509,9 +1511,9 @@ def test_delete_file_success(mock_sleep: object, assistants: Assistants) -> None
     respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
-    delete_route = respx.delete(
-        f"{DATA_PLANE_URL}/files/test-assistant/file-abc123"
-    ).mock(return_value=httpx.Response(200))
+    delete_route = respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200)
+    )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
@@ -1557,9 +1559,9 @@ def test_delete_file_timeout_minus_one_skips_polling(assistants: Assistants) -> 
     respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
-    delete_route = respx.delete(
-        f"{DATA_PLANE_URL}/files/test-assistant/file-abc123"
-    ).mock(return_value=httpx.Response(200))
+    delete_route = respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200)
+    )
 
     result = assistants.delete_file(
         assistant_name="test-assistant", file_id="file-abc123", timeout=-1
@@ -1589,9 +1591,7 @@ def test_delete_file_timeout_raises(
     )
 
     with pytest.raises(PineconeTimeoutError, match="still exists after 10"):
-        assistants.delete_file(
-            assistant_name="test-assistant", file_id="file-abc123", timeout=10
-        )
+        assistants.delete_file(assistant_name="test-assistant", file_id="file-abc123", timeout=10)
 
 
 @respx.mock
@@ -1722,9 +1722,7 @@ def test_chat_completions_default_stream_false(assistants: Assistants) -> None:
     respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
-    completions_route = respx.post(
-        f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions"
-    ).mock(
+    completions_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -1766,9 +1764,7 @@ def test_chat_completions_no_model_validation(assistants: Assistants) -> None:
     respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
-    completions_route = respx.post(
-        f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions"
-    ).mock(
+    completions_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -1812,10 +1808,10 @@ def test_chat_streaming_sse_parsing(assistants: Assistants) -> None:
     )
     # SSE payload: empty lines between events, data: prefix on each event
     sse_body = (
-        b"data: {\"type\": \"message_start\", \"model\": \"gpt-4o\", \"role\": \"assistant\"}\n"
+        b'data: {"type": "message_start", "model": "gpt-4o", "role": "assistant"}\n'
         b"\n"
-        b"data: {\"type\": \"message_end\", \"id\": \"end1\","
-        b" \"usage\": {\"prompt_tokens\": 5, \"completion_tokens\": 10, \"total_tokens\": 15}}\n"
+        b'data: {"type": "message_end", "id": "end1",'
+        b' "usage": {"prompt_tokens": 5, "completion_tokens": 10, "total_tokens": 15}}\n'
         b"\n"
     )
     respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
@@ -1849,13 +1845,13 @@ def test_chat_streaming_chunk_dispatch(assistants: Assistants) -> None:
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     sse_body = (
-        b"data: {\"type\": \"message_start\", \"model\": \"gpt-4o\", \"role\": \"assistant\"}\n"
-        b"data: {\"type\": \"content_chunk\", \"id\": \"c1\","
-        b" \"delta\": {\"content\": \"Hello\"}}\n"
-        b"data: {\"type\": \"citation\", \"id\": \"cit1\","
-        b" \"citation\": {\"position\": 5, \"references\": []}}\n"
-        b"data: {\"type\": \"message_end\", \"id\": \"end1\","
-        b" \"usage\": {\"prompt_tokens\": 5, \"completion_tokens\": 10, \"total_tokens\": 15}}\n"
+        b'data: {"type": "message_start", "model": "gpt-4o", "role": "assistant"}\n'
+        b'data: {"type": "content_chunk", "id": "c1",'
+        b' "delta": {"content": "Hello"}}\n'
+        b'data: {"type": "citation", "id": "cit1",'
+        b' "citation": {"position": 5, "references": []}}\n'
+        b'data: {"type": "message_end", "id": "end1",'
+        b' "usage": {"prompt_tokens": 5, "completion_tokens": 10, "total_tokens": 15}}\n'
     )
     respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
         return_value=httpx.Response(200, content=sse_body),
@@ -1899,9 +1895,9 @@ def test_chat_streaming_request_body(assistants: Assistants) -> None:
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     sse_body = (
-        b"data: {\"type\": \"message_start\", \"model\": \"gpt-4o\", \"role\": \"assistant\"}\n"
-        b"data: {\"type\": \"message_end\", \"id\": \"e1\","
-        b" \"usage\": {\"prompt_tokens\": 1, \"completion_tokens\": 1, \"total_tokens\": 2}}\n"
+        b'data: {"type": "message_start", "model": "gpt-4o", "role": "assistant"}\n'
+        b'data: {"type": "message_end", "id": "e1",'
+        b' "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}}\n'
     )
     chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
         return_value=httpx.Response(200, content=sse_body),
@@ -1933,16 +1929,16 @@ def test_chat_completions_streaming_sse_parsing(assistants: Assistants) -> None:
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     sse_body = (
-        b"data: {\"id\": \"cmpl1\", \"choices\": [{\"index\": 0,"
-        b" \"delta\": {\"role\": \"assistant\", \"content\": null},"
-        b" \"finish_reason\": null}]}\n"
+        b'data: {"id": "cmpl1", "choices": [{"index": 0,'
+        b' "delta": {"role": "assistant", "content": null},'
+        b' "finish_reason": null}]}\n'
         b"\n"
-        b"data: {\"id\": \"cmpl2\", \"choices\": [{\"index\": 0,"
-        b" \"delta\": {\"content\": \"Hello\"},"
-        b" \"finish_reason\": null}]}\n"
+        b'data: {"id": "cmpl2", "choices": [{"index": 0,'
+        b' "delta": {"content": "Hello"},'
+        b' "finish_reason": null}]}\n'
         b"\n"
-        b"data: {\"id\": \"cmpl3\", \"choices\": [{\"index\": 0,"
-        b" \"delta\": {}, \"finish_reason\": \"stop\"}]}\n"
+        b'data: {"id": "cmpl3", "choices": [{"index": 0,'
+        b' "delta": {}, "finish_reason": "stop"}]}\n'
     )
     respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions").mock(
         return_value=httpx.Response(200, content=sse_body),
@@ -1963,3 +1959,139 @@ def test_chat_completions_streaming_sse_parsing(assistants: Assistants) -> None:
     assert chunks[0].choices[0].delta.role == "assistant"
     assert chunks[1].choices[0].delta.content == "Hello"
     assert chunks[2].choices[0].finish_reason == "stop"
+
+
+# ---------------------------------------------------------------------------
+# context() — validation
+# ---------------------------------------------------------------------------
+
+
+def test_context_both_query_and_messages(assistants: Assistants) -> None:
+    """Providing both query and messages raises PineconeValueError."""
+    with pytest.raises(PineconeValueError, match="not both"):
+        assistants.context(
+            assistant_name="test-assistant",
+            query="What is Pinecone?",
+            messages=[{"content": "Hello"}],
+        )
+
+
+def test_context_neither_query_nor_messages(assistants: Assistants) -> None:
+    """Providing neither query nor messages raises PineconeValueError."""
+    with pytest.raises(PineconeValueError):
+        assistants.context(assistant_name="test-assistant")
+
+
+def test_context_empty_string_query(assistants: Assistants) -> None:
+    """Empty string query is treated as not provided — raises if messages also absent."""
+    with pytest.raises(PineconeValueError):
+        assistants.context(assistant_name="test-assistant", query="")
+
+
+def test_context_empty_list_messages(assistants: Assistants) -> None:
+    """Empty list messages is treated as not provided — raises if query also absent."""
+    with pytest.raises(PineconeValueError):
+        assistants.context(assistant_name="test-assistant", messages=[])
+
+
+# ---------------------------------------------------------------------------
+# context() — success with query
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_context_with_query(assistants: Assistants) -> None:
+    """context() with query POSTs to /chat/{name}/context and returns ContextResponse."""
+    from pinecone.models.assistant.context import ContextResponse
+
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    context_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/context").mock(
+        return_value=httpx.Response(200, json=make_context_response()),
+    )
+
+    result = assistants.context(
+        assistant_name="test-assistant",
+        query="What is Pinecone?",
+    )
+
+    assert isinstance(result, ContextResponse)
+    assert len(result.snippets) == 1
+
+    request_body = json.loads(context_route.calls.last.request.content)
+    assert request_body["query"] == "What is Pinecone?"
+    assert "messages" not in request_body
+
+
+@respx.mock
+def test_context_with_messages(assistants: Assistants) -> None:
+    """context() with messages parses and sends them; does not send query."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    context_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/context").mock(
+        return_value=httpx.Response(200, json=make_context_response()),
+    )
+
+    assistants.context(
+        assistant_name="test-assistant",
+        messages=[{"content": "Tell me about vector databases."}],
+    )
+
+    request_body = json.loads(context_route.calls.last.request.content)
+    assert "query" not in request_body
+    assert request_body["messages"] == [
+        {"role": "user", "content": "Tell me about vector databases."}
+    ]
+
+
+@respx.mock
+def test_context_optional_params_included_when_provided(assistants: Assistants) -> None:
+    """Optional parameters are sent in the request body when provided."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    context_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/context").mock(
+        return_value=httpx.Response(200, json=make_context_response()),
+    )
+
+    assistants.context(
+        assistant_name="test-assistant",
+        query="What is Pinecone?",
+        filter={"genre": {"$ne": "documentary"}},
+        top_k=5,
+        snippet_size=1024,
+        multimodal=True,
+        include_binary_content=False,
+    )
+
+    request_body = json.loads(context_route.calls.last.request.content)
+    assert request_body["filter"] == {"genre": {"$ne": "documentary"}}
+    assert request_body["top_k"] == 5
+    assert request_body["snippet_size"] == 1024
+    assert request_body["multimodal"] is True
+    assert request_body["include_binary_content"] is False
+
+
+@respx.mock
+def test_context_optional_params_omitted_when_absent(assistants: Assistants) -> None:
+    """Optional parameters are not included in the request body when not provided."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    context_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/context").mock(
+        return_value=httpx.Response(200, json=make_context_response()),
+    )
+
+    assistants.context(
+        assistant_name="test-assistant",
+        query="What is Pinecone?",
+    )
+
+    request_body = json.loads(context_route.calls.last.request.content)
+    assert "filter" not in request_body
+    assert "top_k" not in request_body
+    assert "snippet_size" not in request_body
+    assert "multimodal" not in request_body
+    assert "include_binary_content" not in request_body

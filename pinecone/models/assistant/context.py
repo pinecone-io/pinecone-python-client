@@ -23,7 +23,7 @@ class ContextImageData(Struct, kw_only=True):
     data: str
 
 
-class ContextImageBlock(Struct, kw_only=True):
+class ContextImageBlock(Struct, kw_only=True, tag="image", tag_field="type"):
     """An image block within a multimodal context snippet.
 
     Attributes:
@@ -36,7 +36,7 @@ class ContextImageBlock(Struct, kw_only=True):
     image_data: ContextImageData | None = None
 
 
-class ContextTextBlock(Struct, kw_only=True):
+class ContextTextBlock(Struct, kw_only=True, tag="text", tag_field="type"):
     """A text block within a multimodal context snippet.
 
     Attributes:
@@ -51,61 +51,52 @@ ContextContentBlock: TypeAlias = ContextTextBlock | ContextImageBlock
 
 
 class FileReference(Struct, kw_only=True):
-    """A reference to a text, markdown, or JSON source file.
+    """A reference to a source file.
 
     Attributes:
         file: The name or identifier of the source file.
+        pages: The list of page numbers relevant to the snippet, when
+            the source is a paginated document (e.g. PDF). ``None`` for
+            text, JSON, or Markdown sources.
     """
 
     file: str
+    pages: list[int] | None = None
 
 
-class PageReference(Struct, kw_only=True):
-    """A reference to a PDF or DOCX source file with page numbers.
+PageReference = FileReference
+"""Alias kept for backwards compatibility. Use :class:`FileReference` instead."""
 
-    Attributes:
-        file: The name or identifier of the source file.
-        pages: The list of page numbers relevant to the snippet.
-    """
-
-    file: str
-    pages: list[int]
+ContextReference: TypeAlias = FileReference
+"""A reference to a source file."""
 
 
-ContextReference: TypeAlias = FileReference | PageReference
-"""A reference to a source file — either file-only or file with pages."""
-
-
-class TextSnippet(Struct, kw_only=True):
+class TextSnippet(Struct, kw_only=True, tag="text", tag_field="type"):
     """A text context snippet from a source document.
 
     Attributes:
-        type: The snippet type (``"text"``).
         content: The text content of the snippet.
         score: The relevance score of the snippet.
         reference: A reference to the source file.
     """
 
-    type: str
     content: str
     score: float
-    reference: FileReference | PageReference
+    reference: FileReference
 
 
-class MultimodalSnippet(Struct, kw_only=True):
+class MultimodalSnippet(Struct, kw_only=True, tag="multimodal", tag_field="type"):
     """A multimodal context snippet containing text and/or image blocks.
 
     Attributes:
-        type: The snippet type (``"multimodal"``).
         content: The list of content blocks (text and/or image).
         score: The relevance score of the snippet.
         reference: A reference to the source file.
     """
 
-    type: str
     content: list[ContextContentBlock]
     score: float
-    reference: FileReference | PageReference
+    reference: FileReference
 
 
 ContextSnippet: TypeAlias = TextSnippet | MultimodalSnippet

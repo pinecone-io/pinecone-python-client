@@ -345,3 +345,21 @@ def make_assistant_file_response(**overrides: Any) -> dict[str, Any]:
     }
     base.update(overrides)
     return base
+
+
+def make_context_response(**overrides: Any) -> dict[str, Any]:
+    """Return a ContextModel dict (assistant_data ``POST /chat/{name}/context``)."""
+    base: dict[str, Any] = {
+        "id": "ctx-abc123",
+        "snippets": [
+            {
+                "type": "text",
+                "content": "Pinecone is a vector database.",
+                "score": 0.95,
+                "reference": {"file": "pinecone-overview.pdf"},
+            }
+        ],
+        "usage": {"prompt_tokens": 10, "completion_tokens": 0, "total_tokens": 10},
+    }
+    base.update(overrides)
+    return base

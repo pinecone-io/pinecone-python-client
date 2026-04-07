@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pinecone._internal.adapters._decode import decode_response
 from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
+from pinecone.models.assistant.context import ContextResponse
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
 from pinecone.models.assistant.model import AssistantModel
@@ -41,3 +42,8 @@ class AssistantsAdapter:
     def to_chat_completion_response(data: bytes) -> ChatCompletionResponse:
         """Decode raw JSON bytes into a ChatCompletionResponse."""
         return decode_response(data, ChatCompletionResponse)
+
+    @staticmethod
+    def to_context_response(data: bytes) -> ContextResponse:
+        """Decode raw JSON bytes into a ContextResponse."""
+        return decode_response(data, ContextResponse)
