@@ -214,13 +214,18 @@ class AsyncIndex:
 
         Examples:
 
+            from pinecone.models.vectors.vector import Vector
+
             response = await idx.upsert(
                 vectors=[
-                    Vector(id="vec1", values=[0.1, 0.2, 0.3]),
-                    ("vec2", [0.4, 0.5, 0.6]),
-                    {"id": "vec3", "values": [0.7, 0.8, 0.9]},
+                    Vector(
+                        id="article-101",
+                        values=[0.012, -0.087, 0.153, ...],  # 1536-dim
+                    ),
+                    ("article-102", [0.045, 0.021, -0.064, ...]),
+                    {"id": "article-103", "values": [0.091, -0.032, 0.178, ...]},
                 ],
-                namespace="my-ns",
+                namespace="articles-en",
             )
             print(response.upserted_count)
         """

@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import builtins
 import logging
 import os
 from collections.abc import Iterator, Sequence
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
+from pinecone.grpc.future import PineconeFuture
 from pinecone._internal.data_plane_helpers import _validate_host
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import ValidationError
@@ -158,6 +161,8 @@ class GrpcIndex:
             connect_timeout,
             source_tag=source_tag,
         )
+
+        self._executor = ThreadPoolExecutor()
 
         logger.info("GrpcIndex client created for host %s", self._host)
 
@@ -607,8 +612,106 @@ class GrpcIndex:
             storage_fullness=result.get("storage_fullness"),
         )
 
+    # ------------------------------------------------------------------
+    # Async (future-returning) variants
+    # ------------------------------------------------------------------
+
+    def upsert_async(
+        self,
+        *,
+        vectors: Sequence[
+            Vector
+            | tuple[str, builtins.list[float]]
+            | tuple[str, builtins.list[float], dict[str, Any]]
+            | dict[str, Any]
+        ],
+        namespace: str = "",
+    ) -> PineconeFuture[UpsertResponse]:
+        """Submit an upsert operation and return a :class:`PineconeFuture`.
+
+        Same parameters as :meth:`upsert`.
+        """
+        future: PineconeFuture[UpsertResponse] = PineconeFuture(
+            self._executor.submit(self.upsert, vectors=vectors, namespace=namespace)
+        )
+        return future
+
+    def query_async(
+        self,
+        *,
+        top_k: int,
+        vector: builtins.list[float] | None = None,
+        id: str | None = None,
+        namespace: str = "",
+        filter: dict[str, Any] | None = None,
+        include_values: bool = False,
+        include_metadata: bool = False,
+        sparse_vector: SparseValues | dict[str, Any] | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
+    ) -> PineconeFuture[QueryResponse]:
+        """Submit a query operation and return a :class:`PineconeFuture`.
+
+        Same parameters as :meth:`query`.
+        """
+        future: PineconeFuture[QueryResponse] = PineconeFuture(
+            self._executor.submit(
+                self.query,
+                top_k=top_k,
+                vector=vector,
+                id=id,
+                namespace=namespace,
+                filter=filter,
+                include_values=include_values,
+                include_metadata=include_metadata,
+                sparse_vector=sparse_vector,
+                scan_factor=scan_factor,
+                max_candidates=max_candidates,
+            )
+        )
+        return future
+
+    def fetch_async(
+        self,
+        *,
+        ids: builtins.list[str],
+        namespace: str = "",
+    ) -> PineconeFuture[FetchResponse]:
+        """Submit a fetch operation and return a :class:`PineconeFuture`.
+
+        Same parameters as :meth:`fetch`.
+        """
+        future: PineconeFuture[FetchResponse] = PineconeFuture(
+            self._executor.submit(self.fetch, ids=ids, namespace=namespace)
+        )
+        return future
+
+    def delete_async(
+        self,
+        *,
+        ids: builtins.list[str] | None = None,
+        delete_all: bool = False,
+        filter: dict[str, Any] | None = None,
+        namespace: str = "",
+    ) -> PineconeFuture[None]:
+        """Submit a delete operation and return a :class:`PineconeFuture`.
+
+        Same parameters as :meth:`delete`.
+        """
+        future: PineconeFuture[None] = PineconeFuture(
+            self._executor.submit(
+                self.delete,
+                ids=ids,
+                delete_all=delete_all,
+                filter=filter,
+                namespace=namespace,
+            )
+        )
+        return future
+
     def close(self) -> None:
         """Close the underlying gRPC channel and release resources."""
+        self._executor.shutdown(wait=False)
         if hasattr(self._channel, "close"):
             self._channel.close()
 
