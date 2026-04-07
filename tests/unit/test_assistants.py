@@ -1709,3 +1709,91 @@ def test_chat_message_parsing(assistants: Assistants) -> None:
     assert msgs[0]["content"] == "No role here"
     assert msgs[1]["role"] == "user"
     assert msgs[1]["content"] == "Explicit role"
+
+
+# ---------------------------------------------------------------------------
+# chat_completions() — defaults
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_chat_completions_default_stream_false(assistants: Assistants) -> None:
+    """chat_completions() defaults stream to False and posts to the completions endpoint."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    completions_route = respx.post(
+        f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions"
+    ).mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "id": "chatcmpl-abc123",
+                "model": "gpt-4o",
+                "usage": {"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30},
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {"role": "assistant", "content": "Hello from completions!"},
+                        "finish_reason": "stop",
+                    }
+                ],
+            },
+        )
+    )
+
+    from pinecone.models.assistant.chat import ChatCompletionResponse
+
+    result = assistants.chat_completions(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+    )
+
+    assert isinstance(result, ChatCompletionResponse)
+    request_body = json.loads(completions_route.calls.last.request.content)
+    assert request_body["stream"] is False
+    assert request_body["model"] == "gpt-4o"
+
+
+# ---------------------------------------------------------------------------
+# chat_completions() — no model validation
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_chat_completions_no_model_validation(assistants: Assistants) -> None:
+    """chat_completions() accepts any model string without client-side validation."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    completions_route = respx.post(
+        f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions"
+    ).mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "id": "chatcmpl-xyz789",
+                "model": "some-unknown-model-v99",
+                "usage": {"prompt_tokens": 5, "completion_tokens": 10, "total_tokens": 15},
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {"role": "assistant", "content": "Response"},
+                        "finish_reason": "stop",
+                    }
+                ],
+            },
+        )
+    )
+
+    from pinecone.models.assistant.chat import ChatCompletionResponse
+
+    result = assistants.chat_completions(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        model="some-unknown-model-v99",
+    )
+
+    assert isinstance(result, ChatCompletionResponse)
+    request_body = json.loads(completions_route.calls.last.request.content)
+    assert request_body["model"] == "some-unknown-model-v99"

@@ -17,13 +17,13 @@ from pinecone.errors.exceptions import (
     PineconeTimeoutError,
     PineconeValueError,
 )
-from pinecone.models.assistant.chat import ChatResponse
+from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
 from pinecone.models.assistant.message import Message
 from pinecone.models.assistant.model import AssistantModel
 from pinecone.models.assistant.options import ContextOptions
-from pinecone.models.assistant.streaming import ChatStreamChunk
+from pinecone.models.assistant.streaming import ChatCompletionStreamChunk, ChatStreamChunk
 
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
@@ -810,6 +810,72 @@ class Assistants:
         response = http.post(f"/chat/{assistant_name}", json=body)
         return self._adapter.to_chat_response(response.content)
 
+    def chat_completions(
+        self,
+        *,
+        assistant_name: str,
+        messages: List[Message | dict[str, str]],
+        model: str = "gpt-4o",
+        stream: bool = False,
+        temperature: float | None = None,
+        filter: dict[str, Any] | None = None,
+    ) -> ChatCompletionResponse | Iterator[ChatCompletionStreamChunk]:
+        """Chat with an assistant using an OpenAI-compatible interface.
+
+        Returns responses in OpenAI chat completion format. Useful when you
+        need inline citations or OpenAI-compatible responses. Has limited
+        functionality compared to the standard :meth:`chat` interface — does
+        not support ``include_highlights``, ``context_options``, or
+        ``json_response`` parameters.
+
+        The model parameter accepts any string value and is not validated
+        client-side. Known models include ``"gpt-4o"``, ``"gpt-4.1"``,
+        ``"o4-mini"``, ``"claude-3-5-sonnet"``, ``"claude-3-7-sonnet"``,
+        and ``"gemini-2.5-pro"``.
+
+        Args:
+            assistant_name (str): Name of the assistant to chat with.
+            messages (list[Message | dict[str, str]]): Conversation messages.
+                Dicts are converted to :class:`Message` objects; role defaults
+                to ``"user"`` when not present.
+            model (str): Large language model to use. Defaults to ``"gpt-4o"``.
+                Not validated client-side — any string is accepted.
+            stream (bool): If ``True``, return a streaming iterator. Defaults
+                to ``False``.
+            temperature (float | None): Controls randomness. Lower values produce
+                more deterministic responses. Omitted from request when ``None``.
+            filter (dict[str, Any] | None): Metadata filter restricting which
+                documents are used as context. Omitted from request when ``None``.
+
+        Returns:
+            :class:`ChatCompletionResponse` for non-streaming requests, or an
+            :class:`Iterator[ChatCompletionStreamChunk]` for streaming requests.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response.
+        """
+        parsed: List[Message] = [
+            m if isinstance(m, Message) else Message.from_dict(m) for m in messages
+        ]
+
+        body: dict[str, Any] = {
+            "messages": [{"role": m.role, "content": m.content} for m in parsed],
+            "model": model,
+            "stream": stream,
+        }
+        if temperature is not None:
+            body["temperature"] = temperature
+        if filter is not None:
+            body["filter"] = filter
+
+        http = self._data_plane_http(assistant_name)
+
+        if stream:
+            return self._stream_chat_completions(http, assistant_name, body)
+
+        response = http.post(f"/chat/{assistant_name}/chat/completions", json=body)
+        return self._adapter.to_chat_completion_response(response.content)
+
     def _stream_chat(
         self,
         http: HTTPClient,
@@ -818,6 +884,15 @@ class Assistants:
     ) -> Iterator[ChatStreamChunk]:
         """Stream chat chunks from the assistant (implemented in P-0132)."""
         raise NotImplementedError("Streaming chat is not yet implemented")
+
+    def _stream_chat_completions(
+        self,
+        http: HTTPClient,
+        assistant_name: str,
+        body: dict[str, Any],
+    ) -> Iterator[ChatCompletionStreamChunk]:
+        """Stream chat completion chunks from the assistant (implemented in P-0132)."""
+        raise NotImplementedError("Streaming chat completions is not yet implemented")
 
     def _poll_until_ready(self, name: str, timeout: float | None) -> AssistantModel:
         """Poll ``GET /assistants/{name}`` until status is ``"Ready"`` or timeout."""
