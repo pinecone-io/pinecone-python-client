@@ -154,3 +154,49 @@ class TestQueryNamespacesFilter:
             )
             for c in mock_query.call_args_list:
                 assert c.kwargs["filter"] == test_filter
+
+
+class TestQueryNamespacesDRNParams:
+    def test_query_namespaces_forwards_scan_factor(self) -> None:
+        """Pass scan_factor, verify each query call receives it."""
+        idx = _make_index()
+        response = _make_query_response([_scored("v1", 0.5)])
+
+        with patch.object(idx, "query", return_value=response) as mock_query:
+            idx.query_namespaces(
+                vector=[0.1],
+                namespaces=["ns1"],
+                metric="cosine",
+                scan_factor=2.0,
+            )
+            assert mock_query.call_count == 1
+            assert mock_query.call_args_list[0].kwargs["scan_factor"] == 2.0
+
+    def test_query_namespaces_forwards_max_candidates(self) -> None:
+        """Pass max_candidates, verify each query call receives it."""
+        idx = _make_index()
+        response = _make_query_response([_scored("v1", 0.5)])
+
+        with patch.object(idx, "query", return_value=response) as mock_query:
+            idx.query_namespaces(
+                vector=[0.1],
+                namespaces=["ns1"],
+                metric="cosine",
+                max_candidates=5000,
+            )
+            assert mock_query.call_count == 1
+            assert mock_query.call_args_list[0].kwargs["max_candidates"] == 5000
+
+    def test_query_namespaces_drn_params_default_none(self) -> None:
+        """Call without DRN params, verify they default to None."""
+        idx = _make_index()
+        response = _make_query_response([_scored("v1", 0.5)])
+
+        with patch.object(idx, "query", return_value=response) as mock_query:
+            idx.query_namespaces(
+                vector=[0.1],
+                namespaces=["ns1"],
+                metric="cosine",
+            )
+            assert mock_query.call_args_list[0].kwargs["scan_factor"] is None
+            assert mock_query.call_args_list[0].kwargs["max_candidates"] is None

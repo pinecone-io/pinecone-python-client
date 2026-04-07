@@ -144,3 +144,55 @@ class TestAsyncQueryNamespacesDefaultTopK:
                 metric="cosine",
             )
             assert len(result.matches) == 10
+
+
+class TestAsyncQueryNamespacesDRNParams:
+    @pytest.mark.asyncio
+    async def test_query_namespaces_forwards_scan_factor(self) -> None:
+        """Pass scan_factor, verify each query call receives it."""
+        idx = _make_index()
+        response = _make_query_response([_scored("v1", 0.5)])
+
+        mock_query = AsyncMock(return_value=response)
+        with patch.object(idx, "query", mock_query):
+            await idx.query_namespaces(
+                vector=[0.1],
+                namespaces=["ns1"],
+                metric="cosine",
+                scan_factor=2.0,
+            )
+            assert mock_query.await_count == 1
+            assert mock_query.call_args_list[0].kwargs["scan_factor"] == 2.0
+
+    @pytest.mark.asyncio
+    async def test_query_namespaces_forwards_max_candidates(self) -> None:
+        """Pass max_candidates, verify each query call receives it."""
+        idx = _make_index()
+        response = _make_query_response([_scored("v1", 0.5)])
+
+        mock_query = AsyncMock(return_value=response)
+        with patch.object(idx, "query", mock_query):
+            await idx.query_namespaces(
+                vector=[0.1],
+                namespaces=["ns1"],
+                metric="cosine",
+                max_candidates=5000,
+            )
+            assert mock_query.await_count == 1
+            assert mock_query.call_args_list[0].kwargs["max_candidates"] == 5000
+
+    @pytest.mark.asyncio
+    async def test_query_namespaces_drn_params_default_none(self) -> None:
+        """Call without DRN params, verify they default to None."""
+        idx = _make_index()
+        response = _make_query_response([_scored("v1", 0.5)])
+
+        mock_query = AsyncMock(return_value=response)
+        with patch.object(idx, "query", mock_query):
+            await idx.query_namespaces(
+                vector=[0.1],
+                namespaces=["ns1"],
+                metric="cosine",
+            )
+            assert mock_query.call_args_list[0].kwargs["scan_factor"] is None
+            assert mock_query.call_args_list[0].kwargs["max_candidates"] is None

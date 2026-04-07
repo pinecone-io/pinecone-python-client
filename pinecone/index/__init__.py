@@ -419,6 +419,8 @@ class Index:
         include_values: bool = False,
         include_metadata: bool = False,
         sparse_vector: SparseValues | dict[str, Any] | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
     ) -> QueryNamespacesResults:
         """Query multiple namespaces in parallel and return merged top results.
 
@@ -437,6 +439,11 @@ class Index:
             include_values: Whether to include vector values in results.
             include_metadata: Whether to include metadata in results.
             sparse_vector: Sparse query vector with indices and values.
+            scan_factor: DRN performance tuning — controls how much of the
+                index is scanned during a query. Higher values scan more
+                data and may improve recall at the cost of latency.
+            max_candidates: DRN performance tuning — maximum number of
+                candidate vectors to consider during the search phase.
 
         Returns:
             QueryNamespacesResults with the merged top-k matches, total
@@ -478,6 +485,8 @@ class Index:
                     include_values=include_values,
                     include_metadata=include_metadata,
                     sparse_vector=sparse_vector,
+                    scan_factor=scan_factor,
+                    max_candidates=max_candidates,
                 ): ns
                 for ns in namespaces
             }
