@@ -30,6 +30,7 @@ from pinecone.errors.exceptions import (
 logger = logging.getLogger(__name__)
 
 _RETRYABLE_STATUS_CODES: frozenset[int] = frozenset({500, 502, 503, 504})
+_RETRYABLE_METHODS: frozenset[str] = frozenset({"GET", "HEAD"})
 
 
 def _build_socket_options() -> list[tuple[int, int, int]]:
@@ -126,6 +127,8 @@ class _RetryTransport(httpx.BaseTransport):
 
     def handle_request(self, request: httpx.Request) -> httpx.Response:
         response = self._transport.handle_request(request)
+        if request.method not in _RETRYABLE_METHODS:
+            return response
         for attempt in range(self._max_attempts - 1):
             if response.status_code not in _RETRYABLE_STATUS_CODES:
                 return response
@@ -160,6 +163,8 @@ class _AsyncRetryTransport(httpx.AsyncBaseTransport):
 
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         response = await self._transport.handle_async_request(request)
+        if request.method not in _RETRYABLE_METHODS:
+            return response
         for attempt in range(self._max_attempts - 1):
             if response.status_code not in _RETRYABLE_STATUS_CODES:
                 return response

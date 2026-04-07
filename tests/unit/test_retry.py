@@ -158,9 +158,47 @@ class TestSyncRetryTransport:
         assert mock_sleep.call_count == 4
 
     @patch("pinecone._internal.http_client.time.sleep")
-    def test_sync_retries_all_methods(self, mock_sleep: Any) -> None:
-        """POST, DELETE, and PATCH are all retried, not just GET."""
-        for method in ("POST", "DELETE", "PATCH"):
+    def test_sync_no_retry_for_post(self, mock_sleep: Any) -> None:
+        """POST requests are NOT retried even on retryable status codes."""
+        fake = _FakeTransport([
+            httpx.Response(503, json={"message": "unavailable"}),
+            httpx.Response(200, json={"ok": True}),
+        ])
+        transport = _RetryTransport(
+            transport=fake,  # type: ignore[arg-type]
+            max_attempts=5,
+            initial_backoff=0.1,
+            jitter_max=0.0,
+        )
+        request = httpx.Request("POST", "https://api.pinecone.io/test")
+        response = transport.handle_request(request)
+        assert response.status_code == 503
+        assert fake.call_count == 1
+        mock_sleep.assert_not_called()
+
+    @patch("pinecone._internal.http_client.time.sleep")
+    def test_sync_no_retry_for_delete(self, mock_sleep: Any) -> None:
+        """DELETE requests are NOT retried even on retryable status codes."""
+        fake = _FakeTransport([
+            httpx.Response(503, json={"message": "unavailable"}),
+            httpx.Response(200, json={"ok": True}),
+        ])
+        transport = _RetryTransport(
+            transport=fake,  # type: ignore[arg-type]
+            max_attempts=5,
+            initial_backoff=0.1,
+            jitter_max=0.0,
+        )
+        request = httpx.Request("DELETE", "https://api.pinecone.io/test")
+        response = transport.handle_request(request)
+        assert response.status_code == 503
+        assert fake.call_count == 1
+        mock_sleep.assert_not_called()
+
+    @patch("pinecone._internal.http_client.time.sleep")
+    def test_sync_no_retry_for_non_idempotent_methods(self, mock_sleep: Any) -> None:
+        """PUT and PATCH requests are NOT retried."""
+        for method in ("PUT", "PATCH"):
             fake = _FakeTransport([
                 httpx.Response(500, json={"message": "error"}),
                 httpx.Response(200, json={"ok": True}),
@@ -173,8 +211,26 @@ class TestSyncRetryTransport:
             )
             request = httpx.Request(method, "https://api.pinecone.io/test")
             response = transport.handle_request(request)
-            assert response.status_code == 200, f"{method} should be retried"
-            assert fake.call_count == 2, f"{method} should have 2 attempts"
+            assert response.status_code == 500, f"{method} should NOT be retried"
+            assert fake.call_count == 1, f"{method} should have only 1 attempt"
+
+    @patch("pinecone._internal.http_client.time.sleep")
+    def test_sync_retries_head(self, mock_sleep: Any) -> None:
+        """HEAD requests are retried like GET."""
+        fake = _FakeTransport([
+            httpx.Response(503, json={"message": "unavailable"}),
+            httpx.Response(200, json={"ok": True}),
+        ])
+        transport = _RetryTransport(
+            transport=fake,  # type: ignore[arg-type]
+            max_attempts=5,
+            initial_backoff=0.1,
+            jitter_max=0.0,
+        )
+        request = httpx.Request("HEAD", "https://api.pinecone.io/test")
+        response = transport.handle_request(request)
+        assert response.status_code == 200
+        assert fake.call_count == 2
 
     @patch("pinecone._internal.http_client.time.sleep")
     def test_sync_backoff_delays(self, mock_sleep: Any) -> None:
@@ -298,6 +354,48 @@ class TestAsyncRetryTransport:
         assert response.status_code == 502
         assert fake.call_count == 5
         assert mock_sleep.call_count == 4
+
+    @patch("pinecone._internal.http_client.asyncio.sleep")
+    @pytest.mark.asyncio
+    async def test_async_no_retry_for_post(self, mock_sleep: Any) -> None:
+        """POST requests are NOT retried even on retryable status codes."""
+        fake = _FakeAsyncTransport([
+            httpx.Response(503, json={"message": "unavailable"}),
+            httpx.Response(200, json={"ok": True}),
+        ])
+        transport = _AsyncRetryTransport(
+            transport=fake,  # type: ignore[arg-type]
+            max_attempts=5,
+            initial_backoff=0.1,
+            max_backoff=3.0,
+            jitter_max=0.0,
+        )
+        request = httpx.Request("POST", "https://api.pinecone.io/test")
+        response = await transport.handle_async_request(request)
+        assert response.status_code == 503
+        assert fake.call_count == 1
+        mock_sleep.assert_not_called()
+
+    @patch("pinecone._internal.http_client.asyncio.sleep")
+    @pytest.mark.asyncio
+    async def test_async_no_retry_for_delete(self, mock_sleep: Any) -> None:
+        """DELETE requests are NOT retried even on retryable status codes."""
+        fake = _FakeAsyncTransport([
+            httpx.Response(503, json={"message": "unavailable"}),
+            httpx.Response(200, json={"ok": True}),
+        ])
+        transport = _AsyncRetryTransport(
+            transport=fake,  # type: ignore[arg-type]
+            max_attempts=5,
+            initial_backoff=0.1,
+            max_backoff=3.0,
+            jitter_max=0.0,
+        )
+        request = httpx.Request("DELETE", "https://api.pinecone.io/test")
+        response = await transport.handle_async_request(request)
+        assert response.status_code == 503
+        assert fake.call_count == 1
+        mock_sleep.assert_not_called()
 
     @patch("pinecone._internal.http_client.asyncio.sleep")
     @pytest.mark.asyncio
