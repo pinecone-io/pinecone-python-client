@@ -680,6 +680,81 @@ async def test_create_sparse_without_dimension(async_indexes: AsyncIndexes) -> N
 
 
 # ---------------------------------------------------------------------------
+# create() — schema
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_create_with_flat_schema(async_indexes: AsyncIndexes) -> None:
+    """Flat schema dict is placed inside spec.serverless.schema."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=make_index_response()),
+    )
+
+    schema: dict[str, Any] = {
+        "genre": {"type": "str", "filterable": True},
+        "year": {"type": "int", "filterable": True},
+    }
+
+    await async_indexes.create(
+        name="test-index",
+        dimension=1536,
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        schema=schema,
+    )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["spec"]["serverless"]["schema"] == schema
+
+
+@respx.mock
+async def test_create_with_nested_schema(async_indexes: AsyncIndexes) -> None:
+    """Nested schema with 'fields' wrapper is unwrapped before sending."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=make_index_response()),
+    )
+
+    nested_schema: dict[str, Any] = {
+        "fields": {
+            "genre": {"type": "str", "filterable": True},
+        }
+    }
+
+    await async_indexes.create(
+        name="test-index",
+        dimension=1536,
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        schema=nested_schema,
+    )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    # Should be unwrapped — same as flat
+    assert body["spec"]["serverless"]["schema"] == {
+        "genre": {"type": "str", "filterable": True},
+    }
+
+
+@respx.mock
+async def test_create_without_schema(async_indexes: AsyncIndexes) -> None:
+    """When schema is None, no schema key appears in the request body."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=make_index_response()),
+    )
+
+    await async_indexes.create(
+        name="test-index",
+        dimension=1536,
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+    )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert "schema" not in body["spec"]["serverless"]
+
+
+# ---------------------------------------------------------------------------
 # configure()
 # ---------------------------------------------------------------------------
 
