@@ -221,6 +221,21 @@ class TestGeneralValidation:
         with pytest.raises(TypeError, match="must be a string"):
             VectorFactory.build({"id": 123, "values": [0.1]})
 
+    def test_validate_id_rejects_non_ascii(self) -> None:
+        """unified-ids-0002: non-ASCII IDs rejected."""
+        with pytest.raises(ValueError, match="ASCII"):
+            VectorFactory.build(("café", [0.1, 0.2]))
+
+    def test_validate_id_rejects_null_char(self) -> None:
+        """unified-ids-0002: null characters in ID rejected."""
+        with pytest.raises(ValueError, match="null"):
+            VectorFactory.build(("hello\x00world", [0.1, 0.2]))
+
+    def test_validate_id_accepts_ascii(self) -> None:
+        """unified-ids-0002: valid ASCII IDs pass validation."""
+        result = VectorFactory.build(("valid-id_123", [0.1, 0.2]))
+        assert result.id == "valid-id_123"
+
 
 class TestUnsupportedTypes:
     """Reject non-Vector, non-tuple, non-dict inputs."""

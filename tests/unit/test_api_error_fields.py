@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import httpx
 import pytest
-import respx
 
+from pinecone._internal.http_client import _raise_for_status
 from pinecone.errors.exceptions import (
     ApiError,
     ConflictError,
@@ -14,7 +14,6 @@ from pinecone.errors.exceptions import (
     ServiceError,
     UnauthorizedError,
 )
-from pinecone._internal.http_client import _raise_for_status
 
 
 class TestApiErrorFields:

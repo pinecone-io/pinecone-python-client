@@ -132,3 +132,7 @@ class VectorFactory:
     def _validate_id(id_: Any) -> None:
         if not isinstance(id_, str):
             raise TypeError(f"Vector ID must be a string, got {type(id_).__name__}")
+        if not id_.isascii():
+            raise ValueError(f"Vector ID must contain only ASCII characters, got: {id_!r}")
+        if "\x00" in id_:
+            raise ValueError(f"Vector ID must not contain null characters, got: {id_!r}")
