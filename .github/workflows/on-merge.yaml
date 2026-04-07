@@ -21,7 +21,8 @@ on:
       - '*.example'
   workflow_dispatch: {}
 
-permissions: {}
+permissions:
+  contents: read
 
 concurrency:
   group: 'ci-${{ github.workflow }}-${{ github.ref }}'
