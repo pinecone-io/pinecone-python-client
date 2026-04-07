@@ -215,6 +215,41 @@ class TestAdminHeaders:
         admin.close()
 
 
+class TestAdminApiKeyNotLeaked:
+    """Test that the Admin client does not leak data-plane API keys."""
+
+    @respx.mock
+    def test_admin_does_not_include_api_key_header(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """When PINECONE_API_KEY is set, Admin must NOT send it as Api-Key."""
+        monkeypatch.setenv("PINECONE_API_KEY", "data-plane-key-12345")
+
+        respx.post(_OAUTH_URL).mock(
+            return_value=Response(200, json=_token_response())
+        )
+
+        admin = Admin(client_id="test-id", client_secret="test-secret")
+        assert "Api-Key" not in admin._http._headers
+        assert admin._http._headers["Authorization"] == "Bearer test-access-token"
+        admin.close()
+
+    @respx.mock
+    def test_admin_api_key_empty_without_env(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Without PINECONE_API_KEY env var, Api-Key header is still absent."""
+        monkeypatch.delenv("PINECONE_API_KEY", raising=False)
+
+        respx.post(_OAUTH_URL).mock(
+            return_value=Response(200, json=_token_response())
+        )
+
+        admin = Admin(client_id="test-id", client_secret="test-secret")
+        assert "Api-Key" not in admin._http._headers
+        admin.close()
+
+
 class TestAdminContextManager:
     """Test context manager support."""
 

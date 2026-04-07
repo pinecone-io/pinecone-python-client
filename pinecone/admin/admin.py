@@ -81,6 +81,9 @@ class Admin:
             host=DEFAULT_BASE_URL,
             additional_headers=headers,
         )
+        # Prevent __post_init__ from falling back to PINECONE_API_KEY env var.
+        # The Admin client authenticates via OAuth Bearer token, not Api-Key.
+        object.__setattr__(config, "api_key", "")
 
         self._http = HTTPClient(config, ADMIN_API_VERSION)
 

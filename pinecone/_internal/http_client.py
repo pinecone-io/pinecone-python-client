@@ -77,10 +77,11 @@ def _prepare_json_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
 
 def _build_headers(config: PineconeConfig, api_version: str) -> dict[str, str]:
     headers: dict[str, str] = {
-        "Api-Key": config.api_key,
         API_VERSION_HEADER: api_version,
         "User-Agent": build_user_agent(__version__, config.source_tag or None),
     }
+    if config.api_key:
+        headers["Api-Key"] = config.api_key
     if config.additional_headers:
         headers.update(config.additional_headers)
     return headers
