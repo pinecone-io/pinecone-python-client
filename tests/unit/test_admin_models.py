@@ -17,41 +17,68 @@ class TestOrganizationModel:
             plan="Enterprise",
             payment_status="Active",
             created_at="2025-01-01T00:00:00Z",
+            support_tier="Basic",
         )
         assert org.id == "org-123"
         assert org.name == "My Org"
         assert org.plan == "Enterprise"
         assert org.payment_status == "Active"
         assert org.created_at == "2025-01-01T00:00:00Z"
+        assert org.support_tier == "Basic"
 
-    def test_organization_model_optional_defaults(self) -> None:
-        org = OrganizationModel(id="org-123", name="My Org")
-        assert org.plan is None
-        assert org.payment_status is None
-        assert org.created_at is None
+    def test_organization_model_support_tier_field(self) -> None:
+        org = OrganizationModel(
+            id="org-123",
+            name="My Org",
+            plan="Enterprise",
+            payment_status="Active",
+            created_at="2025-01-01T00:00:00Z",
+            support_tier="Premium",
+        )
+        assert org.support_tier == "Premium"
+        assert org["support_tier"] == "Premium"
 
     def test_organization_model_bracket_access(self) -> None:
-        org = OrganizationModel(id="org-123", name="My Org")
+        org = OrganizationModel(
+            id="org-123",
+            name="My Org",
+            plan="Free",
+            payment_status="Active",
+            created_at="2025-01-01T00:00:00Z",
+            support_tier="Basic",
+        )
         assert org["name"] == "My Org"
         assert org["id"] == "org-123"
         with pytest.raises(KeyError, match="missing"):
             org["missing"]
 
     def test_organization_list_names(self) -> None:
+        kwargs = dict(
+            plan="Free",
+            payment_status="Active",
+            created_at="2025-01-01T00:00:00Z",
+            support_tier="Basic",
+        )
         orgs = OrganizationList(
             [
-                OrganizationModel(id="org-1", name="Alpha"),
-                OrganizationModel(id="org-2", name="Beta"),
-                OrganizationModel(id="org-3", name="Gamma"),
+                OrganizationModel(id="org-1", name="Alpha", **kwargs),
+                OrganizationModel(id="org-2", name="Beta", **kwargs),
+                OrganizationModel(id="org-3", name="Gamma", **kwargs),
             ]
         )
         assert orgs.names() == ["Alpha", "Beta", "Gamma"]
 
     def test_organization_list_len_and_iter(self) -> None:
+        kwargs = dict(
+            plan="Free",
+            payment_status="Active",
+            created_at="2025-01-01T00:00:00Z",
+            support_tier="Basic",
+        )
         orgs = OrganizationList(
             [
-                OrganizationModel(id="org-1", name="Alpha"),
-                OrganizationModel(id="org-2", name="Beta"),
+                OrganizationModel(id="org-1", name="Alpha", **kwargs),
+                OrganizationModel(id="org-2", name="Beta", **kwargs),
             ]
         )
         assert len(orgs) == 2
@@ -59,7 +86,14 @@ class TestOrganizationModel:
         assert names == ["Alpha", "Beta"]
 
     def test_organization_list_getitem(self) -> None:
-        org = OrganizationModel(id="org-1", name="Alpha")
+        org = OrganizationModel(
+            id="org-1",
+            name="Alpha",
+            plan="Free",
+            payment_status="Active",
+            created_at="2025-01-01T00:00:00Z",
+            support_tier="Basic",
+        )
         orgs = OrganizationList([org])
         assert orgs[0] is org
 

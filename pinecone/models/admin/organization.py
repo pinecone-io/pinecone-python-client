@@ -17,13 +17,15 @@ class OrganizationModel(Struct, kw_only=True):
         plan: Plan tier (e.g. Free, Standard, Enterprise, Dedicated).
         payment_status: Current payment status.
         created_at: Timestamp when the organization was created.
+        support_tier: Support tier for the organization.
     """
 
     id: str
     name: str
-    plan: str | None = None
-    payment_status: str | None = None
-    created_at: str | None = None
+    plan: str
+    payment_status: str
+    created_at: str
+    support_tier: str
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. org['name'])."""

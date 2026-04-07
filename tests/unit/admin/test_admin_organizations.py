@@ -25,6 +25,7 @@ def _org_response(
     plan: str = "Enterprise",
     payment_status: str = "Active",
     created_at: str = "2025-01-01T00:00:00Z",
+    support_tier: str = "Basic",
 ) -> dict[str, Any]:
     return {
         "id": id,
@@ -32,6 +33,7 @@ def _org_response(
         "plan": plan,
         "payment_status": payment_status,
         "created_at": created_at,
+        "support_tier": support_tier,
     }
 
 
