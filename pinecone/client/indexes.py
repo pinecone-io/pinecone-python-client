@@ -198,11 +198,12 @@ class Indexes:
         pod_type: str | None = None,
         deletion_protection: DeletionProtection | str | None = None,
         tags: dict[str, str] | None = None,
+        read_capacity: dict[str, Any] | None = None,
     ) -> None:
         """Configure an existing index.
 
         Updates mutable properties of an index such as replicas, pod type,
-        deletion protection, and tags.
+        deletion protection, tags, and read capacity.
 
         Args:
             name (str): The name of the index to configure.
@@ -211,9 +212,13 @@ class Indexes:
             deletion_protection (DeletionProtection | str | None): ``"enabled"`` or ``"disabled"``.
             tags (dict[str, str] | None): Key-value tags to merge with existing tags.
                 Set a value to ``""`` to remove a tag.
+            read_capacity (dict[str, Any] | None): Read capacity configuration for
+                BYOC indexes. Pass ``{"mode": "OnDemand"}`` or
+                ``{"mode": "Dedicated", "dedicated": {"node_type": "t1",
+                "scaling": "Manual", "manual": {"replicas": 2, "shards": 1}}}``.
 
         Raises:
-            ValidationError: If *name* is empty.
+            ValidationError: If *name* is empty or *read_capacity* is invalid.
             NotFoundError: If the index does not exist.
             ApiError: If the API returns another error response.
 
@@ -235,6 +240,11 @@ class Indexes:
             pod_fields["pod_type"] = pod_type
         if pod_fields:
             body["spec"] = {"pod": pod_fields}
+
+        # BYOC read capacity
+        if read_capacity is not None:
+            self._validate_read_capacity(read_capacity)
+            body["spec"] = {"byoc": {"read_capacity": read_capacity}}
 
         # Deletion protection — only include when explicitly specified
         if deletion_protection is not None:
@@ -382,6 +392,41 @@ class Indexes:
     def _resolve_value(value: Any) -> Any:
         """Extract .value from enum-like objects, pass through otherwise."""
         return value.value if hasattr(value, "value") else value
+
+    @staticmethod
+    def _validate_read_capacity(read_capacity: dict[str, Any]) -> None:
+        """Validate read_capacity structure for BYOC configure."""
+        if "mode" not in read_capacity:
+            raise ValidationError("read_capacity must contain a 'mode' key")
+
+        if read_capacity["mode"] == "Dedicated":
+            dedicated = read_capacity.get("dedicated")
+            if not isinstance(dedicated, dict):
+                raise ValidationError(
+                    "read_capacity with mode 'Dedicated' must contain a 'dedicated' dict"
+                )
+            if "node_type" not in dedicated:
+                raise ValidationError(
+                    "dedicated read_capacity must contain 'node_type'"
+                )
+            if "scaling" not in dedicated:
+                raise ValidationError(
+                    "dedicated read_capacity must contain 'scaling'"
+                )
+            if dedicated["scaling"] == "Manual" and "manual" in dedicated:
+                manual = dedicated["manual"]
+                if not isinstance(manual, dict):
+                    raise ValidationError(
+                        "dedicated read_capacity manual must be a dict"
+                    )
+                if "replicas" not in manual:
+                    raise ValidationError(
+                        "manual scaling must contain 'replicas'"
+                    )
+                if "shards" not in manual:
+                    raise ValidationError(
+                        "manual scaling must contain 'shards'"
+                    )
 
     def _validate_create_inputs(
         self,
