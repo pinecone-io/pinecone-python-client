@@ -302,6 +302,35 @@ def test_create_assistant_polls_indefinitely_when_no_timeout(
     assert result.status == "Ready"
 
 
+@respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_create_timeout_none(mock_sleep: object, assistants: Assistants) -> None:
+    """timeout=None waits indefinitely until Ready."""
+    respx.post(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    result = assistants.create(name="test-assistant", timeout=None)
+
+    assert result.status == "Ready"
+
+
+@respx.mock
+def test_create_timeout_negative_one(assistants: Assistants) -> None:
+    """timeout=-1 returns immediately without polling."""
+    create_route = respx.post(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+
+    result = assistants.create(name="test-assistant", timeout=-1)
+
+    assert result.status == "Initializing"
+    assert create_route.call_count == 1
+
+
 # ---------------------------------------------------------------------------
 # create() — valid regions accepted
 # ---------------------------------------------------------------------------
@@ -766,6 +795,28 @@ def test_delete_assistant_timeout_raises(
 
 
 @respx.mock
+@patch("pinecone.client.assistants.time.monotonic")
+@patch("pinecone.client.assistants.time.sleep")
+def test_delete_timeout_exceeded(
+    mock_sleep: object, mock_monotonic: object, assistants: Assistants
+) -> None:
+    """Exceeding timeout during delete raises PineconeTimeoutError."""
+    mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
+
+    respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(204),
+    )
+    respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(
+            200, json=make_assistant_response(name="my-assistant", status="Terminating")
+        ),
+    )
+
+    with pytest.raises(PineconeTimeoutError):
+        assistants.delete(name="my-assistant", timeout=10)
+
+
+@respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_delete_assistant_polls_indefinitely_when_no_timeout(
     mock_sleep: object, assistants: Assistants
@@ -1159,6 +1210,32 @@ def test_upload_file_timeout_raises(
         )
 
     assert "operation_id" in str(exc_info.value)
+
+
+@respx.mock
+def test_upload_timeout_negative_one(assistants: Assistants) -> None:
+    """upload_file(timeout=-1) calls describe_file once without polling."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    upload_route = respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Processing")),
+    )
+    describe_route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Processing")),
+    )
+
+    stream = io.BytesIO(b"data")
+    result = assistants.upload_file(
+        assistant_name="test-assistant",
+        file_stream=stream,
+        timeout=-1,
+    )
+
+    assert upload_route.call_count == 1
+    assert describe_route.call_count == 1
+    assert isinstance(result, AssistantFileModel)
+    assert result.status == "Processing"
 
 
 # ---------------------------------------------------------------------------

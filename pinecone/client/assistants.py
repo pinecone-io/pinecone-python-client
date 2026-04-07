@@ -142,7 +142,8 @@ class Assistants:
             file_id: Optional caller-specified file identifier for upsert
                 behavior.
             timeout: Seconds to wait for processing to complete. ``None``
-                (default) polls indefinitely. Raises
+                (default) polls indefinitely. Use ``-1`` to return
+                immediately after upload with one describe call. Raises
                 :exc:`PineconeTimeoutError` if processing is not done
                 before the deadline.
 
@@ -202,6 +203,9 @@ class Assistants:
         finally:
             if opened_file is not None:
                 opened_file.close()
+
+        if timeout == -1:
+            return self.describe_file(assistant_name=assistant_name, file_id=file_model.id)
 
         return self._poll_file_until_processed(data_http, assistant_name, file_model.id, timeout)
 
