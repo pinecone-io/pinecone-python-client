@@ -10,6 +10,30 @@ use crate::proto::vector_service_client::VectorServiceClient;
 use crate::proto;
 use crate::retry::{retry_on_unavailable, RetryConfig};
 
+/// Maximum gRPC message size for both send and receive (128 MB).
+const MAX_MESSAGE_SIZE: usize = 128 * 1024 * 1024;
+
+/// Ensure the endpoint URL has a port; append `:443` if none is specified.
+fn ensure_port(endpoint: &str) -> String {
+    // Try to parse the host portion to check for a port.
+    // Endpoints look like "https://host:port" or "https://host".
+    if let Some(scheme_end) = endpoint.find("://") {
+        let after_scheme = &endpoint[scheme_end + 3..];
+        // Strip any path component
+        let host_port = after_scheme.split('/').next().unwrap_or(after_scheme);
+        // Check for port: look for `:digits` at the end, but be careful with IPv6
+        // brackets like `[::1]:443`.
+        if host_port.ends_with(']') || !host_port.contains(':') || (host_port.starts_with('[') && !host_port.contains("]:")) {
+            // No port found — append :443
+            // Insert before any path component
+            let path_start = scheme_end + 3 + host_port.len();
+            let (before_path, path) = endpoint.split_at(path_start);
+            return format!("{before_path}:443{path}");
+        }
+    }
+    endpoint.to_string()
+}
+
 /// Interceptor that attaches API key, request ID (UUID v4), and API version
 /// metadata to every outgoing gRPC request.
 #[derive(Clone)]
@@ -368,7 +392,9 @@ impl GrpcChannel {
         let request_timeout = Duration::from_secs_f64(timeout_s.unwrap_or(20.0));
         let connection_timeout = Duration::from_secs_f64(connect_timeout_s.unwrap_or(1.0));
 
-        let mut endpoint_builder = Channel::from_shared(endpoint.to_string())
+        let endpoint_with_port = ensure_port(endpoint);
+
+        let mut endpoint_builder = Channel::from_shared(endpoint_with_port)
             .map_err(|e| PyRuntimeError::new_err(format!("Invalid endpoint: {e}")))?
             .timeout(request_timeout)
             .connect_timeout(connection_timeout);
@@ -392,7 +418,9 @@ impl GrpcChannel {
         };
 
         Ok(Self {
-            client: VectorServiceClient::with_interceptor(channel, interceptor),
+            client: VectorServiceClient::with_interceptor(channel, interceptor)
+                .max_decoding_message_size(MAX_MESSAGE_SIZE)
+                .max_encoding_message_size(MAX_MESSAGE_SIZE),
             runtime,
             retry_config,
         })
@@ -1209,5 +1237,60 @@ mod tests {
         }
 
         assert_eq!(ids.len(), 100, "All 100 request IDs should be unique");
+    }
+
+    #[test]
+    fn ensure_port_appends_443_when_no_port() {
+        assert_eq!(
+            ensure_port("https://my-index.svc.pinecone.io"),
+            "https://my-index.svc.pinecone.io:443"
+        );
+    }
+
+    #[test]
+    fn ensure_port_preserves_existing_port() {
+        assert_eq!(
+            ensure_port("https://my-index.svc.pinecone.io:8443"),
+            "https://my-index.svc.pinecone.io:8443"
+        );
+        assert_eq!(
+            ensure_port("https://my-index.svc.pinecone.io:443"),
+            "https://my-index.svc.pinecone.io:443"
+        );
+    }
+
+    #[test]
+    fn ensure_port_handles_http_scheme() {
+        assert_eq!(
+            ensure_port("http://localhost"),
+            "http://localhost:443"
+        );
+        assert_eq!(
+            ensure_port("http://localhost:5080"),
+            "http://localhost:5080"
+        );
+    }
+
+    #[test]
+    fn ensure_port_preserves_path() {
+        assert_eq!(
+            ensure_port("https://my-index.svc.pinecone.io/some/path"),
+            "https://my-index.svc.pinecone.io:443/some/path"
+        );
+    }
+
+    #[test]
+    fn ensure_port_no_scheme_passthrough() {
+        // If there's no scheme, return as-is (shouldn't happen in practice)
+        assert_eq!(
+            ensure_port("my-index.svc.pinecone.io"),
+            "my-index.svc.pinecone.io"
+        );
+    }
+
+    #[test]
+    fn max_message_size_constant_is_128mb() {
+        assert_eq!(MAX_MESSAGE_SIZE, 128 * 1024 * 1024);
+        assert_eq!(MAX_MESSAGE_SIZE, 134_217_728);
     }
 }
