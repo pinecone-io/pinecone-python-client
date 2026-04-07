@@ -233,6 +233,59 @@ class Assistants:
         )
         return result
 
+    def update(
+        self,
+        *,
+        name: str,
+        instructions: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> AssistantModel:
+        """Update an existing Pinecone assistant.
+
+        Updates the specified assistant's instructions and/or metadata.
+        Metadata is fully replaced (not merged) when provided.
+
+        Args:
+            name (str): The name of the assistant to update.
+            instructions (str | None): New instructions for the assistant.
+                Pass an empty string to clear existing instructions.
+            metadata (dict[str, Any] | None): New metadata dictionary. Fully
+                replaces any existing metadata rather than merging.
+
+        Returns:
+            :class:`AssistantModel` describing the updated assistant.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response (e.g. 404
+                when the assistant does not exist).
+
+        Examples:
+            Update an assistant's instructions:
+
+            >>> assistant = pc.assistants.update(
+            ...     name="my-assistant",
+            ...     instructions="You are a helpful research assistant.",
+            ... )
+
+            Replace an assistant's metadata:
+
+            >>> assistant = pc.assistants.update(
+            ...     name="my-assistant",
+            ...     metadata={"team": "ml", "version": "2"},
+            ... )
+        """
+        body: dict[str, Any] = {}
+        if instructions is not None:
+            body["instructions"] = instructions
+        if metadata is not None:
+            body["metadata"] = metadata
+
+        logger.info("Updating assistant %r", name)
+        response = self._http.patch(f"/assistants/{name}", json=body)
+        model = msgspec.json.decode(response.content, type=AssistantModel)
+        logger.debug("Updated assistant %r", name)
+        return model
+
     def _poll_until_ready(self, name: str, timeout: float | None) -> AssistantModel:
         """Poll ``GET /assistants/{name}`` until status is ``"Ready"`` or timeout."""
         start = time.monotonic()

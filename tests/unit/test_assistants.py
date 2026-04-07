@@ -529,6 +529,135 @@ def test_list_assistants_page_with_pagination_token(assistants: Assistants) -> N
     assert "paginationToken=abc123" in str(request.url)
 
 
+# ---------------------------------------------------------------------------
+# update() — success
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_update_assistant_instructions(assistants: Assistants) -> None:
+    """update() sends PATCH /assistants/{name} with instructions and returns AssistantModel."""
+    updated_response = make_assistant_response(
+        name="my-assistant",
+        instructions="Updated instructions.",
+    )
+    route = respx.patch(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(200, json=updated_response),
+    )
+
+    result = assistants.update(name="my-assistant", instructions="Updated instructions.")
+
+    assert isinstance(result, AssistantModel)
+    assert result.name == "my-assistant"
+    assert result.instructions == "Updated instructions."
+    assert route.call_count == 1
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body == {"instructions": "Updated instructions."}
+
+
+@respx.mock
+def test_update_assistant_metadata(assistants: Assistants) -> None:
+    """update() sends PATCH with metadata and returns AssistantModel."""
+    new_metadata = {"team": "ml", "version": "2"}
+    updated_response = make_assistant_response(
+        name="my-assistant",
+        metadata=new_metadata,
+    )
+    route = respx.patch(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(200, json=updated_response),
+    )
+
+    result = assistants.update(name="my-assistant", metadata=new_metadata)
+
+    assert isinstance(result, AssistantModel)
+    assert result.metadata == new_metadata
+    assert route.call_count == 1
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body == {"metadata": new_metadata}
+
+
+@respx.mock
+def test_update_assistant_both_fields(assistants: Assistants) -> None:
+    """update() sends both instructions and metadata when provided."""
+    updated_response = make_assistant_response(
+        name="my-assistant",
+        instructions="New instructions.",
+        metadata={"env": "prod"},
+    )
+    route = respx.patch(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(200, json=updated_response),
+    )
+
+    result = assistants.update(
+        name="my-assistant",
+        instructions="New instructions.",
+        metadata={"env": "prod"},
+    )
+
+    assert result.instructions == "New instructions."
+    assert result.metadata == {"env": "prod"}
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body == {"instructions": "New instructions.", "metadata": {"env": "prod"}}
+
+
+@respx.mock
+def test_update_assistant_clear_instructions(assistants: Assistants) -> None:
+    """update() can clear instructions by setting them to empty string."""
+    updated_response = make_assistant_response(
+        name="my-assistant",
+        instructions="",
+    )
+    route = respx.patch(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(200, json=updated_response),
+    )
+
+    result = assistants.update(name="my-assistant", instructions="")
+
+    assert result.instructions == ""
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body == {"instructions": ""}
+
+
+@respx.mock
+def test_update_assistant_omits_none_fields(assistants: Assistants) -> None:
+    """update() only includes provided fields in the request body."""
+    updated_response = make_assistant_response(name="my-assistant")
+    route = respx.patch(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(200, json=updated_response),
+    )
+
+    assistants.update(name="my-assistant", instructions="Only this.")
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert "metadata" not in body
+    assert body == {"instructions": "Only this."}
+
+
+@respx.mock
+def test_update_assistant_not_found(assistants: Assistants) -> None:
+    """update() lets 404 errors propagate from the HTTP client."""
+    respx.patch(f"{BASE_URL}/assistants/nonexistent").mock(
+        return_value=httpx.Response(404, json={"error": "Not found"}),
+    )
+
+    with pytest.raises(Exception):
+        assistants.update(name="nonexistent", instructions="test")
+
+
+# ---------------------------------------------------------------------------
+# list_page() — omission
+# ---------------------------------------------------------------------------
+
+
 @respx.mock
 def test_list_assistants_page_omits_none_params(assistants: Assistants) -> None:
     """list_page() does not send params that are None."""
