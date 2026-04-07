@@ -243,10 +243,18 @@ class AsyncIndexes:
             pod_fields["replicas"] = replicas
         if pod_type is not None:
             pod_fields["pod_type"] = pod_type
+
+        # BYOC read capacity — mutually exclusive with pod fields
+        if pod_fields and read_capacity is not None:
+            raise ValidationError(
+                "Cannot specify both pod fields (replicas, pod_type) and"
+                " read_capacity in the same configure call — they apply"
+                " to different index types"
+            )
+
         if pod_fields:
             body["spec"] = {"pod": pod_fields}
 
-        # BYOC read capacity
         if read_capacity is not None:
             self._validate_read_capacity(read_capacity)
             body["spec"] = {"byoc": {"read_capacity": read_capacity}}
