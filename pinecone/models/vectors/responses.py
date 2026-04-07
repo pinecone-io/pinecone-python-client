@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
+from collections.abc import Iterator
+from typing import Any, overload
 
 from msgspec import Struct
 
@@ -238,8 +239,23 @@ class ListResponse(Struct, rename="camel", kw_only=True):
     usage: Usage | None = None
     response_info: ResponseInfo | None = None
 
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access (e.g. response['vectors'])."""
+    @overload
+    def __getitem__(self, key: int) -> ListItem: ...
+
+    @overload
+    def __getitem__(self, key: str) -> Any: ...
+
+    def __getitem__(self, key: int | str) -> Any:
+        """Support integer indexing into vectors and string bracket access.
+
+        Args:
+            key: An integer index into ``vectors``, or a string field name.
+
+        Returns:
+            The list item at the given index, or the field value.
+        """
+        if isinstance(key, int):
+            return self.vectors[key]
         if key not in self.__struct_fields__:
             raise KeyError(key)
         return getattr(self, key)
@@ -247,6 +263,12 @@ class ListResponse(Struct, rename="camel", kw_only=True):
     def __contains__(self, key: object) -> bool:
         """Support ``in`` operator (e.g. ``'vectors' in response``)."""
         return key in self.__struct_fields__
+
+    def __len__(self) -> int:
+        return len(self.vectors)
+
+    def __iter__(self) -> Iterator[ListItem]:
+        return iter(self.vectors)
 
 
 class UpsertRecordsResponse(Struct, kw_only=True):

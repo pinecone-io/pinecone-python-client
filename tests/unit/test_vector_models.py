@@ -10,6 +10,7 @@ import pytest
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
     FetchResponse,
+    ListItem,
     ListResponse,
     NamespaceSummary,
     QueryResponse,
@@ -204,6 +205,44 @@ class TestNamespaceSummary:
     def test_with_count(self) -> None:
         ns = NamespaceSummary(vector_count=500)
         assert ns.vector_count == 500
+
+
+class TestListResponseIteration:
+    """Tests for __iter__, __len__, and integer __getitem__ on ListResponse."""
+
+    def test_list_response_iteration(self) -> None:
+        item1 = ListItem(id="vec-1")
+        item2 = ListItem(id="vec-2")
+        response = ListResponse(vectors=[item1, item2], namespace="ns")
+        collected = list(response)
+        assert collected == [item1, item2]
+
+    def test_list_response_len(self) -> None:
+        response = ListResponse(
+            vectors=[ListItem(id="a"), ListItem(id="b"), ListItem(id="c")],
+            namespace="ns",
+        )
+        assert len(response) == 3
+
+    def test_list_response_int_index(self) -> None:
+        item1 = ListItem(id="first")
+        item2 = ListItem(id="second")
+        response = ListResponse(vectors=[item1, item2], namespace="ns")
+        assert response[0] is item1
+        assert response[1] is item2
+        with pytest.raises(IndexError):
+            response[5]
+
+    def test_list_response_empty_iteration(self) -> None:
+        response = ListResponse()
+        assert list(response) == []
+        assert len(response) == 0
+
+    def test_list_response_string_access_still_works(self) -> None:
+        response = ListResponse(namespace="test-ns")
+        assert response["namespace"] == "test-ns"
+        with pytest.raises(KeyError):
+            response["bogus"]
 
 
 class TestBracketAccess:

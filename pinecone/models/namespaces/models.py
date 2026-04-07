@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
+from collections.abc import Iterator
+from typing import Any, overload
 
 from msgspec import Struct
 
@@ -66,8 +67,23 @@ class ListNamespacesResponse(Struct, kw_only=True):
     pagination: Pagination | None = None
     total_count: int = 0
 
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access (e.g. response['namespaces'])."""
+    @overload
+    def __getitem__(self, key: int) -> NamespaceDescription: ...
+
+    @overload
+    def __getitem__(self, key: str) -> Any: ...
+
+    def __getitem__(self, key: int | str) -> Any:
+        """Support integer indexing into namespaces and string bracket access.
+
+        Args:
+            key: An integer index into ``namespaces``, or a string field name.
+
+        Returns:
+            The namespace at the given index, or the field value.
+        """
+        if isinstance(key, int):
+            return self.namespaces[key]
         if key not in self.__struct_fields__:
             raise KeyError(key)
         return getattr(self, key)
@@ -75,3 +91,9 @@ class ListNamespacesResponse(Struct, kw_only=True):
     def __contains__(self, key: object) -> bool:
         """Support ``in`` operator (e.g. ``'namespaces' in response``)."""
         return key in self.__struct_fields__
+
+    def __len__(self) -> int:
+        return len(self.namespaces)
+
+    def __iter__(self) -> Iterator[NamespaceDescription]:
+        return iter(self.namespaces)

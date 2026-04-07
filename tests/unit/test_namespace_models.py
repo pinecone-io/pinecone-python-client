@@ -82,6 +82,38 @@ class TestListNamespacesResponse:
         with pytest.raises(KeyError):
             response["missing"]
 
+    def test_list_namespaces_response_iteration(self) -> None:
+        ns1 = NamespaceDescription(name="ns1", record_count=10)
+        ns2 = NamespaceDescription(name="ns2", record_count=20)
+        response = ListNamespacesResponse(namespaces=[ns1, ns2], total_count=2)
+        collected = list(response)
+        assert collected == [ns1, ns2]
+
+    def test_list_namespaces_response_len(self) -> None:
+        response = ListNamespacesResponse(
+            namespaces=[
+                NamespaceDescription(name="a"),
+                NamespaceDescription(name="b"),
+                NamespaceDescription(name="c"),
+            ],
+            total_count=3,
+        )
+        assert len(response) == 3
+
+    def test_list_namespaces_response_int_index(self) -> None:
+        ns1 = NamespaceDescription(name="first", record_count=1)
+        ns2 = NamespaceDescription(name="second", record_count=2)
+        response = ListNamespacesResponse(namespaces=[ns1, ns2], total_count=2)
+        assert response[0] is ns1
+        assert response[1] is ns2
+        with pytest.raises(IndexError):
+            response[5]
+
+    def test_list_namespaces_response_empty_iteration(self) -> None:
+        response = ListNamespacesResponse()
+        assert list(response) == []
+        assert len(response) == 0
+
 
 class TestVectorsAdapterNamespaces:
     def test_adapter_decode_namespace_description(self) -> None:
