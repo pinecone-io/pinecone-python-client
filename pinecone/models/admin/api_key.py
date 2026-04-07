@@ -93,9 +93,9 @@ class APIKeyList:
         Examples:
             List names of all API keys in a project:
 
-            >>> from pinecone import Pinecone
-            >>> pc = Pinecone(api_key="your-api-key")
-            >>> keys = pc.list_api_keys()
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+            >>> keys = admin.api_keys.list(project_id="proj-abc123")
             >>> keys.names()
             ['prod-search-key', 'ci-pipeline-key']
         """

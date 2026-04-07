@@ -68,9 +68,9 @@ class ProjectList:
         Examples:
             List names of all projects:
 
-            >>> from pinecone import Pinecone
-            >>> pc = Pinecone(api_key="your-api-key")
-            >>> projects = pc.list_projects()
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+            >>> projects = admin.projects.list()
             >>> projects.names()
             ['production-search', 'staging-recommendations']
         """

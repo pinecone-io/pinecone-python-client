@@ -68,9 +68,9 @@ class OrganizationList:
         Examples:
             List names of all organizations:
 
-            >>> from pinecone import Pinecone
-            >>> pc = Pinecone(api_key="your-api-key")
-            >>> orgs = pc.list_organizations()
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+            >>> orgs = admin.organizations.list()
             >>> orgs.names()
             ['acme-corp', 'research-team']
         """
