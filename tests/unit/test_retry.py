@@ -83,8 +83,8 @@ class TestSyncRetryTransport:
         ])
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_retries=5,
-            backoff_factor=0.25,
+            max_attempts=5,
+            initial_backoff=0.1,
             jitter_max=0.0,
         )
         response = transport.handle_request(_make_request())
@@ -100,8 +100,8 @@ class TestSyncRetryTransport:
         ])
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_retries=5,
-            backoff_factor=0.25,
+            max_attempts=5,
+            initial_backoff=0.1,
             jitter_max=0.0,
         )
         response = transport.handle_request(_make_request())
@@ -115,8 +115,8 @@ class TestSyncRetryTransport:
         ])
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_retries=5,
-            backoff_factor=0.25,
+            max_attempts=5,
+            initial_backoff=0.1,
             jitter_max=0.0,
         )
         response = transport.handle_request(_make_request())
@@ -131,8 +131,8 @@ class TestSyncRetryTransport:
         ])
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_retries=5,
-            backoff_factor=0.25,
+            max_attempts=5,
+            initial_backoff=0.1,
             jitter_max=0.0,
         )
         response = transport.handle_request(_make_request())
@@ -147,15 +147,15 @@ class TestSyncRetryTransport:
         ])
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_retries=5,
-            backoff_factor=0.25,
+            max_attempts=5,
+            initial_backoff=0.1,
             jitter_max=0.0,
         )
         response = transport.handle_request(_make_request())
-        # 1 initial + 5 retries = 6 total attempts
+        # max_attempts=5 total, so 5 calls
         assert response.status_code == 503
-        assert fake.call_count == 6
-        assert mock_sleep.call_count == 5
+        assert fake.call_count == 5
+        assert mock_sleep.call_count == 4
 
     @patch("pinecone._internal.http_client.time.sleep")
     def test_sync_retries_all_methods(self, mock_sleep: Any) -> None:
@@ -167,8 +167,8 @@ class TestSyncRetryTransport:
             ])
             transport = _RetryTransport(
                 transport=fake,  # type: ignore[arg-type]
-                max_retries=5,
-                backoff_factor=0.25,
+                max_attempts=5,
+                initial_backoff=0.1,
                 jitter_max=0.0,
             )
             request = httpx.Request(method, "https://api.pinecone.io/test")
@@ -187,13 +187,35 @@ class TestSyncRetryTransport:
         ])
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_retries=5,
-            backoff_factor=0.25,
+            max_attempts=5,
+            initial_backoff=0.1,
             jitter_max=0.0,
         )
         transport.handle_request(_make_request())
         delays = [call.args[0] for call in mock_sleep.call_args_list]
-        assert delays == [0.25, 0.5, 1.0]  # 0.25 * 2^0, 0.25 * 2^1, 0.25 * 2^2
+        assert delays == [0.1, 0.2, 0.4]  # 0.1 * 2^0, 0.1 * 2^1, 0.1 * 2^2
+
+    @patch("pinecone._internal.http_client.time.sleep")
+    def test_sync_backoff_capped(self, mock_sleep: Any) -> None:
+        """Verify sync backoff is capped at max_backoff, matching async behavior."""
+        fake = _FakeTransport([
+            httpx.Response(500, json={"message": "error"}),
+            httpx.Response(500, json={"message": "error"}),
+            httpx.Response(500, json={"message": "error"}),
+            httpx.Response(500, json={"message": "error"}),
+            httpx.Response(500, json={"message": "error"}),
+        ])
+        transport = _RetryTransport(
+            transport=fake,  # type: ignore[arg-type]
+            max_attempts=5,
+            initial_backoff=0.1,
+            max_backoff=0.5,
+            jitter_max=0.0,
+        )
+        transport.handle_request(_make_request())
+        delays = [call.args[0] for call in mock_sleep.call_args_list]
+        # 0.1*2^0=0.1, 0.1*2^1=0.2, 0.1*2^2=0.4, 0.1*2^3=0.8 -> capped to 0.5
+        assert delays == [0.1, 0.2, 0.4, 0.5]
 
 
 # ---------------------------------------------------------------------------
@@ -319,8 +341,8 @@ class TestHTTPClientRetryIntegration:
         ])
         retry_transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_retries=2,
-            backoff_factor=0.25,
+            max_attempts=3,
+            initial_backoff=0.1,
             jitter_max=0.0,
         )
         client._client._transport = retry_transport  # type: ignore[assignment]
@@ -328,7 +350,7 @@ class TestHTTPClientRetryIntegration:
         with pytest.raises(ApiError) as exc_info:
             client.get("/indexes")
         assert exc_info.value.status_code == 500
-        # 1 initial + 2 retries = 3 total
+        # max_attempts=3 total
         assert fake.call_count == 3
 
     @patch("pinecone._internal.http_client.time.sleep")
@@ -342,8 +364,8 @@ class TestHTTPClientRetryIntegration:
         ])
         retry_transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_retries=5,
-            backoff_factor=0.25,
+            max_attempts=5,
+            initial_backoff=0.1,
             jitter_max=0.0,
         )
         client._client._transport = retry_transport  # type: ignore[assignment]

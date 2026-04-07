@@ -113,23 +113,25 @@ class _RetryTransport(httpx.BaseTransport):
         self,
         *,
         transport: httpx.HTTPTransport,
-        max_retries: int = 5,
-        backoff_factor: float = 0.25,
-        jitter_max: float = 0.25,
+        max_attempts: int = 5,
+        initial_backoff: float = 0.1,
+        max_backoff: float = 3.0,
+        jitter_max: float = 0.1,
     ) -> None:
         self._transport = transport
-        self._max_retries = max_retries
-        self._backoff_factor = backoff_factor
+        self._max_attempts = max_attempts
+        self._initial_backoff = initial_backoff
+        self._max_backoff = max_backoff
         self._jitter_max = jitter_max
 
     def handle_request(self, request: httpx.Request) -> httpx.Response:
         response = self._transport.handle_request(request)
-        for attempt in range(self._max_retries):
+        for attempt in range(self._max_attempts - 1):
             if response.status_code not in _RETRYABLE_STATUS_CODES:
                 return response
-            delay = self._backoff_factor * (2 ** attempt) + random.uniform(
-                0, self._jitter_max
-            )
+            delay = min(
+                self._initial_backoff * (2 ** attempt), self._max_backoff
+            ) + random.uniform(0, self._jitter_max)
             time.sleep(delay)
             response = self._transport.handle_request(request)
         return response
