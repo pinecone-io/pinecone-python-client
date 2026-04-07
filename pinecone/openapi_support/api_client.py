@@ -212,7 +212,7 @@ class ApiClient(object):
                 response_info = extract_response_info(headers)
                 if isinstance(return_data, dict):
                     return_data["_response_info"] = response_info
-                else:
+                elif hasattr(return_data, "__dict__"):
                     # Dynamic attribute assignment on OpenAPI models
                     setattr(return_data, "_response_info", response_info)
 
