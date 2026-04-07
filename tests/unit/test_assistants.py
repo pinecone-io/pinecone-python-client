@@ -16,7 +16,7 @@ from pinecone.client.assistants import (
     _CREATE_POLL_INTERVAL_SECONDS,
     Assistants,
 )
-from pinecone.errors.exceptions import PineconeTimeoutError, PineconeValueError
+from pinecone.errors.exceptions import NotFoundError, PineconeTimeoutError, PineconeValueError
 from pinecone.models.assistant.list import ListAssistantsResponse
 from pinecone.models.assistant.model import AssistantModel
 from tests.factories import make_assistant_response
@@ -360,7 +360,7 @@ def test_describe_assistant_not_found(assistants: Assistants) -> None:
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
-    with pytest.raises(Exception):
+    with pytest.raises(NotFoundError):
         assistants.describe(name="nonexistent")
 
 
@@ -649,7 +649,7 @@ def test_update_assistant_not_found(assistants: Assistants) -> None:
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
-    with pytest.raises(Exception):
+    with pytest.raises(NotFoundError):
         assistants.update(name="nonexistent", instructions="test")
 
 
