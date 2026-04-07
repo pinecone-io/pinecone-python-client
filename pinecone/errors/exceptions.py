@@ -31,6 +31,18 @@ class ApiError(PineconeError):
         self.headers = headers
         super().__init__(message)
 
+    def __repr__(self) -> str:
+        msg = self.message
+        if len(msg) > 100:
+            msg = msg[:97] + "..."
+        parts = [
+            f"status_code={self.status_code}",
+            f"message={msg!r}",
+        ]
+        if self.body is not None:
+            parts.append(f"body={self.body!r}")
+        return f"{type(self).__name__}({', '.join(parts)})"
+
 
 class NotFoundError(ApiError):
     """404 Not Found."""
