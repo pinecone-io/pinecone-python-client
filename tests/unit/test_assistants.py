@@ -9,6 +9,7 @@ import httpx
 import pytest
 import respx
 
+from pinecone import Pinecone
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import ASSISTANT_API_VERSION
 from pinecone._internal.http_client import HTTPClient
@@ -708,3 +709,49 @@ def test_list_assistants_page_omits_none_params(assistants: Assistants) -> None:
     request = route.calls.last.request
     assert "pageSize" not in str(request.url)
     assert "paginationToken" not in str(request.url)
+
+
+CONTROL_PLANE_URL = "https://api.pinecone.io"
+
+
+# ---------------------------------------------------------------------------
+# Pinecone.assistant() convenience method
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_pinecone_assistant_convenience_method() -> None:
+    """pc.assistant(name=...) delegates to GET /assistants/{name} and returns AssistantModel."""
+    response_data = make_assistant_response(
+        name="my-assistant",
+        status="Ready",
+        instructions="Be helpful.",
+        metadata={"team": "ml"},
+        host="my-assistant-abc.svc.pinecone.io",
+    )
+    route = respx.get(f"{CONTROL_PLANE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(200, json=response_data),
+    )
+
+    pc = Pinecone(api_key="test-key")
+    result = pc.assistant(name="my-assistant")
+
+    assert isinstance(result, AssistantModel)
+    assert result.name == "my-assistant"
+    assert result.status == "Ready"
+    assert result.instructions == "Be helpful."
+    assert result.metadata == {"team": "ml"}
+    assert result.host == "my-assistant-abc.svc.pinecone.io"
+    assert route.call_count == 1
+
+
+@respx.mock
+def test_pinecone_assistant_not_found() -> None:
+    """pc.assistant(name=...) raises NotFoundError when assistant does not exist."""
+    respx.get(f"{CONTROL_PLANE_URL}/assistants/nonexistent").mock(
+        return_value=httpx.Response(404, json={"error": "Not found"}),
+    )
+
+    pc = Pinecone(api_key="test-key")
+    with pytest.raises(NotFoundError):
+        pc.assistant(name="nonexistent")
