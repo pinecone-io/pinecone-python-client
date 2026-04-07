@@ -149,8 +149,7 @@ class Index:
 
         Examples:
 
-            from pinecone import Index
-            from pinecone.models.vectors.vector import Vector
+            from pinecone import Index, Vector
 
             idx = Index(host="article-search-abc123.svc.pinecone.io", api_key="...")
             response = idx.upsert(
