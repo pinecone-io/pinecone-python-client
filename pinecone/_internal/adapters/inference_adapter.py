@@ -143,5 +143,10 @@ def normalize_rerank_documents(
     if not all(isinstance(d, (str, dict)) for d in documents):
         raise TypeError("each document must be a string or dictionary")
     if isinstance(documents[0], str):
+        if not all(isinstance(d, str) for d in documents):
+            raise TypeError("each document must be a string or dictionary")
         return [{"text": s} for s in documents]
+    if isinstance(documents[0], dict):
+        if not all(isinstance(d, dict) for d in documents):
+            raise TypeError("each document must be a string or dictionary")
     return documents  # type: ignore[return-value]

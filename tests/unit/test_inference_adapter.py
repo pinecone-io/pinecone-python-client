@@ -217,3 +217,11 @@ class TestNormalizeRerankDocuments:
     def test_normalize_rerank_documents_empty_raises(self) -> None:
         with pytest.raises(ValueError, match="documents must not be empty"):
             normalize_rerank_documents([])
+
+    def test_normalize_rerank_mixed_str_dict_raises(self) -> None:
+        with pytest.raises(TypeError, match="each document must be a string or dictionary"):
+            normalize_rerank_documents(["hello", {"text": "world"}])  # type: ignore[list-item]
+
+    def test_normalize_rerank_mixed_dict_str_raises(self) -> None:
+        with pytest.raises(TypeError, match="each document must be a string or dictionary"):
+            normalize_rerank_documents([{"text": "a"}, "b"])  # type: ignore[list-item]
