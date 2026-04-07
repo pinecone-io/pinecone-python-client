@@ -6,8 +6,7 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
-import msgspec
-
+from pinecone._internal.adapters.assistants_adapter import AssistantsAdapter
 from pinecone._internal.constants import ASSISTANT_API_VERSION
 from pinecone.errors.exceptions import PineconeTimeoutError, PineconeValueError
 from pinecone.models.assistant.list import ListAssistantsResponse
@@ -42,6 +41,7 @@ class Assistants:
 
         self._config = config
         self._http = HTTPClient(config, ASSISTANT_API_VERSION)
+        self._adapter = AssistantsAdapter()
 
     def close(self) -> None:
         """Close the underlying HTTP client."""
@@ -119,7 +119,7 @@ class Assistants:
 
         logger.info("Creating assistant %r", name)
         response = self._http.post("/assistants", json=body)
-        model = msgspec.json.decode(response.content, type=AssistantModel)
+        model = self._adapter.to_assistant(response.content)
         logger.debug("Created assistant %r (status=%s)", name, model.status)
 
         if timeout == -1:
@@ -148,7 +148,7 @@ class Assistants:
         """
         logger.info("Describing assistant %r", name)
         response = self._http.get(f"/assistants/{name}")
-        model = msgspec.json.decode(response.content, type=AssistantModel)
+        model = self._adapter.to_assistant(response.content)
         logger.debug("Described assistant %r (status=%s)", name, model.status)
         return model
 
@@ -225,7 +225,7 @@ class Assistants:
 
         logger.info("Listing assistants page")
         response = self._http.get("/assistants", params=params)
-        result = msgspec.json.decode(response.content, type=ListAssistantsResponse)
+        result = self._adapter.to_assistant_list(response.content)
         logger.debug(
             "Listed %d assistants (has_next=%s)",
             len(result.assistants),
@@ -282,7 +282,7 @@ class Assistants:
 
         logger.info("Updating assistant %r", name)
         response = self._http.patch(f"/assistants/{name}", json=body)
-        model = msgspec.json.decode(response.content, type=AssistantModel)
+        model = self._adapter.to_assistant(response.content)
         logger.debug("Updated assistant %r", name)
         return model
 
@@ -309,7 +309,7 @@ class Assistants:
         start = time.monotonic()
         while True:
             response = self._http.get(f"/assistants/{name}")
-            model = msgspec.json.decode(response.content, type=AssistantModel)
+            model = self._adapter.to_assistant(response.content)
             if model.status == "Ready":
                 return model
             if timeout is not None:
