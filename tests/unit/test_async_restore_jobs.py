@@ -146,6 +146,40 @@ async def test_async_create_index_from_backup_basic(pc: AsyncPinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
+# create_index_from_backup — tags and deletion protection
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_create_index_from_backup_with_tags_and_protection(pc: AsyncPinecone) -> None:
+    """Tags and deletion_protection appear in the request body."""
+    route = respx.post(f"{DEFAULT_BASE_URL}/backups/bk-456/create-index").mock(
+        return_value=httpx.Response(
+            202,
+            json={"restore_job_id": "rj-2", "index_id": "idx-2"},
+        ),
+    )
+    respx.get(f"{DEFAULT_BASE_URL}/indexes/my-restored").mock(
+        return_value=httpx.Response(200, json=make_index_response(name="my-restored")),
+    )
+
+    await pc.create_index_from_backup(
+        name="my-restored",
+        backup_id="bk-456",
+        deletion_protection="enabled",
+        tags={"env": "prod"},
+    )
+
+    request = route.calls[0].request
+    import orjson
+
+    body = orjson.loads(request.content)
+    assert body["name"] == "my-restored"
+    assert body["deletion_protection"] == "enabled"
+    assert body["tags"] == {"env": "prod"}
+
+
+# ---------------------------------------------------------------------------
 # create_index_from_backup — no-poll (timeout=-1)
 # ---------------------------------------------------------------------------
 
@@ -175,6 +209,43 @@ async def test_async_create_index_from_backup_no_poll(pc: AsyncPinecone) -> None
     assert result.name == "quick-restore"
     # Describe should only be called once (no polling)
     assert describe_route.call_count == 1
+
+
+# ---------------------------------------------------------------------------
+# create_index_from_backup — polling
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_create_index_from_backup_polls_until_ready(pc: AsyncPinecone) -> None:
+    """Describe is called multiple times until the index becomes ready."""
+    respx.post(f"{DEFAULT_BASE_URL}/backups/bk-poll/create-index").mock(
+        return_value=httpx.Response(
+            202,
+            json={"restore_job_id": "rj-4", "index_id": "idx-4"},
+        ),
+    )
+    not_ready = make_index_response(
+        name="poll-index",
+        status={"ready": False, "state": "Initializing"},
+    )
+    ready = make_index_response(
+        name="poll-index",
+        status={"ready": True, "state": "Ready"},
+    )
+    describe_route = respx.get(f"{DEFAULT_BASE_URL}/indexes/poll-index").mock(
+        side_effect=[
+            httpx.Response(200, json=not_ready),
+            httpx.Response(200, json=ready),
+        ]
+    )
+
+    result = await pc.create_index_from_backup(name="poll-index", backup_id="bk-poll", timeout=60)
+
+    assert isinstance(result, IndexModel)
+    assert result.name == "poll-index"
+    # Describe should be called at least 2 times (first not-ready, then ready)
+    assert describe_route.call_count >= 2
 
 
 # ---------------------------------------------------------------------------
