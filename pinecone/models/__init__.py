@@ -1,5 +1,6 @@
 """msgspec.Struct models for the Pinecone SDK."""
 
+from pinecone.models.assistant.model import AssistantModel
 from pinecone.models.backups.list import BackupList, RestoreJobList
 from pinecone.models.backups.model import (
     BackupModel,
@@ -70,6 +71,7 @@ from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.vector import ScoredVector, Vector
 
 __all__ = [
+    "AssistantModel",
     "BackupList",
     "BackupModel",
     "ByocSpec",
