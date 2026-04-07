@@ -117,5 +117,17 @@ class PineconeTypeError(PineconeError, TypeError):
         super().__init__(message)
 
 
+class ResponseParsingError(PineconeError):
+    """Raised when the SDK fails to parse an API response body.
+
+    Wraps the underlying deserialization error (e.g. ``msgspec.ValidationError``)
+    so that callers' ``except PineconeError`` blocks always catch it.
+    """
+
+    def __init__(self, message: str, cause: Exception | None = None) -> None:
+        self.cause = cause
+        super().__init__(message)
+
+
 # Backwards-compatible alias — most validation is value validation
 ValidationError = PineconeValueError

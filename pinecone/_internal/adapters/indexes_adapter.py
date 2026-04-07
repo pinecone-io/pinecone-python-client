@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import msgspec
 
+from pinecone._internal.adapters._decode import decode_response
 from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.list import IndexList
 
@@ -20,10 +21,10 @@ class IndexesAdapter:
     @staticmethod
     def to_index_model(data: bytes) -> IndexModel:
         """Decode raw JSON bytes into an IndexModel."""
-        return msgspec.json.decode(data, type=IndexModel)
+        return decode_response(data, IndexModel)
 
     @staticmethod
     def to_index_list(data: bytes) -> IndexList:
         """Decode raw JSON bytes from a list-indexes response into an IndexList."""
-        envelope = msgspec.json.decode(data, type=_IndexListEnvelope)
+        envelope = decode_response(data, _IndexListEnvelope)
         return IndexList(envelope.indexes)

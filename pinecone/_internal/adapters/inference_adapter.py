@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-import msgspec
 from msgspec import Struct
 
+from pinecone._internal.adapters._decode import convert_response, decode_response
 from pinecone.models.inference.embed import (
     DenseEmbedding,
     EmbeddingsList,
@@ -48,15 +48,15 @@ class InferenceAdapter:
         whether items in ``data`` are dense or sparse embeddings. This method
         first decodes the envelope, then converts items to the correct type.
         """
-        envelope = msgspec.json.decode(data, type=_EmbedEnvelope)
+        envelope = decode_response(data, _EmbedEnvelope)
 
         if envelope.vector_type == "sparse":
             embeddings: list[DenseEmbedding] | list[SparseEmbedding] = [
-                msgspec.convert(item, SparseEmbedding) for item in envelope.data
+                convert_response(item, SparseEmbedding) for item in envelope.data
             ]
         else:
             embeddings = [
-                msgspec.convert(item, DenseEmbedding) for item in envelope.data
+                convert_response(item, DenseEmbedding) for item in envelope.data
             ]
 
         return EmbeddingsList(
@@ -69,17 +69,17 @@ class InferenceAdapter:
     @staticmethod
     def to_rerank_result(data: bytes) -> RerankResult:
         """Decode raw JSON bytes into a RerankResult."""
-        return msgspec.json.decode(data, type=RerankResult)
+        return decode_response(data, RerankResult)
 
     @staticmethod
     def to_model_info(data: bytes) -> ModelInfo:
         """Decode raw JSON bytes into a ModelInfo."""
-        return msgspec.json.decode(data, type=ModelInfo)
+        return decode_response(data, ModelInfo)
 
     @staticmethod
     def to_model_info_list(data: bytes) -> ModelInfoList:
         """Decode raw JSON bytes from the list-models endpoint into a ModelInfoList."""
-        envelope = msgspec.json.decode(data, type=_ModelListEnvelope)
+        envelope = decode_response(data, _ModelListEnvelope)
         return ModelInfoList(envelope.models)
 
 

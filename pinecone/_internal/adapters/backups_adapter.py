@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import msgspec
 from msgspec import Struct
 
+from pinecone._internal.adapters._decode import decode_response
 from pinecone.models.backups.list import BackupList
 from pinecone.models.backups.model import BackupModel, CreateIndexFromBackupResponse
 from pinecone.models.vectors.responses import Pagination
@@ -23,15 +23,15 @@ class BackupsAdapter:
     @staticmethod
     def to_backup(data: bytes) -> BackupModel:
         """Decode raw JSON bytes into a BackupModel."""
-        return msgspec.json.decode(data, type=BackupModel)
+        return decode_response(data, BackupModel)
 
     @staticmethod
     def to_backup_list(data: bytes) -> BackupList:
         """Decode raw JSON bytes from a list-backups response into a BackupList."""
-        envelope = msgspec.json.decode(data, type=_BackupListEnvelope)
+        envelope = decode_response(data, _BackupListEnvelope)
         return BackupList(envelope.data, pagination=envelope.pagination)
 
     @staticmethod
     def to_create_index_from_backup_response(data: bytes) -> CreateIndexFromBackupResponse:
         """Decode raw JSON bytes into a CreateIndexFromBackupResponse."""
-        return msgspec.json.decode(data, type=CreateIndexFromBackupResponse)
+        return decode_response(data, CreateIndexFromBackupResponse)

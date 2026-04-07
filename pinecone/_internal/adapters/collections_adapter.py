@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import msgspec
 
+from pinecone._internal.adapters._decode import decode_response
 from pinecone.models.collections.list import CollectionList
 from pinecone.models.collections.model import CollectionModel
 
@@ -20,10 +21,10 @@ class CollectionsAdapter:
     @staticmethod
     def to_collection(data: bytes) -> CollectionModel:
         """Decode raw JSON bytes into a CollectionModel."""
-        return msgspec.json.decode(data, type=CollectionModel)
+        return decode_response(data, CollectionModel)
 
     @staticmethod
     def to_collection_list(data: bytes) -> CollectionList:
         """Decode raw JSON bytes from a list-collections response into a CollectionList."""
-        envelope = msgspec.json.decode(data, type=_CollectionListEnvelope)
+        envelope = decode_response(data, _CollectionListEnvelope)
         return CollectionList(envelope.collections)

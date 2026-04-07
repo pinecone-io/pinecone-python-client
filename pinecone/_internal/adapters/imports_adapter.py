@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import msgspec
 from msgspec import Struct
 
+from pinecone._internal.adapters._decode import decode_response
 from pinecone.models.imports.list import ImportList
 from pinecone.models.imports.model import ImportModel, StartImportResponse
 
@@ -28,17 +28,17 @@ class ImportsAdapter:
     @staticmethod
     def to_start_import_response(data: bytes) -> StartImportResponse:
         """Decode raw JSON bytes into a StartImportResponse."""
-        return msgspec.json.decode(data, type=StartImportResponse)
+        return decode_response(data,StartImportResponse)
 
     @staticmethod
     def to_import_model(data: bytes) -> ImportModel:
         """Decode raw JSON bytes into an ImportModel."""
-        return msgspec.json.decode(data, type=ImportModel)
+        return decode_response(data,ImportModel)
 
     @staticmethod
     def to_import_list(data: bytes) -> ImportList:
         """Decode raw JSON bytes from a list-imports response into an ImportList."""
-        envelope = msgspec.json.decode(data, type=_ImportListEnvelope)
+        envelope = decode_response(data,_ImportListEnvelope)
         return ImportList(envelope.data)
 
     @staticmethod
@@ -49,6 +49,6 @@ class ImportsAdapter:
             A tuple of (ImportList, next_token). next_token is None when there
             are no more pages.
         """
-        envelope = msgspec.json.decode(data, type=_ImportListEnvelope)
+        envelope = decode_response(data,_ImportListEnvelope)
         pagination_token = envelope.pagination.next if envelope.pagination else None
         return ImportList(envelope.data), pagination_token
