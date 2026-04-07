@@ -12,6 +12,7 @@ from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import ValidationError
 
 if TYPE_CHECKING:
+    from pinecone.client.assistants import Assistants
     from pinecone.client.backups import Backups
     from pinecone.client.collections import Collections
     from pinecone.client.indexes import Indexes
@@ -104,6 +105,7 @@ class Pinecone:
         self._backups: Backups | None = None
         self._restore_jobs: RestoreJobs | None = None
         self._inference: Inference | None = None
+        self._assistants: Assistants | None = None
         self._host_cache: dict[str, str] = {}
 
     def __repr__(self) -> str:
@@ -216,6 +218,46 @@ class Pinecone:
 
             self._inference = _Inference(config=self._config)
         return self._inference
+
+    @property
+    def assistants(self) -> Assistants:
+        """Access the Assistants namespace for assistant operations.
+
+        Lazily imported and instantiated on first access.
+
+        Returns:
+            Assistants namespace instance.
+
+        Examples:
+
+            pc = Pinecone(api_key="your-api-key")
+            assistants = pc.assistants
+        """
+        if self._assistants is None:
+            from pinecone.client.assistants import Assistants as _Assistants
+
+            self._assistants = _Assistants(config=self._config)
+        return self._assistants
+
+    def Assistant(self, assistant_name: str) -> Any:
+        """Convenience method to retrieve an existing assistant by name.
+
+        This is a shorthand for ``pc.assistants.describe(name=assistant_name)``.
+
+        Args:
+            assistant_name (str): The name of the assistant to retrieve.
+
+        Returns:
+            The assistant model returned by describe.
+
+        Raises:
+            NotImplementedError: Until the describe method is implemented
+                in the Assistants namespace (see P-0124).
+        """
+        raise NotImplementedError(
+            "Assistant() requires the assistants.describe() method, "
+            "which will be available after P-0124 is implemented."
+        )
 
     def index(
         self,
@@ -398,6 +440,8 @@ class Pinecone:
         self._http.close()
         if self._inference is not None:
             self._inference.close()
+        if self._assistants is not None:
+            self._assistants.close()
 
     def __enter__(self) -> Pinecone:
         return self
