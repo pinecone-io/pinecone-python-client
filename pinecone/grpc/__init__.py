@@ -500,3 +500,14 @@ class GrpcIndex:
             memory_fullness=result.get("memory_fullness"),
             storage_fullness=result.get("storage_fullness"),
         )
+
+    def close(self) -> None:
+        """Close the underlying gRPC channel and release resources."""
+        if hasattr(self._channel, "close"):
+            self._channel.close()
+
+    def __enter__(self) -> GrpcIndex:
+        return self
+
+    def __exit__(self, *args: Any) -> None:
+        self.close()
