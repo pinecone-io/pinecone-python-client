@@ -210,6 +210,10 @@ class AsyncPinecone:
         Returns:
             :class:`AssistantModel` describing the assistant.
 
+        Raises:
+            :exc:`ApiError`: If the API returns an error response (e.g. 404
+                when the assistant does not exist).
+
         Examples:
 
             assistant = await pc.assistant("my-assistant")

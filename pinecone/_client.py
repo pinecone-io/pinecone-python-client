@@ -254,6 +254,13 @@ class Pinecone:
         Raises:
             :exc:`ApiError`: If the API returns an error response (e.g. 404
                 when the assistant does not exist).
+
+        Examples:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> assistant = pc.assistant("research-assistant")
+            >>> print(assistant.status)
         """
         return self.assistants.describe(name=name)
 
