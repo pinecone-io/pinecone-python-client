@@ -89,7 +89,7 @@ class Index:
 
         from pinecone import Index
 
-        idx = Index(host="my-index-abc123.svc.pinecone.io", api_key="...")
+        idx = Index(host="movie-recs-abc123.svc.pinecone.io", api_key="...")
     """
 
     def __init__(
@@ -171,14 +171,17 @@ class Index:
             from pinecone import Index
             from pinecone.models.vectors.vector import Vector
 
-            idx = Index(host="my-index-abc123.svc.pinecone.io", api_key="...")
+            idx = Index(host="article-search-abc123.svc.pinecone.io", api_key="...")
             response = idx.upsert(
                 vectors=[
-                    Vector(id="vec1", values=[0.1, 0.2, 0.3]),
-                    ("vec2", [0.4, 0.5, 0.6]),
-                    {"id": "vec3", "values": [0.7, 0.8, 0.9]},
+                    Vector(
+                        id="article-101",
+                        values=[0.012, -0.087, 0.153, ...],  # 1536-dim
+                    ),
+                    ("article-102", [0.045, 0.021, -0.064, ...]),
+                    {"id": "article-103", "values": [0.091, -0.032, 0.178, ...]},
                 ],
-                namespace="my-ns",
+                namespace="articles-en",
             )
             print(response.upserted_count)
         """
@@ -302,10 +305,10 @@ class Index:
         Examples:
 
             response = idx.upsert_records(
-                namespace="my-ns",
+                namespace="articles-en",
                 records=[
-                    {"_id": "rec1", "text": "hello world"},
-                    {"_id": "rec2", "text": "goodbye world"},
+                    {"_id": "article-101", "text": "Vector databases enable similarity search."},
+                    {"_id": "article-102", "text": "RAG combines search with LLMs."},
                 ],
             )
             print(response.record_count)
@@ -372,7 +375,10 @@ class Index:
 
         Examples:
 
-            response = idx.query(top_k=10, vector=[0.1, 0.2, 0.3])
+            response = idx.query(
+                top_k=10,
+                vector=[0.012, -0.087, 0.153, ...],  # 1536-dim embedding
+            )
             for match in response.matches:
                 print(match.id, match.score)
         """
@@ -456,8 +462,8 @@ class Index:
         Examples:
 
             results = idx.query_namespaces(
-                vector=[0.1, 0.2, 0.3],
-                namespaces=["ns1", "ns2", "ns3"],
+                vector=[0.012, -0.087, 0.153, ...],  # 1536-dim embedding
+                namespaces=["articles-en", "articles-fr", "articles-de"],
                 metric="cosine",
                 top_k=10,
             )
@@ -518,7 +524,7 @@ class Index:
 
         Examples:
 
-            response = idx.fetch(ids=["vec1", "vec2"])
+            response = idx.fetch(ids=["article-101", "article-102"])
             for vid, vec in response.vectors.items():
                 print(vid, vec.values)
         """
@@ -627,10 +633,10 @@ class Index:
         Examples:
 
             # Delete by IDs
-            idx.delete(ids=["vec1", "vec2"])
+            idx.delete(ids=["article-101", "article-102"])
 
             # Delete all vectors in a namespace
-            idx.delete(delete_all=True, namespace="old-data")
+            idx.delete(delete_all=True, namespace="articles-deprecated")
 
             # Delete by metadata filter
             idx.delete(filter={"category": {"$eq": "obsolete"}})
@@ -695,7 +701,7 @@ class Index:
         Examples:
 
             # Update by ID
-            idx.update(id="vec1", values=[0.1, 0.2, 0.3])
+            idx.update(id="article-101", values=[0.012, -0.087, 0.153, ...])  # 1536-dim embedding
 
             # Bulk-update metadata by filter
             idx.update(
@@ -816,9 +822,9 @@ class Index:
         Examples:
 
             response = idx.search(
-                namespace="my-ns",
+                namespace="articles-en",
                 top_k=10,
-                inputs={"text": "semantic search query"},
+                inputs={"text": "benefits of vector databases for search"},
             )
             for hit in response.result.hits:
                 print(hit.id, hit.score)
@@ -900,11 +906,11 @@ class Index:
 
         Examples:
 
-            ns = idx.create_namespace(name="my-ns")
+            ns = idx.create_namespace(name="movies-en")
             print(ns.name, ns.record_count)
 
             ns = idx.create_namespace(
-                name="my-ns",
+                name="movies-en",
                 schema={"fields": {"genre": {"filterable": True}}},
             )
         """
@@ -941,7 +947,7 @@ class Index:
 
         Examples:
 
-            ns = idx.describe_namespace(name="my-ns")
+            ns = idx.describe_namespace(name="movies-en")
             print(ns.name, ns.record_count)
         """
         if not isinstance(name, str):
@@ -972,7 +978,7 @@ class Index:
 
         Examples:
 
-            idx.delete_namespace(name="old-data")
+            idx.delete_namespace(name="movies-deprecated")
         """
         if not isinstance(name, str):
             raise ValidationError("namespace name must be a string")
