@@ -6,7 +6,10 @@ import asyncio
 import logging
 import os
 from collections.abc import AsyncIterator, Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    import pandas as pd  # type: ignore[import-untyped]
 
 from pinecone._internal.adapters.imports_adapter import ImportsAdapter
 from pinecone._internal.adapters.vectors_adapter import VectorsAdapter, extract_response_info
@@ -268,7 +271,7 @@ class AsyncIndex:
 
     async def upsert_from_dataframe(
         self,
-        df: Any,
+        df: pd.DataFrame,
         namespace: str | None = None,
         batch_size: int = 500,
         show_progress: bool = True,

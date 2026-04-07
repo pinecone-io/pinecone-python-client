@@ -6,7 +6,10 @@ import logging
 import os
 from collections.abc import Iterator, Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    import pandas as pd  # type: ignore[import-untyped]
 
 from pinecone._internal.adapters.imports_adapter import ImportsAdapter
 from pinecone._internal.adapters.vectors_adapter import VectorsAdapter, extract_response_info
@@ -198,7 +201,7 @@ class Index:
 
     def upsert_from_dataframe(
         self,
-        df: Any,
+        df: pd.DataFrame,
         namespace: str | None = None,
         batch_size: int = 500,
         show_progress: bool = True,
@@ -272,7 +275,7 @@ class Index:
              from cloud storage (S3, GCS).
         """
         try:
-            import pandas as pd  # type: ignore[import-untyped]
+            import pandas as pd
         except ImportError:
             raise RuntimeError(
                 "pandas is required for upsert_from_dataframe. Install it with: pip install pandas"
