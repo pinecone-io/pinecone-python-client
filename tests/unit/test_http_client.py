@@ -16,8 +16,10 @@ from pinecone._internal.http_client import (
     HTTPClient,
     _build_headers,
     _encode_json,
+    _log_curl,
     _prepare_json_kwargs,
     _raise_for_status,
+    _redact_headers,
 )
 from pinecone.errors.exceptions import (
     ApiError,
@@ -604,3 +606,70 @@ class TestAsyncHTTPClientTransportErrors:
             )
             with pytest.raises(PineconeConnectionError):
                 await client.patch("/indexes/idx", json={"replicas": 2})
+
+
+# ---------------------------------------------------------------------------
+# _redact_headers / _log_curl redaction
+# ---------------------------------------------------------------------------
+
+
+class TestRedactHeaders:
+    def test_redacts_api_key(self) -> None:
+        headers = {"Api-Key": "sk-secret-123", "User-Agent": "test"}
+        result = _redact_headers(headers)
+        assert result["Api-Key"] == "***"
+        assert result["User-Agent"] == "test"
+
+    def test_redacts_authorization(self) -> None:
+        headers = {"Authorization": "Bearer tok", "Accept": "application/json"}
+        result = _redact_headers(headers)
+        assert result["Authorization"] == "***"
+        assert result["Accept"] == "application/json"
+
+    def test_redacts_proxy_authorization(self) -> None:
+        headers = {"Proxy-Authorization": "Basic abc"}
+        result = _redact_headers(headers)
+        assert result["Proxy-Authorization"] == "***"
+
+    def test_case_insensitive(self) -> None:
+        headers = {"api-key": "secret", "API-KEY": "secret2", "Api-Key": "secret3"}
+        result = _redact_headers(headers)
+        for v in result.values():
+            assert v == "***"
+
+    def test_non_sensitive_headers_pass_through(self) -> None:
+        headers = {"Content-Type": "application/json", "X-Custom": "value"}
+        result = _redact_headers(headers)
+        assert result == headers
+
+    def test_returns_copy(self) -> None:
+        headers = {"Api-Key": "secret"}
+        result = _redact_headers(headers)
+        assert result is not headers
+
+
+class TestLogCurlRedactsApiKey:
+    def test_log_curl_redacts_api_key(
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        monkeypatch.setenv("PINECONE_DEBUG_CURL", "1")
+        headers = {
+            "Api-Key": "sk-super-secret",
+            "Authorization": "Bearer my-token",
+            "Proxy-Authorization": "Basic creds",
+            "User-Agent": "test-agent",
+        }
+        _log_curl("GET", "https://api.pinecone.io/indexes", headers)
+        output = capsys.readouterr().out
+        assert "sk-super-secret" not in output
+        assert "my-token" not in output
+        assert "Basic creds" not in output
+        assert "***" in output
+        assert "test-agent" in output
+
+    def test_log_curl_noop_without_env(
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        monkeypatch.delenv("PINECONE_DEBUG_CURL", raising=False)
+        _log_curl("GET", "https://api.pinecone.io/indexes", {"Api-Key": "secret"})
+        assert capsys.readouterr().out == ""

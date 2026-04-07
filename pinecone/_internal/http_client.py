@@ -90,6 +90,17 @@ def _build_headers(config: PineconeConfig, api_version: str) -> dict[str, str]:
     return headers
 
 
+_SENSITIVE_HEADERS = frozenset({"api-key", "authorization", "proxy-authorization"})
+
+
+def _redact_headers(headers: dict[str, str]) -> dict[str, str]:
+    """Return a copy of *headers* with sensitive values replaced by ``***``."""
+    return {
+        k: "***" if k.lower() in _SENSITIVE_HEADERS else v
+        for k, v in headers.items()
+    }
+
+
 def _log_curl(
     method: str,
     url: str,
@@ -99,8 +110,9 @@ def _log_curl(
     """Log a curl-equivalent command for debugging when PINECONE_DEBUG_CURL is set."""
     if not os.environ.get("PINECONE_DEBUG_CURL"):
         return
+    safe_headers = _redact_headers(headers)
     parts = [f"curl -X {method} '{url}'"]
-    for key, value in headers.items():
+    for key, value in safe_headers.items():
         parts.append(f"-H '{key}: {value}'")
     if body is not None:
         parts.append(f"-d '{body.decode('utf-8', errors='replace')}'")

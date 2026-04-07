@@ -71,7 +71,7 @@ class TestLogCurl:
         assert "curl -X GET" in captured.out
         assert "https://api.pinecone.io/test" in captured.out
 
-    def test_curl_logging_includes_api_key(
+    def test_curl_logging_redacts_api_key(
         self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
     ) -> None:
         monkeypatch.setenv("PINECONE_DEBUG_CURL", "1")
@@ -81,7 +81,8 @@ class TestLogCurl:
             {"Api-Key": "my-secret-key-12345"},
         )
         captured = capsys.readouterr()
-        assert "my-secret-key-12345" in captured.out
+        assert "my-secret-key-12345" not in captured.out
+        assert "Api-Key: ***" in captured.out
 
     def test_curl_logging_includes_body(
         self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
@@ -108,7 +109,7 @@ class TestLogCurl:
             {"Api-Key": "key", "X-Custom": "val"},
         )
         captured = capsys.readouterr()
-        assert "-H 'Api-Key: key'" in captured.out
+        assert "-H 'Api-Key: ***'" in captured.out
         assert "-H 'X-Custom: val'" in captured.out
 
 
