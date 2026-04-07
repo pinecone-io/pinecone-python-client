@@ -81,8 +81,10 @@ class ApiKeys:
             project_id (str): The identifier of the project.
             name (str): Name for the new API key (1-80 characters).
             description (str | None): Optional description for the API key.
-            roles (list[str] | None): Roles to assign to the key. Defaults to
-                ``["ProjectEditor"]`` if omitted.
+            roles (list[str] | None): Roles to assign to the key. Valid values are
+                ``"ProjectEditor"`` (read/write access to the project) and
+                ``"ProjectViewer"`` (read-only access to the project).
+                Defaults to ``["ProjectEditor"]`` if omitted.
 
         Returns:
             An :class:`APIKeyWithSecret` containing the key metadata and secret value.
@@ -98,6 +100,12 @@ class ApiKeys:
             ... )
             >>> result.value
             'pcsk_...'
+
+            >>> result = admin.api_keys.create(
+            ...     project_id="proj-abc123", name="ci-key", roles=["ProjectViewer"]
+            ... )
+            >>> result.key.roles
+            ['ProjectViewer']
         """
         require_non_empty("project_id", project_id)
         require_non_empty("name", name)
