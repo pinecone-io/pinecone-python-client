@@ -114,6 +114,45 @@ class TestListPaginated:
         assert request.url.params["namespace"] == ""
 
     @respx.mock
+    def test_pagination_token_omit_when_none(self) -> None:
+        """paginationToken is NOT in query params when pagination_token is None."""
+        route = respx.get(LIST_URL).mock(
+            return_value=httpx.Response(200, json=_make_list_response()),
+        )
+        idx = _make_index()
+        idx.list_paginated(namespace="ns")
+
+        request = route.calls.last.request
+        param_keys = [k for k, _ in request.url.params.multi_items()]
+        assert "paginationToken" not in param_keys
+
+    @respx.mock
+    def test_pagination_token_omit_includes_when_provided(self) -> None:
+        """paginationToken IS in query params with correct value when provided."""
+        route = respx.get(LIST_URL).mock(
+            return_value=httpx.Response(200, json=_make_list_response()),
+        )
+        idx = _make_index()
+        idx.list_paginated(namespace="ns", pagination_token="tok123")
+
+        request = route.calls.last.request
+        assert request.url.params["paginationToken"] == "tok123"
+
+    @respx.mock
+    def test_pagination_token_omit_last_page_no_pagination(self) -> None:
+        """Response with no pagination field means current page is the last page."""
+        respx.get(LIST_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json=_make_list_response(vectors=[{"id": "v1"}]),
+            ),
+        )
+        idx = _make_index()
+        result = idx.list_paginated()
+
+        assert result.pagination is None
+
+    @respx.mock
     def test_list_paginated_last_page_no_token(self) -> None:
         """Last page has no pagination token (unified-vec-0056)."""
         respx.get(LIST_URL).mock(
