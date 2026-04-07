@@ -226,6 +226,41 @@ class Index:
             PineconeValueError: If *df* is not a ``pandas.DataFrame``.
             PineconeValueError: If *batch_size* is not a positive integer.
 
+        Examples:
+            Upsert article embeddings from a DataFrame:
+
+            >>> import pandas as pd
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> index = pc.Index("article-search")
+            >>> df = pd.DataFrame([
+            ...     {"id": "article-101", "values": [0.012, -0.087, 0.153, ...]},
+            ...     {"id": "article-102", "values": [0.045, 0.021, -0.064, ...]},
+            ... ])
+            >>> response = index.upsert_from_dataframe(df)
+            >>> response.upserted_count
+            2
+
+            Upsert with metadata, a custom namespace, and a smaller batch size:
+
+            >>> df = pd.DataFrame([
+            ...     {
+            ...         "id": "article-101",
+            ...         "values": [0.012, -0.087, 0.153, ...],
+            ...         "metadata": {"topic": "science", "year": 2024},
+            ...     },
+            ...     {
+            ...         "id": "article-102",
+            ...         "values": [0.045, 0.021, -0.064, ...],
+            ...         "metadata": {"topic": "technology", "year": 2024},
+            ...     },
+            ... ])
+            >>> response = index.upsert_from_dataframe(
+            ...     df,
+            ...     namespace="articles-en",
+            ...     batch_size=100,
+            ... )
+
         .. seealso::
            - :meth:`upsert` — for upserting vectors directly (single batch,
              no DataFrame dependency).
