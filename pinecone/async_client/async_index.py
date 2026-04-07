@@ -143,7 +143,7 @@ class AsyncIndex:
             if "_id" not in record and "id" not in record:
                 raise ValidationError(f"Record at index {i} must contain an '_id' or 'id' field")
 
-        import json as _json
+        import orjson
 
         normalized: list[dict[str, Any]] = []
         for record in records:
@@ -152,7 +152,7 @@ class AsyncIndex:
                 r["_id"] = r.pop("id")
             normalized.append(r)
 
-        ndjson_lines = [_json.dumps(r, separators=(",", ":")) for r in normalized]
+        ndjson_lines = [orjson.dumps(r).decode("utf-8") for r in normalized]
         ndjson_body = "\n".join(ndjson_lines) + "\n"
 
         logger.info("Upserting %d records into namespace %r (NDJSON)", len(records), namespace)
