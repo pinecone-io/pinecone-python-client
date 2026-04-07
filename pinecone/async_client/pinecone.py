@@ -109,6 +109,10 @@ class AsyncPinecone:
         self._inference: AsyncInference | None = None
         self._host_cache: dict[str, str] = {}
 
+    def __repr__(self) -> str:
+        masked = f"...{self._config.api_key[-4:]}" if len(self._config.api_key) >= 4 else "***"
+        return f"AsyncPinecone(api_key='{masked}', host='{self._config.host}')"
+
     @property
     def indexes(self) -> AsyncIndexes:
         """Access the AsyncIndexes namespace for control-plane index operations.
