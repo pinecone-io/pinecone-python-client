@@ -382,3 +382,29 @@ def test_create_integrated_no_polling_without_timeout(indexes: Indexes) -> None:
 
     assert result.status.ready is False
     assert len(respx.calls) == 1  # only the POST
+
+
+# ---------------------------------------------------------------------------
+# Immutability
+# ---------------------------------------------------------------------------
+
+
+def test_embed_config_is_immutable() -> None:
+    """EmbedConfig is frozen — attribute assignment raises AttributeError."""
+    config = EmbedConfig(model="multilingual-e5-large", field_map={"text": "content"})
+    with pytest.raises(AttributeError):
+        config.model = "other"  # type: ignore[misc]
+
+
+def test_integrated_spec_is_immutable() -> None:
+    """IntegratedSpec is frozen — attribute assignment raises AttributeError."""
+    spec = IntegratedSpec(
+        cloud="aws",
+        region="us-east-1",
+        embed=EmbedConfig(
+            model="multilingual-e5-large",
+            field_map={"text": "content"},
+        ),
+    )
+    with pytest.raises(AttributeError):
+        spec.cloud = "gcp"  # type: ignore[misc]

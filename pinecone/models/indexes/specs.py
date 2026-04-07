@@ -7,7 +7,7 @@ from typing import Any
 from msgspec import Struct
 
 
-class EmbedConfig(Struct, kw_only=True):
+class EmbedConfig(Struct, frozen=True, kw_only=True):
     """Configuration for integrated (model-backed) embedding.
 
     Attributes:
@@ -41,7 +41,7 @@ class EmbedConfig(Struct, kw_only=True):
         return result
 
 
-class IntegratedSpec(Struct, kw_only=True):
+class IntegratedSpec(Struct, frozen=True, kw_only=True):
     """Integrated (model-backed) index deployment spec.
 
     Wraps cloud/region and embed config into a single convenience
