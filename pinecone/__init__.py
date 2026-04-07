@@ -1,4 +1,30 @@
-"""Pinecone Python SDK."""
+"""Pinecone Python SDK — vector database for similarity search.
+
+Quick Start::
+
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(api_key="your-api-key")  # or set PINECONE_API_KEY env var
+
+    # Control plane: manage indexes
+    pc.create_index(
+        "movie-recommendations",
+        dimension=1536,
+        metric="cosine",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+    )
+
+    # Data plane: operate on vectors
+    index = pc.index("movie-recommendations")
+    index.upsert(vectors=[("movie-42", [0.012, -0.087, 0.153, ...])])
+    results = index.query(vector=[0.012, -0.087, 0.153, ...], top_k=5)
+
+The :class:`Pinecone` client manages indexes (control plane). Call
+``pc.index(name)`` to get an :class:`Index` for vector operations (data plane).
+
+For async usage, see :class:`AsyncPinecone`. For admin/org management,
+see :class:`Admin`.
+"""
 
 from __future__ import annotations
 
