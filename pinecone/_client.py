@@ -240,13 +240,13 @@ class Pinecone:
             self._assistants = _Assistants(config=self._config)
         return self._assistants
 
-    def Assistant(self, assistant_name: str) -> AssistantModel:
+    def assistant(self, name: str) -> AssistantModel:
         """Convenience method to retrieve an existing assistant by name.
 
-        This is a shorthand for ``pc.assistants.describe(name=assistant_name)``.
+        This is a shorthand for ``pc.assistants.describe(name=name)``.
 
         Args:
-            assistant_name (str): The name of the assistant to retrieve.
+            name (str): The name of the assistant to retrieve.
 
         Returns:
             :class:`AssistantModel` describing the assistant.
@@ -255,7 +255,7 @@ class Pinecone:
             :exc:`ApiError`: If the API returns an error response (e.g. 404
                 when the assistant does not exist).
         """
-        return self.assistants.describe(name=assistant_name)
+        return self.assistants.describe(name=name)
 
     def index(
         self,

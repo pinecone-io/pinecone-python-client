@@ -199,22 +199,22 @@ class AsyncPinecone:
             self._assistants = _AsyncAssistants(config=self._config)
         return self._assistants
 
-    async def Assistant(self, assistant_name: str) -> AssistantModel:
+    async def assistant(self, name: str) -> AssistantModel:
         """Convenience method to describe a single assistant by name.
 
-        This is a shorthand for ``await pc.assistants.describe(name=assistant_name)``.
+        This is a shorthand for ``await pc.assistants.describe(name=name)``.
 
         Args:
-            assistant_name (str): The name of the assistant to describe.
+            name (str): The name of the assistant to describe.
 
         Returns:
             :class:`AssistantModel` describing the assistant.
 
         Examples:
 
-            assistant = await pc.Assistant("my-assistant")
+            assistant = await pc.assistant("my-assistant")
         """
-        return await self.assistants.describe(name=assistant_name)
+        return await self.assistants.describe(name=name)
 
     @property
     def backups(self) -> AsyncBackups:
