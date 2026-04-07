@@ -339,6 +339,11 @@ class Index:
     ) -> QueryResponse:
         """Query a namespace for the nearest neighbors of a vector.
 
+        .. note::
+           Use this method for indexes where you provide your own vectors.
+           For indexes with integrated inference (``IntegratedSpec``), use
+           :meth:`search` which handles embedding server-side.
+
         Args:
             top_k (int): Number of results to return (must be >= 1).
             vector (list[float] | None): Dense query vector values.
@@ -810,6 +815,10 @@ class Index:
         Searches a namespace using integrated inference (text inputs embedded
         server-side), a raw vector, or an existing record ID as the query.
 
+        .. note::
+           Use this method for indexes with integrated inference. For classic
+           indexes where you provide your own vectors, use :meth:`query`.
+
         Args:
             namespace (str): Namespace to search in (required).
             top_k (int): Number of results to return (must be >= 1).
@@ -894,7 +903,7 @@ class Index:
         rerank: dict[str, Any] | None = None,
         match_terms: dict[str, Any] | None = None,
     ) -> SearchRecordsResponse:
-        """Alias for :meth:`search` with identical behavior."""
+        """Alias for :meth:`search`. Prefer calling :meth:`search` directly — this alias exists for backwards compatibility."""
         return self.search(
             namespace=namespace,
             top_k=top_k,
