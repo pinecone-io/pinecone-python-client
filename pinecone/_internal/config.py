@@ -77,6 +77,7 @@ class PineconeConfig:
     additional_headers: dict[str, str] = field(default_factory=dict)
     source_tag: str = ""
     proxy_url: str = ""
+    proxy_headers: dict[str, str] = field(default_factory=dict)
     ssl_ca_certs: str | None = None
     ssl_verify: bool = True
     connection_pool_maxsize: int = 0
@@ -91,6 +92,7 @@ class PineconeConfig:
             f"additional_headers={self.additional_headers!r}, "
             f"source_tag='{self.source_tag}', "
             f"proxy_url='{self.proxy_url}', "
+            f"proxy_headers={self.proxy_headers!r}, "
             f"ssl_ca_certs={self.ssl_ca_certs!r}, "
             f"ssl_verify={self.ssl_verify}, "
             f"connection_pool_maxsize={self.connection_pool_maxsize}"

@@ -33,6 +33,8 @@ class AsyncPinecone:
         additional_headers (dict[str, str] | None): Extra headers included in every request.
         source_tag (str | None): Tag appended to the User-Agent string for request attribution.
         proxy_url (str | None): HTTP proxy URL for outgoing requests.
+        proxy_headers (dict[str, str] | None): Not yet supported. Raises
+            ``NotImplementedError`` if provided.
         ssl_ca_certs (str | None): Path to a CA certificate bundle for SSL verification.
         ssl_verify (bool): Whether to verify SSL certificates. Defaults to ``True``.
         timeout (float): Request timeout in seconds. Defaults to ``30.0``.
@@ -60,12 +62,16 @@ class AsyncPinecone:
         additional_headers: dict[str, str] | None = None,
         source_tag: str | None = None,
         proxy_url: str | None = None,
+        proxy_headers: dict[str, str] | None = None,
         ssl_ca_certs: str | None = None,
         ssl_verify: bool = True,
         timeout: float = 30.0,
         connection_pool_maxsize: int = 0,
         **kwargs: Any,
     ) -> None:
+        if proxy_headers:
+            raise NotImplementedError("proxy_headers is not yet supported for the async client")
+
         # Check for deprecated kwargs
         deprecated_used = _DEPRECATED_KWARGS & set(kwargs)
         if deprecated_used:

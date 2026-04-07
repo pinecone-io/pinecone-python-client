@@ -33,6 +33,7 @@ class Pinecone:
         additional_headers (dict[str, str] | None): Extra headers included in every request.
         source_tag (str | None): Tag appended to the User-Agent string for request attribution.
         proxy_url (str | None): HTTP proxy URL for outgoing requests.
+        proxy_headers (dict[str, str] | None): Custom headers for proxy authentication.
         ssl_ca_certs (str | None): Path to a CA certificate bundle for SSL verification.
         ssl_verify (bool): Whether to verify SSL certificates. Defaults to ``True``.
         timeout (float): Request timeout in seconds. Defaults to ``30.0``.
@@ -59,6 +60,7 @@ class Pinecone:
         additional_headers: dict[str, str] | None = None,
         source_tag: str | None = None,
         proxy_url: str | None = None,
+        proxy_headers: dict[str, str] | None = None,
         ssl_ca_certs: str | None = None,
         ssl_verify: bool = True,
         timeout: float = 30.0,
@@ -81,6 +83,7 @@ class Pinecone:
             additional_headers=additional_headers or {},
             source_tag=source_tag or "",
             proxy_url=proxy_url or "",
+            proxy_headers=proxy_headers or {},
             ssl_ca_certs=ssl_ca_certs,
             ssl_verify=ssl_verify,
             connection_pool_maxsize=connection_pool_maxsize,

@@ -135,9 +135,9 @@ class _RetryTransport(httpx.BaseTransport):
             if response.status_code not in _RETRYABLE_STATUS_CODES:
                 return response
             response.close()
-            delay = min(
-                self._initial_backoff * (2 ** attempt), self._max_backoff
-            ) + random.uniform(0, self._jitter_max)
+            delay = min(self._initial_backoff * (2**attempt), self._max_backoff) + random.uniform(
+                0, self._jitter_max
+            )
             time.sleep(delay)
             response = self._transport.handle_request(request)
         return response
@@ -172,9 +172,9 @@ class _AsyncRetryTransport(httpx.AsyncBaseTransport):
             if response.status_code not in _RETRYABLE_STATUS_CODES:
                 return response
             await response.aclose()
-            delay = min(
-                self._initial_backoff * (2 ** attempt), self._max_backoff
-            ) + random.uniform(0, self._jitter_max)
+            delay = min(self._initial_backoff * (2**attempt), self._max_backoff) + random.uniform(
+                0, self._jitter_max
+            )
             await asyncio.sleep(delay)
             response = await self._transport.handle_async_request(request)
         return response
@@ -219,9 +219,7 @@ class HTTPClient:
     def __init__(self, config: PineconeConfig, api_version: str) -> None:
         self._config = config
         self._headers = _build_headers(config, api_version)
-        verify: str | bool = (
-            config.ssl_ca_certs if config.ssl_ca_certs else config.ssl_verify
-        )
+        verify: str | bool = config.ssl_ca_certs if config.ssl_ca_certs else config.ssl_verify
         pool_size = (
             config.connection_pool_maxsize
             if config.connection_pool_maxsize > 0
@@ -236,12 +234,18 @@ class HTTPClient:
                 http2=True, limits=limits, socket_options=_build_socket_options()
             ),
         )
+        proxy: httpx.Proxy | str | None = None
+        if config.proxy_url:
+            if config.proxy_headers:
+                proxy = httpx.Proxy(url=config.proxy_url, headers=config.proxy_headers)
+            else:
+                proxy = config.proxy_url
         self._client = httpx.Client(
             base_url=config.host or DEFAULT_BASE_URL,
             headers=self._headers,
             timeout=config.timeout,
             transport=transport,
-            proxy=config.proxy_url or None,
+            proxy=proxy,
             verify=verify,
         )
 
@@ -340,9 +344,7 @@ class AsyncHTTPClient:
         """Return the underlying client, creating it on first use."""
         if self._client is None:
             verify: str | bool = (
-                self._config.ssl_ca_certs
-                if self._config.ssl_ca_certs
-                else self._config.ssl_verify
+                self._config.ssl_ca_certs if self._config.ssl_ca_certs else self._config.ssl_verify
             )
             pool_size = (
                 self._config.connection_pool_maxsize
@@ -358,12 +360,20 @@ class AsyncHTTPClient:
                     http2=True, limits=limits, socket_options=_build_socket_options()
                 ),
             )
+            proxy: httpx.Proxy | str | None = None
+            if self._config.proxy_url:
+                if self._config.proxy_headers:
+                    proxy = httpx.Proxy(
+                        url=self._config.proxy_url, headers=self._config.proxy_headers
+                    )
+                else:
+                    proxy = self._config.proxy_url
             self._client = httpx.AsyncClient(
                 base_url=self._config.host or DEFAULT_BASE_URL,
                 headers=self._headers,
                 timeout=self._config.timeout,
                 transport=transport,
-                proxy=self._config.proxy_url or None,
+                proxy=proxy,
                 verify=verify,
             )
         return self._client
