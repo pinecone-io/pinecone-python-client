@@ -78,6 +78,20 @@ class TestAsyncioDeleteEmptyBody:
             await client.close()
 
 
+    @pytest.mark.asyncio
+    async def test_string_response_body_does_not_raise(self):
+        """Non-empty string responses (e.g. '\"ok\"') must not raise AttributeError."""
+        client = AsyncioApiClient(configuration=_make_config())
+        try:
+            with patch.object(
+                client, "request", new_callable=AsyncMock, return_value=_make_response(b'"ok"')
+            ):
+                result = await client.call_api(**{**_CALL_API_KWARGS, "response_type": (str,)})
+                assert result == "ok"
+        finally:
+            await client.close()
+
+
 class TestSyncDeleteEmptyBody:
     """Sync client: empty/whitespace response bodies should return None."""
 
@@ -93,3 +107,10 @@ class TestSyncDeleteEmptyBody:
         with patch.object(client, "request", return_value=_make_response(b"{}")):
             result = client.call_api(**_CALL_API_KWARGS)
             assert isinstance(result, dict)
+
+    def test_string_response_body_does_not_raise(self):
+        """Non-empty string responses (e.g. '\"ok\"') must not raise AttributeError."""
+        client = ApiClient(configuration=_make_config())
+        with patch.object(client, "request", return_value=_make_response(b'"ok"')):
+            result = client.call_api(**{**_CALL_API_KWARGS, "response_type": (str,)})
+            assert result == "ok"
