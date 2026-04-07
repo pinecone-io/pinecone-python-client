@@ -1304,10 +1304,9 @@ class Index:
 
         while True:
             response = self._http.get("/bulk/imports", params=params)
-            import_list, next_token = self._imports_adapter.to_import_list_with_pagination(
-                response.content
-            )
+            import_list = self._imports_adapter.to_import_list(response.content)
             yield from import_list
+            next_token = import_list.pagination.next if import_list.pagination else None
             if next_token is None:
                 break
             params["paginationToken"] = next_token

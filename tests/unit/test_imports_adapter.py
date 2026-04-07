@@ -90,3 +90,51 @@ class TestToImportList:
         result = ImportsAdapter.to_import_list(data)
         assert isinstance(result, ImportList)
         assert len(result) == 0
+
+    def test_to_import_list_with_pagination_token(self) -> None:
+        payload = {
+            "data": [
+                {
+                    "id": "import-1",
+                    "uri": "s3://bucket/file1.parquet",
+                    "status": "Completed",
+                    "createdAt": "2025-01-15T10:00:00Z",
+                },
+            ],
+            "pagination": {"next": "tok123"},
+        }
+        data = json.dumps(payload).encode()
+        result = ImportsAdapter.to_import_list(data)
+        assert result.pagination is not None
+        assert result.pagination.next == "tok123"
+
+    def test_to_import_list_pagination_null(self) -> None:
+        payload = {
+            "data": [
+                {
+                    "id": "import-1",
+                    "uri": "s3://bucket/file1.parquet",
+                    "status": "Completed",
+                    "createdAt": "2025-01-15T10:00:00Z",
+                },
+            ],
+            "pagination": None,
+        }
+        data = json.dumps(payload).encode()
+        result = ImportsAdapter.to_import_list(data)
+        assert result.pagination is None
+
+    def test_to_import_list_no_pagination_key(self) -> None:
+        payload = {
+            "data": [
+                {
+                    "id": "import-1",
+                    "uri": "s3://bucket/file1.parquet",
+                    "status": "Completed",
+                    "createdAt": "2025-01-15T10:00:00Z",
+                },
+            ],
+        }
+        data = json.dumps(payload).encode()
+        result = ImportsAdapter.to_import_list(data)
+        assert result.pagination is None
