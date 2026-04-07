@@ -11,7 +11,7 @@ import asyncio
 import re
 import time
 from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypedDict
 
 import msgspec
 
@@ -25,6 +25,20 @@ from pinecone.models.indexes.specs import ByocSpec, IntegratedSpec, PodSpec, Ser
 
 _VALID_METRICS = frozenset({"cosine", "euclidean", "dotproduct"})
 _VALID_DELETION_PROTECTION = frozenset({"enabled", "disabled"})
+
+
+class IndexKwargs(TypedDict):
+    """Typed kwargs for constructing :class:`~pinecone.index.Index` or :class:`~pinecone.async_client.async_index.AsyncIndex`."""
+
+    host: str
+    api_key: str
+    additional_headers: dict[str, str]
+    timeout: float
+    proxy_url: str
+    ssl_ca_certs: str | None
+    ssl_verify: bool
+    source_tag: str
+    connection_pool_maxsize: int
 
 
 def resolve_enum_value(value: Any) -> Any:
