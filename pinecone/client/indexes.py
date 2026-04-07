@@ -35,7 +35,8 @@ _POLL_INTERVAL_SECONDS = 5
 class Indexes:
     """Control-plane operations for Pinecone indexes.
 
-    Provides methods to list, describe, and check existence of indexes.
+    Provides ``list``, ``describe``, ``exists``, ``create``, ``delete``,
+    and ``configure`` methods.
 
     Args:
         http (HTTPClient): HTTP client for making API requests.
