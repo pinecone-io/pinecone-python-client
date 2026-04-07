@@ -42,6 +42,12 @@ class ProjectList:
     """Wrapper around a list of ProjectModel with convenience methods."""
 
     def __init__(self, projects: list[ProjectModel]) -> None:
+        """Initialize a ProjectList.
+
+        Args:
+            projects: List of :class:`ProjectModel` instances representing
+                Pinecone projects.
+        """
         self._projects = projects
 
     def __iter__(self) -> Iterator[ProjectModel]:
@@ -54,7 +60,20 @@ class ProjectList:
         return self._projects[index]
 
     def names(self) -> list[str]:
-        """Return a list of project names."""
+        """Return a list of project names.
+
+        Returns:
+            list[str]: Project names in the same order as the list.
+
+        Examples:
+            List names of all projects:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> projects = pc.list_projects()
+            >>> projects.names()
+            ['production-search', 'staging-recommendations']
+        """
         return [project.name for project in self._projects]
 
     def __repr__(self) -> str:

@@ -63,6 +63,12 @@ class APIKeyList:
     """Wrapper around a list of APIKeyModel with convenience methods."""
 
     def __init__(self, api_keys: list[APIKeyModel]) -> None:
+        """Initialize an APIKeyList.
+
+        Args:
+            api_keys: List of :class:`APIKeyModel` instances representing
+                Pinecone API keys.
+        """
         self._api_keys = api_keys
 
     def __iter__(self) -> Iterator[APIKeyModel]:
@@ -75,7 +81,20 @@ class APIKeyList:
         return self._api_keys[index]
 
     def names(self) -> list[str]:
-        """Return a list of API key names."""
+        """Return a list of API key names.
+
+        Returns:
+            list[str]: API key names in the same order as the list.
+
+        Examples:
+            List names of all API keys in a project:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> keys = pc.list_api_keys()
+            >>> keys.names()
+            ['prod-search-key', 'ci-pipeline-key']
+        """
         return [api_key.name for api_key in self._api_keys]
 
     def __repr__(self) -> str:

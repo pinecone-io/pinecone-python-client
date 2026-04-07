@@ -42,6 +42,12 @@ class OrganizationList:
     """Wrapper around a list of OrganizationModel with convenience methods."""
 
     def __init__(self, organizations: list[OrganizationModel]) -> None:
+        """Initialize an OrganizationList.
+
+        Args:
+            organizations: List of :class:`OrganizationModel` instances
+                representing Pinecone organizations.
+        """
         self._organizations = organizations
 
     def __iter__(self) -> Iterator[OrganizationModel]:
@@ -54,7 +60,20 @@ class OrganizationList:
         return self._organizations[index]
 
     def names(self) -> list[str]:
-        """Return a list of organization names."""
+        """Return a list of organization names.
+
+        Returns:
+            list[str]: Organization names in the same order as the list.
+
+        Examples:
+            List names of all organizations:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> orgs = pc.list_organizations()
+            >>> orgs.names()
+            ['acme-corp', 'research-team']
+        """
         return [org.name for org in self._organizations]
 
     def __repr__(self) -> str:
