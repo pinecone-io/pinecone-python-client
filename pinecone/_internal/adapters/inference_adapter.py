@@ -85,7 +85,7 @@ class InferenceAdapter:
 
 def normalize_embed_inputs(
     inputs: str | list[str] | list[dict[str, Any]],
-) -> list[dict[str, str]]:
+) -> list[dict[str, Any]]:
     """Normalize embed inputs into the API's expected format.
 
     Args:
@@ -96,19 +96,24 @@ def normalize_embed_inputs(
 
     Raises:
         ValueError: If inputs is an empty list.
-        TypeError: If inputs is not a recognized type.
+        TypeError: If inputs is not a recognized type or contains mixed types.
     """
     if isinstance(inputs, str):
         return [{"text": inputs}]
     if isinstance(inputs, list):
         if len(inputs) == 0:
             raise ValueError("inputs must not be empty")
+        if not all(isinstance(item, (str, dict)) for item in inputs):
+            raise TypeError("each input must be a string or dictionary")
         first = inputs[0]
         if isinstance(first, str):
-            # Safe to cast: we checked the first element is str
+            if not all(isinstance(item, str) for item in inputs):
+                raise TypeError("each input must be a string or dictionary")
             str_inputs: list[str] = inputs  # type: ignore[assignment]
             return [{"text": s} for s in str_inputs]
         if isinstance(first, dict):
+            if not all(isinstance(item, dict) for item in inputs):
+                raise TypeError("each input must be a string or dictionary")
             return inputs  # type: ignore[return-value]
         raise TypeError(
             f"Expected list of str or list of dict, got list of {type(first).__name__}"

@@ -188,8 +188,20 @@ class TestNormalizeEmbedInputs:
             normalize_embed_inputs(42)  # type: ignore[arg-type]
 
     def test_normalize_embed_inputs_list_of_invalid_type_raises(self) -> None:
-        with pytest.raises(TypeError, match="Expected list of str or list of dict"):
+        with pytest.raises(TypeError, match="each input must be a string or dictionary"):
             normalize_embed_inputs([42, 43])  # type: ignore[list-item]
+
+    def test_normalize_embed_inputs_mixed_str_int_raises(self) -> None:
+        with pytest.raises(TypeError, match="each input must be a string or dictionary"):
+            normalize_embed_inputs(["hello", 42])  # type: ignore[list-item]
+
+    def test_normalize_embed_inputs_mixed_str_none_raises(self) -> None:
+        with pytest.raises(TypeError, match="each input must be a string or dictionary"):
+            normalize_embed_inputs(["hello", None])  # type: ignore[list-item]
+
+    def test_normalize_embed_inputs_mixed_dict_str_raises(self) -> None:
+        with pytest.raises(TypeError, match="each input must be a string or dictionary"):
+            normalize_embed_inputs([{"text": "a"}, "b"])  # type: ignore[list-item]
 
 
 class TestNormalizeRerankDocuments:
