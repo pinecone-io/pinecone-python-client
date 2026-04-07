@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.adapters.assistants_adapter import AssistantsAdapter
 from pinecone._internal.constants import ASSISTANT_API_VERSION
-from pinecone.errors.exceptions import PineconeTimeoutError, PineconeValueError
+from pinecone.errors.exceptions import NotFoundError, PineconeTimeoutError, PineconeValueError
 from pinecone.models.assistant.list import ListAssistantsResponse
 from pinecone.models.assistant.model import AssistantModel
 
@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 _VALID_REGIONS = ("us", "eu")
 _CREATE_POLL_INTERVAL_SECONDS = 0.5
+_DELETE_POLL_INTERVAL_SECONDS = 5
 
 
 class Assistants:
@@ -286,23 +287,54 @@ class Assistants:
         logger.debug("Updated assistant %r", name)
         return model
 
-    def delete(self, *, name: str) -> None:
+    def delete(self, *, name: str, timeout: float | None = None) -> None:
         """Delete a Pinecone assistant by name.
+
+        Sends a DELETE request, then polls every 5 seconds until the
+        assistant is confirmed gone (404 from describe). Other errors
+        during polling propagate immediately.
 
         Args:
             name (str): The name of the assistant to delete.
+            timeout (float | None): Seconds to wait for the assistant to
+                disappear. Use ``None`` (default) to poll indefinitely.
+                Use ``-1`` to return immediately without polling.
+                Use a positive value to poll with a deadline. Raises
+                :exc:`PineconeTimeoutError` if the assistant is not gone
+                before the deadline.
 
         Raises:
-            :exc:`ApiError`: If the API returns an error response (e.g. 404
-                when the assistant does not exist).
+            :exc:`PineconeTimeoutError`: If the assistant still exists after
+                *timeout* seconds.
+            :exc:`ApiError`: If the API returns an error response.
 
         Examples:
 
             pc.assistants.delete(name="my-assistant")
+
+            # Return immediately without waiting for deletion
+            pc.assistants.delete(name="my-assistant", timeout=-1)
         """
         logger.info("Deleting assistant %r", name)
         self._http.delete(f"/assistants/{name}")
         logger.debug("Deleted assistant %r", name)
+
+        if timeout == -1:
+            return
+
+        start = time.monotonic()
+        while True:
+            try:
+                self.describe(name=name)
+            except NotFoundError:
+                return
+            if timeout is not None:
+                elapsed = time.monotonic() - start
+                if elapsed >= timeout:
+                    raise PineconeTimeoutError(
+                        f"Assistant '{name}' still exists after {timeout}s"
+                    )
+            time.sleep(_DELETE_POLL_INTERVAL_SECONDS)
 
     def _poll_until_ready(self, name: str, timeout: float | None) -> AssistantModel:
         """Poll ``GET /assistants/{name}`` until status is ``"Ready"`` or timeout."""

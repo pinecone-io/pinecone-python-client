@@ -660,36 +660,143 @@ def test_update_assistant_not_found(assistants: Assistants) -> None:
 
 
 # ---------------------------------------------------------------------------
-# delete() — success
+# delete() — polls until gone
 # ---------------------------------------------------------------------------
 
 
 @respx.mock
-def test_delete_assistant(assistants: Assistants) -> None:
-    """delete() sends DELETE /assistants/{name} and returns None."""
-    route = respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+@patch("pinecone.client.assistants.time.sleep")
+def test_delete_assistant(mock_sleep: object, assistants: Assistants) -> None:
+    """delete() sends DELETE then polls describe until 404 confirms deletion."""
+    delete_route = respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
+    )
+    respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
     result = assistants.delete(name="my-assistant")
 
     assert result is None
-    assert route.call_count == 1
+    assert delete_route.call_count == 1
 
-    request = route.calls.last.request
+    request = delete_route.calls.last.request
     assert request.method == "DELETE"
     assert str(request.url) == f"{BASE_URL}/assistants/my-assistant"
 
 
 @respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_delete_assistant_polls_until_gone(mock_sleep: object, assistants: Assistants) -> None:
+    """delete() polls describe every 5s; returns when 404 is received."""
+    respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(204),
+    )
+    describe_route = respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+        side_effect=[
+            httpx.Response(200, json=make_assistant_response(name="my-assistant", status="Terminating")),
+            httpx.Response(200, json=make_assistant_response(name="my-assistant", status="Terminating")),
+            httpx.Response(404, json={"error": "Not found"}),
+        ],
+    )
+
+    result = assistants.delete(name="my-assistant")
+
+    assert result is None
+    assert describe_route.call_count == 3
+
+    from unittest.mock import call
+
+    from pinecone.client.assistants import _DELETE_POLL_INTERVAL_SECONDS
+
+    for c in mock_sleep.call_args_list:  # type: ignore[union-attr]
+        assert c == call(_DELETE_POLL_INTERVAL_SECONDS)
+
+
+@respx.mock
+def test_delete_assistant_timeout_minus_one_skips_polling(assistants: Assistants) -> None:
+    """delete(timeout=-1) returns immediately without polling."""
+    delete_route = respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(204),
+    )
+
+    result = assistants.delete(name="my-assistant", timeout=-1)
+
+    assert result is None
+    assert delete_route.call_count == 1
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.monotonic")
+@patch("pinecone.client.assistants.time.sleep")
+def test_delete_assistant_timeout_raises(
+    mock_sleep: object, mock_monotonic: object, assistants: Assistants
+) -> None:
+    """Exceeding timeout raises PineconeTimeoutError."""
+    mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
+
+    respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(204),
+    )
+    respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(name="my-assistant", status="Terminating")),
+    )
+
+    with pytest.raises(PineconeTimeoutError, match="still exists after 10"):
+        assistants.delete(name="my-assistant", timeout=10)
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_delete_assistant_polls_indefinitely_when_no_timeout(
+    mock_sleep: object, assistants: Assistants
+) -> None:
+    """When timeout is None, polling continues until 404 with no deadline."""
+    respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(204),
+    )
+    respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+        side_effect=[
+            httpx.Response(200, json=make_assistant_response(name="my-assistant", status="Terminating")),
+            httpx.Response(200, json=make_assistant_response(name="my-assistant", status="Terminating")),
+            httpx.Response(200, json=make_assistant_response(name="my-assistant", status="Terminating")),
+            httpx.Response(404, json={"error": "Not found"}),
+        ],
+    )
+
+    result = assistants.delete(name="my-assistant")
+
+    assert result is None
+
+
+@respx.mock
 def test_delete_assistant_not_found(assistants: Assistants) -> None:
-    """delete() lets 404 errors propagate from the HTTP client."""
+    """delete() lets 404 errors propagate from the initial DELETE request."""
     respx.delete(f"{BASE_URL}/assistants/nonexistent").mock(
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
     with pytest.raises(NotFoundError):
         assistants.delete(name="nonexistent")
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_delete_assistant_propagates_non_404_errors_during_poll(
+    mock_sleep: object, assistants: Assistants
+) -> None:
+    """Non-404 errors during polling propagate instead of being swallowed."""
+    from pinecone.errors.exceptions import ServiceError
+
+    respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(204),
+    )
+    respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(500, json={"error": "Internal server error"}),
+    )
+
+    with pytest.raises(ServiceError):
+        assistants.delete(name="my-assistant")
 
 
 # ---------------------------------------------------------------------------
