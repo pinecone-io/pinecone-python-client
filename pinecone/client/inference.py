@@ -95,6 +95,18 @@ class Inference:
             ... )
             >>> len(embeddings.data)
             1
+
+        .. note::
+           To store embeddings in a Pinecone index, extract the raw vector
+           values and pass them to :meth:`~pinecone.Index.upsert`::
+
+               values = embeddings.data[0].values
+               index.upsert(vectors=[("doc-1", values)])
+
+           Alternatively, use an index with integrated inference
+           (``IntegratedSpec``) and call :meth:`~pinecone.Index.upsert_records`
+           to let Pinecone handle embedding server-side — no manual embed step
+           required.
         """
         require_non_empty("model", str(model))
         normalized_inputs = normalize_embed_inputs(inputs)
