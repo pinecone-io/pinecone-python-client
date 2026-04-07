@@ -42,13 +42,96 @@ impl tonic::service::Interceptor for MetadataInterceptor {
     }
 }
 
-/// Convert a `tonic::Status` into a Python `RuntimeError`.
+/// Map a gRPC status code name to the corresponding HTTP-ish status code
+/// used by the Python exception hierarchy (for `ApiError` subclasses).
+fn grpc_code_to_http_status(code: tonic::Code) -> Option<i32> {
+    match code {
+        tonic::Code::NotFound => Some(404),
+        tonic::Code::AlreadyExists => Some(409),
+        tonic::Code::Unauthenticated => Some(401),
+        tonic::Code::PermissionDenied => Some(403),
+        tonic::Code::Internal | tonic::Code::Unknown => Some(500),
+        _ => None,
+    }
+}
+
+/// Convert a `tonic::Status` into the appropriate Python SDK exception.
+///
+/// Maps tonic status codes to the Pinecone Python exception hierarchy:
+///   - NotFound        → pinecone.errors.NotFoundError
+///   - AlreadyExists   → pinecone.errors.ConflictError
+///   - Unauthenticated → pinecone.errors.UnauthorizedError
+///   - PermissionDenied→ pinecone.errors.ForbiddenError
+///   - DeadlineExceeded→ pinecone.errors.PineconeTimeoutError
+///   - Unavailable     → pinecone.errors.PineconeConnectionError
+///   - Internal/Unknown→ pinecone.errors.ServiceError
+///   - InvalidArgument → pinecone.errors.PineconeValueError
+///   - All others      → pinecone.errors.PineconeError
 fn status_to_py_err(status: tonic::Status) -> PyErr {
-    PyRuntimeError::new_err(format!(
-        "gRPC error ({}): {}",
-        status.code(),
-        status.message()
-    ))
+    let code = status.code();
+    let msg = format!("gRPC {}: {}", grpc_code_name(code), status.message());
+
+    Python::with_gil(|py| {
+        let errors_mod = match py.import("pinecone.errors") {
+            Ok(m) => m,
+            Err(_) => return PyRuntimeError::new_err(msg),
+        };
+
+        // Determine which exception class and how to construct it.
+        // ApiError subclasses need (message, status_code); PineconeError subclasses need (message).
+        let exc_class_name = match code {
+            tonic::Code::NotFound => "NotFoundError",
+            tonic::Code::AlreadyExists => "ConflictError",
+            tonic::Code::Unauthenticated => "UnauthorizedError",
+            tonic::Code::PermissionDenied => "ForbiddenError",
+            tonic::Code::DeadlineExceeded => "PineconeTimeoutError",
+            tonic::Code::Unavailable => "PineconeConnectionError",
+            tonic::Code::Internal | tonic::Code::Unknown => "ServiceError",
+            tonic::Code::InvalidArgument => "PineconeValueError",
+            _ => "PineconeError",
+        };
+
+        let exc_class = match errors_mod.getattr(exc_class_name) {
+            Ok(cls) => cls,
+            Err(_) => return PyRuntimeError::new_err(msg),
+        };
+
+        // ApiError subclasses (NotFound, AlreadyExists, Unauthenticated, PermissionDenied,
+        // Internal, Unknown) require a status_code argument.
+        let exc_instance = if let Some(http_status) = grpc_code_to_http_status(code) {
+            exc_class.call1((&msg, http_status))
+        } else {
+            exc_class.call1((&msg,))
+        };
+
+        match exc_instance {
+            Ok(inst) => PyErr::from_value(inst.into_any()),
+            Err(_) => PyRuntimeError::new_err(msg),
+        }
+    })
+}
+
+/// Human-readable name for a gRPC status code.
+fn grpc_code_name(code: tonic::Code) -> &'static str {
+    match code {
+        tonic::Code::Ok => "OK",
+        tonic::Code::Cancelled => "CANCELLED",
+        tonic::Code::Unknown => "UNKNOWN",
+        tonic::Code::InvalidArgument => "INVALID_ARGUMENT",
+        tonic::Code::DeadlineExceeded => "DEADLINE_EXCEEDED",
+        tonic::Code::NotFound => "NOT_FOUND",
+        tonic::Code::AlreadyExists => "ALREADY_EXISTS",
+        tonic::Code::PermissionDenied => "PERMISSION_DENIED",
+        tonic::Code::ResourceExhausted => "RESOURCE_EXHAUSTED",
+        tonic::Code::FailedPrecondition => "FAILED_PRECONDITION",
+        tonic::Code::Aborted => "ABORTED",
+        tonic::Code::OutOfRange => "OUT_OF_RANGE",
+        tonic::Code::Unimplemented => "UNIMPLEMENTED",
+        tonic::Code::Internal => "INTERNAL",
+        tonic::Code::Unavailable => "UNAVAILABLE",
+        tonic::Code::DataLoss => "DATA_LOSS",
+        tonic::Code::Unauthenticated => "UNAUTHENTICATED",
+    }
 }
 
 /// Convert a `prost_types::Struct` to a Python dict.
@@ -947,6 +1030,70 @@ mod tests {
             .connect_timeout(Duration::from_secs_f64(0.1));
         let result = endpoint.tls_config(ClientTlsConfig::new());
         assert!(result.is_ok(), "Endpoint with fractional timeouts should be configurable");
+    }
+
+    #[test]
+    fn grpc_code_name_covers_all_variants() {
+        // Verify that every tonic::Code variant has a human-readable name.
+        let codes = vec![
+            (tonic::Code::Ok, "OK"),
+            (tonic::Code::Cancelled, "CANCELLED"),
+            (tonic::Code::Unknown, "UNKNOWN"),
+            (tonic::Code::InvalidArgument, "INVALID_ARGUMENT"),
+            (tonic::Code::DeadlineExceeded, "DEADLINE_EXCEEDED"),
+            (tonic::Code::NotFound, "NOT_FOUND"),
+            (tonic::Code::AlreadyExists, "ALREADY_EXISTS"),
+            (tonic::Code::PermissionDenied, "PERMISSION_DENIED"),
+            (tonic::Code::ResourceExhausted, "RESOURCE_EXHAUSTED"),
+            (tonic::Code::FailedPrecondition, "FAILED_PRECONDITION"),
+            (tonic::Code::Aborted, "ABORTED"),
+            (tonic::Code::OutOfRange, "OUT_OF_RANGE"),
+            (tonic::Code::Unimplemented, "UNIMPLEMENTED"),
+            (tonic::Code::Internal, "INTERNAL"),
+            (tonic::Code::Unavailable, "UNAVAILABLE"),
+            (tonic::Code::DataLoss, "DATA_LOSS"),
+            (tonic::Code::Unauthenticated, "UNAUTHENTICATED"),
+        ];
+        for (code, expected_name) in codes {
+            assert_eq!(grpc_code_name(code), expected_name);
+        }
+    }
+
+    #[test]
+    fn grpc_code_to_http_status_maps_api_error_codes() {
+        // ApiError subclasses should get an HTTP status code.
+        assert_eq!(grpc_code_to_http_status(tonic::Code::NotFound), Some(404));
+        assert_eq!(grpc_code_to_http_status(tonic::Code::AlreadyExists), Some(409));
+        assert_eq!(grpc_code_to_http_status(tonic::Code::Unauthenticated), Some(401));
+        assert_eq!(grpc_code_to_http_status(tonic::Code::PermissionDenied), Some(403));
+        assert_eq!(grpc_code_to_http_status(tonic::Code::Internal), Some(500));
+        assert_eq!(grpc_code_to_http_status(tonic::Code::Unknown), Some(500));
+    }
+
+    #[test]
+    fn grpc_code_to_http_status_returns_none_for_non_api_errors() {
+        // Non-ApiError exception types should not get an HTTP status code.
+        assert_eq!(grpc_code_to_http_status(tonic::Code::DeadlineExceeded), None);
+        assert_eq!(grpc_code_to_http_status(tonic::Code::Unavailable), None);
+        assert_eq!(grpc_code_to_http_status(tonic::Code::InvalidArgument), None);
+        assert_eq!(grpc_code_to_http_status(tonic::Code::Ok), None);
+        assert_eq!(grpc_code_to_http_status(tonic::Code::Cancelled), None);
+        assert_eq!(grpc_code_to_http_status(tonic::Code::ResourceExhausted), None);
+    }
+
+    #[test]
+    fn error_message_includes_code_and_description() {
+        // Without a Python interpreter, status_to_py_err falls back to PyRuntimeError,
+        // but we can verify the message format via grpc_code_name.
+        let code = tonic::Code::Unavailable;
+        let message = "connection refused";
+        let formatted = format!("gRPC {}: {}", grpc_code_name(code), message);
+        assert_eq!(formatted, "gRPC UNAVAILABLE: connection refused");
+
+        let code2 = tonic::Code::NotFound;
+        let message2 = "index not found";
+        let formatted2 = format!("gRPC {}: {}", grpc_code_name(code2), message2);
+        assert_eq!(formatted2, "gRPC NOT_FOUND: index not found");
     }
 
     #[test]
