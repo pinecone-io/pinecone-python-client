@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from pinecone._internal.vector_factory import VectorFactory
+from pinecone.errors.exceptions import PineconeTypeError, PineconeValueError
 from pinecone.models.vectors.sparse import SparseValues
 from pinecone.models.vectors.vector import Vector
 
@@ -58,16 +59,16 @@ class TestTupleFormat:
 
     def test_four_tuple_rejected(self) -> None:
         """unified-vecfmt-0007/0008: no 4-element tuples."""
-        with pytest.raises(ValueError, match="2 or 3 elements"):
+        with pytest.raises(PineconeValueError, match="2 or 3 elements"):
             VectorFactory.build(("id", [0.1], {}, "extra"))
 
     def test_one_tuple_rejected(self) -> None:
         """unified-vecfmt-0008: 1-element tuple rejected."""
-        with pytest.raises(ValueError, match="2 or 3 elements"):
+        with pytest.raises(PineconeValueError, match="2 or 3 elements"):
             VectorFactory.build(("id",))
 
     def test_empty_tuple_rejected(self) -> None:
-        with pytest.raises(ValueError, match="2 or 3 elements"):
+        with pytest.raises(PineconeValueError, match="2 or 3 elements"):
             VectorFactory.build(())
 
 
@@ -115,17 +116,17 @@ class TestDictFormat:
 
     def test_dict_missing_id_rejected(self) -> None:
         """unified-vecfmt-0009."""
-        with pytest.raises(ValueError, match="'id' key"):
+        with pytest.raises(PineconeValueError, match="'id' key"):
             VectorFactory.build({"values": [0.1]})
 
     def test_dict_extra_keys_rejected(self) -> None:
         """unified-vecfmt-0010."""
-        with pytest.raises(ValueError, match="unrecognized keys"):
+        with pytest.raises(PineconeValueError, match="unrecognized keys"):
             VectorFactory.build({"id": "v1", "values": [0.1], "extra": 42})
 
     def test_dict_metadata_non_dict_rejected(self) -> None:
         """unified-vecfmt-0011."""
-        with pytest.raises(TypeError, match="metadata must be a dict"):
+        with pytest.raises(PineconeTypeError, match="metadata must be a dict"):
             VectorFactory.build({"id": "v1", "values": [0.1], "metadata": "bad"})
 
 
@@ -134,7 +135,7 @@ class TestSparseValuesValidation:
 
     def test_sparse_mismatched_lengths(self) -> None:
         """unified-vecfmt-0012."""
-        with pytest.raises(ValueError, match="same length"):
+        with pytest.raises(PineconeValueError, match="same length"):
             VectorFactory.build(
                 {
                     "id": "v1",
@@ -144,7 +145,7 @@ class TestSparseValuesValidation:
 
     def test_sparse_missing_indices(self) -> None:
         """unified-vecfmt-0013."""
-        with pytest.raises(ValueError, match="missing required keys"):
+        with pytest.raises(PineconeValueError, match="missing required keys"):
             VectorFactory.build(
                 {
                     "id": "v1",
@@ -154,7 +155,7 @@ class TestSparseValuesValidation:
 
     def test_sparse_missing_values(self) -> None:
         """unified-vecfmt-0013."""
-        with pytest.raises(ValueError, match="missing required keys"):
+        with pytest.raises(PineconeValueError, match="missing required keys"):
             VectorFactory.build(
                 {
                     "id": "v1",
@@ -164,7 +165,7 @@ class TestSparseValuesValidation:
 
     def test_sparse_non_dict_rejected(self) -> None:
         """unified-vecfmt-0014."""
-        with pytest.raises(TypeError, match="sparse_values must be a dict"):
+        with pytest.raises(PineconeTypeError, match="sparse_values must be a dict"):
             VectorFactory.build(
                 {
                     "id": "v1",
@@ -174,7 +175,7 @@ class TestSparseValuesValidation:
 
     def test_sparse_string_index_rejected(self) -> None:
         """unified-vecfmt-0015: first-element type check."""
-        with pytest.raises(TypeError, match="indices must be integers"):
+        with pytest.raises(PineconeTypeError, match="indices must be integers"):
             VectorFactory.build(
                 {
                     "id": "v1",
@@ -184,7 +185,7 @@ class TestSparseValuesValidation:
 
     def test_sparse_string_value_rejected(self) -> None:
         """unified-vecfmt-0015: first-element type check on values."""
-        with pytest.raises(TypeError, match="values must be floats"):
+        with pytest.raises(PineconeTypeError, match="values must be floats"):
             VectorFactory.build(
                 {
                     "id": "v1",
@@ -198,37 +199,37 @@ class TestGeneralValidation:
 
     def test_dict_empty_values_no_sparse_rejected(self) -> None:
         """unified-vecfmt-0016."""
-        with pytest.raises(ValueError, match="at least one of"):
+        with pytest.raises(PineconeValueError, match="at least one of"):
             VectorFactory.build({"id": "v1", "values": []})
 
     def test_dict_no_values_no_sparse_rejected(self) -> None:
         """unified-vecfmt-0016."""
-        with pytest.raises(ValueError, match="at least one of"):
+        with pytest.raises(PineconeValueError, match="at least one of"):
             VectorFactory.build({"id": "v1"})
 
     def test_tuple_empty_values_rejected(self) -> None:
         """unified-vecfmt-0016: tuple with empty values."""
-        with pytest.raises(ValueError, match="at least one of"):
+        with pytest.raises(PineconeValueError, match="at least one of"):
             VectorFactory.build(("v1", []))
 
     def test_integer_id_rejected(self) -> None:
         """unified-vecfmt-0017."""
-        with pytest.raises(TypeError, match="must be a string"):
+        with pytest.raises(PineconeTypeError, match="must be a string"):
             VectorFactory.build((123, [0.1, 0.2]))
 
     def test_integer_id_in_dict_rejected(self) -> None:
         """unified-vecfmt-0017."""
-        with pytest.raises(TypeError, match="must be a string"):
+        with pytest.raises(PineconeTypeError, match="must be a string"):
             VectorFactory.build({"id": 123, "values": [0.1]})
 
     def test_validate_id_rejects_non_ascii(self) -> None:
         """unified-ids-0002: non-ASCII IDs rejected."""
-        with pytest.raises(ValueError, match="ASCII"):
+        with pytest.raises(PineconeValueError, match="ASCII"):
             VectorFactory.build(("café", [0.1, 0.2]))
 
     def test_validate_id_rejects_null_char(self) -> None:
         """unified-ids-0002: null characters in ID rejected."""
-        with pytest.raises(ValueError, match="null"):
+        with pytest.raises(PineconeValueError, match="null"):
             VectorFactory.build(("hello\x00world", [0.1, 0.2]))
 
     def test_validate_id_accepts_ascii(self) -> None:
@@ -241,13 +242,13 @@ class TestUnsupportedTypes:
     """Reject non-Vector, non-tuple, non-dict inputs."""
 
     def test_list_rejected(self) -> None:
-        with pytest.raises(TypeError, match="got list"):
+        with pytest.raises(PineconeTypeError, match="got list"):
             VectorFactory.build([0.1, 0.2])
 
     def test_string_rejected(self) -> None:
-        with pytest.raises(TypeError, match="got str"):
+        with pytest.raises(PineconeTypeError, match="got str"):
             VectorFactory.build("bad")
 
     def test_int_rejected(self) -> None:
-        with pytest.raises(TypeError, match="got int"):
+        with pytest.raises(PineconeTypeError, match="got int"):
             VectorFactory.build(42)
