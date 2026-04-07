@@ -318,3 +318,67 @@ def test_create_assistant_accepts_eu_region(assistants: Assistants) -> None:
 
     result = assistants.create(name="test-assistant", region="eu")
     assert isinstance(result, AssistantModel)
+
+
+# ---------------------------------------------------------------------------
+# describe() — success
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_describe_assistant(assistants: Assistants) -> None:
+    """describe() sends GET /assistants/{name} and returns AssistantModel."""
+    response_data = make_assistant_response(
+        name="my-assistant",
+        status="Ready",
+        instructions="Be helpful.",
+        metadata={"team": "ml"},
+        host="my-assistant-abc.svc.pinecone.io",
+    )
+    route = respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(200, json=response_data),
+    )
+
+    result = assistants.describe(name="my-assistant")
+
+    assert isinstance(result, AssistantModel)
+    assert result.name == "my-assistant"
+    assert result.status == "Ready"
+    assert result.instructions == "Be helpful."
+    assert result.metadata == {"team": "ml"}
+    assert result.host == "my-assistant-abc.svc.pinecone.io"
+    assert result.created_at == "2025-01-15T12:00:00Z"
+    assert result.updated_at == "2025-01-15T12:00:00Z"
+    assert route.call_count == 1
+
+
+@respx.mock
+def test_describe_assistant_not_found(assistants: Assistants) -> None:
+    """describe() lets 404 errors propagate from the HTTP client."""
+    respx.get(f"{BASE_URL}/assistants/nonexistent").mock(
+        return_value=httpx.Response(404, json={"error": "Not found"}),
+    )
+
+    with pytest.raises(Exception):
+        assistants.describe(name="nonexistent")
+
+
+@respx.mock
+def test_describe_assistant_minimal_response(assistants: Assistants) -> None:
+    """describe() handles response with optional fields absent."""
+    response_data = make_assistant_response(
+        name="minimal",
+        metadata=None,
+        instructions=None,
+        host=None,
+    )
+    respx.get(f"{BASE_URL}/assistants/minimal").mock(
+        return_value=httpx.Response(200, json=response_data),
+    )
+
+    result = assistants.describe(name="minimal")
+
+    assert result.name == "minimal"
+    assert result.metadata is None
+    assert result.instructions is None
+    assert result.host is None

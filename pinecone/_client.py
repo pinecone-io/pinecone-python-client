@@ -14,6 +14,7 @@ from pinecone.errors.exceptions import ValidationError
 if TYPE_CHECKING:
     from pinecone.client.assistants import Assistants
     from pinecone.client.backups import Backups
+    from pinecone.models.assistant.model import AssistantModel
     from pinecone.client.collections import Collections
     from pinecone.client.indexes import Indexes
     from pinecone.client.inference import Inference
@@ -239,7 +240,7 @@ class Pinecone:
             self._assistants = _Assistants(config=self._config)
         return self._assistants
 
-    def Assistant(self, assistant_name: str) -> Any:
+    def Assistant(self, assistant_name: str) -> AssistantModel:
         """Convenience method to retrieve an existing assistant by name.
 
         This is a shorthand for ``pc.assistants.describe(name=assistant_name)``.
@@ -248,16 +249,13 @@ class Pinecone:
             assistant_name (str): The name of the assistant to retrieve.
 
         Returns:
-            The assistant model returned by describe.
+            :class:`AssistantModel` describing the assistant.
 
         Raises:
-            NotImplementedError: Until the describe method is implemented
-                in the Assistants namespace (see P-0124).
+            :exc:`ApiError`: If the API returns an error response (e.g. 404
+                when the assistant does not exist).
         """
-        raise NotImplementedError(
-            "Assistant() requires the assistants.describe() method, "
-            "which will be available after P-0124 is implemented."
-        )
+        return self.assistants.describe(name=assistant_name)
 
     def index(
         self,

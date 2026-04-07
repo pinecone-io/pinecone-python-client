@@ -126,6 +126,31 @@ class Assistants:
 
         return self._poll_until_ready(name, timeout)
 
+    def describe(self, *, name: str) -> AssistantModel:
+        """Get detailed information about a named assistant.
+
+        Args:
+            name (str): The name of the assistant to describe.
+
+        Returns:
+            :class:`AssistantModel` with name, status, created_at, updated_at,
+            metadata, instructions, and host.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response (e.g. 404
+                when the assistant does not exist).
+
+        Examples:
+
+            assistant = pc.assistants.describe(name="my-assistant")
+            print(assistant.status)
+        """
+        logger.info("Describing assistant %r", name)
+        response = self._http.get(f"/assistants/{name}")
+        model = msgspec.json.decode(response.content, type=AssistantModel)
+        logger.debug("Described assistant %r (status=%s)", name, model.status)
+        return model
+
     def _poll_until_ready(self, name: str, timeout: float | None) -> AssistantModel:
         """Poll ``GET /assistants/{name}`` until status is ``"Ready"`` or timeout."""
         start = time.monotonic()
